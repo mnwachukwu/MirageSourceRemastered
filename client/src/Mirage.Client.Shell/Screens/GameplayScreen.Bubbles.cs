@@ -1,0 +1,256 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Mirage.Client.Core.Logic;
+using Mirage.Client.Core.Net;
+using Mirage.Client.Core.State;
+using Mirage.Client.Shell.Config;
+using Mirage.Client.Shell.Input;
+using Mirage.Client.Shell.Localization;
+using Mirage.Client.Shell.Panels;
+using Mirage.Client.Shell.Rendering;
+using Mirage.Client.Shell.Ui;
+using Mirage.Shared;
+using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
+using System.Text;
+
+namespace Mirage.Client.Shell.Screens;
+
+/// <summary>Overhead chat bubbles: their lifetime tick and the wrapped, tail-anchored drawing.</summary>
+public sealed partial class GameplayScreen : IGameScreen
+{
+    // ── Chat bubble tick + draw ───────────────────────────────────────────────
+
+    /// <summary>Demote naturally-expired head bubbles into the drifter list, and remove drifters that
+    /// have rotated past their float window. Iterates players + center/neighbor NPC arrays — cheap
+    /// because active bubbles are infrequent and the per-entity slot check is a null/long comparison.</summary>
+    private static void TickChatBubbles(ClientState state)
+    {
+        long now = Environment.TickCount64;
+
+        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        {
+            var p = state.Players[i];
+            if (string.IsNullOrEmpty(p.Name)) continue;
+            if (p.ChatBubbleText != null && now >= p.ChatBubbleEndMs)
+                ChatBubbleManager.NaturallyExpire(p, now);
+            if (p.ChatBubbleDrifters is { Count: > 0 } pd)
+            {
+                while (pd.Count > 0 && now - pd[0].DemotedMs >= ChatBubbleStyle.FloatMs)
+                    pd.RemoveAt(0);
+            }
+        }
+
+        TickNpcArrayBubbles(state.MapNpcs, now);
+        for (int c = 0; c < 3; c++)
+        {
+            for (int r = 0; r < 3; r++)
+            {
+                if (!(c == 1 && r == 1))
+                    TickNpcArrayBubbles(state.NeighborNpcs[c, r], now);
+            }
+        }
+        // Traversal (guest) NPCs live in a separate dict outside the cell arrays — without this
+        // their head bubbles would never demote to drifters and would just blink off at EndMs.
+        foreach (var t in state.TraversalNpcs.Values)
+            TickOneNpcBubble(t, now);
+    }
+
+    private static void TickOneNpcBubble(ClientMapNpc n, long now)
+    {
+        if (n.ChatBubbleText == null && (n.ChatBubbleDrifters?.Count ?? 0) == 0) return;
+        if (n.ChatBubbleText != null && now >= n.ChatBubbleEndMs)
+            ChatBubbleManager.NaturallyExpire(n, now);
+        if (n.ChatBubbleDrifters is { Count: > 0 } nd)
+        {
+            while (nd.Count > 0 && now - nd[0].DemotedMs >= ChatBubbleStyle.FloatMs)
+                nd.RemoveAt(0);
+        }
+    }
+
+    private static void TickNpcArrayBubbles(ClientMapNpc[] arr, long now)
+    {
+        // Process bubble state regardless of Num — a freshly-killed NPC keeps its preserved
+        // "last words" drifters until the float window elapses (see HandleNpcDead).
+        for (int i = 1; i < arr.Length; i++)
+            TickOneNpcBubble(arr[i], now);
+    }
+
+    /// <summary>Draw a stack of chat bubbles for the current frame. Each bubble: word-wrap to N lines,
+    /// shadow → rounded background → colored border → white text, all multiplied by Alpha.</summary>
+    private void DrawChatBubbles(SpriteBatch sb, SpriteFont font, List<ChatBubbleDrawCmd> bubbles)
+    {
+        float lineH = font.LineSpacing;
+        Color bgBase = new(20, 20, 40, 220);
+        Color shadowBase = new(0, 0, 0, 120);
+
+        foreach (var b in bubbles)
+        {
+            if (b.Alpha <= 0f) continue;
+            var lines = WrapBubbleText(font, b.Text, ChatBubbleStyle.MaxWidthPx, ChatBubbleStyle.MaxLines);
+            if (lines.Count == 0) continue;
+
+            float maxW = 0f;
+            for (int li = 0; li < lines.Count; li++)
+            {
+                float w = font.MeasureString(lines[li]).X;
+                if (w > maxW) maxW = w;
+            }
+            int panelW = (int)Math.Ceiling(maxW) + ChatBubbleStyle.PadX * 2;
+            int panelH = (int)Math.Ceiling(lineH * lines.Count) + ChatBubbleStyle.PadY * 2;
+            int panelX = (int)Math.Round(b.CenterX - panelW / 2f);
+            // Edge clamp: nudge the panel inward so the whole bubble stays inside the world viewport
+            // (the panel plus its shadow). Bubbles wider than the viewport pin to the left edge.
+            int maxPanelX = Camera.ViewW - panelW - ChatBubbleStyle.ShadowOffset;
+            if (maxPanelX < 0) maxPanelX = 0;
+            panelX = Math.Clamp(panelX, 0, maxPanelX);
+            // AnchorY is the panel BOTTOM by default, or the panel TOP when AnchorBelow=true
+            // (used when the entity's name was flipped below its sprite — see RenderCommandBuilder).
+            int panelY = b.AnchorBelow
+                ? (int)Math.Round(b.AnchorY)
+                : (int)Math.Round(b.AnchorY) - panelH;
+            var rect = new Rectangle(panelX, panelY, panelW, panelH);
+
+            // Shadow first (offset down/right), then panel, then border, then text — all alpha-tinted.
+            var shadow = new Rectangle(rect.X + ChatBubbleStyle.ShadowOffset, rect.Y + ChatBubbleStyle.ShadowOffset, rect.Width, rect.Height);
+            UiHelper.DrawRoundedFilledRect(sb, shadow, ChatBubbleStyle.CornerRadius, shadowBase * b.Alpha);
+            UiHelper.DrawRoundedFilledRect(sb, rect, ChatBubbleStyle.CornerRadius, bgBase * b.Alpha);
+            UiHelper.DrawRoundedBorder(sb, rect, ChatBubbleStyle.CornerRadius, ChatPanel.GetColor(b.BorderColorIndex) * b.Alpha);
+
+            // Lines centered horizontally inside the panel.
+            float ty = rect.Y + ChatBubbleStyle.PadY;
+            for (int li = 0; li < lines.Count; li++)
+            {
+                float lw = font.MeasureString(lines[li]).X;
+                var tp = new Vector2(rect.X + (rect.Width - lw) / 2f, ty);
+                sb.DrawString(font, lines[li], tp, Color.White * b.Alpha);
+                ty += lineH;
+            }
+        }
+    }
+
+    private static readonly List<string> _wrapScratch = new();
+    private static readonly StringBuilder _wrapSb = new();
+    /// <summary>Word-wrap into at most <paramref name="maxLines"/> lines at <paramref name="maxWidthPx"/>;
+    /// last-line overflow gets an ellipsis. Words longer than the wrap width are hard-broken character
+    /// by character so they don't escape the bubble. Uses static scratch buffers so steady-state
+    /// rendering allocates nothing beyond the per-line strings.</summary>
+    private static List<string> WrapBubbleText(SpriteFont font, string text, int maxWidthPx, int maxLines)
+    {
+        _wrapScratch.Clear();
+        _wrapSb.Clear();
+        if (string.IsNullOrEmpty(text)) return _wrapScratch;
+
+        string[] words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        bool truncated = false;
+
+        void PushLine()
+        {
+            _wrapScratch.Add(_wrapSb.ToString());
+            _wrapSb.Clear();
+        }
+
+        for (int wi = 0; wi < words.Length; wi++)
+        {
+            if (_wrapScratch.Count >= maxLines)
+            {
+                truncated = true;
+                break;
+            }
+            string w = words[wi];
+
+            // Try to append word (with space if line non-empty) to the current line.
+            int savedLen = _wrapSb.Length;
+            if (_wrapSb.Length > 0) _wrapSb.Append(' ');
+            _wrapSb.Append(w);
+            if (font.MeasureString(_wrapSb).X <= maxWidthPx)
+                continue;
+
+            // Doesn't fit — roll back and push the existing line first.
+            _wrapSb.Length = savedLen;
+            if (_wrapSb.Length > 0)
+            {
+                PushLine();
+                if (_wrapScratch.Count >= maxLines)
+                {
+                    truncated = true;
+                    break;
+                }
+            }
+
+            // Word alone exceeds wrap width — hard-break by character.
+            if (font.MeasureString(w).X > maxWidthPx)
+            {
+                for (int ci = 0; ci < w.Length; ci++)
+                {
+                    _wrapSb.Append(w[ci]);
+                    if (font.MeasureString(_wrapSb).X > maxWidthPx)
+                    {
+                        _wrapSb.Length--; // back out the last char
+                        PushLine();
+                        if (_wrapScratch.Count >= maxLines)
+                        {
+                            truncated = true;
+                            break;
+                        }
+                        _wrapSb.Append(w[ci]);
+                    }
+                }
+                if (truncated) break;
+            }
+            else
+            {
+                _wrapSb.Append(w);
+            }
+        }
+        if (_wrapSb.Length > 0 && _wrapScratch.Count < maxLines)
+            PushLine();
+        else if (_wrapSb.Length > 0)
+            truncated = true;
+
+        if (truncated && _wrapScratch.Count > 0)
+        {
+            string last = _wrapScratch[^1];
+            // Make room for ellipsis by trimming the tail until the new line fits the wrap width.
+            while (last.Length > 0 && font.MeasureString(last + "…").X > maxWidthPx)
+                last = last[..^1];
+            _wrapScratch[^1] = last + "…";
+        }
+        return _wrapScratch;
+    }
+
+    public void AddChatLine(string text, int colorIndex) => _chat.AddLine(text, colorIndex);
+    public void AddChatLine(ChatMsgPacket pkt) => _chat.AddLine(pkt);
+    public void OpenShop()
+    {
+        _shop.Open();
+        BringToFront(PanelShop);
+    }
+    public void OpenInnPanel()
+    {
+        _inn.Open();
+        BringToFront(PanelInn);
+    }
+    public void SyncPreparedSpell(int slot) => _spells.SetPreparedSlot(slot);
+    public void CloseShop() => _shop.Close();
+    public void SetTabTarget(TargetRef t) => _tabTarget = t;
+
+    private void TryUsePotion(ItemType potionType, string potionLabel)
+    {
+        var me = _ctx.State.Me;
+        if (me?.Inv is null) return;
+        for (int i = 1; i <= Constants.MaxInv; i++)
+        {
+            var slot = me.Inv[i];
+            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+            var item = _ctx.State.Items[slot.Num];
+            if (item is not null && item.Type == potionType)
+            {
+                _ctx.Sender.SendUseItem(i);
+                return;
+            }
+        }
+        AddChatLine(ClientStrings.Format(ClientStrings.GameplayScreen_NoPotionFormat, ("Label", potionLabel)), GameColor.BrightRed);
+    }
+}

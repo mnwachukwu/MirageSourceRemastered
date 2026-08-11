@@ -1,0 +1,183 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
+             xmlns:controls="using:Mirage.Editor.Controls"
+             x:Class="Mirage.Editor.Views.MapGroupEditorView">
+
+  <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="200" MinWidth="120"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="*" MinWidth="200"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- ── Left: group list ── -->
+    <DockPanel x:Name="LeftPanel" Grid.Column="0">
+      <TextBox x:Name="_filterTextBox"
+               DockPanel.Dock="Top"
+               Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+               Margin="4,4,4,2"
+               FontSize="11">
+        <TextBox.InnerRightContent>
+          <Button Classes="clearFilter" Content="×" Focusable="False"
+                  Command="{Binding ClearFilterCommand}"
+                  IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </TextBox.InnerRightContent>
+      </TextBox>
+      <TextBlock DockPanel.Dock="Bottom"
+                 Text="{Binding FilterStatus}"
+                 IsVisible="{Binding IsFilterActive}"
+                 FontSize="11" Foreground="#888"
+                 Margin="4,2" HorizontalAlignment="Right"/>
+      <ListBox ItemsSource="{Binding FilteredItems}"
+               SelectedItem="{Binding SelectedMapGroup}"
+               Background="Transparent">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding IsDirty}"/>
+              <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+
+    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+                  ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
+
+    <!-- ── Right: editor panel ── -->
+    <Grid Grid.Column="2">
+      <TextBlock x:Name="_selectPrompt"
+                 IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNull}}"
+                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontStyle="Italic"/>
+      <ScrollViewer IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Margin="16" Spacing="8">
+
+          <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding SelectedMapGroup.Name}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding SelectedMapGroup.DisplayNameText}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_territoryLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <CheckBox  Grid.Column="1" IsChecked="{Binding SelectedMapGroup.Territory}"/>
+          </Grid>
+
+          <!-- Inheritable fallback fields (a map's own value overrides these). -->
+          <TextBlock x:Name="_fallbackHeader" Margin="0,8,0,0" FontWeight="SemiBold"/>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_moralLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <ComboBox  Grid.Column="1"
+                       ItemsSource="{Binding SelectedMapGroup.MoralOptions}"
+                       SelectedItem="{Binding SelectedMapGroup.SelectedMoral, Mode=TwoWay}"
+                       HorizontalAlignment="Stretch"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding SelectedMapGroup.Music, Mode=TwoWay}"
+                           Minimum="0" Maximum="255" FormatString="0"/>
+          </Grid>
+
+          <!-- Map-enter/leave greeting fallback (NPC epic Slice 6): member maps inherit any blank field. -->
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" Text="{Binding SelectedMapGroup.GreetingSpeaker, Mode=TwoWay}"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" Text="{Binding SelectedMapGroup.JoinSay, Mode=TwoWay}"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" Text="{Binding SelectedMapGroup.LeaveSay, Mode=TwoWay}"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <controls:DropdownAutoCompleteBox x:Name="_searchBootMap" Grid.Column="1"
+                             ItemsSource="{Binding MapEntries}"
+                             SelectedItem="{Binding SelectedMapGroup.SelectedBootMap, Mode=TwoWay}"
+                             ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                             FilterMode="Custom" MinimumPrefixLength="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding SelectedMapGroup.BootX, Mode=TwoWay}"
+                           Minimum="0" Maximum="15" FormatString="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding SelectedMapGroup.BootY, Mode=TwoWay}"
+                           Minimum="0" Maximum="11" FormatString="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <CheckBox  Grid.Column="1" IsThreeState="True"
+                       IsChecked="{Binding SelectedMapGroup.Indoors}"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <CheckBox  Grid.Column="1" IsThreeState="True"
+                       IsChecked="{Binding SelectedMapGroup.AlwaysDark}"/>
+          </Grid>
+
+          <TextBlock x:Name="_triStateHint" FontSize="11" Foreground="#888" FontStyle="Italic"
+                     TextWrapping="Wrap"/>
+
+          <Grid ColumnDefinitions="130,*" Margin="0,8,0,0">
+            <TextBlock x:Name="_controllingGuildLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#AAA"
+                       Text="{Binding SelectedMapGroup.ControllingGuildText}"/>
+          </Grid>
+
+          <TextBlock Text="{Binding StatusMessage}"
+                     Foreground="#88FF88"
+                     IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ── Footer: always-visible Save / Discard strip ── -->
+    <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
+            BorderBrush="#444" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+        <Button x:Name="_discardBtn"
+                Command="{Binding DiscardCommand}"
+                IsEnabled="{Binding IsSelectedDirty}"
+                Background="#6B1500" Foreground="White"/>
+        <Button x:Name="_discardAllBtn"
+                Command="{Binding DiscardAllCommand}"
+                IsEnabled="{Binding HasAnyDirty}"
+                Background="#6B3300" Foreground="White"/>
+        <Button x:Name="_saveBtn"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsSelectedDirty}"
+                Background="#1A5A1A" Foreground="White"/>
+        <Button x:Name="_saveAllBtn"
+                Command="{Binding SaveAllCommand}"
+                IsEnabled="{Binding HasAnyDirty}"
+                Background="#1A3A6A" Foreground="White"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

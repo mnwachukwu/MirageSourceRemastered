@@ -1,0 +1,189 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
+             xmlns:controls="using:Mirage.Editor.Controls"
+             x:Class="Mirage.Editor.Views.ShopEditorView">
+
+  <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="200" MinWidth="120"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="*" MinWidth="200"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- ── Left: shop list ── -->
+    <DockPanel x:Name="LeftPanel" Grid.Column="0">
+      <TextBox x:Name="_filterTextBox"
+               DockPanel.Dock="Top"
+               Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+               Margin="4,4,4,2"
+               FontSize="11">
+        <TextBox.InnerRightContent>
+          <Button Classes="clearFilter" Content="×" Focusable="False"
+                  Command="{Binding ClearFilterCommand}"
+                  IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </TextBox.InnerRightContent>
+      </TextBox>
+      <TextBlock DockPanel.Dock="Bottom"
+                 Text="{Binding FilterStatus}"
+                 IsVisible="{Binding IsFilterActive}"
+                 FontSize="11" Foreground="#888"
+                 Margin="4,2" HorizontalAlignment="Right"/>
+      <ListBox ItemsSource="{Binding FilteredItems}"
+               SelectedItem="{Binding SelectedShop}"
+               Background="Transparent">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding IsDirty}"/>
+              <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+
+    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+                  ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
+
+    <!-- ── Right: editor panel ── -->
+    <Grid Grid.Column="2">
+      <TextBlock x:Name="_selectPrompt"
+                 IsVisible="{Binding SelectedShop, Converter={x:Static ObjectConverters.IsNull}}"
+                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontStyle="Italic"/>
+      <ScrollViewer IsVisible="{Binding SelectedShop, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Margin="16" Spacing="8">
+
+          <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
+
+          <Grid ColumnDefinitions="110,*">
+            <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding SelectedShop.Name}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="110,*">
+            <TextBlock x:Name="_typeLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+              <RadioButton x:Name="_storeRadio" IsChecked="{Binding SelectedShop.IsStore, Mode=TwoWay}" GroupName="ShopType"/>
+              <RadioButton x:Name="_innRadio"   IsChecked="{Binding SelectedShop.IsInn, Mode=TwoWay}"   GroupName="ShopType"/>
+            </StackPanel>
+          </Grid>
+
+          <!-- Keeper NPC — the NPC this shop/inn is assigned to; visible for both store and inn (NPC epic S3) -->
+          <Grid ColumnDefinitions="110,*">
+            <TextBlock x:Name="_keeperLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <controls:DropdownAutoCompleteBox Grid.Column="1"
+                             ItemsSource="{Binding SelectedShop.KeeperEntries}"
+                             SelectedItem="{Binding SelectedShop.SelectedKeeper, Mode=TwoWay}"
+                             ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                             FilterMode="Custom" MinimumPrefixLength="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="110,*"
+                IsVisible="{Binding SelectedShop.IsStore}">
+            <TextBlock x:Name="_fixesItemsLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <CheckBox  Grid.Column="1"
+                       IsChecked="{Binding SelectedShop.FixesItems}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="110,*"
+                IsVisible="{Binding SelectedShop.IsInn}">
+            <TextBlock x:Name="_allowBankingLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <CheckBox  Grid.Column="1"
+                       IsChecked="{Binding SelectedShop.AllowBanking}" />
+          </Grid>
+
+          <!-- Trade table — visible for Store-type shops only -->
+          <TextBlock x:Name="_tradesHeader" Margin="0,8,0,2"
+                     IsVisible="{Binding SelectedShop.IsStore}"/>
+          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding SelectedShop.IsStore}">
+            <StackPanel>
+              <!-- Header row: 2* for item pickers, 1* for qty, fixed col for the per-row remove button -->
+              <Grid ColumnDefinitions="2*,*,2*,*,34" Background="#2A2A2A">
+                <TextBlock x:Name="_colGiveItem" Grid.Column="0" Padding="6,4" FontWeight="SemiBold"/>
+                <TextBlock x:Name="_colGiveQty"  Grid.Column="1" Padding="6,4" FontWeight="SemiBold"/>
+                <TextBlock x:Name="_colGetItem"  Grid.Column="2" Padding="6,4" FontWeight="SemiBold"/>
+                <TextBlock x:Name="_colGetQty"   Grid.Column="3" Padding="6,4" FontWeight="SemiBold"/>
+              </Grid>
+              <!-- Empty-state hint shown when the shop has no trades yet -->
+              <TextBlock x:Name="_noTradesHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+                         IsVisible="{Binding SelectedShop.HasNoTrades}"/>
+              <!-- Trade rows bound to observable collection; bounded scroll region keeps long lists usable -->
+              <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding SelectedShop.Trades}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="2*,*,2*,*,34" HorizontalAlignment="Stretch">
+                        <controls:DropdownAutoCompleteBox Grid.Column="0"
+                                         ItemsSource="{Binding ItemEntries}"
+                                         SelectedItem="{Binding SelectedGiveItem, Mode=TwoWay}"
+                                         ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                         FilterMode="Custom" MinimumPrefixLength="0"
+                                         PlaceholderText="{Binding GiveItemPlaceholder}"
+                                         BorderThickness="0,0,1,1" CornerRadius="0"/>
+                        <NumericUpDown Grid.Column="1" Value="{Binding GiveValue}"
+                                       Minimum="{Binding GiveValueMin}" Maximum="{Binding GiveValueMax}" FormatString="0"
+                                       BorderThickness="0,0,1,1" CornerRadius="0"/>
+                        <controls:DropdownAutoCompleteBox Grid.Column="2"
+                                         ItemsSource="{Binding ItemEntries}"
+                                         SelectedItem="{Binding SelectedGetItem, Mode=TwoWay}"
+                                         ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                         FilterMode="Custom" MinimumPrefixLength="0"
+                                         PlaceholderText="{Binding GetItemPlaceholder}"
+                                         BorderThickness="0,0,1,1" CornerRadius="0"/>
+                        <NumericUpDown Grid.Column="3" Value="{Binding GetValue}"
+                                       Minimum="{Binding GetValueMin}" Maximum="{Binding GetValueMax}" FormatString="0"
+                                       BorderThickness="0,0,1,1" CornerRadius="0"/>
+                        <Button Grid.Column="4" Content="-" FontWeight="Bold"
+                                Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.RemoveTradeCommand}"
+                                CommandParameter="{Binding}"
+                                Classes="glyph" Margin="2,0,0,1"
+                                HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+              <!-- Add-row button -->
+              <Button x:Name="_addTradeBtn"
+                      Command="{Binding SelectedShop.AddTradeCommand}"
+                      HorizontalAlignment="Left" Margin="8,6" Padding="10,3"/>
+            </StackPanel>
+          </Border>
+
+          <TextBlock Text="{Binding StatusMessage}"
+                     Foreground="#88FF88"
+                     IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ── Footer: always-visible Save / Discard strip ── -->
+    <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
+            BorderBrush="#444" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+        <Button x:Name="_discardBtn"
+                Command="{Binding DiscardCommand}"
+                IsEnabled="{Binding IsSelectedDirty}"
+                Background="#6B1500" Foreground="White"/>
+        <Button x:Name="_discardAllBtn"
+                Command="{Binding DiscardAllCommand}"
+                IsEnabled="{Binding HasAnyDirty}"
+                Background="#6B3300" Foreground="White"/>
+        <Button x:Name="_saveBtn"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsSelectedDirty}"
+                Background="#1A5A1A" Foreground="White"/>
+        <Button x:Name="_saveAllBtn"
+                Command="{Binding SaveAllCommand}"
+                IsEnabled="{Binding HasAnyDirty}"
+                Background="#1A3A6A" Foreground="White"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

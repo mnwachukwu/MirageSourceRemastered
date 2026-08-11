@@ -1,0 +1,151 @@
+<!-- DefaultTargets is Build (gated, see the note above that target), NOT PublishAll: a solution build
+     invokes each project's DEFAULT targets, so defaulting to PublishAll bypassed the gate entirely. -->
+<Project Sdk="Microsoft.Build.NoTargets/3.7.0" DefaultTargets="Build">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <DistRoot>$(RepoRoot)dist/</DistRoot>
+    <InstallerRoot>$(RepoRoot)dist/installers/</InstallerRoot>
+    <!-- Each app packs into its own installer subfolder so Velopack's per-channel
+         release repository (RELEASES/*.nupkg) doesn't collide with the other apps. -->
+    <AppInstallerDir>$(InstallerRoot)editor/</AppInstallerDir>
+    <!-- Velopack identity, derived from $(GameName) (see Directory.Build.props). _PackId = the per-user
+         install-folder name (%LocalAppData%\$(_PackId)) and the prefix of every artifact vpk emits;
+         it equals the friendly slug, so vpk's Setup.exe needs no rename below. _PackTitle = the visible
+         shortcut / "Apps & features" name. -->
+    <_PackId>$(GameNameSlug)-Editor</_PackId>
+    <_PackTitle>$(GameName) Editor</_PackTitle>
+    <!-- Its own app's icon — see the note in Mirage.Client.Publish.csproj. -->
+    <_InstallerIcon>$(RepoRoot)assets/icons/editor.ico</_InstallerIcon>
+    <_Csproj>$(MSBuildThisFileDirectory)src/Mirage.Editor/Mirage.Editor.csproj</_Csproj>
+  </PropertyGroup>
+
+  <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->
+
+  <Target Name="PublishEditor_Win">
+    <Message Text="── Publishing Editor / win-x64 ──" Importance="High" />
+    <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=win-x64 --nologo" />
+  </Target>
+
+  <Target Name="PackageEditor_Win" DependsOnTargets="PublishEditor_Win">
+    <Message Text="── Packaging Editor / win-x64 (.exe installer) ──" Importance="High" />
+    <PropertyGroup>
+      <_Channel>win</_Channel>
+    </PropertyGroup>
+    <MakeDir Directories="$(AppInstallerDir)" />
+    <Exec Command="dotnet tool run vpk pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)editor/win-x64&quot; --mainExe $(GameNameSlug)-Editor.exe --runtime win-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
+          WorkingDirectory="$(RepoRoot)" />
+    <!-- vpk already emits the friendly $(_PackId)-$(_Channel)-Setup.exe (packId = the slug), so no Setup rename is needed.
+         Only the portable bundle needs vpk's "-Portable" tag dropped. -->
+    <ItemGroup>
+      <_EditorPortable Include="$(AppInstallerDir)$(_PackId)-*-Portable.zip" />
+    </ItemGroup>
+    <Move SourceFiles="@(_EditorPortable)"
+          DestinationFiles="$(AppInstallerDir)$(_PackId)-$(_Channel).zip" />
+    <ItemGroup>
+      <_EditorWinFeed Include="$(AppInstallerDir)*.nupkg;$(AppInstallerDir)releases.*.json;$(AppInstallerDir)assets.*.json;$(AppInstallerDir)RELEASES*" />
+    </ItemGroup>
+    <Delete Files="@(_EditorWinFeed)" />
+  </Target>
+
+  <Target Name="PublishAll_Win" DependsOnTargets="PackageEditor_Win">
+    <Message Text="═══ Editor / Windows complete ═══" Importance="High" />
+  </Target>
+
+  <!-- ═══════════════════════════════════════ LINUX ═════════════════════════════════════════ -->
+
+  <Target Name="PublishEditor_Linux">
+    <Message Text="── Publishing Editor / linux-x64 ──" Importance="High" />
+    <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=linux-x64 --nologo" />
+  </Target>
+
+  <Target Name="PackageEditor_Linux" DependsOnTargets="PublishEditor_Linux">
+    <Message Text="── Packaging Editor / linux-x64 (AppImage) ──" Importance="High" />
+    <PropertyGroup>
+      <_Channel>linux</_Channel>
+    </PropertyGroup>
+    <MakeDir Directories="$(AppInstallerDir)" />
+    <!-- [linux] cross-compiles a Linux bundle from the Windows host; the Windows target omits the
+         directive and uses a bare 'vpk pack' (a directive applies only when target OS != host OS).
+         macOS cannot be cross-built, so its leg hand-rolls a .app.tar.gz instead of using vpk. -->
+    <Exec Command="dotnet tool run vpk [linux] pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)editor/linux-x64&quot; --mainExe $(GameNameSlug)-Editor --runtime linux-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
+          WorkingDirectory="$(RepoRoot)" />
+    <!-- vpk emits $(_PackId).AppImage (no channel token); rename to add the runtime token. Exact match (no wildcard) so the renamed file isn't re-matched on a rebuild. -->
+    <ItemGroup>
+      <_EditorAppImage Include="$(AppInstallerDir)$(_PackId).AppImage" />
+    </ItemGroup>
+    <Move SourceFiles="@(_EditorAppImage)"
+          DestinationFiles="$(AppInstallerDir)$(_PackId)-$(_Channel).AppImage" />
+    <ItemGroup>
+      <_EditorLinuxFeed Include="$(AppInstallerDir)*.nupkg;$(AppInstallerDir)releases.*.json;$(AppInstallerDir)assets.*.json;$(AppInstallerDir)RELEASES*" />
+    </ItemGroup>
+    <Delete Files="@(_EditorLinuxFeed)" />
+  </Target>
+
+  <Target Name="PublishAll_Linux" DependsOnTargets="PackageEditor_Linux">
+    <Message Text="═══ Editor / Linux complete ═══" Importance="High" />
+  </Target>
+
+  <!-- ═══════════════════════════════════════ MACOS ═════════════════════════════════════════ -->
+
+  <Target Name="PublishEditor_Osx">
+    <Message Text="── Publishing Editor / osx-x64 ──" Importance="High" />
+    <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=osx-x64 --nologo" />
+  </Target>
+
+  <Target Name="PackageEditor_Osx" DependsOnTargets="PublishEditor_Osx">
+    <Message Text="── Packaging Editor / osx-x64 (.app.tar.gz) ──" Importance="High" />
+    <PropertyGroup>
+      <_Channel>osx</_Channel>
+      <_AppBundleName>$(GameNameSlug)-Editor.app</_AppBundleName>
+      <_AppBundle>$(DistRoot)$(_AppBundleName)</_AppBundle>
+    </PropertyGroup>
+    <!-- Stage the .app bundle, tar it, then remove the staging dir (it's only an intermediate). -->
+    <RemoveDir Directories="$(_AppBundle)" />
+    <MakeDir Directories="$(_AppBundle)/Contents/MacOS;$(_AppBundle)/Contents/Resources;$(AppInstallerDir)" />
+    <ItemGroup>
+      <_OsxFiles Include="$(DistRoot)editor/osx-x64/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_OsxFiles)"
+          DestinationFolder="$(_AppBundle)/Contents/MacOS/%(RecursiveDir)" />
+    <!-- The name has to match CFBundleIconFile in installer/Info.plist, minus the extension. -->
+    <Copy SourceFiles="$(RepoRoot)assets/icons/editor.icns"
+          DestinationFiles="$(_AppBundle)/Contents/Resources/AppIcon.icns" />
+    <!-- Generate Info.plist from the template, substituting the $(GameName)-derived values so the bundle
+         name / executable / version track Directory.Build.props (no separate macOS touchpoint to maintain). -->
+    <PropertyGroup>
+      <_Plist>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)installer/Info.plist'))</_Plist>
+      <_Plist>$(_Plist.Replace('@EXECUTABLE@', '$(_PackId)'))</_Plist>
+      <_Plist>$(_Plist.Replace('@DISPLAYNAME@', '$(_PackTitle)'))</_Plist>
+      <_Plist>$(_Plist.Replace('@VERSION@', '$(Version)'))</_Plist>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_AppBundle)/Contents/Info.plist" Lines="$(_Plist)" Overwrite="true" />
+    <Exec Command="tar -czf &quot;$(AppInstallerDir)$(GameNameSlug)-Editor-$(_Channel).app.tar.gz&quot; -C &quot;$(DistRoot)&quot; $(_AppBundleName)"
+          WorkingDirectory="$(RepoRoot)" />
+    <RemoveDir Directories="$(_AppBundle)" />
+  </Target>
+
+  <Target Name="PublishAll_Osx" DependsOnTargets="PackageEditor_Osx">
+    <Message Text="═══ Editor / macOS complete ═══" Importance="High" />
+  </Target>
+
+  <!-- ══════════════════════════════════════ ALL PLATFORMS ══════════════════════════════════ -->
+
+  <Target Name="PublishAll" DependsOnTargets="PublishAll_Win;PublishAll_Linux;PublishAll_Osx">
+    <Message Text="═══════════════════════════════════════════════════" Importance="High" />
+    <Message Text="  Editor publish complete — all platforms           " Importance="High" />
+    <Message Text="═══════════════════════════════════════════════════" Importance="High" />
+  </Target>
+
+  <!-- Publishing is a release action, not part of an ordinary build — see the note in
+       Mirage.Publish.csproj.  Packaging runs only for an explicit /t:PublishAll (or PublishAll_Win /
+       PublishAll_Linux / PublishAll_Osx for one platform).
+       The hint is hooked with AfterTargets rather than by redefining Build, which the NoTargets SDK
+       imports after this file and would silently override — the same trap that left the old
+       Build/PublishAll alias dead. -->
+  <Target Name="_PublishHint" AfterTargets="Build">
+    <Message Importance="High"
+             Text="$(MSBuildProjectName): packaging skipped. Run `dotnet msbuild &quot;$(MSBuildProjectFullPath)&quot; /t:PublishAll` to publish." />
+  </Target>
+
+</Project>

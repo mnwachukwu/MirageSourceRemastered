@@ -1,0 +1,594 @@
+using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Net;
+using Mirage.Server.Core.Players;
+using Mirage.Server.Core.World;
+using Mirage.Shared;
+using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
+
+namespace Mirage.Server.Core.GameLogic;
+
+/// <summary>Player versus NPC: attack gating, damage, and everything a kill drags behind it —
+/// the damage ledger, EXP award and party split, territory income accrual, loot rolls, and the
+/// death broadcast plus slot cleanup.</summary>
+public sealed partial class CombatSystem : GameSystem
+{
+    // ── Player vs NPC ─────────────────────────────────────────────────────────
+
+    public bool CanAttackNpc(int attacker, int mapNum, int npcSlot)
+    {
+        if (!SlotValidation.IsValidNpcSlot(npcSlot)) return false;
+        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return false;
+        return CanAttackNpc(attacker, mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, out _);
+    }
+
+    /// <summary>Object form usable for native slot NPCs and traversal guests alike.
+    /// <paramref name="npcSlot"/> is the native slot (1..MaxMapNpcs) or 0 for a traversal guest;
+    /// it's used to address the friendly/shopkeeper rebuff bubble back to the right sprite.</summary>
+    public bool CanAttackNpc(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, out bool rebuffed)
+    {
+        rebuffed = false;
+        if (!_pm[attacker].IsPlaying) return false;
+        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return false;
+        if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
+        long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
+        if (Environment.TickCount64 <= _pm[attacker].AttackTimer + Constants.PlayerAttackCooldownMs * windMult) return false;
+
+        var p = _pm[attacker].Char;
+        var npcRec = _world.Npcs[mapNpc.Num];
+
+        // Cross-map melee: world-space adjacency in the attacker's facing direction.  Against a large NPC the
+        // player connects if their faced tile lands on ANY tile of the NPC's footprint (not just its anchor).
+        if (!IsFacingNpcAcrossMaps(p.Map, p.Dir, p.X, p.Y, mapNum, mapNpc, npcRec.EffectiveSize)) return false;
+        // Two-layer connect ("layer 1.5"): the faced step must reach the NPC's layer — a ground player can't melee
+        // a mob up on the bridge (or vice-versa) except where a ramp connects the two layers.
+        if (!MeleeLayerConnects(p.Map, p.X, p.Y, p.Layer, p.Dir, mapNpc.Layer)) return false;
+
+        if (npcRec.Behavior is NpcBehavior.Friendly or NpcBehavior.Stationary)
+        {
+            rebuffed = true;   // a non-combat NPC in the faced tile — the caller suppresses the whiff swing
+            if (!string.IsNullOrWhiteSpace(npcRec.AttackSay))
+            {
+                // A friendly NPC's rebuff is speech, not combat — route to the Say channel, not the Combat tab.
+                SendMsg(attacker, ServerStrings.CombatSystem_FriendlyNpcSays, GameColor.Npc, ChatChannel.Say, ("NpcName", npcRec.TrimmedName), ("Say", npcRec.AttackSay.TrimEnd()));
+                // Green-bordered bubble over the NPC so the rebuff reads as distinct from a player Say.
+                // Friendly/Stationary NPCs don't traverse, so a non-zero slot is expected here.
+                if (npcSlot > 0)
+                    _dispatcher.SendTo(attacker, PacketBuilder.NpcChatBubble(mapNum, npcSlot, npcRec.AttackSay.TrimEnd(), kind: 1));
+            }
+            else
+            {
+                SendMsg(attacker, ServerStrings.CombatSystem_CannotAttackFriendly, GameColor.BrightBlue, ChatChannel.System, ("NpcName", npcRec.TrimmedName));
+            }
+
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>Speak an NPC's idle/rebuff <see cref="NpcRecord.AttackSay"/> to one player — a Say-channel line plus a
+    /// green chat bubble over the NPC. Used by the friendly-melee rebuff above and by the interaction spine's
+    /// "nothing else to offer" fallback, so an NPC with no conversation / quest / shop still reacts instead of doing
+    /// nothing. No-op when the NPC has no AttackSay.</summary>
+    public void SpeakAttackSayTo(int playerIndex, int mapNum, int npcSlot, NpcRecord npcRec)
+    {
+        if (string.IsNullOrWhiteSpace(npcRec.AttackSay)) return;
+        string say = npcRec.AttackSay.TrimEnd();
+        SendMsg(playerIndex, ServerStrings.CombatSystem_FriendlyNpcSays, GameColor.Npc, ChatChannel.Say, ("NpcName", npcRec.TrimmedName), ("Say", say));
+        if (npcSlot > 0)
+            _dispatcher.SendTo(playerIndex, PacketBuilder.NpcChatBubble(mapNum, npcSlot, say, kind: 1));
+    }
+
+    public void AttackNpc(int attacker, int mapNum, int npcSlot, int dmg, bool isCrit = false)
+    {
+        if (!SlotValidation.IsValidNpcSlot(npcSlot)) return;
+        AttackNpc(attacker, mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, dmg, isCrit);
+    }
+
+    public void AttackNpc(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, bool isCrit = false)
+    {
+        if (!CanAttackNpc(attacker, mapNum, mapNpc, npcSlot, out _)) return;
+
+        var ap = _pm[attacker].Char;
+        int weapNum = ap.WeaponSlot > 0 ? ap.Inv[ap.WeaponSlot].Num : 0;
+        string weap = weapNum > 0 ? _world.Items[weapNum].TrimmedName : "";
+
+        bool isGuard = _world.Npcs[mapNpc.Num].Behavior == NpcBehavior.Guard;
+        BreakGraceForCombat(attacker, involvesPlayerOrGuard: isGuard);
+        ExecuteNpcDamage(attacker, mapNum, mapNpc, npcSlot, dmg, weap, isCrit);
+        _pm[attacker].AttackTimer = Environment.TickCount64;
+    }
+
+    /// <summary>Apply pre-computed spell damage to an NPC without adjacency or behavior checks.
+    /// CastSpell checks behavior before calling AttackNpc; AttackNpc has no such guard.</summary>
+    public void ApplyNpcDamage(int attacker, int mapNum, int npcSlot, int dmg, bool isCrit = false)
+    {
+        if (!SlotValidation.IsValidNpcSlot(npcSlot)) return;
+        ApplyNpcDamage(attacker, mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, dmg, isCrit);
+    }
+
+    /// <summary>Object form (spell damage) usable for native slot NPCs and traversal guests (slot 0).</summary>
+    public void ApplyNpcDamage(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, bool isCrit = false)
+    {
+        if (!_pm[attacker].IsPlaying || dmg < 0) return;
+        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return;
+        bool isGuard = _world.Npcs[mapNpc.Num].Behavior == NpcBehavior.Guard;
+        BreakGraceForCombat(attacker, involvesPlayerOrGuard: isGuard);
+        ExecuteNpcDamage(attacker, mapNum, mapNpc, npcSlot, dmg, weapName: "", isCrit: isCrit);
+    }
+
+    private void ExecuteNpcDamage(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, string weapName, bool isCrit = false)
+    {
+        var npcRec = _world.Npcs[mapNpc.Num];
+
+        // Blood: deposit on the NPC's tile, sized by damage vs its effective max HP; a kill always splats.
+        _blood.Deposit(mapNum, mapNpc.X, mapNpc.Y, Constants.BloodDepositStrength(dmg, _world.EffectiveNpcMaxHp(npcRec), mapNpc.Hp), npcRec.EffectiveSize, mapNpc.Layer);
+
+        if (dmg >= mapNpc.Hp)
+        {
+            mapNpc.DamageByPlayer[attacker] += mapNpc.Hp;  // credit remaining HP — the true kill-blow amount
+            SendYouHitMsg(attacker, $"a {npcRec.TrimmedName}", weapName, dmg, GameColor.BrightRed, killing: true);
+            // Anti-farm: a safe-zone kill a guard helped land pays the player no EXP/loot, so guards
+            // can't be used to tank-farm dragged mobs in town.  Mirrors the NPC-vs-NPC safe-zone
+            // suppression in ExecuteNpcVsNpcDamage.  Solo kills (no guard damage) still reward.
+            if (GuardAssistedKillInSafeZone(mapNum, mapNpc))
+            {
+                SendMsg(attacker, ServerStrings.CombatSystem_SafeZoneNoReward, GameColor.BrightBlue, ChatChannel.Rewards);
+            }
+            else
+            {
+                AwardExpForKill(mapNum, mapNpc);
+                ResolveAndSpawnLoot(mapNum, mapNpc);
+            }
+            ResetNpcCombatLedger(mapNpc);
+            BroadcastNpcDeathAndCleanup(mapNum, mapNpc, npcSlot, dmg, isCrit);
+        }
+        else
+        {
+            mapNpc.Hp -= dmg;
+            mapNpc.DamageByPlayer[attacker] += dmg;
+
+            SendYouHitMsg(attacker, $"a {npcRec.TrimmedName}", weapName, dmg, GameColor.White);
+            if (mapNpc is TraversalNpcRecord t)
+                SendTraversalState(t, damage: dmg, isCrit: isCrit);  // updated Hp + floating number by identity
+            else
+                SendToMap(_world, mapNum, new NpcDamagePacket { MapNum = mapNum, NpcSlot = npcSlot, Damage = dmg, IsCrit = isCrit });
+
+            // Guard grace: a small hit from a non-PK attacker only earns a "Watch it!" warning until
+            // the 3-swing budget runs out. Skips AttackSay too — the warning replaces it for those
+            // swings, and AttackSay still fires on the eventual aggro swing because LastAttackSayTarget
+            // wasn't stamped during grace.
+            if (ConsumeGuardGrace(attacker, mapNum, npcSlot, mapNpc, dmg)) return;
+
+            if (mapNpc.Target == 0 && mapNpc.LastAttackSayTarget != attacker
+                && !string.IsNullOrWhiteSpace(npcRec.AttackSay))
+            {
+                mapNpc.LastAttackSayTarget = attacker;
+                SendMsg(attacker, ServerStrings.CombatSystem_NpcSays, GameColor.Npc, ChatChannel.Say, ("NpcName", npcRec.TrimmedName), ("Say", npcRec.AttackSay.TrimEnd()));
+                if (npcSlot > 0)
+                    _dispatcher.SendTo(attacker, PacketBuilder.NpcChatBubble(mapNum, npcSlot, npcRec.AttackSay.TrimEnd(), kind: 0));
+                else if (mapNpc is TraversalNpcRecord tg)
+                    _dispatcher.SendTo(attacker, PacketBuilder.TraversalNpcChatBubble(tg.SpawnMapNum, tg.SpawnSlot, npcRec.AttackSay.TrimEnd(), kind: 0));
+            }
+
+            SetNpcAggro(mapNum, npcSlot, mapNpc, attacker);
+        }
+    }
+
+    /// <summary>True when <paramref name="mapNpc"/> is dying on a Safe map and at least one Guard NPC
+    /// dealt damage to it: the signal that a guard helped tank/kill a player-dragged mob.  Gates the
+    /// anti-farm EXP/loot denial on the player-kill path so guard-assisted town kills pay nothing,
+    /// while a solo kill in a guardless safe zone still rewards normally.  Must be called before
+    /// <see cref="ResetNpcCombatLedger"/> clears the NPC damage ledger.</summary>
+    private bool GuardAssistedKillInSafeZone(int mapNum, MapNpcRecord mapNpc)
+    {
+        if (_world.MoralOf(mapNum) != MapMoral.Safe) return false;
+        if (mapNpc.DamageByNpc is not { } list) return false;
+        for (int i = 0; i < list.Count; i++)
+        {
+            var resolved = ResolveNpcByIdentity(list[i].SpawnMap, list[i].SpawnSlot);
+            if (resolved is not null && _world.Npcs[resolved.Value.Record.Num].Behavior == NpcBehavior.Guard)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>Two-pass EXP distribution to all contributors and their on-map party partners.  Pass 1
+    /// collects each contributor's BASE contribution EXP (damage-share × tier, pre-bonus) WITHOUT
+    /// awarding anything — stored even for max-level contributors so their partner still earns the
+    /// partner kill bonus.  Pass 2 walks every on-map non-max-level party-eligible player and pays
+    /// them ownBase × PartyExpBonus (when partnered in band) + PartnerKillBonus from partner's base
+    /// — applied to active co-fighters AND a passive partner who dealt no damage, so two co-fighters
+    /// each cut the other's base symmetrically with no incentive to underperform for a bonus cut.
+    /// Net party payout in band = mob_xp × (1.2 + 0.25) = 1.45× regardless of damage split.  Shared
+    /// by player-killed and NPC-killed paths — denominator is NPC max HP, not summed player damage,
+    /// so a guard who whittled half the bar proportionally reduces every player's EXP share (matches
+    /// "you earn what you dealt").</summary>
+    private void AwardExpForKill(int mapNum, MapNpcRecord mapNpc)
+    {
+        var npcRec = _world.Npcs[mapNpc.Num];
+        // Night + weather boosts scale every player's reward; they compound multiplicatively (Night 1.20 × Weather).
+        double expMult = 1.0;
+        if (_world.TimePhase == TimePhase.Night) expMult *= Constants.NpcNightExpMultiplier;
+        expMult *= ExpFormulas.WeatherExpMultiplier(_world.WeatherOn(mapNum));
+        int totalDmg = Math.Max(_world.EffectiveNpcMaxHp(npcRec), 1);
+        // Mob-intrinsic inputs to the per-player EXP (identical for every contributor).
+        int mobMit = CombatFormulas.NpcProtection(npcRec);
+        int mobHit = ExpFormulas.NpcBestHit(npcRec);
+
+        var contributors = new HashSet<int>();
+        var contributorBaseExp = new Dictionary<int, long>();
+        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        {
+            if (mapNpc.DamageByPlayer[i] == 0) continue;
+            // Cross-map aware: a damage-dealer who can observe the NPC's map earns credit,
+            // even if they landed the blows from one tile across a border.
+            if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
+            contributors.Add(i);
+            var p = _pm[i].Char;
+            // EXP is PLAYER-RELATIVE: this player's own SOLO reward for this mob (toughness vs THEIR hit, danger vs
+            // THEIR HP), scaled by the share of the mob they personally chewed through, then the night/weather mult.
+            int solo = ExpFormulas.ExpForKill(totalDmg, mobMit, mobHit, GetPlayerBestDamage(i), GetPlayerProtectionPure(i), p.MaxHp);
+            double share = (double)mapNpc.DamageByPlayer[i] / totalDmg;
+            contributorBaseExp[i] = (long)Math.Round(solo * share * expMult, MidpointRounding.AwayFromZero);
+        }
+
+        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        {
+            if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
+            var p = _pm[i].Char;
+            if (p.Level >= Constants.MaxLevel) continue;
+            bool isContributor = contributors.Contains(i);
+            long contributionExp = contributorBaseExp.GetValueOrDefault(i);
+            if (isContributor && contributionExp <= 0) contributionExp = 1;  // floor: contributors always earn ≥ 1 from their share
+            // L3 guild perk: +10% to this member's own kill EXP (their contribution, and the party bonus
+            // derived from it, both reflect the boost).
+            if (GuildPerks.IsActive(GuildOf(i), Constants.GuildPerkLevelBonusExp))
+                contributionExp += (long)Math.Round(contributionExp * (Constants.GuildPerkBonusExpPercent / 100.0), MidpointRounding.AwayFromZero);
+            int partner = _pm[i].InParty ? _pm[i].PartyPlayer : 0;
+            bool partnerOnMap = partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum);
+            int partnerLevel = partnerOnMap ? _pm[partner].Char.Level : 0;
+            bool partnerInBand = partnerOnMap && Math.Abs(p.Level - partnerLevel) <= ExpFormulas.PartyLevelGap;
+            long partyBonusExp = partnerInBand ? (long)(contributionExp * ExpFormulas.PartyExpBonus) - contributionExp : 0;
+            long partnerBase = contributorBaseExp.GetValueOrDefault(partner);
+            long partnerKillExp = ExpFormulas.PartnerKillBonus(p.Level, partnerLevel, partnerBase);
+            long totalExp = contributionExp + partyBonusExp + partnerKillExp;
+            if (totalExp <= 0) continue;
+            p.Exp = Math.Min(p.Exp + totalExp, ExpFormulas.MaxTotalExp);
+            if (contributionExp > 0)
+                SendMsg(i, ServerStrings.CombatSystem_ExpGain, GameColor.BrightBlue, ChatChannel.Rewards, ("Exp", contributionExp));
+            if (partyBonusExp > 0)
+                SendMsg(i, ServerStrings.CombatSystem_ExpPartyBonus, GameColor.BrightBlue, ChatChannel.Rewards, ("Exp", partyBonusExp));
+            if (partnerKillExp > 0)
+            {
+                SendMsg(i,
+                    contributionExp > 0 ? ServerStrings.CombatSystem_ExpPartnerEffort : ServerStrings.CombatSystem_ExpPartnerKill,
+                    GameColor.BrightBlue, ChatChannel.Rewards, ("Exp", partnerKillExp));
+            }
+
+            CheckPlayerLevelUp(i);
+            _dispatcher.SendTo(i, PacketBuilder.SendStats(p));
+        }
+
+        // Guild-quest valor (per-player): a contributor whose guild's active quest targets this mob rolls for 1
+        // valor. Rolled BEFORE the kernel advances the quest below, so a kill that COMPLETES a guild quest still
+        // pays valor (the kernel's completion callback clears the quest, which would otherwise hide the target).
+        foreach (int i in contributors)
+        {
+            if (GuildSystem.QuestTargetsNpc(GuildOf(i), mapNpc.Num)
+                && CombatFormulas.RollPercent() < Constants.GuildQuestValorChancePercent)
+            {
+                _items.GiveItem(i, Constants.ValorItemIndex, 1);
+            }
+        }
+
+        // Objective-kernel kill hook: advance any tracked Kill objective this mob +
+        // its contributors match. Scope-agnostic — the kernel owns no guild/player notion; BOTH guild quests and
+        // player quests register here, so this one seam drives both. Runs after the valor roll above so a
+        // completing kill still pays valor.
+        _objectives.RecordNpcKill(mapNpc.Num, contributors);
+
+        // Guild XP: one point per KO to each DISTINCT guild that had a contributor (deduped so several
+        // guildmates on one kill grant the guild a single point — a minor trickle; quests are the main
+        // driver). Only touches _guilds for guilded contributors, so it is null-safe for guildless play.
+        var creditedGuilds = new HashSet<int>();
+        foreach (int i in contributors)
+        {
+            int gid = _pm[i].Guild;
+            if (gid < 1 || !creditedGuilds.Add(gid)) continue;
+            var guild = _world.Guilds.GetValueOrDefault(gid);
+            _guilds.AddGuildExp(guild, Constants.GuildExpPerKill);
+            // L5 perk: a chance each KO trickles 1 gold into the guild's daily accumulator (credited at
+            // the 00:00 settlement, after debits). Accrues in memory; the settlement persists it.
+            if (GuildPerks.IsActive(guild, Constants.GuildPerkLevelVaultGold)
+                && CombatFormulas.RollPercent() < Constants.GuildPerkVaultGoldChancePercent)
+            {
+                guild!.PendingVaultGold += 1;
+                _world.DirtyGuilds.Add(gid);   // flushed on the periodic save + shutdown (never lost)
+            }
+            // (Guild-quest progress advances through the objective kernel above, not here.)
+        }
+
+        // Territory income: a chance for this PvE kill to trickle gold to the controlling guild.
+        AccrueTerritoryIncome(mapNum, mapNpc, contributors);
+    }
+
+    // Territory income: a PvE kill in a controlled territory rolls a chance to add gold to the
+    // owning guild's daily accumulator (credited at the 00:00 settlement). Earned by ANYONE hunting there —
+    // the top-damage contributor's guild only decides the owner bonus (owner base if they're a member, else
+    // the non-owner base), scaled by the weeks-held multiplier. PvP kills never reach here (this is the
+    // NPC-kill path). Accrues in memory; the settlement persists + credits it. No-op until a guild controls
+    // the territory.
+    private void AccrueTerritoryIncome(int mapNum, MapNpcRecord mapNpc, HashSet<int> contributors)
+    {
+        if (contributors.Count == 0) return;
+        if (_world.TerritoryGroupOf(mapNum) is not { ControllingGuild: > 0 } terr) return;
+        if (CombatFormulas.RollPercent() >= Constants.TerritoryIncomeChancePercent) return;
+
+        int topKiller = 0, topDmg = 0;
+        foreach (int i in contributors)
+        {
+            int d = mapNpc.DamageByPlayer[i];
+            if (d > topDmg)
+            {
+                topDmg = d;
+                topKiller = i;
+            }
+        }
+        bool killerInOwningGuild = topKiller > 0 && _pm[topKiller].Guild == terr.ControllingGuild;
+        int income = TerritoryFormulas.IncomeForKill(killerInOwningGuild, terr.WeeksHeld);
+        terr.PendingIncome = TerritoryFormulas.AccruePending(terr.PendingIncome, income, Constants.TerritoryIncomeDailyCap);
+        _world.DirtyMapGroups.Add(terr.Index);   // flushed on the periodic save + shutdown (never lost)
+    }
+
+    /// <summary>Resolve the loot-tag winner from <see cref="MapNpcRecord.DamageByPlayer"/> and roll
+    /// the drop chance.  <b>Anti-cheese suppression:</b> if any NPC contributor outdamaged every
+    /// player (max-per-entry comparison), no loot drops at all — prevents a player chipping a mob
+    /// and letting a guard finish for free loot.  Loot threshold uses TOP PLAYER damage (NPC
+    /// contributions are not in the threshold calc).  Caller is responsible for <see cref="ResetNpcCombatLedger"/>
+    /// after.</summary>
+    private void ResolveAndSpawnLoot(int mapNum, MapNpcRecord mapNpc)
+    {
+        var npcRec = _world.Npcs[mapNpc.Num];
+        int maxDmg = 0;
+        for (int i = 1; i <= Constants.MaxPlayers; i++)
+            if (mapNpc.DamageByPlayer[i] > maxDmg) maxDmg = mapNpc.DamageByPlayer[i];
+
+        int topNpcDmg = 0;
+        if (mapNpc.DamageByNpc is { } list)
+        {
+            for (int j = 0; j < list.Count; j++)
+                if (list[j].Damage > topNpcDmg) topNpcDmg = list[j].Damage;
+        }
+
+        if (topNpcDmg > maxDmg) return;  // NPC out-damaged every player → no loot, no roll
+        if (npcRec.DropChance <= 0) return;
+
+        int lootTagWinner = 0;
+        bool lootWasRolled = false;
+        List<(int player, int roll)> lootFinalRolls = [];
+
+        if (maxDmg > 0)
+        {
+            // Clamp to 1 so 0-damage players never qualify: at maxDmg=1 the raw 95% truncates
+            // to 0 and would let everyone on the map roll.
+            int threshold = Math.Max(1, (int)(maxDmg * Constants.LootDamageContributionThreshold));
+            var candidates = new List<int>();
+            for (int i = 1; i <= Constants.MaxPlayers; i++)
+            {
+                if (mapNpc.DamageByPlayer[i] < threshold) continue;
+                if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
+                candidates.Add(i);
+            }
+            if (candidates.Count == 1)
+            {
+                lootTagWinner = candidates[0];
+            }
+            else if (candidates.Count > 1)
+            {
+                lootWasRolled = true;
+                lootTagWinner = ResolveLootRoll(candidates, out lootFinalRolls);
+            }
+        }
+
+        // DropChance is a direct percent (1 = 1%, 50 = 50%, 100 = always). RollPercent() is [0..99],
+        // so the drop lands when the roll is below DropChance; any value >= 100 always drops (capped).
+        int dropChance = npcRec.DropChance;
+        // L1 guild perk: the loot-tag winner's guild boosts their drop rate.
+        if (GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDropRate))
+            dropChance += dropChance * Constants.GuildPerkDropRateBonusPercent / 100;
+        if (CombatFormulas.RollPercent() >= dropChance) return;
+
+        bool dropIsCurrency = _world.Items[npcRec.DropItem].Type == ItemType.Currency;
+        int dropValue = dropIsCurrency
+            ? Math.Max((short)1, npcRec.DropItemValue)
+            : npcRec.DropItemValue;
+        // L4 guild perk: a chance to double this drop — a doubled currency stack, or a second item spawned
+        // below. Keyed on the loot-tag winner's guild (the drop's recipient).
+        bool doubleDrop = GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDoubleDrop)
+            && CombatFormulas.RollPercent() < Constants.GuildPerkDoubleDropChancePercent;
+        if (doubleDrop && dropIsCurrency)
+            dropValue *= 2;
+        string dropItemName = _world.Items[npcRec.DropItem].TrimmedName;
+        string npcName = npcRec.TrimmedName;
+
+        // Currency announces the amount ("Bandit drops 10 Gold."); other items stay unquantified
+        // ("Bandit drops Sword.") since one drop is a single item regardless of stack value.
+        void SendDropNotice(int player)
+        {
+            if (dropIsCurrency)
+            {
+                SendMsg(player, ServerStrings.CombatSystem_LootNpcDropsCurrency, GameColor.Yellow, ChatChannel.Rewards,
+                    ("NpcName", npcName), ("Amount", dropValue), ("Item", dropItemName));
+            }
+            else
+            {
+                SendMsg(player, ServerStrings.CombatSystem_LootNpcDrops, GameColor.Yellow, ChatChannel.Rewards,
+                    ("NpcName", npcName), ("Item", dropItemName));
+            }
+        }
+
+        if (lootWasRolled && lootTagWinner > 0)
+        {
+            string winnerName = _pm[lootTagWinner].Char.Name.Trim();
+            foreach (var (player, _) in lootFinalRolls)
+            {
+                string rollList = string.Join(", ", lootFinalRolls.Select(r =>
+                    $"{(r.player == player ? "You" : _pm[r.player].Char.Name.Trim())} ({r.roll})"));
+                SendDropNotice(player);
+                SendMsg(player, ServerStrings.CombatSystem_LootRolling, GameColor.Yellow, ChatChannel.Rewards, ("Item", dropItemName), ("Rolls", rollList));
+                if (player == lootTagWinner)
+                    SendMsg(player, ServerStrings.CombatSystem_LootWon, GameColor.BrightGreen, ChatChannel.Rewards, ("Item", dropItemName), ("Seconds", Constants.LootTagDurationMs / 1000));
+                else
+                    SendMsg(player, ServerStrings.CombatSystem_LootLost, GameColor.Yellow, ChatChannel.Rewards, ("WinnerName", winnerName), ("Item", dropItemName));
+            }
+        }
+        else if (lootTagWinner > 0)
+        {
+            SendDropNotice(lootTagWinner);
+        }
+
+        int itemSlot = _items.SpawnItem(npcRec.DropItem, dropValue, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
+        if (itemSlot > 0 && lootTagWinner > 0)
+        {
+            var taggedItem = _world.MapItemBySlot(mapNum, itemSlot);
+            if (taggedItem is not null)
+            {
+                taggedItem.TaggedToPlayer = lootTagWinner;
+                taggedItem.TagExpiresAt = Environment.TickCount64 + Constants.LootTagDurationMs;
+            }
+        }
+        // L4 double-drop of a non-currency item: a second identical copy on the same tile (untagged — a
+        // free bonus on the ground; currency was doubled in-place above).
+        if (doubleDrop && !dropIsCurrency)
+            _items.SpawnItem(npcRec.DropItem, dropValue, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
+        _items.EnqueueSaveDroppedItems(mapNum);
+    }
+
+    /// <summary>Zero a victim NPC's combat ledger — damage credits, attack-say dedup, and the
+    /// new NPC-target fields — called after EXP/loot resolved and before the death broadcast.</summary>
+    private static void ResetNpcCombatLedger(MapNpcRecord mapNpc)
+    {
+        mapNpc.ClearDamageCredit();
+        mapNpc.LastAttackSayTarget = 0;
+        mapNpc.LastAttackSayNpcTarget = 0;
+        mapNpc.NpcTargetSpawnMap = 0;
+        mapNpc.NpcTargetSpawnSlot = 0;
+    }
+
+    /// <summary>Shared death-side broadcast + slot cleanup.  Native: zero the slot, broadcast
+    /// NpcDead, drop player click-targets, AND clear other NPCs whose NpcTarget pointed at the
+    /// dead one.  Guest: float the kill packet, remove from MapTraversalNpcs, free the home slot
+    /// + drop guest-keyed player targets, AND clear NPC-targets keyed to the guest's identity.</summary>
+    private void BroadcastNpcDeathAndCleanup(int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, bool isCrit)
+    {
+        if (mapNpc is TraversalNpcRecord t)
+        {
+            mapNpc.Hp = 0;
+            SendTraversalState(t, damage: dmg, isCrit: isCrit, dead: true);
+            _world.MapTraversalNpcs[mapNum].Remove(t);
+            var home = _world.MapNpcs[t.SpawnMapNum, t.SpawnSlot];
+            home.IsReservedSlot = false;
+            home.Num = 0;
+            home.Hp = 0;
+            home.SpawnWait = Environment.TickCount64;
+            DropPlayerTargetsOnTraversal(t.SpawnMapNum, t.SpawnSlot);
+            ClearNpcTargetsForNpc(mapNum, t.SpawnMapNum, t.SpawnSlot);
+        }
+        else
+        {
+            int spawnMap = mapNum, spawnSlot = npcSlot;
+            mapNpc.Num = 0;
+            mapNpc.Hp = 0;
+            mapNpc.SpawnWait = Environment.TickCount64;
+            SendToMap(_world, mapNum, new NpcDeadPacket { MapNum = mapNum, NpcSlot = npcSlot, Damage = dmg, IsCrit = isCrit });
+            DropPlayerTargetsOnNpcSlot(mapNum, npcSlot);
+            ClearNpcTargetsForNpc(mapNum, spawnMap, spawnSlot);
+        }
+    }
+
+    /// <summary>Clear every NPC's lock on a now-dead NPC identity.  Sweeps the 9-map area around
+    /// the death tile (where attackers could still be holding the target) plus all game-wide guests
+    /// (a chaser could have followed across many seams).  Broadcasts an NpcTargetPacket with the
+    /// surviving target state so clients drop the combat outline appropriately.  Also used by the
+    /// guest-returns-home path so other NPCs don't silently re-bind to the freshly respawned native.</summary>
+    public void ClearNpcTargetsForNpc(int deathMap, int deathSpawnMap, int deathSpawnSlot)
+    {
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, deathMap);
+        for (int col = 0; col < 3; col++)
+        {
+            for (int row = 0; row < 3; row++)
+            {
+                int m = grid[col, row];
+                if (m <= 0) continue;
+                for (int s = 1; s <= Constants.MaxMapNpcs; s++)
+                {
+                    var mn = _world.MapNpcs[m, s];
+                    // Void any combat credit this NPC holds against the dead identity — otherwise a
+                    // respawn into the same slot inherits it and steals aggro (the "chases the just-
+                    // respawned imp it remembers fighting" bug).  Done for EVERY swept NPC, since a
+                    // credit-holder is usually fighting a DIFFERENT target than the one that just died.
+                    mn.RemoveNpcDamageBySource(deathSpawnMap, deathSpawnSlot);
+                    if (mn.NpcTargetSpawnMap != deathSpawnMap || mn.NpcTargetSpawnSlot != deathSpawnSlot) continue;
+                    mn.NpcTargetSpawnMap = 0;
+                    mn.NpcTargetSpawnSlot = 0;
+                    SendToMap(_world, m, new NpcTargetPacket { MapNum = m, NpcSlot = s, HasTarget = mn.Target != 0 });
+                }
+            }
+        }
+        // Guests are few — cheap game-wide sweep.
+        for (int m = 1; m <= Constants.MaxMaps; m++)
+        {
+            var guests = _world.MapTraversalNpcs[m];
+            for (int g = 0; g < guests.Count; g++)
+            {
+                var t = guests[g];
+                t.RemoveNpcDamageBySource(deathSpawnMap, deathSpawnSlot);  // void stale credit, same as the native sweep above
+                if (t.NpcTargetSpawnMap == deathSpawnMap && t.NpcTargetSpawnSlot == deathSpawnSlot)
+                {
+                    t.NpcTargetSpawnMap = 0;
+                    t.NpcTargetSpawnSlot = 0;
+                }
+            }
+        }
+    }
+
+    /// <summary>Broadcasts an NPC heal: native slot → NpcDamage with negative Damage (the
+    /// client adds it to Hp and floats a green heal number, same path as a damage tick in
+    /// reverse). Traversal guest → full state with Damage = -healed by identity. Caller has
+    /// already mutated mapNpc.Hp and decided this is non-zero.</summary>
+    public void BroadcastNpcHeal(int mapNum, MapNpcRecord mapNpc, int npcSlot, int healed, bool isCrit)
+    {
+        if (healed <= 0) return;
+        if (mapNpc is TraversalNpcRecord t)
+            SendTraversalState(t, damage: -healed, isCrit: isCrit);
+        else if (npcSlot > 0)
+            SendToMap(_world, mapNum, new NpcDamagePacket { MapNum = mapNum, NpcSlot = npcSlot, Damage = -healed, IsCrit = isCrit });
+    }
+
+    /// <summary>Reduces accumulated damage credit by <paramref name="healed"/> total HP,
+    /// split proportionally across current contributors. Keeps the credit ledger and
+    /// (MaxHp − currentHp) in sync so a later kill can't award EXP shares summing past
+    /// 100% — a player who damaged for X then healed for Y nets X − Y of credit, and
+    /// when a friend heals, each contributor's share shrinks pro-rata. No-op if no
+    /// contributors (no credit to scale).</summary>
+    public void ScaleDownNpcDamageCredit(MapNpcRecord mapNpc, int healed)
+    {
+        if (healed <= 0) return;
+        long sumDmg = 0;
+        for (int i = 1; i <= Constants.MaxPlayers; i++) sumDmg += mapNpc.DamageByPlayer[i];
+        if (sumDmg <= 0) return;
+        // Clamp: if the heal exceeds tracked credit (e.g. a contributor died and their
+        // entry was cleared), there's nothing left to cancel out for — zero it all out.
+        long reduce = Math.Min(healed, sumDmg);
+        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        {
+            int dmg = mapNpc.DamageByPlayer[i];
+            if (dmg <= 0) continue;
+            int delta = (int)(reduce * dmg / sumDmg);  // integer floor — total under-scales slightly, never over
+            mapNpc.DamageByPlayer[i] = Math.Max(0, dmg - delta);
+        }
+    }
+}

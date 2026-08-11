@@ -1,0 +1,460 @@
+using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Net;
+using Mirage.Server.Core.Players;
+using Mirage.Server.Core.World;
+using Mirage.Shared;
+using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
+
+namespace Mirage.Server.Core.GameLogic;
+
+/// <summary>NPC versus player: melee and spell attacks an NPC lands on a character, including
+/// the oversize-footprint reach rules and the damage application that can end in a death.</summary>
+public sealed partial class CombatSystem : GameSystem
+{
+    // ── NPC vs Player ─────────────────────────────────────────────────────────
+
+    public bool CanNpcAttackPlayer(int mapNum, int npcSlot, int victimIndex)
+    {
+        if (!SlotValidation.IsValidNpcSlot(npcSlot)) return false;
+        return CanNpcAttackPlayer(mapNum, _world.MapNpcs[mapNum, npcSlot], victimIndex);
+    }
+
+    /// <summary>
+    /// Object-based form usable by both native slot NPCs and traversal (chasing) NPCs.  Adjacency
+    /// is checked in world space, so an NPC can strike a player one tile away even across a map seam
+    /// — including the case where the player stands on the very tile the NPC would step onto, which
+    /// it can't (occupied), so "coming to it" is impossible and only a cross-seam swing connects.
+    /// Mirrors player→target cross-seam melee.  Map moral is deliberately NOT a gate: a hostile NPC can
+    /// strike a player standing just inside a safe map (see the note at the end of the body).
+    /// </summary>
+    public bool CanNpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int victimIndex)
+    {
+        if (!_pm[victimIndex].IsPlaying) return false;
+        if (_pm[victimIndex].GettingMap) return false;
+        if (_pm[victimIndex].Char.Dead) return false;  // a corpse can't be attacked/damaged/killed; this gate is above MarkPlayerCombat so it also blocks the combat re-stamp
+        if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
+        long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
+        if (Environment.TickCount64 <= mapNpc.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
+
+        var vp = _pm[victimIndex].Char;
+        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, vp.Map, vp.X, vp.Y);
+        if (tw is null) return false;  // victim is outside the NPC's 9-map region
+        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mapNpc.X, mapNpc.Y);
+        int size = _world.Npcs[mapNpc.Num].EffectiveSize;
+        if (size <= 1)
+        {
+            if (WorldCoordHelper.WorldManhattan(npcWX, npcWY, tw.Value.worldX, tw.Value.worldY) != 1) return false;
+        }
+        else
+        {
+            // Large NPC: the victim must sit on a tile just past the leading edge in the direction the NPC
+            // will face (WorldDirectionFrom, matching FaceTargetDir) — so this gate and the strike strip in
+            // NpcAttackPlayer always agree, and the NPC never "attacks" a corner tile it would then miss.
+            var faceDir = WorldCoordHelper.WorldDirectionFrom(npcWX, npcWY, tw.Value.worldX, tw.Value.worldY);
+            if (!WorldCoordHelper.LeadingEdgeTiles(npcWX, npcWY, size, faceDir).Contains(tw.Value.worldX, tw.Value.worldY))
+                return false;
+        }
+
+        // Two-plane connect gate (mirrors the player's MeleeLayerConnects): an NPC on the ground can't melee a
+        // player up on the fringe — or vice-versa — unless the fringe endpoint is on a ramp.  Without this an NPC
+        // directly beneath a bridged player could still swing while the player couldn't hit back (the reported
+        // asymmetry).  Same-layer neighbors always connect, so flat-map melee is unchanged.
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        if (!LayerLogic.LayerConnects(new ServerTileView(_world, grid), npcWX, npcWY, mapNpc.Layer,
+                tw.Value.worldX, tw.Value.worldY, vp.Layer))
+        {
+            return false;
+        }
+
+        // No safe-zone block on attacks: a hostile NPC can melee a player who's one tile across the
+        // seam into a safe map.  Without this, a player could stand one tile inside the safe zone
+        // and farm the NPC with zero retaliation — the seam becomes a no-cost barrier.  Spell casts
+        // already cross seams unrestricted, so removing the melee block just closes the asymmetry.
+        // The player can still escape by walking deeper into the safe zone, past adjacency range.
+        return true;
+    }
+
+    public void NpcAttackPlayer(int mapNum, int npcSlot, int victimIndex)
+    {
+        if (!SlotValidation.IsValidNpcSlot(npcSlot)) return;
+        NpcAttackPlayer(mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, victimIndex);
+    }
+
+    /// <summary>
+    /// Object-based NPC melee on a player.  Pass <paramref name="npcSlot"/> = 0 for a traversal guest; the swing
+    /// is broadcast (NpcAttackPacket) for natives AND guests alike, addressed by the record's universal
+    /// <see cref="MapNpcRecord.GetSpawnIdentity"/>, so the client spawns the swoosh + sparks the same either way.
+    /// </summary>
+    public void NpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int npcSlot, int victimIndex)
+    {
+        if (!CanNpcAttackPlayer(mapNum, mapNpc, victimIndex)) return;
+        var npcRec = _world.Npcs[mapNpc.Num];
+
+        // A large NPC swings once but strikes every player on the tiles just past its leading edge (the
+        // faced direction).  Factored out so the size-1 path below stays byte-for-byte the original.
+        if (npcRec.EffectiveSize > 1)
+        {
+            NpcAttackPlayerFootprint(mapNum, mapNpc, npcSlot, npcRec, victimIndex);
+            return;
+        }
+
+        long now = Environment.TickCount64;
+        MarkNpcCombat(mapNpc, now);
+        MarkPlayerCombat(victimIndex, now, asAttacker: false);
+        BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
+        var vp = _pm[victimIndex].Char;
+
+        if (CanPlayerBlock(vp))
+        {
+            int shieldSlot = vp.ShieldSlot;
+            string shieldName = _world.Items[vp.Inv[shieldSlot].Num].TrimmedName;
+            SendMsg(victimIndex, ServerStrings.CombatSystem_YourShieldBlockedNpc, GameColor.BrightCyan, ("ShieldName", shieldName), ("NpcName", npcRec.TrimmedName));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.Block);
+            DegradeArmor(victimIndex, shieldSlot);
+            DrainSpForBlock(victimIndex);
+            return;
+        }
+        if (CanPlayerDodge(vp))
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_YouDodgedNpc, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.Dodge);
+            DrainSpForDodge(victimIndex);
+            return;
+        }
+
+        // NPC melee applies its full STR against the player's protection — no halving.
+        int prot = GetPlayerProtection(victimIndex);
+        bool wasCrit = CanNpcCritical(mapNpc, mapNum);
+        int damage;
+        if (wasCrit)
+        {
+            mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
+            int raw = CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str));
+            int crit = CombatFormulas.CritDamage(raw);
+            damage = CombatFormulas.ResolveDamage(crit, prot);
+            SendMsg(victimIndex, ServerStrings.CombatSystem_NpcSwingsMight, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+        }
+        else
+        {
+            damage = CombatFormulas.ResolveDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot);
+        }
+
+        mapNpc.AttackTimer = Environment.TickCount64;
+        mapNpc.Attacking = true;
+        mapNpc.MarkReachedTarget(Environment.TickCount64);  // melee landed — physical reach
+        // Broadcast the swing as an EVENT addressed by the attacker's universal identity (GetSpawnIdentity =
+        // home slot for a native, spawn slot for a guest) so observers spawn the crescent swoosh + sparks for
+        // guests exactly as for natives.  The Attacking flag in a guest's state packet drives only the sprite
+        // POSE, not the one-shot FX — same event-parity pattern as the NPC cast bolt.
+        var (swingMap, swingSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
+        if (swingSlot > 0)
+            SendToMap(_world, mapNum, new NpcAttackPacket { MapNum = swingMap, NpcSlot = swingSlot });
+
+        ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: false);
+    }
+
+    /// <summary>
+    /// Large-NPC melee: ONE swing (cooldown + swoosh FX stamped once) that strikes every tile just past the
+    /// NPC's leading edge in its facing direction, damaging each player standing there.  The caller already
+    /// gated (CanNpcAttackPlayer) that the primary victim is on that leading edge; any other players on the
+    /// strip are caught here too.  The strip is resolved in world space, so it can already reach across a
+    /// seam.  Magic is unaffected (separate path).
+    /// </summary>
+    private void NpcAttackPlayerFootprint(int mapNum, MapNpcRecord mapNpc, int npcSlot, NpcRecord npcRec, int victimIndex)
+    {
+        long now = Environment.TickCount64;
+        MarkNpcCombat(mapNpc, now);
+        mapNpc.AttackTimer = now;
+        mapNpc.Attacking = true;
+        mapNpc.MarkReachedTarget(now);  // the swing landed on its leading edge — physical reach
+
+        // Broadcast the single swing once, addressed by the attacker's universal identity (native slot or
+        // guest spawn slot), exactly like the size-1 path.
+        var (swingMap, swingSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
+        if (swingSlot > 0)
+            SendToMap(_world, mapNum, new NpcAttackPacket { MapNum = swingMap, NpcSlot = swingSlot });
+
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var view = new ServerTileView(_world, grid);
+        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, mapNpc.X, mapNpc.Y);
+        var strip = WorldCoordHelper.LeadingEdgeTiles(aWX, aWY, npcRec.EffectiveSize, mapNpc.Dir);
+        var (edx, edy) = WorldCoordHelper.DirDelta(mapNpc.Dir);   // strip tile is one step in Dir from the NPC's front row
+        for (int s = 0; s < strip.Count; s++)
+        {
+            var (swx, swy) = strip[s];
+            var (tMap, tx, ty) = WorldCoordHelper.ResolveWorldTile(in grid, swx, swy);
+            if (tMap <= 0) continue;
+            foreach (int i in _world.MapObservers[tMap])
+            {
+                if (!_pm[i].IsPlaying) continue;
+                var pc = _pm[i].Char;
+                // Two-layer connect: the swing lands only if the NPC (one step back from this strip tile) and the
+                // player connect across layers — a ground mob doesn't hit a player up on the bridge (or vice-versa)
+                // unless one of them is on a ramp.
+                if (pc.Map == tMap && pc.X == tx && pc.Y == ty
+                    && LayerLogic.LayerConnects(view, swx - edx, swy - edy, mapNpc.Layer, swx, swy, pc.Layer))
+                {
+                    ApplyNpcMeleeHitOnPlayer(mapNum, mapNpc, npcRec, i, now);
+                }
+            }
+        }
+    }
+
+    /// <summary>Resolves one melee hit on a single player from an already-stamped large-NPC swing: per-victim
+    /// combat marks, block/dodge rolls, crit, and damage.  Does NOT touch cooldown/swing FX (the caller does
+    /// that once per swing), so it runs once per struck player.  Mirrors the size-1 per-victim resolution.</summary>
+    private void ApplyNpcMeleeHitOnPlayer(int mapNum, MapNpcRecord mapNpc, NpcRecord npcRec, int victimIndex, long now)
+    {
+        if (!_pm[victimIndex].IsPlaying || _pm[victimIndex].GettingMap || _pm[victimIndex].Char.Dead) return;
+        MarkPlayerCombat(victimIndex, now, asAttacker: false);
+        BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
+        var vp = _pm[victimIndex].Char;
+
+        if (CanPlayerBlock(vp))
+        {
+            int shieldSlot = vp.ShieldSlot;
+            string shieldName = _world.Items[vp.Inv[shieldSlot].Num].TrimmedName;
+            SendMsg(victimIndex, ServerStrings.CombatSystem_YourShieldBlockedNpc, GameColor.BrightCyan, ("ShieldName", shieldName), ("NpcName", npcRec.TrimmedName));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.Block);
+            DegradeArmor(victimIndex, shieldSlot);
+            DrainSpForBlock(victimIndex);
+            return;
+        }
+        if (CanPlayerDodge(vp))
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_YouDodgedNpc, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.Dodge);
+            DrainSpForDodge(victimIndex);
+            return;
+        }
+
+        int prot = GetPlayerProtection(victimIndex);
+        bool wasCrit = CanNpcCritical(mapNpc, mapNum);
+        int damage;
+        if (wasCrit)
+        {
+            mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
+            int raw = CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str));
+            int crit = CombatFormulas.CritDamage(raw);
+            damage = CombatFormulas.ResolveDamage(crit, prot);
+            SendMsg(victimIndex, ServerStrings.CombatSystem_NpcSwingsMight, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+        }
+        else
+        {
+            damage = CombatFormulas.ResolveDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot);
+        }
+        ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: false);
+    }
+
+    /// <summary>NPC magic attack on a player.  Mirrors <see cref="NpcAttackPlayer"/>'s shape but uses
+    /// Int for the damage stat, the player's magic protection instead of physical, and broadcasts
+    /// <see cref="NpcCastPacket"/> (or sets <c>Attacking</c> for traversal guests).  Crit roll uses
+    /// <see cref="CanNpcSpellCritical"/> (the INT mirror of melee's <see cref="CanNpcCritical"/>) plus the
+    /// same <see cref="CombatFormulas.SpCostForBlockOrCrit"/> + <see cref="CombatFormulas.CritDamage"/>, with a distinct
+    /// "casts with overwhelming force!" chat line.  Cost is the same trivial pool-fraction as the player's,
+    /// via <see cref="CombatFormulas.GetSubHpSpellMpCost"/> (in-combat regen out-paces it, so the caster sustains).  Caller owns the cooldown gate
+    /// (<see cref="MapNpcRecord.AttackTimer"/>) and range/LoS checks — this method just applies
+    /// the effect once the AI has decided to cast.</summary>
+    public void NpcCastSpellOnPlayer(int mapNum, int npcSlot, MapNpcRecord mapNpc, int victimIndex)
+    {
+        var npcRec = _world.Npcs[mapNpc.Num];
+        if (!_pm[victimIndex].IsPlaying) return;
+        if (_pm[victimIndex].GettingMap) return;
+        if (_pm[victimIndex].Char.Dead) return;  // a corpse can't be attacked/damaged/killed; above MarkPlayerCombat so no combat re-stamp
+        if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return;
+        // NPC cast cost is the same trivial pool-fraction as the player's (GetSubHpSpellMpCost = round(maxMp/20)).
+        // NPCs pay no reagent, and in-combat MP regen out-paces this drain, so a caster SUSTAINS its spell attack
+        // like a player instead of bursting out.  If it genuinely can't afford a cast (e.g. Snow cuts max MP to
+        // near zero) it falls back to melee rather than idling — mana is a distant ceiling, not a per-cast gate.
+        int mpCost = CombatFormulas.GetSubHpSpellMpCost(_world.EffectiveNpcMaxMp(npcRec));
+        if (mapNpc.Mp < mpCost) return;
+
+        long now = Environment.TickCount64;
+        MarkNpcCombat(mapNpc, now);
+        MarkPlayerCombat(victimIndex, now, asAttacker: false);
+        BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
+
+        // Spell magnitude MIRRORS NPC melee: a symmetric +-10% Vary around NpcSpellBaseMagnitude(Int) (the same
+        // Vary as P-DMG).  Full magnitude every cast — the trivial pool-fraction mpCost (computed above) lets the
+        // caster sustain its damage instead of OOMing, so there is no MP cap on the roll.
+        int magnitude = Math.Max(1, CombatFormulas.Vary(CombatFormulas.NpcSpellBaseMagnitude(npcRec.Int)));
+
+        // Damage: rolled magnitude minus player's mitigation (single universal MIT — magic and physical
+        // resisted identically, and this hit wears the player's gear like a melee hit).  The +-10% Vary above
+        // is the whole variance (mirror of melee); crit applies CritDamage to the rolled magnitude.
+        int prot = GetPlayerProtection(victimIndex);
+        var victimForBlock = _pm[victimIndex].Char;   // capture shield name before negation (a break would clear the slot)
+        string blockShieldName = victimForBlock.ShieldSlot > 0 ? _world.Items[victimForBlock.Inv[victimForBlock.ShieldSlot].Num].TrimmedName : "";
+        var negation = TryPlayerNegateMagic(victimIndex);   // shield -> block, no shield -> dodge (mirror of melee)
+        bool negated = negation != MagicNegation.None;
+        bool wasCrit = !negated && CanNpcSpellCritical(mapNpc, mapNum);
+        int damage;
+        if (negation == MagicNegation.Blocked)
+        {
+            damage = 0;
+            SendMsg(victimIndex, ServerStrings.CombatSystem_YourShieldBlockedSpellNpc, GameColor.BrightCyan, ("ShieldName", blockShieldName), ("NpcName", npcRec.TrimmedName));
+        }
+        else if (negation == MagicNegation.Dodged)
+        {
+            damage = 0;
+            SendMsg(victimIndex, ServerStrings.CombatSystem_YouDodgedNpc, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+        }
+        else if (wasCrit)
+        {
+            mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
+            int crit = CombatFormulas.CritDamage(magnitude);
+            damage = CombatFormulas.ResolveDamage(crit, prot);
+            SendMsg(victimIndex, ServerStrings.CombatSystem_NpcCastsForce, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+        }
+        else
+        {
+            damage = CombatFormulas.ResolveDamage(magnitude, prot);
+        }
+
+        mapNpc.Mp -= mpCost;
+        // Unified cooldown beat with NPC melee: AttackTimer gates both the swing (via CanNpcAttackPlayer)
+        // and the cast-decision roll (via TryNpcMagicAction).  After a cast the NPC waits NpcAttackCooldownMs
+        // before swinging AND SpellCastCooldownMs before casting again — the same 1-second beat the player
+        // has between any combat actions.
+        mapNpc.AttackTimer = now;
+        mapNpc.Attacking = true;
+        mapNpc.MarkReachedTarget(now);  // cast counts as reach — any damage action keeps the AoS give-up clock alive
+        // Identify the caster by its universal (SpawnMap, SpawnSlot) — for a native that's its home map+slot;
+        // for a guest it's the home identity (not the transient list index), so the observer can resolve it.
+        var (casterMap, casterSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
+        if (casterSlot > 0)
+        {
+            SendToMap(_world, mapNum, new NpcCastPacket
+            {
+                MapNum = casterMap, NpcSlot = casterSlot,
+                TargetType = 0, Target = victimIndex, TargetMap = _pm[victimIndex].Char.Map,
+            });
+        }
+
+        // A blocked/dodged spell already showed the Block/Dodge float + its message; skip the damage path
+        // so it doesn't also fire the zero-damage "didn't phase" taunt (reserved for truly over-mitigated hits).
+        if (!negated)
+            ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: true);
+    }
+
+
+    /// <summary>Shared damage-application body for both NPC melee (<see cref="NpcAttackPlayer"/>)
+    /// and NPC magic (<see cref="NpcCastSpellOnPlayer"/>).  Handles the zero-damage taunt, the
+    /// regular hit broadcast, and the full death-penalty / warp / vital-reset path on lethal
+    /// damage.  <paramref name="isSpell"/> swaps the "hit" verb to "blasted" and the "hit"
+    /// noun to "spell" in the messages so spell hits read as spells, not swings.</summary>
+    private void ApplyNpcDamageToPlayer(int mapNum, NpcRecord npcRec, int victimIndex, int damage, bool wasCrit, bool isSpell)
+    {
+        // Belt-and-suspenders: the single shared NPC->player damage chokepoint never touches a corpse, so no
+        // future caller (DoT/AoE/trap) can re-enter the lethal branch and re-escalate the respawn penalty/timer.
+        if (_pm[victimIndex].Char.Dead) return;
+        // NPC-vs-player damage disfavor: on-level mobs are +20% HP (favor) AND hit players softer, so PvE fights
+        // stay impactful without spiking a squishy build down.  PvE-only (player->NPC / NPC->NPC stay full mirror),
+        // applied here post-mitigation.  Guard on damage>0 so a fully-phased-out hit stays 0.  The kill-EXP danger
+        // term mirrors this multiplier (ExpFormulas.ExpForKill) so EXP prices the softened threat.
+        if (damage > 0)
+            damage = (int)Math.Round(damage * Constants.NpcVsPlayerDamageMultiplier, MidpointRounding.AwayFromZero);
+
+        // Night boost: NPCs hit players harder after dark (binary Night). Single chokepoint for melee and
+        // spell, applied post-mitigation so the boosted number is what's shown, subtracted, and lethality-checked.
+        // Stacks on top of the disfavor (effective night factor = disfavor x night multiplier).
+        if (_world.TimePhase == TimePhase.Night && damage > 0)
+            damage = (int)Math.Round(damage * Constants.NpcNightDamageMultiplier, MidpointRounding.AwayFromZero);
+
+        var vp = _pm[victimIndex].Char;
+        string attackNoun = isSpell ? "spell" : "hit";
+        string hitKey = isSpell ? ServerStrings.CombatSystem_NpcHitYouMagic : ServerStrings.CombatSystem_NpcHitYouPhysical;
+
+        if (damage == 0)
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_NpcAttackNoPhase, GameColor.BrightBlue, ("NpcName", npcRec.TrimmedName), ("AttackNoun", attackNoun));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.ZeroHit);
+            return;
+        }
+
+        // Blood: deposit on the victim's tile (still their pre-warp tile even on a kill); a kill always splats.
+        _blood.Deposit(vp.Map, vp.X, vp.Y, Constants.BloodDepositStrength(damage, vp.MaxHp, vp.Hp), layer: vp.Layer);
+
+        if (damage >= vp.Hp)
+        {
+            vp.Hp = 0;
+            SendToMapBut(_world, vp.Map, victimIndex, PacketBuilder.SendHp(victimIndex, 0, vp.MaxHp, showFloat: true, isCrit: wasCrit, damage: damage));
+            _dispatcher.SendTo(victimIndex, PacketBuilder.SendHp(victimIndex, 0, vp.MaxHp));
+            SendMsg(victimIndex, hitKey, GameColor.BrightRed, ("NpcName", npcRec.TrimmedName), ("Damage", damage));
+            // Kill-feed flavor by relative strength — same NpcLevel-vs-player gap as the on-target
+            // "trivial readout": a much stronger mob "slaughtered" the player, a much weaker one is a
+            // careless death, anything in between is a plain kill. Pure flavor; penalties below unchanged.
+            int npcGap = StatFormulas.NpcLevel(npcRec) - vp.Level;
+            string npcKilledKey =
+                npcGap >= Constants.NpcStrengthTierGap ? ServerStrings.CombatSystem_PlayerSlaughteredByNpc :
+                npcGap <= -Constants.NpcStrengthTierGap ? ServerStrings.CombatSystem_PlayerCarelessDeathByNpc :
+                ServerStrings.CombatSystem_PlayerKilledByNpc;
+            _dispatcher.SendLocalizedChatToAll(npcKilledKey,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.Notice),
+                ("VictimName", vp.TrimmedName), ("NpcName", npcRec.TrimmedName));
+
+            ClearNpcTargetsFor(mapNum, victimIndex);
+            ClearPlayerNpcContributions(victimIndex, mapNum);
+
+            if (vp.Level >= 10)
+            {
+                if (vp.IsPk(NowUtc))
+                {
+                    SendMsg(victimIndex, ServerStrings.CombatSystem_PkDeathPenalty, GameColor.BrightRed, ChatChannel.System);
+                    // Caster parity BEFORE drops (destroy prepared-spell-priced reagents; the rest drop).
+                    DestroyCasterDeathReagents(victimIndex, 20);
+                    // Drops run BEFORE durability damage so a piece that breaks on death still gets the
+                    // equipped drop CHANCE rather than being force-dropped as unequipped (see
+                    // DegradeEquipped) — order is load-bearing, don't swap.
+                    DropNonEquippedInventory(victimIndex);
+                    DropRandomEquipped(victimIndex);
+                    DegradeEquipped(victimIndex, 20);
+
+                    long loss = ApplyExpLoss(victimIndex, ExpFormulas.DeathExpLossPk(vp.Level));
+                    SendMsg(victimIndex, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
+                    // PK flag is NOT cleared by an NPC kill — only a player kill removes it.
+                }
+                else
+                {
+                    // Caster parity BEFORE drops (destroy prepared-spell-priced reagents; the rest drop).
+                    DestroyCasterDeathReagents(victimIndex, 10);
+                    // Drops run BEFORE durability damage so a piece that breaks on death is still treated
+                    // as equipped for this death's drop rules (a broken piece is then unequipped + kept)
+                    // — order is load-bearing, don't swap.
+                    DropRandomNonEquippedInventory(victimIndex);
+                    DegradeEquipped(victimIndex, 10);
+
+                    long loss = ApplyExpLoss(victimIndex, ExpFormulas.DeathExpLossNormal(vp.Level));
+                    SendMsg(victimIndex, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
+                }
+            }
+            else
+            {
+                SendMsg(victimIndex, ServerStrings.CombatSystem_Sub10DeathSpared, GameColor.BrightBlue, ChatChannel.System);
+            }
+
+            // Death ends combat like a natural expiry — capture before zeroing (see the PvP death path).
+            bool victimWasInCombat = _pm[victimIndex].WasInCombat;
+            _pm[victimIndex].CombatExpiresAt = 0;
+            _pm[victimIndex].WasInCombat = false;
+            _pm[victimIndex].PvpAttackerUntil = 0;
+            _pm[victimIndex].AttackTimer = 0;   // respawn act-ready (mirrored client-side in ClearMapState)
+            BroadcastPlayerDeathFx(victimIndex);   // death animation at the tile the player fell on
+            if (victimWasInCombat)   // combat-exit notice, AFTER the death broadcast, matching a natural expiry
+                SendMsg(victimIndex, ServerStrings.RegenerationSystem_CombatEnded, GameColor.BrightGreen, ChatChannel.System);
+            // Enter the timed dead state instead of respawning; EnterDeadState's broadcast
+            // carries aggressorUntilUtc=0, which also clears any non-PK aggressor flash.
+            EnterDeadState(victimIndex);
+            if (_pm[victimIndex].IsGhost)
+                _joinLeave.ClearGhost(victimIndex);
+        }
+        else
+        {
+            vp.Hp -= damage;
+            SendToMap(_world, vp.Map, PacketBuilder.SendHp(victimIndex, vp.Hp, vp.MaxHp, showFloat: true, isCrit: wasCrit, msSinceCombat: VictimCombatStamp(victimIndex)));
+            SendMsg(victimIndex, hitKey, GameColor.BrightRed, ("NpcName", npcRec.TrimmedName), ("Damage", damage));
+        }
+    }
+}

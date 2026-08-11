@@ -1,0 +1,75 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Mirage.Client.Shell</RootNamespace>
+    <AssemblyName>$(GameNameSlug)</AssemblyName>
+    <!-- Both icons come from Directory.Build.props, alongside GameName — see the note there.
+         Changing the icon on an already-built client is a repackaging step rather than a build one;
+         see "Shipping your own client" in the README. -->
+    <ApplicationIcon>$(ClientIcon)</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- The window and taskbar icon for the running game.
+       MonoGame's SdlGameWindow looks for an embedded resource in the entry assembly, then falls
+       back to `MonoGame.bmp` — its own logo, embedded in the framework.
+
+       LogicalName pins the name to exactly `Icon.bmp`, which is deliberate. The name MonoGame tries
+       *first* is derived from the assembly: `<AssemblyName>.Icon.bmp` in 3.8.4, and
+       `<EntryNamespace>.Icon.bmp` in 3.8.1 — it has already changed once. Our AssemblyName is
+       $(GameNameSlug), so anything keyed on it would break the moment a fork renames the game. The
+       bare `Icon.bmp` fallback is the one stable name across both versions and every rename.
+
+       It must be a BMP, and a BITMAPV4HEADER one: the framework loads it through SDL_LoadBMP. -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(ClientWindowIcon)" LogicalName="Icon.bmp" />
+  </ItemGroup>
+
+  <!-- Expose internals to the unit-test project so headless input/widget interaction (e.g. the
+       channel dropdown's press handling) can be driven without a MonoGame window. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mirage.Client.Shell.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.0" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4.1" />
+    <PackageReference Include="NVorbis" Version="0.10.5" />
+    <PackageReference Include="TextCopy" Version="6.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\server\src\Mirage.Shared\Mirage.Shared.csproj" />
+    <ProjectReference Include="..\Mirage.Client.Core\Mirage.Client.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Localization string files. -->
+  <ItemGroup>
+    <Content Include="lang\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Menu art and control diagrams at the graphics root. -->
+  <ItemGroup>
+    <Content Include="assets\graphics\*.jpg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="assets\graphics\*.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Per-class graphics folders. Tiles are multi-sheet (leading number = stable sheet index);
+       sprites/items are single-sheet for now. Globbed so adding/removing files is picked up on the
+       next build with no project edit. -->
+  <ItemGroup>
+    <Content Include="assets\graphics\tiles\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="assets\graphics\sprites\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="assets\graphics\items\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Background music tracks. -->
+  <ItemGroup>
+    <Content Include="assets\music\*.ogg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

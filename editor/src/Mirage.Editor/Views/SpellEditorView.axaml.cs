@@ -1,0 +1,88 @@
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
+using Mirage.Editor.Localization;
+
+namespace Mirage.Editor.Views;
+
+/// <summary>Code-behind for the editor pane that edits spell definitions and their live MP / reagent cost preview.
+/// Localizes the captions (they are assigned in code rather than bound) and persists the
+/// splitter width across sessions.</summary>
+public partial class SpellEditorView : LocalizedUserControl
+{
+    public SpellEditorView()
+    {
+        InitializeComponent();
+        Loaded += OnLoaded;
+        ApplyStrings();
+    }
+
+    protected override void ApplyStrings()
+    {
+        _typeFilterCombo.PlaceholderText = EditorStrings.Get(EditorStrings.SpellEditor_AllSpellTypesFilter);
+        _classReqFilterCombo.PlaceholderText = EditorStrings.Get(EditorStrings.SpellEditor_AllClassesFilter);
+        _filterTextBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_FilterByName);
+        _classReqPicker.PlaceholderText = EditorStrings.Get(EditorStrings.SpellEditor_ClassReqSearchPlaceholder);
+        _giveItemPicker.PlaceholderText = EditorStrings.Get(EditorStrings.SpellEditor_GiveItemSearchPlaceholder);
+        _selectPrompt.Text = EditorStrings.Get(EditorStrings.SpellEditor_SelectPrompt);
+        _sectionTitle.Text = EditorStrings.Get(EditorStrings.SpellEditor_SectionTitle);
+        _nameLabel.Text = EditorStrings.Get(EditorStrings.Common_NameLabel);
+        _typeLabel.Text = EditorStrings.Get(EditorStrings.Common_TypeLabel);
+        _classReqLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_ClassReqLabel);
+        _maxMpCostLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_MaxMpCostLabel);
+        _reagentCostLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_ReagentCostLabel);
+        _mpCostNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_MpCostNote);
+        _formulaNotesHeader.Text = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _fmtData1Intro.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_Data1Intro);
+        _fmtData1Bullet1.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_Data1Bullet1);
+        _fmtData1Bullet2.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_Data1Bullet2);
+        _fmtData1Bullet3.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_Data1Bullet3);
+        _fmtClassIntNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_ClassIntNote);
+        _fmtPlayerIntNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_PlayerIntNote);
+        _fmtMagnitudeHeader.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeHeader);
+        _fmtMagnitudeRaw.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeRaw);
+        _fmtMagnitudeContribution.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeContribution);
+        _fmtMagnitudeActualHit.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeActualHit);
+        _fmtMagnitudeMitNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeMitNote);
+        _fmtMpCostHeader.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MpCostHeader);
+        _fmtMpCostFormula.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MpCostFormula);
+        _fmtMpCostNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MpCostNote);
+        _fmtGiveItemHeader.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_GiveItemHeader);
+        _fmtGiveItemBullet1.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_GiveItemBullet1);
+        _fmtGiveItemBullet2.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_GiveItemBullet2);
+        _fmtGiveItemBullet3.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_GiveItemBullet3);
+        _fmtMaxMpHeader.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MaxMpHeader);
+        _fmtMaxMpFormula.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MaxMpFormula);
+        _fmtMaxMpNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MaxMpNote);
+        _fmtRangeHeader.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_RangeHeader);
+        _fmtRangeFormula.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_RangeFormula);
+        _fmtRangeNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_RangeNote);
+        _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
+        _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
+        _saveBtn.Content = EditorStrings.Get(EditorStrings.SpellEditor_SaveSpellButton);
+        _saveAllBtn.Content = EditorStrings.Get(EditorStrings.Common_SaveAll);
+    }
+
+    /// <summary>Persist the panel layout as the view leaves the tree, so switching sections
+    /// keeps the splitter position.</summary>
+    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromLogicalTree(e);
+        SavePanelState();
+        AppSettings.Current.Save();
+    }
+
+    /// <summary>Restore the saved splitter width once the visual tree exists.</summary>
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        PanelGrid.ColumnDefinitions[0].Width = new GridLength(AppSettings.Current.SpellEditorLeftWidth);
+    }
+
+    /// <summary>Save the splitter width. Guards on a non-zero width so a never-shown view
+    /// cannot persist a collapsed layout.</summary>
+    internal void SavePanelState()
+    {
+        if (LeftPanel.Bounds.Width > 0)
+            AppSettings.Current.SpellEditorLeftWidth = LeftPanel.Bounds.Width;
+    }
+}

@@ -1,0 +1,342 @@
+using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.GameLogic;
+using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Persistence;
+using Mirage.Server.Core.Players;
+using Mirage.Server.Core.World;
+using Mirage.Shared;
+using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
+using Mirage.Shared.Security;
+
+namespace Mirage.Server.Core.Net;
+
+/// <summary>Items, stat training, and the bank and shop counters — every packet that moves an item
+/// between the player, the ground, a vault, or a vendor.</summary>
+public sealed partial class PacketHandler
+{
+    //  Item handlers
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private void HandleUseItem(int index, UseItemPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't use items (potions, equip, scrolls)
+        if (!SlotValidation.IsValidInvSlot(p.Slot))
+        {
+            HackingAttempt(index, "Invalid InvNum");
+            return;
+        }
+        _items.UseItem(index, p.Slot);
+    }
+
+    private void HandleMapGetItem(int index)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't pick up items
+        _items.PlayerMapGetItem(index);
+    }
+
+    private void HandleSortInventory(int index)
+    {
+        if (!_pm[index].IsPlaying) return;
+        _items.SortInventory(index);
+    }
+
+    private void HandleMapDropItem(int index, MapDropItemPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't drop items
+        if (!SlotValidation.IsValidInvSlot(p.Slot))
+        {
+            HackingAttempt(index, "Invalid InvNum");
+            return;
+        }
+
+        var chr = _pm[index].Char;
+        if (p.Value > chr.Inv[p.Slot].Value)
+        {
+            HackingAttempt(index, "Item amount modification");
+            return;
+        }
+
+        int itemNum = chr.Inv[p.Slot].Num;
+        if (itemNum > 0 && _world.Items[itemNum].Type == ItemType.Currency && p.Value <= 0)
+        {
+            HackingAttempt(index, "Trying to drop 0 amount of currency");
+            return;
+        }
+
+        _items.PlayerMapDropItem(index, p.Slot, p.Value);
+    }
+
+    private void HandleMapDropBulk(int index, MapDropBulkPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't drop items
+        if (p.ItemNum <= 0 || p.ItemNum > Constants.MaxItems)
+        {
+            HackingAttempt(index, "Invalid MapDropBulk ItemNum");
+            return;
+        }
+        if (p.Amount < 0)
+        {
+            HackingAttempt(index, "Negative MapDropBulk Amount");
+            return;
+        }
+        _items.PlayerMapDropBulk(index, p.ItemNum, p.Amount);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  Stats handler
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private void HandleTrainStats(int index, TrainStatsPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't train stats
+        if (p.Str < 0 || p.Def < 0 || p.Int < 0 || p.Spd < 0)
+        {
+            HackingAttempt(index, "Invalid Stat Train");
+            return;
+        }
+
+        int total = p.Str + p.Def + p.Int + p.Spd;
+        if (total <= 0) return;  // nothing staged
+
+        var chr = _pm[index].Char;
+        if (total > chr.Points)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoStatPoints, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            return;
+        }
+
+        chr.Str += p.Str;
+        chr.Def += p.Def;
+        chr.Int += p.Int;
+        chr.Spd += p.Spd;
+        chr.Points -= total;
+
+        // One flavor line per stat TYPE increased (not per point) — dumping 3 points into STR is a single
+        // "You feel stronger."; training STR+INT sends the STR line and the INT line.
+        if (p.Str > 0) _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_GainedStr, new ChatMetadata(GameColor.White, ChatChannel.System));
+        if (p.Def > 0) _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_GainedDef, new ChatMetadata(GameColor.White, ChatChannel.System));
+        if (p.Int > 0) _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_GainedInt, new ChatMetadata(GameColor.White, ChatChannel.System));
+        if (p.Spd > 0) _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_GainedSpd, new ChatMetadata(GameColor.White, ChatChannel.System));
+
+        StatFormulas.RefreshPlayerMaxVitals(chr, _world.Classes[chr.Class], _world.WeatherOn(chr.Map));
+        chr.Hp = Math.Min(chr.Hp, chr.MaxHp);
+        chr.Mp = Math.Min(chr.Mp, chr.MaxMp);
+        chr.Sp = Math.Min(chr.Sp, chr.MaxSp);
+        _dispatcher.SendTo(index, PacketBuilder.SendHp(index, chr.Hp, chr.MaxHp));
+        SendToMap(chr.Map, PacketBuilder.SendMp(index, chr.Mp, chr.MaxMp));
+        SendToMap(chr.Map, PacketBuilder.SendSp(index, chr.Sp, chr.MaxSp));
+        _dispatcher.SendTo(index, PacketBuilder.SendStats(chr));
+        _quests.RefreshEligibility(index);   // new stats may newly meet a quest's accept requirements → relight "?"
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  Bank handlers
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private void HandleBankOpen(int index)
+    {
+        if (!_pm[index].IsPlaying) return;
+        _bank.OpenBank(index);
+    }
+
+    private void HandleBankDeposit(int index, BankDepositPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't use the bank
+        if (!SlotValidation.IsValidInvSlot(p.InvSlot))
+        {
+            HackingAttempt(index, "Invalid BankDeposit InvSlot");
+            return;
+        }
+        if (p.Amount < 0)
+        {
+            HackingAttempt(index, "Negative BankDeposit Amount");
+            return;
+        }
+        _bank.Deposit(index, p.InvSlot, p.Amount);
+    }
+
+    private void HandleBankWithdraw(int index, BankWithdrawPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't use the bank
+        if (!SlotValidation.IsValidBankSlot(p.BankSlot))
+        {
+            HackingAttempt(index, "Invalid BankWithdraw BankSlot");
+            return;
+        }
+        if (p.Amount < 0)
+        {
+            HackingAttempt(index, "Negative BankWithdraw Amount");
+            return;
+        }
+        _bank.Withdraw(index, p.BankSlot, p.Amount);
+    }
+
+    private void HandleBankDepositBulk(int index, BankDepositBulkPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't use the bank
+        if (p.ItemNum <= 0 || p.ItemNum > Constants.MaxItems)
+        {
+            HackingAttempt(index, "Invalid BankDepositBulk ItemNum");
+            return;
+        }
+        if (p.Amount < 0)
+        {
+            HackingAttempt(index, "Negative BankDepositBulk Amount");
+            return;
+        }
+        _bank.DepositBulk(index, p.ItemNum, p.Amount);
+    }
+
+    private void HandleBankWithdrawBulk(int index, BankWithdrawBulkPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't use the bank
+        if (p.ItemNum <= 0 || p.ItemNum > Constants.MaxItems)
+        {
+            HackingAttempt(index, "Invalid BankWithdrawBulk ItemNum");
+            return;
+        }
+        if (p.Amount < 0)
+        {
+            HackingAttempt(index, "Negative BankWithdrawBulk Amount");
+            return;
+        }
+        _bank.WithdrawBulk(index, p.ItemNum, p.Amount);
+    }
+
+    private void HandleBankSort(int index)
+    {
+        if (!_pm[index].IsPlaying) return;
+        _bank.SortBank(index);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  Shop handlers
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Build + send a Store's trade window to `index`. On the client this sets ActiveShopNum, which opens the
+    // ShopPanel. The single store-open path, called by OpenNpcShop.
+    private void SendStoreTrades(int index, int shopNum, ShopRecord shop)
+    {
+        // Send the shop's trades in list order; the client's display index maps 1:1 to the slot it sends
+        // back (slot = index + 1), which ShopSystem.Trade resolves as TradeItem[slot - 1].
+        var trades = shop.TradeItem
+            .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveValue, t.GetItem, t.GetValue))
+            .ToArray();
+        _dispatcher.SendTo(index, new SendTradePacket { ShopNum = shopNum, Trades = trades });
+    }
+
+    // Resolve the map NPC at (map, slot) a player is interacting with, enforcing map visibility + the r=5 range
+    // gate (cross-map-aware — mirrors the spell/trade proximity check). Returns false (npcNum=0) if the slot is
+    // empty, off-view, or out of range. Authoritative backstop: a modified client can't interact from afar.
+    // Shared by the NPC-interact spine and the quest accept/turn-in proximity checks;
+    // the world-geometry core lives on GameWorld so the active-shop re-validation reuses the same gate.
+    private bool TryResolveInteractNpc(int index, int mapNum, int npcSlot, out int npcNum)
+        => _world.IsNpcInInteractRange(index, _pm[index].Char, mapNum, npcSlot, out npcNum);
+
+    // NPC-interaction spine: a player interacted with a map NPC
+    // — via the melee attack key (Choice.Auto), or a right-click context-menu item within r=5. Choice.Shop /
+    // .Talk / .Quest each FORCE one role (the context-menu items, and a conversation's terminal hand-off choices),
+    // so a forced open can't loop into a different menu. Choice.Auto is TALK-FIRST: a conversation if the NPC has
+    // one, else the client quest/context menu if it has an actionable quest for this player, else its keeper shop.
+    private void HandleNpcInteract(int index, NpcInteractPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (!TryResolveInteractNpc(index, p.MapNum, p.NpcSlot, out int npcNum)) return;
+        switch (p.Choice)
+        {
+            case NpcInteractChoice.Shop:
+                OpenNpcShop(index, npcNum, p.MapNum, p.NpcSlot);
+                return;
+            case NpcInteractChoice.Talk:
+                OpenNpcConversation(index, npcNum, p.MapNum, p.NpcSlot);
+                return;
+            case NpcInteractChoice.Quest:
+                if (_quests.HasVisibleQuestAt(index, npcNum))
+                    _dispatcher.SendTo(index, new OpenNpcQuestMenuPacket { MapNum = p.MapNum, NpcSlot = p.NpcSlot });
+                return;
+            default:   // Auto — talk-first, then a VISIBLE quest (incl. class-eligible-but-unmet ones, shown grayed
+                       // with their requirements), then the keeper shop; if none apply, the NPC at least speaks its
+                       // AttackSay rather than doing nothing.
+                if (_world.ConversationForNpc(npcNum) > 0)
+                    OpenNpcConversation(index, npcNum, p.MapNum, p.NpcSlot);
+                else if (_quests.HasVisibleQuestAt(index, npcNum))
+                    _dispatcher.SendTo(index, new OpenNpcQuestMenuPacket { MapNum = p.MapNum, NpcSlot = p.NpcSlot });
+                else if (!OpenNpcShop(index, npcNum, p.MapNum, p.NpcSlot))
+                    _combat.SpeakAttackSayTo(index, p.MapNum, p.NpcSlot, _world.Npcs[npcNum]);
+                return;
+        }
+    }
+
+    // Open the NPC's conversation (dialogue tree) for `index`, if it has one (ConversationRecord.SpeakerNpc). Marks
+    // it spoken — the visited-log that flips the overhead "..." glyph yellow -> gray — and sends the trigger; the
+    // client opens the panel and walks the cached tree locally, round-tripping only for a hand-off choice. No-op if
+    // the NPC has no conversation.
+    private void OpenNpcConversation(int index, int npcNum, int mapNum, int npcSlot)
+    {
+        int convNum = _world.ConversationForNpc(npcNum);
+        if (convNum <= 0) return;
+        _conversations.MarkSpoken(index, convNum);
+        _dispatcher.SendTo(index, new OpenNpcConversationPacket { MapNum = mapNum, NpcSlot = npcSlot, ConvNum = convNum });
+    }
+
+    // Open the shop/inn assigned to NPC template `npcNum` (ShopRecord.Keeper) for `index`, if any. Records the
+    // active shop (shop# + this keeper's map/slot) so follow-up ops re-validate r=5 of the keeper. Store → the
+    // trade window; Inn → the client-local inn panel (carrying the shop# so it resolves banking/market/
+    // set-spawn against this keeper's inn from anywhere). No-op if the NPC keeps no shop.
+    private bool OpenNpcShop(int index, int npcNum, int keeperMap, int keeperSlot)
+    {
+        int shopNum = _world.ShopAssignedToNpc(npcNum);
+        if (shopNum <= 0) return false;
+        var shop = _world.Shops[shopNum];
+        _pm[index].SetActiveShop(shopNum, keeperMap, keeperSlot);
+        if (shop.ShopType == ShopType.Store)
+            SendStoreTrades(index, shopNum, shop);
+        else
+            _dispatcher.SendTo(index, new OpenInnPacket { ShopNum = shopNum });
+        return true;
+    }
+
+    private void HandleTrade(int index, TradePacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't trade at a shop
+        int shopNum = _pm[index].ActiveShop(_world, index);
+        if (shopNum > 0)
+            _shop.Trade(index, shopNum, p.TradeSlot);
+        else
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+    }
+
+    private void HandleTradeRequest(int index, TradeRequestPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (p.Slot < 1 || p.Slot > Constants.MaxTrades)
+        {
+            HackingAttempt(index, "Trade Request Modification");
+            return;
+        }
+        int shopNum = _pm[index].ActiveShop(_world, index);
+        if (shopNum > 0)
+            _shop.Trade(index, shopNum, p.Slot);
+    }
+
+    private void HandleFixItem(int index, FixItemPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't repair at a shop
+        _shop.FixItem(index, p.InvSlot);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+}

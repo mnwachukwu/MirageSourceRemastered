@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Mirage.Editor.MainWindow"
+        Width="1280" Height="720"
+        MinWidth="800" MinHeight="500">
+
+  <DockPanel>
+
+    <!-- ── Toolbar ── -->
+    <Border DockPanel.Dock="Top"
+            Background="#1E1E1E"
+            BorderBrush="#444"
+            BorderThickness="0,0,0,1"
+            Padding="8,6">
+      <DockPanel>
+        <Menu DockPanel.Dock="Right" VerticalAlignment="Center" Background="Transparent">
+          <MenuItem x:Name="_exportMenu">
+            <MenuItem x:Name="_exportMapItem"
+                      Command="{Binding MapEditor.ExportMapCommand}"
+                      IsEnabled="{Binding MapEditor.HasSelectedMap}"/>
+            <MenuItem x:Name="_exportAreaItem"
+                      Command="{Binding MapEditor.ExportObservableAreaCommand}"
+                      IsEnabled="{Binding MapEditor.HasSelectedMap}"/>
+            <MenuItem x:Name="_exportWorldItem"
+                      Command="{Binding MapEditor.ExportWorldCommand}"
+                      IsEnabled="{Binding MapEditor.HasSelectedMap}"/>
+          </MenuItem>
+          <MenuItem x:Name="_languageMenu" />
+          <MenuItem x:Name="_helpMenu">
+            <MenuItem x:Name="_helpMapEditorItem" Click="HelpMapControls_Click"/>
+          </MenuItem>
+        </Menu>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="_connectBtn"
+                  Command="{Binding ConnectCommand}"
+                  IsVisible="{Binding !IsOnline}" />
+          <Button x:Name="_disconnectBtn"
+                  Command="{Binding DisconnectCommand}"
+                  IsVisible="{Binding IsOnline}" />
+          <Separator />
+          <TextBlock Text="{Binding ConnectionStatus}"
+                     VerticalAlignment="Center"
+                     Foreground="#888" />
+          <TextBlock Text="{Binding LoadingStatus}"
+                     VerticalAlignment="Center"
+                     Foreground="#FFAA44"
+                     IsVisible="{Binding LoadingStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- ── Navigation sidebar ── -->
+    <Border DockPanel.Dock="Left"
+            Width="160"
+            Background="#1A1A1A"
+            BorderBrush="#444"
+            BorderThickness="0,0,1,0">
+      <ListBox ItemsSource="{Binding Sections}"
+               SelectedItem="{Binding SelectedSection}"
+               Background="Transparent">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,4">
+              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding HasDirty}"/>
+              <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Border>
+
+    <!-- ── Content area ── -->
+    <ContentControl Content="{Binding CurrentEditor}" Margin="0" />
+
+  </DockPanel>
+</Window>

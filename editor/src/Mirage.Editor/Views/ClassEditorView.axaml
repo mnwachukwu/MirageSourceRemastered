@@ -1,0 +1,269 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Mirage.Editor.Controls"
+             x:Class="Mirage.Editor.Views.ClassEditorView">
+
+  <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="200" MinWidth="120"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="*" MinWidth="200"/>
+    </Grid.ColumnDefinitions>
+
+    <!-- ── Left: class list ── -->
+    <DockPanel x:Name="LeftPanel" Grid.Column="0">
+      <TextBox x:Name="_filterTextBox"
+               DockPanel.Dock="Top"
+               Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+               Margin="4,4,4,2"
+               FontSize="11">
+        <TextBox.InnerRightContent>
+          <Button Classes="clearFilter" Content="×" Focusable="False"
+                  Command="{Binding ClearFilterCommand}"
+                  IsVisible="{Binding FilterText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </TextBox.InnerRightContent>
+      </TextBox>
+      <TextBlock DockPanel.Dock="Bottom"
+                 Text="{Binding FilterStatus}"
+                 IsVisible="{Binding IsFilterActive}"
+                 FontSize="11" Foreground="#888"
+                 Margin="4,2" HorizontalAlignment="Right"/>
+      <ListBox ItemsSource="{Binding FilteredItems}"
+               SelectedItem="{Binding SelectedClass}"
+               Background="Transparent">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding IsDirty}"/>
+              <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+
+    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+                  ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
+
+    <!-- ── Right: editor panel ── -->
+    <Grid Grid.Column="2">
+      <TextBlock x:Name="_selectPrompt"
+                 IsVisible="{Binding SelectedClass, Converter={x:Static ObjectConverters.IsNull}}"
+                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontStyle="Italic"/>
+      <ScrollViewer IsVisible="{Binding SelectedClass, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Margin="16" Spacing="8">
+
+          <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBox   Grid.Column="1" Text="{Binding SelectedClass.Name}" />
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_spriteLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding SpriteEntries}"
+                      SelectedItem="{Binding SelectedClass.Sprite, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch"
+                      MaxDropDownHeight="320">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <controls:AtlasFramePreview
+                        FrameIndex="{Binding}"
+                        Atlas="{Binding $parent[ComboBox].DataContext.SpriteBitmap}"
+                        Mode="SpriteStrip"
+                        Animated="True"
+                        IsHighlighted="{Binding $parent[ComboBoxItem].IsPointerOver}"/>
+                    <TextBlock Text="{Binding, StringFormat='#{0}'}"
+                               VerticalAlignment="Center"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_strLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedClass.Str}"
+                           Minimum="0" Maximum="255" FormatString="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_intLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedClass.Int}"
+                           Minimum="0" Maximum="255" FormatString="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_defLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedClass.Def}"
+                           Minimum="0" Maximum="255" FormatString="0"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_spdLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedClass.Spd}"
+                           Minimum="0" Maximum="255" FormatString="0"/>
+          </Grid>
+
+          <Separator Margin="0,4,0,2" Background="#333"/>
+
+          <!-- Vital previews: theoretical fresh Lv.1 character of this class (playerStat = classStat) -->
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_maxHpLabel" Grid.Column="0" VerticalAlignment="Center"
+                       Foreground="#888" FontStyle="Italic"/>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding SelectedClass.LevelOneMaxHp}"
+                       VerticalAlignment="Center"
+                       Foreground="#88AAFF" FontWeight="SemiBold"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_maxMpLabel" Grid.Column="0" VerticalAlignment="Center"
+                       Foreground="#888" FontStyle="Italic"/>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding SelectedClass.LevelOneMaxMp}"
+                       VerticalAlignment="Center"
+                       Foreground="#88AAFF" FontWeight="SemiBold"/>
+          </Grid>
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_maxSpLabel" Grid.Column="0" VerticalAlignment="Center"
+                       Foreground="#888" FontStyle="Italic"/>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding SelectedClass.LevelOneMaxSp}"
+                       VerticalAlignment="Center"
+                       Foreground="#88AAFF" FontWeight="SemiBold"/>
+          </Grid>
+
+          <TextBlock x:Name="_startingStatsNote"
+                     FontSize="11" Foreground="#666" Margin="130,0,0,4"/>
+
+          <!-- Regen + base combat preview (compact two-column panel) -->
+          <Border Background="#1F1F28" BorderBrush="#334" BorderThickness="1"
+                  CornerRadius="4" Padding="12,8" Margin="0,4,0,0">
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+
+              <StackPanel Grid.Column="0" Spacing="3">
+                <TextBlock x:Name="_regenHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="_hpRegenLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneHpRegen}" Foreground="#88FF88" FontWeight="SemiBold" FontSize="11"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="_mpRegenLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneMpRegen}" Foreground="#88FF88" FontWeight="SemiBold" FontSize="11"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="_spRegenLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneSpRegen}" Foreground="#88FF88" FontWeight="SemiBold" FontSize="11"/>
+                </Grid>
+              </StackPanel>
+
+              <StackPanel Grid.Column="1" Spacing="3">
+                <TextBlock x:Name="_combatHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="_pdmgLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOnePhysDamage}" Foreground="#FFCC66" FontWeight="SemiBold" FontSize="11"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="_mdmgLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneMagicDamage}" Foreground="#FFCC66" FontWeight="SemiBold" FontSize="11"/>
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock x:Name="_mitLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneMit}" Foreground="#FFCC66" FontWeight="SemiBold" FontSize="11"/>
+                </Grid>
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- Formula notes panel -->
+          <Border Background="#1A1A2A" BorderBrush="#334" BorderThickness="1"
+                  CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
+            <StackPanel Spacing="6">
+              <TextBlock x:Name="_formulaNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
+
+              <TextBlock x:Name="_fmtVitalsHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
+              <StackPanel Margin="8,0,0,0" Spacing="3">
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtVitalsMaxHp"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtVitalsMaxMp"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtVitalsMaxSp"/>
+              </StackPanel>
+
+              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+                         x:Name="_fmtVitalsNote"/>
+
+              <TextBlock x:Name="_fmtRegenHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
+              <StackPanel Margin="8,0,0,0" Spacing="3">
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtRegenHp"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtRegenMp"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtRegenSp"/>
+              </StackPanel>
+              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                         x:Name="_fmtRegenNote"/>
+
+              <TextBlock x:Name="_fmtCombatHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
+              <StackPanel Margin="8,0,0,0" Spacing="3">
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtCombatPDmg"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtCombatMDmg"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                           x:Name="_fmtCombatMit"/>
+              </StackPanel>
+              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                         x:Name="_fmtCombatNote"/>
+
+              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,6,0,0"
+                         x:Name="_fmtPreviewNote"/>
+            </StackPanel>
+          </Border>
+
+          <TextBlock Text="{Binding StatusMessage}"
+                     Foreground="#88FF88"
+                     IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ── Footer: always-visible Save / Discard strip ── -->
+    <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
+            BorderBrush="#444" BorderThickness="0,1,0,0">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+        <Button x:Name="_discardButton"
+                Command="{Binding DiscardCommand}"
+                IsEnabled="{Binding IsSelectedDirty}"
+                Background="#6B1500" Foreground="White"/>
+        <Button x:Name="_discardAllButton"
+                Command="{Binding DiscardAllCommand}"
+                IsEnabled="{Binding HasAnyDirty}"
+                Background="#6B3300" Foreground="White"/>
+        <Button x:Name="_saveClassButton"
+                Command="{Binding SaveCommand}"
+                IsEnabled="{Binding IsSelectedDirty}"
+                Background="#1A5A1A" Foreground="White"/>
+        <Button x:Name="_saveAllButton"
+                Command="{Binding SaveAllCommand}"
+                IsEnabled="{Binding HasAnyDirty}"
+                Background="#1A3A6A" Foreground="White"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
+</UserControl>

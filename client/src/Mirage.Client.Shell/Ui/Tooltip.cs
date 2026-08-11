@@ -1,0 +1,418 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Mirage.Client.Shell.Localization;
+using Mirage.Client.Shell.Rendering;
+using Mirage.Shared;
+using Mirage.Shared.Records;
+
+namespace Mirage.Client.Shell.Ui;
+
+/// <summary>
+/// Hover tooltip for items and spells. Exactly one tooltip is rendered at a time; panels feed
+/// it via <see cref="NotifyHoverItem"/> / <see cref="NotifyHoverSpell"/> while their row is
+/// hovered, and <c>GameplayScreen</c> calls <see cref="TickAndDraw"/> after every panel
+/// has been drawn so the tooltip floats above the rest of the UI.
+///
+/// Timing rules:
+///   • Appears immediately on the first frame a row is hovered (no delay).
+///   • Position is pinned to the mouse coords at first-show + a small offset; it does not move
+///     until the hovered identity changes.
+///   • Moving onto a different row instantly swaps content and re-pins to the new mouse position
+///     — no fade, no double-render.
+///   • Mouse over the source row OR over the tooltip's own rect keeps it open. The instant both
+///     leave (and no new row is hovered), the tooltip clears on the same frame — no linger.
+///
+/// Item tooltips show the item icon from items.bmp next to the header; spell tooltips are
+/// text-only because spells have no per-spell graphic.
+/// </summary>
+public static class Tooltip
+{
+    private const int MouseOffsetX = 14;
+    private const int MouseOffsetY = 18;
+
+    private const int PadX = 8;
+    private const int PadY = 6;
+    private const int LineGap = 2;
+    private const int HeaderGap = 4;
+    private const int IconSize = 32;
+    private const int IconRightGap = 8;
+
+    private static readonly Color BgColor = new(20, 20, 40, 240);
+    private static readonly Color BorderColor = new(100, 120, 200);
+    private static readonly Color HeaderColor = Color.White;
+    private static readonly Color LabelColor = new(170, 190, 230);
+    private static readonly Color ValueColor = Color.White;
+    private static readonly Color WarnColor = Color.OrangeRed;
+    private static readonly Color GoodColor = Color.LightGreen;
+
+    private readonly record struct Line(string Label, string Value, Color Color);
+
+    private enum Kind { None, Item, Spell, Text }
+
+    private static Kind _kind;
+    private static string _scope = "";   // panel id that spawned the active tooltip
+    private static object? _key;
+    private static int _x, _y;
+    private static Rectangle _bounds;
+    private static bool _hoverPersists;
+
+    // Cached content needed to redraw each frame. Captured by reference so live data (durability,
+    // stat changes) reflects in the tooltip without callers having to refresh on every change.
+    private static ItemRecord? _item;
+    private static PlayerInvSlot? _slot;
+    private static SpellRecord? _spell;
+    private static string? _text;   // Kind.Text: the full string a truncated label shows on hover
+    private static PlayerRecord? _me;
+    private static ClassRecord?[] _classes = Array.Empty<ClassRecord?>();
+    private static Texture2D? _itemsTex;
+    private static ItemRecord?[] _itemDefs = Array.Empty<ItemRecord?>();   // item definitions (for the SubHp reagent name)
+    private static WeatherType _weather;                                    // current weather (for the rain "(x2)" reagent hint)
+
+    private static readonly List<Line> _lines = new();
+
+    /// <summary>Called by a panel during its Update each frame the mouse is over a row that
+    /// should show an item tooltip. <paramref name="key"/> identifies the row+item so the tooltip
+    /// re-pins position when the user moves to a different slot or the slot's item changes.
+    /// <paramref name="scope"/> tags this tooltip with the spawning panel id so
+    /// <see cref="CloseScope"/> can dismiss it when that panel closes.</summary>
+    public static void NotifyHoverItem(string scope, object key, ItemRecord item, PlayerInvSlot? slot,
+        PlayerRecord? me, ClassRecord?[] classes, Texture2D? itemsTex, Point mousePos)
+    {
+        if (_kind != Kind.Item || !Equals(_key, key))
+        {
+            _kind = Kind.Item;
+            _scope = scope;
+            _key = key;
+            PinTo(mousePos);
+        }
+        _item = item;
+        _slot = slot;
+        _me = me;
+        _classes = classes;
+        _itemsTex = itemsTex;
+        _spell = null;
+        _hoverPersists = true;
+    }
+
+    /// <summary>Spell counterpart to <see cref="NotifyHoverItem"/>.</summary>
+    public static void NotifyHoverSpell(string scope, object key, SpellRecord spell,
+        PlayerRecord? me, ClassRecord?[] classes, ItemRecord?[] itemDefs, WeatherType weather, Point mousePos)
+    {
+        if (_kind != Kind.Spell || !Equals(_key, key))
+        {
+            _kind = Kind.Spell;
+            _scope = scope;
+            _key = key;
+            PinTo(mousePos);
+        }
+        _spell = spell;
+        _me = me;
+        _classes = classes;
+        _itemDefs = itemDefs;
+        _weather = weather;
+        _item = null;
+        _slot = null;
+        _itemsTex = null;
+        _hoverPersists = true;
+    }
+
+    /// <summary>Show a plain-text tooltip — used by a truncated label to reveal its full text on hover.
+    /// <paramref name="key"/> identifies the hovered label so the tooltip re-pins when the pointer moves to a
+    /// different one.</summary>
+    public static void NotifyHoverText(string scope, object key, string text, Point mousePos)
+    {
+        if (_kind != Kind.Text || !Equals(_key, key))
+        {
+            _kind = Kind.Text;
+            _scope = scope;
+            _key = key;
+            PinTo(mousePos);
+        }
+        _text = text;
+        _item = null;
+        _slot = null;
+        _spell = null;
+        _itemsTex = null;
+        _hoverPersists = true;
+    }
+
+    /// <summary>Dismiss the tooltip if it was spawned by <paramref name="scope"/>. Called by a
+    /// panel when it closes so any tooltip it had open doesn't linger over the empty space the
+    /// panel just vacated. No-op when a different panel owns the active tooltip.</summary>
+    public static void CloseScope(string scope)
+    {
+        if (_kind != Kind.None && _scope == scope) Reset();
+    }
+
+    /// <summary>Per-frame tick + draw — called once after every panel finishes drawing so the
+    /// tooltip floats above all of them. Mouse on the source row (via NotifyHover*) or on the
+    /// tooltip's own rect keeps it open; the instant both are no longer hovered the tooltip
+    /// clears on this same frame.</summary>
+    public static void TickAndDraw(SpriteBatch sb, SpriteFont font, long nowMs, Point mousePos)
+    {
+        if (_kind == Kind.None) return;
+
+        // Mouse over the tooltip's own rect counts as continuing to hover.
+        if (_bounds.Contains(mousePos)) _hoverPersists = true;
+
+        if (!_hoverPersists)
+        {
+            Reset();
+            return;
+        }
+
+        Draw(sb, font);
+        _hoverPersists = false;
+    }
+
+    public static void Reset()
+    {
+        _kind = Kind.None;
+        _scope = "";
+        _key = null;
+        _hoverPersists = false;
+        _bounds = Rectangle.Empty;
+        _item = null;
+        _slot = null;
+        _spell = null;
+        _me = null;
+        _itemsTex = null;
+        _text = null;
+    }
+
+    private static void PinTo(Point mousePos)
+    {
+        _x = mousePos.X + MouseOffsetX;
+        _y = mousePos.Y + MouseOffsetY;
+    }
+
+    private static void Draw(SpriteBatch sb, SpriteFont font)
+    {
+        _lines.Clear();
+        string header;
+        bool hasIcon;
+        short pic;
+
+        switch (_kind)
+        {
+            case Kind.Item when _item is not null:
+                header = _item.Name?.TrimEnd() ?? "Unknown";
+                BuildItemLines(_item, _slot, _me, _classes);
+                hasIcon = _itemsTex is not null && _item.Pic >= 0;
+                pic = _item.Pic;
+                break;
+            case Kind.Spell when _spell is not null:
+                header = _spell.Name?.TrimEnd() ?? "Unknown";
+                BuildSpellLines(_spell, _me, _classes, _itemDefs, _weather);
+                hasIcon = false;
+                pic = 0;
+                break;
+            case Kind.Text when _text is not null:
+                header = _text;   // a single-line tooltip: just the full (un-truncated) label text
+                hasIcon = false;
+                pic = 0;
+                break;
+            default:
+                return;
+        }
+
+        float lineH = font.LineSpacing;
+        float headerW = font.MeasureString(header).X;
+        float bodyW = 0f;
+        for (int i = 0; i < _lines.Count; i++)
+        {
+            var ln = _lines[i];
+            float lineW = font.MeasureString(ln.Label + ": " + ln.Value).X;
+            if (lineW > bodyW) bodyW = lineW;
+        }
+
+        int headerRowH = hasIcon ? Math.Max((int)lineH, IconSize) : (int)lineH;
+        int bodyRowsH = _lines.Count == 0 ? 0
+            : HeaderGap + _lines.Count * (int)lineH + (_lines.Count - 1) * LineGap;
+
+        float contentW = Math.Max(
+            hasIcon ? IconSize + IconRightGap + headerW : headerW,
+            bodyW);
+
+        int w = (int)Math.Ceiling(contentW) + PadX * 2;
+        int h = headerRowH + bodyRowsH + PadY * 2;
+
+        // Clamp the pinned position so the tooltip stays inside the reference viewport.
+        int x = Math.Clamp(_x, 2, UiHelper.RefW - 2 - w);
+        int y = Math.Clamp(_y, 2, UiHelper.RefH - 2 - h);
+
+        _bounds = new Rectangle(x, y, w, h);
+        UiHelper.DrawFilledRect(sb, _bounds, BgColor);
+        UiHelper.DrawBorder(sb, _bounds, BorderColor);
+
+        int cx = _bounds.X + PadX;
+        int cy = _bounds.Y + PadY;
+
+        if (hasIcon)
+        {
+            sb.Draw(_itemsTex!, new Rectangle(cx, cy, IconSize, IconSize), ItemAtlas.GetSourceRect(pic), Color.White);
+            float headerY = cy + (IconSize - lineH) / 2f;
+            sb.DrawString(font, header, new Vector2(cx + IconSize + IconRightGap, headerY), HeaderColor);
+            cy += IconSize;
+        }
+        else
+        {
+            sb.DrawString(font, header, new Vector2(cx, cy), HeaderColor);
+            cy += (int)lineH;
+        }
+
+        if (_lines.Count > 0) cy += HeaderGap;
+
+        for (int i = 0; i < _lines.Count; i++)
+        {
+            var ln = _lines[i];
+            string labelText = ln.Label + ": ";
+            sb.DrawString(font, labelText, new Vector2(cx, cy), LabelColor);
+            float labelW = font.MeasureString(labelText).X;
+            sb.DrawString(font, ln.Value, new Vector2(cx + labelW, cy), ln.Color);
+            cy += (int)lineH + LineGap;
+        }
+    }
+
+    private static void BuildItemLines(ItemRecord item, PlayerInvSlot? slot, PlayerRecord? me, ClassRecord?[] classes)
+    {
+        bool isEquip = item.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
+
+        if (isEquip && item.Data1 > 0)
+        {
+            // A real inventory slot carries the item's actual wear; the cur/max readout is color-coded
+            // by condition (white/yellow/red) exactly like the equipment panel and repair panel, so a
+            // worn or broken piece reads the same everywhere. With no backing slot (e.g. a shop listing)
+            // there's no wear to show, so display full (which colors white).
+            int dur = slot?.Dur ?? item.Data1;
+            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Durability), $"{dur}/{item.Data1}", UiHelper.DurabilityColor(dur, item.Data1)));
+        }
+
+        int meStr = me?.Str ?? 0;
+        int meDef = me?.Def ?? 0;
+        var myClass = me != null && me.Class > 0 && me.Class < classes.Length ? classes[me.Class] : null;
+        int classStr = myClass?.Str ?? 0;
+        int classDef = myClass?.Def ?? 0;
+        string hp = ClientStrings.Get(ClientStrings.Stats_Hp);
+        string mp = ClientStrings.Get(ClientStrings.Stats_Mp);
+        string sp = ClientStrings.Get(ClientStrings.Stats_Sp);
+
+        switch (item.Type)
+        {
+            case ItemType.Weapon when item.Data2 > 0:
+                int weaponStrReq = CombatFormulas.GearStatRequirement(item.Data2, classStr);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_StrReq), UiHelper.FormatRequirement(item.Data2, weaponStrReq), meStr >= weaponStrReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_PDmg), $"+{CombatFormulas.WeaponContribution(item.Data2, meStr)}", ValueColor));
+                break;
+            case ItemType.Armor when item.Data2 > 0:
+                int armorDefReq = CombatFormulas.GearStatRequirement(item.Data2, classDef);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Data2, armorDefReq), meDef >= armorDefReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Data2, meDef)}", ValueColor));
+                break;
+            case ItemType.Helmet when item.Data2 > 0:
+                int helmetDefReq = CombatFormulas.GearStatRequirement(item.Data2, classDef);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Data2, helmetDefReq), meDef >= helmetDefReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Data2, meDef)}", ValueColor));
+                break;
+            case ItemType.Shield when item.Data2 > 0:
+                int shieldDefReq = CombatFormulas.GearStatRequirement(item.Data2, classDef);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Data2, shieldDefReq), meDef >= shieldDefReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.ShieldMitigation(item.Data2, meDef)}", ValueColor));
+                break;
+            case ItemType.PotionAddHp when item.Data1 > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1} {hp}", GoodColor));
+                break;
+            case ItemType.PotionAddMp when item.Data1 > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1} {mp}", GoodColor));
+                break;
+            case ItemType.PotionAddSp when item.Data1 > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1} {sp}", GoodColor));
+                break;
+            case ItemType.PotionSubHp when item.Data1 > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.Data1} {hp}", WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1 / 2} {mp} / +{item.Data1 / 2} {sp}", GoodColor));
+                break;
+            case ItemType.PotionSubMp when item.Data1 > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.Data1} {mp}", WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1 / 2} {hp} / +{item.Data1 / 2} {sp}", GoodColor));
+                break;
+            case ItemType.PotionSubSp when item.Data1 > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.Data1} {sp}", WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1 / 2} {hp} / +{item.Data1 / 2} {mp}", GoodColor));
+                break;
+            case ItemType.Currency when slot is not null:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Quantity), slot.Value.ToString("N0"), ValueColor));
+                break;
+        }
+
+        if (isEquip && item.Data3 != 0 && item.Data3 < classes.Length)
+        {
+            var cls = classes[item.Data3];
+            if (cls != null)
+            {
+                bool meetsClass = me != null && me.Class == item.Data3;
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), cls.TrimmedName, meetsClass ? GoodColor : WarnColor));
+            }
+        }
+    }
+
+    private static void BuildSpellLines(SpellRecord spell, PlayerRecord? me, ClassRecord?[] classes, ItemRecord?[] itemDefs, WeatherType weather)
+    {
+        ClassRecord? myClass = null;
+        if (me is not null && me.Class > 0 && me.Class < classes.Length)
+            myClass = classes[me.Class];
+
+        int classInt = myClass?.Int ?? 0;
+        // SubHp pays the trivial pool-fraction (per the caster resource model); everything else the utility cost.
+        int mpCost = spell.Type == SpellType.SubHp
+            ? CombatFormulas.GetSubHpSpellMpCost(me?.MaxMp ?? 0)
+            : CombatFormulas.GetSpellMpCost(spell);
+        int intReq = CombatFormulas.GetSpellIntRequirement(spell, classInt);
+
+        _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_MpCost), mpCost.ToString(), ValueColor));
+
+        // SubHp also burns casting reagents per cast — show "<Reagent> Cost: N" using the reagent item's own name.
+        // In the rain the cast consumes twice as many, so tag the base cost with "(x2)" as a hint the cost is doubled.
+        if (spell.Type == SpellType.SubHp)
+        {
+            string reagentName = (Constants.CastingReagentItemIndex < itemDefs.Length
+                ? itemDefs[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
+            int reagentCost = CombatFormulas.SubHpReagentCost(spell.Data1);
+            string reagentValue = weather == WeatherType.Rain
+                ? ClientStrings.Format(ClientStrings.Tooltip_ReagentCostRained, ("Count", reagentCost))
+                : reagentCost.ToString();
+            _lines.Add(new Line(ClientStrings.Format(ClientStrings.Tooltip_ReagentCost, ("Reagent", reagentName)),
+                reagentValue, ValueColor));
+        }
+
+        // Effectiveness: M-DMG for damaging spells (any Sub* drains a vital), HEALING for Add*
+        // (restore-vital) spells. Shows ONLY the spell's own contribution paired with playerInt,
+        // not base + contribution — matches how the weapon tooltip shows just WeaponContribution
+        // rather than UnarmedDamage + WeaponContribution. GiveItem is suppressed because Data1 is
+        // the item ID, not a magnitude.
+        string? effectLabel = spell.Type switch
+        {
+            SpellType.SubHp or SpellType.SubMp or SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_MDmg),
+            SpellType.AddHp or SpellType.AddMp or SpellType.AddSp => ClientStrings.Get(ClientStrings.Stats_Healing),
+            _ => null,
+        };
+        if (effectLabel is not null)
+        {
+            int amount = CombatFormulas.SpellContribution(spell.Data1, me?.Int ?? 0);
+            _lines.Add(new Line(effectLabel, $"+{amount}", ValueColor));
+        }
+
+        bool meetsInt = me?.Int >= intReq;
+        _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_IntReq), UiHelper.FormatRequirement(CombatFormulas.RawSpellRequirement(spell), intReq), meetsInt ? GoodColor : WarnColor));
+
+        if (spell.ClassReq != 0 && spell.ClassReq < classes.Length)
+        {
+            var cls = classes[spell.ClassReq];
+            if (cls != null)
+            {
+                bool meetsClass = me?.Class == spell.ClassReq;
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), cls.TrimmedName, meetsClass ? GoodColor : WarnColor));
+            }
+        }
+    }
+}

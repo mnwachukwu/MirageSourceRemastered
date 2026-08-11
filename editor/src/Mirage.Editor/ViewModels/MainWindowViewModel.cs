@@ -1,0 +1,455 @@
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Mirage.Editor.Localization;
+using Mirage.Editor.Services;
+using Mirage.Shared;
+using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
+using System.Collections.ObjectModel;
+
+namespace Mirage.Editor.ViewModels;
+
+/// <summary>
+/// Root view-model for the editor shell: owns every per-record child editor, the section nav list,
+/// and the online/offline lifecycle (connect, disconnect, reconnect, and the unsaved-changes prompts
+/// that guard each).
+/// <para>The editor runs offline against files on disk or online against a live server. Switching
+/// between the two re-points every child editor in one sweep (<c>RefreshEditors</c>), and any
+/// transition that could discard unsaved work routes through the push-changes dialog first.</para>
+/// <para>Dialogs are opened through the <c>Show…Async</c> delegates the View assigns, so this
+/// view-model never references a View type.</para>
+/// </summary>
+public sealed partial class MainWindowViewModel : ObservableObject
+{
+    private readonly EditorDataService _data;
+    private readonly EditorConnection _conn;
+    private readonly EditorBitmapCache _bitmaps;
+    // Parallel to AllSectionNames: the online/offline reload pair for each child editor, so a mode
+    // switch can drive them all without naming each one again.
+    private readonly (Action loadOnline, Action loadOffline)[] _editorLoaders;
+
+    // Child editor VMs
+    public MapEditorViewModel MapEditor { get; }
+    public MapGroupEditorViewModel MapGroupEditor { get; }
+    public ItemEditorViewModel ItemEditor { get; }
+    public NpcEditorViewModel NpcEditor { get; }
+    public ShopEditorViewModel ShopEditor { get; }
+    public SpellEditorViewModel SpellEditor { get; }
+    public ClassEditorViewModel ClassEditor { get; }
+    public QuestEditorViewModel QuestEditor { get; }
+    public ConversationEditorViewModel ConversationEditor { get; }
+
+    /// <summary>The child editor view-model the content pane is bound to; null for an unknown section.</summary>
+    [ObservableProperty] private object? _currentEditor;
+    [ObservableProperty] private SectionViewModel? _selectedSection;
+    [ObservableProperty] private string _connectionStatus = EditorStrings.Get(EditorStrings.MainWindow_StatusOffline);
+    [ObservableProperty] private bool _isOnline;
+    /// <summary>Progress line shown while the post-connect eager load runs; empty when idle.</summary>
+    [ObservableProperty] private string _loadingStatus = "";
+    private CancellationTokenSource? _eagerLoadCts;
+
+    // Stable section ids — used for switching and lookup. Display labels are localized separately
+    // via SectionLabelKey, so these strings never reach the UI.
+    private static readonly string[] AllSectionNames = ["Maps", "MapGroups", "Items", "NPCs", "Shops", "Spells", "Classes", "Quests", "Conversations"];
+    private readonly Dictionary<string, SectionViewModel> _sectionMap;
+    /// <summary>The nav sections currently visible, narrowed by the connected account's access level.</summary>
+    public ObservableCollection<SectionViewModel> Sections { get; }
+
+    // Delegates assigned by the View to open dialogs without a VM→View reference
+    public Func<ConnectDialogViewModel, Task>? ShowConnectDialogAsync { get; set; }
+    public Func<PushChangesDialogViewModel, Task>? ShowPushChangesDialogAsync { get; set; }
+    public Func<DisconnectDialogViewModel, Task>? ShowDisconnectDialogAsync { get; set; }
+    public Func<string, Task>? ShowAlertAsync { get; set; }
+
+    public MainWindowViewModel(EditorDataService data, EditorConnection conn, EditorBitmapCache bitmaps)
+    {
+        _data = data;
+        _conn = conn;
+        _bitmaps = bitmaps;
+
+        MapEditor = new MapEditorViewModel(data, conn);
+        MapGroupEditor = new MapGroupEditorViewModel(data, conn);
+        ItemEditor = new ItemEditorViewModel(data, conn);
+        NpcEditor = new NpcEditorViewModel(data, conn);
+        ShopEditor = new ShopEditorViewModel(data, conn);
+        SpellEditor = new SpellEditorViewModel(data, conn);
+        ClassEditor = new ClassEditorViewModel(data, conn);
+        QuestEditor = new QuestEditorViewModel(data, conn);
+        ConversationEditor = new ConversationEditorViewModel(data, conn);
+        _editorLoaders =
+        [
+            (MapEditor.LoadOnline,   MapEditor.LoadOffline),
+            (MapGroupEditor.LoadOnline, MapGroupEditor.LoadOffline),
+            (ItemEditor.LoadOnline,  ItemEditor.LoadOffline),
+            (NpcEditor.LoadOnline,   NpcEditor.LoadOffline),
+            (ShopEditor.LoadOnline,  ShopEditor.LoadOffline),
+            (SpellEditor.LoadOnline, SpellEditor.LoadOffline),
+            (ClassEditor.LoadOnline, ClassEditor.LoadOffline),
+            (QuestEditor.LoadOnline, QuestEditor.LoadOffline),
+            (ConversationEditor.LoadOnline, ConversationEditor.LoadOffline),
+        ];
+        // Hand each section its label KEY, not the resolved text — the nav list outlives a language
+        // switch, so a resolved string would freeze it in the startup language.
+        _sectionMap = AllSectionNames.ToDictionary(n => n, n => new SectionViewModel(n, SectionLabelKey(n)));
+        Sections = new ObservableCollection<SectionViewModel>(AllSectionNames.Select(n => _sectionMap[n]));
+        EditorStrings.LanguageChanged += OnLanguageChanged;
+        // Mirror each editor's aggregate dirty flag onto its nav section, which shows the unsaved marker.
+        MapEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MapEditorViewModel.HasAnyDirtyMap))
+                _sectionMap["Maps"].HasDirty = MapEditor.HasAnyDirtyMap;
+        };
+        MapGroupEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["MapGroups"].HasDirty = MapGroupEditor.HasAnyDirty;
+        };
+        ItemEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["Items"].HasDirty = ItemEditor.HasAnyDirty;
+        };
+        NpcEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["NPCs"].HasDirty = NpcEditor.HasAnyDirty;
+        };
+        ShopEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["Shops"].HasDirty = ShopEditor.HasAnyDirty;
+        };
+        SpellEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["Spells"].HasDirty = SpellEditor.HasAnyDirty;
+        };
+        ClassEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["Classes"].HasDirty = ClassEditor.HasAnyDirty;
+        };
+        QuestEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["Quests"].HasDirty = QuestEditor.HasAnyDirty;
+        };
+        ConversationEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == "HasAnyDirty") _sectionMap["Conversations"].HasDirty = ConversationEditor.HasAnyDirty;
+        };
+        _conn.OnDisconnected += OnConnectionLost;
+        _conn.OnLivePacket += OnLivePacket;
+    }
+
+    // A server-pushed live broadcast arrived (not a pending request's response). Fires on the connection's
+    // receive-loop thread, so marshal to the UI thread before touching view-model state. Today only an NPC-size
+    // change matters: the map editor re-reads the size cache, redraws, and re-prompts any loaded map that pins
+    // the resized NPC.
+    private void OnLivePacket(IPacket packet)
+    {
+        if (packet is UpdateNpcPacket npc)
+            _ = Dispatcher.UIThread.InvokeAsync(() => MapEditor.OnNpcLiveUpdated(npc.NpcNum, npc.Size));
+    }
+
+    /// <summary>First-run startup: read the offline data set, seed and load the editable asset folder,
+    /// then open the map editor. Always starts offline — connecting is an explicit user action.</summary>
+    public async Task InitializeAsync()
+    {
+        await _data.LoadOfflineAsync();
+        // Populate the editable assets dir with the bundled defaults (if-missing) before first load.
+        await Task.Run(EditorPaths.SeedAssets);
+        _bitmaps.Load(EditorPaths.Assets);
+        ApplyBitmaps();
+        MapEditor.ReloadAssetsRequested = ReloadAssets;
+        RefreshEditors(online: false);
+        SelectedSection = _sectionMap["Maps"];
+    }
+
+    // Pushes the currently-loaded bitmaps into the editors that render with them.
+    private void ApplyBitmaps()
+    {
+        MapEditor.TilesetNames = _bitmaps.TilesetNames;
+        MapEditor.Tilesets = _bitmaps.Tilesets;
+        ItemEditor.ItemBitmap = _bitmaps.Items;
+        NpcEditor.SpriteBitmap = _bitmaps.Sprites;
+        ClassEditor.SpriteBitmap = _bitmaps.Sprites;
+    }
+
+    // Re-scans the asset folders at runtime (the map editor's Refresh Assets button) so newly added
+    // tile sheets appear without restarting.
+    private void ReloadAssets()
+    {
+        _bitmaps.Reload(EditorPaths.Assets);
+        ApplyBitmaps();
+        MapEditor.StatusMessage = EditorStrings.Get(EditorStrings.MapEditorStatus_AssetsReloaded);
+    }
+
+    partial void OnSelectedSectionChanged(SectionViewModel? value) => SwitchToSection(value?.Name);
+
+    private void SwitchToSection(string? section)
+    {
+        CurrentEditor = section switch
+        {
+            "Maps" => MapEditor,
+            "MapGroups" => MapGroupEditor,
+            "Items" => ItemEditor,
+            "NPCs" => NpcEditor,
+            "Shops" => ShopEditor,
+            "Spells" => SpellEditor,
+            "Classes" => ClassEditor,
+            "Quests" => QuestEditor,
+            "Conversations" => ConversationEditor,
+            _ => null,
+        };
+    }
+
+    // The nav labels are the one piece of shell chrome the window's own ApplyStrings cannot reach:
+    // they live on the section rows, not on named controls.
+    private void OnLanguageChanged()
+    {
+        foreach (var s in Sections) s.NotifyDisplayNameChanged();
+    }
+
+    // Maps the stable section id to its localized nav label key. Logic (switch/lookup) keeps using
+    // the id; only the displayed label is localized.
+    private static string SectionLabelKey(string id) => id switch
+    {
+        "Maps" => EditorStrings.MainWindow_Section_Maps,
+        "MapGroups" => EditorStrings.MainWindow_Section_MapGroups,
+        "Items" => EditorStrings.MainWindow_Section_Items,
+        "NPCs" => EditorStrings.MainWindow_Section_Npcs,
+        "Shops" => EditorStrings.MainWindow_Section_Shops,
+        "Spells" => EditorStrings.MainWindow_Section_Spells,
+        "Classes" => EditorStrings.MainWindow_Section_Classes,
+        "Quests" => EditorStrings.MainWindow_Section_Quests,
+        "Conversations" => EditorStrings.MainWindow_Section_Conversations,
+        _ => EditorStrings.MainWindow_Section_Maps,
+    };
+
+    // ── Online connect / disconnect ───────────────────────────────────────────
+
+    // Going online replaces every editor's data, so unsaved offline work is offered to the server first.
+    [RelayCommand]
+    private async Task ConnectAsync()
+    {
+        if (ShowConnectDialogAsync is null) return;
+
+        var dirty = GetAllDirty().ToList();
+        if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
+        {
+            bool proceed = false;
+            var dirtyDlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, isConnecting: true);
+            dirtyDlgVm.ProceedConfirmed += () => proceed = true;
+            dirtyDlgVm.Canceled += () => { };
+            await ShowPushChangesDialogAsync(dirtyDlgVm);
+            if (!proceed) return;
+        }
+
+        var dlgVm = new ConnectDialogViewModel(_conn);
+        dlgVm.ConnectSuccess += OnConnectSuccess;
+        await ShowConnectDialogAsync(dlgVm);
+    }
+
+    private void OnConnectSuccess(EditorDataPacket pkt, AdminLevel access)
+    {
+        _data.LoadOnline(pkt);
+        RefreshEditors(online: true);
+        IsOnline = true;
+        ConnectionStatus = EditorStrings.Format(EditorStrings.MainWindow_StatusOnline,
+            ("Host", AppSettings.Current.DefaultServerHost), ("Port", AppSettings.Current.DefaultServerPort));
+        ApplySectionRestrictions(access);
+        SelectedSection = Sections[0];
+        _ = StartEagerLoadAsync();
+    }
+
+    // Used after a reconnect: pushes dirty offline changes to the server before
+    // reloading editor state so unsaved work isn't silently wiped.
+    private async Task OnReconnectSuccessAsync(EditorDataPacket pkt, AdminLevel access)
+    {
+        var dirty = GetAllDirty().ToList();
+        _data.LoadOnline(pkt);
+        IsOnline = true;
+        ConnectionStatus = EditorStrings.Format(EditorStrings.MainWindow_StatusOnline,
+            ("Host", AppSettings.Current.DefaultServerHost), ("Port", AppSettings.Current.DefaultServerPort));
+        ApplySectionRestrictions(access);
+        if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
+        {
+            var pushVm = new PushChangesDialogViewModel(dirty, _conn, _data, isReconnecting: true);
+            await ShowPushChangesDialogAsync(pushVm);
+        }
+        RefreshEditors(online: true);
+        SelectedSection = Sections[0];
+        _ = StartEagerLoadAsync();
+    }
+
+    [RelayCommand]
+    private async Task DisconnectAsync()
+    {
+        var dirty = GetAllDirty().ToList();
+        if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
+        {
+            bool disconnectConfirmed = false;
+            var dlgVm = new PushChangesDialogViewModel(dirty, _conn, _data);
+            dlgVm.DisconnectConfirmed += () => disconnectConfirmed = true;
+            await ShowPushChangesDialogAsync(dlgVm);
+            if (!disconnectConfirmed) return;
+        }
+        await DoDisconnect();
+    }
+
+    // Pull the whole data set down in the background right after connecting, so browsing a section
+    // later is instant. Cancellable: a disconnect mid-load abandons it rather than racing the teardown.
+    private async Task StartEagerLoadAsync()
+    {
+        _eagerLoadCts?.Cancel();
+        _eagerLoadCts = new CancellationTokenSource();
+        var ct = _eagerLoadCts.Token;
+        try
+        {
+            // Maps first — per-map with progress (too large for a single payload)
+            LoadingStatus = EditorStrings.Format(EditorStrings.MainWindow_LoadingSection,
+                ("Section", EditorStrings.Get(EditorStrings.MainWindow_Section_Maps)));
+            await MapEditor.EagerLoadAllAsync(
+                (done, total) => LoadingStatus = EditorStrings.Format(EditorStrings.MainWindow_LoadingSectionProgress,
+                    ("Section", EditorStrings.Get(EditorStrings.MainWindow_Section_Maps)), ("Done", done), ("Total", total)), ct);
+
+            // Remaining types as single bulk packets, current section first
+            (string Label, Func<CancellationToken, Task> Loader)[] steps =
+            [
+                ("MapGroups", c => MapGroupEditor.EagerLoadAllAsync(c)),
+                ("Items",   c => ItemEditor.EagerLoadAllAsync(c)),
+                ("NPCs",    c => NpcEditor.EagerLoadAllAsync(c)),
+                ("Shops",   c => ShopEditor.EagerLoadAllAsync(c)),
+                ("Spells",  c => SpellEditor.EagerLoadAllAsync(c)),
+                ("Classes", c => ClassEditor.EagerLoadAllAsync(c)),
+                ("Quests",  c => QuestEditor.EagerLoadAllAsync(c)),
+                ("Conversations", c => ConversationEditor.EagerLoadAllAsync(c)),
+            ];
+            var currentSection = SelectedSection?.Name ?? "";
+            foreach (var (label, loader) in steps.OrderBy(s => s.Label == currentSection ? 0 : 1))
+            {
+                if (ct.IsCancellationRequested) break;
+                LoadingStatus = EditorStrings.Format(EditorStrings.MainWindow_LoadingSection,
+                    ("Section", EditorStrings.Get(SectionLabelKey(label))));
+                await loader(ct);
+            }
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            LoadingStatus = "";
+        }
+    }
+
+    // The single teardown path — every disconnect route ends here so nothing is left half-online.
+    private async Task DoDisconnect()
+    {
+        _eagerLoadCts?.Cancel();
+        _eagerLoadCts = null;
+        LoadingStatus = "";
+        await _conn.DisconnectAsync();
+        _data.ClearOnline();
+        RefreshEditors(online: false);
+        RestoreAllSections();
+        SelectedSection = _sectionMap[AllSectionNames[0]];
+        IsOnline = false;
+        ConnectionStatus = EditorStrings.Get(EditorStrings.MainWindow_StatusOffline);
+    }
+
+    // Developer and above get every section; Mapper gets the map and map-group editors only. Offline
+    // editing is unrestricted — this narrowing applies to a live server session.
+    private void ApplySectionRestrictions(AdminLevel access)
+    {
+        var visibleNames = access >= AdminLevel.Developer ? AllSectionNames : new[] { "Maps", "MapGroups" };
+        Sections.Clear();
+        foreach (var name in visibleNames) Sections.Add(_sectionMap[name]);
+        if (SelectedSection is null || !Sections.Contains(SelectedSection))
+            SelectedSection = Sections[0];
+    }
+
+    private void RestoreAllSections()
+    {
+        Sections.Clear();
+        foreach (var name in AllSectionNames) Sections.Add(_sectionMap[name]);
+    }
+
+    private void RefreshEditors(bool online)
+    {
+        foreach (var (lo, lof) in _editorLoaders)
+        {
+            if (online) lo();
+            else lof();
+        }
+    }
+
+    // Every dirty row across every child editor, as one flat sequence for the push-changes dialog.
+    private IEnumerable<object> GetAllDirty()
+    {
+        foreach (var vm in ItemEditor.GetDirty()) yield return vm;
+        foreach (var vm in NpcEditor.GetDirty()) yield return vm;
+        foreach (var vm in ShopEditor.GetDirty()) yield return vm;
+        foreach (var vm in SpellEditor.GetDirty()) yield return vm;
+        foreach (var vm in MapEditor.GetDirty()) yield return vm;
+        foreach (var vm in MapGroupEditor.GetDirty()) yield return vm;
+        foreach (var vm in ClassEditor.GetDirty()) yield return vm;
+        foreach (var vm in QuestEditor.GetDirty()) yield return vm;
+        foreach (var vm in ConversationEditor.GetDirty()) yield return vm;
+    }
+
+    /// <summary>Whether any child editor holds unsaved edits.</summary>
+    public bool HasAnyDirty => GetAllDirty().Any();
+
+    /// <summary>Window-close guard: prompts for unsaved work and reports whether the close may proceed.
+    /// Returns true when there is nothing to save or the author confirmed.</summary>
+    public async Task<bool> HandleDirtyForCloseAsync()
+    {
+        var dirty = GetAllDirty().ToList();
+        if (dirty.Count == 0) return true;
+        if (ShowPushChangesDialogAsync is null) return true;
+        bool proceed = false;
+        var dlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, isClosing: true);
+        dlgVm.ProceedConfirmed += () => proceed = true;
+        dlgVm.Canceled += () => { };
+        await ShowPushChangesDialogAsync(dlgVm);
+        return proceed;
+    }
+
+    /// <summary>Tear the session down without prompting — for shutdown paths that already handled
+    /// unsaved work. No-op when already offline.</summary>
+    public async Task ForceDisconnectAsync()
+    {
+        if (!IsOnline) return;
+        await DoDisconnect();
+    }
+
+    // The server dropped us. Raised on the connection's receive-loop thread, so everything below runs
+    // marshaled to the UI thread. With unsaved work the author gets the reconnect dialog (which can push
+    // it to the recovered session); otherwise the session just closes with a notice.
+    private void OnConnectionLost()
+    {
+        _ = Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            if (!IsOnline) return;
+            var dirty = GetAllDirty().ToList();
+            if (dirty.Count == 0)
+            {
+                await DoDisconnect();
+                if (ShowAlertAsync is not null)
+                    await ShowAlertAsync(EditorStrings.Get(EditorStrings.MainWindow_DisconnectedAlert));
+                return;
+            }
+            if (ShowDisconnectDialogAsync is null)
+            {
+                await DoDisconnect();
+                return;
+            }
+            var dlgVm = new DisconnectDialogViewModel(_conn);
+            bool reconnected = false;
+            bool goOffline = false;
+            EditorDataPacket? reconnectData = null;
+            AdminLevel reconnectAccess = default;
+            dlgVm.ReconnectSuccess += (pkt, lvl) => { reconnected = true; reconnectData = pkt; reconnectAccess = lvl; };
+            dlgVm.GoOfflineRequested += () => goOffline = true;
+            await ShowDisconnectDialogAsync(dlgVm);
+            if (reconnected && reconnectData is not null)
+                await OnReconnectSuccessAsync(reconnectData, reconnectAccess);
+            else if (goOffline)
+                await DoDisconnect();
+        });
+    }
+}

@@ -1,0 +1,511 @@
+using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Net;
+using Mirage.Server.Core.Players;
+using Mirage.Server.Core.World;
+using Mirage.Shared;
+using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
+
+namespace Mirage.Server.Core.GameLogic;
+
+/// <summary>The breadth-first chase solver. <c>FindStepTowardObservableArea</c> answers it for one
+/// source tile; <c>FillPathField</c> answers it for EVERY source tile at once and
+/// <c>CachedStepTowardObservableArea</c> shares that one flood across a whole gang for a pass.
+/// Also the occupancy bitmaps and footprint tests the flood treats as walls.</summary>
+public sealed partial class NpcAiSystem : GameSystem
+{
+    private Direction? FindStepTowardObservableArea(int mapNum, int fromX, int fromY, WorldLayer fromLayer,
+                                             int targetMap, int toX, int toY, WorldLayer targetLayer,
+                                             NpcRecord npc,
+                                             bool planAroundActors = false, int selfSpawnMap = 0, int selfSpawnSlot = 0)
+    {
+        const int W = WorldCoordHelper.MapTilesX;   // 16
+        const int H = WorldCoordHelper.MapTilesY;   // 12
+        const int RW = 3 * W;                       // 48
+        const int RH = 3 * H;                       // 36
+        const int N = RW * RH;                      // 1,728 tiles per layer; the BFS state space is 2*N (ground+fringe)
+
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var gp = WorldCoordHelper.GridPosition(grid, targetMap);
+        if (gp is null) return null;  // target outside observable area — caller falls back to warp follow
+        var view = new ServerTileView(_world, grid);
+
+        var (srcWX, srcWY) = WorldCoordHelper.ToWorld(1, 1, fromX, fromY);
+        var (tgtWX, tgtWY) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, toX, toY);
+        if (srcWX == tgtWX && srcWY == tgtWY && fromLayer == targetLayer) return null;  // already on the target state
+        int srcLayerI = (int)fromLayer;
+
+        // Occupancy source for the BFS wall-mask (empty => blind, path on static geometry alone).  Indexed by
+        // STATE (layer*N + cell), so an actor standing on the fringe surface never walls a ground walker beneath:
+        //  * planAroundActors — a STALLED chaser re-planning: live actors become walls so it routes AROUND
+        //    a mid-path blocker instead of parking behind it, EXCEPT the chaser's own pursuers, which stay
+        //    walkable so a guard walling off its target isn't danced around.  Built fresh (rare path) from
+        //    current positions, not the brain-tick cache.
+        //  * NpcChasePlansAroundLiveActors (global, default off) — the shared full-occupancy snapshot,
+        //    reused per (map, tick): a few microseconds warm, near-zero thereafter.
+        scoped Span<byte> occupied;   // scoped: never escapes this method, so a stackalloc / grid-tied span may back it
+        if (planAroundActors)
+        {
+            Span<byte> stalledOcc = stackalloc byte[2 * N];
+            FillOccupancyExcludingPursuers(stalledOcc, mapNum, in grid, selfSpawnMap, selfSpawnSlot);
+            occupied = stalledOcc;
+        }
+        else if (NpcChasePlansAroundLiveActors)
+        {
+            occupied = GetOccupancyBitmap(mapNum, in grid);
+        }
+        else
+        {
+            occupied = default;
+        }
+        Span<byte> visited = stackalloc byte[2 * N];
+        Span<int> queue = stackalloc int[2 * N];
+
+        // Guards path across NpcAvoid ("npc block") tiles as if walkable; every other behavior
+        // still treats them as walls, so the planned route only cuts through for guards.
+        bool ignoreNpcAvoid = MovementSystem.NpcIgnoresNpcAvoid(npc.Behavior);
+        int footprintSize = npc.EffectiveSize;   // >1 => the BFS must fit the whole SxS body at each cell
+
+        int head = 0, tail = 0;
+
+        // BFS expands outward from the TARGET STATE (its cell on its layer) so each state's recorded direction
+        // is the step toward target; reaching the source state (cell AND layer) yields the NPC's first move.
+        int startIdx = (int)targetLayer * N + tgtWY * RW + tgtWX;
+        visited[startIdx] = 1;
+        queue[tail++] = startIdx;
+
+        while (head < tail)
+        {
+            int cur = queue[head++];
+            int curLayerI = cur >= N ? 1 : 0;               // decode the state index -> (layer, cell)
+            var curLayer = (WorldLayer)curLayerI;
+            int cell = cur - curLayerI * N;
+            int cwx = cell % RW;
+            int cwy = cell / RW;
+            int curMap = grid[cwx / W, cwy / H];
+            for (int d = 0; d < 4; d++)
+            {
+                int nwx = cwx + _bfsDx[d];
+                int nwy = cwy + _bfsDy[d];
+                if ((uint)nwx >= RW || (uint)nwy >= RH) continue;
+                var stepDir = _bfsStepFromNeighbor[d];      // the step an NPC at the neighbor takes to reach cur
+
+                int nCol = nwx / W;
+                int nRow = nwy / H;
+                int nMap = grid[nCol, nRow];
+
+                // Each cell has two candidate states (ground / fringe).  The neighbor->cur step is a real graph
+                // edge only when LayerLogic says stepping `stepDir` from the neighbor on `nLayer` actually lands
+                // on (cur, curLayer): sticky within a layer, flipping only across a ramp.  This is the SAME gate
+                // CanNpcMoveFrom applies live, so a planned step is always executable.  On a bridge-free map the
+                // fringe candidate never survives (CanEnter's deck-edge guard fails), collapsing this to the
+                // classic single-layer flood.
+                for (int nl = 0; nl < 2; nl++)
+                {
+                    var nLayer = (WorldLayer)nl;
+                    if (!LayerLogic.CanEnter(view, cwx, cwy, footprintSize, nLayer, stepDir, out var landed)
+                        || landed != curLayer)
+                    {
+                        continue;
+                    }
+
+                    if (nwx == srcWX && nwy == srcWY && nl == srcLayerI) return stepDir;
+
+                    int sIdx = nl * N + nwy * RW + nwx;
+                    if (visited[sIdx] != 0) continue;
+                    if (!occupied.IsEmpty && occupied[sIdx] != 0) continue;  // live blocker — treat as wall (occupancy-aware plan)
+
+                    if (nMap <= 0) continue;  // unlinked cell — treat as wall
+
+                    // Occupied attack-slot on this layer: a live actor ADJACENT to the target walls off the slot
+                    // so a lined-up trailer routes to an OPEN one.  Layer-scoped — an actor on the ground slot
+                    // does not wall the fringe slot above it.  Mark visited so it stays walled this BFS.
+                    if (Math.Abs(nwx - tgtWX) + Math.Abs(nwy - tgtWY) == 1
+                        && IsAttackSlotBlocked(nMap, nwx - nCol * W, nwy - nRow * H, nLayer))
+                    {
+                        visited[sIdx] = 1;
+                        continue;
+                    }
+
+                    // Walkability of the neighbor STATE at its layer.  AttrFor reads the fringe attribute on the
+                    // fringe layer, so a tile with no FringeAttr reads Blocked — the fringe-fit gate falls out
+                    // for free (a footprint not wholly on a fringe surface has a Blocked tile and is rejected).
+                    if (footprintSize > 1)
+                    {
+                        // A big NPC may only plan onto a cell where its whole SxS body fits on walkable, linked
+                        // tiles at nLayer; the live per-step CanNpcMoveFrom is the backstop for actor occupancy.
+                        if (!FootprintBlockWalkable(nwx, nwy, footprintSize, nLayer, in grid, ignoreNpcAvoid)) continue;
+                    }
+                    else
+                    {
+                        var tt = LayerLogic.AttrFor(_world.Maps[nMap].Tile[nwx - nCol * W, nwy - nRow * H], nLayer).Type;
+                        if (!MovementSystem.IsNpcWalkableTileType(tt, ignoreNpcAvoid)) continue;
+                    }
+
+                    visited[sIdx] = 1;
+                    queue[tail++] = sIdx;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Blind (non-stalled) counterpart to FindStepTowardObservableArea for the legs pass, backed by the
+    // per-pass _pathFieldCache: builds the whole source-agnostic direction field ONCE per (target, footprint,
+    // behavior) key (FillPathField) and returns THIS chaser's from-tile step in O(1).  A gang on one target thus
+    // shares a single expansion per pass instead of one flood each.  By construction dirField[src] equals
+    // exactly what FindStepTowardObservableArea(..., fromX/Y = src, ..., planAroundActors:false) returns for
+    // every src (locked by NpcPathCacheTests) — callers see identical steps, just deduplicated.  Valid only
+    // while the BFS runs blind (!NpcChasePlansAroundLiveActors); the steppers gate on that before calling.
+    private Direction? CachedStepTowardObservableArea(int mapNum, int fromX, int fromY, WorldLayer fromLayer,
+                                                      int targetMap, int toX, int toY, WorldLayer targetLayer, NpcRecord npc)
+    {
+        const int W = WorldCoordHelper.MapTilesX;   // 16
+        const int H = WorldCoordHelper.MapTilesY;   // 12
+        const int RW = 3 * W;                       // 48
+        const int N = RW * 3 * H;                   // 1,728 tiles per layer (the field holds 2*N: ground then fringe)
+
+        if (_pathFieldStamp != _pathNow)            // new pass — drop last pass's fields, reuse the buffers
+        {
+            _pathFieldCache.Clear();
+            _pathFieldBuffersUsed = 0;
+            _pathFieldStamp = _pathNow;
+        }
+
+        var key = new PathFieldKey(mapNum, targetMap, toX, toY, (int)targetLayer, npc.EffectiveSize, (int)npc.Behavior);
+        if (!_pathFieldCache.TryGetValue(key, out byte[]? field))
+        {
+            var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+            var gp = WorldCoordHelper.GridPosition(grid, targetMap);
+            if (gp is null)
+            {
+                field = null;                       // target outside observable area — matches FindStep's early null
+            }
+            else
+            {
+                var (tgtWX, tgtWY) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, toX, toY);
+                field = RentPathFieldBuffer();
+                FillPathField(field, mapNum, tgtWX, tgtWY, targetLayer, in grid, npc);
+            }
+            _pathFieldCache[key] = field;
+        }
+        if (field is null) return null;             // target not in the observable area (caller warp-follows)
+
+        // The chaser stands on the center cell (1,1) at its own layer; ToWorld(1,1,fromX,fromY) = (W+fromX, H+fromY)
+        // and its state index is fromLayer*N + that cell.
+        int v = field[(int)fromLayer * N + (H + fromY) * RW + (W + fromX)];
+        return v == 0 ? null : (Direction)(v - 1);
+    }
+
+    // Source-agnostic form of FindStepTowardObservableArea: floods the WHOLE observable area from the target
+    // STATE and records, for every (cell, layer) state, the first step FROM that state toward the target
+    // (encoded dir+1; 0 = none), so any chaser reads its own (from-cell, from-layer) in O(1).  MUST mirror
+    // FindStepTowardObservableArea's per-state checks EXACTLY (same order, incl. the layer-transition gate and
+    // the attack-slot visited side-effect) so dirField[src] == that method's return for every src — locked by
+    // NpcPathCacheTests.  Blind only: `occupied` stays empty here (the !occupied.IsEmpty branch is kept solely
+    // for structural parity with the original, so drift is visible).  Load-bearing invariants:
+    //  (1) record the inbound dir right after the layer-transition gate but BEFORE the other validity checks —
+    //      mirrors FindStep's source-return (which also sits just after that gate), so a chaser standing on an
+    //      occupied attack-slot or non-walkable SOURCE state still gets its step;
+    //  (2) guard the record with sIdx != rootIdx so the root state keeps dir 0 (the goal has no step); the same
+    //      cell on the OTHER layer is a DISTINCT state and may still record a dir;
+    //  (3) mark the root state visited at init so it is never re-enqueued;
+    //  (4) the caller Array.Clear'd the 2*N buffer on rent, so no stale directions leak from a prior target.
+    private void FillPathField(Span<byte> dirField, int mapNum, int tgtWX, int tgtWY, WorldLayer targetLayer, in MapGrid grid,
+                               NpcRecord npc)
+    {
+        const int W = WorldCoordHelper.MapTilesX;   // 16
+        const int H = WorldCoordHelper.MapTilesY;   // 12
+        const int RW = 3 * W;                       // 48
+        const int RH = 3 * H;                       // 36
+        const int N = RW * RH;                      // 1,728 tiles per layer; states are layer*N + cell (2*N total)
+
+        var view = new ServerTileView(_world, grid);
+        Span<byte> occupied = default;              // blind: static geometry + attack-slot ring only
+        Span<byte> visited = stackalloc byte[2 * N];
+        Span<int> queue = stackalloc int[2 * N];
+
+        bool ignoreNpcAvoid = MovementSystem.NpcIgnoresNpcAvoid(npc.Behavior);
+        int footprintSize = npc.EffectiveSize;
+
+        int head = 0, tail = 0;
+        int rootIdx = (int)targetLayer * N + tgtWY * RW + tgtWX;
+        visited[rootIdx] = 1;                       // invariant (3): root never re-enqueued
+        queue[tail++] = rootIdx;
+
+        while (head < tail)
+        {
+            int cur = queue[head++];
+            int curLayerI = cur >= N ? 1 : 0;               // decode the state index -> (layer, cell)
+            var curLayer = (WorldLayer)curLayerI;
+            int cell = cur - curLayerI * N;
+            int cwx = cell % RW;
+            int cwy = cell / RW;
+            int curMap = grid[cwx / W, cwy / H];
+            for (int d = 0; d < 4; d++)
+            {
+                int nwx = cwx + _bfsDx[d];
+                int nwy = cwy + _bfsDy[d];
+                if ((uint)nwx >= RW || (uint)nwy >= RH) continue;
+                var stepDir = _bfsStepFromNeighbor[d];      // the step an NPC at the neighbor takes to reach cur
+
+                int nCol = nwx / W;
+                int nRow = nwy / H;
+                int nMap = grid[nCol, nRow];
+
+                for (int nl = 0; nl < 2; nl++)
+                {
+                    var nLayer = (WorldLayer)nl;
+                    // Layer-transition gate (mirrors FindStep): neighbor->cur is a real edge only when stepping
+                    // stepDir from the neighbor on nLayer lands on (cur, curLayer).  Ramp = the only cross-layer.
+                    if (!LayerLogic.CanEnter(view, cwx, cwy, footprintSize, nLayer, stepDir, out var landed)
+                        || landed != curLayer)
+                    {
+                        continue;
+                    }
+
+                    int sIdx = nl * N + nwy * RW + nwx;
+                    if (sIdx == rootIdx) continue;  // invariant (2): the goal state keeps dir 0
+
+                    // Invariant (1): record the step toward the target on FIRST reach (dirField==0 freezes the
+                    // shortest), BEFORE the checks below — so a chaser standing on an occupied attack-slot state
+                    // or a non-walkable state still gets the same step FindStep returns for it.
+                    if (dirField[sIdx] == 0) dirField[sIdx] = (byte)((int)stepDir + 1);
+
+                    if (visited[sIdx] != 0) continue;
+                    if (!occupied.IsEmpty && occupied[sIdx] != 0) continue;  // blind here — always empty (see doc)
+
+                    if (nMap <= 0) continue;  // unlinked cell — treat as wall
+
+                    // Occupied attack-slot ring state acts as a wall (mark visited, don't expand) — identical to
+                    // FindStep; per-layer, shared per-pass via _attackSlotMemo, so it is chaser-independent.
+                    if (Math.Abs(nwx - tgtWX) + Math.Abs(nwy - tgtWY) == 1
+                        && IsAttackSlotBlocked(nMap, nwx - nCol * W, nwy - nRow * H, nLayer))
+                    {
+                        visited[sIdx] = 1;
+                        continue;
+                    }
+
+                    if (footprintSize > 1)
+                    {
+                        if (!FootprintBlockWalkable(nwx, nwy, footprintSize, nLayer, in grid, ignoreNpcAvoid)) continue;
+                    }
+                    else
+                    {
+                        var tt = LayerLogic.AttrFor(_world.Maps[nMap].Tile[nwx - nCol * W, nwy - nRow * H], nLayer).Type;
+                        if (!MovementSystem.IsNpcWalkableTileType(tt, ignoreNpcAvoid)) continue;
+                    }
+
+                    visited[sIdx] = 1;
+                    queue[tail++] = sIdx;
+                }
+            }
+        }
+    }
+
+    // Hands out a cleared 3,456-byte direction-field buffer (2 layers x 48 x 36) from the per-pass pool, growing
+    // it only at the high-water mark of distinct fields in a pass (the used-count is reset in
+    // CachedStepTowardObservableArea on a pass change) — so field builds are allocation-neutral once warm, like
+    // _occupancyCache.
+    private byte[] RentPathFieldBuffer()
+    {
+        const int N = 2 * (3 * WorldCoordHelper.MapTilesX) * (3 * WorldCoordHelper.MapTilesY);   // 2 x 48 x 36 = 3,456
+        byte[] buf;
+        if (_pathFieldBuffersUsed < _pathFieldBuffers.Count)
+        {
+            buf = _pathFieldBuffers[_pathFieldBuffersUsed];
+            Array.Clear(buf, 0, N);                 // invariant (4): no stale directions from a prior target
+        }
+        else
+        {
+            buf = new byte[N];
+            _pathFieldBuffers.Add(buf);
+        }
+        _pathFieldBuffersUsed++;
+        return buf;
+    }
+
+    // True if a size-S body anchored (top-left) at observable-area world tile (aWX,aWY) fits entirely on
+    // walkable, linked, in-area tiles AT THE GIVEN LAYER.  Used by the chase BFS so a big NPC only plans onto
+    // cells its whole footprint can occupy; the live per-step CanNpcMoveFrom still guards actor occupancy, so
+    // this is a static-geometry test only (nothing to self-exclude).  Reading walkability through
+    // LayerLogic.AttrFor at `layer` means a fringe query on a tile with no FringeAttr reads Blocked, so the
+    // fringe-footprint-fit invariant (whole body on a fringe surface) is enforced here for free.
+    private bool FootprintBlockWalkable(int aWX, int aWY, int size, WorldLayer layer, in MapGrid grid, bool ignoreNpcAvoid)
+    {
+        const int W = WorldCoordHelper.MapTilesX;
+        const int H = WorldCoordHelper.MapTilesY;
+        const int RW = 3 * W;
+        const int RH = 3 * H;
+        for (int j = 0; j < size; j++)
+        {
+            for (int i = 0; i < size; i++)
+            {
+                int wx = aWX + i, wy = aWY + j;
+                if ((uint)wx >= RW || (uint)wy >= RH) return false;
+                int col = wx / W, row = wy / H;
+                int m = grid[col, row];
+                if (m <= 0) return false;
+                var tt = LayerLogic.AttrFor(_world.Maps[m].Tile[wx - col * W, wy - row * H], layer).Type;
+                if (!MovementSystem.IsNpcWalkableTileType(tt, ignoreNpcAvoid)) return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Attack-slot occupancy test for the chase BFS ring-mask, memoized per pathing pass.  A gang all
+    // hunting one target re-queries the same ≤4 ring tiles every chaser; the memo computes each absolute
+    // (tile, layer) once per pass and shares it.  Keyed on the absolute (map, x, y, layer) so it is
+    // chaser-independent and seam-correct — an actor on the ground slot doesn't wall the fringe slot above it.
+    // Snapshot at pass start — the same mild within-pass staleness as GetOccupancyBitmap; any real overlap is
+    // still refused by the live per-step CanNpcMove.
+    private bool IsAttackSlotBlocked(int mapNum, int x, int y, WorldLayer layer)
+    {
+        if (_attackSlotMemoStamp != _pathNow)
+        {
+            _attackSlotMemo.Clear();
+            _attackSlotMemoStamp = _pathNow;
+        }
+        long key = ((long)(int)layer << 40) | ((long)mapNum << 20) | ((long)x << 10) | (long)y;
+        if (_attackSlotMemo.TryGetValue(key, out bool blocked)) return blocked;
+        blocked = IsTileOccupiedByActor(mapNum, x, y, layer);
+        _attackSlotMemo[key] = blocked;
+        return blocked;
+    }
+
+    // True if a live player or NPC currently stands on (mapNum, x, y) ON THE GIVEN LAYER.  This is the
+    // occupancy half of MovementSystem.IsNpcDestFree WITHOUT the walkability test (the BFS runs its own
+    // walkability check), so it is chaser-independent (no NpcAvoid/behavior dependence) and safe to share via
+    // the memo above.
+    private bool IsTileOccupiedByActor(int mapNum, int x, int y, WorldLayer layer)
+    {
+        foreach (int i in _world.MapObservers[mapNum])
+        {
+            if (!_pm[i].IsPlaying) continue;
+            var pc = _pm[i].Char;
+            if (pc.Map == mapNum && pc.X == x && pc.Y == y && pc.Layer == layer) return true;
+        }
+        return _world.IsTileOccupiedByNpc(mapNum, x, y, null, layer);
+    }
+
+    // Returns the live-occupancy bitmap for the 3×3 observable area centered on <paramref
+    // name="mapNum"/>, rebuilding it from the player roster + every cell's NPCs when the cached
+    // copy is stale (i.e. from a prior AI tick) and otherwise handing back the existing byte
+    // array.  Bitmap arrays are allocated lazily per map; an unused map costs zero memory.  Indexed by
+    // STATE (layer*N + cell), so an actor is a wall only on ITS OWN layer.  The bitmap may include
+    // sources/targets, but BFS never reads occupancy for either (source check fires before the bitmap
+    // check; target is the BFS root and so never expanded into).
+    private Span<byte> GetOccupancyBitmap(int mapNum, in MapGrid grid)
+    {
+        const int W = WorldCoordHelper.MapTilesX;
+        const int H = WorldCoordHelper.MapTilesY;
+        const int RW = 3 * W;
+        const int N = RW * 3 * H;                   // tiles per layer; the bitmap holds 2*N (ground then fringe)
+
+        var bitmap = _occupancyCache[mapNum];
+        if (bitmap is null)
+        {
+            bitmap = new byte[2 * N];
+            _occupancyCache[mapNum] = bitmap;
+        }
+        if (_occupancyCacheTicks[mapNum] == _aiNow) return bitmap;
+
+        Array.Clear(bitmap, 0, 2 * N);
+        // Players in this observable area are EXACTLY the players observing this center map (a player
+        // observes map M iff M is one of the 9 cells they're standing on or adjacent to).  We iterate
+        // that pre-maintained set instead of the whole 1,000-slot roster — typically 5–50 entries.
+        foreach (int i in _world.MapObservers[mapNum])
+        {
+            if (!_pm[i].IsPlaying) continue;
+            var pc = _pm[i].Char;
+            var pgp = WorldCoordHelper.GridPosition(grid, pc.Map);
+            if (pgp is null) continue;  // defensive: observer that left the area mid-tick
+            var (pwx, pwy) = WorldCoordHelper.ToWorld(pgp.Value.col, pgp.Value.row, pc.X, pc.Y);
+            bitmap[(int)pc.Layer * N + pwy * RW + pwx] = 1;
+        }
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < 3; col++)
+            {
+                int m = grid[col, row];
+                if (m <= 0) continue;
+                for (int s = 1; s <= Constants.MaxMapNpcs; s++)
+                {
+                    var n = _world.MapNpcs[m, s];
+                    if (n.Num <= 0) continue;
+                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+                    bitmap[(int)n.Layer * N + wy * RW + wx] = 1;
+                }
+                var list = _world.MapTraversalNpcs[m];
+                for (int k = 0; k < list.Count; k++)
+                {
+                    var t = list[k];
+                    if (t.Num <= 0) continue;
+                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, t.X, t.Y);
+                    bitmap[(int)t.Layer * N + wy * RW + wx] = 1;
+                }
+            }
+        }
+
+        _occupancyCacheTicks[mapNum] = _aiNow;
+        return bitmap;
+    }
+
+    // Fills <paramref name="bmp"/> (a 3×3 observable-area bitmap) with live-actor occupancy for a STALLED
+    // chaser's re-plan, OMITTING any NPC that is chasing the chaser itself (its pursuers, identified by
+    // NpcTarget == the chaser's (selfSpawnMap, selfSpawnSlot)).  A pursuer left walkable means the chaser's
+    // plan runs straight into it and holds (the per-step CanNpcMove still refuses the overlap), so a guard
+    // walling off its target makes the target SETTLE rather than route around its own hunter — the one case
+    // that separates "route around a mid-path blocker" (good) from the guard<->AoS dance (bad).  Built from
+    // current positions each call; only invoked while a chaser is stalled, so the rebuild cost is off the
+    // hot path.  The chaser's own tile may be marked (harmless: the BFS returns at the source before the
+    // occupancy check) and so may the target root (never expanded into).
+    private void FillOccupancyExcludingPursuers(Span<byte> bmp, int mapNum, in MapGrid grid, int selfSpawnMap, int selfSpawnSlot)
+    {
+        const int W = WorldCoordHelper.MapTilesX;
+        const int RW = 3 * W;
+        const int N = RW * 3 * WorldCoordHelper.MapTilesY;   // tiles per layer; bmp is 2*N, indexed by state (layer*N + cell)
+        bmp.Clear();
+        foreach (int i in _world.MapObservers[mapNum])
+        {
+            if (!_pm[i].IsPlaying) continue;
+            var pc = _pm[i].Char;
+            var pgp = WorldCoordHelper.GridPosition(grid, pc.Map);
+            if (pgp is null) continue;
+            var (pwx, pwy) = WorldCoordHelper.ToWorld(pgp.Value.col, pgp.Value.row, pc.X, pc.Y);
+            bmp[(int)pc.Layer * N + pwy * RW + pwx] = 1;
+        }
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < 3; col++)
+            {
+                int m = grid[col, row];
+                if (m <= 0) continue;
+                for (int s = 1; s <= Constants.MaxMapNpcs; s++)
+                {
+                    var n = _world.MapNpcs[m, s];
+                    if (n.Num <= 0) continue;
+                    if (n.NpcTargetSpawnSlot == selfSpawnSlot && n.NpcTargetSpawnMap == selfSpawnMap) continue;  // my pursuer — leave walkable
+                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+                    bmp[(int)n.Layer * N + wy * RW + wx] = 1;
+                }
+                var list = _world.MapTraversalNpcs[m];
+                for (int k = 0; k < list.Count; k++)
+                {
+                    var t = list[k];
+                    if (t.Num <= 0) continue;
+                    if (t.NpcTargetSpawnSlot == selfSpawnSlot && t.NpcTargetSpawnMap == selfSpawnMap) continue;  // pursuer guest
+                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, t.X, t.Y);
+                    bmp[(int)t.Layer * N + wy * RW + wx] = 1;
+                }
+            }
+        }
+    }
+
+    // Attempts a single planned step for a native (slot) NPC — either a within-map move or a
+    // one-tile border cross (converting the NPC to a traversal guest).  Returns true on success;
+    // false when the planned tile is blocked (transient mob/player on it, or a cross blocked by
+    // missing link / occupied landing).  The caller re-plans on false.
+}

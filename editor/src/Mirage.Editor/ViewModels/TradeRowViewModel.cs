@@ -1,0 +1,151 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using Mirage.Editor.Localization;
+using Mirage.Editor.Models;
+using Mirage.Shared.Records;
+namespace Mirage.Editor.ViewModels;
+
+public sealed partial class TradeRowViewModel : ObservableObject
+{
+    private readonly Func<NamedEntry[]> _entriesProvider;
+    private readonly Func<int, bool> _isCurrency;
+
+    public int SlotIndex { get; }
+
+    public string GiveItemPlaceholder => EditorStrings.Get(EditorStrings.ShopEditor_GiveItemPlaceholder);
+    public string GetItemPlaceholder => EditorStrings.Get(EditorStrings.ShopEditor_GetItemPlaceholder);
+
+    [ObservableProperty] private int _giveItem;
+    [ObservableProperty] private int _giveValue;
+    [ObservableProperty] private int _getItem;
+    [ObservableProperty] private int _getValue;
+
+    public bool IsDirty { get; private set; }
+
+    public NamedEntry[] ItemEntries => _entriesProvider();
+
+    // Per-side quantity limits, bound to the NumericUpDown Min/Max so the spinner can't leave the valid
+    // range: an empty side (no item) pins to 0; a non-currency item pins to exactly 1 (it never stacks);
+    // a currency item allows 1..9999. CoerceGive/GetValue is the authoritative backstop for typed input
+    // and item swaps; the server also re-normalizes on save.
+    public int GiveValueMin => GiveItem > 0 ? 1 : 0;
+    public int GiveValueMax => GiveItem <= 0 ? 0 : (_isCurrency(GiveItem) ? 9999 : 1);
+    public int GetValueMin => GetItem > 0 ? 1 : 0;
+    public int GetValueMax => GetItem <= 0 ? 0 : (_isCurrency(GetItem) ? 9999 : 1);
+
+    public NamedEntry? SelectedGiveItem
+    {
+        get => EntryFor(ItemEntries, GiveItem);
+        set
+        {
+            var id = value?.Id ?? 0;
+            if (GiveItem == id) return;
+            GiveItem = id;
+            IsDirty = true;
+            OnPropertyChanged(nameof(SelectedGiveItem));
+        }
+    }
+
+    public NamedEntry? SelectedGetItem
+    {
+        get => EntryFor(ItemEntries, GetItem);
+        set
+        {
+            var id = value?.Id ?? 0;
+            if (GetItem == id) return;
+            GetItem = id;
+            IsDirty = true;
+            OnPropertyChanged(nameof(SelectedGetItem));
+        }
+    }
+
+    public TradeRowViewModel(int slotIndex, TradeItemRecord r, Func<NamedEntry[]> entriesProvider, Func<int, bool> isCurrency)
+    {
+        SlotIndex = slotIndex;
+        _entriesProvider = entriesProvider;
+        _isCurrency = isCurrency;
+        _giveItem = r.GiveItem;
+        _giveValue = r.GiveValue;
+        _getItem = r.GetItem;
+        _getValue = r.GetValue;
+    }
+
+    partial void OnGiveItemChanged(int value)
+    {
+        IsDirty = true;
+        OnPropertyChanged(nameof(SelectedGiveItem));
+        // Refresh the spinner range BEFORE coercing the value, so setting the value can't get clamped to
+        // the previous item's (now stale) maximum.
+        OnPropertyChanged(nameof(GiveValueMin));
+        OnPropertyChanged(nameof(GiveValueMax));
+        CoerceGiveValue();
+    }
+    partial void OnGiveValueChanged(int value)
+    {
+        IsDirty = true;
+        CoerceGiveValue();
+    }
+    partial void OnGetItemChanged(int value)
+    {
+        IsDirty = true;
+        OnPropertyChanged(nameof(SelectedGetItem));
+        OnPropertyChanged(nameof(GetValueMin));
+        OnPropertyChanged(nameof(GetValueMax));
+        CoerceGetValue();
+    }
+    partial void OnGetValueChanged(int value)
+    {
+        IsDirty = true;
+        CoerceGetValue();
+    }
+
+    // Snap the stored quantity into the side's valid range (see GiveValueMin/Max). Setter-guarded so a
+    // no-op coercion doesn't re-enter or spuriously re-notify.
+    private void CoerceGiveValue()
+    {
+        int coerced = CoerceQuantity(GiveItem, GiveValue);
+        if (GiveValue != coerced) GiveValue = coerced;
+    }
+    private void CoerceGetValue()
+    {
+        int coerced = CoerceQuantity(GetItem, GetValue);
+        if (GetValue != coerced) GetValue = coerced;
+    }
+    private int CoerceQuantity(int itemId, int value)
+    {
+        if (itemId <= 0) return 0;              // no item on this side -> unused slot
+        if (!_isCurrency(itemId)) return 1;     // non-currency -> exactly one item
+        return value < 1 ? 1 : value;           // currency -> at least one
+    }
+
+    /// <summary>An unused trade row — neither side carries an item. Dropped when the shop is saved.</summary>
+    public bool IsEmpty => GiveItem <= 0 && GetItem <= 0;
+
+    public void ClearDirty() => IsDirty = false;
+
+    public void NotifyEntriesChanged()
+    {
+        OnPropertyChanged(nameof(ItemEntries));
+        OnPropertyChanged(nameof(SelectedGiveItem));
+        OnPropertyChanged(nameof(SelectedGetItem));
+        // An item's currency-ness may have changed under us; refresh the spinner limits and snap the stored
+        // quantities back into range, so a currency->normal flip caps a >1 qty at 1 immediately (not on next
+        // edit). Coercion is a no-op unless a value is now out of range, so unrelated invalidations don't dirty.
+        OnPropertyChanged(nameof(GiveValueMin));
+        OnPropertyChanged(nameof(GiveValueMax));
+        OnPropertyChanged(nameof(GetValueMin));
+        OnPropertyChanged(nameof(GetValueMax));
+        CoerceGiveValue();
+        CoerceGetValue();
+    }
+
+    public TradeItemRecord ToRecord() => new()
+    {
+        GiveItem = GiveItem,
+        GiveValue = GiveValue,
+        GetItem = GetItem,
+        GetValue = GetValue,
+    };
+
+    private static NamedEntry? EntryFor(NamedEntry[] entries, int id) =>
+        id > 0 && id < entries.Length ? entries[id] : null;
+}
