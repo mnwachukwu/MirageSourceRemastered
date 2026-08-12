@@ -32,6 +32,11 @@ public sealed partial class ItemRowViewModel : ObservableObject
     [ObservableProperty] private short _vitalAmount;
     [ObservableProperty] private short _spellNum;
     [ObservableProperty] private short _power;
+    /// <summary>Minimum character level to equip or use it; 0 = no level gate. This is what paces the tier
+    /// ladder: the stat requirement derived from <see cref="Power"/> gates WHO may wear a piece, and a
+    /// class's base stat is high enough at level 1 to meet a mid-ladder item on the day it is rolled — so
+    /// only a level gates WHEN.</summary>
+    [ObservableProperty] private short _levelReq;
     /// <summary>Classes allowed to equip it; null or empty = every class. Replaced wholesale by the
     /// class multi-select rather than mutated, so the change notification actually fires.</summary>
     [ObservableProperty] private List<short>? _allowedClasses;
@@ -62,6 +67,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
         _vitalAmount = r.VitalAmount;
         _spellNum = r.SpellNum;
         _power = r.Power;
+        _levelReq = r.LevelReq;
         _allowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
         _nonTradeable = r.NonTradeable;
         _nonListable = r.NonListable;
@@ -85,6 +91,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
     partial void OnVitalAmountChanged(short value) => MarkDirty();
     partial void OnSpellNumChanged(short value) => MarkDirty();
     partial void OnPowerChanged(short value) => MarkDirty();
+    partial void OnLevelReqChanged(short value) => MarkDirty();
     partial void OnAllowedClassesChanged(List<short>? value) => MarkDirty();
     partial void OnNonTradeableChanged(bool value) => MarkDirty();
     partial void OnNonListableChanged(bool value) => MarkDirty();
@@ -102,6 +109,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
         OnPropertyChanged(nameof(VitalAmountVisible));
         OnPropertyChanged(nameof(SpellNumVisible));
         OnPropertyChanged(nameof(PowerVisible));
+        OnPropertyChanged(nameof(LevelReqVisible));
         OnPropertyChanged(nameof(AllowedClassesVisible));
     }
 
@@ -133,6 +141,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
             VitalAmount = r.VitalAmount;
             SpellNum = r.SpellNum;
             Power = r.Power;
+            LevelReq = r.LevelReq;
             AllowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
             NonTradeable = r.NonTradeable;
             NonListable = r.NonListable;
@@ -162,6 +171,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
             VitalAmount = pkt.VitalAmount;
             SpellNum = pkt.SpellNum;
             Power = pkt.Power;
+            LevelReq = pkt.LevelReq;
             AllowedClasses = pkt.AllowedClasses is null ? null : new List<short>(pkt.AllowedClasses);
             NonTradeable = pkt.NonTradeable;
             NonListable = pkt.NonListable;
@@ -193,6 +203,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
             VitalAmount = VitalAmount,
             SpellNum = SpellNum,
             Power = Power,
+            LevelReq = LevelReq,
             AllowedClasses = AllowedClasses is null ? null : new List<short>(AllowedClasses),
             NonTradeable = NonTradeable,
             NonListable = NonListable,
@@ -219,6 +230,7 @@ public sealed partial class ItemRowViewModel : ObservableObject
             VitalAmount = r.VitalAmount,
             SpellNum = r.SpellNum,
             Power = r.Power,
+            LevelReq = r.LevelReq,
             AllowedClasses = r.AllowedClasses,
             NonTradeable = r.NonTradeable,
             NonListable = r.NonListable,
@@ -261,5 +273,6 @@ public sealed partial class ItemRowViewModel : ObservableObject
     public bool VitalAmountVisible => ItemRecord.UsesVitalAmount(Type);
     public bool SpellNumVisible => ItemRecord.UsesSpellNum(Type);
     public bool PowerVisible => ItemRecord.UsesPower(Type);
+    public bool LevelReqVisible => ItemRecord.UsesLevelReq(Type);
     public bool AllowedClassesVisible => ItemRecord.UsesAllowedClasses(Type);
 }

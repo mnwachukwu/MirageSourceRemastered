@@ -81,7 +81,8 @@ public sealed record SendSpellsPacket : IPacket
         [property: JsonPropertyName("vitalAmount")] short VitalAmount,
         [property: JsonPropertyName("itemNum")] short ItemNum,
         [property: JsonPropertyName("itemAmount")] short ItemAmount,
-        [property: JsonPropertyName("intReq")] short IntReq
+        [property: JsonPropertyName("intReq")] short IntReq,
+        [property: JsonPropertyName("levelReq")] short LevelReq
     );
 }
 
@@ -104,4 +105,27 @@ public sealed record ForgetSpellPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ForgetSpell;
     [JsonPropertyName("slot")] public int Slot { get; init; }
+}
+
+/// <summary>S→C: the character's whole action bar, 1-based slots 1..MaxHotkeys flattened to a 0-based
+/// wire array (as PlayerSpells does with the spell book). Sent at join and echoed after every change, so
+/// the client never has to guess whether its own edit was accepted.</summary>
+public sealed record PlayerHotkeysPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.PlayerHotkeys;
+    /// <summary>Per slot, the <see cref="Records.HotkeyKind"/> as a byte; parallel to <see cref="Nums"/>.</summary>
+    [JsonPropertyName("kinds")] public byte[] Kinds { get; init; } = [];
+    /// <summary>Per slot, the item or spell NUMBER — never a bag or book position.</summary>
+    [JsonPropertyName("nums")] public short[] Nums { get; init; } = [];
+}
+
+/// <summary>C→S: bind or clear one action-bar slot. Kind <see cref="Records.HotkeyKind.None"/> clears it.
+/// The server validates and echoes <see cref="PlayerHotkeysPacket"/>; it never trusts this to be
+/// in-range or to name something real.</summary>
+public sealed record SetHotkeyPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.SetHotkey;
+    [JsonPropertyName("slot")] public int Slot { get; init; }
+    [JsonPropertyName("kind")] public byte Kind { get; init; }
+    [JsonPropertyName("num")] public short Num { get; init; }
 }

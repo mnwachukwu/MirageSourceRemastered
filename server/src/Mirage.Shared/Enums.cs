@@ -52,6 +52,15 @@ public enum WorldLayer : byte
     Fringe = 1,
 }
 
+/// <summary>What an action-bar slot points at. <see cref="None"/> is an empty slot — the slot always
+/// exists, it just has nothing bound to it, so there is no null case to carry through the UI.</summary>
+public enum HotkeyKind : byte
+{
+    None = 0,
+    Item = 1,
+    Spell = 2,
+}
+
 public enum ItemType : byte
 {
     None = 0,

@@ -137,6 +137,11 @@ public sealed class ClientPacketSender
     public void SendForgetSpell(int slot)
         => _transport.Send(new ForgetSpellPacket { Slot = slot });
 
+    /// <summary>Bind an action-bar slot to an item or spell NUMBER, or clear it with
+    /// <see cref="HotkeyKind.None"/>. The server echoes the whole bar back either way.</summary>
+    public void SendSetHotkey(int slot, HotkeyKind kind, int num)
+        => _transport.Send(new SetHotkeyPacket { Slot = slot, Kind = (byte)kind, Num = (short)num });
+
     // ── Inventory ─────────────────────────────────────────────────────────────
 
     public void SendUseItem(int invSlot)

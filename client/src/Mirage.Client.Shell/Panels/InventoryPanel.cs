@@ -243,6 +243,8 @@ public sealed class InventoryPanel : IGamePanel
             new(ClientStrings.Get(ClientStrings.ContextMenu_DropAll),
                 () => ConfirmDestroyThen(itemNum, state, () => { if (isCurrency) sender.SendMapDropItem(invSlot, 0); else sender.SendMapDropBulk(itemNum, 0); }),
                 hasRoom),
+            new(ClientStrings.Get(ClientStrings.HotkeyBar_AssignSubmenu),
+                HotkeyAssignMenu.BuildFor(state, sender, HotkeyKind.Item, itemNum)),
         };
         _contextMenu.Open(mousePos, itemName, items, new Rectangle(0, 0, UiHelper.RefW, UiHelper.RefH), _cachedFont);
     }

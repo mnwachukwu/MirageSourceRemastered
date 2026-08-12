@@ -132,6 +132,7 @@ public static partial class EditorStrings
     public const string SpellEditor_MaxMpCostLabel = nameof(SpellEditor_MaxMpCostLabel);
     public const string SpellEditor_ReagentCostLabel = nameof(SpellEditor_ReagentCostLabel);
     public const string SpellEditor_SubHpMpCostValue = nameof(SpellEditor_SubHpMpCostValue);
+    public const string SpellEditor_AddMpCostValue = nameof(SpellEditor_AddMpCostValue);
     public const string SpellEditor_MpCostNote = nameof(SpellEditor_MpCostNote);
     public const string SpellEditor_SaveSpellButton = nameof(SpellEditor_SaveSpellButton);
     public const string SpellEditor_GiveItemSearchPlaceholder = nameof(SpellEditor_GiveItemSearchPlaceholder);

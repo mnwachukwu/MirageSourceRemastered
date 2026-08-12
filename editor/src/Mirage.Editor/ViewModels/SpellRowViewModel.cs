@@ -10,10 +10,11 @@ namespace Mirage.Editor.ViewModels;
 /// One spell slot in the spell editor's list — the editable mirror of a <see cref="SpellRecord"/>.
 /// <para>Dirty tracking works as in the other row view-models: setters mark dirty unless
 /// <c>_loading</c> is set while filling from a record or packet.</para>
-/// <para>Also drives the editor's live cost preview. Because a spell's MP cost is a pure function of
-/// its own metadata — no caster stat enters — the preview is the exact in-game cost, so editing
-/// <see cref="VitalAmount"/>, <see cref="IntReq"/> or the type re-raises <see cref="BaseMpCost"/>
-/// and friends.</para>
+/// <para>Also drives the editor's live cost preview, so editing <see cref="VitalAmount"/>,
+/// <see cref="IntReq"/> or the type re-raises <see cref="BaseMpCost"/> and friends. For most types MP
+/// cost is a pure function of the spell's own metadata, making the preview the exact in-game cost; SubHp
+/// and AddMp are caster-dependent and are quoted against a stand-in instead — see
+/// <see cref="BaseMpCost"/>.</para>
 /// </summary>
 public sealed partial class SpellRowViewModel : ObservableObject
 {
@@ -38,6 +39,11 @@ public sealed partial class SpellRowViewModel : ObservableObject
     [ObservableProperty] private short _itemAmount;
     /// <summary>GiveItem: its INT requirement, and hence its MP cost; unused by every other type.</summary>
     [ObservableProperty] private short _intReq;
+    /// <summary>Minimum character level to learn it; 0 = no level gate. Applies to every spell type,
+    /// unlike the fields above. INT decides who may learn a spell, this decides when — and it is the only
+    /// one of the two that can pace a ladder, since a specialist starts with enough INT to meet a
+    /// mid-ladder spell at level 1. Enforced on learn AND on every cast.</summary>
+    [ObservableProperty] private short _levelReq;
 
     /// <summary>Whether the row holds edits not yet saved.</summary>
     public bool IsDirty { get; private set; }
@@ -59,6 +65,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
         _itemNum = r.ItemNum;
         _itemAmount = r.ItemAmount;
         _intReq = r.IntReq;
+        _levelReq = r.LevelReq;
     }
 
     partial void OnNameChanged(string value) => MarkDirty();
@@ -75,6 +82,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
     }
     partial void OnItemNumChanged(short value) => MarkDirty();
     partial void OnItemAmountChanged(short value) => MarkDirty();
+    partial void OnLevelReqChanged(short value) => MarkDirty();
     partial void OnIntReqChanged(short value)
     {
         MarkDirty();
@@ -124,6 +132,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             ItemNum = r.ItemNum;
             ItemAmount = r.ItemAmount;
             IntReq = r.IntReq;
+            LevelReq = r.LevelReq;
         }
         finally
         {
@@ -147,6 +156,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             ItemNum = pkt.ItemNum;
             ItemAmount = pkt.ItemAmount;
             IntReq = pkt.IntReq;
+            LevelReq = pkt.LevelReq;
         }
         finally
         {
@@ -173,6 +183,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             ItemNum = ItemNum,
             ItemAmount = ItemAmount,
             IntReq = IntReq,
+            LevelReq = LevelReq,
         };
         r.Normalize();
         return r;
@@ -194,6 +205,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             ItemNum = r.ItemNum,
             ItemAmount = r.ItemAmount,
             IntReq = r.IntReq,
+            LevelReq = r.LevelReq,
         };
     }
 
@@ -222,16 +234,29 @@ public sealed partial class SpellRowViewModel : ObservableObject
         _ => EditorStrings.Get(EditorStrings.DataLabel_VitalAmount),
     };
 
-    // MP cost preview.  UTILITY spells (heals, drains, GiveItem) pay a pure function of spell metadata — no caster
-    // Int enters, so this preview is the exact in-game cost.  SubHp is the exception: it's the caster's sustainable
-    // "weapon", so its MP is a trivial caster-pool fraction (MaxMP / 20, caster-dependent) and its real per-cast
-    // cost is the REAGENT below — so for SubHp the MP line shows the pool-fraction formula, not a fixed number.
-    /// <summary>The spell's fixed MP cost, as the game will charge it.</summary>
-    public int BaseMpCost => CombatFormulas.GetSpellMpCost(ToRecord());
-    /// <summary>MP cost as shown in the form — a number, or the pool-fraction formula for SubHp.</summary>
-    public string MpCostDisplay => Type == SpellType.SubHp
-        ? EditorStrings.Get(EditorStrings.SpellEditor_SubHpMpCostValue)
-        : BaseMpCost.ToString();
+    // MP cost preview.  Most utility spells (AddHp, AddSp, the drains, GiveItem) pay a pure function of spell
+    // metadata — no caster Int enters, so this preview is the exact in-game cost.  Two exceptions, both
+    // caster-dependent and so quoted against a stand-in here:
+    //   SubHp   — the caster's sustainable "weapon", MP is a trivial pool fraction (MaxMP / 20) and the real
+    //             per-cast cost is the REAGENT below, so its MP line shows the formula rather than a number.
+    //   AddMp   — priced off what it restores, to stop a self-cast printing mana.  With no caster to hand,
+    //             quote it at Int == VitalAmount: the spell's own raw gate, hence the lowest Int that can
+    //             learn it before any class head-start.  That makes the preview the cost for the weakest
+    //             legal caster, and every stronger one pays MORE (both terms of the restore rise with Int),
+    //             so an author reading this number is reading a floor, not a typical case.
+    /// <summary>The spell's MP cost as the game will charge it — for AddMp, quoted at the reference Int
+    /// described above rather than for any particular caster.</summary>
+    public int BaseMpCost => CombatFormulas.GetSpellMpCost(ToRecord(), VitalAmount);
+    /// <summary>MP cost as shown in the form — a bare number for the types that charge one, the
+    /// pool-fraction formula for SubHp, and for AddMp the number tagged with the Int it is quoted at, so
+    /// nobody reads a caster-dependent figure as fixed.</summary>
+    public string MpCostDisplay => Type switch
+    {
+        SpellType.SubHp => EditorStrings.Get(EditorStrings.SpellEditor_SubHpMpCostValue),
+        SpellType.AddMp => EditorStrings.Format(EditorStrings.SpellEditor_AddMpCostValue,
+            ("Cost", BaseMpCost), ("Int", VitalAmount)),
+        _ => BaseMpCost.ToString(),
+    };
 
     // Reagent-per-cast preview (SubHp only) — the magic mirror of weapon-repair upkeep:
     // round(VitalAmount/10 × ~0.48 durability-lost-per-swing).  Shown instead of a fixed MP number since

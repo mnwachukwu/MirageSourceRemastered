@@ -110,6 +110,7 @@ public sealed record EditorSaveItemPacket : IPacket
     [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
     [JsonPropertyName("spellNum")] public short SpellNum { get; init; }
     [JsonPropertyName("power")] public short Power { get; init; }
+    [JsonPropertyName("levelReq")] public short LevelReq { get; init; }
     [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     // Item restriction flags. See ItemRecord for behavior.
     [JsonPropertyName("nonTradeable")] public bool NonTradeable { get; init; }
@@ -176,6 +177,7 @@ public sealed record EditorSaveSpellPacket : IPacket
     [JsonPropertyName("itemNum")] public short ItemNum { get; init; }
     [JsonPropertyName("itemAmount")] public short ItemAmount { get; init; }
     [JsonPropertyName("intReq")] public short IntReq { get; init; }
+    [JsonPropertyName("levelReq")] public short LevelReq { get; init; }
 }
 
 public sealed record EditorSaveMapPacket : IPacket
@@ -255,6 +257,7 @@ public sealed record UpdateSpellPacket : IPacket
     [JsonPropertyName("itemNum")] public short ItemNum { get; init; }
     [JsonPropertyName("itemAmount")] public short ItemAmount { get; init; }
     [JsonPropertyName("intReq")] public short IntReq { get; init; }
+    [JsonPropertyName("levelReq")] public short LevelReq { get; init; }
 }
 
 public sealed record UpdateShopPacket : IPacket

@@ -85,19 +85,19 @@ public class ClassGateTests
         var classes = new ClassRecord?[]
         {
             null,
-            new() { Name = "Barbarian" },
+            new() { Name = "Warrior" },
             new() { Name = "Soldier  " },   // names are stored padded; the readout trims
             new() { Name = "Knight" },
         };
 
         Assert.Multiple(() =>
         {
-            Assert.That(ClassGate.Describe(new List<short> { 1, 2, 3 }, classes), Is.EqualTo("Barbarian, Soldier, Knight"));
+            Assert.That(ClassGate.Describe(new List<short> { 1, 2, 3 }, classes), Is.EqualTo("Warrior, Soldier, Knight"));
             Assert.That(ClassGate.Describe(new List<short> { 2 }, classes), Is.EqualTo("Soldier"));
             Assert.That(ClassGate.Describe(null, classes), Is.Empty, "nothing to say when unrestricted");
             // An id past the end of the table is skipped rather than rendered as "?", so a stale gate
             // degrades to naming the classes that do exist.
-            Assert.That(ClassGate.Describe(new List<short> { 1, 99 }, classes), Is.EqualTo("Barbarian"));
+            Assert.That(ClassGate.Describe(new List<short> { 1, 99 }, classes), Is.EqualTo("Warrior"));
         });
     }
 

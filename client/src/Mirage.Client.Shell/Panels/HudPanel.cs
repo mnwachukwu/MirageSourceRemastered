@@ -28,8 +28,11 @@ public sealed class HudPanel
     //   - Gameplay: Options (O) and Help (H) as a centered pair (see ComputeLinkLayout).
     // Each link is a shared Link widget — labels live in localized strings WITHOUT brackets;
     // the widget wraps them with "[…]" at draw time so every site reads the same way.
-    private const int LinkStripX = 519, LinkStripY = 582, LinkStripW = 275, LinkH = 14;
-    private const int LinkStripCenterX = LinkStripX + LinkStripW / 2;
+    private const int LinkStripX = 519, LinkStripW = 275, LinkH = 14;
+    // Internal rather than private: HotkeyBarPanel stacks the action bar directly above this strip and
+    // centres on it, so the two share one definition of where the sidebar's bottom furniture lives.
+    internal const int LinkStripY = 582;
+    internal const int LinkStripCenterX = LinkStripX + LinkStripW / 2;
     private const int LinkGap = 16;
 
     // Lone Options, its tight box centered in the strip — used on CharSelect/NewChar/Loading.

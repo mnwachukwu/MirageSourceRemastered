@@ -74,7 +74,18 @@ public static partial class ClientStrings
     public const string Tooltip_Drains = nameof(Tooltip_Drains);
     public const string Tooltip_Quantity = nameof(Tooltip_Quantity);
     public const string Tooltip_ClassReq = nameof(Tooltip_ClassReq);
+    public const string Tooltip_LevelReq = nameof(Tooltip_LevelReq);
     public const string Tooltip_MpCost = nameof(Tooltip_MpCost);
+    // Action bar
+    public const string HotkeyBar_EmptyHint = nameof(HotkeyBar_EmptyHint);
+    public const string HotkeyBar_GamepadModifier = nameof(HotkeyBar_GamepadModifier);
+    public const string HotkeyBar_AssignSubmenu = nameof(HotkeyBar_AssignSubmenu);
+    public const string HotkeyBar_AssignSlot = nameof(HotkeyBar_AssignSlot);
+    public const string HotkeyBar_AssignSlotBound = nameof(HotkeyBar_AssignSlotBound);
+    public const string HotkeyBar_Clear = nameof(HotkeyBar_Clear);
+    public const string HotkeyBar_NothingBound = nameof(HotkeyBar_NothingBound);
+    public const string HotkeyBar_ItemGone = nameof(HotkeyBar_ItemGone);
+    public const string HotkeyBar_SpellGone = nameof(HotkeyBar_SpellGone);
     public const string Tooltip_ReagentCost = nameof(Tooltip_ReagentCost);
     public const string Tooltip_ReagentCostRained = nameof(Tooltip_ReagentCostRained);   // rain-doubled reagent value: "{Count} (x2)"
     public const string Tooltip_IntReq = nameof(Tooltip_IntReq);

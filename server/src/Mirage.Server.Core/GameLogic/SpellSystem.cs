@@ -48,12 +48,13 @@ public sealed class SpellSystem : GameSystem
     // Gate order (each step exits early on failure):
     //   1. Bounds check on slot
     //   2. HasSpell check (message if missing)
-    //   3. Compute levelReq / mpCost
+    //   3. Compute intReq / mpCost
     //   4. MP check          → "Not enough mana points!"
     //   5. Level check       → "You must be level X to cast this spell."
-    //   6. Timer check       → silent exit (no message)
-    //   7. GiveItem branch   → early return after handling
-    //   8. Player-target branch (TargetType = 0)
+    //   6. INT check         → "You need X INT to cast this spell."
+    //   7. Timer check       → silent exit (no message)
+    //   8. GiveItem branch   → early return after handling
+    //   9. Player-target branch (TargetType = 0)
     //      - PvP conditions met  → SUBHP/SUBMP/SUBSP + deduct MP + Casted=true
     //      - PvP conditions fail, ADD spell, same map → ADDHP/ADDMP/ADDSP + deduct MP + Casted=true
     //      - Otherwise → "Could not cast spell!"
@@ -97,9 +98,11 @@ public sealed class SpellSystem : GameSystem
         int intReq = CombatFormulas.GetSpellIntRequirement(spell, cls.Int);
         // SubHp (the caster's "weapon") pays only a trivial pool-fraction MP cost plus a per-cast reagent; every
         // other spell type (heals, drains, GiveItem) keeps the full utility MP cost.
+        // p.Int (not cls.Int) because that is exactly what RollSpellEffect hands RawSpellPower, and AddMp's
+        // cost is priced off its own restore — the two must read the same stat or the margin drifts.
         int mpCost = spell.Type == SpellType.SubHp
             ? CombatFormulas.GetSubHpSpellMpCost(p.MaxMp)
-            : CombatFormulas.GetSpellMpCost(spell);
+            : CombatFormulas.GetSpellMpCost(spell, p.Int);
 
         // 4. MP check
         if (p.Mp < mpCost)
@@ -129,14 +132,25 @@ public sealed class SpellSystem : GameSystem
             }
         }
 
-        // 5. INT check
+        // 5. Level check. Re-tested on every CAST, not only at learn time, for the same reason the INT
+        // check below is: a delevel can drop a player under a spell they already know, and the spell book
+        // has no sweep that unlearns it (gear gets one — ItemSystem.RevalidateEquipmentRequirements —
+        // because a worn piece keeps applying its stats, whereas a spell only matters when it is cast).
+        // So the cast path is where a spell stops being castable.
+        if (spell.LevelReq > p.Level)
+        {
+            SendMsg(index, ServerStrings.SpellSystem_LevelRequired, GameColor.BrightRed, ChatChannel.System, ("Level", spell.LevelReq));
+            return;
+        }
+
+        // 6. INT check
         if (intReq > p.Int)
         {
             SendMsg(index, ServerStrings.SpellSystem_IntRequired, GameColor.BrightRed, ChatChannel.System, ("Int", intReq));
             return;
         }
 
-        // 6. Timer check — exits silently (no message).  Heavy Wind doubles the cast cooldown.
+        // 7. Timer check — exits silently (no message).  Heavy Wind doubles the cast cooldown.
         long windMult = _world.WeatherOn(p.Map) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
         if (Environment.TickCount64 < sp.AttackTimer + Constants.SpellCastCooldownMs * windMult)
             return;

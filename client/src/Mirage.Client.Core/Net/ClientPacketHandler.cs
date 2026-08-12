@@ -213,6 +213,9 @@ public sealed partial class ClientPacketHandler : IClientEvents
             case EquippedGearPacket p:
                 HandleEquippedGear(p);
                 break;
+            case PlayerHotkeysPacket p:
+                HandlePlayerHotkeys(p);
+                break;
             case PlayerSpellsPacket p:
                 HandlePlayerSpells(p);
                 break;

@@ -98,6 +98,10 @@ public sealed class PlayerRecord
     // The bank is account-shared, not per-character — see AccountRecord.Bank / ServerPlayer.Bank.
     // Spells: 1-based, indices 1..MaxPlayerSpells; index 0 unused; value 0 = empty slot
     public int[] Spell { get; set; } = new int[Constants.MaxPlayerSpells + 1];
+    // Action bar: 1-based, indices 1..MaxHotkeys; index 0 unused. Each slot names an item or spell by
+    // NUMBER, never by bag/book position — see PlayerHotkey. Load through PlayerHotkey.Normalize so a
+    // character saved before the bar existed (or at a different width) comes back the right length.
+    public PlayerHotkey[] Hotkeys { get; set; } = PlayerHotkey.NewBar();
     // Player-quest state: InProgress + Done entries only (a never-touched quest has no entry). QuestSystem
     // owns the runtime ObjectiveSystem.Track handles; this is the persisted per-character record it re-tracks
     // from on login. Empty for a questless character.

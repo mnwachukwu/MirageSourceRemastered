@@ -53,6 +53,7 @@ public static class PacketNames
     public const string Cast = "cast";
     public const string SetPreparedSpell = "setpreparedspell";
     public const string ForgetSpell = "forgetspell";
+    public const string SetHotkey = "sethotkey";
     public const string RequestLocation = "requestlocation";
     public const string WhoIsOnline = "whosonline";
     public const string PlayerInfoRequest = "playerinforequest";
@@ -265,6 +266,7 @@ public static class PacketNames
     public const string SendTrade = "sendtrade";
     public const string OpenInn = "openinn";                       // S->C: raise the client-local Inn panel (from an NPC interact)
     public const string PlayerSpells = "playerspells";
+    public const string PlayerHotkeys = "playerhotkeys";
     public const string Weather = "weather";
     public const string TimeOfDay = "timeofday";
     public const string SetTimeOfDay = "settimeofday";

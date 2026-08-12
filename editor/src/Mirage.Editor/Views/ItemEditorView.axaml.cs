@@ -36,6 +36,7 @@ public partial class ItemEditorView : LocalizedUserControl
         // Captions for the fields that mean one thing wherever they apply; Power and VitalAmount bind
         // their captions instead, since those two vary by item type.
         _durabilityLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_Durability);
+        _levelReqLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_LevelReq);
         _allowedClassesLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_AllowedClasses);
         _spellNumLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_SpellNumber);
 

@@ -70,6 +70,10 @@ public sealed class JoinLeaveSystem : GameSystem
         sp.SessionStartUtc = joinUtc;     // session length -> guild active-member accrual at logout
 
         var p = sp.Char;
+        // A character saved before the action bar existed has no "hotkeys" key at all, so the property
+        // initializer already gives it a correct-length array; this covers the other case — a save made
+        // when MaxHotkeys was a different width — so every read site can index 1..MaxHotkeys freely.
+        p.Hotkeys = PlayerHotkey.Normalize(p.Hotkeys);
 
         // Return any items left escrowed by a trade that a crash/shutdown interrupted before the leave-path
         // could unwind it (normal disconnect already unwinds via OnPlayerGone). Done before the inventory is
@@ -148,6 +152,10 @@ public sealed class JoinLeaveSystem : GameSystem
 
         // Player spells (1-based array; send slots 1..MaxPlayerSpells)
         _dispatcher.SendTo(index, new PlayerSpellsPacket { Spells = p.Spell[1..], PreparedSpell = p.PreparedSpell });
+
+        // Action bar. Sent here rather than in SendJoinData, which also runs on every warp — the bar only
+        // changes when the player edits it, and each edit is echoed by its own handler.
+        _dispatcher.SendTo(index, PacketHandler.BuildHotkeysPacket(p));
 
         // Vitals
         _dispatcher.SendTo(index, PacketBuilder.SendHp(index, p.Hp, p.MaxHp));
@@ -796,7 +804,8 @@ public sealed class JoinLeaveSystem : GameSystem
                 _world.Spells[i].VitalAmount,
                 _world.Spells[i].ItemNum,
                 _world.Spells[i].ItemAmount,
-                _world.Spells[i].IntReq))
+                _world.Spells[i].IntReq,
+                _world.Spells[i].LevelReq))
             .ToArray();
         return new SendSpellsPacket { Spells = spells };
     }

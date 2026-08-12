@@ -356,6 +356,15 @@ public static class Tooltip
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), names, meetsClass ? GoodColor : WarnColor));
             }
         }
+
+        // Level gate, last because it is the one requirement that resolves itself just by playing — a red
+        // STR line means respec or find something lighter, a red level line means come back later.
+        if (item.LevelReq > 0)
+        {
+            bool meetsLevel = me is not null && me.Level >= item.LevelReq;
+            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_LevelReq),
+                item.LevelReq.ToString(), meetsLevel ? GoodColor : WarnColor));
+        }
     }
 
     private static void BuildSpellLines(SpellRecord spell, PlayerRecord? me, ClassRecord?[] classes, ItemRecord?[] itemDefs, WeatherType weather)
@@ -366,9 +375,11 @@ public static class Tooltip
 
         int classInt = myClass?.Int ?? 0;
         // SubHp pays the trivial pool-fraction (per the caster resource model); everything else the utility cost.
+        // AddMp prices off what it will restore for THIS caster, so it reads me.Int — the player's own Int, as
+        // the server does — not the class base used for the INT requirement below.
         int mpCost = spell.Type == SpellType.SubHp
             ? CombatFormulas.GetSubHpSpellMpCost(me?.MaxMp ?? 0)
-            : CombatFormulas.GetSpellMpCost(spell);
+            : CombatFormulas.GetSpellMpCost(spell, me?.Int ?? 0);
         int intReq = CombatFormulas.GetSpellIntRequirement(spell, classInt);
 
         _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_MpCost), mpCost.ToString(), ValueColor));
@@ -406,6 +417,15 @@ public static class Tooltip
 
         bool meetsInt = me?.Int >= intReq;
         _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_IntReq), UiHelper.FormatRequirement(CombatFormulas.RawSpellRequirement(spell), intReq), meetsInt ? GoodColor : WarnColor));
+
+        // Checked on learn AND on every cast, so it belongs on the tooltip beside the INT line rather
+        // than only in the shop: a delevel can put a spell you already know out of reach.
+        if (spell.LevelReq > 0)
+        {
+            bool meetsLevel = me is not null && me.Level >= spell.LevelReq;
+            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_LevelReq),
+                spell.LevelReq.ToString(), meetsLevel ? GoodColor : WarnColor));
+        }
 
         if (ClassGate.IsRestricted(spell.AllowedClasses))
         {

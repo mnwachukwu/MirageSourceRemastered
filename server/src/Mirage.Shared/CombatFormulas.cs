@@ -369,24 +369,51 @@ public static class CombatFormulas
     public static int RawSpellRequirement(SpellRecord spell) =>
         spell.Type == SpellType.GiveItem ? spell.IntReq : spell.VitalAmount;
 
-    // Cost = (gate + 15)^1.5 / SpellMpCostDivisor, where gate = RawSpellRequirement.  MP cost is a pure
-    // function of the value that gates learning the spell, uniform across every spell type, and carries no
-    // classInt term so cost stays class-independent (a class-based reduction would be an asymmetric,
-    // non-recoverable perk).  Class identity comes from the MaxMP pool and the affinity head-start on the
-    // INT gate, not from cost.  Same shifted-quadratic shape as SpellPower, the MaxMp pool, and HP/MP regen.
+    // Cost = (gate + 15)^1.5 / SpellMpCostDivisor, where gate = RawSpellRequirement.  For every type EXCEPT
+    // AddMp, MP cost is a pure function of the value that gates learning the spell and carries no casterInt
+    // term, so cost stays class-independent (a class-based reduction would be an asymmetric, non-recoverable
+    // perk).  Class identity comes from the MaxMP pool and the affinity head-start on the INT gate, not from
+    // cost.  Same shifted-quadratic shape as SpellPower, the MaxMp pool, and HP/MP regen.
     // Sub-quadratic growth keeps weak spells affordable while powerful ones reach genuinely large costs
     // (VitalAmount=250 → 718 MP at divisor=6) that bite even against endgame pools.  Larger divisor = cheaper.
     private const double SpellMpCostDivisor = 6.0;
-    // AddMp/AddSp pay an "undo premium": restoring a vital costs slightly more mana than the SubMp/SubSp
-    // drain that took it.  AddHp is excluded — its counterpart SubHp is the caster's reagent-gated trivial-MP
-    // weapon, so there is no full-mana damage cost for a heal to be priced slightly above.
+    // AddSp pays an "undo premium": restoring a vital costs slightly more mana than the SubSp drain that
+    // took it.  AddHp is excluded — its counterpart SubHp is the caster's reagent-gated trivial-MP weapon,
+    // so there is no full-mana damage cost for a heal to be priced slightly above.  AddMp used to pay this
+    // premium too and no longer does; it prices off a different basis entirely, immediately below.
     private const double AddSpellCostMultiplier = 1.10;
     private const int SpellMpCostShift = 15;
 
-    public static int GetSpellMpCost(SpellRecord spell)
+    // AddMp is the one spell type whose OUTPUT currency is its INPUT currency, so any cast that nets
+    // positive is a loop rather than a good trade — and priced off the authored amount alone, it netted
+    // positive for almost everyone.  The restore is RawSpellPower, which carries a SpellPower(casterInt)
+    // term growing as (Int + shift)^1.5 without bound, while an amount-only cost is a CONSTANT for a fixed
+    // amount.  No constant outruns a superlinear curve: at ten times the old cost an Int-92 caster still
+    // profited, so a bigger multiplier only moves the leak.  The fix is a different basis — price it off
+    // what it actually hands over.
+    //
+    // 1.30 rather than bare parity because RollSpellEffect crits: CritDamage averages 1.5x raw + 1.5 and
+    // spell crit caps at 35%, inflating the EXPECTED restore to ~1.18x raw.  Parity (and anything up to
+    // ~1.20) still prints for an endgame caster.  Reads as: restoring mana costs 30% more than it gives,
+    // so an AddMp moves mana between players at ~77% efficiency and is always a loss cast on yourself.
+    // Ceiling, not Round, so the margin can never be shaved off by rounding.
+    //
+    // AddHp and AddSp restore a different vital than they spend and so cannot loop; both keep the curve
+    // above.  Cost being caster-dependent is the deliberate trade: the old comment's objection was to a
+    // class-based DISCOUNT, an unearned perk, whereas this is a charge proportional to benefit.
+    private const double AddMpCostMultiplier = 1.30;
+
+    /// <summary>MP charged for a cast.  <paramref name="casterInt"/> is the caster's CURRENT Int (the
+    /// same value <c>RollSpellEffect</c> passes to <see cref="RawSpellPower"/>), and is read only by
+    /// AddMp — every other type prices off the spell's own metadata and ignores it.  Callers with no
+    /// caster (the editor's preview) quote at the spell's own gate value.</summary>
+    public static int GetSpellMpCost(SpellRecord spell, int casterInt)
     {
+        if (spell.Type == SpellType.AddMp)
+            return Math.Max(1, (int)Math.Ceiling(RawSpellPower(casterInt, spell.VitalAmount) * AddMpCostMultiplier));
+
         double cost = Math.Pow(RawSpellRequirement(spell) + SpellMpCostShift, DamageCurveExponent) / SpellMpCostDivisor;
-        if (spell.Type is SpellType.AddMp or SpellType.AddSp)
+        if (spell.Type is SpellType.AddSp)
             cost *= AddSpellCostMultiplier;
         return Math.Max(1, (int)Math.Round(cost, MidpointRounding.AwayFromZero));
     }

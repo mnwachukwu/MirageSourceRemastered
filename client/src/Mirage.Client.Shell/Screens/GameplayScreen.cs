@@ -101,6 +101,9 @@ public sealed partial class GameplayScreen : IGameScreen
     private readonly ConversationPanel _conversation = new();
     private readonly DeathPanel _death = new();   // uncloseable death overlay
     private bool _wasDead;                          // alive->dead edge, to close open panels once on death
+    // Action bar: ONE cooldown for all four slots, on the same 1s beat as attacking and casting, so the
+    // bar can't outpace the rest of combat. Held here rather than per-slot because the cooldown is global.
+    private long _hotkeyReadyAtMs;
     private bool _marketWasOpen;                    // market open->closed edge, to tell the server to stop live broadcasts
     private readonly ContextMenu _contextMenu = new();
 

@@ -445,6 +445,8 @@
   "ItemSystem_ScrollNoSpell":    "Ce parchemin n'est lié à aucun sort, veuillez avertir un admin!",
   "ItemSystem_SpellWrongClass":  "Ce sort ne peut être appris que par un {Class}.",
   "ItemSystem_SpellIntReq":      "Il vous faut {Int} INT pour apprendre ce sort.",
+  "ItemSystem_LevelReq":        "Vous devez être niveau {Level} pour utiliser ceci.",
+  "ItemSystem_SpellLevelReq":   "Vous devez être niveau {Level} pour apprendre ce sort.",
   "ItemSystem_SpellBookFull":    "Vous avez appris tout ce que vous pouviez apprendre!",
   "ItemSystem_SpellAlreadyKnown":"Vous connaissez déjà ce sort!",
   "ItemSystem_StudyingSpell":    "Vous étudiez le sort avec attention...",
@@ -461,6 +463,7 @@
 
   "SpellSystem_NoSpell":              "Vous ne connaissez pas ce sort!",
   "SpellSystem_NotEnoughMana":        "Pas assez de points de magie!",
+  "SpellSystem_LevelRequired":        "Vous devez être niveau {Level} pour lancer ce sort!",
   "SpellSystem_NotEnoughReagents":    "Il vous faut {Count} {Reagent} pour lancer ce sort.",
   "SpellSystem_IntRequired":          "Il vous faut {Int} INT pour lancer ce sort.",
   "SpellSystem_CannotCastOnNpc":      "Vous ne pouvez pas lancer ce sort sur les PNJ.",

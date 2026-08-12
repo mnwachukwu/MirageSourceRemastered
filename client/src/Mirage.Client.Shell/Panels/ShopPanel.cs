@@ -440,9 +440,10 @@ public sealed class ShopPanel : IGamePanel
         {
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_TeachesSpell, ("SpellName", spell.Name?.Trim() ?? "?")), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
             textY += 18;
+            // AddMp prices off what it will restore for THIS caster, so it reads me.Int like the server does.
             int mpCost = spell.Type == SpellType.SubHp
                 ? CombatFormulas.GetSubHpSpellMpCost(me?.MaxMp ?? 0)
-                : CombatFormulas.GetSpellMpCost(spell);
+                : CombatFormulas.GetSpellMpCost(spell, me?.Int ?? 0);
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_MpCost, ("Cost", mpCost)), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
             textY += 18;
             // SubHp also costs casting reagents per cast — "<Reagent> Cost: N" using the reagent item's own name.

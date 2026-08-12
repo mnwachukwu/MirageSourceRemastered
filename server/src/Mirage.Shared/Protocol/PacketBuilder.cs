@@ -219,7 +219,7 @@ public static class PacketBuilder
         {
             Items = items.Select(x => new SendItemsPacket.ItemData(
                 x.num, x.item.Name, x.item.Pic, x.item.Type,
-                x.item.Durability, x.item.VitalAmount, x.item.SpellNum, x.item.Power,
+                x.item.Durability, x.item.VitalAmount, x.item.SpellNum, x.item.Power, x.item.LevelReq,
                 // Copied, not aliased: a packet outlives this call and the record stays editable.
                 x.item.AllowedClasses is null ? null : new List<short>(x.item.AllowedClasses),
                 x.item.NonTradeable, x.item.NonListable, x.item.NonMailable, x.item.DestroyOnDrop)).ToArray()

@@ -9,6 +9,7 @@ public static partial class ServerStrings
     // ── SpellSystem ───────────────────────────────────────────────────────────
     public const string SpellSystem_NoSpell = nameof(SpellSystem_NoSpell);
     public const string SpellSystem_NotEnoughMana = nameof(SpellSystem_NotEnoughMana);
+    public const string SpellSystem_LevelRequired = nameof(SpellSystem_LevelRequired);
     public const string SpellSystem_NotEnoughReagents = nameof(SpellSystem_NotEnoughReagents);
     public const string SpellSystem_IntRequired = nameof(SpellSystem_IntRequired);
     public const string SpellSystem_CannotCastOnNpc = nameof(SpellSystem_CannotCastOnNpc);

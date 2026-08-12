@@ -445,6 +445,8 @@
   "ItemSystem_ScrollNoSpell":    "¡Este pergamino no está ligado a ningún hechizo, avisa a un admin!",
   "ItemSystem_SpellWrongClass":  "Este hechizo solo lo puede aprender un {Class}.",
   "ItemSystem_SpellIntReq":      "Necesitas {Int} de INT para aprender este hechizo.",
+  "ItemSystem_LevelReq":        "Debes ser de nivel {Level} para usar esto.",
+  "ItemSystem_SpellLevelReq":   "Debes ser de nivel {Level} para aprender este hechizo.",
   "ItemSystem_SpellBookFull":    "¡Ya has aprendido todo lo que podías aprender!",
   "ItemSystem_SpellAlreadyKnown":"¡Ya has aprendido este hechizo!",
   "ItemSystem_StudyingSpell":    "Estudias el hechizo con atención...",
@@ -461,6 +463,7 @@
 
   "SpellSystem_NoSpell":              "¡No conoces este hechizo!",
   "SpellSystem_NotEnoughMana":        "¡Puntos de magia insuficientes!",
+  "SpellSystem_LevelRequired":        "¡Debes ser de nivel {Level} para lanzar este hechizo!",
   "SpellSystem_NotEnoughReagents":    "Necesitas {Count} {Reagent} para lanzar este hechizo.",
   "SpellSystem_IntRequired":          "Necesitas {Int} de INT para lanzar este hechizo.",
   "SpellSystem_CannotCastOnNpc":      "No puedes lanzar ese hechizo sobre NPC.",

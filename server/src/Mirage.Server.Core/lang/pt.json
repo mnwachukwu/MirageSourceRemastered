@@ -445,6 +445,8 @@
   "ItemSystem_ScrollNoSpell":    "Este pergaminho não está ligado a nenhuma magia, avise um admin!",
   "ItemSystem_SpellWrongClass":  "Esta magia só pode ser aprendida por um {Class}.",
   "ItemSystem_SpellIntReq":      "Você precisa de {Int} de INT para aprender esta magia.",
+  "ItemSystem_LevelReq":        "Tens de ser nível {Level} para usar isto.",
+  "ItemSystem_SpellLevelReq":   "Tens de ser nível {Level} para aprender este feitiço.",
   "ItemSystem_SpellBookFull":    "Você já aprendeu tudo o que podia aprender!",
   "ItemSystem_SpellAlreadyKnown":"Você já aprendeu esta magia!",
   "ItemSystem_StudyingSpell":    "Você estuda a magia com atenção...",
@@ -461,6 +463,7 @@
 
   "SpellSystem_NoSpell":              "Você não conhece esta magia!",
   "SpellSystem_NotEnoughMana":        "Pontos de magia insuficientes!",
+  "SpellSystem_LevelRequired":        "Tens de ser nível {Level} para lançar este feitiço!",
   "SpellSystem_NotEnoughReagents":    "Você precisa de {Count} {Reagent} para lançar esta magia.",
   "SpellSystem_IntRequired":          "Você precisa de {Int} de INT para lançar esta magia.",
   "SpellSystem_CannotCastOnNpc":      "Você não pode lançar essa magia em NPCs.",

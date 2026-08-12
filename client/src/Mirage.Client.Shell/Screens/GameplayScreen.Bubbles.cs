@@ -236,21 +236,50 @@ public sealed partial class GameplayScreen : IGameScreen
     public void CloseShop() => _shop.Close();
     public void SetTabTarget(TargetRef t) => _tabTarget = t;
 
-    private void TryUsePotion(ItemType potionType, string potionLabel)
+    /// <summary>Fire one action-bar slot. The binding names an item or spell by NUMBER, so this resolves
+    /// it to a live inventory/spellbook slot at the moment of use — the bar keeps working across a bag
+    /// that reorders itself under it.
+    /// <para>Returns whether anything was actually sent, which is what starts the shared cooldown: a press
+    /// on an empty or unusable slot should not eat the beat.</para></summary>
+    private bool TryUseHotkey(int slot)
     {
-        var me = _ctx.State.Me;
-        if (me?.Inv is null) return;
-        for (int i = 1; i <= Constants.MaxInv; i++)
+        var state = _ctx.State;
+        var me = state.Me;
+        if (me?.Hotkeys is null || slot < 1 || slot >= me.Hotkeys.Length) return false;
+
+        var hk = me.Hotkeys[slot];
+        if (!hk.IsBound)
         {
-            var slot = me.Inv[i];
-            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
-            var item = _ctx.State.Items[slot.Num];
-            if (item is not null && item.Type == potionType)
-            {
-                _ctx.Sender.SendUseItem(i);
-                return;
-            }
+            AddChatLine(ClientStrings.Get(ClientStrings.HotkeyBar_NothingBound), GameColor.BrightRed);
+            return false;
         }
-        AddChatLine(ClientStrings.Format(ClientStrings.GameplayScreen_NoPotionFormat, ("Label", potionLabel)), GameColor.BrightRed);
+
+        if (hk.Kind == HotkeyKind.Item)
+        {
+            int inv = HotkeyBarPanel.FindInvSlot(state, hk.Num);
+            if (inv <= 0)
+            {
+                string name = (hk.Num < state.Items.Length ? state.Items[hk.Num]?.TrimmedName : null) ?? "?";
+                AddChatLine(ClientStrings.Format(ClientStrings.HotkeyBar_ItemGone, ("Item", name)), GameColor.BrightRed);
+                return false;
+            }
+            _ctx.Sender.SendUseItem(inv);
+            return true;
+        }
+
+        int book = HotkeyBarPanel.FindSpellSlot(state, hk.Num);
+        if (book <= 0)
+        {
+            string name = (hk.Num < state.SpellDefs.Length ? state.SpellDefs[hk.Num]?.TrimmedName : null) ?? "?";
+            AddChatLine(ClientStrings.Format(ClientStrings.HotkeyBar_SpellGone, ("Spell", name)), GameColor.BrightRed);
+            return false;
+        }
+        // Ctrl casts on yourself, matching what Q used to do — the bar took over Q's job, not its habits.
+        bool self = _lastInput.IsKeyDown(Keys.LeftControl) || _lastInput.IsKeyDown(Keys.RightControl);
+        _ctx.Sender.SendCast(book, self);
+        return true;
     }
+
+    /// <summary>Bind or clear an action-bar slot, then let the server echo the whole bar back.</summary>
+    public void AssignHotkey(int slot, HotkeyKind kind, int num) => _ctx.Sender.SendSetHotkey(slot, kind, num);
 }

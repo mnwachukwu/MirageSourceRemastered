@@ -59,6 +59,16 @@ public sealed class ItemRecord
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public short Power { get; set; }
 
+    /// <summary>Minimum character level to equip or use this item. 0 = no level gate.
+    /// <para>This is what actually paces the tier ladder. The stat requirement derived from
+    /// <see cref="Power"/> cannot do it: a class's base stat is high enough at level 1 that a Sage already
+    /// meets a mid-ladder piece the day it rolls a character, so the stat gate is a floor that stops the
+    /// wrong CLASS wearing something, not a clock. A level is the clock.</para>
+    /// <para>Both gates apply — an item can be out of reach for either reason, and the tooltip says
+    /// which. Applies to anything equipped or consumed; currency and keys carry no level.</para></summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public short LevelReq { get; set; }
+
     /// <summary>Weapon/Armor/Helmet/Shield: the classes allowed to equip it (1-based ids). Empty or absent
     /// = every class, which is the usual case. Enforced server-side in ItemSystem's equip path; ask
     /// <see cref="ClassGate"/> rather than testing the list directly.
@@ -101,6 +111,12 @@ public sealed class ItemRecord
     public static bool UsesVitalAmount(ItemType type) => IsPotion(type);
     public static bool UsesSpellNum(ItemType type) => type is ItemType.Spell;
 
+    /// <summary>Everything a character equips or consumes can carry a level gate — the wearables, the
+    /// potions and the spell scrolls. Currency and keys cannot: gold is not something you qualify for,
+    /// and a door that refuses its own key because the holder is level 4 is a puzzle nobody asked for.</summary>
+    public static bool UsesLevelReq(ItemType type) =>
+        IsEquipment(type) || IsPotion(type) || type is ItemType.Spell;
+
     /// <summary>Zero every field that does not apply to the current <see cref="Type"/>, so the record
     /// carries only properties it actually has. Call on any path that writes an item — the editor's save
     /// and the server's handler for an editor save packet both do, the latter because the server is
@@ -113,6 +129,7 @@ public sealed class ItemRecord
         if (!UsesVitalAmount(Type)) VitalAmount = 0;
         if (!UsesSpellNum(Type)) SpellNum = 0;
         if (!UsesPower(Type)) Power = 0;
+        if (!UsesLevelReq(Type)) LevelReq = 0;
         AllowedClasses = UsesAllowedClasses(Type) ? ClassGate.Normalize(AllowedClasses) : null;
     }
 }

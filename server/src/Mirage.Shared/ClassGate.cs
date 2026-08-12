@@ -48,7 +48,7 @@ public static class ClassGate
         return kept;
     }
 
-    /// <summary>The gate as a readable list of class names — "Barbarian, Soldier, Knight" — for a tooltip
+    /// <summary>The gate as a readable list of class names — "Warrior, Soldier, Knight" — for a tooltip
     /// or a chat message. Unknown or out-of-range ids are skipped rather than rendered as "?", since a
     /// requirement naming a class that does not exist is noise to a player either way.
     /// <para>Returns an empty string when nothing is restricted; callers already test

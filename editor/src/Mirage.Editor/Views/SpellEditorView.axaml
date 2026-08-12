@@ -145,6 +145,15 @@
                            Minimum="0" Maximum="9999" FormatString="0"/>
           </Grid>
 
+          <!-- Level requirement: every spell type, unlike the fields above. INT decides who may learn a
+               spell; this decides when, and it is the only one of the two that can pace a tier ladder. -->
+          <Grid ColumnDefinitions="165,*">
+            <TextBlock x:Name="_levelReqLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedSpell.LevelReq}"
+                           Minimum="0" Maximum="255" FormatString="0"/>
+          </Grid>
+
           <Separator Margin="0,4,0,2" Background="#333"/>
 
           <!-- Calculated MP cost preview -->

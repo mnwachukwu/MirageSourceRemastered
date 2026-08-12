@@ -56,6 +56,17 @@ public sealed partial class ClientPacketHandler : IClientEvents
         PreparedSpellReceived?.Invoke(p.PreparedSpell);
     }
 
+    // The action bar, wholesale — sent at join and re-sent after every accepted edit, so the client never
+    // has to model "did my change stick". Server sends 0-based (Kinds[0] = slot 1), as with spells.
+    private void HandlePlayerHotkeys(PlayerHotkeysPacket p)
+    {
+        var bar = _state.Me.Hotkeys;
+        for (int i = 1; i < bar.Length; i++) bar[i] = PlayerHotkey.Empty;
+        int n = Math.Min(p.Kinds.Length, p.Nums.Length);
+        for (int i = 0; i < n && i + 1 < bar.Length; i++)
+            bar[i + 1] = new PlayerHotkey((HotkeyKind)p.Kinds[i], p.Nums[i]);
+    }
+
     private void HandleSendStats(SendStatsPacket p)
     {
         var me = _state.Me;

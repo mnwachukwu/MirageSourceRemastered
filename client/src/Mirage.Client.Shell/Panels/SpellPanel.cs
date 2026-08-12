@@ -39,9 +39,13 @@ public sealed class SpellPanel : IGamePanel
 
     // True while the forget-confirmation overlay is showing; used by GameplayScreen
     // to suppress Escape-closes-panel so Escape cancels the forget instead.
-    public bool IsCapturingInput => _confirmState != ConfirmState.None;
+    public bool IsCapturingInput => _confirmState != ConfirmState.None || _contextMenu.IsOpen;
 
     private readonly ListBox _list = new() { ShowTruncationTooltip = false };   // rows show the richer spell tooltip instead
+    // Right-click a known spell to bind it to the action bar — the spellbook's half of the same submenu
+    // the inventory offers, so both kinds of hotkey are assigned the same way.
+    private readonly ContextMenu _contextMenu = new();
+    private SpriteFont? _cachedFont;
     private readonly Button _castBtn = new();
     private readonly Button _prepareBtn = new();
     private readonly Button _forgetBtn = new();
@@ -74,11 +78,20 @@ public sealed class SpellPanel : IGamePanel
         if (!IsOpen) return;
         _input = input;
 
+        // The menu runs first and claims every mouse event while open, so a click meant for it can't also
+        // land on the row underneath — the same ordering InventoryPanel uses.
+        if (_contextMenu.IsOpen && _cachedFont is not null)
+        {
+            _contextMenu.Update(input, new Rectangle(0, 0, UiHelper.RefW, UiHelper.RefH), _cachedFont);
+            return;
+        }
+
         _panel.Update(input);
         if (_panel.WasClosed)
         {
             IsOpen = false;
             _confirmState = ConfirmState.None;
+            _contextMenu.Close();
             Tooltip.CloseScope(TooltipScope);
             return;
         }
@@ -98,14 +111,32 @@ public sealed class SpellPanel : IGamePanel
         bool inCombat = state.Me is { } me0 && me0.LastCombatMs > 0
             && (Environment.TickCount64 - me0.LastCombatMs) < 10_000L;
         _forgetBtn.Enabled = !inCombat;
+        // Preparing is for SubHp only — the prepared slot is the caster's weapon, cast with Q, while every
+        // other spell type belongs to the action bar. Greying the button says so before the click rather
+        // than after a silent server refusal.
+        _prepareBtn.Enabled = _list.SelectedIndex >= 0 && IsSubHp(state, _list.SelectedIndex + 1);
 
         _list.Update(input, ListBoundsOf(c), keyboardActive: isActive);
+
+        // Right-click a known, NON-SubHp spell → the assign submenu. SubHp is deliberately unbindable: it
+        // has Q, and offering both would make "which key casts this" ambiguous.
+        int rcRow = _list.ConsumeRightClickedRow(input);
+        if (rcRow > 0 && _cachedFont is not null && !IsSubHp(state, rcRow))
+        {
+            int spellNum = state.Me?.Spell?[rcRow] ?? 0;
+            if (spellNum > 0 && spellNum < state.SpellDefs.Length && state.SpellDefs[spellNum] is { } def)
+            {
+                _contextMenu.Open(input.MousePosition, def.TrimmedName,
+                    HotkeyAssignMenu.BuildFor(state, sender, HotkeyKind.Spell, spellNum),
+                    new Rectangle(0, 0, UiHelper.RefW, UiHelper.RefH), _cachedFont);
+            }
+        }
 
         // Toggle prepared status for the selected spell.
         if (_prepareBtn.IsClicked(input) && _list.SelectedIndex >= 0)
         {
             int slot = _list.SelectedIndex + 1;
-            if ((state.Me?.Spell?[slot] ?? 0) > 0)
+            if ((state.Me?.Spell?[slot] ?? 0) > 0 && IsSubHp(state, slot))
             {
                 _preparedSlot = (_preparedSlot == slot) ? 0 : slot;
                 sender.SendSetPreparedSpell(_preparedSlot);
@@ -213,6 +244,7 @@ public sealed class SpellPanel : IGamePanel
     public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, bool isActive = false, bool canHover = true)
     {
         if (!IsOpen) return;
+        _cachedFont = font;   // the context menu needs a font in Update, which has none of its own
         int hash = ComputeStateHash(state);
         if (_stateDirty || hash != _stateHash)
         {
@@ -249,8 +281,19 @@ public sealed class SpellPanel : IGamePanel
         _forgetBtn.Draw(sb, font, _input,
             normalColor: UiHelper.DangerButtonNormal, hoverColor: UiHelper.DangerButtonHover);
         _panel.DrawOverlay(sb);
+        _contextMenu.Draw(sb, font);
 
-        if (canHover) NotifyHover(state);
+        if (canHover && !_contextMenu.IsOpen) NotifyHover(state);
+    }
+
+    /// <summary>Whether the spell in this 1-based book slot is a SubHp — the one type that is prepared and
+    /// cast with Q rather than bound to the action bar. Mirrors the server's split in HandleSetPreparedSpell
+    /// / HandleSetHotkey; an empty slot is not SubHp, so it neither prepares nor binds.</summary>
+    private static bool IsSubHp(ClientState state, int bookSlot)
+    {
+        int spellNum = state.Me?.Spell?[bookSlot] ?? 0;
+        return spellNum > 0 && spellNum < state.SpellDefs.Length
+            && state.SpellDefs[spellNum]?.Type == SpellType.SubHp;
     }
 
     private void NotifyHover(ClientState state)

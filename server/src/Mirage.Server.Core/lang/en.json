@@ -445,6 +445,8 @@
   "ItemSystem_ScrollNoSpell":    "This scroll is not connected to a spell, please inform an admin!",
   "ItemSystem_SpellWrongClass":  "This spell can only be learned by a {Class}.",
   "ItemSystem_SpellIntReq":      "You need {Int} INT to learn this spell.",
+  "ItemSystem_LevelReq":        "You must be level {Level} to use this.",
+  "ItemSystem_SpellLevelReq":   "You must be level {Level} to learn this spell.",
   "ItemSystem_SpellBookFull":    "You have learned all that you can learn!",
   "ItemSystem_SpellAlreadyKnown":"You have already learned this spell!",
   "ItemSystem_StudyingSpell":    "You study the spell carefully...",
@@ -461,6 +463,7 @@
 
   "SpellSystem_NoSpell":              "You do not have this spell!",
   "SpellSystem_NotEnoughMana":        "Not enough mana points!",
+  "SpellSystem_LevelRequired":        "You must be level {Level} to cast this spell!",
   "SpellSystem_NotEnoughReagents":    "You need {Count} {Reagent} to cast this spell.",
   "SpellSystem_IntRequired":          "You need {Int} INT to cast this spell.",
   "SpellSystem_CannotCastOnNpc":      "You cannot cast that spell on NPCs.",

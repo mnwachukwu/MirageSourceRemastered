@@ -342,20 +342,24 @@ public sealed partial class ItemSystem : GameSystem
         var p = _pm[index].Char;
         var cls = _world.Classes[p.Class];
         bool anyRemoved = false;
-        anyRemoved |= UnequipIfBelowStatRequirement(index, p, cls, ItemType.Weapon);
-        anyRemoved |= UnequipIfBelowStatRequirement(index, p, cls, ItemType.Armor);
-        anyRemoved |= UnequipIfBelowStatRequirement(index, p, cls, ItemType.Helmet);
-        anyRemoved |= UnequipIfBelowStatRequirement(index, p, cls, ItemType.Shield);
+        anyRemoved |= UnequipIfRequirementsUnmet(index, p, cls, ItemType.Weapon);
+        anyRemoved |= UnequipIfRequirementsUnmet(index, p, cls, ItemType.Armor);
+        anyRemoved |= UnequipIfRequirementsUnmet(index, p, cls, ItemType.Helmet);
+        anyRemoved |= UnequipIfRequirementsUnmet(index, p, cls, ItemType.Shield);
         if (anyRemoved) SendEquippedGear(index);
     }
 
-    /// <summary>Takes off the piece equipped in <paramref name="type"/>'s slot if the player's current
-    /// stat no longer meets its <see cref="CombatFormulas.GearStatRequirement"/> (weapons gate on STR,
-    /// armor/helmet/shield on DEF — mirroring the equip checks in <see cref="UseItem"/> exactly so the
-    /// take-off threshold can't drift from the put-on threshold). The item is left in its inventory
-    /// slot; only the gear-slot pointer is cleared. Returns true if it removed the piece. Does NOT
-    /// broadcast — the caller sends one <see cref="SendEquippedGear"/> after sweeping all slots.</summary>
-    private bool UnequipIfBelowStatRequirement(int index, PlayerRecord p, ClassRecord cls, ItemType type)
+    /// <summary>Takes off the piece equipped in <paramref name="type"/>'s slot if the player no longer
+    /// meets its requirements — either the <see cref="CombatFormulas.GearStatRequirement"/> (weapons gate
+    /// on STR, armor/helmet/shield on DEF) or its <see cref="ItemRecord.LevelReq"/>. Both mirror the equip
+    /// checks in <see cref="UseItem"/> exactly, so the take-off threshold can't drift from the put-on one.
+    /// <para>The level half matters for the same reason the stat half does: a delevel drains stats AND
+    /// drops the level, so without it a player could die below an item's tier and keep wearing it, with no
+    /// way to put it back on if they ever took it off.</para>
+    /// The item is left in its inventory slot; only the gear-slot pointer is cleared. Returns true if it
+    /// removed the piece. Does NOT broadcast — the caller sends one <see cref="SendEquippedGear"/> after
+    /// sweeping all slots.</summary>
+    private bool UnequipIfRequirementsUnmet(int index, PlayerRecord p, ClassRecord cls, ItemType type)
     {
         int invSlot = EquippedSlotForType(p, type);
         if (invSlot == 0) return false;
@@ -365,7 +369,9 @@ public sealed partial class ItemSystem : GameSystem
         bool isWeapon = type == ItemType.Weapon;
         int playerStat = isWeapon ? p.Str : p.Def;
         int classStat = isWeapon ? cls.Str : cls.Def;
-        if (playerStat >= CombatFormulas.GearStatRequirement(item.Power, classStat)) return false;
+        bool statOk = playerStat >= CombatFormulas.GearStatRequirement(item.Power, classStat);
+        bool levelOk = item.LevelReq <= p.Level;
+        if (statOk && levelOk) return false;
         switch (type)
         {
             case ItemType.Weapon:

@@ -95,6 +95,7 @@ public static partial class EditorStrings
     // outside the switch. Not "Data 1/2/3" any more — there is no numbered slot left to name.
     public const string DataLabel_VitalAmount = nameof(DataLabel_VitalAmount);
     public const string DataLabel_Power = nameof(DataLabel_Power);
+    public const string DataLabel_LevelReq = nameof(DataLabel_LevelReq);
 
     // ── EditorConnection (service-layer errors shown to the user) ─────────────
     public const string EditorConnection_ClosedUnexpectedly = nameof(EditorConnection_ClosedUnexpectedly);

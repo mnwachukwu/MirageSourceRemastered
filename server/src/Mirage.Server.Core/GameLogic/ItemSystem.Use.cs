@@ -62,6 +62,18 @@ public sealed partial class ItemSystem : GameSystem
             return;
         }
 
+        // Level gate. Sits here, ahead of the type switch, because it is the one requirement that reads
+        // the same on a sword, a potion and a scroll — and because it is what actually paces the tier
+        // ladder. The stat requirements below cannot: a class's BASE stat is high enough at level 1 that
+        // a specialist already meets a mid-ladder piece on the day it is rolled, so those gate WHO may
+        // wear a thing while this gates WHEN. Unequipping is never blocked — only reaching for it is.
+        if (ItemRecord.UsesLevelReq(item.Type) && item.LevelReq > p.Level
+            && !(isEquipment && EquippedSlotForType(p, item.Type) == invSlot))
+        {
+            SendMsg(index, ServerStrings.ItemSystem_LevelReq, GameColor.BrightRed, ("Level", item.LevelReq));
+            return;
+        }
+
         // Player's class record — drives the class-affinity head-start on the equip/learn gates below
         // (a class needs proportionally less of its affinity stat to meet a requirement).
         var cls = _world.Classes[p.Class];
@@ -147,6 +159,14 @@ public sealed partial class ItemSystem : GameSystem
                 {
                     SendMsg(index, ServerStrings.ItemSystem_SpellWrongClass, GameColor.White,
                         ("Class", ClassGate.Describe(learnSpell.AllowedClasses, _world.Classes)));
+                    break;
+                }
+                // The SPELL's own level gate, distinct from the scroll's: a scroll is a delivery mechanism
+                // and could be handed out early, while the spell on it is tied to a tier. INT decides who
+                // may learn it, this decides when — and the message names whichever one failed.
+                if (learnSpell.LevelReq > p.Level)
+                {
+                    SendMsg(index, ServerStrings.ItemSystem_SpellLevelReq, GameColor.White, ("Level", learnSpell.LevelReq));
                     break;
                 }
                 int learnIntReq = CombatFormulas.GetSpellIntRequirement(learnSpell, cls.Int);

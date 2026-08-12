@@ -506,6 +506,7 @@ public sealed class EditorPacketHandler
         item.VitalAmount = p.VitalAmount;
         item.SpellNum = p.SpellNum;
         item.Power = p.Power;
+        item.LevelReq = p.LevelReq;
         item.AllowedClasses = p.AllowedClasses;
         item.NonTradeable = p.NonTradeable;
         item.NonListable = p.NonListable;
@@ -856,6 +857,7 @@ public sealed class EditorPacketHandler
         spell.ItemNum = p.ItemNum;
         spell.ItemAmount = p.ItemAmount;
         spell.IntReq = p.IntReq;
+        spell.LevelReq = p.LevelReq;
         // As on the item path: the server clears what the new Type doesn't use before storing or
         // broadcasting. It matters more here — a stale IntReq would silently re-gate the spell.
         spell.Normalize();

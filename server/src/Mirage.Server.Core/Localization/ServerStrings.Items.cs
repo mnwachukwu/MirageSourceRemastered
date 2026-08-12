@@ -48,6 +48,8 @@ public static partial class ServerStrings
     public const string ItemSystem_ScrollNoSpell = nameof(ItemSystem_ScrollNoSpell);
     public const string ItemSystem_SpellWrongClass = nameof(ItemSystem_SpellWrongClass);
     public const string ItemSystem_SpellIntReq = nameof(ItemSystem_SpellIntReq);
+    public const string ItemSystem_LevelReq = nameof(ItemSystem_LevelReq);
+    public const string ItemSystem_SpellLevelReq = nameof(ItemSystem_SpellLevelReq);
     public const string ItemSystem_SpellBookFull = nameof(ItemSystem_SpellBookFull);
     public const string ItemSystem_SpellAlreadyKnown = nameof(ItemSystem_SpellAlreadyKnown);
     public const string ItemSystem_StudyingSpell = nameof(ItemSystem_StudyingSpell);

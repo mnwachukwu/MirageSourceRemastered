@@ -140,6 +140,11 @@ public static class Constants
 
     public const int MaxLevel = 255;
     public const int PointsPerLevel = 3;
+
+    // Action-bar slots, bound to keys 1..4 (and to the gamepad's four face buttons under a trigger
+    // modifier).  Four is a UI limit as much as a design one: the bar sits in the sidebar strip above the
+    // links, and four icons is what fits there at the strip's width without crowding them.
+    public const int MaxHotkeys = 4;
     // Every authored class starts at this total stat allotment (Str+Def+Int+Spd). With PointsPerLevel it inverts
     // a stat spread back into a character level — used to give an NPC a player-faithful "virtual level" (level =
     // (statSum - PlayerBaseStatTotal)/PointsPerLevel + 1), which drives its vitals, mitigation, EXP, and the

@@ -242,24 +242,69 @@ public sealed partial class GameplayScreen : IGameScreen
                     if (rbPressed) CycleTabTarget(reverse: true);
                 }
             }
-            // Potion combos map each face button to the resource its primary action drains:
-            // X (attack→HP), Y (cast→MP), B (run→SP). A=pickup keeps its plain meaning.
-            bool potionModifier = padActive && (input.IsGamePadLeftTriggerDown() || input.IsGamePadRightTriggerDown());
-            if ((kbActive && input.IsKeyPressed(Keys.Q)) || (padActive && input.IsGamePadButtonPressed(Buttons.Y) && !potionModifier))
-                _spells.TryCastPrepared(_ctx.State, _ctx.Sender, self: ctrl);
             // Bare C opens the stats panel; guard against Ctrl+C so copying text never toggles it.
             if (input.IsKeyPressed(Keys.C) && !ctrl) ActivatePanel(PanelStats);
-            if (kbActive && (input.IsKeyPressed(Keys.D1) || input.IsKeyPressed(Keys.NumPad1))) TryUsePotion(ItemType.PotionAddHp, ClientStrings.Get(ClientStrings.Stats_Hp));
-            if (kbActive && (input.IsKeyPressed(Keys.D2) || input.IsKeyPressed(Keys.NumPad2))) TryUsePotion(ItemType.PotionAddMp, ClientStrings.Get(ClientStrings.Stats_Mp));
-            if (kbActive && (input.IsKeyPressed(Keys.D3) || input.IsKeyPressed(Keys.NumPad3))) TryUsePotion(ItemType.PotionAddSp, ClientStrings.Get(ClientStrings.Stats_Sp));
-            if (potionModifier)
+
+            // ── Casting and the action bar ───────────────────────────────────
+            // The two split cleanly along the line the caster resource model already draws: SubHp is the
+            // caster's WEAPON (its own pool-fraction cost plus reagents), and everything else is utility.
+            // So SubHp keeps Q and the prepared slot — one chosen attack spell, swung on the same beat as
+            // a melee swing — and the action bar takes every OTHER spell type plus items. Neither can
+            // reach into the other's half: the server refuses to prepare a non-SubHp spell or to bind a
+            // SubHp one, so "which key casts this" is never ambiguous.
+            bool hotkeyModifier = padActive && (input.IsGamePadLeftTriggerDown() || input.IsGamePadRightTriggerDown());
+            if ((kbActive && input.IsKeyPressed(Keys.Q)) || (padActive && input.IsGamePadButtonPressed(Buttons.Y) && !hotkeyModifier))
+                _spells.TryCastPrepared(_ctx.State, _ctx.Sender, self: ctrl);
+
+            // The whole row shares ONE cooldown on the same 1-second beat as attacking and casting, so
+            // the bar can't be used to sidestep the pacing the rest of combat is built on. Only a press
+            // that actually did something starts it — an empty slot or an empty bag costs nothing.
+            if (nowMs >= _hotkeyReadyAtMs)
             {
-                if (input.IsGamePadButtonPressed(Buttons.X)) TryUsePotion(ItemType.PotionAddHp, ClientStrings.Get(ClientStrings.Stats_Hp));
-                if (input.IsGamePadButtonPressed(Buttons.Y)) TryUsePotion(ItemType.PotionAddMp, ClientStrings.Get(ClientStrings.Stats_Mp));
-                if (input.IsGamePadButtonPressed(Buttons.B)) TryUsePotion(ItemType.PotionAddSp, ClientStrings.Get(ClientStrings.Stats_Sp));
+                int fired = 0;
+                if (kbActive)
+                {
+                    if (input.IsKeyPressed(Keys.D1) || input.IsKeyPressed(Keys.NumPad1)) fired = 1;
+                    else if (input.IsKeyPressed(Keys.D2) || input.IsKeyPressed(Keys.NumPad2)) fired = 2;
+                    else if (input.IsKeyPressed(Keys.D3) || input.IsKeyPressed(Keys.NumPad3)) fired = 3;
+                    else if (input.IsKeyPressed(Keys.D4) || input.IsKeyPressed(Keys.NumPad4)) fired = 4;
+                }
+                if (fired == 0 && hotkeyModifier)
+                {
+                    // Trigger + face button. The order preserves the old potion layout — X was the HP
+                    // potion, Y mana, B stamina — so existing muscle memory still lands on the same
+                    // three, and slot 4 takes A. HotkeyBarPanel.GamepadFace draws these same letters.
+                    if (input.IsGamePadButtonPressed(Buttons.X)) fired = 1;
+                    else if (input.IsGamePadButtonPressed(Buttons.Y)) fired = 2;
+                    else if (input.IsGamePadButtonPressed(Buttons.B)) fired = 3;
+                    else if (input.IsGamePadButtonPressed(Buttons.A)) fired = 4;
+                }
+                if (fired > 0 && TryUseHotkey(fired))
+                    _hotkeyReadyAtMs = nowMs + Constants.PlayerAttackCooldownMs;
             }
             if (input.IsKeyPressed(Keys.Escape))
                 HandleEscapeKey();
+        }
+
+        // Right-click a bound action-bar slot to empty it. Only a BOUND slot offers the menu — a menu whose
+        // single item does nothing is worse than no menu — and the click is consumed either way so it
+        // can't fall through to the world behind the sidebar.
+        if (!mouseOverFloating && !dead && input.IsRightMouseClicked() && _gameFont is not null)
+        {
+            int barSlot = HotkeyBarPanel.SlotAt(input.MousePosition);
+            if (barSlot > 0)
+            {
+                input.ConsumeRightMouseClick();
+                var me = _ctx.State.Me;
+                if (me?.Hotkeys is not null && barSlot < me.Hotkeys.Length && me.Hotkeys[barSlot].IsBound)
+                {
+                    int captured = barSlot;
+                    _contextMenu.Open(input.MousePosition, "",
+                        [new ContextMenu.Item(ClientStrings.Get(ClientStrings.HotkeyBar_Clear),
+                            () => AssignHotkey(captured, HotkeyKind.None, 0))],
+                        new Rectangle(0, 0, UiHelper.RefW, UiHelper.RefH), _gameFont);
+                }
+            }
         }
 
         // [Mail (M)] / [Options (O)] / [Help (H)] link clicks — same on-top-toggle behavior as everywhere else.

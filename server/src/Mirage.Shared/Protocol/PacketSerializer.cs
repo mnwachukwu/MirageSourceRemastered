@@ -339,6 +339,7 @@ public static class PacketSerializer
                 PacketNames.Spells => JsonSerializer.Deserialize<SpellsRequestPacket>(line, Options),
                 PacketNames.SetPreparedSpell => JsonSerializer.Deserialize<SetPreparedSpellPacket>(line, Options),
                 PacketNames.ForgetSpell => JsonSerializer.Deserialize<ForgetSpellPacket>(line, Options),
+                PacketNames.SetHotkey => JsonSerializer.Deserialize<SetHotkeyPacket>(line, Options),
 
                 // Who is online
                 PacketNames.WhoIsOnline => JsonSerializer.Deserialize<WhoIsOnlinePacket>(line, Options),
@@ -417,6 +418,7 @@ public static class PacketSerializer
                 PacketNames.SendSpells => JsonSerializer.Deserialize<SendSpellsPacket>(line, Options),
                 PacketNames.UpdateSpell => JsonSerializer.Deserialize<UpdateSpellPacket>(line, Options),
                 PacketNames.PlayerSpells => JsonSerializer.Deserialize<PlayerSpellsPacket>(line, Options),
+                PacketNames.PlayerHotkeys => JsonSerializer.Deserialize<PlayerHotkeysPacket>(line, Options),
                 PacketNames.PartyRequest => JsonSerializer.Deserialize<PartyRequestNotifyPacket>(line, Options),
                 PacketNames.PartyVitals => JsonSerializer.Deserialize<PartyVitalsPacket>(line, Options),
 
