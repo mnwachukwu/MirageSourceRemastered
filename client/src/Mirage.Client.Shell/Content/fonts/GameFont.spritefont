@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <XnaContent xmlns:Graphics="Microsoft.Xna.Framework.Content.Pipeline.Graphics">
   <Asset Type="Graphics:FontDescription">
-    <FontName>Fixedsys Excelsior 3.01</FontName>
+    <!-- The FILE beside this one, not the installed font's display name. MonoGame's
+         FontDescriptionProcessor resolves a FontName that is not a system font against the
+         .spritefont's own directory, so this builds on a machine where nobody has ever installed
+         Fixedsys Excelsior — which is every machine but the one it was authored on. Naming the
+         display name instead is why CI could not build the client at all. -->
+    <FontName>FSEX300.ttf</FontName>
     <Size>14</Size>
     <Spacing>0</Spacing>
     <UseKerning>false</UseKerning>

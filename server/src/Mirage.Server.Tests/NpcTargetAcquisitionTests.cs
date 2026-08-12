@@ -9,7 +9,8 @@ using System.Reflection;
 namespace Mirage.Server.Tests;
 
 // Focused coverage for NPC target ACQUISITION picking the nearest eligible candidate within the
-// existing priority order (NpcAiSystem.Find*; see the "Nearest-target acquisition" README row).
+// existing priority order (NpcAiSystem.Find*; see the "Target acquisition: line of sight,
+// reachability & nearest" row in docs/changes-from-vb6.md).
 //
 // The Find* scanners are private and the assembly has no InternalsVisibleTo, so they're invoked by
 // reflection on a minimally-wired system. Those methods read only _world and _pm (plus static

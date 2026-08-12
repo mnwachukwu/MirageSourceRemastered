@@ -15,10 +15,18 @@ public sealed partial class CombatSystem : GameSystem
 {
     // ── NPC vs Player ─────────────────────────────────────────────────────────
 
-    public bool CanNpcAttackPlayer(int mapNum, int npcSlot, int victimIndex)
+    // `now` is the caller's monotonic tick, threaded in rather than sampled here — the convention
+    // IClock's summary states, and the one thing on this path that was breaking it. Sampling
+    // Environment.TickCount64 inside these methods stamped MapNpcRecord.LastReachedTargetMs from a
+    // different clock than ShouldGiveUpUnreachableAosTarget reads it with, so the AoS give-up timer
+    // measured the gap between two unrelated time bases. In the live server the two coincide (the
+    // game loop's AI tick passes Environment.TickCount64), which is why it never showed in play —
+    // it only surfaced under an injected clock, i.e. in a test, and then only on a machine whose
+    // uptime happened to fall on the wrong side of the injected value.
+    public bool CanNpcAttackPlayer(int mapNum, int npcSlot, int victimIndex, long now)
     {
         if (!SlotValidation.IsValidNpcSlot(npcSlot)) return false;
-        return CanNpcAttackPlayer(mapNum, _world.MapNpcs[mapNum, npcSlot], victimIndex);
+        return CanNpcAttackPlayer(mapNum, _world.MapNpcs[mapNum, npcSlot], victimIndex, now);
     }
 
     /// <summary>
@@ -29,14 +37,14 @@ public sealed partial class CombatSystem : GameSystem
     /// Mirrors player→target cross-seam melee.  Map moral is deliberately NOT a gate: a hostile NPC can
     /// strike a player standing just inside a safe map (see the note at the end of the body).
     /// </summary>
-    public bool CanNpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int victimIndex)
+    public bool CanNpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int victimIndex, long now)
     {
         if (!_pm[victimIndex].IsPlaying) return false;
         if (_pm[victimIndex].GettingMap) return false;
         if (_pm[victimIndex].Char.Dead) return false;  // a corpse can't be attacked/damaged/killed; this gate is above MarkPlayerCombat so it also blocks the combat re-stamp
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
         long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
-        if (Environment.TickCount64 <= mapNpc.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
+        if (now <= mapNpc.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
 
         var vp = _pm[victimIndex].Char;
         var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, vp.Map, vp.X, vp.Y);
@@ -76,10 +84,10 @@ public sealed partial class CombatSystem : GameSystem
         return true;
     }
 
-    public void NpcAttackPlayer(int mapNum, int npcSlot, int victimIndex)
+    public void NpcAttackPlayer(int mapNum, int npcSlot, int victimIndex, long now)
     {
         if (!SlotValidation.IsValidNpcSlot(npcSlot)) return;
-        NpcAttackPlayer(mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, victimIndex);
+        NpcAttackPlayer(mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, victimIndex, now);
     }
 
     /// <summary>
@@ -87,20 +95,19 @@ public sealed partial class CombatSystem : GameSystem
     /// is broadcast (NpcAttackPacket) for natives AND guests alike, addressed by the record's universal
     /// <see cref="MapNpcRecord.GetSpawnIdentity"/>, so the client spawns the swoosh + sparks the same either way.
     /// </summary>
-    public void NpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int npcSlot, int victimIndex)
+    public void NpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int npcSlot, int victimIndex, long now)
     {
-        if (!CanNpcAttackPlayer(mapNum, mapNpc, victimIndex)) return;
+        if (!CanNpcAttackPlayer(mapNum, mapNpc, victimIndex, now)) return;
         var npcRec = _world.Npcs[mapNpc.Num];
 
         // A large NPC swings once but strikes every player on the tiles just past its leading edge (the
         // faced direction).  Factored out so the size-1 path below stays byte-for-byte the original.
         if (npcRec.EffectiveSize > 1)
         {
-            NpcAttackPlayerFootprint(mapNum, mapNpc, npcSlot, npcRec, victimIndex);
+            NpcAttackPlayerFootprint(mapNum, mapNpc, npcSlot, npcRec, victimIndex, now);
             return;
         }
 
-        long now = Environment.TickCount64;
         MarkNpcCombat(mapNpc, now);
         MarkPlayerCombat(victimIndex, now, asAttacker: false);
         BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
@@ -141,9 +148,9 @@ public sealed partial class CombatSystem : GameSystem
             damage = CombatFormulas.ResolveDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot);
         }
 
-        mapNpc.AttackTimer = Environment.TickCount64;
+        mapNpc.AttackTimer = now;
         mapNpc.Attacking = true;
-        mapNpc.MarkReachedTarget(Environment.TickCount64);  // melee landed — physical reach
+        mapNpc.MarkReachedTarget(now);  // melee landed — physical reach
         // Broadcast the swing as an EVENT addressed by the attacker's universal identity (GetSpawnIdentity =
         // home slot for a native, spawn slot for a guest) so observers spawn the crescent swoosh + sparks for
         // guests exactly as for natives.  The Attacking flag in a guest's state packet drives only the sprite
@@ -162,9 +169,8 @@ public sealed partial class CombatSystem : GameSystem
     /// strip are caught here too.  The strip is resolved in world space, so it can already reach across a
     /// seam.  Magic is unaffected (separate path).
     /// </summary>
-    private void NpcAttackPlayerFootprint(int mapNum, MapNpcRecord mapNpc, int npcSlot, NpcRecord npcRec, int victimIndex)
+    private void NpcAttackPlayerFootprint(int mapNum, MapNpcRecord mapNpc, int npcSlot, NpcRecord npcRec, int victimIndex, long now)
     {
-        long now = Environment.TickCount64;
         MarkNpcCombat(mapNpc, now);
         mapNpc.AttackTimer = now;
         mapNpc.Attacking = true;
@@ -257,7 +263,7 @@ public sealed partial class CombatSystem : GameSystem
     /// via <see cref="CombatFormulas.GetSubHpSpellMpCost"/> (in-combat regen out-paces it, so the caster sustains).  Caller owns the cooldown gate
     /// (<see cref="MapNpcRecord.AttackTimer"/>) and range/LoS checks — this method just applies
     /// the effect once the AI has decided to cast.</summary>
-    public void NpcCastSpellOnPlayer(int mapNum, int npcSlot, MapNpcRecord mapNpc, int victimIndex)
+    public void NpcCastSpellOnPlayer(int mapNum, int npcSlot, MapNpcRecord mapNpc, int victimIndex, long now)
     {
         var npcRec = _world.Npcs[mapNpc.Num];
         if (!_pm[victimIndex].IsPlaying) return;
@@ -271,7 +277,6 @@ public sealed partial class CombatSystem : GameSystem
         int mpCost = CombatFormulas.GetSubHpSpellMpCost(_world.EffectiveNpcMaxMp(npcRec));
         if (mapNpc.Mp < mpCost) return;
 
-        long now = Environment.TickCount64;
         MarkNpcCombat(mapNpc, now);
         MarkPlayerCombat(victimIndex, now, asAttacker: false);
         BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);

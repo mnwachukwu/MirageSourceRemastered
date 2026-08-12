@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
@@ -104,7 +104,7 @@ public class CorpseImmunityTests
         mn.Y = 6;
         mn.Hp = 100;  // NPC valid + adjacent, so the Dead guard is what fails it
 
-        Assert.That(combat.CanNpcAttackPlayer(Map, mn, CorpseIdx), Is.False);
+        Assert.That(combat.CanNpcAttackPlayer(Map, mn, CorpseIdx, Environment.TickCount64), Is.False);
     }
 
     // ── 3. Shared NPC->player damage body no-ops on a corpse ───────────────────
@@ -154,7 +154,7 @@ public class CorpseImmunityTests
         long ready = pm[CorpseIdx].Char.RespawnReadyUtc;
         int steps = pm[CorpseIdx].Char.RespawnPenaltySteps;
 
-        combat.NpcCastSpellOnPlayer(Map, 1, mn, CorpseIdx);
+        combat.NpcCastSpellOnPlayer(Map, 1, mn, CorpseIdx, Environment.TickCount64);
 
         Assert.Multiple(() =>
         {

@@ -1,4 +1,4 @@
-using Mirage.Server.Core.Localization;
+﻿using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -410,7 +410,7 @@ public sealed partial class NpcAiSystem : GameSystem
 
             // Strike when adjacent — same map or one tile across a seam (world-space adjacency).  The
             // attack itself refreshes combat for any behavior, so an AWA mob in melee stays engaged.
-            if (_combat.CanNpcAttackPlayer(mapNum, t, target))
+            if (_combat.CanNpcAttackPlayer(mapNum, t, target, _pathNow))
             {
                 // Turn to face BEFORE the swing (so the client applies the new Dir before the swoosh spawns) —
                 // the legs pass does this on arrival; brain fallback here, never mid-slide, no deliberate beat.
@@ -421,7 +421,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     FaceNpcToward(mapNum, 0, t, vp.Map, vp.X, vp.Y);
                     continue;
                 }
-                _combat.NpcAttackPlayer(mapNum, t, 0, target);
+                _combat.NpcAttackPlayer(mapNum, t, 0, target, _pathNow);
                 t.AttackTimer = now;
                 BroadcastTraversalState(t);
                 continue;

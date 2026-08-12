@@ -9,7 +9,7 @@
     <AssemblyName>$(GameNameSlug)</AssemblyName>
     <!-- Both icons come from Directory.Build.props, alongside GameName — see the note there.
          Changing the icon on an already-built client is a repackaging step rather than a build one;
-         see "Shipping your own client" in the README. -->
+         see "Shipping your own client" in docs/branding.md. -->
     <ApplicationIcon>$(ClientIcon)</ApplicationIcon>
   </PropertyGroup>
 

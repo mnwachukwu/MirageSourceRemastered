@@ -36,6 +36,40 @@ permissions:
   contents: read
 
 jobs:
+  # ---- Do the docs still point at things that exist? -------------------------------------------
+  #
+  # Its own job rather than a step on one of the others: it needs no toolchain setup at all, so it
+  # finishes in seconds and says on its own row whether the prose is intact rather than hiding
+  # inside a compile log. Folding it into the ubuntu leg of `test` would also have been free — that
+  # job already sets up .NET — but then a broken documentation link reports as
+  # "Tests (ubuntu-latest) failed", which is exactly the ambiguous status the matrix exists to
+  # avoid.
+  #
+  # Documentation rot is invisible to everything else here. A renamed file or a reorganised
+  # document breaks links that nothing compiles and no test covers, and the person who moved the
+  # file is the least likely to notice. This is the only check in the repository that reads prose.
+  #
+  # Runs on ubuntu deliberately. The checker compares path spelling against real directory entries
+  # precisely because a Windows or macOS filesystem answers case-insensitively and would let
+  # `Docs/Building.md` pass locally while 404ing here and on github.com — but running it on the
+  # case-sensitive platform too means the OS itself is a second opinion.
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      # No setup step of any kind. Every GitHub-hosted runner ships Node, and the checker imports
+      # nothing outside Node's standard library — no package.json, no install, nothing to keep up
+      # to date. This was briefly a .NET file-based program, which read better beside the rest of
+      # the codebase but needed setup-dotnet: .NET 10 is not preinstalled, and file-based programs
+      # are a .NET 10 feature, so the SDK an image happens to carry cannot be assumed. Thirty
+      # seconds of setup to check sixty lines' worth of links was the wrong trade.
+      - name: Check every link in the Markdown resolves
+        run: node tools/check-doc-links.mjs
+
   # ---- Does it work off Windows? ---------------------------------------------------------------
   #
   # The build job below compiles for all three platforms from one Windows runner, which proves they
@@ -193,9 +227,11 @@ jobs:
 
   release:
     name: Release
-    # Both, not just build: a green Windows build says nothing about whether the thing runs on the
-    # other two platforms it is about to be published for.
-    needs: [test, build]
+    # All three, not just build. A green Windows build says nothing about whether the thing runs on
+    # the other two platforms it is about to be published for; and a release is exactly the moment
+    # people arrive at the documentation for the first time, so shipping one with links that go
+    # nowhere is the worst time to find out. Docs takes seconds and gates nothing in practice.
+    needs: [docs, test, build]
     runs-on: ubuntu-latest
 
     # A tag and nothing else. The rehearsal button publishes and keeps the artifact, but never

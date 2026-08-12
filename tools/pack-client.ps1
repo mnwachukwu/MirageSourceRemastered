@@ -40,7 +40,7 @@
     candidate in the source folder.
 
 .PARAMETER Runtime
-    win-x64 (default) or linux-x64. macOS cannot be packaged from another OS — see the README.
+    win-x64 (default) or linux-x64. macOS cannot be packaged from another OS — see docs/building.md.
 
 .PARAMETER RcEdit
     Optional path to rcedit.exe. When given, the icon inside the client executable is rewritten too,

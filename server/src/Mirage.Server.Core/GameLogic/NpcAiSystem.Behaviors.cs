@@ -1,4 +1,4 @@
-using Mirage.Server.Core.Localization;
+﻿using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -397,7 +397,7 @@ public sealed partial class NpcAiSystem : GameSystem
             // Strike first if the target is adjacent — including one tile across a map seam, where
             // the NPC can't step onto the player's occupied tile to "come to it", so only a cross-
             // seam swing can connect (otherwise a player standing just over the border is unhittable).
-            if (_combat.CanNpcAttackPlayer(mapNum, slot, target))
+            if (_combat.CanNpcAttackPlayer(mapNum, slot, target, _pathNow))
             {
                 var faceDir = FaceTargetDir(mapNum, mn.X, mn.Y, vp.Map, vp.X, vp.Y, mn.Dir);
                 if (mn.Dir != faceDir)
@@ -410,7 +410,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     BroadcastNpcDir(mapNum, slot, faceDir);
                     return;
                 }
-                _combat.NpcAttackPlayer(mapNum, slot, target);
+                _combat.NpcAttackPlayer(mapNum, slot, target, _pathNow);
                 mn.AttackTimer = now;
                 return;
             }

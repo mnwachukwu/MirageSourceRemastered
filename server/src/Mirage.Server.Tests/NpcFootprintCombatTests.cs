@@ -1,4 +1,4 @@
-using Mirage.Server.Core.GameLogic;
+﻿using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -103,11 +103,11 @@ public class NpcFootprintCombatTests
         RegisterPlayer(world, pm, 13, 8, 8);    // one row past the strip
         RegisterPlayer(world, pm, 14, 10, 5);   // two tiles from the footprint
 
-        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10), Is.True, "strike tile (8,5)");
-        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 11), Is.True, "strike tile (8,6)");
-        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 12), Is.True, "strike tile (8,7)");
-        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 13), Is.False, "off the leading-edge strip");
-        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 14), Is.False, "two tiles from the footprint");
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.True, "strike tile (8,5)");
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 11, Environment.TickCount64), Is.True, "strike tile (8,6)");
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 12, Environment.TickCount64), Is.True, "strike tile (8,7)");
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 13, Environment.TickCount64), Is.False, "off the leading-edge strip");
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 14, Environment.TickCount64), Is.False, "two tiles from the footprint");
     }
 
     [Test]
@@ -129,7 +129,7 @@ public class NpcFootprintCombatTests
         };
         var offStrip = RegisterPlayer(world, pm, 13, 8, 8);   // one row past the strip
 
-        combat.NpcAttackPlayer(Map, 1, 10);   // primary target = the player at (8,5)
+        combat.NpcAttackPlayer(Map, 1, 10, Environment.TickCount64);   // primary target = the player at (8,5)
 
         foreach (var pc in onStrip)
             Assert.That(pc.Hp, Is.LessThan(StartHp), "every player on the leading edge takes the one swing");
@@ -146,7 +146,7 @@ public class NpcFootprintCombatTests
         var n = PlaceNpc(world, 1, 1, 5, 5);
         n.Dir = Direction.Right;  // faces right...
         RegisterPlayer(world, pm, 10, 5, 4);                            // ...but the player is directly ABOVE
-        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10), Is.True,
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.True,
             "a size-1 NPC still melees any Manhattan-1 neighbor regardless of facing");
     }
 
@@ -247,15 +247,15 @@ public class NpcFootprintCombatTests
             // Same layer, adjacent → the NPC can swing.
             n.Layer = WorldLayer.Ground;
             pc.Layer = WorldLayer.Ground;
-            Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10), Is.True, "same-layer neighbors connect");
+            Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.True, "same-layer neighbors connect");
 
             // Player up on the fringe over a plain tile → the NPC beneath can't reach it.
             pc.Layer = WorldLayer.Fringe;
-            Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10), Is.False, "no cross-layer melee on a plain tile");
+            Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.False, "no cross-layer melee on a plain tile");
 
             // A ramp on the player's tile → the ground NPC at its foot connects.
             world.Maps[Map].Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Down };
-            Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10), Is.True, "reaches a player on the adjacent ramp");
+            Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.True, "reaches a player on the adjacent ramp");
         });
     }
 

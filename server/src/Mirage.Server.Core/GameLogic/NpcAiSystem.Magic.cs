@@ -1,4 +1,4 @@
-using Mirage.Server.Core.Localization;
+﻿using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -200,7 +200,7 @@ public sealed partial class NpcAiSystem : GameSystem
     /// <paramref name="npcVictimMn"/> non-null is expected to hold.</summary>
     private void DispatchNpcCast(int mapNum, int slot, MapNpcRecord mn, int playerVictimIdx, int victimMap, int npcVictimSlot, MapNpcRecord? npcVictimMn)
     {
-        if (playerVictimIdx > 0) _combat.NpcCastSpellOnPlayer(mapNum, slot, mn, playerVictimIdx);
+        if (playerVictimIdx > 0) _combat.NpcCastSpellOnPlayer(mapNum, slot, mn, playerVictimIdx, _pathNow);
         else if (npcVictimMn is not null) _combat.NpcCastSpellOnNpc(mapNum, slot, mn, victimMap, npcVictimSlot, npcVictimMn);
     }
 

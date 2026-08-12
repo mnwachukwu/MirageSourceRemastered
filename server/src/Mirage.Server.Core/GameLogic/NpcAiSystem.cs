@@ -1,4 +1,4 @@
-using Mirage.Server.Core.Localization;
+﻿using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -228,7 +228,7 @@ public sealed partial class NpcAiSystem : GameSystem
             TryLegsKite(mapNum, slot, mn, vp.Map, vp.X, vp.Y, now);
             return;
         }  // caster retreat (run pace)
-        if (_combat.CanNpcAttackPlayer(mapNum, mn, target) && !ChaserVacatesRampFor(mapNum, mn, vp.Layer))
+        if (_combat.CanNpcAttackPlayer(mapNum, mn, target, _pathNow) && !ChaserVacatesRampFor(mapNum, mn, vp.Layer))
         {
             mn.HasMadeContact = true;
             mn.ChaseSprinting = false;
@@ -311,7 +311,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 TryLegsKite(mapNum, listIndex, t, vp.Map, vp.X, vp.Y, now);
                 return;
             }  // caster retreat
-            if (_combat.CanNpcAttackPlayer(mapNum, t, t.Target) && !ChaserVacatesRampFor(mapNum, t, vp.Layer))
+            if (_combat.CanNpcAttackPlayer(mapNum, t, t.Target, _pathNow) && !ChaserVacatesRampFor(mapNum, t, vp.Layer))
             {
                 t.HasMadeContact = true;
                 t.ChaseSprinting = false;
