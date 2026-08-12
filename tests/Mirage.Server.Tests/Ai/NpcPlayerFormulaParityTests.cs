@@ -74,8 +74,8 @@ public class NpcPlayerFormulaParityTests
         }
     }
 
-    // The gear-data contribution mirrors too: a weapon's Data2 pulls the same weight off Str as a spell's
-    // Data1 does off Int (both 2x GearMitigation), so a warrior's weapon and a caster's spell scale alike.
+    // The gear contribution mirrors too: a weapon's Power pulls the same weight off Str as a spell's
+    // VitalAmount does off Int (both 2x GearMitigation), so weapon and spell scale alike.
     [Test]
     public void OffenseGear_WeaponEqualsSpellContribution()
     {
@@ -84,7 +84,7 @@ public class NpcPlayerFormulaParityTests
             foreach (int stat in Sweep)
             {
                 Assert.That(CombatFormulas.SpellContribution(data, stat), Is.EqualTo(CombatFormulas.WeaponContribution(data, stat)),
-                    $"spell Data1 contribution must equal weapon Data2 contribution at data={data}, stat={stat}");
+                    $"spell VitalAmount contribution must equal weapon Power contribution at data={data}, stat={stat}");
             }
         }
     }

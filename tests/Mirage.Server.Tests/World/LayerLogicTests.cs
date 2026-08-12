@@ -23,7 +23,7 @@ public class LayerLogicTests
 
         public GridView Ramp(int x, int y, Direction groundSide)
         {
-            _tiles[(x, y)] = new TileRecord { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)groundSide } };
+            _tiles[(x, y)] = new TileRecord { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = groundSide } };
             return this;
         }
 
@@ -128,7 +128,7 @@ public class LayerLogicTests
     [Test]
     public void Ramp_IsSolidOnTheGroundPlane_WalkableOnlyOnFringe()
     {
-        var ramp = new TileRecord { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Down } };
+        var ramp = new TileRecord { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } };
 
         Assert.Multiple(() =>
         {

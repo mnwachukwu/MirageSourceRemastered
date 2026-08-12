@@ -46,16 +46,12 @@ public static class LayerLogic
     public static TileAttr AttrFor(TileRecord t, WorldLayer layer)
     {
         if (layer == WorldLayer.Fringe)
-        {
-            return t.FringeAttr is { } fa
-                ? new TileAttr(fa.Type, fa.Data1, fa.Data2, fa.Data3)
-                : TileAttr.Walkable;
-        }
+            return t.FringeAttr is { } fa ? fa.ToAttr() : TileAttr.Walkable;
 
         // Ground layer: a ramp is solid from underneath (blocked); everything else reads its inline attribute.
         if (t.FringeAttr is { Type: TileType.LayerRamp })
             return TileAttr.Blocked;
-        return new TileAttr(t.Type, t.Data1, t.Data2, t.Data3);
+        return t.ToGroundAttr();
     }
 
     /// <summary>The layer a mover ends on after stepping (top-left anchor) to world (aWX,aWY) from
@@ -194,7 +190,7 @@ public static class LayerLogic
     {
         if (t.FringeAttr is { Type: TileType.LayerRamp } fa)
         {
-            groundSide = (Direction)fa.Data1;
+            groundSide = fa.RampGroundSide;
             return true;
         }
         groundSide = default;
@@ -210,16 +206,7 @@ public static class LayerLogic
     };
 }
 
-/// <summary>
-/// Packs a <see cref="WorldLayer"/> into a world-target Y coordinate, for attributes whose Data encodes a
-/// TARGET (x,y) that must also specify a layer: <see cref="TileType.Warp"/> (dest map/x/y + layer) and
-/// <see cref="TileType.KeyOpen"/> (door x/y + layer).  Coordinates are &lt;= <see cref="Constants.MaxMapY"/>
-/// (well under a byte), so the low byte carries the Y and bit 8 carries the layer — no schema growth, and
-/// every call site reads the target layer through this one accessor (no raw bit math elsewhere).
-/// </summary>
-public static class WorldTarget
-{
-    public static short Pack(int y, WorldLayer layer) => (short)((y & 0xFF) | ((int)layer << 8));
-    public static short Y(short packed) => (short)(packed & 0xFF);
-    public static WorldLayer Layer(short packed) => (WorldLayer)((packed >> 8) & 1);
-}
+// WorldTarget used to live here: a Pack/Y/Layer helper that squeezed a target's layer into bit 8 of its
+// Y coordinate, because Warp and KeyOpen each had a layer to record and only three data slots to record
+// it in. WarpLayer and DoorLayer are their own WorldLayer fields now, so there is nothing left to pack —
+// the helper, and every call site's bit math, is gone.

@@ -187,17 +187,20 @@ public sealed partial class ItemSystem : GameSystem
                 if (map is null) break; // cardinal link to a non-existent map
                 var tile = map.Tile[tx, ty];
                 // The faced door is read + opened on the player's own layer (a fringe door on the bridge, a ground
-                // one beneath). The tile's Data1 = required item ID; compare against itemNum (the item's own ID).
+                // one beneath). KeyItemNum names the item that opens it; compare against the item being used.
                 var key = LayerLogic.AttrFor(tile, p.Layer);
-                if (key.Type != TileType.Key || key.Data1 != itemNum) break;
+                if (key.Type != TileType.Key || key.KeyItemNum != itemNum) break;
                 var temp = _world.TempTiles[mapNum];
                 // An already-open door must not re-trigger or consume the key (matches the KeyOpen trigger guard).
                 if (temp.IsDoorOpen(tx, ty, p.Layer)) break;
                 temp.OpenDoor(tx, ty, p.Layer, Environment.TickCount64);
                 SendToMap(_world, mapNum, new MapKeyPacket { MapNum = mapNum, X = tx, Y = ty, Open = true, Layer = p.Layer });
                 ViewportMsg(index, ServerStrings.Common_DoorUnlocked, GameColor.White);
-                // tile.Data2 = take flag (1 = consume item on use).
-                if (tile.Data2 == 1)
+                // Read off `key` — the attribute resolved on the PLAYER'S layer — not off the tile's inline
+                // ground attribute. As `tile.Data2` it read the ground tile's flag even when the door being
+                // opened was the fringe one, so a fringe door consumed the key only if the unrelated ground
+                // attribute happened to say so. Naming the field is what made the mismatch visible.
+                if (key.KeyIsConsumed)
                 {
                     TakeItem(index, itemNum, 0);
                     SendMsg(index, ServerStrings.ItemSystem_KeyDissolves, GameColor.Yellow);

@@ -123,9 +123,9 @@ public sealed record SendMapPacket : IPacket
         [property: JsonPropertyName("g")] int[] Ground,
         [property: JsonPropertyName("f")] int[] Fringe,
         [property: JsonPropertyName("type")] TileType Type,
-        [property: JsonPropertyName("d1")] short Data1,
-        [property: JsonPropertyName("d2")] short Data2,
-        [property: JsonPropertyName("d3")] short Data3,
+        // The ground attribute's authored fields; null when this kind of tile has none (Walkable,
+        // Blocked, NpcAvoid), which is the overwhelming majority — so the wire got smaller, not bigger.
+        [property: JsonPropertyName("a"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AttrFields? Fields,
         // Canopy: the third visual stack, drawn atop everything (mirrors Ground/Fringe, trailing-empties trimmed).
         [property: JsonPropertyName("c")] int[] Canopy,
         // Fringe-layer gameplay attribute; non-null iff a walkable fringe layer (bridge top) exists here.
@@ -134,27 +134,32 @@ public sealed record SendMapPacket : IPacket
     {
         /// <summary>Build a wire tile from a map tile, trimming trailing-empty layers.</summary>
         public static TileData From(int x, int y, TileRecord t) =>
-            new(x, y, Trim(t.Ground), Trim(t.Fringe), t.Type, t.Data1, t.Data2, t.Data3,
+            new(x, y, Trim(t.Ground), Trim(t.Fringe), t.Type, AttrFields.FromGround(t),
                 Trim(t.Canopy),
-                t.FringeAttr is { } fa ? new FringeData(fa.Type, fa.Data1, fa.Data2, fa.Data3) : null);
+                t.FringeAttr is { } fa ? new FringeData(fa.Type, AttrFields.From(fa)) : null);
 
         /// <summary>Materialize a fresh <see cref="TileRecord"/> from this wire tile.</summary>
         public TileRecord ToTile()
         {
-            var tile = new TileRecord { Type = Type, Data1 = Data1, Data2 = Data2, Data3 = Data3 };
+            var tile = new TileRecord { Type = Type };
+            Fields?.ApplyTo(tile);
             CopyClamped(Ground, tile.Ground);
             CopyClamped(Fringe, tile.Fringe);
             CopyClamped(Canopy, tile.Canopy);
             if (FringeAttr is { } fa)
-                tile.FringeAttr = new FringeAttr { Type = fa.Type, Data1 = fa.Data1, Data2 = fa.Data2, Data3 = fa.Data3 };
+            {
+                var attr = new FringeAttr { Type = fa.Type };
+                fa.Fields?.ApplyTo(attr);
+                tile.FringeAttr = attr;
+            }
             return tile;
         }
 
-        /// <summary>True when a tile carries nothing — no layers, default type, no data, no fringe layer —
+        /// <summary>True when a tile carries nothing — no layers, default type, no fields, no fringe layer —
         /// so it can be omitted from a sparse SendMap.</summary>
         public static bool IsDefault(TileRecord t)
         {
-            if (t.Type != TileType.Walkable || t.Data1 != 0 || t.Data2 != 0 || t.Data3 != 0) return false;
+            if (t.Type != TileType.Walkable) return false;
             if (t.FringeAttr is not null) return false;
             foreach (int p in t.Ground) if (!LayerCell.IsEmpty(p)) return false;
             foreach (int p in t.Fringe) if (!LayerCell.IsEmpty(p)) return false;
@@ -185,10 +190,67 @@ public sealed record SendMapPacket : IPacket
     /// Its PRESENCE (non-null on <see cref="TileData"/>) marks that a walkable fringe layer exists.</summary>
     public sealed record FringeData(
         [property: JsonPropertyName("type")] TileType Type,
-        [property: JsonPropertyName("d1")] short Data1,
-        [property: JsonPropertyName("d2")] short Data2,
-        [property: JsonPropertyName("d3")] short Data3
+        [property: JsonPropertyName("a"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] AttrFields? Fields
     );
+
+    /// <summary>The authored fields of one tile attribute, on either plane — the wire form of the field
+    /// set shared by <see cref="TileRecord"/>, <see cref="Records.FringeAttr"/> and <see cref="TileAttr"/>.
+    /// <para>One record for both planes rather than the fields being spelled out twice, and null (rather
+    /// than a run of zeros) when the tile's type authors nothing — which is true of every Walkable,
+    /// Blocked and NpcAvoid tile, i.e. nearly all of them. Keys stay terse because this is machine-read;
+    /// the on-disk format spells them out in full instead.</para></summary>
+    public sealed record AttrFields
+    {
+        [property: JsonPropertyName("wm"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpMap { get; init; }
+        [property: JsonPropertyName("wx"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpX { get; init; }
+        [property: JsonPropertyName("wy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpY { get; init; }
+        [property: JsonPropertyName("wl"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WorldLayer WarpLayer { get; init; }
+        [property: JsonPropertyName("in"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemNum { get; init; }
+        [property: JsonPropertyName("iv"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemValue { get; init; }
+        [property: JsonPropertyName("ir"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemRespawnSecs { get; init; }
+        [property: JsonPropertyName("kn"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short KeyItemNum { get; init; }
+        [property: JsonPropertyName("kc"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool KeyIsConsumed { get; init; }
+        [property: JsonPropertyName("dx"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short DoorX { get; init; }
+        [property: JsonPropertyName("dy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short DoorY { get; init; }
+        [property: JsonPropertyName("dl"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WorldLayer DoorLayer { get; init; }
+        [property: JsonPropertyName("rg"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public Direction RampGroundSide { get; init; }
+
+        public static AttrFields? FromGround(TileRecord t) => !TileAttrRules.UsesAnyField(t.Type) ? null : new AttrFields
+        {
+            WarpMap = t.WarpMap, WarpX = t.WarpX, WarpY = t.WarpY, WarpLayer = t.WarpLayer,
+            ItemNum = t.ItemNum, ItemValue = t.ItemValue, ItemRespawnSecs = t.ItemRespawnSecs,
+            KeyItemNum = t.KeyItemNum, KeyIsConsumed = t.KeyIsConsumed,
+            DoorX = t.DoorX, DoorY = t.DoorY, DoorLayer = t.DoorLayer,
+            RampGroundSide = t.RampGroundSide,
+        };
+
+        public static AttrFields? From(Records.FringeAttr a) => !TileAttrRules.UsesAnyField(a.Type) ? null : new AttrFields
+        {
+            WarpMap = a.WarpMap, WarpX = a.WarpX, WarpY = a.WarpY, WarpLayer = a.WarpLayer,
+            ItemNum = a.ItemNum, ItemValue = a.ItemValue, ItemRespawnSecs = a.ItemRespawnSecs,
+            KeyItemNum = a.KeyItemNum, KeyIsConsumed = a.KeyIsConsumed,
+            DoorX = a.DoorX, DoorY = a.DoorY, DoorLayer = a.DoorLayer,
+            RampGroundSide = a.RampGroundSide,
+        };
+
+        public void ApplyTo(TileRecord t)
+        {
+            t.WarpMap = WarpMap; t.WarpX = WarpX; t.WarpY = WarpY; t.WarpLayer = WarpLayer;
+            t.ItemNum = ItemNum; t.ItemValue = ItemValue; t.ItemRespawnSecs = ItemRespawnSecs;
+            t.KeyItemNum = KeyItemNum; t.KeyIsConsumed = KeyIsConsumed;
+            t.DoorX = DoorX; t.DoorY = DoorY; t.DoorLayer = DoorLayer;
+            t.RampGroundSide = RampGroundSide;
+        }
+
+        public void ApplyTo(Records.FringeAttr a)
+        {
+            a.WarpMap = WarpMap; a.WarpX = WarpX; a.WarpY = WarpY; a.WarpLayer = WarpLayer;
+            a.ItemNum = ItemNum; a.ItemValue = ItemValue; a.ItemRespawnSecs = ItemRespawnSecs;
+            a.KeyItemNum = KeyItemNum; a.KeyIsConsumed = KeyIsConsumed;
+            a.DoorX = DoorX; a.DoorY = DoorY; a.DoorLayer = DoorLayer;
+            a.RampGroundSide = RampGroundSide;
+        }
+    }
 }
 
 public sealed record JoinMapPacket : IPacket

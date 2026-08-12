@@ -45,15 +45,19 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "type":
                     tile.Type = ReadTileType(ref reader);
                     break;
-                case "data1":
-                    tile.Data1 = reader.GetInt16();
-                    break;
-                case "data2":
-                    tile.Data2 = reader.GetInt16();
-                    break;
-                case "data3":
-                    tile.Data3 = reader.GetInt16();
-                    break;
+                case "warpmap": tile.WarpMap = reader.GetInt16(); break;
+                case "warpx": tile.WarpX = reader.GetInt16(); break;
+                case "warpy": tile.WarpY = reader.GetInt16(); break;
+                case "warplayer": tile.WarpLayer = ReadLayer(ref reader); break;
+                case "itemnum": tile.ItemNum = reader.GetInt16(); break;
+                case "itemvalue": tile.ItemValue = reader.GetInt16(); break;
+                case "itemrespawnsecs": tile.ItemRespawnSecs = reader.GetInt16(); break;
+                case "keyitemnum": tile.KeyItemNum = reader.GetInt16(); break;
+                case "keyisconsumed": tile.KeyIsConsumed = reader.GetBoolean(); break;
+                case "doorx": tile.DoorX = reader.GetInt16(); break;
+                case "doory": tile.DoorY = reader.GetInt16(); break;
+                case "doorlayer": tile.DoorLayer = ReadLayer(ref reader); break;
+                case "rampgroundside": tile.RampGroundSide = ReadDirection(ref reader); break;
                 default:
                     reader.Skip();
                     break;
@@ -69,9 +73,12 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         WritePackedArray(writer, "fringe", value.Fringe);
         WritePackedArray(writer, "canopy", value.Canopy);
         if (value.Type != TileType.Walkable) writer.WriteString("type", value.Type.ToString());
-        if (value.Data1 != 0) writer.WriteNumber("data1", value.Data1);
-        if (value.Data2 != 0) writer.WriteNumber("data2", value.Data2);
-        if (value.Data3 != 0) writer.WriteNumber("data3", value.Data3);
+        WriteAttrFields(writer, value.Type,
+            value.WarpMap, value.WarpX, value.WarpY, value.WarpLayer,
+            value.ItemNum, value.ItemValue, value.ItemRespawnSecs,
+            value.KeyItemNum, value.KeyIsConsumed,
+            value.DoorX, value.DoorY, value.DoorLayer,
+            value.RampGroundSide);
         if (value.FringeAttr is { } fa) WriteFringeAttr(writer, fa);
         writer.WriteEndObject();
     }
@@ -127,15 +134,19 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "type":
                     fa.Type = ReadTileType(ref reader);
                     break;
-                case "data1":
-                    fa.Data1 = reader.GetInt16();
-                    break;
-                case "data2":
-                    fa.Data2 = reader.GetInt16();
-                    break;
-                case "data3":
-                    fa.Data3 = reader.GetInt16();
-                    break;
+                case "warpmap": fa.WarpMap = reader.GetInt16(); break;
+                case "warpx": fa.WarpX = reader.GetInt16(); break;
+                case "warpy": fa.WarpY = reader.GetInt16(); break;
+                case "warplayer": fa.WarpLayer = ReadLayer(ref reader); break;
+                case "itemnum": fa.ItemNum = reader.GetInt16(); break;
+                case "itemvalue": fa.ItemValue = reader.GetInt16(); break;
+                case "itemrespawnsecs": fa.ItemRespawnSecs = reader.GetInt16(); break;
+                case "keyitemnum": fa.KeyItemNum = reader.GetInt16(); break;
+                case "keyisconsumed": fa.KeyIsConsumed = reader.GetBoolean(); break;
+                case "doorx": fa.DoorX = reader.GetInt16(); break;
+                case "doory": fa.DoorY = reader.GetInt16(); break;
+                case "doorlayer": fa.DoorLayer = ReadLayer(ref reader); break;
+                case "rampgroundside": fa.RampGroundSide = ReadDirection(ref reader); break;
                 default:
                     reader.Skip();
                     break;
@@ -152,9 +163,77 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         writer.WritePropertyName("fringeAttr");
         writer.WriteStartObject();
         if (fa.Type != TileType.Walkable) writer.WriteString("type", fa.Type.ToString());
-        if (fa.Data1 != 0) writer.WriteNumber("data1", fa.Data1);
-        if (fa.Data2 != 0) writer.WriteNumber("data2", fa.Data2);
-        if (fa.Data3 != 0) writer.WriteNumber("data3", fa.Data3);
+        WriteAttrFields(writer, fa.Type,
+            fa.WarpMap, fa.WarpX, fa.WarpY, fa.WarpLayer,
+            fa.ItemNum, fa.ItemValue, fa.ItemRespawnSecs,
+            fa.KeyItemNum, fa.KeyIsConsumed,
+            fa.DoorX, fa.DoorY, fa.DoorLayer,
+            fa.RampGroundSide);
         writer.WriteEndObject();
+    }
+
+    // One writer for both planes, since their field sets are identical.
+    //
+    // Gated on TYPE rather than on "is it non-zero", which is what makes a tile file readable: a Warp
+    // writes its destination even when that destination is (0,0) — a real coordinate — while a Blocked
+    // tile writes nothing at all no matter what happens to be sitting in its unused fields. The old
+    // format could not tell those apart, because a zero and an absent slot looked the same.
+    //
+    // Enums go out as names. "warpLayer": "Fringe" survives a reader who has never seen the enum, where
+    // the 257 that used to encode it did not.
+    private static void WriteAttrFields(
+        Utf8JsonWriter writer, TileType type,
+        short warpMap, short warpX, short warpY, WorldLayer warpLayer,
+        short itemNum, short itemValue, short itemRespawnSecs,
+        short keyItemNum, bool keyIsConsumed,
+        short doorX, short doorY, WorldLayer doorLayer,
+        Direction rampGroundSide)
+    {
+        if (TileAttrRules.UsesWarp(type))
+        {
+            writer.WriteNumber("warpMap", warpMap);
+            writer.WriteNumber("warpX", warpX);
+            writer.WriteNumber("warpY", warpY);
+            if (warpLayer != WorldLayer.Ground) writer.WriteString("warpLayer", warpLayer.ToString());
+        }
+        if (TileAttrRules.UsesItem(type))
+        {
+            writer.WriteNumber("itemNum", itemNum);
+            writer.WriteNumber("itemValue", itemValue);
+            if (itemRespawnSecs != 0) writer.WriteNumber("itemRespawnSecs", itemRespawnSecs);
+        }
+        if (TileAttrRules.UsesKey(type))
+        {
+            writer.WriteNumber("keyItemNum", keyItemNum);
+            if (keyIsConsumed) writer.WriteBoolean("keyIsConsumed", true);
+        }
+        if (TileAttrRules.UsesDoor(type))
+        {
+            writer.WriteNumber("doorX", doorX);
+            writer.WriteNumber("doorY", doorY);
+            if (doorLayer != WorldLayer.Ground) writer.WriteString("doorLayer", doorLayer.ToString());
+        }
+        if (TileAttrRules.UsesRamp(type))
+            writer.WriteString("rampGroundSide", rampGroundSide.ToString());
+    }
+
+    // Enum readers that take a name or a number, matching ReadTileType — the server writes names, and a
+    // hand-edited or converter-written file may well carry numbers.
+    private static WorldLayer ReadLayer(ref Utf8JsonReader reader) =>
+        ReadEnum(ref reader, WorldLayer.Ground);
+
+    private static Direction ReadDirection(ref Utf8JsonReader reader) =>
+        ReadEnum(ref reader, Direction.Up);
+
+    private static TEnum ReadEnum<TEnum>(ref Utf8JsonReader reader, TEnum fallback) where TEnum : struct, Enum
+    {
+        if (reader.TokenType == JsonTokenType.Number) return (TEnum)Enum.ToObject(typeof(TEnum), reader.GetInt32());
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            string s = reader.GetString()!;
+            if (Enum.TryParse<TEnum>(s, ignoreCase: true, out var v)) return v;
+            if (int.TryParse(s, out int n)) return (TEnum)Enum.ToObject(typeof(TEnum), n);
+        }
+        return fallback;
     }
 }

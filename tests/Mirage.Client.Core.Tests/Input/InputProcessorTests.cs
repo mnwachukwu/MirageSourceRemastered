@@ -233,7 +233,7 @@ public class InputProcessorTests
         s.MapNpcs[1].Layer = WorldLayer.Fringe;
         s.NpcKeeperShop[9] = 1;
         // The faced tile is a ramp whose ground side faces Up — back toward the player standing at its foot.
-        s.Map.Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Up };
+        s.Map.Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up };
 
         InputProcessor.Process(new InputSnapshot { Attack = true, AttackPressed = true }, s, sender, 0);
 

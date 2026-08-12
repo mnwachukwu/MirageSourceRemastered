@@ -180,8 +180,8 @@ public sealed partial class ItemSystem : GameSystem
     {
         var attr = LayerLogic.AttrFor(tile, layer);
         if (attr.Type != TileType.Item) return;
-        int val = (_world.Items[attr.Data1].Type == ItemType.Currency && attr.Data2 <= 0) ? 1 : attr.Data2;
-        SpawnItem(attr.Data1, val, mapNum, x, y, layer: layer);
+        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemValue <= 0) ? 1 : attr.ItemValue;
+        SpawnItem(attr.ItemNum, val, mapNum, x, y, layer: layer);
     }
 
     /// <summary>Spawn the tile-defined items of every map — the boot-time seeding pass.</summary>
@@ -216,10 +216,10 @@ public sealed partial class ItemSystem : GameSystem
         if (removedAt == 0) return;
         var attr = LayerLogic.AttrFor(tile, layer);
         if (attr.Type != TileType.Item) return;
-        long thresholdMs = (attr.Data3 > 0 ? attr.Data3 : Constants.DefaultItemRespawnSeconds) * 1000L;
+        long thresholdMs = (attr.ItemRespawnSecs > 0 ? attr.ItemRespawnSecs : Constants.DefaultItemRespawnSeconds) * 1000L;
         if (now - removedAt < thresholdMs) return;
-        int val = (_world.Items[attr.Data1].Type == ItemType.Currency && attr.Data2 <= 0) ? 1 : attr.Data2;
-        SpawnItem(attr.Data1, val, mapNum, x, y, ItemSource.TileDefined, layer: layer);
+        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemValue <= 0) ? 1 : attr.ItemValue;
+        SpawnItem(attr.ItemNum, val, mapNum, x, y, ItemSource.TileDefined, layer: layer);
     }
 
     // ── Player pick up item ───────────────────────────────────────────────────

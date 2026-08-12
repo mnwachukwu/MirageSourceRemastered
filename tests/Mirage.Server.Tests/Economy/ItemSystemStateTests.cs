@@ -227,9 +227,9 @@ public class ItemSystemStateTests
 
         var tile = world.Maps[Map].Tile[4, 5];
         tile.Type = TileType.Item;
-        tile.Data1 = Armor;
-        tile.Data2 = 1;  // ground tile-item
-        tile.FringeAttr = new FringeAttr { Type = TileType.Item, Data1 = Sword, Data2 = 1 };    // fringe tile-item, same (x,y)
+        tile.ItemNum = Armor;
+        tile.ItemValue = 1;  // ground tile-item
+        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemValue = 1 };    // fringe tile-item, same (x,y)
 
         items.SpawnMapItems(Map);
 
@@ -254,9 +254,9 @@ public class ItemSystemStateTests
         world.Items[Armor].Type = ItemType.Armor;
         var tile = world.Maps[Map].Tile[4, 5];
         tile.Type = TileType.Item;
-        tile.Data1 = Armor;
-        tile.Data2 = 1;  // ground tile-item
-        tile.FringeAttr = new FringeAttr { Type = TileType.Item, Data1 = Sword, Data2 = 1 };    // fringe tile-item, same (x,y)
+        tile.ItemNum = Armor;
+        tile.ItemValue = 1;  // ground tile-item
+        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemValue = 1 };    // fringe tile-item, same (x,y)
 
         items.SpawnMapItems(Map);
         var list = world.MapItems[Map];

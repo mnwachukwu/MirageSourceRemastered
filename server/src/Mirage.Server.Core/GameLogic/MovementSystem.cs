@@ -149,29 +149,25 @@ public sealed class MovementSystem : GameSystem
 
         if (dest.Type == TileType.Warp)
         {
-            // Data3 packs the dest Y + dest layer (WorldTarget) — a warp can deliver onto the fringe deck.
-            // A plain ground warp (no layer bit) unpacks to (Y, Ground), so existing warps are unchanged.
-            short warpDestY = WorldTarget.Y(dest.Data3);
-            var warpDestLayer = WorldTarget.Layer(dest.Data3);
+            // A warp can deliver onto the fringe deck; WarpLayer says which plane, and defaults to Ground.
             // Record the doorway taken so a chasing NPC can follow this exact warp (see ServerPlayer
             // warp-mark fields). p.X/p.Y are the warp tile the player just stepped onto.
             var sp = _pm[index];
             sp.WarpFromMap = p.Map;
             sp.WarpFromX = p.X;
             sp.WarpFromY = p.Y;
-            sp.WarpToMap = dest.Data1;
-            sp.WarpToX = dest.Data2;
-            sp.WarpToY = warpDestY;
-            PlayerWarp(index, dest.Data1, dest.Data2, warpDestY, destLayer: warpDestLayer);
+            sp.WarpToMap = dest.WarpMap;
+            sp.WarpToX = dest.WarpX;
+            sp.WarpToY = dest.WarpY;
+            PlayerWarp(index, dest.WarpMap, dest.WarpX, dest.WarpY, destLayer: dest.WarpLayer);
         }
         else if (dest.Type == TileType.KeyOpen)
         {
-            int kx = dest.Data1;
-            int ky = dest.Data2;
-            // The door's layer is authored on the KeyOpen (Data3), so a plate can open a Key door on EITHER plane —
-            // a ground plate can open a fringe-deck gate, or a fringe plate the ground door beneath. Plain ground
-            // KeyOpens (Data3 == 0) resolve to Ground, unchanged.
-            var doorLayer = (WorldLayer)(dest.Data3 & 1);
+            int kx = dest.DoorX;
+            int ky = dest.DoorY;
+            // The door's layer is authored on the KeyOpen, so a plate can open a Key door on EITHER plane —
+            // a ground plate can open a fringe-deck gate, or a fringe plate the ground door beneath.
+            var doorLayer = dest.DoorLayer;
             if (LayerLogic.AttrFor(_world.Maps[p.Map].Tile[kx, ky], doorLayer).Type == TileType.Key &&
                 !_world.TempTiles[p.Map].IsDoorOpen(kx, ky, doorLayer))
             {

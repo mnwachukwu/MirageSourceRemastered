@@ -734,10 +734,10 @@ public sealed partial class TileGridControl : Control
     private static (TileType Type, short Data1) DisplayAttr(TileRecord t, WorldLayer layer)
     {
         if (t.FringeAttr is { Type: TileType.LayerRamp } ramp)
-            return (TileType.LayerRamp, ramp.Data1);
+            return (TileType.LayerRamp, (short)ramp.RampGroundSide);
         return layer == WorldLayer.Fringe
-            ? (t.FringeAttr?.Type ?? TileType.Walkable, t.FringeAttr?.Data1 ?? 0)
-            : (t.Type, t.Data1);
+            ? (t.FringeAttr?.Type ?? TileType.Walkable, (short)(t.FringeAttr?.RampGroundSide ?? default))
+            : (t.Type, (short)t.RampGroundSide);
     }
 
     // Ramp-block color-coding (mixed / invalid) lives in the testable RampOverlay helper.

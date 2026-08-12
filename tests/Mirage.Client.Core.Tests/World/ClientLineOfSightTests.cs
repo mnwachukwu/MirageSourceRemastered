@@ -98,7 +98,7 @@ public class ClientLineOfSightTests
 
         // A ramp on the adjacent tile (local (6,5) = world (22,17)), ground side Left so stepping Right mounts it:
         // a fringe target standing on it connects from the ground foot at (5,5).
-        s.Map.Tile[6, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Left };
+        s.Map.Tile[6, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, 22, 17, WorldLayer.Fringe), Is.True,
             "reaches a target on the adjacent ramp");
     }
@@ -110,12 +110,12 @@ public class ClientLineOfSightTests
     {
         var s = CenterState();
         // A distant fringe target on row 5 stands ON a ramp (local (9,5) = world (25,17)) → the endpoints connect.
-        s.Map.Tile[9, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Left };
+        s.Map.Tile[9, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, 25, 17, WorldLayer.Fringe), Is.True,
             "a clear cross-layer line to a ramp target connects");
 
         // Drop a ramp mid-line (local (7,5) = world (23,17)) → it blocks the cross-layer cast.
-        s.Map.Tile[7, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Left };
+        s.Map.Tile[7, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, 25, 17, WorldLayer.Fringe), Is.False,
             "a ramp on the line blocks the cross-layer cast");
     }

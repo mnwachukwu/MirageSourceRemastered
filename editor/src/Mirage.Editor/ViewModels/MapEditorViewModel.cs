@@ -140,30 +140,25 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // The attribute currently on the ACTIVE logical layer (Ground inline vs FringeAttr; missing fringe = Walkable).
     private TileType ActiveAttrType(TileRecord t) =>
         AttrLayerIsFringe ? (t.FringeAttr?.Type ?? TileType.Walkable) : t.Type;
-    // The full attribute (Type + Data1/2/3) on the ACTIVE logical layer — the read companion to SetActiveAttr, so
-    // the dialog attributes (Warp/Item/Key/KeyOpen) seed their fields and eligibility from the right plane.
+    // The full attribute on the ACTIVE logical layer — the read companion to SetActiveAttr, so the dialog
+    // attributes (Warp/Item/Key/KeyOpen) seed their fields and eligibility from the right plane.
     private TileAttr ActiveAttrData(TileRecord t) =>
         AttrLayerIsFringe
-            ? new TileAttr(t.FringeAttr?.Type ?? TileType.Walkable, t.FringeAttr?.Data1 ?? 0, t.FringeAttr?.Data2 ?? 0, t.FringeAttr?.Data3 ?? 0)
-            : new TileAttr(t.Type, t.Data1, t.Data2, t.Data3);
-    // Write an attribute to the ACTIVE layer.  Ground -> inline Type+Data; Fringe -> FringeAttr (Walkable+no data
-    // clears it back to the default walkable plane).  Never used for the ramp (which writes both-plane occupancy).
-    private void SetActiveAttr(TileRecord t, TileType type, short d1 = 0, short d2 = 0, short d3 = 0)
+            ? (t.FringeAttr?.ToAttr() ?? TileAttr.Walkable)
+            : t.ToGroundAttr();
+    // Write an attribute to the ACTIVE layer.  Ground -> inline fields; Fringe -> FringeAttr (Walkable
+    // clears it back to the default walkable plane, since Walkable authors no fields).  Never used for the
+    // ramp (which writes both-plane occupancy).
+    private void SetActiveAttr(TileRecord t, TileAttr attr)
     {
         if (AttrLayerIsFringe)
-        {
-            t.FringeAttr = type == TileType.Walkable && d1 == 0 && d2 == 0 && d3 == 0
-                ? null
-                : new FringeAttr { Type = type, Data1 = d1, Data2 = d2, Data3 = d3 };
-        }
+            t.FringeAttr = attr.Type == TileType.Walkable ? null : FringeAttr.From(attr);
         else
-        {
-            t.Type = type;
-            t.Data1 = d1;
-            t.Data2 = d2;
-            t.Data3 = d3;
-        }
+            t.SetGroundAttr(attr);
     }
+    // Overload for the many callers that only set a type and no fields.
+    private void SetActiveAttr(TileRecord t, TileType type) => SetActiveAttr(t, new TileAttr { Type = type });
+
     public string HoveredText => HoveredX >= 0
         ? EditorStrings.Format(EditorStrings.MapEditor_TileCoords, ("X", HoveredX), ("Y", HoveredY))
         : EditorStrings.Get(EditorStrings.MapEditor_TileCoordsEmpty);
@@ -229,24 +224,20 @@ public sealed partial class MapEditorViewModel : ObservableObject
     }
 
     public TileType HoveredAttrType => HoveredTileRecord?.Type ?? TileType.Walkable;
-    public short HoveredData1 => HoveredTileRecord?.Data1 ?? 0;
-    public short HoveredData2 => HoveredTileRecord?.Data2 ?? 0;
-    public short HoveredData3 => HoveredTileRecord?.Data3 ?? 0;
+    public TileAttr HoveredGroundAttr => HoveredTileRecord?.ToGroundAttr() ?? TileAttr.Walkable;
 
     // The Fringe plane's attribute (FringeAttr) — the walkable bridge-top layer's own Blocked/Warp/Item/etc.,
     // including LayerRamp (always authored here, never on the ground's inline Type). Read alongside the ground
     // attribute so the hover preview shows BOTH logical planes, not just Ground.
     public TileType HoveredFringeAttrType => HoveredTileRecord?.FringeAttr?.Type ?? TileType.Walkable;
-    public short HoveredFringeData1 => HoveredTileRecord?.FringeAttr?.Data1 ?? 0;
-    public short HoveredFringeData2 => HoveredTileRecord?.FringeAttr?.Data2 ?? 0;
-    public short HoveredFringeData3 => HoveredTileRecord?.FringeAttr?.Data3 ?? 0;
+    public TileAttr HoveredFringeAttr => HoveredTileRecord?.FringeAttr?.ToAttr() ?? TileAttr.Walkable;
 
     public string HoveredGroundAttributeText => EditorStrings.Format(EditorStrings.MapEditor_AttrLabel,
         ("Layer", EditorVocabulary.NameOf(WorldLayer.Ground)),
-        ("Value", FormatAttributeText(HoveredAttrType, HoveredData1, HoveredData2, HoveredData3)));
+        ("Value", FormatAttributeText(HoveredGroundAttr)));
     public string HoveredFringeAttributeText => EditorStrings.Format(EditorStrings.MapEditor_AttrLabel,
         ("Layer", EditorVocabulary.NameOf(WorldLayer.Fringe)),
-        ("Value", FormatAttributeText(HoveredFringeAttrType, HoveredFringeData1, HoveredFringeData2, HoveredFringeData3)));
+        ("Value", FormatAttributeText(HoveredFringeAttr)));
 
     // Placed-light info for the hovered tile, shown in the Shift exploded-tile preview so a tile's whole
     // definition — layers, attribute, AND any light — is visible in one place.
@@ -280,27 +271,29 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     // The attribute's NAME comes from EditorVocabulary (English in every language, matching the tool
     // dropdown and the map files); only the surrounding phrasing and the value labels are translated.
-    private string FormatAttributeText(TileType type, short d1, short d2, short d3) => type switch
+    private string FormatAttributeText(TileAttr a) => FormatAttributeText(a.Type, a);
+
+    private string FormatAttributeText(TileType type, TileAttr a) => type switch
     {
         // Not a name but a statement that the tile carries no attribute, so this one stays localized.
         TileType.Walkable => EditorStrings.Get(EditorStrings.MapEditor_AttrText_None),
         TileType.Blocked or TileType.NpcAvoid => EditorVocabulary.NameOf(type),
         TileType.Warp => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Warp,
-            ("Name", EditorVocabulary.NameOf(type)), ("Map", MapLabel(d1)), ("X", d2), ("Y", d3)),
+            ("Name", EditorVocabulary.NameOf(type)), ("Map", MapLabel(a.WarpMap)), ("X", a.WarpX), ("Y", a.WarpY)),
         TileType.Item => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Item,
-            ("Name", EditorVocabulary.NameOf(type)), ("Item", ItemLabel(d1)), ("Qty", d2),
-            ("Respawn", d3 == 0
+            ("Name", EditorVocabulary.NameOf(type)), ("Item", ItemLabel(a.ItemNum)), ("Qty", a.ItemValue),
+            ("Respawn", a.ItemRespawnSecs == 0
                 ? EditorStrings.Get(EditorStrings.MapEditor_AttrText_RespawnDefault)
-                : EditorStrings.Format(EditorStrings.MapEditor_AttrText_RespawnSeconds, ("Seconds", d3)))),
+                : EditorStrings.Format(EditorStrings.MapEditor_AttrText_RespawnSeconds, ("Seconds", a.ItemRespawnSecs)))),
         TileType.Key => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Key,
-            ("Name", EditorVocabulary.NameOf(type)), ("Item", ItemLabel(d1)),
-            ("Action", d2 != 0
+            ("Name", EditorVocabulary.NameOf(type)), ("Item", ItemLabel(a.KeyItemNum)),
+            ("Action", a.KeyIsConsumed
                 ? EditorStrings.Get(EditorStrings.MapEditor_AttrText_KeyTake)
                 : EditorStrings.Get(EditorStrings.MapEditor_AttrText_KeyKeep))),
         TileType.KeyOpen => EditorStrings.Format(EditorStrings.MapEditor_AttrText_KeyOpen,
-            ("Name", EditorVocabulary.NameOf(type)), ("X", d1), ("Y", d2)),
+            ("Name", EditorVocabulary.NameOf(type)), ("X", a.DoorX), ("Y", a.DoorY)),
         TileType.LayerRamp => EditorStrings.Format(EditorStrings.MapEditor_AttrText_LayerRamp,
-            ("Name", EditorVocabulary.NameOf(type)), ("Direction", EditorVocabulary.NameOf((Direction)d1))),
+            ("Name", EditorVocabulary.NameOf(type)), ("Direction", EditorVocabulary.NameOf(a.RampGroundSide))),
         _ => EditorVocabulary.NameOf(type),
     };
 
@@ -318,13 +311,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(HoveredFringeLayers));
         OnPropertyChanged(nameof(HoveredCanopyLayers));
         OnPropertyChanged(nameof(HoveredAttrType));
-        OnPropertyChanged(nameof(HoveredData1));
-        OnPropertyChanged(nameof(HoveredData2));
-        OnPropertyChanged(nameof(HoveredData3));
+        OnPropertyChanged(nameof(HoveredGroundAttr));
         OnPropertyChanged(nameof(HoveredFringeAttrType));
-        OnPropertyChanged(nameof(HoveredFringeData1));
-        OnPropertyChanged(nameof(HoveredFringeData2));
-        OnPropertyChanged(nameof(HoveredFringeData3));
+        OnPropertyChanged(nameof(HoveredFringeAttr));
         OnPropertyChanged(nameof(HoveredGroundAttributeText));
         OnPropertyChanged(nameof(HoveredFringeAttributeText));
         OnPropertyChanged(nameof(HoveredHasNpcSpawn));

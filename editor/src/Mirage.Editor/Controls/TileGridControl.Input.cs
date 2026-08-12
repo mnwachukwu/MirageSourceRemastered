@@ -242,7 +242,7 @@ public sealed partial class TileGridControl : Control
             if (InActiveMap(wx, wy) && Map.Tile[wx, wy].Type == TileType.Warp)
             {
                 var t = Map.Tile[wx, wy];
-                WarpDestinationClicked?.Invoke((t.Data1, t.Data2, t.Data3));
+                WarpDestinationClicked?.Invoke((t.WarpMap, t.WarpX, t.WarpY));
                 e.Handled = true;
                 return;
             }

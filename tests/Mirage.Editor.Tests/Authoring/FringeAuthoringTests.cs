@@ -83,7 +83,7 @@ public class FringeAuthoringTests
         {
             Assert.That(map.Tile[7, 2].FringeAttr, Is.Not.Null);
             Assert.That(map.Tile[7, 2].FringeAttr!.Type, Is.EqualTo(TileType.LayerRamp));
-            Assert.That(map.Tile[7, 2].FringeAttr!.Data1, Is.EqualTo((short)Direction.Left), "Data1 = the ground-side mount direction");
+            Assert.That(map.Tile[7, 2].FringeAttr!.RampGroundSide, Is.EqualTo(Direction.Left), "the ground-side mount direction");
             Assert.That(map.Tile[7, 2].Type, Is.EqualTo(TileType.Walkable));
         });
     }
@@ -151,17 +151,17 @@ public class FringeAuthoringTests
         {
             Assert.That(map.Tile[6, 6].FringeAttr, Is.Not.Null, "the warp lands on the FringeAttr sub-record");
             Assert.That(map.Tile[6, 6].FringeAttr!.Type, Is.EqualTo(TileType.Warp));
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data1, Is.EqualTo((short)1), "dest map");
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data2, Is.EqualTo((short)3), "dest x");
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data3, Is.EqualTo((short)4), "dest y");
+            Assert.That(map.Tile[6, 6].FringeAttr!.WarpMap, Is.EqualTo((short)1), "dest map");
+            Assert.That(map.Tile[6, 6].FringeAttr!.WarpX, Is.EqualTo((short)3), "dest x");
+            Assert.That(map.Tile[6, 6].FringeAttr!.WarpY, Is.EqualTo((short)4), "dest y");
             Assert.That(map.Tile[6, 6].Type, Is.EqualTo(TileType.Walkable), "the GROUND plane is untouched");
         });
     }
 
-    // §1b target-layer: a warp's DEST layer packs into Data3 alongside Y (WorldTarget) and round-trips through
+    // §1b target-layer: a warp's DEST layer is its own field now, and round-trips through
     // the dialog — so a warp can deliver you onto the fringe deck, independent of the plane it is authored on.
     [Test]
-    public void WarpDestLayer_Fringe_RoundTripsThroughData3()
+    public void WarpDestLayer_Fringe_RoundTrips()
     {
         var (vm, map) = Build();
         vm.SelectedAttributeTool = AttributeTool.Warp;
@@ -175,17 +175,17 @@ public class FringeAuthoringTests
         vm.WarpDestLayer = WorldLayer.Fringe;  // deliver onto the deck
         vm.ConfirmWarpCommand.Execute(null);
 
-        Assert.That(map.Tile[6, 6].Data3, Is.EqualTo(WorldTarget.Pack(7, WorldLayer.Fringe)),
-            "Data3 packs the dest Y + dest layer");
+        Assert.That(map.Tile[6, 6].WarpY, Is.EqualTo((short)7), "dest Y");
+        Assert.That(map.Tile[6, 6].WarpLayer, Is.EqualTo(WorldLayer.Fringe), "dest layer is its own field");
 
-        // Clobber the fields, then re-open the dialog on the same tile — both unpack from Data3.
+        // Clobber the fields, then re-open the dialog on the same tile — both re-read from the tile.
         vm.WarpY = 0;
         vm.WarpDestLayer = WorldLayer.Ground;
         vm.TileClicked(new TileClick(6, 6, false, false));
         Assert.Multiple(() =>
         {
-            Assert.That(vm.WarpY, Is.EqualTo((short)7), "Y unpacks from Data3");
-            Assert.That(vm.WarpDestLayer, Is.EqualTo(WorldLayer.Fringe), "dest layer unpacks from Data3");
+            Assert.That(vm.WarpY, Is.EqualTo((short)7), "Y re-reads");
+            Assert.That(vm.WarpDestLayer, Is.EqualTo(WorldLayer.Fringe), "dest layer re-reads");
         });
     }
 
@@ -207,8 +207,8 @@ public class FringeAuthoringTests
         {
             Assert.That(map.Tile[6, 6].FringeAttr, Is.Not.Null);
             Assert.That(map.Tile[6, 6].FringeAttr!.Type, Is.EqualTo(TileType.Item));
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data1, Is.EqualTo((short)5), "item number");
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data3, Is.EqualTo((short)30), "respawn seconds");
+            Assert.That(map.Tile[6, 6].FringeAttr!.ItemNum, Is.EqualTo((short)5), "item number");
+            Assert.That(map.Tile[6, 6].FringeAttr!.ItemRespawnSecs, Is.EqualTo((short)30), "respawn seconds");
             Assert.That(map.Tile[6, 6].Type, Is.EqualTo(TileType.Walkable), "the GROUND plane is untouched");
         });
     }
@@ -230,8 +230,8 @@ public class FringeAuthoringTests
         {
             Assert.That(map.Tile[6, 6].FringeAttr, Is.Not.Null, "a fringe door lands on the FringeAttr sub-record");
             Assert.That(map.Tile[6, 6].FringeAttr!.Type, Is.EqualTo(TileType.Key));
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data1, Is.EqualTo((short)3), "required key item");
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data2, Is.EqualTo((short)1), "the take flag");
+            Assert.That(map.Tile[6, 6].FringeAttr!.KeyItemNum, Is.EqualTo((short)3), "required key item");
+            Assert.That(map.Tile[6, 6].FringeAttr!.KeyIsConsumed, Is.True, "the take flag");
             Assert.That(map.Tile[6, 6].Type, Is.EqualTo(TileType.Walkable), "the GROUND plane is untouched");
         });
     }
@@ -253,16 +253,16 @@ public class FringeAuthoringTests
         {
             Assert.That(map.Tile[6, 6].FringeAttr, Is.Not.Null);
             Assert.That(map.Tile[6, 6].FringeAttr!.Type, Is.EqualTo(TileType.KeyOpen));
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data1, Is.EqualTo((short)2), "door x");
-            Assert.That(map.Tile[6, 6].FringeAttr!.Data2, Is.EqualTo((short)4), "door y");
+            Assert.That(map.Tile[6, 6].FringeAttr!.DoorX, Is.EqualTo((short)2), "door x");
+            Assert.That(map.Tile[6, 6].FringeAttr!.DoorY, Is.EqualTo((short)4), "door y");
             Assert.That(map.Tile[6, 6].Type, Is.EqualTo(TileType.Walkable), "the GROUND plane is untouched");
         });
     }
 
-    // A KeyOpen's target-door layer packs into Data3 and round-trips through the dialog, so a plate can open a
+    // A KeyOpen's target-door layer is its own field and round-trips through the dialog, so a plate can open a
     // Key door on a DIFFERENT plane than the plate itself.
     [Test]
-    public void KeyOpenDoorLayer_Fringe_RoundTripsThroughData3()
+    public void KeyOpenDoorLayer_Fringe_RoundTrips()
     {
         var (vm, map) = Build();
         vm.SelectedAttributeTool = AttributeTool.KeyOpen;
@@ -275,11 +275,11 @@ public class FringeAuthoringTests
         vm.KeyOpenDoorLayer = WorldLayer.Fringe;  // opens a FRINGE door
         vm.ConfirmKeyOpenCommand.Execute(null);
 
-        Assert.That(map.Tile[6, 6].Data3, Is.EqualTo((short)WorldLayer.Fringe), "Data3 carries the target-door layer");
+        Assert.That(map.Tile[6, 6].DoorLayer, Is.EqualTo(WorldLayer.Fringe), "DoorLayer carries the target-door layer");
 
         vm.KeyOpenDoorLayer = WorldLayer.Ground;   // clobber, then re-open on the same tile
         vm.TileClicked(new TileClick(6, 6, false, false));
-        Assert.That(vm.KeyOpenDoorLayer, Is.EqualTo(WorldLayer.Fringe), "door layer unpacks from Data3");
+        Assert.That(vm.KeyOpenDoorLayer, Is.EqualTo(WorldLayer.Fringe), "door layer re-reads");
     }
 
     // ── Delete action (brush erase) ──────────────────────────────────────────────

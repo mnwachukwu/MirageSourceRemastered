@@ -204,7 +204,7 @@ public class NpcPathCacheTests
         world.Maps[2].Left = Map;
         // Ramp at Map 1's right edge (15,6), ground side Left (mount from (14,6) by stepping Right); deck continues
         // onto Map 2 at (0,6). Mirrors map6.json (ramp (15,9) data1=Left).
-        world.Maps[Map].Tile[15, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Left };
+        world.Maps[Map].Tile[15, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
         world.Maps[2].Tile[0, 6].FringeAttr = new FringeAttr { Type = TileType.Walkable };
 
         var ai = new NpcAiSystem(world, pm, null!, null!, null!, null!, null!, null!);
@@ -402,8 +402,8 @@ public class NpcPathCacheTests
 
         for (int x = 5; x <= 9; x++)
             world.Maps[Map].Tile[x, 6].FringeAttr = new FringeAttr { Type = TileType.Walkable };
-        world.Maps[Map].Tile[4, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Left };
-        world.Maps[Map].Tile[10, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Right };
+        world.Maps[Map].Tile[4, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
+        world.Maps[Map].Tile[10, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Right };
 
         var ai = new NpcAiSystem(world, pm, null!, null!, null!, null!, null!, null!);
         return (ai, world);

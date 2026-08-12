@@ -248,9 +248,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 if (tile.Type == TileType.Walkable) continue;
                 var before = Snap(tile);
                 tile.Type = TileType.Walkable;
-                tile.Data1 = 0;
-                tile.Data2 = 0;
-                tile.Data3 = 0;
+                tile.Normalize();   // Walkable authors nothing, so this clears whatever the old type held
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(x, y);
                 Record(x, y, before, Snap(tile));

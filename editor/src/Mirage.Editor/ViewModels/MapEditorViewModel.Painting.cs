@@ -120,7 +120,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     var t = map.Tile[tx, ty];
                     if (!TileAttrClear(t) || TileCoveredByPinnedFootprint(map, tx, ty)) continue;  // ramp needs a clear tile
                     var before = Snap(t);
-                    t.FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)LayerRampDirection };
+                    t.FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = LayerRampDirection };
                     SelectedMap.UpdateRecord(map);
                     InvalidateTileGrid?.Invoke(tx, ty);
                     Record(tx, ty, before, Snap(t));
@@ -156,7 +156,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 var cur = ActiveAttrType(t);
                                 if (cur != TileType.Walkable && cur != TileType.Warp) continue;
                                 var before = Snap(t);
-                                SetActiveAttr(t, TileType.Warp, _retWarpMapNum, _retWarpX, WorldTarget.Pack(_retWarpY, _retWarpDestLayer));
+                                SetActiveAttr(t, new TileAttr { Type = TileType.Warp, WarpMap = _retWarpMapNum, WarpX = _retWarpX, WarpY = _retWarpY, WarpLayer = _retWarpDestLayer });
                                 SelectedMap.UpdateRecord(map);
                                 InvalidateTileGrid?.Invoke(tx, ty);
                                 Record(tx, ty, before, Snap(t));
@@ -168,10 +168,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     {
                         var attr = ActiveAttrData(map.Tile[x, y]);
                         bool isWarp = attr.Type == TileType.Warp;
-                        WarpMapNum = isWarp ? attr.Data1 : (short)0;
-                        WarpX = isWarp ? attr.Data2 : (short)0;
-                        WarpY = isWarp ? WorldTarget.Y(attr.Data3) : (short)0;             // unpack Y
-                        WarpDestLayer = isWarp ? WorldTarget.Layer(attr.Data3) : WorldLayer.Ground; // unpack dest layer
+                        WarpMapNum = isWarp ? attr.WarpMap : (short)0;
+                        WarpX = isWarp ? attr.WarpX : (short)0;
+                        WarpY = isWarp ? attr.WarpY : (short)0;
+                        WarpDestLayer = isWarp ? attr.WarpLayer : WorldLayer.Ground;
                         _pendingTiles.Clear();
                         if (isWarp)
                         {
@@ -204,7 +204,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 var cur = ActiveAttrType(t);
                                 if (cur != TileType.Walkable && cur != TileType.Item) continue;
                                 var before = Snap(t);
-                                SetActiveAttr(t, TileType.Item, _retItemNum, _retItemValue, _retItemRespawn);
+                                SetActiveAttr(t, new TileAttr { Type = TileType.Item, ItemNum = _retItemNum, ItemValue = _retItemValue, ItemRespawnSecs = _retItemRespawn });
                                 SelectedMap.UpdateRecord(map);
                                 InvalidateTileGrid?.Invoke(tx, ty);
                                 Record(tx, ty, before, Snap(t));
@@ -216,9 +216,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     {
                         var attr = ActiveAttrData(map.Tile[x, y]);
                         bool isItem = attr.Type == TileType.Item;
-                        ItemTileNum = isItem ? attr.Data1 : (short)0;
-                        ItemTileValue = isItem ? attr.Data2 : (short)0;
-                        ItemTileRespawnSeconds = isItem ? attr.Data3 : (short)0;
+                        ItemTileNum = isItem ? attr.ItemNum : (short)0;
+                        ItemTileValue = isItem ? attr.ItemValue : (short)0;
+                        ItemTileRespawnSeconds = isItem ? attr.ItemRespawnSecs : (short)0;
                         _pendingTiles.Clear();
                         if (isItem)
                         {
@@ -251,7 +251,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 var cur = ActiveAttrType(t);
                                 if (cur != TileType.Walkable && cur != TileType.Key) continue;
                                 var before = Snap(t);
-                                SetActiveAttr(t, TileType.Key, _retKeyItemNum, _retKeyTake ? (short)1 : (short)0, 0);
+                                SetActiveAttr(t, new TileAttr { Type = TileType.Key, KeyItemNum = _retKeyItemNum, KeyIsConsumed = _retKeyTake });
                                 SelectedMap.UpdateRecord(map);
                                 InvalidateTileGrid?.Invoke(tx, ty);
                                 Record(tx, ty, before, Snap(t));
@@ -263,8 +263,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     {
                         var attr = ActiveAttrData(map.Tile[x, y]);
                         bool isKey = attr.Type == TileType.Key;
-                        KeyItemNum = isKey ? attr.Data1 : (short)0;
-                        KeyTake = isKey && attr.Data2 != 0;
+                        KeyItemNum = isKey ? attr.KeyItemNum : (short)0;
+                        KeyTake = isKey && attr.KeyIsConsumed;
                         _pendingTiles.Clear();
                         if (isKey)
                         {
@@ -297,7 +297,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 var cur = ActiveAttrType(t);
                                 if (cur != TileType.Walkable && cur != TileType.KeyOpen) continue;
                                 var before = Snap(t);
-                                SetActiveAttr(t, TileType.KeyOpen, _retKeyOpenDoorX, _retKeyOpenDoorY, (short)_retKeyOpenDoorLayer);
+                                SetActiveAttr(t, new TileAttr { Type = TileType.KeyOpen, DoorX = _retKeyOpenDoorX, DoorY = _retKeyOpenDoorY, DoorLayer = _retKeyOpenDoorLayer });
                                 SelectedMap.UpdateRecord(map);
                                 InvalidateTileGrid?.Invoke(tx, ty);
                                 Record(tx, ty, before, Snap(t));
@@ -309,9 +309,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     {
                         var attr = ActiveAttrData(map.Tile[x, y]);
                         bool isKeyOpen = attr.Type == TileType.KeyOpen;
-                        KeyOpenDoorX = isKeyOpen ? attr.Data1 : (short)0;
-                        KeyOpenDoorY = isKeyOpen ? attr.Data2 : (short)0;
-                        KeyOpenDoorLayer = isKeyOpen ? (WorldLayer)(attr.Data3 & 1) : WorldLayer.Ground;   // Data3 = door layer
+                        KeyOpenDoorX = isKeyOpen ? attr.DoorX : (short)0;
+                        KeyOpenDoorY = isKeyOpen ? attr.DoorY : (short)0;
+                        KeyOpenDoorLayer = isKeyOpen ? attr.DoorLayer : WorldLayer.Ground;
                         _pendingTiles.Clear();
                         if (isKeyOpen)
                         {
@@ -441,8 +441,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (SelectedMap is null) return;
         // Writes the ACTIVE plane (Ground inline vs FringeAttr) so a warp can be authored on a bridge deck.
-        // Data3 packs the DEST layer alongside WarpY (WorldTarget) so a warp can deliver onto the fringe deck.
-        SetActiveAttr(SelectedMap.Record.Tile[x, y], TileType.Warp, WarpMapNum, WarpX, WorldTarget.Pack(WarpY, WarpDestLayer));
+        // WarpLayer is its own field now, so the destination plane no longer rides packed inside the Y.
+        SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Warp, WarpMap = WarpMapNum, WarpX = WarpX, WarpY = WarpY, WarpLayer = WarpDestLayer });
         SelectedMap.UpdateRecord(SelectedMap.Record);
         InvalidateTileGrid?.Invoke(x, y);
     }
@@ -450,7 +450,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private void ApplyItem(int x, int y)
     {
         if (SelectedMap is null) return;
-        SetActiveAttr(SelectedMap.Record.Tile[x, y], TileType.Item, ItemTileNum, ItemTileValue, ItemTileRespawnSeconds);
+        SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Item, ItemNum = ItemTileNum, ItemValue = ItemTileValue, ItemRespawnSecs = ItemTileRespawnSeconds });
         SelectedMap.UpdateRecord(SelectedMap.Record);
         InvalidateTileGrid?.Invoke(x, y);
     }
@@ -458,7 +458,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private void ApplyKey(int x, int y)
     {
         if (SelectedMap is null) return;
-        SetActiveAttr(SelectedMap.Record.Tile[x, y], TileType.Key, KeyItemNum, KeyTake ? (short)1 : (short)0, 0);
+        SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Key, KeyItemNum = KeyItemNum, KeyIsConsumed = KeyTake });
         SelectedMap.UpdateRecord(SelectedMap.Record);
         InvalidateTileGrid?.Invoke(x, y);
     }
@@ -466,8 +466,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private void ApplyKeyOpen(int x, int y)
     {
         if (SelectedMap is null) return;
-        // Data3 carries the target door's WorldLayer so a KeyOpen can open a Key door on either plane.
-        SetActiveAttr(SelectedMap.Record.Tile[x, y], TileType.KeyOpen, KeyOpenDoorX, KeyOpenDoorY, (short)KeyOpenDoorLayer);
+        // DoorLayer lets a KeyOpen open a Key door on either plane.
+        SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.KeyOpen, DoorX = KeyOpenDoorX, DoorY = KeyOpenDoorY, DoorLayer = KeyOpenDoorLayer });
         SelectedMap.UpdateRecord(SelectedMap.Record);
         InvalidateTileGrid?.Invoke(x, y);
     }
@@ -536,7 +536,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         else
         {
             tile.Type = TileType.Walkable;
-            tile.Data1 = tile.Data2 = tile.Data3 = 0;
+            tile.Normalize();   // Walkable authors nothing, so this clears whatever the old type held
         }
         SelectedMap!.UpdateRecord(map);
         InvalidateTileGrid?.Invoke(x, y);

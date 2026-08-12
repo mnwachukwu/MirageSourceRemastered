@@ -41,7 +41,7 @@ public static class RampOverlay
         {
             int nx = x + dx, ny = y + dy;
             if (InBounds(nx, ny) && map.Tile[nx, ny].FringeAttr is { Type: TileType.LayerRamp } fa
-                && fa.Data1 != self.Data1)
+                && fa.RampGroundSide != self.RampGroundSide)
             {
                 return true;
             }
@@ -65,7 +65,7 @@ public static class RampOverlay
             if (!block.Add((cx, cy))) continue;
             if (map.Tile[cx, cy].FringeAttr is not { Type: TileType.LayerRamp } fa) continue;
 
-            var (gx, gy) = DirDelta((Direction)fa.Data1);
+            var (gx, gy) = DirDelta(fa.RampGroundSide);
             int fx = cx + gx, fy = cy + gy;
             if (!InBounds(fx, fy))
                 return false;   // foot off the map edge → assume a cross-seam mount; not flagged

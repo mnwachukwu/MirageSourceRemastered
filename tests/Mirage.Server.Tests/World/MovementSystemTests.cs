@@ -155,24 +155,24 @@ public class MovementSystemTests
         });
     }
 
-    // Stepping onto a warp tile teleports to (Data1 map, Data2 x, Data3 y).
+    // Stepping onto a warp tile teleports to its WarpMap/WarpX/WarpY.
     [Test]
     public void PlayerMove_OntoWarpTile_Teleports()
     {
         var (world, _, move, p) = Setup(5, 5);
         var warp = world.Maps[Map].Tile[5, 6];
         warp.Type = TileType.Warp;
-        warp.Data1 = Map;
-        warp.Data2 = 8;
-        warp.Data3 = 9;
+        warp.WarpMap = Map;
+        warp.WarpX = 8;
+        warp.WarpY = 9;
 
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
         Assert.Multiple(() =>
         {
             Assert.That(p.Map, Is.EqualTo(Map));
-            Assert.That(p.X, Is.EqualTo(8), "warped to Data2");
-            Assert.That(p.Y, Is.EqualTo(9), "warped to Data3");
+            Assert.That(p.X, Is.EqualTo(8), "warped to WarpX");
+            Assert.That(p.Y, Is.EqualTo(9), "warped to WarpY");
         });
     }
 
@@ -185,7 +185,7 @@ public class MovementSystemTests
         {
             var (world, _, move, p) = Setup(5, 5);
             p.Layer = WorldLayer.Fringe;
-            world.Maps[Map].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.Warp, Data1 = Map, Data2 = 8, Data3 = 9 };
+            world.Maps[Map].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.Warp, WarpMap = Map, WarpX = 8, WarpY = 9 };
 
             move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -202,9 +202,9 @@ public class MovementSystemTests
             p.Layer = WorldLayer.Fringe;
             var warp = world.Maps[Map].Tile[5, 6];
             warp.Type = TileType.Warp;
-            warp.Data1 = Map;
-            warp.Data2 = 8;
-            warp.Data3 = 9;  // ground warp only
+            warp.WarpMap = Map;
+            warp.WarpX = 8;
+            warp.WarpY = 9;  // ground warp only
 
             move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -216,16 +216,17 @@ public class MovementSystemTests
         }
     }
 
-    // §1b target-layer: a Warp whose Data3 packs a Fringe dest (WorldTarget) delivers the player onto the deck.
+    // §1b target-layer: a Warp whose WarpLayer is Fringe delivers the player onto the deck.
     [Test]
     public void PlayerMove_WarpWithFringeDest_DeliversOntoTheFringePlane()
     {
         var (world, _, move, p) = Setup(5, 5);
         var warp = world.Maps[Map].Tile[5, 6];
         warp.Type = TileType.Warp;
-        warp.Data1 = Map;
-        warp.Data2 = 8;
-        warp.Data3 = WorldTarget.Pack(9, WorldLayer.Fringe);   // dest (8,9) up on the fringe deck
+        warp.WarpMap = Map;
+        warp.WarpX = 8;
+        warp.WarpY = 9;
+        warp.WarpLayer = WorldLayer.Fringe;   // dest (8,9) up on the fringe deck
 
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -236,7 +237,7 @@ public class MovementSystemTests
         });
     }
 
-    // §1b per-layer doors: a KeyOpen opens the door on the layer AUTHORED in its Data3 — independent of the plane
+    // §1b per-layer doors: a KeyOpen opens the door on the layer AUTHORED in its DoorLayer — independent of the plane
     // the plate sits on — so a GROUND plate can open a FRINGE-deck door, leaving the ground door at that tile shut.
     [Test]
     public void PlayerMove_KeyOpen_OpensTheDoorOnItsAuthoredLayer()
@@ -244,9 +245,9 @@ public class MovementSystemTests
         var (world, _, move, p) = Setup(5, 5);   // p.Layer defaults to Ground → steps onto a ground plate
         var map = world.Maps[Map];
         map.Tile[5, 6].Type = TileType.KeyOpen;                                 // a GROUND KeyOpen plate at (5,6)
-        map.Tile[5, 6].Data1 = 5;
-        map.Tile[5, 6].Data2 = 7;  // targeting the door at (5,7)…
-        map.Tile[5, 6].Data3 = (short)WorldLayer.Fringe;                        // …on the FRINGE plane (cross-layer)
+        map.Tile[5, 6].DoorX = 5;
+        map.Tile[5, 6].DoorY = 7;  // targeting the door at (5,7)…
+        map.Tile[5, 6].DoorLayer = WorldLayer.Fringe;                           // …on the FRINGE plane (cross-layer)
         map.Tile[5, 7].FringeAttr = new FringeAttr { Type = TileType.Key };     // the fringe Key door it opens
 
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);   // step onto the ground plate
@@ -316,8 +317,8 @@ public class MovementSystemTests
         var (world, _, move, _) = Setup(0, 0);
         world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
         var map = world.Maps[Map];
-        map.Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Down };
-        map.Tile[6, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Down };
+        map.Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
+        map.Tile[6, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
         var npc = world.MapNpcs[Map, 1];
         npc.Num = 1;
         npc.Hp = 100;
@@ -373,13 +374,13 @@ public class MovementSystemTests
         Assert.Multiple(() =>
         {
             // A '^' ramp (vertical mount axis) just across the seam: stepping Right onto it is PERPENDICULAR → blocked.
-            world.Maps[2].Tile[0, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Down };
+            world.Maps[2].Tile[0, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
             Assert.That(move.NpcStepPassesRampGate(Map, npc, Direction.Right, out _), Is.False,
                 "no perpendicular mount across a seam");
 
             // A ramp whose ground side faces the NPC (mount axis ALONG the seam): stepping Right is the up-ramp
             // mount → allowed, and it ascends onto the bridge.
-            world.Maps[2].Tile[0, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Left };
+            world.Maps[2].Tile[0, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
             Assert.That(move.NpcStepPassesRampGate(Map, npc, Direction.Right, out var layer), Is.True,
                 "the along-axis mount across a seam is legal");
             Assert.That(layer, Is.EqualTo(WorldLayer.Fringe), "and it ascends");
@@ -413,7 +414,7 @@ public class MovementSystemTests
     {
         var (world, _, move, p) = Setup(0, 0);
         // A ramp at (5,5): solid (Blocked) on Ground, walkable (LayerRamp) on Fringe.
-        world.Maps[Map].Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, Data1 = (short)Direction.Down };
+        world.Maps[Map].Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
 
         Assert.Multiple(() =>
         {

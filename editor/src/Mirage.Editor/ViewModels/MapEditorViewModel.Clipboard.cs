@@ -384,7 +384,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 if (ActiveAttrType(t) != TileType.Walkable && ActiveAttrType(t) != src.Type) continue;
 
                 var before = Snap(t);
-                SetActiveAttr(t, src.Type, src.Data1, src.Data2, src.Data3);
+                SetActiveAttr(t, src);
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(tx, ty);
                 Record(tx, ty, before, Snap(t));

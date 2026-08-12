@@ -46,23 +46,19 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // Two-layer world: the snapshot also carries the third visual stack (Canopy) and the fringe-layer attribute
     // sub-record (FringeAttr) so authoring either survives undo/redo.  FringeAttr is deep-copied (it is a
     // mutable ref type) so an undo entry can't be mutated by a later edit to the live tile.
-    private sealed record TileSnapshot(int[] Ground, int[] Fringe, int[] Canopy, FringeAttr? Fa, TileType T, short D1, short D2, short D3);
+    private sealed record TileSnapshot(int[] Ground, int[] Fringe, int[] Canopy, FringeAttr? Fa, TileAttr Attr);
     private static TileSnapshot Snap(TileRecord t) =>
         new((int[])t.Ground.Clone(), (int[])t.Fringe.Clone(), (int[])t.Canopy.Clone(), CloneFringeAttr(t.FringeAttr),
-            t.Type, t.Data1, t.Data2, t.Data3);
+            t.ToGroundAttr());
     private static void Restore(TileRecord t, TileSnapshot s)
     {
         Array.Copy(s.Ground, t.Ground, Math.Min(s.Ground.Length, t.Ground.Length));
         Array.Copy(s.Fringe, t.Fringe, Math.Min(s.Fringe.Length, t.Fringe.Length));
         Array.Copy(s.Canopy, t.Canopy, Math.Min(s.Canopy.Length, t.Canopy.Length));
         t.FringeAttr = CloneFringeAttr(s.Fa);
-        t.Type = s.T;
-        t.Data1 = s.D1;
-        t.Data2 = s.D2;
-        t.Data3 = s.D3;
+        t.SetGroundAttr(s.Attr);
     }
-    private static FringeAttr? CloneFringeAttr(FringeAttr? fa) =>
-        fa is null ? null : new FringeAttr { Type = fa.Type, Data1 = fa.Data1, Data2 = fa.Data2, Data3 = fa.Data3 };
+    private static FringeAttr? CloneFringeAttr(FringeAttr? fa) => fa?.Clone();
 
     // An undo entry: a tile change (Tile/Attribute modes) OR a placed-light change (Light Sources mode,
     // at most one light per tile). Both carry the (x,y) they touch so undo can invalidate that cell.
