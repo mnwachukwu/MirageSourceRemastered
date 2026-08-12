@@ -18,8 +18,25 @@ number nothing updates and everything eventually contradicts.
 |---|---|
 | **Everything, one shot** | `dotnet msbuild Mirage.Test.csproj -t:TestAll` |
 | Everything (built-in) | `dotnet test Mirage.slnx` |
-| One portion | `dotnet test client/Mirage.Client.slnx` (or `Mirage.Server.slnx` / `Mirage.Editor.slnx`) |
-| One project | `dotnet test client/src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj` |
+| One area | `dotnet msbuild client/Mirage.Client.Test.csproj -t:TestAll` (or `server/Mirage.Server.Test.csproj` / `editor/Mirage.Editor.Test.csproj`) |
+| One project | `dotnet test tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj` |
+
+**Where the suites live, and why the drivers exist.** All four sit under `tests/`, out of the
+`src/` trees they exercise, and each is named for what it covers rather than for where its subject
+happens to be. Each area then gets a driver — `Mirage.Server.Test.csproj`, `Mirage.Client.Test.csproj`,
+`Mirage.Editor.Test.csproj` — mirroring the publish profiles exactly: publishing the server is
+`Mirage.Server.Publish.csproj`, so testing it is `Mirage.Server.Test.csproj`, and neither asks you to
+remember a path.
+
+The area drivers deliberately do **not** run on a solution build; only the aggregate
+`Mirage.Test.csproj` does. Both would mean every suite running twice — the same double-work that once
+turned a 9-second solution build into a 127-second one when the publish projects defaulted to
+publishing. `/t:TestAll` is always explicit for an area.
+
+Inside each suite the sources are grouped into folders (`Combat/`, `Ai/`, `Formulas/`, …) so the
+project root is the csproj and a handful of directories rather than seventy loose files. The folders
+carry no namespace: everything stays in `Mirage.Server.Tests` and friends, because a folder is not a
+namespace in C# and renaming them would be churn no reader benefits from.
 
 `Mirage.Test.csproj` runs every suite, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. A bare `dotnet msbuild Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
 

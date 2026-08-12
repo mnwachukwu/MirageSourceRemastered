@@ -13,10 +13,13 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Mirage.Test.csproj" />
-    <Project Path="server/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj" />
-    <Project Path="client/src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj" />
-    <Project Path="client/src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj" />
-    <Project Path="editor/src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj" />
+    <Project Path="server/Mirage.Server.Test.csproj" />
+    <Project Path="client/Mirage.Client.Test.csproj" />
+    <Project Path="editor/Mirage.Editor.Test.csproj" />
+    <Project Path="tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj" />
+    <Project Path="tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj" />
+    <Project Path="tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj" />
+    <Project Path="tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj" />
   </Folder>
   <Folder Name="/Publish/">
     <Project Path="Mirage.Publish.csproj" />

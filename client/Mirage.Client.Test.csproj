@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.Build.NoTargets/3.7.0">
+
+  <!-- Runs both client suites — the test-side mirror of Mirage.Client.Publish.csproj.
+       See Mirage.Server.Test.csproj for why these area drivers exist.
+
+         dotnet msbuild client/Mirage.Client.Test.csproj /t:TestAll
+
+       Two suites, and they are not interchangeable. Mirage.Client.Core.Tests covers game state and
+       logic and takes no MonoGame dependency, which is why CI can run it on Linux and macOS.
+       Mirage.Client.Shell.Tests covers input, panels and the HUD, so it pulls MonoGame in and needs
+       the content pipeline — five spritefonts and a shader — built first. That is the whole reason
+       the cross-platform matrix runs three suites and not four; see docs/testing.md. -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <_ClientCoreTests>$(MSBuildThisFileDirectory)../tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
+    <_ClientShellTests>$(MSBuildThisFileDirectory)../tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
+    <_AllTests>$(_ClientCoreTests);$(_ClientShellTests)</_AllTests>
+  </PropertyGroup>
+
+  <Target Name="BuildSuites">
+    <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" />
+    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" />
+  </Target>
+
+  <Target Name="TestAll" DependsOnTargets="BuildSuites">
+    <!-- ContinueOnError, as in the aggregate: a red Core suite should not hide the Shell result. -->
+    <Message Text="── Client.Core ──" Importance="High" />
+    <Exec Command="dotnet test &quot;$(_ClientCoreTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_ClientCoreExit" />
+    </Exec>
+    <Message Text="── Client.Shell ──" Importance="High" />
+    <Exec Command="dotnet test &quot;$(_ClientShellTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_ClientShellExit" />
+    </Exec>
+
+    <Error Condition="'$(_ClientCoreExit)$(_ClientShellExit)' != '00'"
+           Text="Client test suites failed — Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit)." />
+    <Message Text="═══ Client test suites passed ═══" Importance="High" />
+  </Target>
+
+  <!-- Deliberately not chained to TestAll — see the note in Mirage.Server.Test.csproj. A solution
+       build already tests everything once, through Mirage.Test.csproj. -->
+  <Target Name="Build">
+    <Message Importance="High"
+             Text="Mirage.Client.Test: nothing run. Use /t:TestAll to test the client on its own." />
+  </Target>
+
+</Project>

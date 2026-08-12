@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mirage.Client.Shell\Mirage.Client.Shell.csproj" />
+    <ProjectReference Include="..\..\client\src\Mirage.Client.Core\Mirage.Client.Core.csproj" />
   </ItemGroup>
 
 </Project>

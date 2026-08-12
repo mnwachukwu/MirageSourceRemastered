@@ -1,7 +1,10 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Mirage.Editor/Mirage.Editor.csproj" />
-    <Project Path="src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="../tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj" />
+    <Project Path="Mirage.Editor.Test.csproj" />
   </Folder>
   <Folder Name="/Publish/">
     <Project Path="Mirage.Editor.Publish.csproj" />

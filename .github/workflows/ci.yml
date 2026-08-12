@@ -121,13 +121,13 @@ jobs:
       # drag the MonoGame client in. No tool manifests are restored: none of these three need mgcb,
       # and nothing here publishes, so vpk is not wanted either.
       - name: Test — server and shared
-        run: dotnet test server/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo
+        run: dotnet test tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo
 
       - name: Test — client core
-        run: dotnet test client/src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj -c Release --nologo
+        run: dotnet test tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj -c Release --nologo
 
       - name: Test — editor
-        run: dotnet test editor/src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj -c Release --nologo
+        run: dotnet test tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj -c Release --nologo
 
   # ---- Everything, and the shipping artifacts --------------------------------------------------
 
