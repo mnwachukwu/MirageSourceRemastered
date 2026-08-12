@@ -48,29 +48,32 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
         {
             OnPropertyChanged(nameof(SpellEntries));
             OnPropertyChanged(nameof(ClassEntries));
+            RebuildClassSelection();   // a renamed or newly named class must re-label its checkbox
+        };
+        ClassSelection.SelectionChanged += ids =>
+        {
+            if (SelectedItem is null) return;
+            _applyingClassSelection = true;
+            try { SelectedItem.AllowedClasses = ids; }
+            finally { _applyingClassSelection = false; }
         };
     }
 
+    // Set while a checkbox click is writing into the row, so the row's own change notification doesn't
+    // bounce back and rebuild the checkboxes mid-edit.
+    private bool _applyingClassSelection;
+
     public NamedEntry[] ClassEntries => _data.LiveClassEntries;
 
-    /// <summary>Selected class for the equipment Data3 class-requirement field. Mirrors the
-    /// SpellEditorViewModel.SelectedClassReq pattern — Data3 = 0 means no class restriction.</summary>
-    public NamedEntry? SelectedClassReq
+    /// <summary>The equipment class gate: a checkbox per class, none ticked meaning every class. One
+    /// instance for the whole list, re-pointed at whichever row is selected.</summary>
+    public ClassSelectionViewModel ClassSelection { get; } = new();
+
+    private void RebuildClassSelection()
     {
-        get
-        {
-            if (SelectedItem is null) return null;
-            var id = SelectedItem.Data3;
-            return id > 0 && id < ClassEntries.Length ? ClassEntries[id] : null;
-        }
-        set
-        {
-            if (SelectedItem is null) return;
-            var id = (short)(value?.Id ?? 0);
-            if (SelectedItem.Data3 == id) return;
-            SelectedItem.Data3 = id;
-            OnPropertyChanged(nameof(SelectedClassReq));
-        }
+        if (SelectedItem is null) ClassSelection.Clear();
+        else ClassSelection.Rebuild(ClassEntries, SelectedItem.AllowedClasses);
+        ClassSelection.IsActive = SelectedItem is not null;
     }
 
     protected override void AfterSave(ItemRowViewModel vm)
@@ -104,15 +107,15 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
         get
         {
             if (SelectedItem is null) return null;
-            var id = SelectedItem.Data1;
+            var id = SelectedItem.SpellNum;
             return id > 0 && id < SpellEntries.Length ? SpellEntries[id] : null;
         }
         set
         {
             if (SelectedItem is null) return;
             var id = (short)(value?.Id ?? 0);
-            if (SelectedItem.Data1 == id) return;
-            SelectedItem.Data1 = id;
+            if (SelectedItem.SpellNum == id) return;
+            SelectedItem.SpellNum = id;
             OnPropertyChanged(nameof(SelectedSpellItem));
         }
     }
@@ -125,15 +128,18 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
         if (newValue is not null && !newValue.IsLoaded && _data.IsOnline)
             _ = LoadEntityAsync(newValue);
         OnPropertyChanged(nameof(SelectedSpellItem));
-        OnPropertyChanged(nameof(SelectedClassReq));
+        RebuildClassSelection();
     }
 
     private void OnItemPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(ItemRowViewModel.Data1) or nameof(ItemRowViewModel.Type))
+        if (e.PropertyName is nameof(ItemRowViewModel.SpellNum) or nameof(ItemRowViewModel.Type))
             OnPropertyChanged(nameof(SelectedSpellItem));
-        if (e.PropertyName is nameof(ItemRowViewModel.Data3))
-            OnPropertyChanged(nameof(SelectedClassReq));
+        // A row whose list changed from anywhere other than the checkboxes — a packet landing, a discard —
+        // has to re-tick them. The guard skips the author's own clicks, which set the row FROM the
+        // toggles; rebuilding there would clear and refill the list the click is still walking.
+        if (e.PropertyName is nameof(ItemRowViewModel.AllowedClasses) && !_applyingClassSelection)
+            RebuildClassSelection();
     }
 
     public void LoadOffline()

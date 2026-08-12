@@ -102,53 +102,47 @@
                        HorizontalAlignment="Stretch"/>
           </Grid>
 
+          <!-- Allowed classes: a multi-select, so one spell can be shared by a whole group (the three
+               Magic classes, say) rather than locked to a single class. -->
           <Grid ColumnDefinitions="165,*">
-            <TextBlock x:Name="_classReqLabel" Grid.Column="0" VerticalAlignment="Center"/>
-            <controls:DropdownAutoCompleteBox Grid.Column="1"
-                             ItemsSource="{Binding ClassEntries}"
-                             SelectedItem="{Binding SelectedClassReq, Mode=TwoWay}"
-                             ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                             FilterMode="Custom" MinimumPrefixLength="0"
-                             x:Name="_classReqPicker"/>
+            <TextBlock x:Name="_allowedClassesLabel" Grid.Column="0" VerticalAlignment="Top" Margin="0,2,0,0"/>
+            <controls:ClassSelector Grid.Column="1" DataContext="{Binding ClassSelection}"/>
           </Grid>
 
-          <Grid ColumnDefinitions="165,*">
+          <!-- Magnitude: every type except GiveItem, which has none. -->
+          <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.VitalAmountVisible}">
             <TextBlock Grid.Column="0"
-                       Text="{Binding SelectedSpell.Data1Label}"
+                       Text="{Binding SelectedSpell.VitalAmountLabel}"
                        VerticalAlignment="Center"/>
-            <!-- GiveItem: pick from item list -->
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedSpell.VitalAmount}"
+                           Minimum="0" Maximum="9999" FormatString="0"/>
+          </Grid>
+
+          <!-- The three GiveItem fields: what to hand over, how many, and what it costs to learn.
+               Hidden (and zeroed on save) for every other type. -->
+          <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.IsGiveItem}">
+            <TextBlock x:Name="_giveItemLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox Grid.Column="1"
                              ItemsSource="{Binding ItemEntries}"
                              SelectedItem="{Binding SelectedGiveItem, Mode=TwoWay}"
                              ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                              FilterMode="Custom" MinimumPrefixLength="0"
-                             x:Name="_giveItemPicker"
-                             IsVisible="{Binding SelectedSpell.Data1IsGiveItem}"/>
-            <!-- All other types: numeric -->
-            <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedSpell.Data1}"
-                           Minimum="-9999" Maximum="9999" FormatString="0"
-                           IsVisible="{Binding SelectedSpell.Data1IsGiveItem,
-                                       Converter={x:Static BoolConverters.Not}}"/>
+                             x:Name="_giveItemPicker"/>
           </Grid>
 
-          <!-- Data2/Data3 are GiveItem-only (quantity + cost/level modifier); hidden for every other type. -->
-          <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.Data1IsGiveItem}">
-            <TextBlock Grid.Column="0"
-                       Text="{Binding SelectedSpell.Data2Label}"
-                       VerticalAlignment="Center"/>
+          <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.IsGiveItem}">
+            <TextBlock x:Name="_itemAmountLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedSpell.Data2}"
-                           Minimum="-9999" Maximum="9999" FormatString="0"/>
+                           Value="{Binding SelectedSpell.ItemAmount}"
+                           Minimum="0" Maximum="9999" FormatString="0"/>
           </Grid>
 
-          <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.Data1IsGiveItem}">
-            <TextBlock Grid.Column="0"
-                       Text="{Binding SelectedSpell.Data3Label}"
-                       VerticalAlignment="Center"/>
+          <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.IsGiveItem}">
+            <TextBlock x:Name="_intReqLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedSpell.Data3}"
-                           Minimum="-9999" Maximum="9999" FormatString="0"/>
+                           Value="{Binding SelectedSpell.IntReq}"
+                           Minimum="0" Maximum="9999" FormatString="0"/>
           </Grid>
 
           <Separator Margin="0,4,0,2" Background="#333"/>
@@ -181,14 +175,14 @@
               <TextBlock x:Name="_formulaNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
 
               <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
-                         x:Name="_fmtData1Intro"/>
+                         x:Name="_fmtMagnitudeIntro"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
                 <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
-                           x:Name="_fmtData1Bullet1"/>
+                           x:Name="_fmtMagnitudeBullet1"/>
                 <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
-                           x:Name="_fmtData1Bullet2"/>
+                           x:Name="_fmtMagnitudeBullet2"/>
                 <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
-                           x:Name="_fmtData1Bullet3"/>
+                           x:Name="_fmtMagnitudeBullet3"/>
               </StackPanel>
 
               <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"

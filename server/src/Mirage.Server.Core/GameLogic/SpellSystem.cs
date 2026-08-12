@@ -92,8 +92,8 @@ public sealed class SpellSystem : GameSystem
         var spell = _world.Spells[spellNum];
         var cls = _world.Classes[p.Class];
 
-        // A non-GiveItem spell with Data1 = 0 is misconfigured; fizzle silently.
-        if (spell.Type != SpellType.GiveItem && spell.Data1 == 0) return;
+        // A non-GiveItem spell with no VitalAmount is misconfigured; fizzle silently.
+        if (spell.Type != SpellType.GiveItem && spell.VitalAmount == 0) return;
         int intReq = CombatFormulas.GetSpellIntRequirement(spell, cls.Int);
         // SubHp (the caster's "weapon") pays only a trivial pool-fraction MP cost plus a per-cast reagent; every
         // other spell type (heals, drains, GiveItem) keeps the full utility MP cost.
@@ -120,7 +120,7 @@ public sealed class SpellSystem : GameSystem
             bool pvpArenaFree = !forceSelf
                 && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= Constants.MaxPlayers && _pm[sp.Target].IsPlaying
                 && (_world.MoralOf(p.Map) == MapMoral.Arena || _world.MoralOf(_pm[sp.Target].Char.Map) == MapMoral.Arena);
-            reagentCost = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.Data1);
+            reagentCost = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.VitalAmount);
             if (ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentCost)
             {
                 SendMsg(index, ServerStrings.SpellSystem_NotEnoughReagents, GameColor.BrightRed, ChatChannel.System,
@@ -179,10 +179,10 @@ public sealed class SpellSystem : GameSystem
                     return;
                 }
             }
-            int slot = ItemSystem.FindOpenInvSlot(targetChar, _world.Items, spell.Data1);
+            int slot = ItemSystem.FindOpenInvSlot(targetChar, _world.Items, spell.ItemNum);
             if (slot > 0)
             {
-                _items.GiveItem(targetIdx, spell.Data1, spell.Data2);
+                _items.GiveItem(targetIdx, spell.ItemNum, spell.ItemAmount);
                 SpendCastCost(index, mpCost, spell, reagentCost);
                 sp.AttackTimer = Environment.TickCount64;
                 SendToMap(_world, p.Map, new PlayerCastPacket
@@ -535,7 +535,7 @@ public sealed class SpellSystem : GameSystem
         });
 
     /// <summary>The shared kernel for every Add/Sub spell. Computes
-    /// <c>raw = caster.Int / 3 + spell.Data1</c> (via <see cref="CombatFormulas.RawSpellPower"/>),
+    /// <c>raw = caster.Int / 3 + spell.VitalAmount</c> (via <see cref="CombatFormulas.RawSpellPower"/>),
     /// rolls a spell crit, drains SP and emits the configured crit-messages if it lands,
     /// applies <see cref="CombatFormulas.Vary"/>, and returns the final amount + crit flag.
     /// The CALLER applies that amount to whatever vital/target it's working on and runs any
@@ -547,7 +547,7 @@ public sealed class SpellSystem : GameSystem
         int critOtherColor = GameColor.BrightRed,
         (string Key, object? Value)[]? critOtherArgs = null)
     {
-        int raw = CombatFormulas.RawSpellPower(caster.Int, spell.Data1);
+        int raw = CombatFormulas.RawSpellPower(caster.Int, spell.VitalAmount);
         bool wasCrit = _combat.CanSpellCritical(caster);
         if (wasCrit)
         {
@@ -863,7 +863,7 @@ public sealed class SpellSystem : GameSystem
 
         // Reagent for a SubHp cast on an NPC always pays the normal cost — the arena reagent waiver is PvP-only, so
         // casting at a mob is never free, regardless of either map's moral.
-        SpendCastCost(index, mpCost, spell, SubHpReagentCostNow(p.Map, spell.Data1));
+        SpendCastCost(index, mpCost, spell, SubHpReagentCostNow(p.Map, spell.VitalAmount));
         return true;
     }
 }

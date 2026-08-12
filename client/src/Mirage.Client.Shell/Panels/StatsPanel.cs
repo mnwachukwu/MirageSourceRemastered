@@ -309,7 +309,7 @@ public sealed class StatsPanel : IGamePanel
         // Values share the neutral white combat-readout color used by Crit/Block/SpellCrit (SP amber is reserved for SP).
         // DMG values stacked in the left column, MIT on the right:
         // Row 1: P-DMG (melee — unarmed + weapon) | MIT (Def base + armor + helmet + shield — one universal axis)
-        // Row 2: M-DMG (spell — SpellPower + prepared-spell Data1) | (free — Sprint moved up under Block)
+        // Row 2: M-DMG (spell — SpellPower + prepared spell's VitalAmount) | (free — Sprint under Block)
         (int pdmgBase, int pdmgGear) = ComputePhysDamageBreakdown(me, state);
         (int mdmgBase, int mdmgGear) = ComputeMagicDamageBreakdown(me, state);
         (int mitBase, int mitGear) = ComputeMitBreakdown(me, state);
@@ -403,7 +403,7 @@ public sealed class StatsPanel : IGamePanel
     private static string FormatBreakdown(int baseVal, int gearVal) =>
         gearVal > 0 ? $"{baseVal} + {gearVal} = {baseVal + gearVal}" : baseVal.ToString();
 
-    /// <summary>P-DMG = UnarmedDamage(Str) + WeaponContribution(weapon.Data2, Str).
+    /// <summary>P-DMG = UnarmedDamage(Str) + WeaponContribution(weapon.Power, Str).
     /// Returns (base, gear) — gear is 0 if no weapon equipped or item not loaded.</summary>
     private static (int Base, int Gear) ComputePhysDamageBreakdown(Mirage.Shared.Records.PlayerRecord me, ClientState state)
     {
@@ -413,15 +413,15 @@ public sealed class StatsPanel : IGamePanel
         {
             int itemNum = me.Inv[me.WeaponSlot].Num;
             if (itemNum > 0 && itemNum < state.Items.Length && state.Items[itemNum] is { } weapon)
-                gearVal = CombatFormulas.WeaponContribution(weapon.Data2, me.Str);
+                gearVal = CombatFormulas.WeaponContribution(weapon.Power, me.Str);
         }
         return (baseVal, gearVal);
     }
 
-    /// <summary>M-DMG = SpellPower(Int) + SpellContribution(preparedSpell.Data1, Int).
+    /// <summary>M-DMG = SpellPower(Int) + SpellContribution(preparedSpell.VitalAmount, Int).
     /// Returns (base, contribution) — contribution is 0 if no prepared spell.  Mirrors the
     /// weapon pattern: SpellPower is the always-available stat-based component; preparing
-    /// a spell is the "equipping" step that adds the Data1 contribution.
+    /// a spell is the "equipping" step that adds its VitalAmount contribution.
     /// <para>Note: <see cref="Mirage.Shared.Records.PlayerRecord.PreparedSpell"/> is a 1-based slot index
     /// into <see cref="Mirage.Shared.Records.PlayerRecord.Spell"/> (the learned-spell list), NOT the spell number.
     /// We dereference one extra level to get the actual SpellRecord.</para></summary>
@@ -437,10 +437,10 @@ public sealed class StatsPanel : IGamePanel
                 && state.SpellDefs[spellNum] is { } spell
                 && spell.Type != SpellType.GiveItem)
             {
-                // GiveItem's Data1 is the item ID, not a magnitude — feeding it into
-                // SpellContribution would inflate M-DMG with a meaningless number. The base
-                // SpellPower still shows so the player sees their raw magic potential.
-                gearVal = CombatFormulas.SpellContribution(spell.Data1, me.Int);
+                // GiveItem carries an item id rather than a magnitude, and has no VitalAmount at all —
+                // hence the type guard above. The base SpellPower still shows so the player sees their
+                // raw magic potential.
+                gearVal = CombatFormulas.SpellContribution(spell.VitalAmount, me.Int);
             }
         }
         return (baseVal, gearVal);
@@ -471,18 +471,18 @@ public sealed class StatsPanel : IGamePanel
     private static (int Base, int Gear) ComputeMitBreakdown(Mirage.Shared.Records.PlayerRecord me, ClientState state)
     {
         int baseVal = CombatFormulas.PlayerProtection(me.Level, me.Def);
-        int gearVal = CombatFormulas.GearMitigation(SlotData2(me, state, me.ArmorSlot), me.Def)
-                    + CombatFormulas.GearMitigation(SlotData2(me, state, me.HelmetSlot), me.Def)
-                    + CombatFormulas.ShieldMitigation(SlotData2(me, state, me.ShieldSlot), me.Def);
+        int gearVal = CombatFormulas.GearMitigation(SlotPower(me, state, me.ArmorSlot), me.Def)
+                    + CombatFormulas.GearMitigation(SlotPower(me, state, me.HelmetSlot), me.Def)
+                    + CombatFormulas.ShieldMitigation(SlotPower(me, state, me.ShieldSlot), me.Def);
         return (baseVal, gearVal);
     }
 
-    /// <summary>Equipped item's Data2 for a slot (0 if empty/invalid); the mit helpers map Data2=0 → 0.</summary>
-    private static int SlotData2(Mirage.Shared.Records.PlayerRecord me, ClientState state, int slot)
+    /// <summary>Equipped item's Power for a slot (0 if empty/invalid); the mit helpers map Power=0 → 0.</summary>
+    private static int SlotPower(Mirage.Shared.Records.PlayerRecord me, ClientState state, int slot)
     {
         if (slot <= 0 || me.Inv is null || state.Items is null) return 0;
         int itemNum = me.Inv[slot].Num;
         if (itemNum <= 0 || itemNum >= state.Items.Length) return 0;
-        return state.Items[itemNum] is { } it ? it.Data2 : 0;
+        return state.Items[itemNum] is { } it ? it.Power : 0;
     }
 }

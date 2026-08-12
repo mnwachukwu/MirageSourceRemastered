@@ -137,7 +137,7 @@ public class MailSystemTests
     {
         var (world, _, mail, sp) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
-        world.Items[Sword].Data1 = 80;  // max durability
+        world.Items[Sword].Durability =80;  // max durability
         sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Sword, Value = 1, Dur = 55 } } });
 
         mail.Claim(Idx, 1);
@@ -208,7 +208,7 @@ public class MailSystemTests
     {
         var (world, _, mail, sp) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
-        world.Items[Sword].Data1 = 100;
+        world.Items[Sword].Durability =100;
         sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Sword, Value = 0, Dur = 30 } } });
 
         mail.Claim(Idx, 1);
@@ -475,7 +475,7 @@ public class MailSystemTests
         var (world, pm, _, mail) = SetupWorld();
         world.Items[Gold].Type = ItemType.Currency;
         world.Items[Sword].Type = ItemType.Weapon;
-        world.Items[Sword].Data1 = 50;
+        world.Items[Sword].Durability =50;
         var sender = Online(pm, 1, "sender");
         var receiver = Online(pm, 2, "receiver");
         long past = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 10;

@@ -134,13 +134,13 @@ public class ShopSystemTests
 
     // ── FixItem ──────────────────────────────────────────────────────────────────
 
-    // Sword: max durability 100, repair rate Data2=10 => ratePerPoint 2, full 60-point repair costs 60.
+    // Sword: max durability 100, Power 10 => ratePerPoint 2, full 60-point repair costs 60.
     static void PlaceRepairableSword(GameWorld world, PlayerRecord p, int currentDur, int gold)
     {
         world.Shops[ShopNum].FixesItems = true;
         world.Items[Sword].Type = ItemType.Weapon;
-        world.Items[Sword].Data1 = 100;
-        world.Items[Sword].Data2 = 10;
+        world.Items[Sword].Durability = 100;
+        world.Items[Sword].Power = 10;
         p.Inv[2].Num = Sword;
         p.Inv[2].Dur = currentDur;
         p.Inv[1].Num = Gold;

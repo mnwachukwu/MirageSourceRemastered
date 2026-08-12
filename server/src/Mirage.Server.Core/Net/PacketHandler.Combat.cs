@@ -255,7 +255,7 @@ public sealed partial class PacketHandler
                 case ItemType.Armor:
                 case ItemType.Helmet:
                 case ItemType.Shield:
-                    Say(ServerStrings.SearchSystem_SeeEquipment, GameColor.Yellow, ("Name", seenName), ("Dur", mi.Dur), ("Max", seenItem.Data1));
+                    Say(ServerStrings.SearchSystem_SeeEquipment, GameColor.Yellow, ("Name", seenName), ("Dur", mi.Dur), ("Max", seenItem.Durability));
                     break;
                 default:
                     Say(ServerStrings.SearchSystem_SeeItem, GameColor.Yellow, ("Name", seenName));

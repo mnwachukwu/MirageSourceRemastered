@@ -277,7 +277,7 @@ public sealed class QuestSystem : GameSystem
         var p = _pm[index].Char;
         if (p.Level < q.ReqLevel) return false;
         if (p.Str < q.ReqStr || p.Def < q.ReqDef || p.Spd < q.ReqSpd || p.Int < q.ReqInt) return false;
-        if (q.ReqClass != 0 && p.Class != q.ReqClass) return false;
+        if (!ClassGate.Allows(q.AllowedClasses, p.Class)) return false;
         if (q.PrereqQuest > 0 && !IsDone(index, q.PrereqQuest)) return false;
         return true;
     }
@@ -356,7 +356,7 @@ public sealed class QuestSystem : GameSystem
     private bool IsGiverVisible(int index, int questNum)
     {
         var q = _world.Quests[questNum];
-        if (q.ReqClass != 0 && _pm[index].Char.Class != q.ReqClass) return false;   // class-locked → invisible
+        if (!ClassGate.Allows(q.AllowedClasses, _pm[index].Char.Class)) return false;   // class-locked → invisible
         var pq = Find(index, questNum);
         if (pq is not null && IsActive(pq.Status)) return false;                     // already on it
         if (pq is { Status: QuestStatus.Done } && !q.Repeatable) return false;       // done forever

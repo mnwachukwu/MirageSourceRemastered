@@ -157,7 +157,7 @@ public sealed partial class ItemSystem : GameSystem
         p.Inv[slot].Value = p.Inv[slot].Value + value;
 
         if (item.Type is ItemType.Armor or ItemType.Weapon or ItemType.Helmet or ItemType.Shield)
-            p.Inv[slot].Dur = dur > 0 ? dur : item.Data1;
+            p.Inv[slot].Dur = dur > 0 ? dur : item.Durability;
 
         SendInventoryUpdate(index, slot);
         return true;
@@ -365,7 +365,7 @@ public sealed partial class ItemSystem : GameSystem
         bool isWeapon = type == ItemType.Weapon;
         int playerStat = isWeapon ? p.Str : p.Def;
         int classStat = isWeapon ? cls.Str : cls.Def;
-        if (playerStat >= CombatFormulas.GearStatRequirement(item.Data2, classStat)) return false;
+        if (playerStat >= CombatFormulas.GearStatRequirement(item.Power, classStat)) return false;
         switch (type)
         {
             case ItemType.Weapon:

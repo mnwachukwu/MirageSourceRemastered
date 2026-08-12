@@ -11,9 +11,9 @@ namespace Mirage.Editor.ViewModels;
 /// <para>Tracks its own dirty flag: every setter routes through <see cref="MarkDirty"/>, which is
 /// suppressed while <c>_loading</c> is set so filling the row from a record or packet doesn't mark
 /// it as an author edit.</para>
-/// <para>The <c>Data1</c>/<c>Data2</c>/<c>Data3</c> fields are generic slots whose meaning depends on
-/// <see cref="Type"/>; the <c>…Label</c> and <c>…Visible</c> properties below turn that into the
-/// right caption and show/hide state for the form.</para>
+/// <para>Each type-specific field carries its own caption and its own <c>…Visible</c> flag, both
+/// derived from <see cref="Type"/> via the rules on <see cref="ItemRecord"/> — so the form shows a
+/// weapon its durability, power and class requirement, and a potion nothing but its amount.</para>
 /// </summary>
 public sealed partial class ItemRowViewModel : ObservableObject
 {
@@ -26,12 +26,16 @@ public sealed partial class ItemRowViewModel : ObservableObject
     /// <summary>Index into the item graphics strip.</summary>
     [ObservableProperty] private short _pic;
     [ObservableProperty] private ItemType _type;
-    /// <summary>Type-dependent value — see <see cref="Data1Label"/>.</summary>
-    [ObservableProperty] private short _data1;
-    /// <summary>Type-dependent value — see <see cref="Data2Label"/>.</summary>
-    [ObservableProperty] private short _data2;
-    /// <summary>Type-dependent value — see <see cref="Data3Label"/>.</summary>
-    [ObservableProperty] private short _data3;
+
+    // Type-specific fields — see ItemRecord for which apply to which type.
+    [ObservableProperty] private short _durability;
+    [ObservableProperty] private short _vitalAmount;
+    [ObservableProperty] private short _spellNum;
+    [ObservableProperty] private short _power;
+    /// <summary>Classes allowed to equip it; null or empty = every class. Replaced wholesale by the
+    /// class multi-select rather than mutated, so the change notification actually fires.</summary>
+    [ObservableProperty] private List<short>? _allowedClasses;
+
     // Item restriction flags; each blocks exactly one action, enforced server-side.
     [ObservableProperty] private bool _nonTradeable;
     [ObservableProperty] private bool _nonListable;
@@ -54,9 +58,11 @@ public sealed partial class ItemRowViewModel : ObservableObject
         _name = r.Name;
         _pic = r.Pic;
         _type = r.Type;
-        _data1 = r.Data1;
-        _data2 = r.Data2;
-        _data3 = r.Data3;
+        _durability = r.Durability;
+        _vitalAmount = r.VitalAmount;
+        _spellNum = r.SpellNum;
+        _power = r.Power;
+        _allowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
         _nonTradeable = r.NonTradeable;
         _nonListable = r.NonListable;
         _nonMailable = r.NonMailable;
@@ -75,26 +81,28 @@ public sealed partial class ItemRowViewModel : ObservableObject
         MarkDirty();
         OnPropertyChanged(nameof(PicAsInt));
     }
-    partial void OnData1Changed(short value) => MarkDirty();
-    partial void OnData2Changed(short value) => MarkDirty();
-    partial void OnData3Changed(short value) => MarkDirty();
+    partial void OnDurabilityChanged(short value) => MarkDirty();
+    partial void OnVitalAmountChanged(short value) => MarkDirty();
+    partial void OnSpellNumChanged(short value) => MarkDirty();
+    partial void OnPowerChanged(short value) => MarkDirty();
+    partial void OnAllowedClassesChanged(List<short>? value) => MarkDirty();
     partial void OnNonTradeableChanged(bool value) => MarkDirty();
     partial void OnNonListableChanged(bool value) => MarkDirty();
     partial void OnNonMailableChanged(bool value) => MarkDirty();
     partial void OnDestroyOnDropChanged(bool value) => MarkDirty();
 
-    // Changing the type re-labels and re-shows the data slots, so every derived caption and
-    // visibility flag has to re-raise alongside the dirty mark.
+    // Changing the type re-labels and re-shows the fields, so every derived caption and visibility
+    // flag has to re-raise alongside the dirty mark.
     partial void OnTypeChanged(ItemType value)
     {
         MarkDirty();
-        OnPropertyChanged(nameof(Data1Label));
-        OnPropertyChanged(nameof(Data2Label));
-        OnPropertyChanged(nameof(Data3Label));
-        OnPropertyChanged(nameof(Data1Visible));
-        OnPropertyChanged(nameof(Data2Visible));
-        OnPropertyChanged(nameof(Data3Visible));
-        OnPropertyChanged(nameof(Data1IsSpell));
+        OnPropertyChanged(nameof(VitalAmountLabel));
+        OnPropertyChanged(nameof(PowerLabel));
+        OnPropertyChanged(nameof(DurabilityVisible));
+        OnPropertyChanged(nameof(VitalAmountVisible));
+        OnPropertyChanged(nameof(SpellNumVisible));
+        OnPropertyChanged(nameof(PowerVisible));
+        OnPropertyChanged(nameof(AllowedClassesVisible));
     }
 
     private void MarkDirty()
@@ -121,9 +129,11 @@ public sealed partial class ItemRowViewModel : ObservableObject
             Name = r.Name;
             Pic = r.Pic;
             Type = r.Type;
-            Data1 = r.Data1;
-            Data2 = r.Data2;
-            Data3 = r.Data3;
+            Durability = r.Durability;
+            VitalAmount = r.VitalAmount;
+            SpellNum = r.SpellNum;
+            Power = r.Power;
+            AllowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
             NonTradeable = r.NonTradeable;
             NonListable = r.NonListable;
             NonMailable = r.NonMailable;
@@ -148,9 +158,11 @@ public sealed partial class ItemRowViewModel : ObservableObject
             Name = pkt.Name;
             Pic = pkt.Pic;
             Type = pkt.Type;
-            Data1 = pkt.Data1;
-            Data2 = pkt.Data2;
-            Data3 = pkt.Data3;
+            Durability = pkt.Durability;
+            VitalAmount = pkt.VitalAmount;
+            SpellNum = pkt.SpellNum;
+            Power = pkt.Power;
+            AllowedClasses = pkt.AllowedClasses is null ? null : new List<short>(pkt.AllowedClasses);
             NonTradeable = pkt.NonTradeable;
             NonListable = pkt.NonListable;
             NonMailable = pkt.NonMailable;
@@ -165,90 +177,89 @@ public sealed partial class ItemRowViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayName));
     }
 
-    /// <summary>Project the row back into a record for saving.</summary>
-    public ItemRecord ToRecord() => new()
+    /// <summary>Project the row back into a record for saving.
+    /// <para>The result is <see cref="ItemRecord.Normalize"/>d, so a field the current type does not use
+    /// is written as 0 rather than carrying whatever the row held when it was a different type. The row
+    /// itself is left alone — retyping a weapon to a potion and back inside one editing session keeps
+    /// the original numbers, since nothing has been saved yet.</para></summary>
+    public ItemRecord ToRecord()
     {
-        Name = Name,
-        Pic = Pic,
-        Type = Type,
-        Data1 = Data1,
-        Data2 = Data2,
-        Data3 = Data3,
-        NonTradeable = NonTradeable,
-        NonListable = NonListable,
-        NonMailable = NonMailable,
-        DestroyOnDrop = DestroyOnDrop,
-    };
+        var r = new ItemRecord
+        {
+            Name = Name,
+            Pic = Pic,
+            Type = Type,
+            Durability = Durability,
+            VitalAmount = VitalAmount,
+            SpellNum = SpellNum,
+            Power = Power,
+            AllowedClasses = AllowedClasses is null ? null : new List<short>(AllowedClasses),
+            NonTradeable = NonTradeable,
+            NonListable = NonListable,
+            NonMailable = NonMailable,
+            DestroyOnDrop = DestroyOnDrop,
+        };
+        r.Normalize();
+        return r;
+    }
 
     /// <summary>Project the row into the online save packet. The single source of that mapping — both the
-    /// editor's own save and the push-changes prompt route through here, so neither can drift from the other.</summary>
-    public EditorSaveItemPacket BuildSavePacket() => new()
+    /// editor's own save and the push-changes prompt route through here, so neither can drift from the other.
+    /// Normalized through <see cref="ToRecord"/> so the online and offline saves store the same thing.</summary>
+    public EditorSaveItemPacket BuildSavePacket()
     {
-        ItemNum = Index,
-        Name = Name,
-        Pic = Pic,
-        Type = Type,
-        Data1 = Data1,
-        Data2 = Data2,
-        Data3 = Data3,
-        NonTradeable = NonTradeable,
-        NonListable = NonListable,
-        NonMailable = NonMailable,
-        DestroyOnDrop = DestroyOnDrop,
-    };
+        var r = ToRecord();
+        return new EditorSaveItemPacket
+        {
+            ItemNum = Index,
+            Name = r.Name,
+            Pic = r.Pic,
+            Type = r.Type,
+            Durability = r.Durability,
+            VitalAmount = r.VitalAmount,
+            SpellNum = r.SpellNum,
+            Power = r.Power,
+            AllowedClasses = r.AllowedClasses,
+            NonTradeable = r.NonTradeable,
+            NonListable = r.NonListable,
+            NonMailable = r.NonMailable,
+            DestroyOnDrop = r.DestroyOnDrop,
+        };
+    }
 
-    /// <summary>Form caption for Data1, which varies by item type (durability, potion amount, spell number).</summary>
-    public string Data1Label => Type switch
+    // ── Captions ──────────────────────────────────────────────────────────────
+    // Durability, SpellNum and the class gate mean one thing wherever they apply, so their captions are
+    // set from the view's code-behind. Only these two vary by type.
+
+    /// <summary>Form caption for the potion amount — which vital it moves depends on the type.</summary>
+    public string VitalAmountLabel => Type switch
     {
-        ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield => EditorStrings.Get(EditorStrings.DataLabel_Durability),
         ItemType.PotionAddHp or ItemType.PotionSubHp => EditorStrings.Get(EditorStrings.DataLabel_HpAmount),
         ItemType.PotionAddMp or ItemType.PotionSubMp => EditorStrings.Get(EditorStrings.DataLabel_MpAmount),
         ItemType.PotionAddSp or ItemType.PotionSubSp => EditorStrings.Get(EditorStrings.DataLabel_SpAmount),
-        ItemType.Spell => EditorStrings.Get(EditorStrings.DataLabel_SpellNumber),
-        _ => EditorStrings.Get(EditorStrings.DataLabel_Data1),
+        _ => EditorStrings.Get(EditorStrings.DataLabel_VitalAmount),
     };
 
-    // ── Data2 ─────────────────────────────────────────────────────────────────
-    // Weapon: damage added to GetPlayerDamage (via WeaponContribution DR); doubles as min STR to equip.
-    // Armor:  defense added to GetPlayerProtection (via GearMitigation DR); doubles as min DEF to equip.
-    // Helmet: defense added to GetPlayerProtection (via GearMitigation DR); doubles as min DEF to equip.
-    // Shield: MIT via ShieldMitigation (1/4 of GearMit, paired against Def); doubles as min DEF to equip.
-    // All other types: Data2 unused.
-    /// <summary>Form caption for Data2 — damage on a weapon, defense on armor/helmet/shield.</summary>
-    public string Data2Label => Type switch
+    /// <summary>Form caption for <see cref="Power"/> — the one field whose name understates it. It is
+    /// damage on a weapon and defense on the three defensive pieces, so the form says which, even though
+    /// the same number also gates equipping and prices repairs in every case.</summary>
+    public string PowerLabel => Type switch
     {
         ItemType.Weapon => EditorStrings.Get(EditorStrings.DataLabel_Damage),
-        ItemType.Armor or ItemType.Helmet => EditorStrings.Get(EditorStrings.DataLabel_Defense),
-        ItemType.Shield => EditorStrings.Get(EditorStrings.DataLabel_Defense),
-        _ => EditorStrings.Get(EditorStrings.DataLabel_Data2),
-    };
-
-    // ── Data3 ─────────────────────────────────────────────────────────────────
-    // Equipment (Weapon/Armor/Helmet/Shield): class ID required to equip (1-based, 0 = unrestricted).
-    // All other types: Data3 unused.
-    /// <summary>Form caption for Data3 — the class requirement on equipment.</summary>
-    public string Data3Label => Type switch
-    {
-        ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield => EditorStrings.Get(EditorStrings.DataLabel_ClassReq),
-        _ => EditorStrings.Get(EditorStrings.DataLabel_Data3),
+        ItemType.Armor or ItemType.Helmet or ItemType.Shield => EditorStrings.Get(EditorStrings.DataLabel_Defense),
+        _ => EditorStrings.Get(EditorStrings.DataLabel_Power),
     };
 
     // ── Visibility ────────────────────────────────────────────────────────────
-    // Key items have no editable data: a door (Key tile) references its key by item id, so the item's
-    // own Data1/2/3 are unused — the match is on the inventory item number against tile.Data1.
-    /// <summary>Whether the Data1 field applies to this item type.</summary>
-    public bool Data1Visible => Type is not (ItemType.None or ItemType.Currency or ItemType.Key);
-    /// <summary>Whether Data1 holds a spell number, so the form can offer a spell picker.</summary>
-    public bool Data1IsSpell => Type == ItemType.Spell;
+    // All five defer to ItemRecord, the same rules Normalize clears by — so a field the form hides is
+    // exactly a field the save zeroes, and the two can't disagree.
+    //
+    // Key and Currency show none of them: a door matches its key on the item's own id, so a key's
+    // numbers are unused.
 
-    // Show Data2 only for types where it has a game effect (Weapon/Armor/Helmet/Shield).
-    // Key, potions, spell scrolls, Currency, None: Data2 unused.
-    /// <summary>Whether the Data2 field applies to this item type.</summary>
-    public bool Data2Visible =>
-        Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
-
-    // Show Data3 (class requirement) only for the four equipment types.
-    /// <summary>Whether the Data3 field applies to this item type.</summary>
-    public bool Data3Visible =>
-        Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
+    public bool DurabilityVisible => ItemRecord.UsesDurability(Type);
+    public bool VitalAmountVisible => ItemRecord.UsesVitalAmount(Type);
+    public bool SpellNumVisible => ItemRecord.UsesSpellNum(Type);
+    public bool PowerVisible => ItemRecord.UsesPower(Type);
+    public bool AllowedClassesVisible => ItemRecord.UsesAllowedClasses(Type);
 }

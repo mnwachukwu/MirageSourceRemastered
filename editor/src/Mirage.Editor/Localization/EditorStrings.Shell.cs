@@ -86,11 +86,15 @@ public static partial class EditorStrings
     public const string DataLabel_MpDrain = nameof(DataLabel_MpDrain);
     public const string DataLabel_SpDrain = nameof(DataLabel_SpDrain);
     public const string DataLabel_Quantity = nameof(DataLabel_Quantity);
-    public const string DataLabel_CostLevelModifier = nameof(DataLabel_CostLevelModifier);
-    public const string DataLabel_ClassReq = nameof(DataLabel_ClassReq);
-    public const string DataLabel_Data1 = nameof(DataLabel_Data1);
-    public const string DataLabel_Data2 = nameof(DataLabel_Data2);
-    public const string DataLabel_Data3 = nameof(DataLabel_Data3);
+    public const string DataLabel_IntReq = nameof(DataLabel_IntReq);
+    public const string DataLabel_AllowedClasses = nameof(DataLabel_AllowedClasses);
+    // The class multi-select shared by the item, spell and quest editors.
+    public const string ClassSelector_AnyClass = nameof(ClassSelector_AnyClass);
+    public const string ClassSelector_Hint = nameof(ClassSelector_Hint);
+    // Fallback captions for the two fields whose caption varies by type, shown if a type ever falls
+    // outside the switch. Not "Data 1/2/3" any more — there is no numbered slot left to name.
+    public const string DataLabel_VitalAmount = nameof(DataLabel_VitalAmount);
+    public const string DataLabel_Power = nameof(DataLabel_Power);
 
     // ── EditorConnection (service-layer errors shown to the user) ─────────────
     public const string EditorConnection_ClosedUnexpectedly = nameof(EditorConnection_ClosedUnexpectedly);

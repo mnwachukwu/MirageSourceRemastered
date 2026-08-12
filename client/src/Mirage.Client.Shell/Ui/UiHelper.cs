@@ -16,8 +16,8 @@ public static class UiHelper
     // ── Requirement label formatting ───────────────────────────────────────────
     /// <summary>Render an equip/learn requirement with the class head-start made visible: "27 (-3)"
     /// when the wearer's class shaves points off the raw requirement, or plain "27" when it doesn't.
-    /// <paramref name="rawReq"/> is the item/spell's authored requirement (weapon/armor Data2, spell
-    /// Data1/Data3); <paramref name="effectiveReq"/> is it after the class-affinity head-start and floor —
+    /// <paramref name="rawReq"/> is the item/spell's authored requirement (an item's Power, a spell's
+    /// VitalAmount or IntReq); <paramref name="effectiveReq"/> is it after the head-start and floor —
     /// i.e. what the player actually needs.</summary>
     public static string FormatRequirement(int rawReq, int effectiveReq)
     {

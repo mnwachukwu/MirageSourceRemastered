@@ -333,11 +333,12 @@ public sealed class EditorPacketHandler
         {
             SpellNum = n,
             Name = spell.Name,
-            ClassReq = spell.ClassReq,
+            AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
             Type = spell.Type,
-            Data1 = spell.Data1,
-            Data2 = spell.Data2,
-            Data3 = spell.Data3,
+            VitalAmount = spell.VitalAmount,
+            ItemNum = spell.ItemNum,
+            ItemAmount = spell.ItemAmount,
+            IntReq = spell.IntReq,
         });
     }
 
@@ -435,9 +436,11 @@ public sealed class EditorPacketHandler
                 var spell = _world.Spells[n];
                 return new UpdateSpellPacket
                 {
-                    SpellNum = n, Name = spell.Name, ClassReq = spell.ClassReq,
+                    SpellNum = n, Name = spell.Name,
+                    AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
                     Type = spell.Type,
-                    Data1 = spell.Data1, Data2 = spell.Data2, Data3 = spell.Data3,
+                    VitalAmount = spell.VitalAmount, ItemNum = spell.ItemNum,
+                    ItemAmount = spell.ItemAmount, IntReq = spell.IntReq,
                 };
             }).ToArray(),
         });
@@ -499,13 +502,19 @@ public sealed class EditorPacketHandler
         item.Name = p.Name;
         item.Pic = p.Pic;
         item.Type = p.Type;
-        item.Data1 = p.Data1;
-        item.Data2 = p.Data2;
-        item.Data3 = p.Data3;
+        item.Durability = p.Durability;
+        item.VitalAmount = p.VitalAmount;
+        item.SpellNum = p.SpellNum;
+        item.Power = p.Power;
+        item.AllowedClasses = p.AllowedClasses;
         item.NonTradeable = p.NonTradeable;
         item.NonListable = p.NonListable;
         item.NonMailable = p.NonMailable;
         item.DestroyOnDrop = p.DestroyOnDrop;
+        // Clear anything the new Type doesn't use before it is stored or broadcast. The editor already
+        // normalizes on its side, but the server is authoritative: it will not persist a stale Power on
+        // something that stopped being equipment, whatever a client sends.
+        item.Normalize();
 
         _bg.Run(_persistence.SaveItemAsync(n, item), nameof(IPersistenceService.SaveItemAsync));
         _dispatcher.SendToAll(PacketBuilder.UpdateItem(n, item));
@@ -681,7 +690,9 @@ public sealed class EditorPacketHandler
         quest.ReqDef = p.ReqDef;
         quest.ReqSpd = p.ReqSpd;
         quest.ReqInt = p.ReqInt;
-        quest.ReqClass = p.ReqClass;
+        // Same authoritative-normalize rule as items and spells: the server drops ids outside the class
+        // table, dedupes and sorts, whatever a client sent.
+        quest.AllowedClasses = ClassGate.Normalize(p.AllowedClasses);
         quest.PrereqQuest = p.PrereqQuest;
         quest.RewardExp = p.RewardExp;
         quest.RewardItems = NormalizeQuestRewards(p.RewardItems);
@@ -714,7 +725,8 @@ public sealed class EditorPacketHandler
             Description = q.Description,
             Objectives = q.Objectives.Select(o => o.Clone()).ToList(),
             ReqLevel = q.ReqLevel, ReqStr = q.ReqStr, ReqDef = q.ReqDef, ReqSpd = q.ReqSpd, ReqInt = q.ReqInt,
-            ReqClass = q.ReqClass, PrereqQuest = q.PrereqQuest,
+            AllowedClasses = q.AllowedClasses is null ? null : new List<short>(q.AllowedClasses),
+            PrereqQuest = q.PrereqQuest,
             RewardExp = q.RewardExp, RewardItems = q.RewardItems.Select(r => r.Clone()).ToList(),
             RepeatRewardExp = q.RepeatRewardExp, RepeatRewardItems = q.RepeatRewardItems.Select(r => r.Clone()).ToList(),
             GiverNpc = q.GiverNpc, TurnInNpc = q.TurnInNpc, Repeatable = q.Repeatable, Cadence = q.Cadence,
@@ -838,22 +850,27 @@ public sealed class EditorPacketHandler
 
         var spell = _world.Spells[n];
         spell.Name = p.Name;
-        spell.ClassReq = p.ClassReq;
+        spell.AllowedClasses = p.AllowedClasses;
         spell.Type = p.Type;
-        spell.Data1 = p.Data1;
-        spell.Data2 = p.Data2;
-        spell.Data3 = p.Data3;
+        spell.VitalAmount = p.VitalAmount;
+        spell.ItemNum = p.ItemNum;
+        spell.ItemAmount = p.ItemAmount;
+        spell.IntReq = p.IntReq;
+        // As on the item path: the server clears what the new Type doesn't use before storing or
+        // broadcasting. It matters more here — a stale IntReq would silently re-gate the spell.
+        spell.Normalize();
 
         _bg.Run(_persistence.SaveSpellAsync(n, spell), nameof(IPersistenceService.SaveSpellAsync));
         _dispatcher.SendToAll(new UpdateSpellPacket
         {
             SpellNum = n,
             Name = spell.Name,
-            ClassReq = spell.ClassReq,
+            AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
             Type = spell.Type,
-            Data1 = spell.Data1,
-            Data2 = spell.Data2,
-            Data3 = spell.Data3
+            VitalAmount = spell.VitalAmount,
+            ItemNum = spell.ItemNum,
+            ItemAmount = spell.ItemAmount,
+            IntReq = spell.IntReq,
         });
         _logger.LogInformation("Editor saved spell #{Num}.", n);
     }

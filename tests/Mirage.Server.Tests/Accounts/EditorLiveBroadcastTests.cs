@@ -57,7 +57,7 @@ public class EditorLiveBroadcastTests
         h.Save(new EditorSaveItemPacket
         {
             ItemNum = 3, Name = "Short Sword", Pic = 4, Type = ItemType.Weapon,
-            Data1 = 100, Data2 = 10, Data3 = 5,
+            Durability = 100, Power = 10, AllowedClasses = [5, 2],
         });
 
         var u = h.Dispatcher.OneBroadcast<UpdateItemPacket>();
@@ -67,9 +67,10 @@ public class EditorLiveBroadcastTests
             Assert.That(u.Name, Is.EqualTo("Short Sword"));
             Assert.That(u.Pic, Is.EqualTo(4));
             Assert.That(u.Type, Is.EqualTo(ItemType.Weapon));
-            Assert.That(u.Data1, Is.EqualTo(100));
-            Assert.That(u.Data2, Is.EqualTo(10));
-            Assert.That(u.Data3, Is.EqualTo(5));
+            Assert.That(u.Durability, Is.EqualTo(100));
+            Assert.That(u.Power, Is.EqualTo(10));
+            // Sorted, not as sent: the server canonicalizes the gate before broadcasting it.
+            Assert.That(u.AllowedClasses, Is.EqualTo(new short[] { 2, 5 }));
         });
     }
 
@@ -126,8 +127,8 @@ public class EditorLiveBroadcastTests
         var h = new Harness();
         h.Save(new EditorSaveSpellPacket
         {
-            SpellNum = 5, Name = "Fireball", ClassReq = 2, Type = SpellType.AddHp,
-            Data1 = 25, Data2 = 3, Data3 = 1,
+            SpellNum = 5, Name = "Fireball", AllowedClasses = [2], Type = SpellType.AddHp,
+            VitalAmount = 25,
         });
 
         var u = h.Dispatcher.OneBroadcast<UpdateSpellPacket>();
@@ -135,11 +136,9 @@ public class EditorLiveBroadcastTests
         {
             Assert.That(u.SpellNum, Is.EqualTo(5));
             Assert.That(u.Name, Is.EqualTo("Fireball"));
-            Assert.That(u.ClassReq, Is.EqualTo(2));
+            Assert.That(u.AllowedClasses, Is.EqualTo(new short[] { 2 }));
             Assert.That(u.Type, Is.EqualTo(SpellType.AddHp));
-            Assert.That(u.Data1, Is.EqualTo(25));
-            Assert.That(u.Data2, Is.EqualTo(3));
-            Assert.That(u.Data3, Is.EqualTo(1));
+            Assert.That(u.VitalAmount, Is.EqualTo(25));
         });
     }
 

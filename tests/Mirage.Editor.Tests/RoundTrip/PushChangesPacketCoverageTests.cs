@@ -76,7 +76,7 @@ public class PushChangesPacketCoverageTests
     {
         var vm = new ItemRowViewModel(4, new ItemRecord
         {
-            Name = "Bound Blade", Pic = 21, Type = ItemType.Weapon, Data1 = 120, Data2 = 14, Data3 = 3,
+            Name = "Bound Blade", Pic = 21, Type = ItemType.Weapon, Durability = 120, Power = 14, AllowedClasses = [3, 1],
             NonTradeable = true, NonListable = true, NonMailable = true, DestroyOnDrop = true,
         });
 
@@ -88,9 +88,10 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.Name, Is.EqualTo("Bound Blade"));
             Assert.That(pkt.Pic, Is.EqualTo((short)21));
             Assert.That(pkt.Type, Is.EqualTo(ItemType.Weapon));
-            Assert.That(pkt.Data1, Is.EqualTo((short)120));
-            Assert.That(pkt.Data2, Is.EqualTo((short)14));
-            Assert.That(pkt.Data3, Is.EqualTo((short)3));
+            Assert.That(pkt.Durability, Is.EqualTo((short)120));
+            Assert.That(pkt.Power, Is.EqualTo((short)14));
+            // Sorted by the save-path normalize, not left in the order it was authored.
+            Assert.That(pkt.AllowedClasses, Is.EqualTo(new short[] { 1, 3 }));
 
             // The four a thinner projection leaves false: pushing a dirty item would make a bound,
             // unlistable, unmailable, destroy-on-drop weapon freely tradeable again.

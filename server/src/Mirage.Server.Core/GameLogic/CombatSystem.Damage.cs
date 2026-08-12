@@ -24,7 +24,7 @@ public sealed partial class CombatSystem : GameSystem
             int itemNum = p.Inv[p.WeaponSlot].Num;
             if (itemNum > 0)
             {
-                dmg += CombatFormulas.WeaponContribution(_world.Items[itemNum].Data2, p.Str);
+                dmg += CombatFormulas.WeaponContribution(_world.Items[itemNum].Power, p.Str);
                 DegradeItemDurability(index, p.WeaponSlot, opponentMap);
             }
         }
@@ -57,7 +57,7 @@ public sealed partial class CombatSystem : GameSystem
         var p = _pm[index].Char;
         int melee = CombatFormulas.UnarmedDamage(p.Str);
         if (p.WeaponSlot > 0 && p.Inv[p.WeaponSlot].Num > 0)
-            melee += CombatFormulas.WeaponContribution(_world.Items[p.Inv[p.WeaponSlot].Num].Data2, p.Str);
+            melee += CombatFormulas.WeaponContribution(_world.Items[p.Inv[p.WeaponSlot].Num].Power, p.Str);
         // The prepared spell is the player's chosen "magic weapon" — but only a SubHp (HP-damage) spell can KILL:
         // a heal / MP-SP drain / GiveItem does 0 HP damage, so magic is a no-op for time-to-kill then.
         int spell = 0;
@@ -65,7 +65,7 @@ public sealed partial class CombatSystem : GameSystem
         {
             int spellNum = p.Spell[p.PreparedSpell];
             if (spellNum > 0 && spellNum < _world.Spells.Length && _world.Spells[spellNum].Type == SpellType.SubHp)
-                spell = CombatFormulas.SpellPower(p.Int) + CombatFormulas.SpellContribution(_world.Spells[spellNum].Data1, p.Int);
+                spell = CombatFormulas.SpellPower(p.Int) + CombatFormulas.SpellContribution(_world.Spells[spellNum].VitalAmount, p.Int);
         }
         return Math.Max(melee, spell);
     }
@@ -73,9 +73,9 @@ public sealed partial class CombatSystem : GameSystem
     {
         var p = _pm[index].Char;
         int prot = CombatFormulas.PlayerProtection(p.Level, p.Def);
-        if (p.ArmorSlot > 0 && p.Inv[p.ArmorSlot].Num > 0) prot += CombatFormulas.GearMitigation(_world.Items[p.Inv[p.ArmorSlot].Num].Data2, p.Def);
-        if (p.HelmetSlot > 0 && p.Inv[p.HelmetSlot].Num > 0) prot += CombatFormulas.GearMitigation(_world.Items[p.Inv[p.HelmetSlot].Num].Data2, p.Def);
-        if (p.ShieldSlot > 0 && p.Inv[p.ShieldSlot].Num > 0) prot += CombatFormulas.ShieldMitigation(_world.Items[p.Inv[p.ShieldSlot].Num].Data2, p.Def);
+        if (p.ArmorSlot > 0 && p.Inv[p.ArmorSlot].Num > 0) prot += CombatFormulas.GearMitigation(_world.Items[p.Inv[p.ArmorSlot].Num].Power, p.Def);
+        if (p.HelmetSlot > 0 && p.Inv[p.HelmetSlot].Num > 0) prot += CombatFormulas.GearMitigation(_world.Items[p.Inv[p.HelmetSlot].Num].Power, p.Def);
+        if (p.ShieldSlot > 0 && p.Inv[p.ShieldSlot].Num > 0) prot += CombatFormulas.ShieldMitigation(_world.Items[p.Inv[p.ShieldSlot].Num].Power, p.Def);
         return prot;
     }
 
@@ -84,7 +84,7 @@ public sealed partial class CombatSystem : GameSystem
         var p = _pm[index].Char;
         int itemNum = p.Inv[slot].Num;
         if (itemNum <= 0) return 0;
-        int bonus = _world.Items[itemNum].Data2;
+        int bonus = _world.Items[itemNum].Power;
         DegradeItemDurability(index, slot, opponentMap);
         return bonus;
     }
@@ -111,7 +111,7 @@ public sealed partial class CombatSystem : GameSystem
 
         int itemNum = p.Inv[slot].Num;
         if (itemNum <= 0) return;
-        int maxDur = _world.Items[itemNum].Data1;
+        int maxDur = _world.Items[itemNum].Durability;
         if (maxDur <= 0) return;   // no durability budget: indestructible, never chips (mirrors the equip gate)
         // Condition-scaled wear: this hit only costs durability on a roll that gets likelier as the
         // item wears. Healthy gear shrugs off most hits; sub-25% gear chips every time.
@@ -144,14 +144,14 @@ public sealed partial class CombatSystem : GameSystem
 
     /// <summary>
     /// Periodic, randomized condition warning for worn gear, keyed to remaining durability
-    /// as a percentage of the item's max (Data1).
+    /// as a percentage of the item's max (<see cref="ItemRecord.Durability"/>).
     /// Exactly one tier applies — the lowest-percentage band the item falls into — and only
     /// that tier's message can fire, by its own proc chance. Healthier tiers never show once
     /// a lower band applies (e.g. at 25% the 75%/50% messages cannot proc).
     /// </summary>
     private void WarnDurability(int index, int itemNum, int dur)
     {
-        int maxDur = _world.Items[itemNum].Data1;
+        int maxDur = _world.Items[itemNum].Durability;
         if (maxDur <= 0) return;
         double pct = (double)dur * 100 / maxDur;
         if (pct >= CombatFormulas.DurWarnExcellentPct) return;

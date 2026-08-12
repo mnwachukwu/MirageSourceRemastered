@@ -7,6 +7,7 @@ using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
+using Mirage.Shared.Records;
 
 namespace Mirage.Client.Shell.Panels;
 
@@ -232,7 +233,7 @@ public sealed class ShopPanel : IGamePanel
             bool equipped = state.Me != null &&
                 (state.Me.WeaponSlot == i || state.Me.ArmorSlot == i ||
                  state.Me.HelmetSlot == i || state.Me.ShieldSlot == i);
-            bool broken = !equipped && item.Data1 > 0 && slot.Dur <= 0;
+            bool broken = !equipped && item.Durability > 0 && slot.Dur <= 0;
             string name = item.Name?.Trim() ?? "?";
             // No slot index prefix here — the inventory position is irrelevant when picking an item to repair
             // (selection maps through _fixSlotNums). Surface Equipped / Broken so a broken piece is obvious.
@@ -357,9 +358,9 @@ public sealed class ShopPanel : IGamePanel
         textY += 18;
         textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, textY);
 
-        int maxDur = item?.Data1 ?? 0;
+        int maxDur = item?.Durability ?? 0;
         int durNeeded = maxDur - inv.Dur;
-        int ratePerPoint = Math.Max(1, (item?.Data2 ?? 0) / 5);
+        int ratePerPoint = Math.Max(1, (item?.Power ?? 0) / 5);
         int goldNeeded = Math.Max(1, durNeeded * ratePerPoint / 2);
         long playerGold = state.PlayerGold();
 
@@ -407,18 +408,18 @@ public sealed class ShopPanel : IGamePanel
         string name = get?.Name?.Trim() ?? "?";
         string giveName = give?.Name?.Trim() ?? "?";
 
-        bool isEquip = get?.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
+        bool isEquip = get is not null && ItemRecord.IsEquipment(get.Type);
         bool isSpell = get?.Type == ItemType.Spell;
-        var spell = isSpell && get!.Data1 > 0 && get.Data1 <= Constants.MaxSpells
-            ? state.SpellDefs[get.Data1] : null;
+        var spell = isSpell && get!.SpellNum > 0 && get.SpellNum <= Constants.MaxSpells
+            ? state.SpellDefs[get.SpellNum] : null;
         string? potionEffect = get?.Type switch
         {
-            ItemType.PotionAddHp when get!.Data1 > 0 => $"+{get.Data1} HP",
-            ItemType.PotionAddMp when get!.Data1 > 0 => $"+{get.Data1} MP",
-            ItemType.PotionAddSp when get!.Data1 > 0 => $"+{get.Data1} SP",
-            ItemType.PotionSubHp when get!.Data1 > 0 => $"+{get.Data1 / 2} MP / +{get.Data1 / 2} SP / -{get.Data1} HP",
-            ItemType.PotionSubMp when get!.Data1 > 0 => $"+{get.Data1 / 2} HP / +{get.Data1 / 2} SP / -{get.Data1} MP",
-            ItemType.PotionSubSp when get!.Data1 > 0 => $"+{get.Data1 / 2} HP / +{get.Data1 / 2} MP / -{get.Data1} SP",
+            ItemType.PotionAddHp when get!.VitalAmount > 0 => $"+{get.VitalAmount} HP",
+            ItemType.PotionAddMp when get!.VitalAmount > 0 => $"+{get.VitalAmount} MP",
+            ItemType.PotionAddSp when get!.VitalAmount > 0 => $"+{get.VitalAmount} SP",
+            ItemType.PotionSubHp when get!.VitalAmount > 0 => $"+{get.VitalAmount / 2} MP / +{get.VitalAmount / 2} SP / -{get.VitalAmount} HP",
+            ItemType.PotionSubMp when get!.VitalAmount > 0 => $"+{get.VitalAmount / 2} HP / +{get.VitalAmount / 2} SP / -{get.VitalAmount} MP",
+            ItemType.PotionSubSp when get!.VitalAmount > 0 => $"+{get.VitalAmount / 2} HP / +{get.VitalAmount / 2} MP / -{get.VitalAmount} SP",
             _ => null,
         };
 
@@ -450,14 +451,14 @@ public sealed class ShopPanel : IGamePanel
                 string reagentName = (Constants.CastingReagentItemIndex < state.Items.Length
                     ? state.Items[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
                 UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ReagentCost,
-                    ("Reagent", reagentName), ("Count", CombatFormulas.SubHpReagentCost(spell.Data1))),
+                    ("Reagent", reagentName), ("Count", CombatFormulas.SubHpReagentCost(spell.VitalAmount))),
                     new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
                 textY += 18;
             }
             // Effectiveness preview: M-DMG for any Sub* (vital-draining) spell, HEALING for any
             // Add* (vital-restoring) spell. Shows ONLY the spell's contribution paired with the
             // player's Int — matches the weapon line's "P-DMG: +N" semantics (gear contribution
-            // only, not base + gear). GiveItem is suppressed since its Data1 is an item ID.
+            // only, not base + gear). GiveItem is suppressed since it carries an item id, not a magnitude.
             string? effectLabel = spell.Type switch
             {
                 SpellType.SubHp or SpellType.SubMp or SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_MDmg),
@@ -466,7 +467,7 @@ public sealed class ShopPanel : IGamePanel
             };
             if (effectLabel is not null)
             {
-                int amount = CombatFormulas.SpellContribution(spell.Data1, me?.Int ?? 0);
+                int amount = CombatFormulas.SpellContribution(spell.VitalAmount, me?.Int ?? 0);
                 UiHelper.DrawLabel(sb, font, $"{effectLabel}: +{amount}", new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
                 textY += 18;
             }
@@ -483,12 +484,12 @@ public sealed class ShopPanel : IGamePanel
         {
             // A shop item is pristine (Current == Max), so this reads white under the condition coding —
             // the same "healthy" signal the equipment panel, tooltip, and repair panel use.
-            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_DurabilityLabel, ("Current", get!.Data1), ("Max", get.Data1)), new Vector2(c.X + 8, textY), UiHelper.DurabilityColor(get.Data1, get.Data1), c.Width - 16);
+            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_DurabilityLabel, ("Current", get!.Durability), ("Max", get.Durability)), new Vector2(c.X + 8, textY), UiHelper.DurabilityColor(get.Durability, get.Durability), c.Width - 16);
             textY += 18;
         }
 
         bool meetsStat = true;
-        if (isEquip && get!.Data2 > 0)
+        if (isEquip && get!.Power > 0)
         {
             (string label, int playerStat, int classStat) = get.Type switch
             {
@@ -498,10 +499,10 @@ public sealed class ShopPanel : IGamePanel
                 ItemType.Shield => (ClientStrings.Get(ClientStrings.Stats_Def), me?.Def ?? 0, myClass?.Def ?? 0),
                 _ => ("", 0, 0),
             };
-            int statReq = CombatFormulas.GearStatRequirement(get.Data2, classStat);
+            int statReq = CombatFormulas.GearStatRequirement(get.Power, classStat);
             meetsStat = playerStat >= statReq;
             var color = meetsStat ? Color.LightGreen : Color.OrangeRed;
-            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_StatRequirement, ("Stat", label), ("Value", UiHelper.FormatRequirement(get.Data2, statReq))), new Vector2(c.X + 8, textY), color, c.Width - 16);
+            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_StatRequirement, ("Stat", label), ("Value", UiHelper.FormatRequirement(get.Power, statReq))), new Vector2(c.X + 8, textY), color, c.Width - 16);
             textY += 18;
 
             // Contribution preview — DMG for weapons, MIT for armor/helmet/shield (one universal axis).
@@ -512,9 +513,9 @@ public sealed class ShopPanel : IGamePanel
             string mit = ClientStrings.Get(ClientStrings.Stats_Mit);
             string contribText = get.Type switch
             {
-                ItemType.Weapon => $"{ClientStrings.Get(ClientStrings.Stats_PDmg)}: +{CombatFormulas.WeaponContribution(get.Data2, meStr)}",
-                ItemType.Armor or ItemType.Helmet => $"{mit}: +{CombatFormulas.GearMitigation(get.Data2, meDef)}",
-                ItemType.Shield => $"{mit}: +{CombatFormulas.ShieldMitigation(get.Data2, meDef)}",
+                ItemType.Weapon => $"{ClientStrings.Get(ClientStrings.Stats_PDmg)}: +{CombatFormulas.WeaponContribution(get.Power, meStr)}",
+                ItemType.Armor or ItemType.Helmet => $"{mit}: +{CombatFormulas.GearMitigation(get.Power, meDef)}",
+                ItemType.Shield => $"{mit}: +{CombatFormulas.ShieldMitigation(get.Power, meDef)}",
                 _ => "",
             };
             if (contribText.Length > 0)
@@ -531,12 +532,12 @@ public sealed class ShopPanel : IGamePanel
         {
             int intReq = CombatFormulas.GetSpellIntRequirement(spell, classInt);
             meetsInt = me.Int >= intReq;
-            meetsClass = spell.ClassReq == 0 || spell.ClassReq == me.Class;
+            meetsClass = ClassGate.Allows(spell.AllowedClasses, me.Class);
             if (me.Spell is not null)
             {
                 for (int i = 1; i <= Constants.MaxPlayerSpells; i++)
                 {
-                    if (me.Spell[i] == get!.Data1)
+                    if (me.Spell[i] == get!.SpellNum)
                     {
                         alreadyKnown = true;
                         break;
@@ -548,12 +549,11 @@ public sealed class ShopPanel : IGamePanel
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_IntRequirement, ("Int", UiHelper.FormatRequirement(CombatFormulas.RawSpellRequirement(spell), intReq))), new Vector2(c.X + 8, textY), reqColor, c.Width - 16);
             textY += 18;
 
-            if (spell.ClassReq != 0)
+            if (ClassGate.IsRestricted(spell.AllowedClasses))
             {
-                string className = spell.ClassReq > 0 && spell.ClassReq < state.Classes.Length
-                    ? state.Classes[spell.ClassReq]?.Name?.TrimEnd() ?? "?" : "?";
+                string classNames = ClassGate.Describe(spell.AllowedClasses, state.Classes);
                 var classColor = meetsClass ? Color.LightGreen : Color.OrangeRed;
-                UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ClassRequirement, ("Class", className)), new Vector2(c.X + 8, textY), classColor, c.Width - 16);
+                UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ClassRequirement, ("Class", classNames)), new Vector2(c.X + 8, textY), classColor, c.Width - 16);
                 textY += 18;
             }
         }

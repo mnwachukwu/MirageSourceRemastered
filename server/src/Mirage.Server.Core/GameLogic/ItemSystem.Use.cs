@@ -42,20 +42,20 @@ public sealed partial class ItemSystem : GameSystem
             }
         }
 
-        // Class requirement (Weapon/Armor/Helmet/Shield use Data3 as required class id; 0 = no req).
-        // Mirrors the spell-learning class gate at SpellRecord.ClassReq; consistent message phrasing.
-        if (item.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield
-            && item.Data3 != 0 && item.Data3 != p.Class)
+        // Class gate (equipment only; empty = anyone). Mirrors the spell-learning gate below — both ask
+        // ClassGate, so "may this class use this?" has one answer everywhere.
+        if (ItemRecord.IsEquipment(item.Type) && !ClassGate.Allows(item.AllowedClasses, p.Class))
         {
-            SendMsg(index, ServerStrings.ItemSystem_WrongClass, GameColor.BrightRed, ("Class", _world.Classes[item.Data3].TrimmedName));
+            SendMsg(index, ServerStrings.ItemSystem_WrongClass, GameColor.BrightRed,
+                ("Class", ClassGate.Describe(item.AllowedClasses, _world.Classes)));
             return;
         }
 
         // An item worn to 0 durability BREAKS rather than being destroyed: it stays in the bag, unequipped
         // and unusable, until a repair shop restores it. Only the equip direction is blocked here — taking
-        // off an already-worn piece is always allowed. A 0-Data1 item carries no durability budget, so it
-        // is never "broken" (mirrors CombatSystem.WarnDurability).
-        if (isEquipment && item.Data1 > 0 && p.Inv[invSlot].Dur <= 0
+        // off an already-worn piece is always allowed. A 0-Durability item carries no durability budget, so
+        // it is never "broken" (mirrors CombatSystem.WarnDurability).
+        if (isEquipment && item.Durability > 0 && p.Inv[invSlot].Dur <= 0
             && EquippedSlotForType(p, item.Type) != invSlot)
         {
             SendMsg(index, ServerStrings.ItemSystem_ItemBroken, GameColor.BrightRed, ("Item", item.TrimmedName));
@@ -68,7 +68,7 @@ public sealed partial class ItemSystem : GameSystem
         switch (item.Type)
         {
             case ItemType.Weapon:
-                int weaponStrReq = CombatFormulas.GearStatRequirement(item.Data2, cls.Str);
+                int weaponStrReq = CombatFormulas.GearStatRequirement(item.Power, cls.Str);
                 if (p.WeaponSlot != invSlot && p.Str < weaponStrReq)
                 {
                     SendMsg(index, ServerStrings.ItemSystem_WeaponStrReq, GameColor.BrightRed, ("Required", weaponStrReq));
@@ -79,7 +79,7 @@ public sealed partial class ItemSystem : GameSystem
                 break;
 
             case ItemType.Armor:
-                int armorDefReq = CombatFormulas.GearStatRequirement(item.Data2, cls.Def);
+                int armorDefReq = CombatFormulas.GearStatRequirement(item.Power, cls.Def);
                 if (p.ArmorSlot != invSlot && p.Def < armorDefReq)
                 {
                     SendMsg(index, ServerStrings.ItemSystem_ArmorDefReq, GameColor.BrightRed, ("Required", armorDefReq));
@@ -90,7 +90,7 @@ public sealed partial class ItemSystem : GameSystem
                 break;
 
             case ItemType.Helmet:
-                int helmetDefReq = CombatFormulas.GearStatRequirement(item.Data2, cls.Def);
+                int helmetDefReq = CombatFormulas.GearStatRequirement(item.Power, cls.Def);
                 if (p.HelmetSlot != invSlot && p.Def < helmetDefReq)
                 {
                     SendMsg(index, ServerStrings.ItemSystem_HelmetDefReq, GameColor.BrightRed, ("Required", helmetDefReq));
@@ -101,7 +101,7 @@ public sealed partial class ItemSystem : GameSystem
                 break;
 
             case ItemType.Shield:
-                int shieldDefReq = CombatFormulas.GearStatRequirement(item.Data2, cls.Def);
+                int shieldDefReq = CombatFormulas.GearStatRequirement(item.Power, cls.Def);
                 if (p.ShieldSlot != invSlot && p.Def < shieldDefReq)
                 {
                     SendMsg(index, ServerStrings.ItemSystem_ShieldDefReq, GameColor.BrightRed, ("Required", shieldDefReq));
@@ -136,16 +136,17 @@ public sealed partial class ItemSystem : GameSystem
                     SendMsg(index, ServerStrings.PacketHandler_StudyCombat, GameColor.BrightRed);
                     break;
                 }
-                int spellNum = item.Data1;
+                int spellNum = item.SpellNum;
                 if (spellNum <= 0 || spellNum > Constants.MaxSpells)
                 {
                     SendMsg(index, ServerStrings.ItemSystem_ScrollNoSpell, GameColor.White);
                     break;
                 }
                 var learnSpell = _world.Spells[spellNum];
-                if (learnSpell.ClassReq != 0 && learnSpell.ClassReq != p.Class)
+                if (!ClassGate.Allows(learnSpell.AllowedClasses, p.Class))
                 {
-                    SendMsg(index, ServerStrings.ItemSystem_SpellWrongClass, GameColor.White, ("Class", _world.Classes[learnSpell.ClassReq].TrimmedName));
+                    SendMsg(index, ServerStrings.ItemSystem_SpellWrongClass, GameColor.White,
+                        ("Class", ClassGate.Describe(learnSpell.AllowedClasses, _world.Classes)));
                     break;
                 }
                 int learnIntReq = CombatFormulas.GetSpellIntRequirement(learnSpell, cls.Int);
@@ -186,7 +187,7 @@ public sealed partial class ItemSystem : GameSystem
                 if (map is null) break; // cardinal link to a non-existent map
                 var tile = map.Tile[tx, ty];
                 // The faced door is read + opened on the player's own layer (a fringe door on the bridge, a ground
-                // one beneath). Data1 = required item ID; compare against itemNum (the item's ID, not its Data1).
+                // one beneath). The tile's Data1 = required item ID; compare against itemNum (the item's own ID).
                 var key = LayerLogic.AttrFor(tile, p.Layer);
                 if (key.Type != TileType.Key || key.Data1 != itemNum) break;
                 var temp = _world.TempTiles[mapNum];

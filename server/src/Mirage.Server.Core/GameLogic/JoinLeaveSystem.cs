@@ -725,7 +725,7 @@ public sealed class JoinLeaveSystem : GameSystem
                     ReqDef = q.ReqDef,
                     ReqSpd = q.ReqSpd,
                     ReqInt = q.ReqInt,
-                    ReqClass = q.ReqClass,
+                    AllowedClasses = q.AllowedClasses is null ? null : new List<short>(q.AllowedClasses),
                     PrereqQuest = q.PrereqQuest,
                     RewardExp = q.RewardExp,
                     RewardItems = q.RewardItems.Select(r => r.Clone()).ToList(),
@@ -791,11 +791,12 @@ public sealed class JoinLeaveSystem : GameSystem
             .Select(i => new SendSpellsPacket.SpellData(
                 i,
                 _world.Spells[i].Name,
-                _world.Spells[i].ClassReq,
+                _world.Spells[i].AllowedClasses is null ? null : new List<short>(_world.Spells[i].AllowedClasses!),
                 _world.Spells[i].Type,
-                _world.Spells[i].Data1,
-                _world.Spells[i].Data2,
-                _world.Spells[i].Data3))
+                _world.Spells[i].VitalAmount,
+                _world.Spells[i].ItemNum,
+                _world.Spells[i].ItemAmount,
+                _world.Spells[i].IntReq))
             .ToArray();
         return new SendSpellsPacket { Spells = spells };
     }

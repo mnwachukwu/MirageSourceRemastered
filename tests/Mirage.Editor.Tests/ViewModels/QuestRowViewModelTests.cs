@@ -10,7 +10,7 @@ namespace Mirage.Editor.Tests;
 /// <summary>The quest-editor row: dynamic objective/reward child tables — blank by default,
 /// grown via AddObjective/AddReward up to the MaxQuestObjectives ceiling. Row edits AND structural add/remove
 /// dirty the quest; empties are dropped on ToRecord/BuildSavePacket (dense, no gaps); ApplyPacket loads from the
-/// wire without dirtying; and the scalar fields + pickers (Cadence, GiverNpc, ReqClass) round-trip.</summary>
+/// wire without dirtying; and the scalar fields, the class gate, and the pickers round-trip.</summary>
 [TestFixture]
 public class QuestRowViewModelTests
 {
@@ -160,7 +160,7 @@ public class QuestRowViewModelTests
     {
         var rec = new QuestRecord
         {
-            Name = "Q", ReqLevel = 5, ReqClass = 2, GiverNpc = 4, TurnInNpc = 4,
+            Name = "Q", ReqLevel = 5, AllowedClasses = [2, 1], GiverNpc = 4, TurnInNpc = 4,
             RewardExp = 500, Repeatable = true, Cadence = QuestCadence.Weekly,
         };
 
@@ -170,7 +170,8 @@ public class QuestRowViewModelTests
         {
             Assert.That(back.Name, Is.EqualTo("Q"));
             Assert.That(back.ReqLevel, Is.EqualTo(5));
-            Assert.That(back.ReqClass, Is.EqualTo(2));
+            // Sorted by the save-path normalize, not left as authored.
+            Assert.That(back.AllowedClasses, Is.EqualTo(new short[] { 1, 2 }));
             Assert.That(back.GiverNpc, Is.EqualTo(4));
             Assert.That(back.RewardExp, Is.EqualTo(500));
             Assert.That(back.Repeatable, Is.True);

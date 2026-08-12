@@ -186,10 +186,10 @@ public sealed partial class CombatSystem : GameSystem
             if (slot <= 0) continue;
             int itemNum = p.Inv[slot].Num;
             if (itemNum <= 0) continue;
-            int maxDur = _world.Items[itemNum].Data1;
+            int maxDur = _world.Items[itemNum].Durability;
             if (maxDur <= 0) continue;
             wear[k] = EconomyFormulas.EquipmentDamageOnDeath(maxDur, Constants.GuildWarDeathWearPercent);
-            totalRepair += EconomyFormulas.RepairCost(wear[k], _world.Items[itemNum].Data2);
+            totalRepair += EconomyFormulas.RepairCost(wear[k], _world.Items[itemNum].Power);
         }
         // Caster parity: the prepared spell's reagents wear like a weapon (doubled in war), ON TOP of
         // any actual weapon wear above — folded into the same repair total the vault absorbs 75% of
@@ -230,13 +230,13 @@ public sealed partial class CombatSystem : GameSystem
 
     // The caster's offensive "tier" for reagent parity: the prepared (Q-cast) spell's power, or — if none is
     // prepared — the strongest known SubHp spell's power. 0 = no offensive tier (not a caster).
-    private int CasterTierData1(int index)
+    private int CasterTierVitalAmount(int index)
     {
         var p = _pm[index].Char;
         if (p.PreparedSpell > 0 && p.PreparedSpell < p.Spell.Length)
         {
             int prepNum = p.Spell[p.PreparedSpell];
-            if (prepNum > 0 && prepNum <= Constants.MaxSpells) return _world.Spells[prepNum].Data1;
+            if (prepNum > 0 && prepNum <= Constants.MaxSpells) return _world.Spells[prepNum].VitalAmount;
         }
         int best = 0;
         for (int i = 1; i < p.Spell.Length; i++)
@@ -244,7 +244,7 @@ public sealed partial class CombatSystem : GameSystem
             int sn = p.Spell[i];
             if (sn <= 0 || sn > Constants.MaxSpells) continue;
             var s = _world.Spells[sn];
-            if (s.Type == SpellType.SubHp && s.Data1 > best) best = s.Data1;
+            if (s.Type == SpellType.SubHp && s.VitalAmount > best) best = s.VitalAmount;
         }
         return best;
     }
@@ -257,7 +257,7 @@ public sealed partial class CombatSystem : GameSystem
     private int CasterReagentLoss(int index, int wearPercent)
     {
         var p = _pm[index].Char;
-        int tier = CasterTierData1(index);
+        int tier = CasterTierVitalAmount(index);
         if (tier <= 0) return 0;
         long held = ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex);
         if (held <= 0) return 0;

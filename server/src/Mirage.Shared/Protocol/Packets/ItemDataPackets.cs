@@ -14,9 +14,12 @@ public sealed record SendItemsPacket : IPacket
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("pic")] short Pic,
         [property: JsonPropertyName("type")] ItemType Type,
-        [property: JsonPropertyName("data1")] short Data1,
-        [property: JsonPropertyName("data2")] short Data2,
-        [property: JsonPropertyName("data3")] short Data3,
+        // Type-specific fields; see ItemRecord for which apply to which ItemType.
+        [property: JsonPropertyName("durability")] short Durability,
+        [property: JsonPropertyName("vitalAmount")] short VitalAmount,
+        [property: JsonPropertyName("spellNum")] short SpellNum,
+        [property: JsonPropertyName("power")] short Power,
+        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses,
         // Item restriction flags — drive the client's list/mail/drop-warning gates.
         [property: JsonPropertyName("nonTradeable")] bool NonTradeable,
         [property: JsonPropertyName("nonListable")] bool NonListable,
@@ -33,9 +36,12 @@ public sealed record UpdateItemPacket : IPacket
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("pic")] public short Pic { get; init; }
     [JsonPropertyName("type")] public ItemType Type { get; init; }
-    [JsonPropertyName("data1")] public short Data1 { get; init; }
-    [JsonPropertyName("data2")] public short Data2 { get; init; }
-    [JsonPropertyName("data3")] public short Data3 { get; init; }
+    // Type-specific fields; see ItemRecord for which apply to which ItemType.
+    [JsonPropertyName("durability")] public short Durability { get; init; }
+    [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
+    [JsonPropertyName("spellNum")] public short SpellNum { get; init; }
+    [JsonPropertyName("power")] public short Power { get; init; }
+    [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     // Item restriction flags. See ItemRecord for behavior.
     [JsonPropertyName("nonTradeable")] public bool NonTradeable { get; init; }
     [JsonPropertyName("nonListable")] public bool NonListable { get; init; }

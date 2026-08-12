@@ -276,16 +276,16 @@ public static class Tooltip
 
     private static void BuildItemLines(ItemRecord item, PlayerInvSlot? slot, PlayerRecord? me, ClassRecord?[] classes)
     {
-        bool isEquip = item.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
+        bool isEquip = ItemRecord.IsEquipment(item.Type);
 
-        if (isEquip && item.Data1 > 0)
+        if (isEquip && item.Durability > 0)
         {
             // A real inventory slot carries the item's actual wear; the cur/max readout is color-coded
             // by condition (white/yellow/red) exactly like the equipment panel and repair panel, so a
             // worn or broken piece reads the same everywhere. With no backing slot (e.g. a shop listing)
             // there's no wear to show, so display full (which colors white).
-            int dur = slot?.Dur ?? item.Data1;
-            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Durability), $"{dur}/{item.Data1}", UiHelper.DurabilityColor(dur, item.Data1)));
+            int dur = slot?.Dur ?? item.Durability;
+            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Durability), $"{dur}/{item.Durability}", UiHelper.DurabilityColor(dur, item.Durability)));
         }
 
         int meStr = me?.Str ?? 0;
@@ -299,59 +299,61 @@ public static class Tooltip
 
         switch (item.Type)
         {
-            case ItemType.Weapon when item.Data2 > 0:
-                int weaponStrReq = CombatFormulas.GearStatRequirement(item.Data2, classStr);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_StrReq), UiHelper.FormatRequirement(item.Data2, weaponStrReq), meStr >= weaponStrReq ? GoodColor : WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_PDmg), $"+{CombatFormulas.WeaponContribution(item.Data2, meStr)}", ValueColor));
+            case ItemType.Weapon when item.Power > 0:
+                int weaponStrReq = CombatFormulas.GearStatRequirement(item.Power, classStr);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_StrReq), UiHelper.FormatRequirement(item.Power, weaponStrReq), meStr >= weaponStrReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_PDmg), $"+{CombatFormulas.WeaponContribution(item.Power, meStr)}", ValueColor));
                 break;
-            case ItemType.Armor when item.Data2 > 0:
-                int armorDefReq = CombatFormulas.GearStatRequirement(item.Data2, classDef);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Data2, armorDefReq), meDef >= armorDefReq ? GoodColor : WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Data2, meDef)}", ValueColor));
+            case ItemType.Armor when item.Power > 0:
+                int armorDefReq = CombatFormulas.GearStatRequirement(item.Power, classDef);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Power, armorDefReq), meDef >= armorDefReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Power, meDef)}", ValueColor));
                 break;
-            case ItemType.Helmet when item.Data2 > 0:
-                int helmetDefReq = CombatFormulas.GearStatRequirement(item.Data2, classDef);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Data2, helmetDefReq), meDef >= helmetDefReq ? GoodColor : WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Data2, meDef)}", ValueColor));
+            case ItemType.Helmet when item.Power > 0:
+                int helmetDefReq = CombatFormulas.GearStatRequirement(item.Power, classDef);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Power, helmetDefReq), meDef >= helmetDefReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Power, meDef)}", ValueColor));
                 break;
-            case ItemType.Shield when item.Data2 > 0:
-                int shieldDefReq = CombatFormulas.GearStatRequirement(item.Data2, classDef);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Data2, shieldDefReq), meDef >= shieldDefReq ? GoodColor : WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.ShieldMitigation(item.Data2, meDef)}", ValueColor));
+            case ItemType.Shield when item.Power > 0:
+                int shieldDefReq = CombatFormulas.GearStatRequirement(item.Power, classDef);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Power, shieldDefReq), meDef >= shieldDefReq ? GoodColor : WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.ShieldMitigation(item.Power, meDef)}", ValueColor));
                 break;
-            case ItemType.PotionAddHp when item.Data1 > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1} {hp}", GoodColor));
+            case ItemType.PotionAddHp when item.VitalAmount > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount} {hp}", GoodColor));
                 break;
-            case ItemType.PotionAddMp when item.Data1 > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1} {mp}", GoodColor));
+            case ItemType.PotionAddMp when item.VitalAmount > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount} {mp}", GoodColor));
                 break;
-            case ItemType.PotionAddSp when item.Data1 > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1} {sp}", GoodColor));
+            case ItemType.PotionAddSp when item.VitalAmount > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount} {sp}", GoodColor));
                 break;
-            case ItemType.PotionSubHp when item.Data1 > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.Data1} {hp}", WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1 / 2} {mp} / +{item.Data1 / 2} {sp}", GoodColor));
+            case ItemType.PotionSubHp when item.VitalAmount > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.VitalAmount} {hp}", WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount / 2} {mp} / +{item.VitalAmount / 2} {sp}", GoodColor));
                 break;
-            case ItemType.PotionSubMp when item.Data1 > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.Data1} {mp}", WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1 / 2} {hp} / +{item.Data1 / 2} {sp}", GoodColor));
+            case ItemType.PotionSubMp when item.VitalAmount > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.VitalAmount} {mp}", WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount / 2} {hp} / +{item.VitalAmount / 2} {sp}", GoodColor));
                 break;
-            case ItemType.PotionSubSp when item.Data1 > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.Data1} {sp}", WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.Data1 / 2} {hp} / +{item.Data1 / 2} {mp}", GoodColor));
+            case ItemType.PotionSubSp when item.VitalAmount > 0:
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.VitalAmount} {sp}", WarnColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount / 2} {hp} / +{item.VitalAmount / 2} {mp}", GoodColor));
                 break;
             case ItemType.Currency when slot is not null:
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Quantity), slot.Value.ToString("N0"), ValueColor));
                 break;
         }
 
-        if (isEquip && item.Data3 != 0 && item.Data3 < classes.Length)
+        // An equipment class gate may name several classes; they render as one comma-joined line, green
+        // when the wearer is among them.
+        if (isEquip && ClassGate.IsRestricted(item.AllowedClasses))
         {
-            var cls = classes[item.Data3];
-            if (cls != null)
+            string names = ClassGate.Describe(item.AllowedClasses, classes);
+            if (names.Length > 0)
             {
-                bool meetsClass = me != null && me.Class == item.Data3;
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), cls.TrimmedName, meetsClass ? GoodColor : WarnColor));
+                bool meetsClass = me != null && ClassGate.Allows(item.AllowedClasses, me.Class);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), names, meetsClass ? GoodColor : WarnColor));
             }
         }
     }
@@ -377,7 +379,7 @@ public static class Tooltip
         {
             string reagentName = (Constants.CastingReagentItemIndex < itemDefs.Length
                 ? itemDefs[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
-            int reagentCost = CombatFormulas.SubHpReagentCost(spell.Data1);
+            int reagentCost = CombatFormulas.SubHpReagentCost(spell.VitalAmount);
             string reagentValue = weather == WeatherType.Rain
                 ? ClientStrings.Format(ClientStrings.Tooltip_ReagentCostRained, ("Count", reagentCost))
                 : reagentCost.ToString();
@@ -388,8 +390,8 @@ public static class Tooltip
         // Effectiveness: M-DMG for damaging spells (any Sub* drains a vital), HEALING for Add*
         // (restore-vital) spells. Shows ONLY the spell's own contribution paired with playerInt,
         // not base + contribution — matches how the weapon tooltip shows just WeaponContribution
-        // rather than UnarmedDamage + WeaponContribution. GiveItem is suppressed because Data1 is
-        // the item ID, not a magnitude.
+        // rather than UnarmedDamage + WeaponContribution. GiveItem is suppressed because it carries an
+        // item id rather than a magnitude.
         string? effectLabel = spell.Type switch
         {
             SpellType.SubHp or SpellType.SubMp or SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_MDmg),
@@ -398,20 +400,20 @@ public static class Tooltip
         };
         if (effectLabel is not null)
         {
-            int amount = CombatFormulas.SpellContribution(spell.Data1, me?.Int ?? 0);
+            int amount = CombatFormulas.SpellContribution(spell.VitalAmount, me?.Int ?? 0);
             _lines.Add(new Line(effectLabel, $"+{amount}", ValueColor));
         }
 
         bool meetsInt = me?.Int >= intReq;
         _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_IntReq), UiHelper.FormatRequirement(CombatFormulas.RawSpellRequirement(spell), intReq), meetsInt ? GoodColor : WarnColor));
 
-        if (spell.ClassReq != 0 && spell.ClassReq < classes.Length)
+        if (ClassGate.IsRestricted(spell.AllowedClasses))
         {
-            var cls = classes[spell.ClassReq];
-            if (cls != null)
+            string names = ClassGate.Describe(spell.AllowedClasses, classes);
+            if (names.Length > 0)
             {
-                bool meetsClass = me?.Class == spell.ClassReq;
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), cls.TrimmedName, meetsClass ? GoodColor : WarnColor));
+                bool meetsClass = me != null && ClassGate.Allows(spell.AllowedClasses, me.Class);
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), names, meetsClass ? GoodColor : WarnColor));
             }
         }
     }

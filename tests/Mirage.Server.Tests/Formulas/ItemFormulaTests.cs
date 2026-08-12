@@ -165,16 +165,16 @@ public class ItemFormulaTests
         });
     }
 
-    // Unequipped gear is category 3; magnitude carries Data2 (the stat bonus) so the OrderByDescending
+    // Unequipped gear is category 3; magnitude carries the item's Power so the OrderByDescending
     // in the sort surfaces the strongest piece first.
     [Test]
-    public void SortKey_UnequippedGear_Category3_CarriesData2Magnitude()
+    public void SortKey_UnequippedGear_Category3_CarriesPowerMagnitude()
     {
         var items = BuildItems();
-        items[Wep].Data2 = 50;
-        items[Arm].Data2 = 30;
-        items[Hlm].Data2 = 20;
-        items[Shd].Data2 = 10;
+        items[Wep].Power =50;
+        items[Arm].Power =30;
+        items[Hlm].Power =20;
+        items[Shd].Power =10;
         Assert.Multiple(() =>
         {
             Assert.That(SortKey(Wep, items[Wep], equipped: false), Is.EqualTo((3, 0, 50)));
@@ -195,18 +195,18 @@ public class ItemFormulaTests
         });
     }
 
-    // Add potions (cat 6) sort above Sub potions (cat 7); each groups by vital HP/MP/SP and carries Data1
-    // (the potion strength) as the magnitude so bigger potions rise within a group.
+    // Add potions (cat 6) sort above Sub potions (cat 7); each groups by vital HP/MP/SP and carries the
+    // potion's VitalAmount as the magnitude so bigger potions rise within a group.
     [Test]
-    public void SortKey_Potions_AddBeforeSub_ByVital_WithData1Magnitude()
+    public void SortKey_Potions_AddBeforeSub_ByVital_WithAmountMagnitude()
     {
         var items = BuildItems();
-        items[PAdHp].Data1 = 100;
-        items[PAdMp].Data1 = 80;
-        items[PAdSp].Data1 = 60;
-        items[PSuHp].Data1 = 40;
-        items[PSuMp].Data1 = 20;
-        items[PSuSp].Data1 = 10;
+        items[PAdHp].VitalAmount =100;
+        items[PAdMp].VitalAmount =80;
+        items[PAdSp].VitalAmount =60;
+        items[PSuHp].VitalAmount =40;
+        items[PSuMp].VitalAmount =20;
+        items[PSuSp].VitalAmount =10;
         Assert.Multiple(() =>
         {
             Assert.That(SortKey(PAdHp, items[PAdHp], false), Is.EqualTo((6, 0, 100)));

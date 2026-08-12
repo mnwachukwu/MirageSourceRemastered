@@ -129,7 +129,7 @@ public sealed partial class ClientState
         {
             var def = QuestDefs[q];
             if (def is null || def.TrimmedName.Length == 0) continue;
-            if (def.ReqClass != 0 && myClass > 0 && def.ReqClass != myClass) continue;   // class-locked → invisible
+            if (myClass > 0 && !ClassGate.Allows(def.AllowedClasses, myClass)) continue;   // class-locked → invisible
             var pq = FindQuest(q);
             bool active = pq is not null && IsActiveQuestStatus(pq.Status);
             bool doneForever = pq is { Status: QuestStatus.Done } && !def.Repeatable;
@@ -156,7 +156,7 @@ public sealed partial class ClientState
             // A quest locked to a DIFFERENT class shows NO glyph at all — the NPC falls through to its other
             // actions. Only filter once the local class is known (0 = not yet loaded; the SendPlayerData refresh
             // relights it). Other unmet requirements (level/stats/prereq) still surface as a gray "?".
-            if (def.ReqClass != 0 && Me.Class > 0 && def.ReqClass != Me.Class) continue;
+            if (Me.Class > 0 && !ClassGate.Allows(def.AllowedClasses, Me.Class)) continue;
             var pq = FindQuest(q);
             bool active = pq is not null && IsActiveQuestStatus(pq.Status);
             bool doneForever = pq is { Status: QuestStatus.Done } && !def.Repeatable;

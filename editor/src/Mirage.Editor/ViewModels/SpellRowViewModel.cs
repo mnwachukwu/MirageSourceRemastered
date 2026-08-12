@@ -12,7 +12,8 @@ namespace Mirage.Editor.ViewModels;
 /// <c>_loading</c> is set while filling from a record or packet.</para>
 /// <para>Also drives the editor's live cost preview. Because a spell's MP cost is a pure function of
 /// its own metadata — no caster stat enters — the preview is the exact in-game cost, so editing
-/// <see cref="Data1"/> or the type re-raises <see cref="BaseMpCost"/> and friends.</para>
+/// <see cref="VitalAmount"/>, <see cref="IntReq"/> or the type re-raises <see cref="BaseMpCost"/>
+/// and friends.</para>
 /// </summary>
 public sealed partial class SpellRowViewModel : ObservableObject
 {
@@ -22,15 +23,21 @@ public sealed partial class SpellRowViewModel : ObservableObject
     public bool IsLoaded { get; private set; }
 
     [ObservableProperty] private string _name = "";
-    /// <summary>Class allowed to learn it (1-based; 0 = any class).</summary>
-    [ObservableProperty] private int _classReq;
+    /// <summary>Classes allowed to learn it; null or empty = every class. Replaced wholesale by the
+    /// class multi-select rather than mutated, so the change notification actually fires.</summary>
+    [ObservableProperty] private List<short>? _allowedClasses;
     [ObservableProperty] private SpellType _type;
-    /// <summary>The spell's magnitude, or the item id for GiveItem — see <see cref="Data1Label"/>.</summary>
-    [ObservableProperty] private short _data1;
-    /// <summary>GiveItem quantity; unused by every other spell type.</summary>
-    [ObservableProperty] private short _data2;
-    /// <summary>GiveItem cost / requirement modifier; unused by every other spell type.</summary>
-    [ObservableProperty] private short _data3;
+
+    // Type-specific fields — GiveItem uses the bottom three and no VitalAmount; every other type is
+    // the other way round. See SpellRecord.
+    /// <summary>The spell's magnitude, which also gates learning it. Unused by GiveItem.</summary>
+    [ObservableProperty] private short _vitalAmount;
+    /// <summary>GiveItem: the item handed over; unused by every other spell type.</summary>
+    [ObservableProperty] private short _itemNum;
+    /// <summary>GiveItem: how many; unused by every other spell type.</summary>
+    [ObservableProperty] private short _itemAmount;
+    /// <summary>GiveItem: its INT requirement, and hence its MP cost; unused by every other type.</summary>
+    [ObservableProperty] private short _intReq;
 
     /// <summary>Whether the row holds edits not yet saved.</summary>
     public bool IsDirty { get; private set; }
@@ -46,42 +53,43 @@ public sealed partial class SpellRowViewModel : ObservableObject
         Index = index;
         IsLoaded = isLoaded;
         _name = r.Name;
-        _classReq = r.ClassReq;
+        _allowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
         _type = r.Type;
-        _data1 = r.Data1;
-        _data2 = r.Data2;
-        _data3 = r.Data3;
+        _vitalAmount = r.VitalAmount;
+        _itemNum = r.ItemNum;
+        _itemAmount = r.ItemAmount;
+        _intReq = r.IntReq;
     }
 
     partial void OnNameChanged(string value) => MarkDirty();
-    partial void OnClassReqChanged(int value) => MarkDirty();
+    partial void OnAllowedClassesChanged(List<short>? value) => MarkDirty();
 
-    // Data1 and Data3 feed the cost formulas, so both re-raise the preview; Data2 is GiveItem
-    // quantity only and has no bearing on cost.
-    partial void OnData1Changed(short value)
+    // VitalAmount and IntReq are the two gate values, so both re-raise the cost preview; ItemNum and
+    // ItemAmount say what GiveItem hands over and have no bearing on cost.
+    partial void OnVitalAmountChanged(short value)
     {
         MarkDirty();
         OnPropertyChanged(nameof(BaseMpCost));
         OnPropertyChanged(nameof(MpCostDisplay));
         OnPropertyChanged(nameof(ReagentCost));
     }
-    partial void OnData2Changed(short value) => MarkDirty();
-    partial void OnData3Changed(short value)
+    partial void OnItemNumChanged(short value) => MarkDirty();
+    partial void OnItemAmountChanged(short value) => MarkDirty();
+    partial void OnIntReqChanged(short value)
     {
         MarkDirty();
         OnPropertyChanged(nameof(BaseMpCost));
         OnPropertyChanged(nameof(MpCostDisplay));
     }
 
-    // The type decides every data-slot caption AND which cost model applies, so the whole derived
-    // set re-raises together.
+    // The type decides the one varying caption, which fields show, AND which cost model applies, so
+    // the whole derived set re-raises together.
     partial void OnTypeChanged(SpellType value)
     {
         MarkDirty();
-        OnPropertyChanged(nameof(Data1Label));
-        OnPropertyChanged(nameof(Data1IsGiveItem));
-        OnPropertyChanged(nameof(Data2Label));
-        OnPropertyChanged(nameof(Data3Label));
+        OnPropertyChanged(nameof(VitalAmountLabel));
+        OnPropertyChanged(nameof(VitalAmountVisible));
+        OnPropertyChanged(nameof(IsGiveItem));
         OnPropertyChanged(nameof(BaseMpCost));
         OnPropertyChanged(nameof(MpCostDisplay));
         OnPropertyChanged(nameof(ShowReagentCost));
@@ -110,11 +118,12 @@ public sealed partial class SpellRowViewModel : ObservableObject
         try
         {
             Name = r.Name;
-            ClassReq = r.ClassReq;
+            AllowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
             Type = r.Type;
-            Data1 = r.Data1;
-            Data2 = r.Data2;
-            Data3 = r.Data3;
+            VitalAmount = r.VitalAmount;
+            ItemNum = r.ItemNum;
+            ItemAmount = r.ItemAmount;
+            IntReq = r.IntReq;
         }
         finally
         {
@@ -132,11 +141,12 @@ public sealed partial class SpellRowViewModel : ObservableObject
         try
         {
             Name = pkt.Name;
-            ClassReq = pkt.ClassReq;
+            AllowedClasses = pkt.AllowedClasses is null ? null : new List<short>(pkt.AllowedClasses);
             Type = pkt.Type;
-            Data1 = pkt.Data1;
-            Data2 = pkt.Data2;
-            Data3 = pkt.Data3;
+            VitalAmount = pkt.VitalAmount;
+            ItemNum = pkt.ItemNum;
+            ItemAmount = pkt.ItemAmount;
+            IntReq = pkt.IntReq;
         }
         finally
         {
@@ -148,37 +158,60 @@ public sealed partial class SpellRowViewModel : ObservableObject
         OnPropertyChanged(nameof(BaseMpCost));
     }
 
-    /// <summary>Project the row back into a record for saving.</summary>
-    public SpellRecord ToRecord() => new()
+    /// <summary>Project the row back into a record for saving. <see cref="SpellRecord.Normalize"/>d, so a
+    /// field the current type does not use is written as 0 rather than carrying a previous type's value —
+    /// which matters here because a stale IntReq would silently re-gate the spell. The row itself is left
+    /// alone, so retyping and back within one session keeps the numbers.</summary>
+    public SpellRecord ToRecord()
     {
-        Name = Name,
-        ClassReq = ClassReq,
-        Type = Type,
-        Data1 = Data1,
-        Data2 = Data2,
-        Data3 = Data3,
-    };
+        var r = new SpellRecord
+        {
+            Name = Name,
+            AllowedClasses = AllowedClasses is null ? null : new List<short>(AllowedClasses),
+            Type = Type,
+            VitalAmount = VitalAmount,
+            ItemNum = ItemNum,
+            ItemAmount = ItemAmount,
+            IntReq = IntReq,
+        };
+        r.Normalize();
+        return r;
+    }
 
     /// <summary>Project the row into the online save packet. The single source of that mapping — both the
-    /// editor's own save and the push-changes prompt route through here, so neither can drift from the other.</summary>
-    public EditorSaveSpellPacket BuildSavePacket() => new()
+    /// editor's own save and the push-changes prompt route through here, so neither can drift from the other.
+    /// Normalized through <see cref="ToRecord"/> so the online and offline saves store the same thing.</summary>
+    public EditorSaveSpellPacket BuildSavePacket()
     {
-        SpellNum = Index,
-        Name = Name,
-        ClassReq = ClassReq,
-        Type = Type,
-        Data1 = Data1,
-        Data2 = Data2,
-        Data3 = Data3,
-    };
+        var r = ToRecord();
+        return new EditorSaveSpellPacket
+        {
+            SpellNum = Index,
+            Name = r.Name,
+            AllowedClasses = r.AllowedClasses,
+            Type = r.Type,
+            VitalAmount = r.VitalAmount,
+            ItemNum = r.ItemNum,
+            ItemAmount = r.ItemAmount,
+            IntReq = r.IntReq,
+        };
+    }
 
-    // ── Data labels ───────────────────────────────────────────────────────────
+    // ── Captions and visibility ───────────────────────────────────────────────
+    // The split is total: GiveItem shows the item picker, quantity and INT requirement; every other type
+    // shows VitalAmount alone. Both flags defer to SpellRecord — the same rules Normalize clears by, so
+    // a hidden field is exactly a zeroed one.
 
-    /// <summary>Whether Data1 holds an item id, so the form can offer an item picker and show Data2/Data3.</summary>
-    public bool Data1IsGiveItem => Type == SpellType.GiveItem;
+    /// <summary>Whether this is a GiveItem spell, which shows the item picker, quantity and INT
+    /// requirement in place of the magnitude field.</summary>
+    public bool IsGiveItem => SpellRecord.UsesItemFields(Type);
 
-    /// <summary>Form caption for Data1, which varies by spell type (heal/drain amount, damage, item number).</summary>
-    public string Data1Label => Type switch
+    /// <summary>Whether the magnitude field applies (everything except GiveItem).</summary>
+    public bool VitalAmountVisible => SpellRecord.UsesVitalAmount(Type);
+
+    /// <summary>Form caption for <see cref="VitalAmount"/> — which vital it moves, and in which
+    /// direction, depends on the type.</summary>
+    public string VitalAmountLabel => Type switch
     {
         SpellType.AddHp => EditorStrings.Get(EditorStrings.DataLabel_HpAmount),
         SpellType.AddMp => EditorStrings.Get(EditorStrings.DataLabel_MpAmount),
@@ -186,16 +219,8 @@ public sealed partial class SpellRowViewModel : ObservableObject
         SpellType.SubHp => EditorStrings.Get(EditorStrings.DataLabel_Damage),
         SpellType.SubMp => EditorStrings.Get(EditorStrings.DataLabel_MpDrain),
         SpellType.SubSp => EditorStrings.Get(EditorStrings.DataLabel_SpDrain),
-        SpellType.GiveItem => EditorStrings.Get(EditorStrings.DataLabel_ItemNumber),
-        _ => EditorStrings.Get(EditorStrings.DataLabel_Data1),
+        _ => EditorStrings.Get(EditorStrings.DataLabel_VitalAmount),
     };
-
-    // Data2/Data3 are authored only for GiveItem (item quantity + its cost/level modifier); every other
-    // spell type derives everything from Data1, so the editor hides these two rows for them (Data1IsGiveItem).
-    /// <summary>Form caption for Data2 (GiveItem quantity).</summary>
-    public string Data2Label => EditorStrings.Get(EditorStrings.DataLabel_Quantity);
-    /// <summary>Form caption for Data3 (GiveItem cost / requirement modifier).</summary>
-    public string Data3Label => EditorStrings.Get(EditorStrings.DataLabel_CostLevelModifier);
 
     // MP cost preview.  UTILITY spells (heals, drains, GiveItem) pay a pure function of spell metadata — no caster
     // Int enters, so this preview is the exact in-game cost.  SubHp is the exception: it's the caster's sustainable
@@ -208,10 +233,11 @@ public sealed partial class SpellRowViewModel : ObservableObject
         ? EditorStrings.Get(EditorStrings.SpellEditor_SubHpMpCostValue)
         : BaseMpCost.ToString();
 
-    // Reagent-per-cast preview (SubHp only) — the magic mirror of weapon-repair upkeep: round(Data1/10 × ~0.48
-    // durability-lost-per-swing).  Shown instead of a fixed MP number since that's the cost an author actually tunes.
+    // Reagent-per-cast preview (SubHp only) — the magic mirror of weapon-repair upkeep:
+    // round(VitalAmount/10 × ~0.48 durability-lost-per-swing).  Shown instead of a fixed MP number since
+    // that's the cost an author actually tunes.
     /// <summary>Whether to show the reagent-cost row (SubHp only).</summary>
     public bool ShowReagentCost => Type == SpellType.SubHp;
     /// <summary>Reagents consumed per cast; 0 for any type other than SubHp.</summary>
-    public int ReagentCost => Type == SpellType.SubHp ? CombatFormulas.SubHpReagentCost(Data1) : 0;
+    public int ReagentCost => Type == SpellType.SubHp ? CombatFormulas.SubHpReagentCost(VitalAmount) : 0;
 }

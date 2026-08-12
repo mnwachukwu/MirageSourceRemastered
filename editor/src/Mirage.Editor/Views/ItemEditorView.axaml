@@ -107,47 +107,55 @@
                        HorizontalAlignment="Stretch" />
           </Grid>
 
-          <!-- Data1: shown unless type is None/Currency -->
+          <!-- Each type-specific field is its own row, shown only for the types that use it. A row the
+               author cannot see is one the save zeroes out — both sides ask ItemRecord the same question. -->
+
+          <!-- Durability: equipment only -->
           <Grid ColumnDefinitions="120,*"
-                IsVisible="{Binding SelectedItem.Data1Visible}">
+                IsVisible="{Binding SelectedItem.DurabilityVisible}">
+            <TextBlock x:Name="_durabilityLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedItem.Durability}"
+                           Minimum="0" Maximum="9999" FormatString="0"/>
+          </Grid>
+
+          <!-- Power (damage / defense): equipment only -->
+          <Grid ColumnDefinitions="120,*"
+                IsVisible="{Binding SelectedItem.PowerVisible}">
             <TextBlock Grid.Column="0"
-                       Text="{Binding SelectedItem.Data1Label}"
+                       Text="{Binding SelectedItem.PowerLabel}"
                        VerticalAlignment="Center"/>
-            <!-- Spell scroll: pick from spell list -->
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedItem.Power}"
+                           Minimum="0" Maximum="9999" FormatString="0"/>
+          </Grid>
+
+          <!-- Allowed classes: equipment only. A multi-select, so one piece can be shared by a whole
+               group (all three Strength classes, say) rather than locked to a single class. -->
+          <Grid ColumnDefinitions="120,*"
+                IsVisible="{Binding SelectedItem.AllowedClassesVisible}">
+            <TextBlock x:Name="_allowedClassesLabel" Grid.Column="0" VerticalAlignment="Top" Margin="0,2,0,0"/>
+            <controls:ClassSelector Grid.Column="1" DataContext="{Binding ClassSelection}"/>
+          </Grid>
+
+          <!-- Vital amount: potions only -->
+          <Grid ColumnDefinitions="120,*"
+                IsVisible="{Binding SelectedItem.VitalAmountVisible}">
+            <TextBlock Grid.Column="0"
+                       Text="{Binding SelectedItem.VitalAmountLabel}"
+                       VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding SelectedItem.VitalAmount}"
+                           Minimum="0" Maximum="9999" FormatString="0"/>
+          </Grid>
+
+          <!-- Spell taught: spell scrolls only — picks from the live spell list. -->
+          <Grid ColumnDefinitions="120,*"
+                IsVisible="{Binding SelectedItem.SpellNumVisible}">
+            <TextBlock x:Name="_spellNumLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox x:Name="_spellPicker" Grid.Column="1"
                              ItemsSource="{Binding SpellEntries}"
                              SelectedItem="{Binding SelectedSpellItem, Mode=TwoWay}"
-                             ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                             FilterMode="Custom" MinimumPrefixLength="0"
-                             IsVisible="{Binding SelectedItem.Data1IsSpell}"/>
-            <!-- All other types: numeric field -->
-            <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedItem.Data1}"
-                           Minimum="-9999" Maximum="9999" FormatString="0"
-                           IsVisible="{Binding SelectedItem.Data1IsSpell,
-                                       Converter={x:Static BoolConverters.Not}}"/>
-          </Grid>
-
-          <!-- Data2: shown for equipment only -->
-          <Grid ColumnDefinitions="120,*"
-                IsVisible="{Binding SelectedItem.Data2Visible}">
-            <TextBlock Grid.Column="0"
-                       Text="{Binding SelectedItem.Data2Label}"
-                       VerticalAlignment="Center"/>
-            <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedItem.Data2}"
-                           Minimum="-9999" Maximum="9999" FormatString="0"/>
-          </Grid>
-
-          <!-- Data3 (Class Req): shown for equipment only — picks a class from the live list. -->
-          <Grid ColumnDefinitions="120,*"
-                IsVisible="{Binding SelectedItem.Data3Visible}">
-            <TextBlock Grid.Column="0"
-                       Text="{Binding SelectedItem.Data3Label}"
-                       VerticalAlignment="Center"/>
-            <controls:DropdownAutoCompleteBox x:Name="_classPicker" Grid.Column="1"
-                             ItemsSource="{Binding ClassEntries}"
-                             SelectedItem="{Binding SelectedClassReq, Mode=TwoWay}"
                              ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                              FilterMode="Custom" MinimumPrefixLength="0"/>
           </Grid>
@@ -174,7 +182,7 @@
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
                 <TextBlock x:Name="_notesEquipmentDurability" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
-                <TextBlock x:Name="_notesEquipmentDamageDef"  TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesEquipmentPower"  TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
                 <StackPanel Margin="12,0,0,0" Spacing="2">
                   <TextBlock x:Name="_notesEquipmentWeapon" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                   <TextBlock x:Name="_notesEquipmentArmor"  TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
@@ -189,21 +197,21 @@
               <TextBlock x:Name="_notesPotionsHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesPotionsData1" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesPotionsAmount" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
               </StackPanel>
 
               <!-- Spell scrolls -->
               <TextBlock x:Name="_notesSpellScrollHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesSpellScrollData1" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesSpellScrollSpell" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
               </StackPanel>
 
               <!-- Key -->
               <TextBlock x:Name="_notesKeyHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesKeyData1" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesKeyId" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
               </StackPanel>
 
               <!-- Currency -->

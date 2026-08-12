@@ -52,9 +52,9 @@ public class ItemSystemStateTests
     {
         var (world, _, items, p) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
-        world.Items[Sword].Data1 = 80;
+        world.Items[Sword].Durability = 80;
         items.GiveItem(Idx, Sword, 0);
-        Assert.That(p.Inv[1].Dur, Is.EqualTo(80), "gear is stamped with its max durability (Data1)");
+        Assert.That(p.Inv[1].Dur, Is.EqualTo(80), "gear is stamped with its max durability");
     }
 
     [Test]
@@ -88,7 +88,7 @@ public class ItemSystemStateTests
     {
         var (world, _, items, p) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
-        world.Items[Sword].Data1 = 80;
+        world.Items[Sword].Durability = 80;
         bool ok = items.TryGiveItem(Idx, Sword, 1, dur: 55);
         Assert.Multiple(() =>
         {
@@ -376,7 +376,7 @@ public class ItemSystemStateTests
     {
         var (world, _, items, p) = Setup();
         world.Items[SubHpPotion].Type = ItemType.PotionSubHp;
-        world.Items[SubHpPotion].Data1 = 40;
+        world.Items[SubHpPotion].VitalAmount = 40;
         p.MaxHp = 100;
         p.MaxMp = 100;
         p.MaxSp = 100;
@@ -389,7 +389,7 @@ public class ItemSystemStateTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(p.Hp, Is.EqualTo(60), "drains Data1 (40) from the chosen vital");
+            Assert.That(p.Hp, Is.EqualTo(60), "drains VitalAmount (40) from the chosen vital");
             Assert.That(p.Mp, Is.EqualTo(30), "feeds half (20) to each of the other two");
             Assert.That(p.Sp, Is.EqualTo(30));
             Assert.That(p.Inv[1].Num, Is.EqualTo(0), "the potion is consumed");
@@ -401,7 +401,7 @@ public class ItemSystemStateTests
     {
         var (world, _, items, p) = Setup();
         world.Items[SubHpPotion].Type = ItemType.PotionSubHp;
-        world.Items[SubHpPotion].Data1 = 40;
+        world.Items[SubHpPotion].VitalAmount = 40;
         p.MaxHp = 100;
         p.MaxMp = 100;
         p.MaxSp = 100;

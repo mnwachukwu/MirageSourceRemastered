@@ -52,7 +52,7 @@ public sealed partial class ItemSystem : GameSystem
 
     private enum PotionVital { Hp, Mp, Sp }
 
-    /// <summary>PotionAdd{Hp,Mp,Sp}: restore <see cref="ItemRecord.Data1"/> of one vital,
+    /// <summary>PotionAdd{Hp,Mp,Sp}: restore <see cref="ItemRecord.VitalAmount"/> of one vital,
     /// clamped to its max. Refuses (with a chat message) if the vital is already at max.</summary>
     private void ApplyAddPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital vital)
     {
@@ -61,13 +61,13 @@ public sealed partial class ItemSystem : GameSystem
             SendMsg(index, ServerStrings.ItemSystem_VitalFull, GameColor.BrightRed, ("Vital", VitalName(vital)));
             return;
         }
-        SetVital(p, vital, Math.Min(GetVital(p, vital) + item.Data1, GetVitalMax(p, vital)));
+        SetVital(p, vital, Math.Min(GetVital(p, vital) + item.VitalAmount, GetVitalMax(p, vital)));
         BroadcastVital(index, p, vital);
         TakeItem(index, itemNum, 0);
         SendMsg(index, ServerStrings.ItemSystem_UsedPotion, GameColor.White, ("Item", item.Name));
     }
 
-    /// <summary>PotionSub{Hp,Mp,Sp}: drain <see cref="ItemRecord.Data1"/> from one vital
+    /// <summary>PotionSub{Hp,Mp,Sp}: drain <see cref="ItemRecord.VitalAmount"/> from one vital
     /// (floored at 0), and gain half that amount on each of the OTHER two vitals (clamped
     /// to their maxes). Refuses (with a chat message) if the drained vital is already 0.
     /// All three vital updates are broadcast even when only one moved meaningfully.</summary>
@@ -78,8 +78,8 @@ public sealed partial class ItemSystem : GameSystem
             SendMsg(index, ServerStrings.ItemSystem_CantUsePotion, GameColor.BrightRed);
             return;
         }
-        int gain = item.Data1 / 2;
-        SetVital(p, drainVital, Math.Max(GetVital(p, drainVital) - item.Data1, 0));
+        int gain = item.VitalAmount / 2;
+        SetVital(p, drainVital, Math.Max(GetVital(p, drainVital) - item.VitalAmount, 0));
         foreach (var v in new[] { PotionVital.Hp, PotionVital.Mp, PotionVital.Sp })
         {
             if (v != drainVital)

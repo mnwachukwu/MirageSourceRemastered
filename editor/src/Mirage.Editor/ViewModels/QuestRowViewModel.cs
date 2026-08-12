@@ -12,7 +12,8 @@ namespace Mirage.Editor.ViewModels;
 
 /// <summary>The quest-editor row — clones ShopRowViewModel. Owns fixed-slot Objective and
 /// Reward child lists (empties dropped on save), the requirement/reward scalars, and id↔NamedEntry picker
-/// facades for the giver / turn-in NPC, the ReqClass, and the PrereqQuest. Dirty aggregates the child rows.</summary>
+/// facades for the giver / turn-in NPC and the PrereqQuest. The class gate is a multi-select instead, so
+/// it has no picker facade here — the editor view-model drives it. Dirty aggregates the child rows.</summary>
 public sealed partial class QuestRowViewModel : ObservableObject
 {
     // Editor-side safety ceiling for every quest child table (objectives + both reward lists). 255 matches
@@ -30,7 +31,8 @@ public sealed partial class QuestRowViewModel : ObservableObject
     [ObservableProperty] private int _reqDef;
     [ObservableProperty] private int _reqSpd;
     [ObservableProperty] private int _reqInt;
-    [ObservableProperty] private int _reqClass;
+    /// <summary>Classes allowed to accept it; null or empty = every class.</summary>
+    [ObservableProperty] private List<short>? _allowedClasses;
     [ObservableProperty] private int _prereqQuest;
     [ObservableProperty] private long _rewardExp;
     [ObservableProperty] private long _repeatRewardExp;
@@ -90,16 +92,6 @@ public sealed partial class QuestRowViewModel : ObservableObject
             TurnInNpc = id;
         }
     }
-    public NamedEntry? SelectedReqClass
-    {
-        get => EntryFor(ClassEntries, ReqClass);
-        set
-        {
-            var id = value?.Id ?? 0;
-            if (ReqClass == id) return;
-            ReqClass = id;
-        }
-    }
     public NamedEntry? SelectedPrereq
     {
         get => EntryFor(QuestEntries, PrereqQuest);
@@ -131,7 +123,7 @@ public sealed partial class QuestRowViewModel : ObservableObject
         _reqDef = r.ReqDef;
         _reqSpd = r.ReqSpd;
         _reqInt = r.ReqInt;
-        _reqClass = r.ReqClass;
+        _allowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
         _prereqQuest = r.PrereqQuest;
         _rewardExp = r.RewardExp;
         _repeatRewardExp = r.RepeatRewardExp;
@@ -226,11 +218,7 @@ public sealed partial class QuestRowViewModel : ObservableObject
     partial void OnReqDefChanged(int value) => MarkDirty();
     partial void OnReqSpdChanged(int value) => MarkDirty();
     partial void OnReqIntChanged(int value) => MarkDirty();
-    partial void OnReqClassChanged(int value)
-    {
-        OnPropertyChanged(nameof(SelectedReqClass));
-        MarkDirty();
-    }
+    partial void OnAllowedClassesChanged(List<short>? value) => MarkDirty();
     partial void OnPrereqQuestChanged(int value)
     {
         OnPropertyChanged(nameof(SelectedPrereq));
@@ -267,7 +255,6 @@ public sealed partial class QuestRowViewModel : ObservableObject
         OnPropertyChanged(nameof(QuestEntries));
         OnPropertyChanged(nameof(SelectedGiver));
         OnPropertyChanged(nameof(SelectedTurnIn));
-        OnPropertyChanged(nameof(SelectedReqClass));
         OnPropertyChanged(nameof(SelectedPrereq));
         foreach (var o in Objectives) o.NotifyEntriesChanged();
         foreach (var r in RewardItems) r.NotifyEntriesChanged();
@@ -286,7 +273,7 @@ public sealed partial class QuestRowViewModel : ObservableObject
             ReqDef = r.ReqDef;
             ReqSpd = r.ReqSpd;
             ReqInt = r.ReqInt;
-            ReqClass = r.ReqClass;
+            AllowedClasses = r.AllowedClasses is null ? null : new List<short>(r.AllowedClasses);
             PrereqQuest = r.PrereqQuest;
             RewardExp = r.RewardExp;
             RepeatRewardExp = r.RepeatRewardExp;
@@ -314,7 +301,7 @@ public sealed partial class QuestRowViewModel : ObservableObject
             ReqDef = pkt.ReqDef;
             ReqSpd = pkt.ReqSpd;
             ReqInt = pkt.ReqInt;
-            ReqClass = pkt.ReqClass;
+            AllowedClasses = pkt.AllowedClasses is null ? null : new List<short>(pkt.AllowedClasses);
             PrereqQuest = pkt.PrereqQuest;
             RewardExp = pkt.RewardExp;
             RepeatRewardExp = pkt.RepeatRewardExp;
@@ -339,7 +326,7 @@ public sealed partial class QuestRowViewModel : ObservableObject
             Name = Name,
             Description = Description,
             ReqLevel = ReqLevel, ReqStr = ReqStr, ReqDef = ReqDef, ReqSpd = ReqSpd, ReqInt = ReqInt,
-            ReqClass = ReqClass, PrereqQuest = PrereqQuest,
+            AllowedClasses = ClassGate.Normalize(AllowedClasses), PrereqQuest = PrereqQuest,
             RewardExp = RewardExp, RepeatRewardExp = RepeatRewardExp,
             GiverNpc = GiverNpc, TurnInNpc = TurnInNpc,
             Repeatable = Repeatable, Cadence = Cadence,
@@ -357,7 +344,7 @@ public sealed partial class QuestRowViewModel : ObservableObject
         Description = Description,
         Objectives = Objectives.Where(o => !o.IsEmpty).Select(o => o.ToRecord()).ToList(),
         ReqLevel = ReqLevel, ReqStr = ReqStr, ReqDef = ReqDef, ReqSpd = ReqSpd, ReqInt = ReqInt,
-        ReqClass = ReqClass, PrereqQuest = PrereqQuest,
+        AllowedClasses = ClassGate.Normalize(AllowedClasses), PrereqQuest = PrereqQuest,
         RewardExp = RewardExp,
         RewardItems = RewardItems.Where(r => !r.IsEmpty).Select(r => r.ToRecord()).ToList(),
         RepeatRewardExp = RepeatRewardExp,

@@ -30,8 +30,8 @@ public sealed partial class ItemSystem : GameSystem
     {
         if (itemNum < 0 || itemNum > Constants.MaxItems || mapNum <= 0 || mapNum > Constants.MaxMaps) return 0;
 
-        bool isEquipment = itemNum != 0 && _world.Items[itemNum].Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
-        int dur = durOverride >= 0 ? durOverride : (isEquipment ? _world.Items[itemNum].Data1 : 0);
+        bool isEquipment = itemNum != 0 && ItemRecord.IsEquipment(_world.Items[itemNum].Type);
+        int dur = durOverride >= 0 ? durOverride : (isEquipment ? _world.Items[itemNum].Durability : 0);
 
         int slot = _world.AllocateMapItemSlot(mapNum);
         var mi = new MapItemRecord

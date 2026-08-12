@@ -228,7 +228,7 @@ public sealed partial class ItemSystem : GameSystem
             if (item.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield)
             {
                 ViewportMsg(index, ServerStrings.ItemSystem_DropWithDurability, GameColor.Yellow,
-                    ("Player", p.TrimmedName), ("Item", item.TrimmedName), ("Current", p.Inv[invSlot].Dur), ("Max", item.Data1));
+                    ("Player", p.TrimmedName), ("Item", item.TrimmedName), ("Current", p.Inv[invSlot].Dur), ("Max", item.Durability));
             }
             else
             {

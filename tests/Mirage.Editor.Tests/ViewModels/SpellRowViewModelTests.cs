@@ -7,14 +7,14 @@ using NUnit.Framework;
 namespace Mirage.Editor.Tests;
 
 /// <summary>The spell-editor row: record round-trip, the dirty lifecycle + wire-load guard (ApplyPacket must
-/// not read as an edit), and the type-driven flags — Data1 is an item number only for GiveItem spells, and
-/// the per-cast reagent cost is shown only for the SubHp "weapon" spell.</summary>
+/// not read as an edit), the type-driven flags — only GiveItem shows the item/quantity/INT fields, and the
+/// per-cast reagent cost is shown only for the SubHp "weapon" spell — and the save-time normalization.</summary>
 [TestFixture]
 public class SpellRowViewModelTests
 {
     static SpellRecord Fireball() => new()
     {
-        Name = "Fireball", ClassReq = 2, Type = SpellType.SubHp, Data1 = 40, Data2 = 0, Data3 = 0,
+        Name = "Fireball", AllowedClasses = [2, 6], Type = SpellType.SubHp, VitalAmount = 40,
     };
 
     [Test]
@@ -25,9 +25,9 @@ public class SpellRowViewModelTests
         Assert.Multiple(() =>
         {
             Assert.That(r.Name, Is.EqualTo("Fireball"));
-            Assert.That(r.ClassReq, Is.EqualTo(2));
+            Assert.That(r.AllowedClasses, Is.EqualTo(new short[] { 2, 6 }));
             Assert.That(r.Type, Is.EqualTo(SpellType.SubHp));
-            Assert.That(r.Data1, Is.EqualTo((short)40));
+            Assert.That(r.VitalAmount, Is.EqualTo((short)40));
             Assert.That(vm.IsDirty, Is.False);
             Assert.That(vm.IsLoaded, Is.True);
         });
@@ -37,7 +37,7 @@ public class SpellRowViewModelTests
     public void EditingAField_MarksDirty_ClearResets()
     {
         var vm = new SpellRowViewModel(4, Fireball());
-        vm.Data1 = 60;
+        vm.VitalAmount = 60;
         Assert.That(vm.IsDirty, Is.True);
         vm.ClearDirty();
         Assert.That(vm.IsDirty, Is.False);
@@ -47,24 +47,34 @@ public class SpellRowViewModelTests
     public void ApplyPacket_SeedsFields_MarksLoaded_ButNotDirty()
     {
         var vm = new SpellRowViewModel(1, new SpellRecord { Name = "" }, isLoaded: false);
-        vm.ApplyPacket(new UpdateSpellPacket { Name = "Heal", Type = SpellType.AddHp, Data1 = 30 });
+        vm.ApplyPacket(new UpdateSpellPacket { Name = "Heal", Type = SpellType.AddHp, VitalAmount = 30 });
         Assert.Multiple(() =>
         {
             Assert.That(vm.IsDirty, Is.False, "a wire load is not an edit");
             Assert.That(vm.IsLoaded, Is.True);
             Assert.That(vm.ToRecord().Name, Is.EqualTo("Heal"));
             Assert.That(vm.ToRecord().Type, Is.EqualTo(SpellType.AddHp));
+            Assert.That(vm.ToRecord().VitalAmount, Is.EqualTo((short)30));
         });
     }
 
+    // The split is total, so the two flags are exact opposites — GiveItem has no magnitude, and nothing
+    // else hands over an item.
     [Test]
-    public void Data1IsGiveItem_OnlyForGiveItemSpells()
+    public void FieldVisibility_SplitsOnGiveItem()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(Row(SpellType.GiveItem).Data1IsGiveItem, Is.True);
-            Assert.That(Row(SpellType.SubHp).Data1IsGiveItem, Is.False);
-            Assert.That(Row(SpellType.AddHp).Data1IsGiveItem, Is.False);
+            var give = Row(SpellType.GiveItem);
+            Assert.That(give.IsGiveItem, Is.True);
+            Assert.That(give.VitalAmountVisible, Is.False, "GiveItem carries no magnitude");
+
+            foreach (var type in new[] { SpellType.SubHp, SpellType.AddHp, SpellType.SubMp, SpellType.AddSp })
+            {
+                var row = Row(type);
+                Assert.That(row.IsGiveItem, Is.False, $"{type} hands over no item");
+                Assert.That(row.VitalAmountVisible, Is.True, $"{type} has a magnitude");
+            }
         });
     }
 
@@ -75,12 +85,65 @@ public class SpellRowViewModelTests
         Assert.Multiple(() =>
         {
             Assert.That(Row(SpellType.SubHp).ShowReagentCost, Is.True);
-            Assert.That(Row(SpellType.SubHp, data1: 40).ReagentCost, Is.GreaterThan(0), "a SubHp spell costs reagents");
+            Assert.That(Row(SpellType.SubHp, vitalAmount: 40).ReagentCost, Is.GreaterThan(0), "a SubHp spell costs reagents");
             Assert.That(Row(SpellType.AddHp).ShowReagentCost, Is.False);
             Assert.That(Row(SpellType.AddMp).ReagentCost, Is.EqualTo(0));
         });
     }
 
-    static SpellRowViewModel Row(SpellType type, short data1 = 10) =>
-        new(1, new SpellRecord { Type = type, Data1 = data1 });
+    // Retyping away from GiveItem must drop its IntReq: RawSpellRequirement reads IntReq for GiveItem and
+    // VitalAmount for everything else, so a leftover would silently re-gate the spell if it ever went back.
+    [Test]
+    public void ToRecord_ZeroesFieldsTheTypeDoesNotUse()
+    {
+        var give = new SpellRowViewModel(4, new SpellRecord
+        {
+            Name = "Conjure", Type = SpellType.GiveItem, ItemNum = 9, ItemAmount = 3, IntReq = 20,
+        });
+
+        var asGiven = give.ToRecord();
+        Assert.Multiple(() =>
+        {
+            Assert.That(asGiven.ItemNum, Is.EqualTo((short)9));
+            Assert.That(asGiven.ItemAmount, Is.EqualTo((short)3));
+            Assert.That(asGiven.IntReq, Is.EqualTo((short)20));
+            Assert.That(asGiven.VitalAmount, Is.EqualTo((short)0));
+        });
+
+        give.Type = SpellType.AddHp;
+        give.VitalAmount = 30;
+        var retyped = give.ToRecord();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(retyped.VitalAmount, Is.EqualTo((short)30));
+            Assert.That(retyped.ItemNum, Is.EqualTo((short)0), "no longer hands over an item");
+            Assert.That(retyped.ItemAmount, Is.EqualTo((short)0));
+            Assert.That(retyped.IntReq, Is.EqualTo((short)0), "gates off VitalAmount now, not IntReq");
+        });
+    }
+
+    [Test]
+    public void BuildSavePacket_IsNormalizedLikeToRecord()
+    {
+        var vm = new SpellRowViewModel(4, new SpellRecord
+        {
+            Name = "Conjure", Type = SpellType.GiveItem, ItemNum = 9, IntReq = 20,
+        });
+        vm.Type = SpellType.SubMp;
+        vm.VitalAmount = 15;
+
+        var pkt = vm.BuildSavePacket();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(pkt.SpellNum, Is.EqualTo(4));
+            Assert.That(pkt.VitalAmount, Is.EqualTo((short)15));
+            Assert.That(pkt.ItemNum, Is.EqualTo((short)0));
+            Assert.That(pkt.IntReq, Is.EqualTo((short)0));
+        });
+    }
+
+    static SpellRowViewModel Row(SpellType type, short vitalAmount = 10) =>
+        new(1, new SpellRecord { Type = type, VitalAmount = vitalAmount });
 }

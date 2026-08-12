@@ -19,11 +19,10 @@ public static partial class EditorStrings
     public const string ItemEditor_FieldNotesHeader = nameof(ItemEditor_FieldNotesHeader);
     public const string ItemEditor_SaveItemButton = nameof(ItemEditor_SaveItemButton);
     public const string ItemEditor_SpellSearchPlaceholder = nameof(ItemEditor_SpellSearchPlaceholder);
-    public const string ItemEditor_ClassSearchPlaceholder = nameof(ItemEditor_ClassSearchPlaceholder);
     // Field-notes panel — sub-headers, formula lines, and explanatory paragraphs.
     public const string ItemEditor_Notes_EquipmentHeader = nameof(ItemEditor_Notes_EquipmentHeader);
     public const string ItemEditor_Notes_EquipmentDurability = nameof(ItemEditor_Notes_EquipmentDurability);
-    public const string ItemEditor_Notes_EquipmentDamageDef = nameof(ItemEditor_Notes_EquipmentDamageDef);
+    public const string ItemEditor_Notes_EquipmentPower = nameof(ItemEditor_Notes_EquipmentPower);
     public const string ItemEditor_Notes_EquipmentWeapon = nameof(ItemEditor_Notes_EquipmentWeapon);
     public const string ItemEditor_Notes_EquipmentArmor = nameof(ItemEditor_Notes_EquipmentArmor);
     public const string ItemEditor_Notes_EquipmentHelmet = nameof(ItemEditor_Notes_EquipmentHelmet);
@@ -31,11 +30,11 @@ public static partial class EditorStrings
     public const string ItemEditor_Notes_EquipmentClassReq = nameof(ItemEditor_Notes_EquipmentClassReq);
     public const string ItemEditor_Notes_EquipmentShieldSide = nameof(ItemEditor_Notes_EquipmentShieldSide);
     public const string ItemEditor_Notes_PotionsHeader = nameof(ItemEditor_Notes_PotionsHeader);
-    public const string ItemEditor_Notes_PotionsData1 = nameof(ItemEditor_Notes_PotionsData1);
+    public const string ItemEditor_Notes_PotionsAmount = nameof(ItemEditor_Notes_PotionsAmount);
     public const string ItemEditor_Notes_SpellScrollHeader = nameof(ItemEditor_Notes_SpellScrollHeader);
-    public const string ItemEditor_Notes_SpellScrollData1 = nameof(ItemEditor_Notes_SpellScrollData1);
+    public const string ItemEditor_Notes_SpellScrollSpell = nameof(ItemEditor_Notes_SpellScrollSpell);
     public const string ItemEditor_Notes_KeyHeader = nameof(ItemEditor_Notes_KeyHeader);
-    public const string ItemEditor_Notes_KeyData1 = nameof(ItemEditor_Notes_KeyData1);
+    public const string ItemEditor_Notes_KeyId = nameof(ItemEditor_Notes_KeyId);
     public const string ItemEditor_Notes_CurrencyHeader = nameof(ItemEditor_Notes_CurrencyHeader);
     public const string ItemEditor_Notes_CurrencyDesc = nameof(ItemEditor_Notes_CurrencyDesc);
 
@@ -130,18 +129,16 @@ public static partial class EditorStrings
     public const string SpellEditor_AllClassesFilter = nameof(SpellEditor_AllClassesFilter);
     public const string SpellEditor_SelectPrompt = nameof(SpellEditor_SelectPrompt);
     public const string SpellEditor_SectionTitle = nameof(SpellEditor_SectionTitle);
-    public const string SpellEditor_ClassReqLabel = nameof(SpellEditor_ClassReqLabel);
     public const string SpellEditor_MaxMpCostLabel = nameof(SpellEditor_MaxMpCostLabel);
     public const string SpellEditor_ReagentCostLabel = nameof(SpellEditor_ReagentCostLabel);
     public const string SpellEditor_SubHpMpCostValue = nameof(SpellEditor_SubHpMpCostValue);
     public const string SpellEditor_MpCostNote = nameof(SpellEditor_MpCostNote);
     public const string SpellEditor_SaveSpellButton = nameof(SpellEditor_SaveSpellButton);
-    public const string SpellEditor_ClassReqSearchPlaceholder = nameof(SpellEditor_ClassReqSearchPlaceholder);
     public const string SpellEditor_GiveItemSearchPlaceholder = nameof(SpellEditor_GiveItemSearchPlaceholder);
-    public const string SpellEditor_Formula_Data1Intro = nameof(SpellEditor_Formula_Data1Intro);
-    public const string SpellEditor_Formula_Data1Bullet1 = nameof(SpellEditor_Formula_Data1Bullet1);
-    public const string SpellEditor_Formula_Data1Bullet2 = nameof(SpellEditor_Formula_Data1Bullet2);
-    public const string SpellEditor_Formula_Data1Bullet3 = nameof(SpellEditor_Formula_Data1Bullet3);
+    public const string SpellEditor_Formula_MagnitudeIntro = nameof(SpellEditor_Formula_MagnitudeIntro);
+    public const string SpellEditor_Formula_MagnitudeBullet1 = nameof(SpellEditor_Formula_MagnitudeBullet1);
+    public const string SpellEditor_Formula_MagnitudeBullet2 = nameof(SpellEditor_Formula_MagnitudeBullet2);
+    public const string SpellEditor_Formula_MagnitudeBullet3 = nameof(SpellEditor_Formula_MagnitudeBullet3);
     public const string SpellEditor_Formula_ClassIntNote = nameof(SpellEditor_Formula_ClassIntNote);
     public const string SpellEditor_Formula_PlayerIntNote = nameof(SpellEditor_Formula_PlayerIntNote);
     public const string SpellEditor_Formula_MagnitudeHeader = nameof(SpellEditor_Formula_MagnitudeHeader);
@@ -229,7 +226,6 @@ public static partial class EditorStrings
     public const string QuestEditor_ReqDefLabel = nameof(QuestEditor_ReqDefLabel);
     public const string QuestEditor_ReqSpdLabel = nameof(QuestEditor_ReqSpdLabel);
     public const string QuestEditor_ReqIntLabel = nameof(QuestEditor_ReqIntLabel);
-    public const string QuestEditor_ReqClassLabel = nameof(QuestEditor_ReqClassLabel);
     public const string QuestEditor_PrereqLabel = nameof(QuestEditor_PrereqLabel);
     public const string QuestEditor_ObjectivesHeader = nameof(QuestEditor_ObjectivesHeader);
     public const string QuestEditor_ObjColKind = nameof(QuestEditor_ObjColKind);

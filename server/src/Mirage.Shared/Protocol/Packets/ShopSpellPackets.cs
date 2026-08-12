@@ -75,11 +75,13 @@ public sealed record SendSpellsPacket : IPacket
     public sealed record SpellData(
         [property: JsonPropertyName("num")] int Num,
         [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("classReq")] int ClassReq,
+        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses,
         [property: JsonPropertyName("type")] SpellType Type,
-        [property: JsonPropertyName("data1")] short Data1,
-        [property: JsonPropertyName("data2")] short Data2,
-        [property: JsonPropertyName("data3")] short Data3
+        // Type-specific fields; see SpellRecord for which apply to which SpellType.
+        [property: JsonPropertyName("vitalAmount")] short VitalAmount,
+        [property: JsonPropertyName("itemNum")] short ItemNum,
+        [property: JsonPropertyName("itemAmount")] short ItemAmount,
+        [property: JsonPropertyName("intReq")] short IntReq
     );
 }
 

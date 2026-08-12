@@ -33,12 +33,17 @@ public partial class ItemEditorView : LocalizedUserControl
         _destroyOnDropCheck.Content = EditorStrings.Get(EditorStrings.ItemEditor_DestroyOnDrop);
         _fieldNotesHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_FieldNotesHeader);
 
+        // Captions for the fields that mean one thing wherever they apply; Power and VitalAmount bind
+        // their captions instead, since those two vary by item type.
+        _durabilityLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_Durability);
+        _allowedClassesLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_AllowedClasses);
+        _spellNumLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_SpellNumber);
+
         _spellPicker.PlaceholderText = EditorStrings.Get(EditorStrings.ItemEditor_SpellSearchPlaceholder);
-        _classPicker.PlaceholderText = EditorStrings.Get(EditorStrings.ItemEditor_ClassSearchPlaceholder);
 
         _notesEquipmentHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentHeader);
         _notesEquipmentDurability.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentDurability);
-        _notesEquipmentDamageDef.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentDamageDef);
+        _notesEquipmentPower.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentPower);
         _notesEquipmentWeapon.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentWeapon);
         _notesEquipmentArmor.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentArmor);
         _notesEquipmentHelmet.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentHelmet);
@@ -47,13 +52,13 @@ public partial class ItemEditorView : LocalizedUserControl
         _notesEquipmentShieldSide.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_EquipmentShieldSide);
 
         _notesPotionsHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_PotionsHeader);
-        _notesPotionsData1.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_PotionsData1);
+        _notesPotionsAmount.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_PotionsAmount);
 
         _notesSpellScrollHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_SpellScrollHeader);
-        _notesSpellScrollData1.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_SpellScrollData1);
+        _notesSpellScrollSpell.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_SpellScrollSpell);
 
         _notesKeyHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_KeyHeader);
-        _notesKeyData1.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_KeyData1);
+        _notesKeyId.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_KeyId);
 
         _notesCurrencyHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_CurrencyHeader);
         _notesCurrencyDesc.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_CurrencyDesc);

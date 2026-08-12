@@ -146,7 +146,7 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        int durNeeded = item.Data1 - p.Inv[invSlot].Dur;
+        int durNeeded = item.Durability - p.Inv[invSlot].Dur;
         if (durNeeded <= 0)
         {
             SendMsg(index, ServerStrings.ShopSystem_PerfectCond, GameColor.White);
@@ -155,8 +155,8 @@ public sealed class ShopSystem : GameSystem
 
         // Cost per durability point + total for a full repair — the shared repair formula (also used by the
         // guild-war vault-repair sink, so both price durability the same way).
-        int ratePerPoint = EconomyFormulas.RepairRatePerPoint(item.Data2);
-        int goldNeeded = EconomyFormulas.RepairCost(durNeeded, item.Data2);
+        int ratePerPoint = EconomyFormulas.RepairRatePerPoint(item.Power);
+        int goldNeeded = EconomyFormulas.RepairCost(durNeeded, item.Power);
 
         long playerGold = ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex);
 
@@ -169,7 +169,7 @@ public sealed class ShopSystem : GameSystem
         if (playerGold >= goldNeeded)
         {
             _items.TakeItem(index, Constants.GoldItemIndex, goldNeeded);
-            p.Inv[invSlot].Dur = item.Data1;
+            p.Inv[invSlot].Dur = item.Durability;
             _dispatcher.SendTo(index, new InventoryUpdatePacket
             {
                 Slot = invSlot,
@@ -183,7 +183,7 @@ public sealed class ShopSystem : GameSystem
         {
             // Partial repair: restore as many durability points as the player can afford
             int durPartial = (int)(playerGold / ratePerPoint);
-            int goldActual = EconomyFormulas.RepairCost(durPartial, item.Data2);
+            int goldActual = EconomyFormulas.RepairCost(durPartial, item.Power);
             _items.TakeItem(index, Constants.GoldItemIndex, goldActual);
             p.Inv[invSlot].Dur += durPartial;
             _dispatcher.SendTo(index, new InventoryUpdatePacket

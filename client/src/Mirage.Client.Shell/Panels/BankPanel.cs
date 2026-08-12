@@ -7,6 +7,7 @@ using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Logic;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
+using Mirage.Shared.Records;
 
 namespace Mirage.Client.Shell.Panels;
 
@@ -356,8 +357,8 @@ public sealed class BankPanel : IGamePanel
             }
             else
             {
-                bool broken = item is { Data1: > 0 } && slot.Dur <= 0
-                    && item.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
+                bool broken = item is { Durability: > 0 } && slot.Dur <= 0
+                    && ItemRecord.IsEquipment(item.Type);
                 _bankList.Items.Add(broken
                     ? $"{i}: {name} {ClientStrings.Get(ClientStrings.Common_Broken)}"
                     : $"{i}: {name}");

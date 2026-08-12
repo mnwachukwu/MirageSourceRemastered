@@ -179,18 +179,18 @@ public sealed partial class ItemSystem : GameSystem
         return item.Type switch
         {
             ItemType.Currency => (1, 0, 0),
-            ItemType.Weapon => (3, 0, item.Data2),
-            ItemType.Armor => (3, 1, item.Data2),
-            ItemType.Helmet => (3, 2, item.Data2),
-            ItemType.Shield => (3, 3, item.Data2),
+            ItemType.Weapon => (3, 0, item.Power),
+            ItemType.Armor => (3, 1, item.Power),
+            ItemType.Helmet => (3, 2, item.Power),
+            ItemType.Shield => (3, 3, item.Power),
             ItemType.Key => (4, 0, 0),
             ItemType.Spell => (5, 0, 0),
-            ItemType.PotionAddHp => (6, 0, item.Data1),
-            ItemType.PotionAddMp => (6, 1, item.Data1),
-            ItemType.PotionAddSp => (6, 2, item.Data1),
-            ItemType.PotionSubHp => (7, 0, item.Data1),
-            ItemType.PotionSubMp => (7, 1, item.Data1),
-            ItemType.PotionSubSp => (7, 2, item.Data1),
+            ItemType.PotionAddHp => (6, 0, item.VitalAmount),
+            ItemType.PotionAddMp => (6, 1, item.VitalAmount),
+            ItemType.PotionAddSp => (6, 2, item.VitalAmount),
+            ItemType.PotionSubHp => (7, 0, item.VitalAmount),
+            ItemType.PotionSubMp => (7, 1, item.VitalAmount),
+            ItemType.PotionSubSp => (7, 2, item.VitalAmount),
             _ => (8, 0, 0),
         };
     }

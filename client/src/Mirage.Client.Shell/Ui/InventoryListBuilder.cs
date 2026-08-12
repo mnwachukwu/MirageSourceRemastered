@@ -44,8 +44,8 @@ public static class InventoryListBuilder
                  state.Me.HelmetSlot == i || state.Me.ShieldSlot == i);
             // A worn item at 0 durability sits in the bag, auto-unequipped and unusable until repaired; surface
             // that inline like the equipped flag. Broken and equipped are mutually exclusive so the tags don't collide.
-            bool broken = !equipped && item is { Data1: > 0 } && slot.Dur <= 0
-                && item.Type is ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield;
+            bool broken = !equipped && item is { Durability: > 0 } && slot.Dur <= 0
+                && ItemRecord.IsEquipment(item.Type);
             list.Items.Add(equipped
                 ? $"{i}: {name} {ClientStrings.Get(ClientStrings.Common_Equipped)}"
                 : broken

@@ -66,7 +66,7 @@ public sealed partial class CombatSystem : GameSystem
             if (slot <= 0) continue;
             int itemNum = p.Inv[slot].Num;
             if (itemNum <= 0) continue;
-            int maxDur = _world.Items[itemNum].Data1;
+            int maxDur = _world.Items[itemNum].Durability;
             if (maxDur <= 0) continue;
             int damage = EconomyFormulas.EquipmentDamageOnDeath(maxDur, percentOfMax);
             // Rain doubles durability loss on death too, mirroring per-hit combat wear (DegradeItemDurability). The

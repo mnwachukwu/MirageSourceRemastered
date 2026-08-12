@@ -593,10 +593,10 @@ public sealed class InventoryPanel : IGamePanel
 
         // Gear contributions — same formulas the item tooltip and StatsPanel use. Every defensive piece
         // contributes to the single universal MIT (armor/helmet: full; shield: 1/4).
-        int weaponBonus = weapon is null ? 0 : CombatFormulas.WeaponContribution(weapon.Data2, str);
-        int helmetMit = helmet is null ? 0 : CombatFormulas.GearMitigation(helmet.Data2, def);
-        int armorMit = chest is null ? 0 : CombatFormulas.GearMitigation(chest.Data2, def);
-        int shieldMit = shield is null ? 0 : CombatFormulas.ShieldMitigation(shield.Data2, def);
+        int weaponBonus = weapon is null ? 0 : CombatFormulas.WeaponContribution(weapon.Power, str);
+        int helmetMit = helmet is null ? 0 : CombatFormulas.GearMitigation(helmet.Power, def);
+        int armorMit = chest is null ? 0 : CombatFormulas.GearMitigation(chest.Power, def);
+        int shieldMit = shield is null ? 0 : CombatFormulas.ShieldMitigation(shield.Power, def);
 
         int SlotDur(int invSlot) => invSlot > 0 && me.Inv is not null ? me.Inv[invSlot].Dur : 0;
 
@@ -644,8 +644,8 @@ public sealed class InventoryPanel : IGamePanel
         int nextY = labelY + font.LineSpacing;
 
         // Condition line beneath the bonus line — cur/max wear, color-coded (white/yellow/red) exactly like
-        // the tooltip and repair panel. Items with no durability (Data1 == 0) skip it.
-        int maxDur = item.Data1;
+        // the tooltip and repair panel. Items with no durability budget skip it.
+        int maxDur = item.Durability;
         if (maxDur > 0)
             EqDrawCentered(sb, font, $"{dur}/{maxDur}", centerX, nextY, UiHelper.DurabilityColor(dur, maxDur));
     }

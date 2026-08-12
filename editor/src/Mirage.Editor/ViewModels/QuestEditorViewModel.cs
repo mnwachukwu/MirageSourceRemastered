@@ -9,8 +9,9 @@ using System.Collections.ObjectModel;
 namespace Mirage.Editor.ViewModels;
 
 /// <summary>The quest editor — clones ShopEditorViewModel over the EditorViewModelBase
-/// online/offline flow. A quest row needs live NPC (giver/turn-in/objective target), item (reward), class
-/// (ReqClass) and quest (PrereqQuest) picker lists, all sourced from EditorDataService.</summary>
+/// online/offline flow. A quest row needs live NPC (giver/turn-in/objective target), item (reward) and
+/// quest (PrereqQuest) picker lists, all sourced from EditorDataService; the class gate is a multi-select
+/// rather than a picker.</summary>
 public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowViewModel>
 {
     [ObservableProperty] private QuestRowViewModel? _selectedQuest;
@@ -22,7 +23,43 @@ public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowV
     public QuestEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
     {
         HookItems();
-        _data.EntriesInvalidated += () => { foreach (var q in Quests) q.NotifyEntriesChanged(); };
+        _data.EntriesInvalidated += () =>
+        {
+            foreach (var q in Quests) q.NotifyEntriesChanged();
+            RebuildClassSelection();   // a renamed or newly named class must re-label its checkbox
+        };
+        ClassSelection.SelectionChanged += ids =>
+        {
+            if (SelectedQuest is null) return;
+            _applyingClassSelection = true;
+            try { SelectedQuest.AllowedClasses = ids; }
+            finally { _applyingClassSelection = false; }
+        };
+    }
+
+    public Models.NamedEntry[] ClassEntries => _data.LiveClassEntries;
+
+    /// <summary>The class gate: a checkbox per class, none ticked meaning every class. Unlike the level
+    /// and stat requirements beside it this is a set, and a quest outside it is invisible rather than
+    /// merely unacceptable.</summary>
+    public ClassSelectionViewModel ClassSelection { get; } = new();
+
+    // Set while a checkbox click is writing into the row, so the row's change notification doesn't bounce
+    // back and rebuild the checkboxes mid-edit.
+    private bool _applyingClassSelection;
+
+    private void RebuildClassSelection()
+    {
+        if (SelectedQuest is null) ClassSelection.Clear();
+        else ClassSelection.Rebuild(ClassEntries, SelectedQuest.AllowedClasses);
+        ClassSelection.IsActive = SelectedQuest is not null;
+    }
+
+    private void OnQuestPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Re-tick when the row's list changed from anywhere but the checkboxes (a packet, a discard).
+        if (e.PropertyName is nameof(QuestRowViewModel.AllowedClasses) && !_applyingClassSelection)
+            RebuildClassSelection();
     }
 
     protected override string TypeName => EditorStrings.Get(EditorStrings.QuestEditor_TypeName);
@@ -44,11 +81,14 @@ public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowV
         OnPropertyChanged(nameof(FilteredItems));
     }
 
-    partial void OnSelectedQuestChanged(QuestRowViewModel? value)
+    partial void OnSelectedQuestChanged(QuestRowViewModel? oldValue, QuestRowViewModel? newValue)
     {
+        if (oldValue is not null) oldValue.PropertyChanged -= OnQuestPropertyChanged;
+        if (newValue is not null) newValue.PropertyChanged += OnQuestPropertyChanged;
         NotifyDirtyState();
-        if (value is not null && !value.IsLoaded && _data.IsOnline)
-            _ = LoadEntityAsync(value);
+        if (newValue is not null && !newValue.IsLoaded && _data.IsOnline)
+            _ = LoadEntityAsync(newValue);
+        RebuildClassSelection();
     }
 
     public void LoadOffline()

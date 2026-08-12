@@ -58,39 +58,43 @@ public static class CombatFormulas
     /// with Int in place of Str.  Str and Int are the same offense stat: a spell is a swing delivered at
     /// range rather than at melee reach, so it deals identical base damage per point.  The only asymmetry
     /// between warrior and caster is range (and the MP cost plus post-cast root that pay for it), never
-    /// the damage curve.  Caller adds the Data1 contribution via <see cref="SpellContribution"/>, composed
-    /// in <see cref="RawSpellPower"/>.</summary>
+    /// the damage curve.  Caller adds the spell's VitalAmount contribution via
+    /// <see cref="SpellContribution"/>, composed in <see cref="RawSpellPower"/>.</summary>
     public static int SpellPower(int @int) =>
         Math.Max((int)Math.Round(Math.Pow(@int + OffenseShift, DamageCurveExponent) / DamageCurveDivisor, MidpointRounding.AwayFromZero), 1);
 
-    /// <summary>Weapon Data2 contribution to a player's raw melee damage.  Twice
-    /// <see cref="GearMitigation"/> — a weapon pulls the weight of two armor pieces at matched Data2 and
-    /// asymptotes at 2×Str.  At Data2 == Str the contribution exactly equals two armor pieces' combined
-    /// mitigation, so total offense (1 weapon) and total defense (2 armor pieces) scale identically with
-    /// stat: stat investment decides matched-gear fights, not gear arrangement.</summary>
-    public static int WeaponContribution(int data2, int str) =>
-        (int)Math.Round(2.0 * GearMitigationD(data2, Math.Max(str, 1)), MidpointRounding.AwayFromZero);
+    /// <summary>A weapon's <see cref="Records.ItemRecord.Power"/> contribution to a player's raw melee
+    /// damage.  Twice <see cref="GearMitigation"/> — a weapon pulls the weight of two armor pieces at
+    /// matched Power and asymptotes at 2×Str.  At Power == Str the contribution exactly equals two armor
+    /// pieces' combined mitigation, so total offense (1 weapon) and total defense (2 armor pieces) scale
+    /// identically with stat: stat investment decides matched-gear fights, not gear arrangement.</summary>
+    public static int WeaponContribution(int power, int str) =>
+        (int)Math.Round(2.0 * GearMitigationD(power, Math.Max(str, 1)), MidpointRounding.AwayFromZero);
 
-    /// <summary>Spell Data1 contribution — the exact mirror of <see cref="WeaponContribution"/> with Data1
-    /// in place of a weapon's Data2 and Int in place of Str, DR-capped at 2×Int.  A prepared spell is a
-    /// weapon delivered at range, so its Data1 pulls the weight of two armor pieces at matched data exactly
-    /// as a weapon does.  Shared by every Add/Sub spell branch, so heals self-cap the same way.</summary>
-    public static int SpellContribution(int data1, int @int) =>
-        (int)Math.Round(2.0 * GearMitigationD(data1, Math.Max(@int, 1)), MidpointRounding.AwayFromZero);
+    /// <summary>A spell's <see cref="Records.SpellRecord.VitalAmount"/> contribution — the exact mirror of
+    /// <see cref="WeaponContribution"/> with VitalAmount in place of a weapon's Power and Int in place of
+    /// Str, DR-capped at 2×Int.  A prepared spell is a weapon delivered at range, so its magnitude pulls
+    /// the weight of two armor pieces at matched value exactly as a weapon does.  Shared by every Add/Sub
+    /// spell branch, so heals self-cap the same way.</summary>
+    public static int SpellContribution(int vitalAmount, int @int) =>
+        (int)Math.Round(2.0 * GearMitigationD(vitalAmount, Math.Max(@int, 1)), MidpointRounding.AwayFromZero);
 
-    /// <summary>Diminishing-returns gear contribution: <c>data2 * stat / (stat + data2)</c>.
+    /// <summary>Diminishing-returns gear contribution: <c>power * stat / (stat + power)</c>.
     /// Asymptotes at the paired stat — a single armor or helmet piece can never exceed the player's
     /// raw defensive stat in mitigation.  Used directly by armor/helmet; the shield's chip routes through
     /// <see cref="ShieldMitigation"/> (/4); weapon routes through
     /// <see cref="WeaponContribution"/> (which applies a 2× factor).</summary>
-    public static int GearMitigation(int data2, int stat) =>
-        (int)Math.Round(GearMitigationD(data2, stat), MidpointRounding.AwayFromZero);
+    public static int GearMitigation(int power, int stat) =>
+        (int)Math.Round(GearMitigationD(power, stat), MidpointRounding.AwayFromZero);
 
-    private static double GearMitigationD(int data2, int stat)
+    // Takes a neutral "rating" rather than a gear/spell-specific name: this same curve is what pairs an
+    // item's Power against Str/Def AND a spell's VitalAmount against Int, which is exactly why the
+    // warrior and caster damage curves are identical.
+    private static double GearMitigationD(int rating, int stat)
     {
-        if (data2 <= 0) return 0.0;
-        double denom = Math.Max(stat + data2, 1);
-        return data2 * (double)stat / denom;
+        if (rating <= 0) return 0.0;
+        double denom = Math.Max(stat + rating, 1);
+        return rating * (double)stat / denom;
     }
 
     /// <summary>The shield's contribution to mitigation: 1/4 of a full armor piece, asymptoting at ~Def/4.
@@ -98,8 +102,8 @@ public static class CombatFormulas
     /// handing a shielded build a full third armor piece.  DEF defends physical and magic identically, so
     /// there is no separate magic gear chip.</summary>
     private const double ShieldMitigationDivisor = 4.0;
-    public static int ShieldMitigation(int data2, int def) =>
-        (int)Math.Round(GearMitigationD(data2, def) / ShieldMitigationDivisor, MidpointRounding.AwayFromZero);
+    public static int ShieldMitigation(int power, int def) =>
+        (int)Math.Round(GearMitigationD(power, def) / ShieldMitigationDivisor, MidpointRounding.AwayFromZero);
 
     /// <summary>Crit damage: 1.25× raw + uniform noise in [0, raw/2 + 1) + 1.  Always > raw.
     /// Used for both melee and spell crits.  Noise is sampled continuously (NextDouble × range)
@@ -145,7 +149,7 @@ public static class CombatFormulas
     /// fed the NPC's <see cref="StatFormulas.NpcLevel"/> (all four stats, so a fast NPC's level floor makes
     /// it tankier exactly like a SPD-heavy player), plus a fully-kitted defender's gear baked in since NPCs
     /// wear none: armor + helmet at full <see cref="GearMitigation"/> + a shield at 1/4
-    /// (<see cref="ShieldMitigationDivisor"/>), all at matched Def (Data2 = Def).  One universal MIT
+    /// (<see cref="ShieldMitigationDivisor"/>), all at matched Def (Power = Def).  One universal MIT
     /// (physical == magic); no favor multiplier, since HP-only favor handles the NPC bias.</summary>
     public static int NpcProtection(int str, int def, int @int, int spd) =>
         (int)Math.Round(
@@ -259,12 +263,12 @@ public static class CombatFormulas
 
     /// <summary>Raw spell amount before crit and bell-curve variance.  Composes the caster's
     /// stat-based contribution (<see cref="SpellPower"/>) with the spell's content contribution
-    /// (<see cref="SpellContribution"/> on Data1 — DR-capped at 2×Int, the same curve as a weapon).  Both pieces are
-    /// sub-quadratic / bounded so designer-typed Data1 numbers can't blow past mitigation.
+    /// (<see cref="SpellContribution"/> on VitalAmount — DR-capped at 2×Int, the same curve as a weapon).  Both
+    /// pieces are sub-quadratic / bounded so designer-typed VitalAmount numbers can't blow past mitigation.
     /// Shared by player-target, NPC-target, and caster-self spell paths — heals scale through
     /// this same formula by design.</summary>
-    public static int RawSpellPower(int @int, int data1) =>
-        SpellPower(@int) + SpellContribution(data1, @int);
+    public static int RawSpellPower(int @int, int vitalAmount) =>
+        SpellPower(@int) + SpellContribution(vitalAmount, @int);
 
     /// <summary>Roll a uniform percentile in [0..99]. Seam for durability proc bands and
     /// item-drop chances — anything that lives on 1-percent granularity.</summary>
@@ -331,8 +335,8 @@ public static class CombatFormulas
 
     // ── Spell costs ───────────────────────────────────────────────────────────
 
-    // Class-affinity gate head-start: a spell needs INT off Data1 exactly as a weapon needs STR off
-    // Data2, so power gates itself on the matching stat.  Effective requirement = raw - round(classStat/K)
+    // Class-affinity gate head-start: a spell needs INT off its VitalAmount exactly as a weapon needs STR
+    // off its Power, so power gates itself on the matching stat.  Effective req = raw - round(classStat/K)
     // for STR (weapons), DEF (armor/helmet/shield), and INT (spells) alike.  It shifts only the ACCESS
     // THRESHOLD, never combat power, so the STR/INT mirror holds (equal stats fight identically regardless
     // of class).  Rounds to nearest so every class-stat point pays off uniformly rather than toward a
@@ -342,36 +346,36 @@ public static class CombatFormulas
     public static int ClassAffinityBonus(int classStat) =>
         (int)Math.Round(classStat / ClassAffinityGateDivisor, MidpointRounding.AwayFromZero);
 
-    // Gear equip requirement after the wearer's class head-start.  Data2 is the raw STR (weapon) or DEF
-    // (armor/helmet/shield) requirement.  Floored at 1, matching spells: a Data2=0 piece is a data mistake
-    // (every real item carries a requirement), not a valid "free" case.
-    public static int GearStatRequirement(int data2, int classStat) =>
-        Math.Max(1, data2 - ClassAffinityBonus(classStat));
+    // Gear equip requirement after the wearer's class head-start.  The item's Power is the raw STR
+    // (weapon) or DEF (armor/helmet/shield) requirement.  Floored at 1, matching spells: a Power=0 piece
+    // is a data mistake (every real item carries a requirement), not a valid "free" case.
+    public static int GearStatRequirement(int power, int classStat) =>
+        Math.Max(1, power - ClassAffinityBonus(classStat));
 
-    // Spell INT requirement, the magic-side mirror of GearStatRequirement.  GiveItem gates off Data3
-    // (Data1 is an item ID there).  Floored at 1: a real spell always carries magnitude Data1>=1, so
-    // unlike free gear it keeps a token requirement even for a high-INT class.
+    // Spell INT requirement, the magic-side mirror of GearStatRequirement.  GiveItem gates off its own
+    // IntReq (its ItemNum is an item ID, not a magnitude).  Floored at 1: a real spell always carries
+    // VitalAmount >= 1, so unlike free gear it keeps a token requirement even for a high-INT class.
     private static int RawSpellIntRequirement(SpellRecord spell, int classInt) =>
-        spell.Data1 - ClassAffinityBonus(classInt);
+        spell.VitalAmount - ClassAffinityBonus(classInt);
 
     public static int GetSpellIntRequirement(SpellRecord spell, int classInt) =>
         spell.Type == SpellType.GiveItem
-            ? Math.Max(1, spell.Data3 - ClassAffinityBonus(classInt))
+            ? Math.Max(1, spell.IntReq - ClassAffinityBonus(classInt))
             : Math.Max(1, RawSpellIntRequirement(spell, classInt));
 
-    // The pre-head-start INT requirement a spell is authored with: Data1 for a normal spell (its
-    // magnitude doubles as its gate), Data3 for GiveItem (Data1 is an item ID there).  Pairs with
+    // The pre-head-start INT requirement a spell is authored with: VitalAmount for a normal spell (its
+    // magnitude doubles as its gate), IntReq for GiveItem (which has no magnitude to gate off).  Pairs with
     // GetSpellIntRequirement; the gap between the two is the head-start actually applied, shown as "(-N)".
     public static int RawSpellRequirement(SpellRecord spell) =>
-        spell.Type == SpellType.GiveItem ? spell.Data3 : spell.Data1;
+        spell.Type == SpellType.GiveItem ? spell.IntReq : spell.VitalAmount;
 
     // Cost = (gate + 15)^1.5 / SpellMpCostDivisor, where gate = RawSpellRequirement.  MP cost is a pure
     // function of the value that gates learning the spell, uniform across every spell type, and carries no
     // classInt term so cost stays class-independent (a class-based reduction would be an asymmetric,
     // non-recoverable perk).  Class identity comes from the MaxMP pool and the affinity head-start on the
     // INT gate, not from cost.  Same shifted-quadratic shape as SpellPower, the MaxMp pool, and HP/MP regen.
-    // Sub-quadratic growth keeps low-Data1 spells affordable while high-Data1 spells reach genuinely large
-    // costs (D1=250 → 718 MP at divisor=6) that bite even against endgame pools.  Larger divisor = cheaper.
+    // Sub-quadratic growth keeps weak spells affordable while powerful ones reach genuinely large costs
+    // (VitalAmount=250 → 718 MP at divisor=6) that bite even against endgame pools.  Larger divisor = cheaper.
     private const double SpellMpCostDivisor = 6.0;
     // AddMp/AddSp pay an "undo premium": restoring a vital costs slightly more mana than the SubMp/SubSp
     // drain that took it.  AddHp is excluded — its counterpart SubHp is the caster's reagent-gated trivial-MP
@@ -398,29 +402,29 @@ public static class CombatFormulas
 
     // Reagent consumed per SubHp cast — the magic-side mirror of weapon-repair upkeep, priced in reagents worth
     // 1 gold each.  A warrior's per-SWING upkeep = (gold to repair 1 durability) × (durability actually lost that
-    // swing).  Gold per durability = Data2/10 (ShopSystem: full repair = durNeeded × (Data2/5) / 2).  A swing CHIPS
+    // swing).  Gold per durability = Power/10 (ShopSystem: full repair = durNeeded × (Power/5) / 2).  A swing CHIPS
     // on a rising CHANCE (DurabilityDegradeChancePercent), NOT every hit, so the true durability lost per swing is
     // the swing-weighted average of those chances (~0.48, AvgDurabilityDegradePerHit) — a caster is no more bound to
     // "1 cast = 1 durability cost" than a warrior is to "1 hit = 1 durability".  So reagents/cast =
-    // round(Data1/10 × 0.48) ≈ Data1/21.  Consumption scales with spell power (Data1, the mirror of a weapon's
-    // Data2), never the item's fixed value.  Floored at 1 so every cast carries a token cost.
-    private const double RepairGoldPerDurabilityDivisor = 10.0;   // = ShopSystem ratePerPoint (Data2/5), halved for full repair
-    public static int SubHpReagentCost(int data1) =>
-        Math.Max(1, (int)Math.Round(data1 / RepairGoldPerDurabilityDivisor * AvgDurabilityDegradePerHit(), MidpointRounding.AwayFromZero));
+    // round(VitalAmount/10 × 0.48) ≈ VitalAmount/21.  Consumption scales with spell power (the spell's VitalAmount,
+    // the mirror of a weapon's Power), never the reagent item's fixed value.  Floored at 1 for a token cost.
+    private const double RepairGoldPerDurabilityDivisor = 10.0;   // = ShopSystem ratePerPoint (Power/5), halved for full repair
+    public static int SubHpReagentCost(int vitalAmount) =>
+        Math.Max(1, (int)Math.Round(vitalAmount / RepairGoldPerDurabilityDivisor * AvgDurabilityDegradePerHit(), MidpointRounding.AwayFromZero));
 
     // The wear percent of a normal (non-PK, non-war) death — the basis the caster-death multiplier is
     // calibrated to (a PK/war death passes 20, i.e. double).
     private const int NormalDeathWearPercent = 10;
 
     /// <summary>Reagents a caster destroys on death: the per-cast reagent cost at its tier
-    /// (<paramref name="tierData1"/> = the prepared spell's power, else the strongest known SubHp
-    /// spell's) times <see cref="Constants.CasterDeathReagentMultiplier"/>, scaled by the death's
+    /// (<paramref name="tierVitalAmount"/> = the prepared spell's VitalAmount, else the strongest known
+    /// SubHp spell's) times <see cref="Constants.CasterDeathReagentMultiplier"/>, scaled by the death's
     /// <paramref name="wearPercent"/> (10 normal, 20 PK/war). Priced off the prepared spell independently of
     /// any equipped weapon (whose durability wears separately). Mirrors a warrior's weapon-repair cost at
     /// 1 reagent = 1 gold. 0 when the caster has no offensive tier.</summary>
-    public static int CasterDeathReagentLoss(int tierData1, int wearPercent) =>
-        tierData1 <= 0 ? 0
-            : SubHpReagentCost(tierData1) * Constants.CasterDeathReagentMultiplier * wearPercent / NormalDeathWearPercent;
+    public static int CasterDeathReagentLoss(int tierVitalAmount, int wearPercent) =>
+        tierVitalAmount <= 0 ? 0
+            : SubHpReagentCost(tierVitalAmount) * Constants.CasterDeathReagentMultiplier * wearPercent / NormalDeathWearPercent;
 
     /// <summary>Swing-weighted average durability lost per hit over a full 100%→0% wear cycle: total durability
     /// (100) divided by the hits needed to traverse every condition band (each band's width ÷ its chip chance =
@@ -451,7 +455,7 @@ public static class CombatFormulas
 
     /// <summary>NPC melee damage — unified with the player formula at matched gear.  Equals
     /// <see cref="UnarmedDamage"/> + <see cref="WeaponContribution"/>(Str, Str), i.e. the same
-    /// damage an equivalent-Str player would deal wielding a Data2=Str weapon.  No damage favor;
+    /// damage an equivalent-Str player would deal wielding a Power=Str weapon.  No damage favor;
     /// HP-only favor (in StatFormulas.GetNpcMaxHp) handles the "NPC slightly stronger" feel
     /// without compounding combat-math advantages.</summary>
     public static int NpcMeleeBaseDamage(int str) =>
@@ -460,7 +464,7 @@ public static class CombatFormulas
     /// <summary>NPC spell base magnitude — the center of a symmetric ±10% <see cref="Vary"/> roll, the exact
     /// mirror of <see cref="NpcMeleeBaseDamage"/> on the magic side.  Equals <see cref="SpellPower"/>(Int) +
     /// <see cref="SpellContribution"/>(Int, Int), i.e. the same raw spell power an equivalent-Int player would
-    /// deliver with a Data1=Int spell — and, since spell and melee curves are identical, exactly
+    /// deliver with a VitalAmount=Int spell — and, since spell and melee curves are identical, exactly
     /// <see cref="NpcMeleeBaseDamage"/> evaluated on Int.  No damage favor (HP-only favor handles the NPC bias).</summary>
     public static int NpcSpellBaseMagnitude(int @int) =>
         SpellPower(@int) + SpellContribution(@int, @int);

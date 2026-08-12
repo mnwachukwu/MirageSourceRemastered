@@ -105,9 +105,12 @@ public sealed record EditorSaveItemPacket : IPacket
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("pic")] public short Pic { get; init; }
     [JsonPropertyName("type")] public ItemType Type { get; init; }
-    [JsonPropertyName("data1")] public short Data1 { get; init; }
-    [JsonPropertyName("data2")] public short Data2 { get; init; }
-    [JsonPropertyName("data3")] public short Data3 { get; init; }
+    // Type-specific fields; see ItemRecord for which apply to which ItemType.
+    [JsonPropertyName("durability")] public short Durability { get; init; }
+    [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
+    [JsonPropertyName("spellNum")] public short SpellNum { get; init; }
+    [JsonPropertyName("power")] public short Power { get; init; }
+    [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     // Item restriction flags. See ItemRecord for behavior.
     [JsonPropertyName("nonTradeable")] public bool NonTradeable { get; init; }
     [JsonPropertyName("nonListable")] public bool NonListable { get; init; }
@@ -166,11 +169,13 @@ public sealed record EditorSaveSpellPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorSaveSpell;
     [JsonPropertyName("spellNum")] public int SpellNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
-    [JsonPropertyName("classReq")] public int ClassReq { get; init; }
+    [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     [JsonPropertyName("type")] public SpellType Type { get; init; }
-    [JsonPropertyName("data1")] public short Data1 { get; init; }
-    [JsonPropertyName("data2")] public short Data2 { get; init; }
-    [JsonPropertyName("data3")] public short Data3 { get; init; }
+    // Type-specific fields; see SpellRecord for which apply to which SpellType.
+    [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
+    [JsonPropertyName("itemNum")] public short ItemNum { get; init; }
+    [JsonPropertyName("itemAmount")] public short ItemAmount { get; init; }
+    [JsonPropertyName("intReq")] public short IntReq { get; init; }
 }
 
 public sealed record EditorSaveMapPacket : IPacket
@@ -243,11 +248,13 @@ public sealed record UpdateSpellPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.UpdateSpell;
     [JsonPropertyName("spellNum")] public int SpellNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
-    [JsonPropertyName("classReq")] public int ClassReq { get; init; }
+    [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     [JsonPropertyName("type")] public SpellType Type { get; init; }
-    [JsonPropertyName("data1")] public short Data1 { get; init; }
-    [JsonPropertyName("data2")] public short Data2 { get; init; }
-    [JsonPropertyName("data3")] public short Data3 { get; init; }
+    // Type-specific fields; see SpellRecord for which apply to which SpellType.
+    [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
+    [JsonPropertyName("itemNum")] public short ItemNum { get; init; }
+    [JsonPropertyName("itemAmount")] public short ItemAmount { get; init; }
+    [JsonPropertyName("intReq")] public short IntReq { get; init; }
 }
 
 public sealed record UpdateShopPacket : IPacket
@@ -359,7 +366,7 @@ public sealed record EditorSaveQuestPacket : IPacket
     [JsonPropertyName("reqDef")] public int ReqDef { get; init; }
     [JsonPropertyName("reqSpd")] public int ReqSpd { get; init; }
     [JsonPropertyName("reqInt")] public int ReqInt { get; init; }
-    [JsonPropertyName("reqClass")] public int ReqClass { get; init; }
+    [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     [JsonPropertyName("prereq")] public int PrereqQuest { get; init; }
     [JsonPropertyName("rewExp")] public long RewardExp { get; init; }
     [JsonPropertyName("rewItems")] public List<QuestReward> RewardItems { get; init; } = new();
@@ -386,7 +393,7 @@ public sealed record UpdateQuestPacket : IPacket
     [JsonPropertyName("reqDef")] public int ReqDef { get; init; }
     [JsonPropertyName("reqSpd")] public int ReqSpd { get; init; }
     [JsonPropertyName("reqInt")] public int ReqInt { get; init; }
-    [JsonPropertyName("reqClass")] public int ReqClass { get; init; }
+    [JsonPropertyName("allowedClasses")] public List<short>? AllowedClasses { get; init; }
     [JsonPropertyName("prereq")] public int PrereqQuest { get; init; }
     [JsonPropertyName("rewExp")] public long RewardExp { get; init; }
     [JsonPropertyName("rewItems")] public List<QuestReward> RewardItems { get; init; } = new();

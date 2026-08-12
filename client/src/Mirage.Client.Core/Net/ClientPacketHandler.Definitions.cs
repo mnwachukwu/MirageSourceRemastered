@@ -25,9 +25,11 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 Name = item.Name,
                 Pic = item.Pic,
                 Type = item.Type,
-                Data1 = item.Data1,
-                Data2 = item.Data2,
-                Data3 = item.Data3,
+                Durability = item.Durability,
+                VitalAmount = item.VitalAmount,
+                SpellNum = item.SpellNum,
+                Power = item.Power,
+                AllowedClasses = item.AllowedClasses,
                 NonTradeable = item.NonTradeable,
                 NonListable = item.NonListable,
                 NonMailable = item.NonMailable,
@@ -85,7 +87,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         Description = q.Description,
         Objectives = q.Objectives,   // fresh off the wire — no sharing to guard against
         ReqLevel = q.ReqLevel, ReqStr = q.ReqStr, ReqDef = q.ReqDef, ReqSpd = q.ReqSpd, ReqInt = q.ReqInt,
-        ReqClass = q.ReqClass, PrereqQuest = q.PrereqQuest,
+        AllowedClasses = q.AllowedClasses, PrereqQuest = q.PrereqQuest,
         RewardExp = q.RewardExp, RewardItems = q.RewardItems,
         RepeatRewardExp = q.RepeatRewardExp, RepeatRewardItems = q.RepeatRewardItems,
         GiverNpc = q.GiverNpc, TurnInNpc = q.TurnInNpc, Repeatable = q.Repeatable, Cadence = q.Cadence,
@@ -115,7 +117,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         Description = q.Description,
         Objectives = q.Objectives,   // fresh off the wire — no sharing to guard against
         ReqLevel = q.ReqLevel, ReqStr = q.ReqStr, ReqDef = q.ReqDef, ReqSpd = q.ReqSpd, ReqInt = q.ReqInt,
-        ReqClass = q.ReqClass, PrereqQuest = q.PrereqQuest,
+        AllowedClasses = q.AllowedClasses, PrereqQuest = q.PrereqQuest,
         RewardExp = q.RewardExp, RewardItems = q.RewardItems,
         RepeatRewardExp = q.RepeatRewardExp, RepeatRewardItems = q.RepeatRewardItems,
         GiverNpc = q.GiverNpc, TurnInNpc = q.TurnInNpc, Repeatable = q.Repeatable, Cadence = q.Cadence,
@@ -177,11 +179,12 @@ public sealed partial class ClientPacketHandler : IClientEvents
             _state.SpellDefs[s.Num] = new SpellRecord
             {
                 Name = s.Name,
-                ClassReq = s.ClassReq,
+                AllowedClasses = s.AllowedClasses,
                 Type = s.Type,
-                Data1 = s.Data1,
-                Data2 = s.Data2,
-                Data3 = s.Data3,
+                VitalAmount = s.VitalAmount,
+                ItemNum = s.ItemNum,
+                ItemAmount = s.ItemAmount,
+                IntReq = s.IntReq,
             };
         }
     }
@@ -198,9 +201,11 @@ public sealed partial class ClientPacketHandler : IClientEvents
             Name = p.Name,
             Pic = p.Pic,
             Type = p.Type,
-            Data1 = p.Data1,
-            Data2 = p.Data2,
-            Data3 = p.Data3,
+            Durability = p.Durability,
+            VitalAmount = p.VitalAmount,
+            SpellNum = p.SpellNum,
+            Power = p.Power,
+            AllowedClasses = p.AllowedClasses,
             NonTradeable = p.NonTradeable,
             NonListable = p.NonListable,
             NonMailable = p.NonMailable,
@@ -255,11 +260,12 @@ public sealed partial class ClientPacketHandler : IClientEvents
         _state.SpellDefs[p.SpellNum] = new SpellRecord
         {
             Name = p.Name,
-            ClassReq = p.ClassReq,
+            AllowedClasses = p.AllowedClasses,
             Type = p.Type,
-            Data1 = p.Data1,
-            Data2 = p.Data2,
-            Data3 = p.Data3,
+            VitalAmount = p.VitalAmount,
+            ItemNum = p.ItemNum,
+            ItemAmount = p.ItemAmount,
+            IntReq = p.IntReq,
         };
     }
 
