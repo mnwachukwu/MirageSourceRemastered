@@ -111,14 +111,33 @@ public sealed record SendClassesPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SendClasses;
     [JsonPropertyName("classes")] public ClassData[] Classes { get; init; } = [];
 
-    /// <summary>One selectable class: its name, sprite, and starting stat spread.</summary>
+    /// <summary>One selectable class: its name, sprite, starting stat spread, pitch, and the loadout a
+    /// new character of it would be created with.
+    ///
+    /// <para>The loadout arrives PRE-RENDERED — names and a short detail string, not item numbers. A
+    /// player sitting on the character-create screen has not joined yet, so the client holds no item or
+    /// spell table to resolve numbers against; sending the whole armory to a not-yet-playing connection
+    /// to label four pieces of gear would be absurd. The server has every record to hand and renders the
+    /// same gates character creation will apply, so what the screen shows is what the player gets.</para></summary>
     public sealed record ClassData(
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("sprite")] int Sprite,
         [property: JsonPropertyName("str")] int Str,
         [property: JsonPropertyName("def")] int Def,
         [property: JsonPropertyName("spd")] int Spd,
-        [property: JsonPropertyName("int")] int Int
+        [property: JsonPropertyName("int")] int Int,
+        [property: JsonPropertyName("desc")] string Description = "",
+        [property: JsonPropertyName("worn")] string[]? Worn = null,
+        [property: JsonPropertyName("carried")] string[]? Carried = null,
+        [property: JsonPropertyName("spells")] SpellBrief[]? Spells = null
+    );
+
+    /// <summary>A starting spell as the create screen shows it: what it is and how big, so the choice
+    /// reads as a kit rather than three names.</summary>
+    public sealed record SpellBrief(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("type")] string Type,
+        [property: JsonPropertyName("amount")] int Amount
     );
 }
 

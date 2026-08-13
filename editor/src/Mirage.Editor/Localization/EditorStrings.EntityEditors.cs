@@ -265,6 +265,25 @@ public static partial class EditorStrings
     public const string SpellEditor_TypeName = nameof(SpellEditor_TypeName);        // "Spell"
     public const string SpellEditor_TypeNamePlural = nameof(SpellEditor_TypeNamePlural);  // "Spells"
     public const string ClassEditor_TypeName = nameof(ClassEditor_TypeName);        // "Class"
+
+    // ── Starting loadout ─────────────────────────────────────────────────────
+    // Character creation SKIPS a starting line the class cannot use, so an unusable row produces a
+    // MISSING item and no explanation in-game. The outcome column below is the only place that mistake
+    // is ever visible, which is why it is spelled out per row rather than summarized.
+    public const string ClassEditor_StartItemsLabel = nameof(ClassEditor_StartItemsLabel);
+    public const string ClassEditor_StartSpellsLabel = nameof(ClassEditor_StartSpellsLabel);
+    public const string ClassEditor_StartItemPlaceholder = nameof(ClassEditor_StartItemPlaceholder);
+    public const string ClassEditor_StartSpellPlaceholder = nameof(ClassEditor_StartSpellPlaceholder);
+    public const string ClassEditor_AddStartItem = nameof(ClassEditor_AddStartItem);
+    public const string ClassEditor_AddStartSpell = nameof(ClassEditor_AddStartSpell);
+    public const string ClassEditor_StartWorn = nameof(ClassEditor_StartWorn);
+    public const string ClassEditor_StartCarried = nameof(ClassEditor_StartCarried);
+    public const string ClassEditor_StartSkippedClass = nameof(ClassEditor_StartSkippedClass);
+    public const string ClassEditor_StartSkippedStat = nameof(ClassEditor_StartSkippedStat);
+    public const string ClassEditor_StartSkippedLevel = nameof(ClassEditor_StartSkippedLevel);
+    public const string ClassEditor_StartSpellDetail = nameof(ClassEditor_StartSpellDetail);
+    public const string ClassEditor_LoadoutSummary = nameof(ClassEditor_LoadoutSummary);
+    public const string ClassEditor_StartSkippedWarning = nameof(ClassEditor_StartSkippedWarning);
     public const string ClassEditor_TypeNamePlural = nameof(ClassEditor_TypeNamePlural);  // "Classes"
     public const string ShopEditor_TypeName = nameof(ShopEditor_TypeName);         // "Shop"
     public const string ShopEditor_TypeNamePlural = nameof(ShopEditor_TypeNamePlural);   // "Shops"

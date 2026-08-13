@@ -244,6 +244,21 @@ public sealed class EditorPacketHandler
             .Where(i => _world.Items[i].Type == ItemType.Currency)
             .ToArray();
 
+        // Gate facts for the class editor's starting-loadout tables, from the LIVE world. Only authored
+        // slots are sent — a blank row has nothing to gate and would just pad the payload.
+        var itemGates = Enumerable.Range(1, Constants.MaxItems)
+            .Where(i => !string.IsNullOrEmpty(_world.Items[i].Name))
+            .Select(i => new EditorDataPacket.ItemGate(i, _world.Items[i].Type, _world.Items[i].Power,
+                _world.Items[i].LevelReq,
+                _world.Items[i].AllowedClasses is null ? null : new List<short>(_world.Items[i].AllowedClasses!)))
+            .ToArray();
+        var spellGates = Enumerable.Range(1, Constants.MaxSpells)
+            .Where(i => !string.IsNullOrEmpty(_world.Spells[i].Name))
+            .Select(i => new EditorDataPacket.SpellGate(i, _world.Spells[i].Type, _world.Spells[i].VitalAmount,
+                _world.Spells[i].LevelReq,
+                _world.Spells[i].AllowedClasses is null ? null : new List<short>(_world.Spells[i].AllowedClasses!)))
+            .ToArray();
+
         var npcSizes = new int[Constants.MaxNpcs + 1];
         for (int i = 1; i <= Constants.MaxNpcs; i++) npcSizes[i] = _world.Npcs[i].EffectiveSize;
 
@@ -259,6 +274,8 @@ public sealed class EditorPacketHandler
             Quests = quests,
             Conversations = conversations,
             CurrencyItems = currencyItems,
+            ItemGates = itemGates,
+            SpellGates = spellGates,
             NpcSizes = npcSizes,
         };
     }
@@ -363,6 +380,8 @@ public sealed class EditorPacketHandler
             Def = cls.Def,
             Spd = cls.Spd,
             Int = cls.Int,
+            StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
+            StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
         });
     }
 
@@ -455,6 +474,8 @@ public sealed class EditorPacketHandler
                 {
                     ClassNum = n, Name = cls.Name, Sprite = cls.Sprite,
                     Str = cls.Str, Def = cls.Def, Spd = cls.Spd, Int = cls.Int,
+                    StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
+                    StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
                 };
             }).ToArray(),
         });
@@ -473,6 +494,21 @@ public sealed class EditorPacketHandler
         cls.Def = p.Def;
         cls.Spd = p.Spd;
         cls.Int = p.Int;
+        // Normalized per line on save so a bad state never persists: currency keeps its stack, everything
+        // else is exactly one. Inert lines and duplicate spells are stripped by Normalize below, so what
+        // lands on disk is exactly what character creation will grant.
+        cls.StartingItems = p.StartingItems is null ? null : [.. p.StartingItems.Select(s =>
+        {
+            bool isCurrency = SlotValidation.IsValidItemNum(s.ItemNum)
+                              && _world.Items[s.ItemNum].Type == ItemType.Currency;
+            return new ClassStartingItem
+            {
+                ItemNum = s.ItemNum,
+                Value = isCurrency ? (s.Value < 1 ? (short)1 : s.Value) : (short)0,
+            };
+        })];
+        cls.StartingSpells = p.StartingSpells is null ? null : [.. p.StartingSpells];
+        cls.Normalize();
 
         _bg.Run(_persistence.SaveClassAsync(n, cls), nameof(IPersistenceService.SaveClassAsync));
         _dispatcher.SendToAll(new UpdateClassPacket
@@ -484,6 +520,8 @@ public sealed class EditorPacketHandler
             Def = cls.Def,
             Spd = cls.Spd,
             Int = cls.Int,
+            StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
+            StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
         });
         _logger.LogInformation("Editor saved class #{Num}.", n);
     }

@@ -690,5 +690,19 @@
   "NpcEditor_DropYieldNone": "Sem itens",
   "NpcEditor_DropYield": "{Lines} linha(s), ~{Expected} itens por morte",
   "NpcEditor_DropTableLabel": "Tabela de itens",
-  "NpcEditor_AddDrop": "+ Adicionar item"
+  "NpcEditor_AddDrop": "+ Adicionar item",
+  "ClassEditor_StartItemPlaceholder": "Escolha um item...",
+  "ClassEditor_StartSpellPlaceholder": "Escolha uma magia...",
+  "ClassEditor_StartWorn": "equipado",
+  "ClassEditor_StartCarried": "carregado",
+  "ClassEditor_StartSkippedClass": "IGNORADO - classe errada",
+  "ClassEditor_StartSkippedStat": "IGNORADO - precisa {Need}, a classe tem {Have}",
+  "ClassEditor_StartSkippedLevel": "IGNORADO - precisa do nivel {Level}",
+  "ClassEditor_StartSpellDetail": "{Type}, magnitude {Amount}",
+  "ClassEditor_LoadoutSummary": "{Kept} itens, {Spells} magias, {Skipped} ignorados",
+  "ClassEditor_StartItemsLabel": "Itens iniciais",
+  "ClassEditor_StartSpellsLabel": "Magias iniciais",
+  "ClassEditor_AddStartItem": "+ Adicionar item",
+  "ClassEditor_AddStartSpell": "+ Adicionar magia",
+  "ClassEditor_StartSkippedWarning": "Linhas IGNORADO sao descartadas na criacao: ninguem comeca com algo que nao pode usar."
 }

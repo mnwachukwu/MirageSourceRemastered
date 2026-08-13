@@ -690,5 +690,19 @@
   "NpcEditor_DropYieldNone": "Sin botin",
   "NpcEditor_DropYield": "{Lines} linea(s), ~{Expected} objetos por muerte",
   "NpcEditor_DropTableLabel": "Tabla de botin",
-  "NpcEditor_AddDrop": "+ Anadir botin"
+  "NpcEditor_AddDrop": "+ Anadir botin",
+  "ClassEditor_StartItemPlaceholder": "Elige un objeto...",
+  "ClassEditor_StartSpellPlaceholder": "Elige un hechizo...",
+  "ClassEditor_StartWorn": "equipado",
+  "ClassEditor_StartCarried": "llevado",
+  "ClassEditor_StartSkippedClass": "OMITIDO - clase incorrecta",
+  "ClassEditor_StartSkippedStat": "OMITIDO - necesita {Need}, la clase tiene {Have}",
+  "ClassEditor_StartSkippedLevel": "OMITIDO - necesita nivel {Level}",
+  "ClassEditor_StartSpellDetail": "{Type}, magnitud {Amount}",
+  "ClassEditor_LoadoutSummary": "{Kept} objetos, {Spells} hechizos, {Skipped} omitidos",
+  "ClassEditor_StartItemsLabel": "Objetos iniciales",
+  "ClassEditor_StartSpellsLabel": "Hechizos iniciales",
+  "ClassEditor_AddStartItem": "+ Anadir objeto",
+  "ClassEditor_AddStartSpell": "+ Anadir hechizo",
+  "ClassEditor_StartSkippedWarning": "Las lineas OMITIDO se descartan al crear el personaje: nadie empieza con algo que no puede usar."
 }

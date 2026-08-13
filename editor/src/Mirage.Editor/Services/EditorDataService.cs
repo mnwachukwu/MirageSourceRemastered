@@ -117,6 +117,36 @@ public sealed class EditorDataService
     public EditorDataPacket.NameEntry[]? OnlineConversations { get; private set; }
     // Server-sent set of currency-type item indices (for drop-quantity validation); null when offline.
     private HashSet<int>? _onlineCurrencyItems;
+    // Server-sent gate facts for the class editor's starting loadout; null when offline.
+    private Dictionary<int, EditorDataPacket.ItemGate>? _onlineItemGates;
+    private Dictionary<int, EditorDataPacket.SpellGate>? _onlineSpellGates;
+
+    /// <summary>Everything the starting-loadout gates need about an item, from the LIVE world when
+    /// connected and the offline records otherwise. Never mixes the two: an offline folder can be a
+    /// completely different world from the server, so falling back per-field would produce a gate answer
+    /// that is true of neither.</summary>
+    public (ItemType Type, int Power, short LevelReq, List<short>? AllowedClasses)? ItemGate(int num)
+    {
+        if (num <= 0) return null;
+        if (IsOnline)
+            return _onlineItemGates is not null && _onlineItemGates.TryGetValue(num, out var g)
+                ? (g.Type, g.Power, g.LevelReq, g.AllowedClasses) : null;
+        if (num >= OfflineItems.Length || string.IsNullOrEmpty(OfflineItems[num].Name)) return null;
+        var r = OfflineItems[num];
+        return (r.Type, r.Power, r.LevelReq, r.AllowedClasses);
+    }
+
+    /// <summary>As <see cref="ItemGate"/>, for spells.</summary>
+    public (SpellType Type, short VitalAmount, short LevelReq, List<short>? AllowedClasses)? SpellGate(int num)
+    {
+        if (num <= 0) return null;
+        if (IsOnline)
+            return _onlineSpellGates is not null && _onlineSpellGates.TryGetValue(num, out var g)
+                ? (g.Type, g.VitalAmount, g.LevelReq, g.AllowedClasses) : null;
+        if (num >= OfflineSpells.Length || string.IsNullOrEmpty(OfflineSpells[num].Name)) return null;
+        var r = OfflineSpells[num];
+        return (r.Type, r.VitalAmount, r.LevelReq, r.AllowedClasses);
+    }
 
     public bool IsOnline => OnlineItems != null;
 
@@ -231,6 +261,8 @@ public sealed class EditorDataService
         OnlineQuests = pkt.Quests;
         OnlineConversations = pkt.Conversations;
         _onlineCurrencyItems = new HashSet<int>(pkt.CurrencyItems);
+        _onlineItemGates = pkt.ItemGates.ToDictionary(g => g.Num);
+        _onlineSpellGates = pkt.SpellGates.ToDictionary(g => g.Num);
     }
 
     public void ClearOnline()
@@ -246,6 +278,8 @@ public sealed class EditorDataService
         OnlineQuests = null;
         OnlineConversations = null;
         _onlineCurrencyItems = null;
+        _onlineItemGates = null;
+        _onlineSpellGates = null;
     }
 
     // ── Online name patching (after online save, keeps type-ahead lists fresh) ─

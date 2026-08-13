@@ -96,6 +96,11 @@ public sealed record EditorSaveClassPacket : IPacket
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }
     [JsonPropertyName("int")] public int Int { get; init; }
+    /// <summary>The class's starting loadout. Carries the record types directly, as the NPC drop table
+    /// does — every field on a starting line is authored, so a parallel DTO would only be a second shape
+    /// to keep in step.</summary>
+    [JsonPropertyName("startingItems")] public List<ClassStartingItem>? StartingItems { get; init; }
+    [JsonPropertyName("startingSpells")] public List<int>? StartingSpells { get; init; }
 }
 
 public sealed record EditorSaveItemPacket : IPacket
@@ -236,6 +241,29 @@ public sealed record EditorDataPacket : IPacket
     /// <summary>Indices of the currency-type items, so the editor can validate drop quantities
     /// (currency needs a quantity; other item types ignore it) without fetching every full record.</summary>
     [JsonPropertyName("currencyItems")] public int[] CurrencyItems { get; init; } = [];
+    /// <summary>Just enough of every item and spell to answer "could this class start with it?" — the
+    /// class editor's starting-loadout tables have to evaluate the same equip and learn gates character
+    /// creation will, and those need Power / VitalAmount, LevelReq and the class list.
+    ///
+    /// <para>Sent from the LIVE world rather than read from the editor's offline folder, which may be a
+    /// different world entirely. Same reasoning as <see cref="CurrencyItems"/> above: a narrow projection
+    /// of the facts the editor needs, not every full record.</para></summary>
+    [JsonPropertyName("itemGates")] public ItemGate[] ItemGates { get; init; } = [];
+    [JsonPropertyName("spellGates")] public SpellGate[] SpellGates { get; init; } = [];
+
+    public sealed record ItemGate(
+        [property: JsonPropertyName("num")] int Num,
+        [property: JsonPropertyName("type")] ItemType Type,
+        [property: JsonPropertyName("power")] int Power,
+        [property: JsonPropertyName("levelReq")] short LevelReq,
+        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses);
+
+    public sealed record SpellGate(
+        [property: JsonPropertyName("num")] int Num,
+        [property: JsonPropertyName("type")] SpellType Type,
+        [property: JsonPropertyName("vitalAmount")] short VitalAmount,
+        [property: JsonPropertyName("levelReq")] short LevelReq,
+        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses);
     /// <summary>NPC footprint sizes (EffectiveSize, 1-based; index 0 unused) so the map editor renders +
     /// validates multi-tile spawn footprints without fetching every full NPC record.</summary>
     [JsonPropertyName("npcSizes")] public int[] NpcSizes { get; init; } = [];
@@ -283,6 +311,8 @@ public sealed record UpdateClassPacket : IPacket
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }
     [JsonPropertyName("int")] public int Int { get; init; }
+    [JsonPropertyName("startingItems")] public List<ClassStartingItem>? StartingItems { get; init; }
+    [JsonPropertyName("startingSpells")] public List<int>? StartingSpells { get; init; }
 }
 
 public sealed record EditorAllItemsPacket : IPacket

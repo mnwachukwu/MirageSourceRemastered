@@ -690,5 +690,19 @@
   "NpcEditor_DropYieldNone": "No drops",
   "NpcEditor_DropYield": "{Lines} line(s), ~{Expected} drops per kill",
   "NpcEditor_DropTableLabel": "Drop table",
-  "NpcEditor_AddDrop": "+ Add drop"
+  "NpcEditor_AddDrop": "+ Add drop",
+  "ClassEditor_StartItemPlaceholder": "Pick an item...",
+  "ClassEditor_StartSpellPlaceholder": "Pick a spell...",
+  "ClassEditor_StartWorn": "worn",
+  "ClassEditor_StartCarried": "carried",
+  "ClassEditor_StartSkippedClass": "SKIPPED - wrong class",
+  "ClassEditor_StartSkippedStat": "SKIPPED - needs {Need}, class has {Have}",
+  "ClassEditor_StartSkippedLevel": "SKIPPED - needs level {Level}",
+  "ClassEditor_StartSpellDetail": "{Type}, magnitude {Amount}",
+  "ClassEditor_LoadoutSummary": "{Kept} items, {Spells} spells, {Skipped} skipped",
+  "ClassEditor_StartItemsLabel": "Starting items",
+  "ClassEditor_StartSpellsLabel": "Starting spells",
+  "ClassEditor_AddStartItem": "+ Add item",
+  "ClassEditor_AddStartSpell": "+ Add spell",
+  "ClassEditor_StartSkippedWarning": "Lines marked SKIPPED are silently dropped at character creation - nobody starts with something they cannot use."
 }

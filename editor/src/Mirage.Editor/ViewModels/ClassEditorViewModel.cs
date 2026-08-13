@@ -1,7 +1,9 @@
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Mirage.Editor.Localization;
+using Mirage.Editor.Models;
 using Mirage.Editor.Services;
+using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
@@ -33,6 +35,49 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
     public ClassEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
     {
         HookItems();
+        // Both loadout tables read the live item/spell lists, so an item's currency-ness or a spell's
+        // magnitude flipping under a selected class has to re-raise them.
+        _data.EntriesInvalidated += () => SelectedClass?.NotifyLoadoutDerived();
+    }
+
+    // ── Starting-loadout pickers ─────────────────────────────────────────────
+    // Gate facts come from EditorDataService, which serves the LIVE world's when connected and the
+    // offline records only when it isn't. That distinction matters: the editor's offline folder can be a
+    // different world from the server's, so answering "can this class wear this?" from local files while
+    // connected would validate against gear the server has never heard of.
+
+    /// <summary>Spells THIS class could actually learn at level 1 — the spell picker is restrictive by
+    /// construction rather than permissive-with-a-warning, because a spell a class cannot cast is never
+    /// a legitimate authoring choice (an off-class potion or key genuinely can be).
+    ///
+    /// <para>Asks the same three gates character creation will: the class list, the level gate, and
+    /// <see cref="CombatFormulas.GetSpellIntRequirement"/> against the class's base INT.</para></summary>
+    private NamedEntry[] LearnableSpells(ClassRowViewModel cls)
+    {
+        var result = new List<NamedEntry>();
+        foreach (var entry in _data.LiveSpellEntries)
+        {
+            if (entry.Id <= 0) continue;
+            if (_data.SpellGate(entry.Id) is not { } g) continue;
+            if (g.LevelReq > 1) continue;
+            if (!ClassGate.Allows(g.AllowedClasses, cls.Index)) continue;
+            // Mirrors CombatFormulas.GetSpellIntRequirement for a non-GiveItem spell: the magnitude IS
+            // the raw gate, less the class-affinity head-start, floored at 1.
+            int need = Math.Max(1, g.VitalAmount - CombatFormulas.ClassAffinityBonus(cls.Int));
+            if (need > cls.Int) continue;
+            result.Add(entry);
+        }
+        return [.. result];
+    }
+
+    private void AttachLoadoutProviders(ClassRowViewModel? row) =>
+        row?.AttachProviders(() => _data.LiveItemEntries, _data.ItemGate, _data.SpellGate, LearnableSpells);
+
+    partial void OnSelectedClassChanged(ClassRowViewModel? oldValue, ClassRowViewModel? newValue)
+    {
+        // Wire on selection rather than at construction: rows are built in bulk (and lazily for online
+        // placeholders), and only the selected one ever shows its loadout tables.
+        AttachLoadoutProviders(newValue);
     }
 
     protected override string TypeName => EditorStrings.Get(EditorStrings.ClassEditor_TypeName);

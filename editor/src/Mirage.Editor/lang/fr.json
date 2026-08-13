@@ -690,5 +690,19 @@
   "NpcEditor_DropYieldNone": "Aucun butin",
   "NpcEditor_DropYield": "{Lines} ligne(s), ~{Expected} butins par mise a mort",
   "NpcEditor_DropTableLabel": "Table de butin",
-  "NpcEditor_AddDrop": "+ Ajouter un butin"
+  "NpcEditor_AddDrop": "+ Ajouter un butin",
+  "ClassEditor_StartItemPlaceholder": "Choisir un objet...",
+  "ClassEditor_StartSpellPlaceholder": "Choisir un sort...",
+  "ClassEditor_StartWorn": "equipe",
+  "ClassEditor_StartCarried": "porte",
+  "ClassEditor_StartSkippedClass": "IGNORE - mauvaise classe",
+  "ClassEditor_StartSkippedStat": "IGNORE - exige {Need}, la classe a {Have}",
+  "ClassEditor_StartSkippedLevel": "IGNORE - exige le niveau {Level}",
+  "ClassEditor_StartSpellDetail": "{Type}, magnitude {Amount}",
+  "ClassEditor_LoadoutSummary": "{Kept} objets, {Spells} sorts, {Skipped} ignores",
+  "ClassEditor_StartItemsLabel": "Objets de depart",
+  "ClassEditor_StartSpellsLabel": "Sorts de depart",
+  "ClassEditor_AddStartItem": "+ Ajouter un objet",
+  "ClassEditor_AddStartSpell": "+ Ajouter un sort",
+  "ClassEditor_StartSkippedWarning": "Les lignes IGNORE sont abandonnees a la creation : personne ne commence avec ce qu il ne peut pas utiliser."
 }

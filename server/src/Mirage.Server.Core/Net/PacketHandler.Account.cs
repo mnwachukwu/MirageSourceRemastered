@@ -381,6 +381,7 @@ public sealed partial class PacketHandler
         chr.Hp = StatFormulas.GetPlayerMaxHp(chr, cls);
         chr.Mp = StatFormulas.GetPlayerMaxMp(chr, cls);
         chr.Sp = StatFormulas.GetPlayerMaxSp(chr, cls);
+        GrantStartingLoadout(chr, cls);
 
         // Persist the new character through the per-login chain (a load-merge): it can't race a
         // concurrent write, and the account's other chars, bank, penalty timers, and guild fields are
@@ -393,6 +394,82 @@ public sealed partial class PacketHandler
             Enumerable.Range(1, Constants.MaxChars).Select(i => (PlayerRecord?)sp.Chars[i]),
             _world.Classes));
     }
+
+    /// <summary>Fill a brand-new character's bag and spellbook from its class's authored loadout.
+    ///
+    /// <para>NOBODY STARTS WITH SOMETHING THEY CANNOT USE. An authored line whose gates the class fails
+    /// is SKIPPED, not granted-and-carried: a piece sitting unusable in a new player's bag is a puzzle
+    /// they did not ask for, and the class editor's warning is what should have caught it. Equipment that
+    /// passes arrives already WORN, so nothing requires opening the bag.</para>
+    ///
+    /// <para>Every gate reads the class's BASE stats, which is exactly what the character has at this
+    /// moment. <see cref="CombatFormulas.GearStatRequirement"/> already folds in the class-affinity
+    /// head-start, so this asks precisely the question the equip path would ask a second later.</para></summary>
+    private void GrantStartingLoadout(PlayerRecord chr, ClassRecord cls)
+    {
+        int slot = 1;
+        foreach (var start in cls.StartingItems ?? [])
+        {
+            if (slot > Constants.MaxInv) break;
+            if (!SlotValidation.IsValidItemNum(start.ItemNum)) continue;
+            var item = _world.Items[start.ItemNum];
+            if (string.IsNullOrEmpty(item.Name)) continue;   // an authored reference to a blank slot
+
+            // The level gate applies to equipment AND potions alike (ItemRecord.UsesLevelReq), and a
+            // level-1 character clears only a level-1 line. Currency has no gate at all.
+            if (ItemRecord.UsesLevelReq(item.Type) && item.LevelReq > chr.Level) continue;
+
+            bool equipment = ItemRecord.IsEquipment(item.Type);
+            if (equipment)
+            {
+                if (!ClassGate.Allows(item.AllowedClasses, chr.Class)) continue;
+                if (CombatFormulas.GearStatRequirement(item.Power, ClassStatFor(cls, item.Type))
+                    > PlayerStatFor(chr, item.Type)) continue;
+            }
+
+            chr.Inv[slot].Num = start.ItemNum;
+            // Currency stacks; everything else is exactly one (the engine reads Value only for currency),
+            // so it is normalized here rather than trusted from the record.
+            chr.Inv[slot].Value = item.Type == ItemType.Currency ? Math.Max((short)1, start.Value) : (short)0;
+            chr.Inv[slot].Dur = item.Durability;   // starts pristine
+
+            if (equipment)
+            {
+                switch (item.Type)
+                {
+                    case ItemType.Weapon: chr.WeaponSlot = slot; break;
+                    case ItemType.Armor: chr.ArmorSlot = slot; break;
+                    case ItemType.Helmet: chr.HelmetSlot = slot; break;
+                    case ItemType.Shield: chr.ShieldSlot = slot; break;
+                }
+            }
+            slot++;
+        }
+
+        // Spells are learned outright — no scroll, no study step. The class gate and INT gate are checked
+        // for the same reason the equipment ones are: an authored spell the class could never cast would
+        // sit in the book forever, and the picker that authored it should have prevented that.
+        int spellSlot = 1;
+        foreach (int spellNum in cls.StartingSpells ?? [])
+        {
+            if (spellSlot > Constants.MaxPlayerSpells) break;
+            if (!SlotValidation.IsValidSpellNum(spellNum)) continue;
+            var spell = _world.Spells[spellNum];
+            if (string.IsNullOrEmpty(spell.Name)) continue;
+            if (!ClassGate.Allows(spell.AllowedClasses, chr.Class)) continue;
+            if (spell.LevelReq > chr.Level) continue;
+            if (CombatFormulas.GetSpellIntRequirement(spell, cls.Int) > chr.Int) continue;
+            chr.Spell[spellSlot++] = spellNum;
+        }
+    }
+
+    // Which stat gates which slot — the class BASE for the affinity head-start, the character's CURRENT
+    // for the requirement itself. At creation they are the same number, but keeping the two lookups apart
+    // matches CombatFormulas' own signature and stops the pair being conflated if this is ever reused.
+    private static int ClassStatFor(ClassRecord cls, ItemType type) =>
+        type == ItemType.Weapon ? cls.Str : cls.Def;
+    private static int PlayerStatFor(PlayerRecord chr, ItemType type) =>
+        type == ItemType.Weapon ? chr.Str : chr.Def;
 
     private void HandleDelChar(int index, DelCharPacket p)
     {

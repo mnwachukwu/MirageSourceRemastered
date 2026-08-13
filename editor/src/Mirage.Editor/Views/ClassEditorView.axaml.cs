@@ -57,6 +57,12 @@ public partial class ClassEditorView : LocalizedUserControl
         _fmtCombatMit.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_CombatMit);
         _fmtCombatNote.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_CombatNote);
         _fmtPreviewNote.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_PreviewNote);
+
+        _startItemsLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_StartItemsLabel);
+        _startSpellsLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_StartSpellsLabel);
+        _addStartItemButton.Content = EditorStrings.Get(EditorStrings.ClassEditor_AddStartItem);
+        _addStartSpellButton.Content = EditorStrings.Get(EditorStrings.ClassEditor_AddStartSpell);
+        _startSkippedWarning.Text = EditorStrings.Get(EditorStrings.ClassEditor_StartSkippedWarning);
         _discardButton.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllButton.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveClassButton.Content = EditorStrings.Get(EditorStrings.ClassEditor_SaveClassButton);

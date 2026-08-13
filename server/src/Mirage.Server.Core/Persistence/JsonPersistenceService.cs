@@ -358,6 +358,9 @@ public sealed class JsonPersistenceService : IPersistenceService
         var result = new ClassRecord[Constants.MaxClasses + 1];
         for (int i = 0; i <= Constants.MaxClasses; i++) result[i] = new ClassRecord();
         int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxClasses, ClassFile);
+        // Canonicalize the starting loadout on load (inert lines out, duplicate spells out, caps applied)
+        // so character creation reads one shape and never has to defend against a malformed list.
+        for (int i = 1; i <= Constants.MaxClasses; i++) result[i].Normalize();
         return (result, padded);
     }
 
