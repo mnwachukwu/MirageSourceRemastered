@@ -4,16 +4,30 @@ namespace Mirage.Shared;
 
 public static class ExpFormulas
 {
-    private const double TnlConstant = 950.0;
+    private const double TnlConstant = 500.0;
     private const double TnlExponent = 2.0;
 
     // TNL grows as `level^TnlExponent × TnlConstant`.  With a linear-stat-sum EXP curve and
     // stat budgets growing ~linearly with player level, kills/level scales as L^(TnlExponent − 1):
-    //   1.5  → √L growth  (kills cap around 230 at L=255 — pre-rebalance)
-    //   2.0  → linear in L (~1,800 kills/level at L=200, ~2,200 at L=255 — "thousands at endgame")
+    //   1.5  → √L growth  (kills cap in the low hundreds at L=255 — pre-rebalance)
+    //   2.0  → linear in L ("thousands at endgame")
     //   2.5  → L^1.5 growth (tens of thousands at endgame; brutal grind)
-    // L=1 always costs 950 EXP because 1^anything = 1 — so low-level pacing is unaffected by
-    // bumping the exponent; only mid-late game gets the "modern MMO" grind shape.
+    // L=1 always costs exactly TnlConstant because 1^anything = 1 — so low-level pacing is
+    // unaffected by bumping the EXPONENT; only mid-late game gets the "modern MMO" grind shape.
+    //
+    // THE TWO KNOBS DO DIFFERENT JOBS and it is easy to reach for the wrong one.  The exponent
+    // BENDS the curve — it changes how the road is distributed across levels.  The constant SCALES
+    // it: TNL is linear in TnlConstant, so kills/level and total wall-clock scale with it exactly
+    // and nothing else moves.  Time-to-kill, the share of the road below level 127, and "reaching
+    // 100 is ~6% of the way to 255" are all identical at any constant.  So the constant is the
+    // right knob for wall-clock — and mob stats are NOT, because they also feed ExpForKill and
+    // expected TTK and would move three things while you were aiming at one.
+    //
+    // 950 → 500, 2026-08-13.  Level-matching the bestiary (mobs had been running 2.4–3.85× over
+    // their label) cut each kill's reward harder than it cut the kill's duration, so the road to
+    // 255 nearly doubled — 3,713h → 7,106h of pure killing — without any fight getting longer.
+    // 500 restores the settled wall-clock (3,741h, within 1%) and keeps the shorter fights.
+    // Re-measure with .Tools/Simulations/ExpCurve/exp-curve.cs, which takes --matched and --tnl=N.
     public static long TnlForLevel(int level) =>
         (long)Math.Round(Math.Pow(level, TnlExponent) * TnlConstant, MidpointRounding.AwayFromZero);
 
