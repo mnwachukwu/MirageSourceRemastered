@@ -412,6 +412,8 @@
                 <TextBlock x:Name="_fmtCombatPDmg" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                 <TextBlock x:Name="_fmtCombatMDmg" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                 <TextBlock x:Name="_fmtCombatMit" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <!-- The floor is Boss-dependent, so an author ticking that box needs to know what it changes. -->
+                <TextBlock x:Name="_fmtCombatFloor" TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
               </StackPanel>
               <TextBlock x:Name="_fmtCombatNote" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
 

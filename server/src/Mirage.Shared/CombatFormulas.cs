@@ -42,6 +42,13 @@ public static class CombatFormulas
     // hybrid whose raw sits under a tanky mob's mitigation would otherwise collapse to the 12% floor
     // and grind roughly 10x a pure's kill time. Pures are unaffected (raw already exceeds mit).
     public const double PveMinDamageFloorPercent = 0.35;
+    // A BOSS hitting a player floors higher than an ordinary mob. Reason: a dedicated tank's mitigation
+    // outgrows NPC damage at every level — a level-255 Knight sits on 1898 MIT against a boss's 1385 raw —
+    // so every boss hit lands on the floor and nothing about the fight can pressure the tank. Raising the
+    // floor for bosses alone restores that pressure while touching nobody else: the floor only binds when
+    // mitigation already exceeds ~81% of raw, which is exactly and only a tank. A squishy player's
+    // raw-minus-mitigation is above the floor either way and sees no change at all.
+    public const double BossMinDamageFloorPercent = 0.19;
     // Players deal half damage to each other, so PvP is markedly more survivable than PvE at equal level.
     public const double PvpDamageMultiplier = 0.5;
 
@@ -167,6 +174,12 @@ public static class CombatFormulas
     /// between sites.  <paramref name="variedRaw"/> is the post-Vary (and post-crit) attack amount; block/dodge
     /// fully negate BEFORE this and never call in.</summary>
     public static int ResolveDamage(int variedRaw, int protection) => ResolveDamage(variedRaw, protection, 1.0, MinDamageFloorPercent);
+
+    /// <summary>An NPC's hit on a player, floored by <see cref="BossMinDamageFloorPercent"/> when the
+    /// attacker is a boss and <see cref="MinDamageFloorPercent"/> otherwise. Every NPC-to-player melee and
+    /// spell path routes through here so the boss floor can't apply on some swings and not others.</summary>
+    public static int ResolveNpcVsPlayerDamage(int variedRaw, int protection, bool isBoss) =>
+        ResolveDamage(variedRaw, protection, 1.0, isBoss ? BossMinDamageFloorPercent : MinDamageFloorPercent);
 
     public static int ResolveDamage(int variedRaw, int protection, double damageMultiplier) =>
         ResolveDamage(variedRaw, protection, damageMultiplier, MinDamageFloorPercent);

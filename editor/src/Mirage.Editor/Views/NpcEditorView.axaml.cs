@@ -103,6 +103,7 @@ public partial class NpcEditorView : LocalizedUserControl
         _fmtCombatPDmg.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_CombatPDmg);
         _fmtCombatMDmg.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_CombatMDmg);
         _fmtCombatMit.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_CombatMit);
+        _fmtCombatFloor.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_CombatFloor);
         _fmtCombatNote.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_CombatNote);
 
         _fmtExpHeader.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_ExpHeader);

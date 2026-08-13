@@ -140,12 +140,12 @@ public sealed partial class CombatSystem : GameSystem
             mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
             int raw = CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str));
             int crit = CombatFormulas.CritDamage(raw);
-            damage = CombatFormulas.ResolveDamage(crit, prot);
+            damage = CombatFormulas.ResolveNpcVsPlayerDamage(crit, prot, npcRec.IsBoss);
             SendMsg(victimIndex, ServerStrings.CombatSystem_NpcSwingsMight, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
         }
         else
         {
-            damage = CombatFormulas.ResolveDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot);
+            damage = CombatFormulas.ResolveNpcVsPlayerDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot, npcRec.IsBoss);
         }
 
         mapNpc.AttackTimer = now;
@@ -244,12 +244,12 @@ public sealed partial class CombatSystem : GameSystem
             mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
             int raw = CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str));
             int crit = CombatFormulas.CritDamage(raw);
-            damage = CombatFormulas.ResolveDamage(crit, prot);
+            damage = CombatFormulas.ResolveNpcVsPlayerDamage(crit, prot, npcRec.IsBoss);
             SendMsg(victimIndex, ServerStrings.CombatSystem_NpcSwingsMight, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
         }
         else
         {
-            damage = CombatFormulas.ResolveDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot);
+            damage = CombatFormulas.ResolveNpcVsPlayerDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot, npcRec.IsBoss);
         }
         ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: false);
     }
@@ -310,12 +310,12 @@ public sealed partial class CombatSystem : GameSystem
         {
             mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
             int crit = CombatFormulas.CritDamage(magnitude);
-            damage = CombatFormulas.ResolveDamage(crit, prot);
+            damage = CombatFormulas.ResolveNpcVsPlayerDamage(crit, prot, npcRec.IsBoss);
             SendMsg(victimIndex, ServerStrings.CombatSystem_NpcCastsForce, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
         }
         else
         {
-            damage = CombatFormulas.ResolveDamage(magnitude, prot);
+            damage = CombatFormulas.ResolveNpcVsPlayerDamage(magnitude, prot, npcRec.IsBoss);
         }
 
         mapNpc.Mp -= mpCost;

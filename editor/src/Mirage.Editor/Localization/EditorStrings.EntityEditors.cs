@@ -105,6 +105,7 @@ public static partial class EditorStrings
     public const string NpcEditor_Formula_CombatPDmg = nameof(NpcEditor_Formula_CombatPDmg);
     public const string NpcEditor_Formula_CombatMDmg = nameof(NpcEditor_Formula_CombatMDmg);
     public const string NpcEditor_Formula_CombatMit = nameof(NpcEditor_Formula_CombatMit);
+    public const string NpcEditor_Formula_CombatFloor = nameof(NpcEditor_Formula_CombatFloor);
     public const string NpcEditor_Formula_CombatNote = nameof(NpcEditor_Formula_CombatNote);
     public const string NpcEditor_Formula_ExpHeader = nameof(NpcEditor_Formula_ExpHeader);
     public const string NpcEditor_Formula_ExpLine1 = nameof(NpcEditor_Formula_ExpLine1);

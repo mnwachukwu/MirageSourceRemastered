@@ -450,6 +450,7 @@
   "NpcEditor_Formula_CombatPDmg": "P-DMG = UnarmedDamage(STR) + WeaponContribution(STR, STR)",
   "NpcEditor_Formula_CombatMDmg": "M-DMG = SpellPower(INT) + SpellContribution(INT, INT)   (mirror of P-DMG, off INT)",
   "NpcEditor_Formula_CombatMit": "MIT = NpcProtection(DEF) = PlayerProtection(DEF) + 2 x GearMitigation(DEF, DEF)   (one axis: resists P-DMG and M-DMG alike)",
+  "NpcEditor_Formula_CombatFloor": "Damage taken = max(raw - MIT, raw x floor). The floor means mitigation is never immunity: 12% for an ordinary NPC, 19% when Boss is ticked. It only binds once MIT has eaten ~81% of the raw -- in practice only a dedicated tank, whose mitigation outgrows NPC damage at every level. Against anyone else subtraction wins and the Boss flag changes nothing about damage dealt.",
   "NpcEditor_Formula_CombatNote": "NPCs use the exact same combat helpers as players, at matched implicit gear (Power = stat). STR and INT are mirror offense stats and DEF is the single defense axis, so P-DMG and M-DMG share one curve and one MIT resists both. No damage or mit favor -- HP-only favor handles the ‘NPC slightly stronger’ feel. Each hit rolls a symmetric +/-10% (the same Vary as melee). MP cost scales with the cast magnitude, and a caster’s MP pool is sized to outlast a full fight against an equal-level foe.",
   "NpcEditor_Formula_ExpHeader": "EXP Drop",
   "NpcEditor_Formula_ExpLine1": "EXP = max((STR + DEF + INT) × 30 + baseHp + Extra HP × 2, 1)",
