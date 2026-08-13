@@ -685,5 +685,10 @@
   "EditorConnection_UnexpectedResponse": "Respuesta inesperada del servidor.",
   "EditorConnection_ClosedBeforeData": "El servidor cerró la conexión antes de enviar los datos.",
   "EditorConnection_ExpectedDataPacket": "Se esperaba un paquete de datos de editor del servidor.",
-  "TilePalette_NoTileset": "No hay ningún tileset cargado."
+  "TilePalette_NoTileset": "No hay ningún tileset cargado.",
+  "NpcEditor_DropItemPlaceholder": "Elige un objeto...",
+  "NpcEditor_DropYieldNone": "Sin botin",
+  "NpcEditor_DropYield": "{Lines} linea(s), ~{Expected} objetos por muerte",
+  "NpcEditor_DropTableLabel": "Tabla de botin",
+  "NpcEditor_AddDrop": "+ Anadir botin"
 }

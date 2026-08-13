@@ -83,7 +83,7 @@ public class EditorLiveBroadcastTests
         h.Save(new EditorSaveNpcPacket
         {
             NpcNum = 4, Name = "Guard", Sprite = 21, Size = 1, Behavior = NpcBehavior.Stationary,
-            SpawnSecs = 30, Spd = 17, EmitsLight = true, DropItem = 0,
+            SpawnSecs = 30, Spd = 17, EmitsLight = true, Drops = null,
         });
 
         var u = h.Dispatcher.OneBroadcast<UpdateNpcPacket>();

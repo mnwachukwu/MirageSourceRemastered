@@ -685,5 +685,10 @@
   "EditorConnection_UnexpectedResponse": "Resposta inesperada do servidor.",
   "EditorConnection_ClosedBeforeData": "O servidor fechou a conexão antes de enviar os dados.",
   "EditorConnection_ExpectedDataPacket": "Era esperado um pacote de dados de editor vindo do servidor.",
-  "TilePalette_NoTileset": "Nenhum tileset carregado."
+  "TilePalette_NoTileset": "Nenhum tileset carregado.",
+  "NpcEditor_DropItemPlaceholder": "Escolha um item...",
+  "NpcEditor_DropYieldNone": "Sem itens",
+  "NpcEditor_DropYield": "{Lines} linha(s), ~{Expected} itens por morte",
+  "NpcEditor_DropTableLabel": "Tabela de itens",
+  "NpcEditor_AddDrop": "+ Adicionar item"
 }

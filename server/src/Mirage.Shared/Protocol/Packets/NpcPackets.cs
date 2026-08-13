@@ -149,9 +149,7 @@ public sealed record UpdateNpcPacket : IPacket
     [JsonPropertyName("group")] public int Group { get; init; }
     [JsonPropertyName("spawnSecs")] public int SpawnSecs { get; init; }
     [JsonPropertyName("range")] public int Range { get; init; }
-    [JsonPropertyName("dropChance")] public short DropChance { get; init; }
-    [JsonPropertyName("dropItem")] public int DropItem { get; init; }
-    [JsonPropertyName("dropValue")] public short DropValue { get; init; }
+    [JsonPropertyName("drops")] public List<NpcDrop>? Drops { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }

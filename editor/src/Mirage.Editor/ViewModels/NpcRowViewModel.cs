@@ -1,5 +1,7 @@
+using System.Collections.ObjectModel;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Models;
 using Mirage.Shared;
@@ -34,12 +36,16 @@ public sealed partial class NpcRowViewModel : ObservableObject
     [ObservableProperty] private int _group;
     /// <summary>Aggro / sight radius in tiles.</summary>
     [ObservableProperty] private int _range;
-    /// <summary>Percent chance to drop <see cref="DropItem"/> on death (0 = never, >= 100 = always).</summary>
-    [ObservableProperty] private short _dropChance;
-    /// <summary>Item slot dropped on death (0 = none).</summary>
-    [ObservableProperty] private int _dropItem;
-    /// <summary>Quantity of <see cref="DropItem"/> dropped.</summary>
-    [ObservableProperty] private short _dropItemValue;
+    /// <summary>This NPC's drop table — zero or more lines, each rolled independently on a kill. Replaces
+    /// the old single DropChance/DropItem/DropItemValue triple; an empty table means "drops nothing",
+    /// which is an ordinary state for trash rather than a misconfiguration.</summary>
+    public ObservableCollection<NpcDropRowViewModel> Drops { get; } = [];
+
+    // Supplied by the editor VM so a drop row can render an item picker. Defaulted rather than required
+    // so the many plain `new NpcRowViewModel(i, record)` sites (and the tests) keep working — a row
+    // constructed without them still round-trips its drops, it just cannot offer a picker.
+    private Func<NamedEntry[]> _itemEntriesProvider = static () => [];
+    private Func<int, bool> _isCurrency = static _ => false;
     [ObservableProperty] private int _str;
     [ObservableProperty] private int _def;
     [ObservableProperty] private int _spd;
@@ -118,19 +124,91 @@ public sealed partial class NpcRowViewModel : ObservableObject
     public int SpRegen => StatFormulas.GetNpcSpRegen(Spd);
     /// <summary>EXP a player of <see cref="PreviewLevel"/> would earn for the kill.</summary>
     public int ExpDrop => ExpFormulas.EstimatedExpVsLevel(Str, Def, Int, Spd, ExtraHp, PreviewLevel ?? 0);
-    // DropChance is a direct percent: 0 = never, >= 100 = always, otherwise the value itself.
-    /// <summary>Drop chance as display text ("never" / "always" / "N%").</summary>
-    public string DropChancePct => DropChance <= 0 ? EditorStrings.Get(EditorStrings.NpcEditor_DropChanceNever)
-                                 : DropChance >= 100 ? EditorStrings.Get(EditorStrings.NpcEditor_DropChanceAlways)
-                                 : $"{DropChance}%";
-    // Non-blocking authoring guard: flag a half-configured drop (chance without item, or item without chance).
-    /// <summary>Warning text for a half-configured drop; empty when the pair is consistent.</summary>
+    /// <summary>Expected drops per kill — the SUM of the live chances, because the lines roll
+    /// independently rather than competing. Shown because that sum is the one number a table can get
+    /// quietly wrong: four 50% lines read as "all uncommon" but average two drops a kill.</summary>
+    public string DropYieldText
+    {
+        get
+        {
+            int live = Drops.Count(d => !d.IsEmpty);
+            if (live == 0) return EditorStrings.Get(EditorStrings.NpcEditor_DropYieldNone);
+            double expected = Drops.Where(d => !d.IsEmpty).Sum(d => Math.Min(100, d.Chance) / 100.0);
+            return EditorStrings.Format(EditorStrings.NpcEditor_DropYield, ("Lines", live), ("Expected", $"{expected:n2}"));
+        }
+    }
+
+    // Non-blocking authoring guard: a row naming an item that can never land is almost always a slip.
+    /// <summary>Warning text for half-configured drop rows; empty when every row is consistent.</summary>
     public string DropConfigWarning =>
-        DropChance > 0 && DropItem <= 0 ? EditorStrings.Get(EditorStrings.NpcEditor_DropWarnChanceNoItem)
-      : DropItem > 0 && DropChance <= 0 ? EditorStrings.Get(EditorStrings.NpcEditor_DropWarnItemNoChance)
+        Drops.Any(d => d.ItemNum > 0 && d.Chance <= 0) ? EditorStrings.Get(EditorStrings.NpcEditor_DropWarnItemNoChance)
+      : Drops.Any(d => d.ItemNum <= 0 && d.Chance > 0) ? EditorStrings.Get(EditorStrings.NpcEditor_DropWarnChanceNoItem)
       : string.Empty;
     /// <summary>Whether to show the drop-configuration warning.</summary>
     public bool HasDropConfigWarning => DropConfigWarning.Length > 0;
+
+    /// <summary>Wire the item-picker providers after construction (the editor VM owns the live item
+    /// list). Rebuilds the existing rows so any already loaded pick up the picker.</summary>
+    public void AttachItemProviders(Func<NamedEntry[]> entries, Func<int, bool> isCurrency)
+    {
+        _itemEntriesProvider = entries;
+        _isCurrency = isCurrency;
+        foreach (var d in Drops) d.NotifyEntriesChanged();
+    }
+
+    /// <summary>Re-raise the picker-dependent bindings on every drop row (the item list changed).</summary>
+    public void NotifyDropEntriesChanged()
+    {
+        foreach (var d in Drops) d.NotifyEntriesChanged();
+    }
+
+    private void LoadDrops(List<NpcDrop>? drops)
+    {
+        foreach (var d in Drops) d.PropertyChanged -= OnDropRowChanged;
+        Drops.Clear();
+        if (drops is null) { NotifyDropDerived(); return; }
+        for (int i = 0; i < drops.Count && i < Constants.MaxNpcDrops; i++)
+        {
+            var row = new NpcDropRowViewModel(i + 1, drops[i], () => _itemEntriesProvider(), n => _isCurrency(n));
+            row.PropertyChanged += OnDropRowChanged;
+            Drops.Add(row);
+        }
+        NotifyDropDerived();
+    }
+
+    private void OnDropRowChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (!_loading) MarkDirty();
+        NotifyDropDerived();
+    }
+
+    private void NotifyDropDerived()
+    {
+        OnPropertyChanged(nameof(DropYieldText));
+        OnPropertyChanged(nameof(DropConfigWarning));
+        OnPropertyChanged(nameof(HasDropConfigWarning));
+    }
+
+    /// <summary>Add an empty drop row, up to <see cref="Constants.MaxNpcDrops"/>.</summary>
+    [RelayCommand]
+    private void AddDrop()
+    {
+        if (Drops.Count >= Constants.MaxNpcDrops) return;
+        var row = new NpcDropRowViewModel(Drops.Count + 1, new NpcDrop(), () => _itemEntriesProvider(), n => _isCurrency(n));
+        row.PropertyChanged += OnDropRowChanged;
+        Drops.Add(row);
+        MarkDirty();
+        NotifyDropDerived();
+    }
+
+    /// <summary>Remove a drop row.</summary>
+    [RelayCommand]
+    private void RemoveDrop(NpcDropRowViewModel row)
+    {
+        row.PropertyChanged -= OnDropRowChanged;
+        if (Drops.Remove(row)) MarkDirty();
+        NotifyDropDerived();
+    }
     // Combat chances — require SP > 0 at runtime; show stat-derived maximum here
     public string CritChancePct => CombatFormulas.FormatPerMilleAsPercent(CombatFormulas.NpcCriticalChancePerMille(Str));
     public string SpellCritChancePct => CombatFormulas.FormatPerMilleAsPercent(CombatFormulas.NpcSpellCriticalChancePerMille(Int));
@@ -160,9 +238,7 @@ public sealed partial class NpcRowViewModel : ObservableObject
         _behavior = r.Behavior;
         _group = r.Group;
         _range = r.Range;
-        _dropChance = r.DropChance;
-        _dropItem = r.DropItem;
-        _dropItemValue = r.DropItemValue;
+        LoadDrops(r.Drops);
         _str = r.Str;
         _def = r.Def;
         _spd = r.Spd;
@@ -191,23 +267,8 @@ public sealed partial class NpcRowViewModel : ObservableObject
     partial void OnBehaviorChanged(NpcBehavior value) => MarkDirty();
     partial void OnGroupChanged(int value) => MarkDirty();
     partial void OnRangeChanged(int value) => MarkDirty();
-    partial void OnDropChanceChanged(short value)
-    {
-        MarkDirty();
-        OnPropertyChanged(nameof(DropChancePct));
-        NotifyDropWarning();
-    }
-    partial void OnDropItemChanged(int value)
-    {
-        MarkDirty();
-        NotifyDropWarning();
-    }
-    partial void OnDropItemValueChanged(short value) => MarkDirty();
-    private void NotifyDropWarning()
-    {
-        OnPropertyChanged(nameof(DropConfigWarning));
-        OnPropertyChanged(nameof(HasDropConfigWarning));
-    }
+    // Drop changes arrive through OnDropRowChanged (subscribed per row) rather than generated partials,
+    // since the table is a collection rather than three scalar properties.
     // Every stat feeds NpcLevel (SPD included), which drives the HP/MP pools, mitigation, EXP, and the Level
     // readout — so a change to ANY stat refreshes this shared set (each handler adds its own stat-specific extras).
     private void NotifyLevelDerived()
@@ -308,9 +369,7 @@ public sealed partial class NpcRowViewModel : ObservableObject
             Behavior = r.Behavior;
             Group = r.Group;
             Range = r.Range;
-            DropChance = r.DropChance;
-            DropItem = r.DropItem;
-            DropItemValue = r.DropItemValue;
+            LoadDrops(r.Drops);
             Str = r.Str;
             Def = r.Def;
             Spd = r.Spd;
@@ -346,9 +405,7 @@ public sealed partial class NpcRowViewModel : ObservableObject
             Behavior = pkt.Behavior;
             Group = pkt.Group;
             Range = pkt.Range;
-            DropChance = pkt.DropChance;
-            DropItem = pkt.DropItem;
-            DropItemValue = pkt.DropValue;
+            LoadDrops(pkt.Drops);
             Str = pkt.Str;
             Def = pkt.Def;
             Spd = pkt.Spd;
@@ -382,9 +439,9 @@ public sealed partial class NpcRowViewModel : ObservableObject
         Behavior = Behavior,
         Group = Group,
         Range = Range,
-        DropChance = DropChance,
-        DropItem = DropItem,
-        DropItemValue = DropItemValue,
+        // Empty rows are dropped here as well as server-side, so an offline save and an online save
+        // produce the same file.
+        Drops = Drops.Count == 0 ? null : [.. Drops.Where(d => !d.IsEmpty).Select(d => d.ToRecord())],
         Str = Str,
         Def = Def,
         Spd = Spd,
@@ -408,9 +465,7 @@ public sealed partial class NpcRowViewModel : ObservableObject
         Behavior = Behavior,
         Group = Group,
         Range = Range,
-        DropChance = DropChance,
-        DropItem = DropItem,
-        DropValue = DropItemValue,
+        Drops = Drops.Count == 0 ? null : [.. Drops.Where(d => !d.IsEmpty).Select(d => d.ToRecord())],
         Str = Str,
         Def = Def,
         Spd = Spd,

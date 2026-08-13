@@ -316,7 +316,14 @@ public sealed class JsonPersistenceService : IPersistenceService
         // Size 0 ("not defined" in a legacy or blank record) normalizes to the 1x1 default so the whole
         // server and the editor see a valid footprint class. Sentinel handling, not a data migration.
         for (int i = 1; i <= Constants.MaxNpcs; i++)
+        {
             if (result[i].Size < 1) result[i].Size = 1;
+            // THIS one IS a data migration: it folds a pre-table record's single DropChance/DropItem/
+            // DropItemValue into Drops, so every reader downstream sees one shape. Runs on load rather
+            // than at editor-save like items and spells, because an NPC authored before the table has to
+            // work on a server nobody has opened the editor against.
+            result[i].Normalize();
+        }
         return (result, padded);
     }
 

@@ -685,5 +685,10 @@
   "EditorConnection_UnexpectedResponse": "Unexpected response from server.",
   "EditorConnection_ClosedBeforeData": "Server closed connection before sending data.",
   "EditorConnection_ExpectedDataPacket": "Expected editor data packet from server.",
-  "TilePalette_NoTileset": "No tileset loaded."
+  "TilePalette_NoTileset": "No tileset loaded.",
+  "NpcEditor_DropItemPlaceholder": "Pick an item...",
+  "NpcEditor_DropYieldNone": "No drops",
+  "NpcEditor_DropYield": "{Lines} line(s), ~{Expected} drops per kill",
+  "NpcEditor_DropTableLabel": "Drop table",
+  "NpcEditor_AddDrop": "+ Add drop"
 }

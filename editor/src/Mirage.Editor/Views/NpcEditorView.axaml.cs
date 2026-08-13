@@ -40,9 +40,10 @@ public partial class NpcEditorView : LocalizedUserControl
         _lightFlickerLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_LightFlickerLabel);
         _groupLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_GroupLabel);
         _rangeLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_RangeLabel);
-        _dropChanceLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropChanceLabel);
-        _dropItemLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropItemLabel);
-        _dropValueLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropValueLabel);
+        // One label for the whole table now, plus the add-row button. The per-field labels the single
+        // drop had (chance / item / quantity) are column positions in the table instead.
+        _dropTableLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropTableLabel);
+        _addDropButton.Content = EditorStrings.Get(EditorStrings.NpcEditor_AddDrop);
 
         _strLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_StrLabel);
         _defLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DefLabel);
@@ -83,7 +84,8 @@ public partial class NpcEditorView : LocalizedUserControl
 
         _formulaNotesHeader.Text = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
 
-        _dropItemPicker.PlaceholderText = EditorStrings.Get(EditorStrings.NpcEditor_DropItemSearchPlaceholder);
+        // The drop-item picker is per-ROW now, so its placeholder is bound through
+        // NpcDropRowViewModel.ItemPlaceholder rather than set once on a single control here.
 
         _fmtVitalsHeader.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_VitalsHeader);
         _fmtVitalsBaseHp.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_VitalsBaseHp);

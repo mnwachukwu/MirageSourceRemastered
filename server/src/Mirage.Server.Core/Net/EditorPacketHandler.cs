@@ -288,9 +288,7 @@ public sealed class EditorPacketHandler
             Behavior = npc.Behavior,
             Group = npc.Group,
             Range = npc.Range,
-            DropChance = npc.DropChance,
-            DropItem = npc.DropItem,
-            DropValue = npc.DropItemValue,
+            Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
             Str = npc.Str,
             Def = npc.Def,
             Spd = npc.Spd,
@@ -392,8 +390,7 @@ public sealed class EditorPacketHandler
                     NpcNum = n, Name = npc.Name, AttackSay = npc.AttackSay,
                     Sprite = npc.Sprite, Size = npc.EffectiveSize, SpawnSecs = npc.SpawnSecs,
                     Behavior = npc.Behavior, Group = npc.Group, Range = npc.Range,
-                    DropChance = npc.DropChance, DropItem = npc.DropItem,
-                    DropValue = npc.DropItemValue,
+                    Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
                     Str = npc.Str, Def = npc.Def, Spd = npc.Spd, Int = npc.Int,
                     ExtraHp = npc.ExtraHp,
                     IsBoss = npc.IsBoss,
@@ -540,13 +537,21 @@ public sealed class EditorPacketHandler
         npc.Behavior = p.Behavior;
         npc.Group = p.Group;
         npc.Range = p.Range;
-        npc.DropChance = p.DropChance;
-        npc.DropItem = p.DropItem;
-        // Drop quantity only matters for currency drops; the runtime ignores it for every other item type.
-        // Normalize on save so a bad state never persists: no item -> 0, currency -> at least 1, non-currency -> 0.
-        bool dropIsCurrency = p.DropItem > 0 && p.DropItem <= Constants.MaxItems
-                              && _world.Items[p.DropItem].Type == ItemType.Currency;
-        npc.DropItemValue = dropIsCurrency ? (p.DropValue < 1 ? (short)1 : p.DropValue) : (short)0;
+        // Drop table. Value only matters for a CURRENCY line; the runtime ignores it for every other item
+        // type. Normalized per line on save so a bad state never persists: currency -> at least 1,
+        // anything else -> 0. Lines naming no item are dropped by npc.Normalize() below, along with the
+        // legacy single-drop fields, so what lands on disk is exactly what the roller reads.
+        npc.Drops = p.Drops is null ? null : [.. p.Drops.Select(d =>
+        {
+            bool isCurrency = d.ItemNum > 0 && d.ItemNum <= Constants.MaxItems
+                              && _world.Items[d.ItemNum].Type == ItemType.Currency;
+            return new NpcDrop
+            {
+                ItemNum = d.ItemNum,
+                Chance = d.Chance,
+                Value = isCurrency ? (d.Value < 1 ? (short)1 : d.Value) : (short)0,
+            };
+        })];
         npc.Str = p.Str;
         npc.Def = p.Def;
         npc.Spd = p.Spd;
@@ -555,6 +560,10 @@ public sealed class EditorPacketHandler
         npc.IsBoss = p.IsBoss;
         npc.EmitsLight = p.EmitsLight;
         npc.Light = p.Light;
+        // Canonicalize before persisting: drops inert lines, caps the table, and collapses an empty list
+        // to null. Mirrors item.Normalize() / spell.Normalize() on their save paths — a saved file should
+        // say exactly what the roller will read.
+        npc.Normalize();
 
         _bg.Run(_persistence.SaveNpcAsync(n, npc), nameof(IPersistenceService.SaveNpcAsync));
         _dispatcher.SendToAll(BuildUpdateNpc(n));
@@ -578,9 +587,7 @@ public sealed class EditorPacketHandler
             Behavior = npc.Behavior,
             Group = npc.Group,
             Range = npc.Range,
-            DropChance = npc.DropChance,
-            DropItem = npc.DropItem,
-            DropValue = npc.DropItemValue,
+            Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
             Str = npc.Str,
             Def = npc.Def,
             Spd = npc.Spd,

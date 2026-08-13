@@ -51,6 +51,9 @@ public static class Constants
     // the other record editors, so a cap bounds the slot list. 1000 mirrors the other record families
     // (items/npcs/shops/spells).
     public const int MaxMapGroups = 1000;
+    // Lines in one NPC's drop table. Every line rolls independently on a kill, so this is a backstop
+    // against a runaway table burying a tile in loot, not a design target — most NPCs want 0-3.
+    public const int MaxNpcDrops = 8;
     public const int MaxInv = 50;
     public const int MaxBankSlots = 100;
     public const int MaxMapItems = 20;

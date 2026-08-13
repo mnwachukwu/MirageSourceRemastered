@@ -183,35 +183,49 @@
                            Minimum="0" Maximum="255" FormatString="0"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_dropChanceLabel" Grid.Column="0" VerticalAlignment="Center"/>
-            <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedNpc.DropChance}"
-                           Minimum="0" Maximum="100" FormatString="0"/>
+          <!-- Drop table. A child table like the quest editor's rewards: every line is an item, a
+               quantity (currency only) and a chance, and each rolls INDEPENDENTLY on a kill — which is
+               why the yield readout below sums the chances rather than showing a single number. -->
+          <Grid ColumnDefinitions="130,*" Margin="0,4,0,0">
+            <TextBlock x:Name="_dropTableLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.DropYieldText}"
+                       Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_dropItemLabel"  Grid.Column="0" VerticalAlignment="Center"/>
-            <controls:DropdownAutoCompleteBox x:Name="_dropItemPicker" Grid.Column="1"
-                             ItemsSource="{Binding ItemEntries}"
-                             SelectedItem="{Binding SelectedDropItem, Mode=TwoWay}"
-                             ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                             FilterMode="Custom" MinimumPrefixLength="0"/>
-          </Grid>
+          <ItemsControl ItemsSource="{Binding SelectedNpc.Drops}" Margin="0,2,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="*,70,70,28" Margin="0,0,0,3">
+                  <controls:DropdownAutoCompleteBox Grid.Column="0"
+                                   ItemsSource="{Binding ItemEntries}"
+                                   SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                   Watermark="{Binding ItemPlaceholder}"
+                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                   FilterMode="Custom" MinimumPrefixLength="0"/>
+                  <!-- Quantity is meaningless off a currency item; the server zeroes it on save, so the
+                       spinner disables rather than showing a number the game discards. -->
+                  <NumericUpDown Grid.Column="1" Margin="4,0,0,0"
+                                 Value="{Binding Value}"
+                                 IsEnabled="{Binding ValueApplies}"
+                                 Minimum="{Binding ValueMin}" Maximum="{Binding ValueMax}"
+                                 FormatString="0" ShowButtonSpinner="False"/>
+                  <NumericUpDown Grid.Column="2" Margin="4,0,0,0"
+                                 Value="{Binding Chance}"
+                                 Minimum="0" Maximum="100" FormatString="0" ShowButtonSpinner="False"/>
+                  <Button Grid.Column="3" Content="X" Margin="4,0,0,0" Padding="6,2" FontSize="11"
+                          Command="{Binding $parent[ItemsControl].((vm:NpcRowViewModel)DataContext).RemoveDropCommand}"
+                          CommandParameter="{Binding}"/>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_dropValueLabel" Grid.Column="0" VerticalAlignment="Center"/>
-            <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedNpc.DropItemValue}"
-                           Minimum="0" Maximum="9999" FormatString="0"/>
-          </Grid>
+          <Button x:Name="_addDropButton" Command="{Binding SelectedNpc.AddDropCommand}"
+                  Padding="8,2" FontSize="11" HorizontalAlignment="Left" Margin="0,2,0,0"/>
 
           <TextBlock Text="{Binding SelectedNpc.DropConfigWarning}"
                      IsVisible="{Binding SelectedNpc.HasDropConfigWarning}"
                      Foreground="#E0A030" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,2"/>
-          <TextBlock Text="{Binding DropValueWarning}"
-                     IsVisible="{Binding HasDropValueWarning}"
-                     Foreground="#E0A030" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 
           <Grid ColumnDefinitions="130,*">
             <TextBlock x:Name="_strLabel"       Grid.Column="0" VerticalAlignment="Center"/>

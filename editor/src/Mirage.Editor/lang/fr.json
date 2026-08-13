@@ -685,5 +685,10 @@
   "EditorConnection_UnexpectedResponse": "Réponse inattendue du serveur.",
   "EditorConnection_ClosedBeforeData": "Le serveur a fermé la connexion avant d'envoyer des données.",
   "EditorConnection_ExpectedDataPacket": "Paquet de données d'éditeur attendu du serveur.",
-  "TilePalette_NoTileset": "Aucun jeu de tuiles chargé."
+  "TilePalette_NoTileset": "Aucun jeu de tuiles chargé.",
+  "NpcEditor_DropItemPlaceholder": "Choisir un objet...",
+  "NpcEditor_DropYieldNone": "Aucun butin",
+  "NpcEditor_DropYield": "{Lines} ligne(s), ~{Expected} butins par mise a mort",
+  "NpcEditor_DropTableLabel": "Table de butin",
+  "NpcEditor_AddDrop": "+ Ajouter un butin"
 }

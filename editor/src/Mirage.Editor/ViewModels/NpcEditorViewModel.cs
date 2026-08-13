@@ -56,52 +56,22 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
         OnPropertyChanged(nameof(SpriteEntries));
     }
 
-    public NamedEntry? SelectedDropItem
-    {
-        get
-        {
-            var id = SelectedNpc?.DropItem ?? 0;
-            return id > 0 && id < _data.LiveItemEntries.Length ? _data.LiveItemEntries[id] : null;
-        }
-        set
-        {
-            if (SelectedNpc is null) return;
-            var id = value?.Id ?? 0;
-            if (SelectedNpc.DropItem == id) return;
-            SelectedNpc.DropItem = id;
-            OnPropertyChanged(nameof(SelectedDropItem));
-        }
-    }
-
-    // Currency drops need a quantity (>= 1); every other item type ignores it (should be 0). The server
-    // enforces both on save; this surfaces the same rule live while editing.
-    public string DropValueWarning
-    {
-        get
-        {
-            var npc = SelectedNpc;
-            if (npc is null || npc.DropItem <= 0) return string.Empty;
-            bool isCurrency = _data.IsCurrencyItem(npc.DropItem);
-            if (isCurrency && npc.DropItemValue < 1)
-                return EditorStrings.Get(EditorStrings.NpcEditor_DropWarnCurrencyQty);
-            if (!isCurrency && npc.DropItemValue > 0)
-                return EditorStrings.Get(EditorStrings.NpcEditor_DropWarnNonCurrencyQty);
-            return string.Empty;
-        }
-    }
-    public bool HasDropValueWarning => DropValueWarning.Length > 0;
-    private void NotifyDropValueWarning()
-    {
-        OnPropertyChanged(nameof(DropValueWarning));
-        OnPropertyChanged(nameof(HasDropValueWarning));
-    }
+    // The drop picker moved ONTO the rows: a drop table has many item slots rather than one, so each
+    // NpcDropRowViewModel owns its own picker and currency-aware quantity rule. This VM's job is now just
+    // to hand every row the live item list, and to re-raise it when that list changes.
+    private void AttachDropProviders(NpcRowViewModel? row) =>
+        row?.AttachItemProviders(() => _data.LiveItemEntries, _data.IsCurrencyItem);
 
     public NpcEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
     {
         HookItems();
-        // Refresh the item dropdown AND the drop-value warning: an item's currency-ness can flip under a
-        // selected NPC without DropItem/DropItemValue changing, which would otherwise leave the warning stale.
-        _data.EntriesInvalidated += () => { OnPropertyChanged(nameof(ItemEntries)); NotifyDropValueWarning(); };
+        // Refresh the item dropdowns on every drop row too: an item's currency-ness can flip under a
+        // selected NPC without its drop lines changing, which would otherwise leave a quantity rule stale.
+        _data.EntriesInvalidated += () =>
+        {
+            OnPropertyChanged(nameof(ItemEntries));
+            SelectedNpc?.NotifyDropEntriesChanged();
+        };
     }
 
     protected override void AfterSave(NpcRowViewModel vm)
@@ -133,23 +103,17 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
         if (oldValue is not null) oldValue.PropertyChanged -= OnNpcPropertyChanged;
         if (newValue is not null) newValue.PropertyChanged += OnNpcPropertyChanged;
         NotifyDirtyState();
-        OnPropertyChanged(nameof(SelectedDropItem));
         OnPropertyChanged(nameof(SelectedNpcSize));
-        NotifyDropValueWarning();
+        // Wire the picker on selection rather than at construction: rows are built in bulk (and lazily for
+        // online placeholders), and only the selected one is ever showing a drop table.
+        AttachDropProviders(newValue);
         if (newValue is not null && !newValue.IsLoaded && _data.IsOnline)
             _ = LoadEntityAsync(newValue);
     }
     private void OnNpcPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(NpcRowViewModel.DropItem))
-        {
-            OnPropertyChanged(nameof(SelectedDropItem));
-            NotifyDropValueWarning();
-        }
-        else if (e.PropertyName == nameof(NpcRowViewModel.DropItemValue))
-        {
-            NotifyDropValueWarning();
-        }
+        // Drop-table changes raise their own derived properties on the row (yield text, config warning),
+        // so there is nothing left for the editor VM to mirror.
     }
 
     public void LoadOffline()

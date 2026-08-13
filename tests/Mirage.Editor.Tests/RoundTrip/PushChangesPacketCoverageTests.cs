@@ -30,7 +30,8 @@ public class PushChangesPacketCoverageTests
     {
         Name = "Cave Troll", AttackSay = "Rrraagh!", Sprite = 42, Size = 3, SpawnSecs = 90,
         Behavior = NpcBehavior.AttackOnSight, Group = 7, Range = 9,
-        DropChance = 35, DropItem = 12, DropItemValue = 250,
+        Drops = [new NpcDrop { ItemNum = 12, Value = 250, Chance = 35 },
+                 new NpcDrop { ItemNum = 7, Chance = 3 }],
         Str = 61, Def = 62, Spd = 63, Int = 64,
         ExtraHp = 1500, IsBoss = true, EmitsLight = true, Light = Lantern,
     };
@@ -51,9 +52,15 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.SpawnSecs, Is.EqualTo(90));
             Assert.That(pkt.Behavior, Is.EqualTo(NpcBehavior.AttackOnSight));
             Assert.That(pkt.Range, Is.EqualTo(9));
-            Assert.That(pkt.DropChance, Is.EqualTo((short)35));
-            Assert.That(pkt.DropItem, Is.EqualTo(12));
-            Assert.That(pkt.DropValue, Is.EqualTo((short)250));
+            // The whole drop TABLE has to survive the projection, not just its first line — a push that
+            // silently kept one drop would be the same class of bug as the footprint reset below.
+            Assert.That(pkt.Drops, Is.Not.Null);
+            Assert.That(pkt.Drops!, Has.Count.EqualTo(2));
+            Assert.That(pkt.Drops[0].ItemNum, Is.EqualTo(12));
+            Assert.That(pkt.Drops[0].Value, Is.EqualTo((short)250));
+            Assert.That(pkt.Drops[0].Chance, Is.EqualTo((short)35));
+            Assert.That(pkt.Drops[1].ItemNum, Is.EqualTo(7));
+            Assert.That(pkt.Drops[1].Chance, Is.EqualTo((short)3));
             Assert.That(pkt.Str, Is.EqualTo(61));
             Assert.That(pkt.Def, Is.EqualTo(62));
             Assert.That(pkt.Spd, Is.EqualTo(63));

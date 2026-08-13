@@ -304,6 +304,13 @@ public static partial class EditorStrings
     // ── NpcRowViewModel formatted previews (Drop % and Magic Damage) ──────────
     public const string NpcEditor_DropChanceNever = nameof(NpcEditor_DropChanceNever);   // "0% (never drops)"
     public const string NpcEditor_DropChanceAlways = nameof(NpcEditor_DropChanceAlways);  // "100% (always drops)"
+    public const string NpcEditor_DropItemPlaceholder = nameof(NpcEditor_DropItemPlaceholder);
+    public const string NpcEditor_DropTableLabel = nameof(NpcEditor_DropTableLabel);
+    public const string NpcEditor_AddDrop = nameof(NpcEditor_AddDrop);
+    // Expected drops per kill = the SUM of the live chances, because drop lines roll independently
+    // rather than competing for one slot. Surfaced because that sum is what a long table gets wrong.
+    public const string NpcEditor_DropYieldNone = nameof(NpcEditor_DropYieldNone);
+    public const string NpcEditor_DropYield = nameof(NpcEditor_DropYield);
     public const string NpcEditor_DropWarnChanceNoItem = nameof(NpcEditor_DropWarnChanceNoItem);  // chance set, no item
     public const string NpcEditor_DropWarnItemNoChance = nameof(NpcEditor_DropWarnItemNoChance);  // item set, 0 chance
     public const string NpcEditor_DropWarnCurrencyQty = nameof(NpcEditor_DropWarnCurrencyQty);     // currency, qty < 1

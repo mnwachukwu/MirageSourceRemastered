@@ -364,7 +364,10 @@ public sealed partial class CombatSystem : GameSystem
         }
 
         if (topNpcDmg > maxDmg) return;  // NPC out-damaged every player → no loot, no roll
-        if (npcRec.DropChance <= 0) return;
+        // Nothing to roll — no table, or every line inert. Checked ahead of the loot-tag work below so a
+        // drop-less mob (an ordinary state for trash) costs nothing extra on death.
+        var dropTable = npcRec.Drops;
+        if (dropTable is null || !dropTable.Any(d => d.IsLive)) return;
 
         int lootTagWinner = 0;
         bool lootWasRolled = false;
@@ -393,77 +396,95 @@ public sealed partial class CombatSystem : GameSystem
             }
         }
 
-        // DropChance is a direct percent (1 = 1%, 50 = 50%, 100 = always). RollPercent() is [0..99],
-        // so the drop lands when the roll is below DropChance; any value >= 100 always drops (capped).
-        int dropChance = npcRec.DropChance;
-        // L1 guild perk: the loot-tag winner's guild boosts their drop rate.
-        if (GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDropRate))
-            dropChance += dropChance * Constants.GuildPerkDropRateBonusPercent / 100;
-        if (CombatFormulas.RollPercent() >= dropChance) return;
+        // ── Roll the table ───────────────────────────────────────────────────────
+        // EVERY LINE ROLLS INDEPENDENTLY, so a kill can yield nothing, one thing, or several. Chance is a
+        // direct percent (1 = 1%, 50 = 50%, 100+ = always) and RollPercent() returns [0..99], so a line
+        // lands when its roll is BELOW its chance.
+        //
+        // The guild perks keep their old meaning against the new shape: L1 lifts the rate of every line
+        // (it was always "your drop rate", not "your one drop"), and L4's double is rolled PER LINE — one
+        // lucky sword does not also double the gold, which would make the perk swing wildly with table
+        // length rather than paying out per thing dropped.
+        bool dropRateperk = GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDropRate);
+        bool doublePerk = GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDoubleDrop);
 
-        bool dropIsCurrency = _world.Items[npcRec.DropItem].Type == ItemType.Currency;
-        int dropValue = dropIsCurrency
-            ? Math.Max((short)1, npcRec.DropItemValue)
-            : npcRec.DropItemValue;
-        // L4 guild perk: a chance to double this drop — a doubled currency stack, or a second item spawned
-        // below. Keyed on the loot-tag winner's guild (the drop's recipient).
-        bool doubleDrop = GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDoubleDrop)
-            && CombatFormulas.RollPercent() < Constants.GuildPerkDoubleDropChancePercent;
-        if (doubleDrop && dropIsCurrency)
-            dropValue *= 2;
-        string dropItemName = _world.Items[npcRec.DropItem].TrimmedName;
+        var landed = new List<(int ItemNum, int Value, bool IsCurrency, bool Doubled)>();
+        foreach (var entry in dropTable)
+        {
+            if (!entry.IsLive || entry.ItemNum > Constants.MaxItems) continue;
+            int chance = entry.Chance;
+            if (dropRateperk) chance += chance * Constants.GuildPerkDropRateBonusPercent / 100;
+            if (CombatFormulas.RollPercent() >= chance) continue;
+
+            bool isCurrency = _world.Items[entry.ItemNum].Type == ItemType.Currency;
+            // Currency needs a stack of at least 1 or the drop is a no-op; other items ignore Value.
+            int value = isCurrency ? Math.Max((short)1, entry.Value) : entry.Value;
+            bool doubled = doublePerk && CombatFormulas.RollPercent() < Constants.GuildPerkDoubleDropChancePercent;
+            if (doubled && isCurrency) value *= 2;
+            landed.Add((entry.ItemNum, value, isCurrency, doubled));
+        }
+        if (landed.Count == 0) return;
+
         string npcName = npcRec.TrimmedName;
 
         // Currency announces the amount ("Bandit drops 10 Gold."); other items stay unquantified
         // ("Bandit drops Sword.") since one drop is a single item regardless of stack value.
-        void SendDropNotice(int player)
+        void SendDropNotice(int player, (int ItemNum, int Value, bool IsCurrency, bool Doubled) d)
         {
-            if (dropIsCurrency)
+            string name = _world.Items[d.ItemNum].TrimmedName;
+            if (d.IsCurrency)
             {
                 SendMsg(player, ServerStrings.CombatSystem_LootNpcDropsCurrency, GameColor.Yellow, ChatChannel.Rewards,
-                    ("NpcName", npcName), ("Amount", dropValue), ("Item", dropItemName));
+                    ("NpcName", npcName), ("Amount", d.Value), ("Item", name));
             }
             else
             {
                 SendMsg(player, ServerStrings.CombatSystem_LootNpcDrops, GameColor.Yellow, ChatChannel.Rewards,
-                    ("NpcName", npcName), ("Item", dropItemName));
+                    ("NpcName", npcName), ("Item", name));
             }
         }
 
         if (lootWasRolled && lootTagWinner > 0)
         {
+            // ONE roll decides the whole corpse, not one per item — the tag is priority on this kill's
+            // loot, so splitting a table between two players would be a different (and worse) rule. The
+            // roll message therefore names everything that dropped rather than repeating per item.
             string winnerName = _pm[lootTagWinner].Char.Name.Trim();
+            string allNames = string.Join(", ", landed.Select(d => _world.Items[d.ItemNum].TrimmedName));
             foreach (var (player, _) in lootFinalRolls)
             {
                 string rollList = string.Join(", ", lootFinalRolls.Select(r =>
                     $"{(r.player == player ? "You" : _pm[r.player].Char.Name.Trim())} ({r.roll})"));
-                SendDropNotice(player);
-                SendMsg(player, ServerStrings.CombatSystem_LootRolling, GameColor.Yellow, ChatChannel.Rewards, ("Item", dropItemName), ("Rolls", rollList));
+                foreach (var d in landed) SendDropNotice(player, d);
+                SendMsg(player, ServerStrings.CombatSystem_LootRolling, GameColor.Yellow, ChatChannel.Rewards, ("Item", allNames), ("Rolls", rollList));
                 if (player == lootTagWinner)
-                    SendMsg(player, ServerStrings.CombatSystem_LootWon, GameColor.BrightGreen, ChatChannel.Rewards, ("Item", dropItemName), ("Seconds", Constants.LootTagDurationMs / 1000));
+                    SendMsg(player, ServerStrings.CombatSystem_LootWon, GameColor.BrightGreen, ChatChannel.Rewards, ("Item", allNames), ("Seconds", Constants.LootTagDurationMs / 1000));
                 else
-                    SendMsg(player, ServerStrings.CombatSystem_LootLost, GameColor.Yellow, ChatChannel.Rewards, ("WinnerName", winnerName), ("Item", dropItemName));
+                    SendMsg(player, ServerStrings.CombatSystem_LootLost, GameColor.Yellow, ChatChannel.Rewards, ("WinnerName", winnerName), ("Item", allNames));
             }
         }
         else if (lootTagWinner > 0)
         {
-            SendDropNotice(lootTagWinner);
+            foreach (var d in landed) SendDropNotice(lootTagWinner, d);
         }
 
-        int itemSlot = _items.SpawnItem(npcRec.DropItem, dropValue, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
-        if (itemSlot > 0 && lootTagWinner > 0)
+        foreach (var d in landed)
         {
-            var taggedItem = _world.MapItemBySlot(mapNum, itemSlot);
-            if (taggedItem is not null)
+            int itemSlot = _items.SpawnItem(d.ItemNum, d.Value, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
+            if (itemSlot > 0 && lootTagWinner > 0)
             {
-                taggedItem.TaggedToPlayer = lootTagWinner;
-                taggedItem.TagExpiresAt = Environment.TickCount64 + Constants.LootTagDurationMs;
+                var taggedItem = _world.MapItemBySlot(mapNum, itemSlot);
+                if (taggedItem is not null)
+                {
+                    taggedItem.TaggedToPlayer = lootTagWinner;
+                    taggedItem.TagExpiresAt = Environment.TickCount64 + Constants.LootTagDurationMs;
+                }
             }
+            // L4 double-drop of a non-currency item: a second identical copy on the same tile (untagged — a
+            // free bonus on the ground; currency was doubled in-place above).
+            if (d.Doubled && !d.IsCurrency)
+                _items.SpawnItem(d.ItemNum, d.Value, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
         }
-        // L4 double-drop of a non-currency item: a second identical copy on the same tile (untagged — a
-        // free bonus on the ground; currency was doubled in-place above).
-        if (doubleDrop && !dropIsCurrency)
-            _items.SpawnItem(npcRec.DropItem, dropValue, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
         _items.EnqueueSaveDroppedItems(mapNum);
     }
 
