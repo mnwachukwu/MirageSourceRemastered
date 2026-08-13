@@ -91,7 +91,11 @@ public sealed record EditorSaveClassPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorSaveClass;
     [JsonPropertyName("classNum")] public int ClassNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
-    [JsonPropertyName("sprite")] public int Sprite { get; init; }
+    /// <summary>The short pitch shown on the character-create screen. See <see cref="ClassRecord.Description"/>.</summary>
+    [JsonPropertyName("desc")] public string Description { get; init; } = "";
+    /// <summary>One sprite per sex; the character-create screen previews whichever the player picked.</summary>
+    [JsonPropertyName("spriteMale")] public int SpriteMale { get; init; }
+    [JsonPropertyName("spriteFemale")] public int SpriteFemale { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }
@@ -306,7 +310,9 @@ public sealed record UpdateClassPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.UpdateClass;
     [JsonPropertyName("classNum")] public int ClassNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
-    [JsonPropertyName("sprite")] public int Sprite { get; init; }
+    [JsonPropertyName("desc")] public string Description { get; init; } = "";
+    [JsonPropertyName("spriteMale")] public int SpriteMale { get; init; }
+    [JsonPropertyName("spriteFemale")] public int SpriteFemale { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }

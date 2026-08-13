@@ -727,6 +727,10 @@
   "NewCharScreen_CritLabel":          "Crít",
   "NewCharScreen_SpellCritLabel":     "Crít de magia",
   "NewCharScreen_CreatingCharacter":  "Criando o personagem...",
+  "NewCharScreen_WornLabel":          "Equipado:",
+  "NewCharScreen_CarriedLabel":       "Leva:",
+  "NewCharScreen_SpellsLabel":        "Magias:",
+  "NewCharScreen_LoadoutNone":        "nada",
 
   "CreditsScreen_Title":       "Créditos",
   "CreditsScreen_CloseButton": "Fechar",

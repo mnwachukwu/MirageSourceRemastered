@@ -25,7 +25,23 @@ public sealed class ClassRecord
     /// ("Fights for honor. High power melee."). Empty is fine; the screen simply shows nothing.</summary>
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>The sprite a character of this class is created with, one per sex. Chosen once, at
+    /// creation, and copied onto the character — so changing a class's art later leaves existing
+    /// characters looking exactly as their players last saw them.</summary>
+    public int SpriteMale { get; set; }
+    public int SpriteFemale { get; set; }
+
+    /// <summary>Legacy single sprite, kept only so a world authored before the split still loads.
+    /// <see cref="Normalize"/> folds it into both of the above and clears it, so it is written back out
+    /// only for as long as a file still carries it.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public int Sprite { get; set; }
+
+    /// <summary>The sprite this class gives <paramref name="sex"/>. The single place that mapping is
+    /// made, so the create screen's preview, the grant at creation, and anything later cannot disagree
+    /// about which art a character of a given sex gets.</summary>
+    public int SpriteFor(Sex sex) => sex == Sex.Female ? SpriteFemale : SpriteMale;
+
     public int Str { get; set; }
     public int Def { get; set; }
     public int Spd { get; set; }
@@ -59,6 +75,16 @@ public sealed class ClassRecord
     /// it runs on load and on every editor save, like the other record Normalizes.</summary>
     public void Normalize()
     {
+        // A world authored before the sprite split gives both sexes the art it already had, which is
+        // exactly how it looked. Only migrates when neither new field is set, so a class that has been
+        // given real per-sex art is never overwritten by a stale legacy value.
+        if (Sprite > 0 && SpriteMale == 0 && SpriteFemale == 0)
+        {
+            SpriteMale = Sprite;
+            SpriteFemale = Sprite;
+        }
+        Sprite = 0;
+
         if (StartingItems is not null)
         {
             StartingItems.RemoveAll(s => s.ItemNum <= 0);

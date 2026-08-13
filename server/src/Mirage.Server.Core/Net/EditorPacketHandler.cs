@@ -375,7 +375,9 @@ public sealed class EditorPacketHandler
         {
             ClassNum = n,
             Name = cls.Name,
-            Sprite = cls.Sprite,
+            Description = cls.Description,
+            SpriteMale = cls.SpriteMale,
+            SpriteFemale = cls.SpriteFemale,
             Str = cls.Str,
             Def = cls.Def,
             Spd = cls.Spd,
@@ -472,7 +474,8 @@ public sealed class EditorPacketHandler
                 var cls = _world.Classes[n];
                 return new UpdateClassPacket
                 {
-                    ClassNum = n, Name = cls.Name, Sprite = cls.Sprite,
+                    ClassNum = n, Name = cls.Name, Description = cls.Description,
+                    SpriteMale = cls.SpriteMale, SpriteFemale = cls.SpriteFemale,
                     Str = cls.Str, Def = cls.Def, Spd = cls.Spd, Int = cls.Int,
                     StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
                     StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
@@ -489,7 +492,9 @@ public sealed class EditorPacketHandler
 
         var cls = _world.Classes[n];
         cls.Name = p.Name;
-        cls.Sprite = p.Sprite;
+        cls.Description = p.Description;
+        cls.SpriteMale = p.SpriteMale;
+        cls.SpriteFemale = p.SpriteFemale;
         cls.Str = p.Str;
         cls.Def = p.Def;
         cls.Spd = p.Spd;
@@ -515,7 +520,9 @@ public sealed class EditorPacketHandler
         {
             ClassNum = n,
             Name = cls.Name,
-            Sprite = cls.Sprite,
+            Description = cls.Description,
+            SpriteMale = cls.SpriteMale,
+            SpriteFemale = cls.SpriteFemale,
             Str = cls.Str,
             Def = cls.Def,
             Spd = cls.Spd,

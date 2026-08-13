@@ -727,6 +727,10 @@
   "NewCharScreen_CritLabel":          "Crít",
   "NewCharScreen_SpellCritLabel":     "Crít de hechizo",
   "NewCharScreen_CreatingCharacter":  "Creando el personaje...",
+  "NewCharScreen_WornLabel":          "Equipado:",
+  "NewCharScreen_CarriedLabel":       "Lleva:",
+  "NewCharScreen_SpellsLabel":        "Hechizos:",
+  "NewCharScreen_LoadoutNone":        "nada",
 
   "CreditsScreen_Title":       "Créditos",
   "CreditsScreen_CloseButton": "Cerrar",

@@ -114,7 +114,7 @@ public class PushChangesPacketCoverageTests
     {
         var vm = new ClassRowViewModel(2, new ClassRecord
         {
-            Name = "Ranger", Sprite = 17, Str = 8, Def = 6, Spd = 9, Int = 4,
+            Name = "Ranger", SpriteMale = 17, SpriteFemale = 27, Str = 8, Def = 6, Spd = 9, Int = 4,
         });
 
         var pkt = vm.BuildSavePacket();
@@ -123,7 +123,8 @@ public class PushChangesPacketCoverageTests
         {
             Assert.That(pkt.ClassNum, Is.EqualTo(2));
             Assert.That(pkt.Name, Is.EqualTo("Ranger"));
-            Assert.That(pkt.Sprite, Is.EqualTo(17));
+            Assert.That(pkt.SpriteMale, Is.EqualTo(17));
+            Assert.That(pkt.SpriteFemale, Is.EqualTo(27));
             Assert.That(pkt.Str, Is.EqualTo(8));
             Assert.That(pkt.Def, Is.EqualTo(6));
             Assert.That(pkt.Spd, Is.EqualTo(9));

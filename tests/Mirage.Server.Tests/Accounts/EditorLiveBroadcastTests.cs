@@ -34,7 +34,7 @@ public class EditorLiveBroadcastTests
         var h = new Harness();
         h.Save(new EditorSaveClassPacket
         {
-            ClassNum = 2, Name = "Warrior", Sprite = 7, Str = 11, Def = 12, Spd = 13, Int = 14,
+            ClassNum = 2, Name = "Warrior", SpriteMale = 7, SpriteFemale = 17, Str = 11, Def = 12, Spd = 13, Int = 14,
         });
 
         var u = h.Dispatcher.OneBroadcast<UpdateClassPacket>();
@@ -42,7 +42,8 @@ public class EditorLiveBroadcastTests
         {
             Assert.That(u.ClassNum, Is.EqualTo(2));
             Assert.That(u.Name, Is.EqualTo("Warrior"));
-            Assert.That(u.Sprite, Is.EqualTo(7));
+            Assert.That(u.SpriteMale, Is.EqualTo(7));
+            Assert.That(u.SpriteFemale, Is.EqualTo(17));
             Assert.That(u.Str, Is.EqualTo(11));
             Assert.That(u.Def, Is.EqualTo(12));
             Assert.That(u.Spd, Is.EqualTo(13));
@@ -192,7 +193,7 @@ public class EditorLiveBroadcastTests
         var h = new Harness();
         h.Editors.GetSession(Editor)!.IsAuthenticated = false;
 
-        h.Save(new EditorSaveClassPacket { ClassNum = 2, Name = "Warrior", Sprite = 7 });
+        h.Save(new EditorSaveClassPacket { ClassNum = 2, Name = "Warrior", SpriteMale = 7 });
 
         Assert.Multiple(() =>
         {

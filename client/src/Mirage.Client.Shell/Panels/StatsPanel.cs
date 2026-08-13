@@ -270,9 +270,9 @@ public sealed class StatsPanel : IGamePanel
         bool hasShield = me.ShieldSlot > 0;
         string evasionLabel = hasShield ? ClientStrings.Get(ClientStrings.Stats_Block) : ClientStrings.Get(ClientStrings.Stats_Dodge);
         string evasionVal = hasShield ? block : dodge;
-        // Sprint = SPD-derived run-speed bonus; the leading "+" flags it as ADDITIVE to base run speed, not a raw
-        // % of movement.  Shown under Block (both are SP-fueled outputs).
-        string sprintVal = $"+{MovementFormulas.RunSpeedPercent(spd)}%";
+        // Sprint = how much faster running is than WALKING: +100% at 0 SPD (twice walk pace), up to +200%
+        // at the SPD cap.  Shown under Block (both are SP-fueled outputs).
+        string sprintVal = $"+{MovementFormulas.SprintBonusPercent(spd)}%";
         // Points = unspent training points.  Always shown (even at 0) on its own row directly below SPD.
         string ptsLabel = ClientStrings.Get(ClientStrings.Stats_Points);
         string ptsVal = points.ToString();

@@ -165,7 +165,10 @@ public static partial class EditorStrings
     // ── ClassEditorView ───────────────────────────────────────────────────────
     public const string ClassEditor_SelectPrompt = nameof(ClassEditor_SelectPrompt);
     public const string ClassEditor_SectionTitle = nameof(ClassEditor_SectionTitle);
-    public const string ClassEditor_SpriteLabel = nameof(ClassEditor_SpriteLabel);
+    public const string ClassEditor_DescLabel = nameof(ClassEditor_DescLabel);
+    public const string ClassEditor_DescHint = nameof(ClassEditor_DescHint);
+    public const string ClassEditor_SpriteMaleLabel = nameof(ClassEditor_SpriteMaleLabel);
+    public const string ClassEditor_SpriteFemaleLabel = nameof(ClassEditor_SpriteFemaleLabel);
     public const string ClassEditor_StrLabel = nameof(ClassEditor_StrLabel);
     public const string ClassEditor_DefLabel = nameof(ClassEditor_DefLabel);
     public const string ClassEditor_SpdLabel = nameof(ClassEditor_SpdLabel);

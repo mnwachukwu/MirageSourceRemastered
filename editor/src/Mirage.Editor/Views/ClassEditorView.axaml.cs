@@ -23,7 +23,10 @@ public partial class ClassEditorView : LocalizedUserControl
         _selectPrompt.Text = EditorStrings.Get(EditorStrings.ClassEditor_SelectPrompt);
         _sectionTitle.Text = EditorStrings.Get(EditorStrings.ClassEditor_SectionTitle);
         _nameLabel.Text = EditorStrings.Get(EditorStrings.Common_NameLabel);
-        _spriteLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteLabel);
+        _descLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_DescLabel);
+        _descBox.PlaceholderText = EditorStrings.Get(EditorStrings.ClassEditor_DescHint);
+        _spriteMaleLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteMaleLabel);
+        _spriteFemaleLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteFemaleLabel);
         _strLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_StrLabel);
         _defLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_DefLabel);
         _spdLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpdLabel);

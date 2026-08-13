@@ -36,10 +36,17 @@ public static class MovementFormulas
         return BaseRunMsPerTile / mult;
     }
 
-    /// <summary>Run speed as a percent of the pre-SPD base, for display ("Sprint"): 100% at 0 SPD, rising to
-    /// 150% at the cap.  Equals <c>BaseRunMsPerTile / <see cref="RunMsPerTile"/>(spd) * 100</c>.</summary>
-    public static int RunSpeedPercent(int spd) =>
-        (int)Math.Round(BaseRunMsPerTile / RunMsPerTile(spd) * 100f, MidpointRounding.AwayFromZero);
+    /// <summary>How much faster sprinting is than WALKING, as a percent bonus, for display ("Sprint"):
+    /// +100% at 0 SPD — running is exactly twice walk pace, <see cref="BaseWalkMsPerTile"/> 400 against
+    /// <see cref="BaseRunMsPerTile"/> 200 — rising to +200% (three times walk pace) at the SPD cap.
+    ///
+    /// <para>Measured against WALK, because that is the comparison the number is read as: a player
+    /// looking at "Sprint" is asking how much faster than normal they move. Measuring it against the
+    /// 0-SPD RUN instead gives 100% at 0 SPD and 150% at the cap, and those two framings agree at 0 SPD
+    /// and nowhere else — which is what let the old label look right on a fresh character and then
+    /// understate a fully-invested one by a whole walk's worth of speed.</para></summary>
+    public static int SprintBonusPercent(int spd) =>
+        (int)Math.Round((BaseWalkMsPerTile / RunMsPerTile(spd) - 1f) * 100f, MidpointRounding.AwayFromZero);
 
     // NPCs run at a FLAT baseline — the player's 0-SPD run speed — with NO SPD scaling.  A player outruns any
     // chasing NPC purely by investing SPD (their run drops below this base while the NPC stays pinned at it), so

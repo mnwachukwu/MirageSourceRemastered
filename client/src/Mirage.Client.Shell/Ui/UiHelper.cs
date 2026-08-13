@@ -91,6 +91,14 @@ public static class UiHelper
     public const int MenuDlgH = 304;
     public const int MenuDlgArtW = 201;   // left decorative art panel width
 
+    /// <summary>Width of the WIDE pre-game dialog, used by the one screen whose content genuinely does
+    /// not fit the template: character creation, which shows a class's stats, pools, regen, combat output
+    /// AND the gear and spells it starts with, all at once.
+    /// <para>Wider rather than taller on purpose. The art panel keeps its authored 201×304 rectangle
+    /// either way, so only the content column grows; a taller dialog would stretch that art by a sixth
+    /// and every other menu screen would have to answer for it.</para></summary>
+    public const int MenuDlgWideW = 700;
+
     // Primary UI accent: blue-dominant (more blue than purple).
     public static readonly Color DlgArtColor = new(15, 10, 80);  // deep indigo panel
     public static readonly Color DlgBorderColor = new(60, 80, 200); // medium blue border
@@ -236,6 +244,10 @@ public static class UiHelper
     // Pre-game dialog rectangle centered in the 800×600 reference viewport: (127, 148, 546, 304).
     public static Rectangle MenuDialogRect =>
         new((RefW - MenuDlgW) / 2, (RefH - MenuDlgH) / 2, MenuDlgW, MenuDlgH);
+
+    /// <summary>The wide variant, same height and same centring: (50, 148, 700, 304).</summary>
+    public static Rectangle WideMenuDialogRect =>
+        new((RefW - MenuDlgWideW) / 2, (RefH - MenuDlgH) / 2, MenuDlgWideW, MenuDlgH);
 
     public static void Init(GraphicsDevice gd)
     {
@@ -503,10 +515,11 @@ public static class UiHelper
         return text[..lo] + suffix;
     }
 
-    /// <summary>Draws <paramref name="title"/> centered above the menu dialog in the title font.</summary>
-    public static void DrawMenuTitle(SpriteBatch sb, SpriteFont titleFont, string title)
+    /// <summary>Draws <paramref name="title"/> centered above the menu dialog in the title font.
+    /// <paramref name="rect"/> overrides the dialog it centres on, for a screen using the wide variant.</summary>
+    public static void DrawMenuTitle(SpriteBatch sb, SpriteFont titleFont, string title, Rectangle? rect = null)
     {
-        var dlg = MenuDialogRect;
+        var dlg = rect ?? MenuDialogRect;
         var size = titleFont.MeasureString(title);
         float x = dlg.X + dlg.Width / 2f - size.X / 2f;
         float y = dlg.Y - titleFont.LineSpacing - 4;
@@ -516,13 +529,16 @@ public static class UiHelper
     /// <summary>
     /// Draws the standard pre-game menu dialog: black window background, dark-maroon art panel on
     /// the left, black content area on the right, vertical divider, and a two-pixel border.
+    /// <para><paramref name="rect"/> overrides the dialog rectangle (see <see cref="WideMenuDialogRect"/>).
+    /// The art panel is a fixed <see cref="MenuDlgArtW"/> wide whatever the dialog is, so a wider dialog
+    /// spends every extra pixel on content and the art is never stretched sideways.</para>
     /// </summary>
     public static void DrawMenuDialog(SpriteBatch sb, Rectangle viewport,
-        out Rectangle dlg, out Rectangle content, Texture2D? artTexture = null)
+        out Rectangle dlg, out Rectangle content, Texture2D? artTexture = null, Rectangle? rect = null)
     {
         DrawFilledRect(sb, viewport, Color.Black);
 
-        dlg = MenuDialogRect;
+        dlg = rect ?? MenuDialogRect;
         content = new Rectangle(dlg.X + MenuDlgArtW, dlg.Y, dlg.Width - MenuDlgArtW, dlg.Height);
 
         var artRect = new Rectangle(dlg.X, dlg.Y, MenuDlgArtW, dlg.Height);
@@ -544,9 +560,9 @@ public static class UiHelper
     /// <summary>
     /// Draws an error or status message centered horizontally below the menu dialog border.
     /// </summary>
-    public static void DrawMenuAlert(SpriteBatch sb, SpriteFont font, string msg, Color color)
+    public static void DrawMenuAlert(SpriteBatch sb, SpriteFont font, string msg, Color color, Rectangle? rect = null)
     {
-        var dlg = MenuDialogRect;
+        var dlg = rect ?? MenuDialogRect;
         var size = font.MeasureString(msg);
         sb.DrawString(font, msg, new Vector2(dlg.X + (dlg.Width - size.X) / 2f, dlg.Bottom + 8f), color);
     }

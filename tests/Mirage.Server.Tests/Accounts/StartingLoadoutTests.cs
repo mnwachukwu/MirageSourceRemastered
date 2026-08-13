@@ -5,13 +5,13 @@ using NUnit.Framework;
 namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>The per-class starting loadout — <see cref="ClassRecord.StartingItems"/> and
-/// <see cref="ClassRecord.StartingSpells"/>.
+/// <see cref="ClassRecord.StartingSpells"/>, their canonicalization, and the resolver that decides what
+/// a new character of a class actually receives.
 ///
-/// <para>The canonicalization half is pinned here. The GRANT half lives in
-/// <c>PacketHandler.Account.GrantStartingLoadout</c> and is exercised through the gate formulas below:
-/// the rule is that NOBODY STARTS WITH SOMETHING THEY CANNOT USE, so what matters is that the generator
-/// and the engine ask the same question and agree on the answer. Those two asking different questions is
-/// the failure that would ship a class whose authored gear silently vanishes at creation.</para></summary>
+/// <para>The rule under test throughout is that NOBODY STARTS WITH SOMETHING THEY CANNOT USE. The
+/// resolver is shared by the grant path and the character-create preview precisely so those two cannot
+/// answer it differently — a class whose authored gear silently vanishes at creation, or a screen that
+/// promises a sword the server then withholds, are the same bug seen from two ends.</para></summary>
 [TestFixture]
 public class StartingLoadoutTests
 {
@@ -91,6 +91,51 @@ public class StartingLoadoutTests
         });
     }
 
+    // ── Per-sex class art ────────────────────────────────────────────────────
+
+    [Test]
+    public void SpriteFor_PicksThePerSexArt()
+    {
+        var cls = new ClassRecord { Name = "Warrior", SpriteMale = 3, SpriteFemale = 13 };
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cls.SpriteFor(Sex.Male), Is.EqualTo(3));
+            Assert.That(cls.SpriteFor(Sex.Female), Is.EqualTo(13));
+        });
+    }
+
+    [Test]
+    public void Normalize_MigratesALegacySingleSpriteToBothSexes()
+    {
+        // A world authored before the split looked exactly one way; both sexes keep looking that way
+        // rather than falling to sprite 0, which draws nothing at all.
+        var cls = new ClassRecord { Name = "Warrior", Sprite = 4 };
+
+        cls.Normalize();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cls.SpriteMale, Is.EqualTo(4));
+            Assert.That(cls.SpriteFemale, Is.EqualTo(4));
+            Assert.That(cls.Sprite, Is.Zero, "and the legacy field stops being written");
+        });
+    }
+
+    [Test]
+    public void Normalize_NeverLetsALegacySpriteOverwriteAuthoredArt()
+    {
+        var cls = new ClassRecord { Name = "Warrior", Sprite = 4, SpriteMale = 1, SpriteFemale = 11 };
+
+        cls.Normalize();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(cls.SpriteMale, Is.EqualTo(1));
+            Assert.That(cls.SpriteFemale, Is.EqualTo(11));
+        });
+    }
+
     // ── The gate the grant path applies ──────────────────────────────────────
     // A brand-new character has EXACTLY its class's base stats, so "can this class start with it?" is
     // GearStatRequirement(power, classStat) <= classStat. These pin the cases the ten-class roster
@@ -134,5 +179,94 @@ public class StartingLoadoutTests
         bool canLearn = CombatFormulas.GetSpellIntRequirement(spell, classInt) <= classInt;
 
         Assert.That(canLearn, Is.EqualTo(expected));
+    }
+
+    // ── The resolver both the grant and the preview go through ───────────────
+
+    // Item table: 1 gold, 2 a light sword any class can lift, 3 a heavy one only a strong class can,
+    // 4 a potion, 5 a sword gated to class 2 alone, 6 a sword nobody reaches until level 5.
+    private static ItemRecord[] Items() =>
+    [
+        new(),
+        new() { Name = "Gold", Type = ItemType.Currency },
+        new() { Name = "Light Sword", Type = ItemType.Weapon, Power = 6, Durability = 40 },
+        new() { Name = "Heavy Sword", Type = ItemType.Weapon, Power = 10, Durability = 60 },
+        new() { Name = "Draught", Type = ItemType.PotionAddHp, VitalAmount = 20 },
+        new() { Name = "Guild Blade", Type = ItemType.Weapon, Power = 6, AllowedClasses = [2] },
+        new() { Name = "Veteran Blade", Type = ItemType.Weapon, Power = 6, LevelReq = 5 },
+    ];
+
+    private static SpellRecord[] Spells() =>
+    [
+        new(),
+        new() { Name = "Spark", Type = SpellType.SubHp, VitalAmount = 6 },
+        new() { Name = "Firestorm", Type = SpellType.SubHp, VitalAmount = 60 },
+        new() { Name = "Guild Ward", Type = SpellType.AddHp, VitalAmount = 6, AllowedClasses = [2] },
+    ];
+
+    private static ClassRecord ClassWith(int str, int @int, params int[] itemNums) => new()
+    {
+        Name = "T",
+        Str = str,
+        Int = @int,
+        Def = str,   // irrelevant to the weapon gate; kept equal so nothing else silently fails
+        StartingItems = [.. itemNums.Select(n => new ClassStartingItem { ItemNum = (short)n, Value = 200 })],
+    };
+
+    [Test]
+    public void Resolve_SkipsWhatTheClassCannotUseAndLeavesNoGapInTheBag()
+    {
+        // Heavy sword (2nd line) fails the STR gate. The potion behind it must still land in slot 2 —
+        // a hole would be a bag that looks half-empty for no reason the player can see.
+        var granted = StartingLoadout.ResolveItems(ClassWith(str: 5, @int: 0, 2, 3, 4), classNum: 1, Items());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(granted.Select(g => g.Num), Is.EqualTo(new[] { 2, 4 }));
+            Assert.That(granted.Select(g => g.Slot), Is.EqualTo(new[] { 1, 2 }));
+        });
+    }
+
+    [Test]
+    public void Resolve_EquipmentIsWornAndCarriesFullDurability()
+    {
+        var granted = StartingLoadout.ResolveItems(ClassWith(str: 15, @int: 0, 2, 4), classNum: 1, Items());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(granted[0].Worn, Is.True, "a weapon that passes its gates arrives equipped");
+            Assert.That(granted[0].Durability, Is.EqualTo(40), "and pristine");
+            Assert.That(granted[1].Worn, Is.False, "a potion is carried");
+        });
+    }
+
+    [Test]
+    public void Resolve_CurrencyKeepsItsStackAndEverythingElseIsExactlyOne()
+    {
+        var granted = StartingLoadout.ResolveItems(ClassWith(str: 15, @int: 0, 1, 4), classNum: 1, Items());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(granted[0].Value, Is.EqualTo(200));
+            Assert.That(granted[1].Value, Is.EqualTo(0), "the engine reads Value only for currency");
+        });
+    }
+
+    [Test]
+    public void Resolve_HonoursTheClassAndLevelGatesToo()
+    {
+        // Item 5 is another class's blade; item 6 needs a level this character does not have yet.
+        var granted = StartingLoadout.ResolveItems(ClassWith(str: 15, @int: 0, 5, 6, 2), classNum: 1, Items());
+
+        Assert.That(granted.Select(g => g.Num), Is.EqualTo(new[] { 2 }));
+    }
+
+    [Test]
+    public void ResolveSpells_SkipsWhatTheClassCannotCast()
+    {
+        var cls = new ClassRecord { Name = "T", Int = 6, StartingSpells = [1, 2, 3] };
+
+        // Firestorm is out of INT reach; the Guild Ward belongs to class 2.
+        Assert.That(StartingLoadout.ResolveSpells(cls, classNum: 1, Spells()), Is.EqualTo(new[] { 1 }));
     }
 }

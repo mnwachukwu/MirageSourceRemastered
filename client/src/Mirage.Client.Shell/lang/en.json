@@ -727,6 +727,10 @@
   "NewCharScreen_CritLabel":          "Crit",
   "NewCharScreen_SpellCritLabel":     "Spell Crit",
   "NewCharScreen_CreatingCharacter":  "Creating character...",
+  "NewCharScreen_WornLabel":          "Worn:",
+  "NewCharScreen_CarriedLabel":       "Carried:",
+  "NewCharScreen_SpellsLabel":        "Spells:",
+  "NewCharScreen_LoadoutNone":        "nothing",
 
   "CreditsScreen_Title":       "Credits",
   "CreditsScreen_CloseButton": "Close",

@@ -71,6 +71,10 @@ public static partial class ClientStrings
     public const string NewCharScreen_CritLabel = nameof(NewCharScreen_CritLabel);
     public const string NewCharScreen_SpellCritLabel = nameof(NewCharScreen_SpellCritLabel);
     public const string NewCharScreen_CreatingCharacter = nameof(NewCharScreen_CreatingCharacter);
+    public const string NewCharScreen_WornLabel = nameof(NewCharScreen_WornLabel);
+    public const string NewCharScreen_CarriedLabel = nameof(NewCharScreen_CarriedLabel);
+    public const string NewCharScreen_SpellsLabel = nameof(NewCharScreen_SpellsLabel);
+    public const string NewCharScreen_LoadoutNone = nameof(NewCharScreen_LoadoutNone);
 
     // ── CreditsScreen ─────────────────────────────────────────────────────────
     public const string CreditsScreen_Title = nameof(CreditsScreen_Title);

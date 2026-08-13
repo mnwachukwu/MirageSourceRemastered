@@ -23,8 +23,13 @@ public sealed partial class ClassRowViewModel : ObservableObject
     public bool IsLoaded { get; private set; }
 
     [ObservableProperty] private string _name = "";
-    /// <summary>Sprite a character of this class starts with.</summary>
-    [ObservableProperty] private int _sprite;
+    /// <summary>The short pitch the character-create screen shows under the class list — what this class
+    /// is FOR, in the player's terms. Empty is fine; the screen simply shows nothing.</summary>
+    [ObservableProperty] private string _description = "";
+    /// <summary>Sprite a character of this class starts with, one per sex. Fixed onto the character at
+    /// creation, so re-arting a class here changes who is CREATED next, never who already exists.</summary>
+    [ObservableProperty] private int _spriteMale;
+    [ObservableProperty] private int _spriteFemale;
     [ObservableProperty] private int _str;
     [ObservableProperty] private int _def;
     [ObservableProperty] private int _spd;
@@ -199,7 +204,9 @@ public sealed partial class ClassRowViewModel : ObservableObject
         Index = index;
         IsLoaded = isLoaded;
         _name = r.Name;
-        _sprite = r.Sprite;
+        _description = r.Description;
+        _spriteMale = r.SpriteMale;
+        _spriteFemale = r.SpriteFemale;
         _str = r.Str;
         _def = r.Def;
         _spd = r.Spd;
@@ -209,7 +216,9 @@ public sealed partial class ClassRowViewModel : ObservableObject
     }
 
     partial void OnNameChanged(string value) => MarkDirty();
-    partial void OnSpriteChanged(int value) => MarkDirty();
+    partial void OnDescriptionChanged(string value) => MarkDirty();
+    partial void OnSpriteMaleChanged(int value) => MarkDirty();
+    partial void OnSpriteFemaleChanged(int value) => MarkDirty();
     // Each stat re-raises only the previews it feeds: STR is offense-only, DEF drives HP + regen +
     // mitigation, SPD the stamina pool, INT the mana pool and spell power.
     // STR and DEF also gate EQUIPMENT, and INT gates spells, so each of the three re-raises the loadout:
@@ -266,7 +275,9 @@ public sealed partial class ClassRowViewModel : ObservableObject
         try
         {
             Name = r.Name;
-            Sprite = r.Sprite;
+            Description = r.Description;
+            SpriteMale = r.SpriteMale;
+            SpriteFemale = r.SpriteFemale;
             Str = r.Str;
             Def = r.Def;
             Spd = r.Spd;
@@ -289,7 +300,9 @@ public sealed partial class ClassRowViewModel : ObservableObject
         try
         {
             Name = pkt.Name;
-            Sprite = pkt.Sprite;
+            Description = pkt.Description;
+            SpriteMale = pkt.SpriteMale;
+            SpriteFemale = pkt.SpriteFemale;
             Str = pkt.Str;
             Def = pkt.Def;
             Spd = pkt.Spd;
@@ -310,7 +323,9 @@ public sealed partial class ClassRowViewModel : ObservableObject
     public ClassRecord ToRecord() => new()
     {
         Name = Name,
-        Sprite = Sprite,
+        Description = Description,
+        SpriteMale = SpriteMale,
+        SpriteFemale = SpriteFemale,
         Str = Str,
         Def = Def,
         Spd = Spd,
@@ -325,7 +340,9 @@ public sealed partial class ClassRowViewModel : ObservableObject
     {
         ClassNum = Index,
         Name = Name,
-        Sprite = Sprite,
+        Description = Description,
+        SpriteMale = SpriteMale,
+        SpriteFemale = SpriteFemale,
         Str = Str,
         Def = Def,
         Spd = Spd,

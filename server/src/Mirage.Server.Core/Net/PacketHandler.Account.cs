@@ -25,12 +25,7 @@ public sealed partial class PacketHandler
     {
         if (_pm[index].IsPlaying) return;
 
-        _dispatcher.SendTo(index, new NewCharClassesPacket
-        {
-            Classes = _world.Classes.Skip(1)
-                .Select(c => new SendClassesPacket.ClassData(c.Name, c.Sprite, c.Str, c.Def, c.Spd, c.Int))
-                .ToArray()
-        });
+        _dispatcher.SendTo(index, PacketBuilder.NewCharClasses(_world.Classes, _world.Items, _world.Spells));
     }
 
     private void HandleNewAccount(int index, NewAccountPacket p)
@@ -369,7 +364,9 @@ public sealed partial class PacketHandler
         chr.Name = name;
         chr.Sex = sex;
         chr.Class = classNum;
-        chr.Sprite = cls.Sprite;
+        // Copied onto the character, not looked up through the class later: re-arting a class must not
+        // silently restyle everyone who already plays one.
+        chr.Sprite = cls.SpriteFor(sex);
         chr.Level = 1;
         chr.Str = cls.Str;
         chr.Def = cls.Def;
@@ -397,79 +394,32 @@ public sealed partial class PacketHandler
 
     /// <summary>Fill a brand-new character's bag and spellbook from its class's authored loadout.
     ///
-    /// <para>NOBODY STARTS WITH SOMETHING THEY CANNOT USE. An authored line whose gates the class fails
-    /// is SKIPPED, not granted-and-carried: a piece sitting unusable in a new player's bag is a puzzle
-    /// they did not ask for, and the class editor's warning is what should have caught it. Equipment that
-    /// passes arrives already WORN, so nothing requires opening the bag.</para>
-    ///
-    /// <para>Every gate reads the class's BASE stats, which is exactly what the character has at this
-    /// moment. <see cref="CombatFormulas.GearStatRequirement"/> already folds in the class-affinity
-    /// head-start, so this asks precisely the question the equip path would ask a second later.</para></summary>
+    /// <para>Which lines survive the gates is <see cref="StartingLoadout"/>'s call, not this method's —
+    /// the character-create screen previews the same answer, and the two must not be able to disagree.
+    /// This half is only the application: put the granted items in the bag, wear the wearable ones, and
+    /// write the spells into the book.</para></summary>
     private void GrantStartingLoadout(PlayerRecord chr, ClassRecord cls)
     {
-        int slot = 1;
-        foreach (var start in cls.StartingItems ?? [])
+        foreach (var g in StartingLoadout.ResolveItems(cls, chr.Class, _world.Items))
         {
-            if (slot > Constants.MaxInv) break;
-            if (!SlotValidation.IsValidItemNum(start.ItemNum)) continue;
-            var item = _world.Items[start.ItemNum];
-            if (string.IsNullOrEmpty(item.Name)) continue;   // an authored reference to a blank slot
+            chr.Inv[g.Slot].Num = g.Num;
+            chr.Inv[g.Slot].Value = g.Value;
+            chr.Inv[g.Slot].Dur = g.Durability;   // starts pristine
 
-            // The level gate applies to equipment AND potions alike (ItemRecord.UsesLevelReq), and a
-            // level-1 character clears only a level-1 line. Currency has no gate at all.
-            if (ItemRecord.UsesLevelReq(item.Type) && item.LevelReq > chr.Level) continue;
-
-            bool equipment = ItemRecord.IsEquipment(item.Type);
-            if (equipment)
+            if (!g.Worn) continue;
+            switch (g.Type)
             {
-                if (!ClassGate.Allows(item.AllowedClasses, chr.Class)) continue;
-                if (CombatFormulas.GearStatRequirement(item.Power, ClassStatFor(cls, item.Type))
-                    > PlayerStatFor(chr, item.Type)) continue;
+                case ItemType.Weapon: chr.WeaponSlot = g.Slot; break;
+                case ItemType.Armor: chr.ArmorSlot = g.Slot; break;
+                case ItemType.Helmet: chr.HelmetSlot = g.Slot; break;
+                case ItemType.Shield: chr.ShieldSlot = g.Slot; break;
             }
-
-            chr.Inv[slot].Num = start.ItemNum;
-            // Currency stacks; everything else is exactly one (the engine reads Value only for currency),
-            // so it is normalized here rather than trusted from the record.
-            chr.Inv[slot].Value = item.Type == ItemType.Currency ? Math.Max((short)1, start.Value) : (short)0;
-            chr.Inv[slot].Dur = item.Durability;   // starts pristine
-
-            if (equipment)
-            {
-                switch (item.Type)
-                {
-                    case ItemType.Weapon: chr.WeaponSlot = slot; break;
-                    case ItemType.Armor: chr.ArmorSlot = slot; break;
-                    case ItemType.Helmet: chr.HelmetSlot = slot; break;
-                    case ItemType.Shield: chr.ShieldSlot = slot; break;
-                }
-            }
-            slot++;
         }
 
-        // Spells are learned outright — no scroll, no study step. The class gate and INT gate are checked
-        // for the same reason the equipment ones are: an authored spell the class could never cast would
-        // sit in the book forever, and the picker that authored it should have prevented that.
         int spellSlot = 1;
-        foreach (int spellNum in cls.StartingSpells ?? [])
-        {
-            if (spellSlot > Constants.MaxPlayerSpells) break;
-            if (!SlotValidation.IsValidSpellNum(spellNum)) continue;
-            var spell = _world.Spells[spellNum];
-            if (string.IsNullOrEmpty(spell.Name)) continue;
-            if (!ClassGate.Allows(spell.AllowedClasses, chr.Class)) continue;
-            if (spell.LevelReq > chr.Level) continue;
-            if (CombatFormulas.GetSpellIntRequirement(spell, cls.Int) > chr.Int) continue;
+        foreach (int spellNum in StartingLoadout.ResolveSpells(cls, chr.Class, _world.Spells))
             chr.Spell[spellSlot++] = spellNum;
-        }
     }
-
-    // Which stat gates which slot — the class BASE for the affinity head-start, the character's CURRENT
-    // for the requirement itself. At creation they are the same number, but keeping the two lookups apart
-    // matches CombatFormulas' own signature and stops the pair being conflated if this is ever reused.
-    private static int ClassStatFor(ClassRecord cls, ItemType type) =>
-        type == ItemType.Weapon ? cls.Str : cls.Def;
-    private static int PlayerStatFor(PlayerRecord chr, ItemType type) =>
-        type == ItemType.Weapon ? chr.Str : chr.Def;
 
     private void HandleDelChar(int index, DelCharPacket p)
     {

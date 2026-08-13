@@ -285,7 +285,9 @@ public sealed partial class ClientPacketHandler : IClientEvents
         _state.Classes[p.ClassNum] = new ClassRecord
         {
             Name = p.Name,
-            Sprite = p.Sprite,
+            Description = p.Description,
+            SpriteMale = p.SpriteMale,
+            SpriteFemale = p.SpriteFemale,
             Str = p.Str,
             Def = p.Def,
             Spd = p.Spd,

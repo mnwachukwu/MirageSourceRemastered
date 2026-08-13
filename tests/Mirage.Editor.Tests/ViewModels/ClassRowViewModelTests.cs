@@ -13,7 +13,7 @@ public class ClassRowViewModelTests
 {
     static ClassRecord Warrior() => new()
     {
-        Name = "Warrior", Sprite = 5, Str = 20, Def = 18, Spd = 10, Int = 4,
+        Name = "Warrior", SpriteMale = 5, SpriteFemale = 15, Str = 20, Def = 18, Spd = 10, Int = 4,
     };
 
     static ClassRowViewModel Cls(int str, int def, int spd, int @int) =>
@@ -27,7 +27,8 @@ public class ClassRowViewModelTests
         Assert.Multiple(() =>
         {
             Assert.That(r.Name, Is.EqualTo("Warrior"));
-            Assert.That(r.Sprite, Is.EqualTo(5));
+            Assert.That(r.SpriteMale, Is.EqualTo(5));
+            Assert.That(r.SpriteFemale, Is.EqualTo(15));
             Assert.That(r.Str, Is.EqualTo(20));
             Assert.That(r.Def, Is.EqualTo(18));
             Assert.That(r.Spd, Is.EqualTo(10));
