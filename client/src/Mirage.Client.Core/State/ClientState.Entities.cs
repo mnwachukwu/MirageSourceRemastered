@@ -218,7 +218,7 @@ public sealed partial class ClientState
     // Client-only: NPC template num → keeper-shop KIND (0 none / 1 store / 2 inn; from SendNpcsPacket +
     // UpdateNpcPacket). Drives the $ vendor glyph, the melee-key/right-click interact routing, and the
     // right-click menu label (Shop vs Inn). Parallel to NpcDefs; never persisted.
-    public byte[] NpcKeeperShop { get; } = new byte[Constants.MaxNpcs + 1];
+    public int[] NpcKeeperShop { get; } = new int[Constants.MaxNpcs + 1];
     public ShopRecord[] ShopDefs { get; } = new ShopRecord[Constants.MaxShops + 1];
     public SpellRecord[] SpellDefs { get; } = new SpellRecord[Constants.MaxSpells + 1];
 }

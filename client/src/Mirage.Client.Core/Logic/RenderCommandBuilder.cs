@@ -678,7 +678,7 @@ public static class RenderCommandBuilder
         // Quest marker: a "?" (giver) or "!" (turn-in) glyph above the name — gray when it's
         // known-but-not-actionable, yellow when the player can act (accept / turn in). Stacks a line higher when
         // the NPC is also a keeper so it doesn't collide with the "$".
-        byte questGlyph = state.NpcQuestGlyph[n.Num];
+        int questGlyph = state.NpcQuestGlyph[n.Num];
         if (questGlyph != ClientState.QuestGlyphNone)
         {
             (string glyph, int color) = questGlyph switch
@@ -697,7 +697,7 @@ public static class RenderCommandBuilder
         // Conversation marker: a literal "..." above the name for an NPC that has a dialogue tree — yellow when
         // this character hasn't spoken to it yet, gray once spoken (per-character visited-log). Stacks above the
         // "$" and quest glyphs so all three can show at once.
-        byte convGlyph = state.NpcConvGlyph[n.Num];
+        int convGlyph = state.NpcConvGlyph[n.Num];
         if (convGlyph != ClientState.ConvGlyphNone)
         {
             int convColor = convGlyph == ClientState.ConvGlyphUnspoken ? GameColor.Yellow : GameColor.Gray;

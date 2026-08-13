@@ -54,7 +54,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 EmitsLight = n.EmitsLight,
                 Light = n.Light,
             };
-            _state.NpcKeeperShop[n.Num] = (byte)n.KeeperShop;
+            _state.NpcKeeperShop[n.Num] = n.KeeperShop;
         }
     }
 
@@ -231,7 +231,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         };
         // Keeper-shop kind is a parallel array (not part of NpcDefs) — refresh it so a live shop/keeper edit
         // moves/relabels the $ glyph + interact routing without a client reconnect.
-        _state.NpcKeeperShop[p.NpcNum] = (byte)p.KeeperShop;
+        _state.NpcKeeperShop[p.NpcNum] = p.KeeperShop;
     }
 
     private void HandleUpdateShop(UpdateShopPacket p)

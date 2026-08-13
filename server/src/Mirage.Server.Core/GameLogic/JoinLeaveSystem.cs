@@ -112,8 +112,12 @@ public sealed class JoinLeaveSystem : GameSystem
         // Classes
         _dispatcher.SendTo(index, PacketBuilder.SendClasses(_world.Classes.Skip(1)));
 
-        // Items
+        // Items. Skips unauthored slots, exactly as the NPC and spell builders below do — the client
+        // assigns by num into a MaxItems-sized array, so a sparse list lands in the same places a dense
+        // one would. Without the filter the join payload carries every empty slot up to MaxItems, which
+        // is the one place raising that ceiling would cost real bandwidth per login.
         var itemList = Enumerable.Range(1, Constants.MaxItems)
+            .Where(i => !string.IsNullOrEmpty(_world.Items[i].Name))
             .Select(i => (i, _world.Items[i]));
         _dispatcher.SendTo(index, PacketBuilder.SendItems(itemList));
 

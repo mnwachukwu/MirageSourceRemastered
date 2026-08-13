@@ -19,7 +19,7 @@ public sealed partial class ClientState
 
     /// <summary>NPC template num → overhead quest glyph (0 none / 1 gray "?" / 2 gray "!" / 3 yellow "?" /
     /// 4 yellow "!"; higher wins). Derived, never pushed. Parallel to NpcDefs.</summary>
-    public byte[] NpcQuestGlyph { get; } = new byte[Constants.MaxNpcs + 1];
+    public int[] NpcQuestGlyph { get; } = new int[Constants.MaxNpcs + 1];
 
     /// <summary>The player's quest log — one entry per accepted quest (a never-started quest has no entry).
     /// Replaced whole by each QuestLogPacket.</summary>
@@ -38,7 +38,7 @@ public sealed partial class ClientState
     // Overhead glyph codes — also the render priority (higher wins when an NPC fills several roles). Actionable
     // states split by repeatability: a repeatable quest you can accept / turn in shows BLUE, a one-time quest
     // YELLOW. Within a tier, one-time (yellow) outranks repeatable (blue); turn-in (!) outranks accept (?).
-    public const byte QuestGlyphNone = 0, QuestGlyphGrayQuestion = 1, QuestGlyphGrayBang = 2,
+    public const int QuestGlyphNone = 0, QuestGlyphGrayQuestion = 1, QuestGlyphGrayBang = 2,
         QuestGlyphBlueQuestion = 3, QuestGlyphYellowQuestion = 4, QuestGlyphBlueBang = 5, QuestGlyphYellowBang = 6;
 
     /// <summary>What a player can do with a quest AT a given NPC (drives the interaction menu).</summary>
@@ -166,7 +166,7 @@ public sealed partial class ClientState
             if (def.GiverNpc >= 1 && def.GiverNpc < NpcQuestGlyph.Length)
             {
                 bool repeatDone = def.Repeatable && pq is { Status: QuestStatus.Done };
-                byte g = IsQuestEligible(q) ? (repeatDone ? QuestGlyphBlueQuestion : QuestGlyphYellowQuestion)
+                int g = IsQuestEligible(q) ? (repeatDone ? QuestGlyphBlueQuestion : QuestGlyphYellowQuestion)
                        : (!active && !doneForever) ? QuestGlyphGrayQuestion
                        : QuestGlyphNone;
                 if (g > NpcQuestGlyph[def.GiverNpc]) NpcQuestGlyph[def.GiverNpc] = g;
@@ -176,7 +176,7 @@ public sealed partial class ClientState
             if (active && turnIn >= 1 && turnIn < NpcQuestGlyph.Length)
             {
                 bool repeatRun = pq is { Status: QuestStatus.InProgressRepeat };
-                byte g = IsQuestReadyToTurnIn(q) ? (repeatRun ? QuestGlyphBlueBang : QuestGlyphYellowBang)
+                int g = IsQuestReadyToTurnIn(q) ? (repeatRun ? QuestGlyphBlueBang : QuestGlyphYellowBang)
                        : QuestGlyphGrayBang;
                 if (g > NpcQuestGlyph[turnIn]) NpcQuestGlyph[turnIn] = g;
             }
@@ -194,9 +194,9 @@ public sealed partial class ClientState
 
     /// <summary>NPC template num → overhead conversation glyph (0 none / 1 gray "..." spoken / 2 yellow "..."
     /// unspoken; higher wins so an unspoken conversation outranks a spoken one). Derived, never pushed.</summary>
-    public byte[] NpcConvGlyph { get; } = new byte[Constants.MaxNpcs + 1];
+    public int[] NpcConvGlyph { get; } = new int[Constants.MaxNpcs + 1];
 
-    public const byte ConvGlyphNone = 0, ConvGlyphSpoken = 1, ConvGlyphUnspoken = 2;
+    public const int ConvGlyphNone = 0, ConvGlyphSpoken = 1, ConvGlyphUnspoken = 2;
 
     private HashSet<int> _spokenConversations = new();
 
@@ -245,7 +245,7 @@ public sealed partial class ClientState
             if (def is null || def.TrimmedName.Length == 0) continue;
             int npc = def.SpeakerNpc;
             if (npc < 1 || npc >= NpcConvGlyph.Length) continue;
-            byte g = _spokenConversations.Contains(c) ? ConvGlyphSpoken : ConvGlyphUnspoken;
+            int g = _spokenConversations.Contains(c) ? ConvGlyphSpoken : ConvGlyphUnspoken;
             if (g > NpcConvGlyph[npc]) NpcConvGlyph[npc] = g;   // yellow (unspoken) outranks gray (spoken)
         }
     }

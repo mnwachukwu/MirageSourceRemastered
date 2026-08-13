@@ -23,24 +23,34 @@ public static class Constants
     public static readonly int ClientRevision = _appVer.Build;
 
     public const int MaxPlayers = 70;
-    public const int MaxItems = 255;
-    public const int MaxNpcs = 255;
-    public const int MaxShops = 255;
-    public const int MaxSpells = 255;
-    public const int MaxQuests = 255;   // editor-authored player quests; 1-based slot model like items/npcs
+
+    // ── Record-family ceilings ────────────────────────────────────────────────
+    // All 1000, matching MaxMaps. These were 255 — the VB6 array bound — and the spell grid hit it
+    // exactly (15 tiers x 17 type/effectiveness rungs = 255, with no room for a single utility spell).
+    // Nothing on the wire constrains them: the protocol is JSON, so a num is a number of whatever width
+    // the record declares, and every packet id field is already int or short. The costs of raising them
+    // are local and known: the server pads each family to its ceiling on first launch (blank files in
+    // the RUNTIME data folder only — the tracked seed ships authored records and is never written to),
+    // GameWorld allocates one array per family at ceiling+1, and the editor's slot pickers list that
+    // many rows. Raise further freely; just re-check those three.
+    public const int MaxItems = 1000;
+    public const int MaxNpcs = 1000;
+    public const int MaxShops = 1000;
+    public const int MaxSpells = 1000;
+    public const int MaxQuests = 1000;   // editor-authored player quests; 1-based slot model like items/npcs
     public const int MaxQuestObjectives = 255;   // safety ceiling on objectives per quest (editor authors as many as needed; bounds the per-character progress list)
     public const int MaxActiveQuests = 10;   // how many quests a character can have IN PROGRESS at once
     // NPC conversations (dialogue trees). 1-based slot model like items/npcs/quests; a conversation is
     // authored per-NPC (side-mapped by SpeakerNpc). Nodes-per-tree and choices-per-node are editor caps.
-    public const int MaxConversations = 255;
+    public const int MaxConversations = 1000;
     public const int MaxConversationNodes = 64;    // dialogue nodes per conversation (editor add-row cap)
     public const int MaxConversationChoices = 8;   // player choices per node (menu size; panel-render sane)
     public const int MaxMaps = 1000;
     // Editor-facing cap on MapGroup slots. The server stores groups in an unbounded Dictionary (only
     // files that exist are loaded), but the editor + type-ahead pickers use a 1-based slot model like
-    // the other record editors, so a cap bounds the slot list. 255 mirrors the other record families
+    // the other record editors, so a cap bounds the slot list. 1000 mirrors the other record families
     // (items/npcs/shops/spells).
-    public const int MaxMapGroups = 255;
+    public const int MaxMapGroups = 1000;
     public const int MaxInv = 50;
     public const int MaxBankSlots = 100;
     public const int MaxMapItems = 20;
