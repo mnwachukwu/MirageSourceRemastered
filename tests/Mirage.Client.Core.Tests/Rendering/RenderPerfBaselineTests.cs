@@ -27,7 +27,7 @@ public class RenderPerfBaselineTests
 {
     const int CenterMap = 1;
 
-    // A populated observable region: a full center map plus its eight neighbours, NPCs spread across
+    // A populated observable region: a full center map plus its eight neighbors, NPCs spread across
     // them, players on the center map, and ground items — roughly what a busy town looks like.
     static ClientState BusyState(int npcsPerMap, int players, int itemsPerMap)
     {
@@ -57,7 +57,7 @@ public class RenderPerfBaselineTests
 
         state.CenterMapNum = state.NeighborMapNums[1, 1];
 
-        // NPC definitions the emitters read for size/name/behaviour.
+        // NPC definitions the emitters read for size/name/behavior.
         for (int i = 1; i <= 20; i++)
             state.NpcDefs[i] = new NpcRecord { Name = $"npc{i}", Behavior = NpcBehavior.AttackOnSight };
 

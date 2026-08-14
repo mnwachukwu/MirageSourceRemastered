@@ -167,7 +167,7 @@ public static class EconomyFormulas
     // which is wrong by an EXPONENT rather than by a constant, so no choice of percentage could have fixed
     // it: value grows as L^2.675 (it is a share of a rung's income) while the gold a fight actually earns
     // grows as about L^1.3. Priced off value, a full set repair ran from 22% of a level's income at tier 20
-    // to 5,433% at tier 235. Power grows about linearly in level, which is the right neighbourhood.
+    // to 5,433% at tier 235. Power grows about linearly in level, which is the right neighborhood.
     //
     // The mistake underneath it is worth remembering: repair per POINT was compared against income per
     // LEVEL, and that looked like Power falling hopelessly behind. But durability lost per level scales
@@ -303,7 +303,7 @@ public static class EconomyFormulas
     // feature: any flat fee big enough to matter at level 255 (income ~10.9M a level) would be
     // unaffordable at level 5 (income 296). That tension is unresolvable with a constant, which is why
     // the scaling part is keyed on the PARCEL instead of the payer — a shipment's worth cannot be
-    // minimised by handing it to an alt, so the exploit that killed level-scaling does not apply.
+    // minimized by handing it to an alt, so the exploit that killed level-scaling does not apply.
     //
     // Sits deliberately below the 5% that MarketSystem.SaleTax and MailSystem.CodTax both charge: those
     // two buy escrow (and, for the market, discovery), and plain mail buys neither. The 3-point spread is
@@ -334,7 +334,7 @@ public static class EconomyFormulas
     // CombatFormulas used to compute it itself, as Power/10, carrying the comment "= ShopSystem
     // ratePerPoint (Power/5), halved for full repair". That was true of the OLD repair rule and silently
     // stopped being true when repair became a share of the item's value: the two drifted from 1.3x apart at
-    // tier 20 to 87x apart at 255, all of it in the caster's favour, with nothing failing. Parity has to be
+    // tier 20 to 87x apart at 255, all of it in the caster's favor, with nothing failing. Parity has to be
     // DERIVED from the repair rule, not restated alongside it, or the next retune breaks it again.
 
     /// <summary>Gold a warrior burns repairing one point of durability on on-level gear at

@@ -56,7 +56,7 @@ public static class PacketBuilder
             foreach (int s in known) spellNums.Add(s);
 
             // Empty groups go out as null (and so off the wire entirely) rather than as []: a class that
-            // starts with no armour is a real design statement the screen shows, but it is the SHAPE of
+            // starts with no armor is a real design statement the screen shows, but it is the SHAPE of
             // the loadout that says so, not an empty array in the payload.
             data[n - 1] = new SendClassesPacket.ClassData(
                 c.Name, c.SpriteMale, c.SpriteFemale, c.Str, c.Def, c.Spd, c.Int, c.Description,

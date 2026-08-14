@@ -55,7 +55,7 @@ public sealed partial class PacketHandler
 
     // The same seams the game systems get from GameSystem. PacketHandler is not a GameSystem (it
     // dispatches TO the systems rather than being one), so it holds them directly. Both default to
-    // the real implementations, keeping every existing construction site behaviour-identical.
+    // the real implementations, keeping every existing construction site behavior-identical.
     private readonly IClock _clock;
     private readonly IRandomSource _rng;
 
@@ -78,7 +78,7 @@ public sealed partial class PacketHandler
         _dispatcher.SendToObserversBut(_world.MapObservers[mapNum], exclude, packet);
 
     /// <summary>Per-recipient localized chat to a map's observers. Takes the metadata rather than a
-    /// colour and channel because the callers here are speaker-attributed (a yell), and the speaker
+    /// color and channel because the callers here are speaker-attributed (a yell), and the speaker
     /// login in the metadata is what the ignore-list filter keys on.</summary>
     private void ChatToMap(int mapNum, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args) =>

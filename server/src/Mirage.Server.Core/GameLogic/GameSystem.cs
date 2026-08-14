@@ -125,7 +125,7 @@ public abstract class GameSystem
 
     /// <summary>Metadata overload — for SPEAKER-ATTRIBUTED chat (a yell), where the metadata carries
     /// the speaker triplet and login that the ignore-list filter keys on, and so cannot be rebuilt
-    /// from a colour and a channel. Also the right overload when one prebuilt metadata is reused
+    /// from a color and a channel. Also the right overload when one prebuilt metadata is reused
     /// across several sends of the same event.</summary>
     protected void ChatToMap(World.GameWorld world, int mapNum, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args) =>

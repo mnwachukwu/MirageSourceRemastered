@@ -205,7 +205,7 @@ def write_window_bmp(path: Path, master: Image.Image, size: int = 256) -> None:
     header = struct.pack(
         "<IiiHHIIiiII"      # BITMAPINFOHEADER
         "IIII"              # R/G/B/A masks
-        "I36sIII",          # colour space + endpoints + gamma
+        "I36sIII",          # color space + endpoints + gamma
         108,                # header size — V4
         size, size,
         1, 32,

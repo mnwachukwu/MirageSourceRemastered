@@ -245,7 +245,7 @@ public static class UiHelper
     public static Rectangle MenuDialogRect =>
         new((RefW - MenuDlgW) / 2, (RefH - MenuDlgH) / 2, MenuDlgW, MenuDlgH);
 
-    /// <summary>The wide variant, same height and same centring: (50, 148, 700, 304).</summary>
+    /// <summary>The wide variant, same height and same centering: (50, 148, 700, 304).</summary>
     public static Rectangle WideMenuDialogRect =>
         new((RefW - MenuDlgWideW) / 2, (RefH - MenuDlgH) / 2, MenuDlgWideW, MenuDlgH);
 
@@ -516,7 +516,7 @@ public static class UiHelper
     }
 
     /// <summary>Draws <paramref name="title"/> centered above the menu dialog in the title font.
-    /// <paramref name="rect"/> overrides the dialog it centres on, for a screen using the wide variant.</summary>
+    /// <paramref name="rect"/> overrides the dialog it centers on, for a screen using the wide variant.</summary>
     public static void DrawMenuTitle(SpriteBatch sb, SpriteFont titleFont, string title, Rectangle? rect = null)
     {
         var dlg = rect ?? MenuDialogRect;

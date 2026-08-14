@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Mirage.Client.Shell.Tests;
 
-/// <summary>Controller-brand detection. Deliberately one-sided: an unrecognised pad reads as Xbox, which
+/// <summary>Controller-brand detection. Deliberately one-sided: an unrecognized pad reads as Xbox, which
 /// is what generic drivers report anyway, so a miss shows the right button in the wrong alphabet rather
 /// than the wrong button.</summary>
 [TestFixture]
@@ -19,7 +19,7 @@ public class GamepadGlyphTests
     [TestCase("PLAYSTATION(R)3 Controller")]
     [TestCase("dualshock 3")]                 // matching is case-insensitive
     [TestCase("Wireless Controller")]         // what a DS4 reports through several drivers
-    public void LooksLikeSony_RecognisesSonyPads(string name)
+    public void LooksLikeSony_RecognizesSonyPads(string name)
         => Assert.That(GamepadGlyphs.LooksLikeSony(name), Is.True);
 
     [TestCase("Xbox 360 Controller")]

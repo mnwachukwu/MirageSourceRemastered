@@ -11,7 +11,7 @@ using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
-/// <summary>Creating, disbanding, and configuring a guild — name, MOTD, labels, colour, and the
+/// <summary>Creating, disbanding, and configuring a guild — name, MOTD, labels, color, and the
 /// open-for-membership and overhead-rank toggles — plus the serialized per-guild file writes
 /// every mutation lands through.</summary>
 public sealed partial class GuildSystem : GameSystem

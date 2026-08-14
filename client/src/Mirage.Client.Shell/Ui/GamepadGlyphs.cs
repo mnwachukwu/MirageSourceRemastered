@@ -15,21 +15,21 @@ namespace Mirage.Client.Shell.Ui;
 ///
 /// <para>Detection is best-effort and deliberately conservative: MonoGame surfaces only a driver-supplied
 /// display name, so this looks for Sony's well-known product strings and otherwise assumes Xbox, which is
-/// also what an unrecognised third-party pad reports itself as. Getting it wrong shows the right button in
+/// also what an unrecognized third-party pad reports itself as. Getting it wrong shows the right button in
 /// the wrong alphabet, never the wrong button.</para>
 /// </summary>
 public static class GamepadGlyphs
 {
     public enum PsFace { Cross, Circle, Square, Triangle }
 
-    // Sony's own colours, muted enough to read on a dark plate rather than glow off it.
+    // Sony's own colors, muted enough to read on a dark plate rather than glow off it.
     private static readonly Color CrossColor = new(150, 175, 235);
     private static readonly Color CircleColor = new(226, 116, 116);
     private static readonly Color SquareColor = new(214, 148, 200);
     private static readonly Color TriangleColor = new(122, 206, 178);
 
     // Re-probed on a cadence rather than every frame (GetCapabilities hits the driver) and rather than
-    // once at startup (a pad plugged in mid-session should still be recognised).
+    // once at startup (a pad plugged in mid-session should still be recognized).
     private const long ReprobeIntervalMs = 2000;
     private static long _lastProbeMs = long.MinValue;
     private static bool _preferPs;
@@ -90,7 +90,7 @@ public static class GamepadGlyphs
         return false;
     }
 
-    /// <summary>Draw one face glyph centred in <paramref name="plate"/>. Sized off the plate so the badge
+    /// <summary>Draw one face glyph centered in <paramref name="plate"/>. Sized off the plate so the badge
     /// can be resized without the shapes drifting out of it.</summary>
     public static void DrawPlayStationFace(SpriteBatch sb, Rectangle plate, PsFace face)
     {
@@ -121,7 +121,7 @@ public static class GamepadGlyphs
             }
             case PsFace.Triangle:
             {
-                // Point-up, centred on the plate rather than on the triangle's bounding box — a geometric
+                // Point-up, centered on the plate rather than on the triangle's bounding box — a geometric
                 // centroid sits low and reads as sunken at 11px.
                 float h = r * 1.7f, w = r * 1.8f;
                 var top = c + new Vector2(0f, -h / 2f);

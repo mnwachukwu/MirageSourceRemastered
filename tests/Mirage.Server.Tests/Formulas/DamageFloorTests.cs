@@ -91,7 +91,7 @@ public class DamageFloorTests
                 "stacked mitigation is never full immunity");
     }
 
-    // The PvE floor is the mirror on the other side — a low-offence hybrid whose raw sits under a tanky
+    // The PvE floor is the mirror on the other side — a low-offense hybrid whose raw sits under a tanky
     // mob's mitigation would otherwise grind roughly ten times a pure's kill time.
     [Test]
     public void PlayerVsNpc_UsesItsOwnHigherFloor()

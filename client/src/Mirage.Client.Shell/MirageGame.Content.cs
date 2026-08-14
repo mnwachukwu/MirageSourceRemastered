@@ -21,7 +21,7 @@ using System.Text.Json.Nodes;
 
 namespace Mirage.Client.Shell;
 
-/// <summary>Graphics-device setup and asset loading: tilesets, sprite and item sheets, the colour
+/// <summary>Graphics-device setup and asset loading: tilesets, sprite and item sheets, the color
 /// key, and the procedurally generated light-halo and box textures.</summary>
 public sealed partial class MirageGame : Game
 {

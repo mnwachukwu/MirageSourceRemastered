@@ -136,7 +136,7 @@ public class ShopSystemTests
 
     // A mid-band sword: max durability 100 at its tier's medium Power. Repair is now a share of the item's
     // VALUE (EconomyFormulas.RepairCost), so these tests take their expected gold FROM the formula rather
-    // than restating its arithmetic — what is under test here is the shop's behaviour (does it charge
+    // than restating its arithmetic — what is under test here is the shop's behavior (does it charge
     // exactly the quoted cost, restore exactly what was bought, refuse when a single point is unaffordable),
     // not the price curve, which EconomyFormulasTests pins separately. A tier-100 piece is used so the
     // numbers are large enough that the partial-repair division is actually exercised.

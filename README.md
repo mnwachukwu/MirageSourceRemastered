@@ -72,7 +72,7 @@ dotnet run --project editor/src/Mirage.Editor
 
 > **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — ten classes, 471 items, 270 spells and 84 NPCs. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
 >
-> **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character levelling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
+> **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
 >
 > It is included as a courtesy — enough to start a server and see the systems work, and a worked example of what the record formats look like — but it is not a playable game and was never intended as one. Building an actual world means authoring your own content in the editor, or adapting the generators in the sibling `MirageSourceRemastered.Tools/` folder that produced this one.
 
@@ -90,8 +90,4 @@ This file covers what the project is and how to get it running. Everything else 
 | [Testing](docs/testing.md) | What the four suites cover, how to run one on its own, and why the cross-platform matrix exists |
 | [Technical decisions](docs/architecture.md) | Choices that are not obvious from the code, recorded with the reasoning that produced them |
 | [Game data conventions](docs/game-data.md) | Rules the authored content is expected to follow, including music loop points |
-| [Changes from the VB6 original](docs/changes-from-vb6.md) | Additions, rebalances, bug fixes carried across, and the gaps that remain |
-
-Design notes and balance working papers are deliberately **not** in this repository — they live in a
-sibling `_mirage-reference/` folder, because they describe intent rather than the shipped engine and
-go stale in ways code review would not catch.
+| [Changes from the VB6 original](docs/changes-from-vb6.md) | Additions, rebalances, bug fixes carried across, and the two features excluded by design |

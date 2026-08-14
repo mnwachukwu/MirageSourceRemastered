@@ -143,7 +143,7 @@ public class PinnedRandomnessTests
 
     // A de-level drains `count` points across the stats the player still has. The roll picks an index
     // into the CURRENTLY drainable set, so the mapping shifts as stats hit zero — which is exactly the
-    // behaviour that was impossible to assert before.
+    // behavior that was impossible to assert before.
     [Test]
     public void StatDrain_DrainsTheScriptedStat()
     {

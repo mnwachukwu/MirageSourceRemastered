@@ -23,7 +23,7 @@ public class NewCharClassesPacketTests
         new() { Name = "Magical Reagent", Type = ItemType.Currency },
         new() { Name = "Light Sword", Type = ItemType.Weapon, Power = 6, Durability = 40 },
         new() { Name = "Heavy Sword", Type = ItemType.Weapon, Power = 10, Durability = 60 },
-        new() { Name = "Draught", Type = ItemType.PotionAddHp, VitalAmount = 20 },
+        new() { Name = "Elixir", Type = ItemType.PotionAddHp, VitalAmount = 20 },
     ];
 
     private static SpellRecord[] Spells() =>

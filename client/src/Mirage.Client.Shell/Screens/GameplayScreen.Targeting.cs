@@ -18,7 +18,7 @@ using System.Text;
 namespace Mirage.Client.Shell.Screens;
 
 /// <summary>Choosing a target: Tab cycling, click and hover resolution down to an entity, and the
-/// tile/footprint maths that backs both.</summary>
+/// tile/footprint math that backs both.</summary>
 public sealed partial class GameplayScreen : IGameScreen
 {
     // ── Tab targeting ─────────────────────────────────────────────────────────

@@ -33,7 +33,7 @@ public sealed class EditorConnection : IDisposable
     /// <summary>The outcome of a connect + editor-login handshake. <see cref="Data"/> is non-null only when
     /// <see cref="Success"/> is true; <see cref="Message"/> carries the server's reason on failure and its
     /// greeting on success. Named rather than a four-element tuple so a caller cannot bind the failure
-    /// message to the success flag's neighbour and act on the wrong one.</summary>
+    /// message to the success flag's neighbor and act on the wrong one.</summary>
     public readonly record struct AuthResult(bool Success, string Message, EditorDataPacket? Data, AdminLevel AccessLevel)
     {
         public static AuthResult Failed(string message) => new(false, message, null, AdminLevel.Player);

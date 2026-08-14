@@ -13,7 +13,7 @@ namespace Mirage.Editor.ViewModels;
 /// your memory of the original, this is the file to check.</para></summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
-    /// <summary>Re-raises every property the map Properties panel and the neighbour grid bind to.
+    /// <summary>Re-raises every property the map Properties panel and the neighbor grid bind to.
     /// Called whenever the selected map changes wholesale — a different map selected, a record
     /// swapped in by a load, or an edit applied outside the bound setters — because those paths
     /// mutate the underlying <c>MapRecord</c> without going through the individual properties.

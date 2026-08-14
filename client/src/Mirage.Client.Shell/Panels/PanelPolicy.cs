@@ -78,7 +78,7 @@ public static class PanelPolicies
         t[PanelSlots.Help] = new("Help", PlayerToggleable: true, BlocksMovement: false, ClosesOnLeave: true, CountsAsOpenForEscape: true);
         t[PanelSlots.Social] = new("Social", PlayerToggleable: true, BlocksMovement: false, ClosesOnLeave: true, CountsAsOpenForEscape: true);
 
-        // The options panel has no saved position (it centres itself) but is otherwise ordinary.
+        // The options panel has no saved position (it centers itself) but is otherwise ordinary.
         t[PanelSlots.Options] = new(null, PlayerToggleable: true, BlocksMovement: false, ClosesOnLeave: true, CountsAsOpenForEscape: true);
 
         // Controls counts for Escape like every other player-opened panel. It did not until this table

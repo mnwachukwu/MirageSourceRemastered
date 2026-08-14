@@ -375,7 +375,7 @@ public static class Constants
     // a flat cost still has a defensible player behind it.
     //
     // FLAT, all of it: a guild is funded collectively from a vault, so pricing anything here by whichever
-    // member clicks the button is both arbitrary and trivially minimised by using the lowest-level one.
+    // member clicks the button is both arbitrary and trivially minimized by using the lowest-level one.
     // See EconomyFormulas for why that rules out scaling these by the actor's level.
 
     // Gold to found a new guild. Consumed on success (a creation sink; the new guild's vault starts

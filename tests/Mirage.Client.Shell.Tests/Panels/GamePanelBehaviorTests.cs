@@ -5,12 +5,12 @@ using NUnit.Framework;
 namespace Mirage.Client.Shell.Tests;
 
 /// <summary>
-/// The <see cref="IGamePanel"/> contract exercised BEHAVIOURALLY on every registry panel, not just
+/// The <see cref="IGamePanel"/> contract exercised BEHAVIORALLY on every registry panel, not just
 /// checked for declaration (see GamePanelContractTests for that half).
 ///
 /// <para>GameplayScreen's panel plumbing calls these four members generically now — z-order, focus,
 /// hit-testing and bounds persistence all go through the interface rather than through a switch per
-/// operation. That only works if every panel honours the same contract, and the two properties the
+/// operation. That only works if every panel honors the same contract, and the two properties the
 /// plumbing leans on hardest are: a CLOSED panel must not claim the pointer (or it would swallow world
 /// clicks while invisible), and <c>SetBounds</c> must round-trip through <c>Bounds</c> (or a panel's
 /// saved position would silently fail to restore).</para>
@@ -69,7 +69,7 @@ public class GamePanelBehaviorTests
                 Assert.That(p.ContainsMouse(new Point(10, 10)), Is.False,
                             $"{Name(p)} is closed, so it must not claim a point inside its own bounds");
                 Assert.That(p.ContainsMouse(new Point(200, 150)), Is.False,
-                            $"{Name(p)} is closed, so it must not claim its own centre");
+                            $"{Name(p)} is closed, so it must not claim its own center");
             }
         });
     }

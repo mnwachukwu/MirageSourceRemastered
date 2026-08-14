@@ -44,7 +44,7 @@ public static class ReceiveLoop
 
     // The two connection kinds are dispatched by different handlers, so the caller binds the right
     // one and the loop just forwards to it — the loop itself has no reason to know which is which
-    // beyond labelling its log lines.
+    // beyond labeling its log lines.
     private static async Task RunAsync(
         int index,
         StreamReader reader,

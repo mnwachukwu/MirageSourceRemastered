@@ -15,7 +15,7 @@ using System.Globalization;
 namespace Mirage.Editor.Controls;
 
 /// <summary>Pointer handling: paint and erase drags, rectangular selection, warp-destination and
-/// NPC-placement clicks, neighbour-cell navigation, and wheel zoom.</summary>
+/// NPC-placement clicks, neighbor-cell navigation, and wheel zoom.</summary>
 public sealed partial class TileGridControl : Control
 {
     // ── Pointer events ────────────────────────────────────────────────────────

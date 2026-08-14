@@ -11,7 +11,7 @@ using TextCopy;
 namespace Mirage.Client.Shell.Ui;
 
 /// <summary>Geometry and word wrap: the log and scrollbar rectangles, the visual-line rebuild, and
-/// the span projection that carries links, names and colours across a wrap.</summary>
+/// the span projection that carries links, names and colors across a wrap.</summary>
 public sealed partial class TextArea
 {
     // ── Layout helpers ─────────────────────────────────────────────────────────

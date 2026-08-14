@@ -348,7 +348,7 @@ public sealed class NewCharScreen : IGameScreen
     }
 
     /// <summary>The class's own pitch, one line across the full content width. Quoted, so it reads as
-    /// flavour rather than as another field — everything else on this screen is a fact about the class,
+    /// flavor rather than as another field — everything else on this screen is a fact about the class,
     /// and this is the class talking. Plain ASCII quotes: the menu font carries ASCII and Latin-1, and
     /// typographic quotes are in neither. Truncated text reveals itself on hover, like every other
     /// squeezed label in the client.</summary>
@@ -362,7 +362,7 @@ public sealed class NewCharScreen : IGameScreen
     }
 
     /// <summary>One entry as the loadout line shows it: which record, the stack a currency arrives as,
-    /// and how many copies were granted (two of the same draught are one entry "x2", not two names).</summary>
+    /// and how many copies were granted (two of the same elixir are one entry "x2", not two names).</summary>
     private readonly record struct LoadoutEntry(int Num, int Value, int Count);
 
     /// <summary>The three starting groups, names only. Everything else — power, requirements, MP cost —
@@ -379,7 +379,7 @@ public sealed class NewCharScreen : IGameScreen
     }
 
     /// <summary>Collapse repeats into counted entries, keeping the authored order. The bag really does
-    /// hold two separate draughts, but "Minor Healing Draught, Minor Healing Draught" spends a line
+    /// hold two separate elixirs, but "Minor Healing Elixir, Minor Healing Elixir" spends a line
     /// saying one thing twice.</summary>
     private static List<LoadoutEntry> Group(IEnumerable<(int Num, int Value)> raw)
     {
@@ -393,7 +393,7 @@ public sealed class NewCharScreen : IGameScreen
         return result;
     }
 
-    /// <summary>Draw one labelled group, starting on <paramref name="line"/> and wrapping onto the next
+    /// <summary>Draw one labeled group, starting on <paramref name="line"/> and wrapping onto the next
     /// when it runs long. Advances <paramref name="line"/> past whatever it used, so the next group
     /// starts fresh underneath.</summary>
     private void DrawGroup(SpriteBatch sb, SpriteFont font, string label, List<LoadoutEntry> entries,
@@ -407,7 +407,7 @@ public sealed class NewCharScreen : IGameScreen
         int x = BandX + (int)font.MeasureString(label).X + 6;
 
         // An empty group is shown, not hidden: "Worn: nothing" is a real statement about a class that
-        // opens unarmoured, and a blank row would read as missing data instead.
+        // opens unarmored, and a blank row would read as missing data instead.
         if (entries.Count == 0)
         {
             sb.DrawString(font, ClientStrings.Get(ClientStrings.NewCharScreen_LoadoutNone), new Vector2(x, y), Color.DimGray);
@@ -455,7 +455,7 @@ public sealed class NewCharScreen : IGameScreen
 
     /// <summary>Hand the hovered entry to the shared tooltip, which then renders exactly what it would
     /// in game. The <c>classes</c> table is the live one, so a class-restricted piece names its classes;
-    /// the synthetic player supplies the level and stats every requirement line is coloured against.</summary>
+    /// the synthetic player supplies the level and stats every requirement line is colored against.</summary>
     private void ShowEntryTooltip(int num, int value, PlayerRecord me, bool spells)
     {
         if (spells)

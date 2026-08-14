@@ -18,7 +18,7 @@ namespace Mirage.Client.Shell.Panels;
 /// links and only ever claims a right-click that actually lands on one of its four boxes.</para>
 ///
 /// <para>Everything it shows is derived from <see cref="ClientState"/> each frame rather than cached: a
-/// bound slot goes grey the moment the bag runs out and colours again when it is restocked, with no
+/// bound slot goes gray the moment the bag runs out and colors again when it is restocked, with no
 /// invalidation to get wrong.</para>
 /// </summary>
 public static class HotkeyBarPanel
@@ -36,7 +36,7 @@ public static class HotkeyBarPanel
     // over a busy icon.
     private const int BadgeW = 11, BadgeH = 11;
 
-    // Cooldown sweep: a fan of thin spokes from the box centre, since SpriteBatch draws quads and a
+    // Cooldown sweep: a fan of thin spokes from the box center, since SpriteBatch draws quads and a
     // genuine pie wedge would need geometry. 48 spokes over a 32px box leaves no visible gaps.
     private const int SweepSpokes = 48;
 
@@ -89,7 +89,7 @@ public static class HotkeyBarPanel
     }
 
     /// <summary>Whether the slot's binding can be acted on right now — the item is in the bag, or the
-    /// spell is still known. Drives the grey/colour state and is re-read every frame.</summary>
+    /// spell is still known. Drives the gray/color state and is re-read every frame.</summary>
     public static bool IsAvailable(ClientState state, PlayerHotkey hk) => hk.Kind switch
     {
         HotkeyKind.Item => FindInvSlot(state, hk.Num) > 0,
@@ -133,7 +133,7 @@ public static class HotkeyBarPanel
             for (int slot = 1; slot <= Constants.MaxHotkeys; slot++)
                 DrawCooldownSweep(sb, SlotBounds(slot), cooldownFraction);
 
-        // The trigger modifier is a property of the GROUP, not of any one slot, so it is labelled once to
+        // The trigger modifier is a property of the GROUP, not of any one slot, so it is labeled once to
         // the left of the row rather than repeated on all four badges.
         if (gamepadActive)
         {
@@ -207,22 +207,22 @@ public static class HotkeyBarPanel
 
     /// <summary>The dimming veil for the shared cooldown, drawn as a spoke fan sweeping clockwise from
     /// twelve o'clock. <paramref name="fraction"/> is how much is LEFT, so the veil retreats and the icon
-    /// returns to colour as the beat runs out.</summary>
+    /// returns to color as the beat runs out.</summary>
     private static void DrawCooldownSweep(SpriteBatch sb, Rectangle box, float fraction)
     {
         fraction = Math.Clamp(fraction, 0f, 1f);
-        var centre = new Vector2(box.Center.X, box.Center.Y);
+        var center = new Vector2(box.Center.X, box.Center.Y);
         // Reach the corners, or the veil would leave four lit triangles behind.
         float radius = MathF.Sqrt(box.Width * box.Width + box.Height * box.Height) / 2f + 1f;
         int spokes = Math.Max(1, (int)MathF.Ceiling(SweepSpokes * fraction));
         float sweep = MathF.Tau * fraction;
-        // Thick enough that neighbouring spokes overlap at the rim rather than fanning into stripes.
+        // Thick enough that neighboring spokes overlap at the rim rather than fanning into stripes.
         float thickness = radius * sweep / spokes + 2f;
         for (int i = 0; i <= spokes; i++)
         {
             float a = -MathF.PI / 2f + sweep * i / spokes;
-            var tip = centre + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius;
-            UiHelper.DrawLine(sb, centre, tip, CooldownVeil, thickness);
+            var tip = center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius;
+            UiHelper.DrawLine(sb, center, tip, CooldownVeil, thickness);
         }
     }
 

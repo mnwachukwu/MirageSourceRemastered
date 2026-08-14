@@ -61,7 +61,7 @@ public class LevelRequirementTests
             Assert.That(ItemRecord.UsesLevelReq(ItemType.Spell), Is.True, "a scroll is consumed");
 
             // Gold is not something you qualify for, and a door that refuses its own key because the
-            // holder is under-levelled is a puzzle nobody asked for.
+            // holder is under-leveled is a puzzle nobody asked for.
             Assert.That(ItemRecord.UsesLevelReq(ItemType.Currency), Is.False);
             Assert.That(ItemRecord.UsesLevelReq(ItemType.Key), Is.False);
         });
@@ -153,7 +153,7 @@ public class LevelRequirementTests
         items.UseItem(Idx, 1);
         Assert.That(p.ArmorSlot, Is.EqualTo(1), "precondition: it is on");
 
-        p.Level = 3;                 // delevelled below it
+        p.Level = 3;                 // deleveled below it
         items.UseItem(Idx, 1);       // toggle off
 
         Assert.That(p.ArmorSlot, Is.EqualTo(0), "you can always take a piece off");

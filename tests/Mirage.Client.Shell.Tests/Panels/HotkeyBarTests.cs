@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Mirage.Client.Shell.Tests;
 
-/// <summary>The action bar's non-drawing behaviour: where its four boxes are, and how a bound item or
+/// <summary>The action bar's non-drawing behavior: where its four boxes are, and how a bound item or
 /// spell NUMBER is resolved to a live inventory/spellbook slot at the moment of use. That resolution is
 /// the whole reason hotkeys store numbers rather than positions, so it is what these pin down.</summary>
 [TestFixture]
@@ -51,7 +51,7 @@ public class HotkeyBarTests
     }
 
     [Test]
-    public void SlotAt_RoundTripsEverySlotCentre_AndMissesElsewhere()
+    public void SlotAt_RoundTripsEverySlotCenter_AndMissesElsewhere()
     {
         Assert.Multiple(() =>
         {
@@ -119,7 +119,7 @@ public class HotkeyBarTests
         });
     }
 
-    // Availability is what greys a slot. An out-of-stock binding stays BOUND — it just can't fire — so the
+    // Availability is what grays a slot. An out-of-stock binding stays BOUND — it just can't fire — so the
     // player can see which potion they have run out of instead of the slot silently emptying itself.
     [Test]
     public void IsAvailable_TracksStockWithoutUnbinding()

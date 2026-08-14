@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace Mirage.Client.Core.Net;
 
-/// <summary>Map delivery and the seamless 3x3 grid: cache checks, neighbour fetches, the crossing
+/// <summary>Map delivery and the seamless 3x3 grid: cache checks, neighbor fetches, the crossing
 /// handshake, and the grid shift that follows it.</summary>
 public sealed partial class ClientPacketHandler : IClientEvents
 {

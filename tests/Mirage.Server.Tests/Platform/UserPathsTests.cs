@@ -139,7 +139,7 @@ public class UserPathsTests
     }
 
     /// <summary>Windows and macOS per-user folders carry the human-readable name, spaces and
-    /// capitals intact — a user browsing to it should recognise the game.</summary>
+    /// capitals intact — a user browsing to it should recognize the game.</summary>
     [Test]
     [Platform("Win,MacOsX")]
     public void WindowsAndMac_UseTheHumanReadableFolderName()
@@ -153,7 +153,7 @@ public class UserPathsTests
         Assert.That(new UserPaths("Some Game").Config(), Is.Not.EqualTo(new UserPaths("Some Game Editor").Config()));
     }
 
-    // ── XDG overrides, which only Linux honours ──────────────────────────────────────────────────
+    // ── XDG overrides, which only Linux honors ──────────────────────────────────────────────────
 
     [Test]
     [Platform("Linux")]
@@ -161,7 +161,7 @@ public class UserPathsTests
     [TestCase("XDG_CONFIG_HOME")]
     [TestCase("XDG_DATA_HOME")]
     [TestCase("XDG_CACHE_HOME")]
-    public void Linux_HonoursTheXdgOverride(string variable)
+    public void Linux_HonorsTheXdgOverride(string variable)
     {
         string root = Path.Combine(Path.GetTempPath(), "xdg-override-probe");
         Environment.SetEnvironmentVariable(variable, root);

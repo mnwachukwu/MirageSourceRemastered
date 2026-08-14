@@ -47,7 +47,7 @@ namespace in C# and renaming them would be churn no reader benefits from.
 What they actually pin, by kind:
 
 - **Formulas** — `StatFormulasTests`, `DeathFormulasTests`, `EconomyFormulasTests`, `GuildWarFormulasTests`, `SeasonFormulasTests`, `TerritoryFormulasTests`, `ItemFormulaTests`. The tuning constants are meant to be retuned, so these pin shape and invariants rather than magic numbers.
-- **Parity** — `NpcPlayerFormulaParityTests` holds NPCs and players to the same damage and mitigation maths, and `LocalizationParityTests` (present in three suites) holds the four language files to the same key set, so a translation cannot silently go missing.
+- **Parity** — `NpcPlayerFormulaParityTests` holds NPCs and players to the same damage and mitigation math, and `LocalizationParityTests` (present in three suites) holds the four language files to the same key set, so a translation cannot silently go missing.
 - **Systems** — one suite per feature area: guilds, quests, mail, market, trade, party, bank, shops, social, weather, time of day, regeneration, conversations, objectives.
 - **Seams and geometry** — `DeterminismSeamTests`, `LayerLogicTests`, `NpcChaseRoutingTests`, `NpcPathCacheTests`, `NpcFootprintCombatTests`, `WorldCoordHelperFootprintTests`. The cross-map and two-plane cases are where the engine is easiest to break by accident.
 - **Determinism** — `PinnedClockTests` and `PinnedRandomnessTests` keep time and randomness injectable, which is what makes the rest of the suite reproducible.
@@ -94,7 +94,7 @@ runner ships Node, so the CI job needs no toolchain setup and costs seconds. The
 10 feature, so whatever SDK an image carries cannot be assumed. Thirty seconds of setup to check a
 few dozen links was the wrong trade for a check meant to be cheap enough that nobody resents it.
 
-It exists because prose rots differently from code. A renamed file or a reorganised document breaks
+It exists because prose rots differently from code. A renamed file or a reorganized document breaks
 links that nothing compiles and no test covers, and the person who moved the file is the least likely
 to notice. Splitting this documentation out of the README broke four links and left one reference
 pointing at a heading that had already stopped existing some time earlier — none of which any other

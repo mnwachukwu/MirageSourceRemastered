@@ -191,7 +191,7 @@ public class StartingLoadoutTests
         new() { Name = "Gold", Type = ItemType.Currency },
         new() { Name = "Light Sword", Type = ItemType.Weapon, Power = 6, Durability = 40 },
         new() { Name = "Heavy Sword", Type = ItemType.Weapon, Power = 10, Durability = 60 },
-        new() { Name = "Draught", Type = ItemType.PotionAddHp, VitalAmount = 20 },
+        new() { Name = "Elixir", Type = ItemType.PotionAddHp, VitalAmount = 20 },
         new() { Name = "Guild Blade", Type = ItemType.Weapon, Power = 6, AllowedClasses = [2] },
         new() { Name = "Veteran Blade", Type = ItemType.Weapon, Power = 6, LevelReq = 5 },
     ];
@@ -253,7 +253,7 @@ public class StartingLoadoutTests
     }
 
     [Test]
-    public void Resolve_HonoursTheClassAndLevelGatesToo()
+    public void Resolve_HonorsTheClassAndLevelGatesToo()
     {
         // Item 5 is another class's blade; item 6 needs a level this character does not have yet.
         var granted = StartingLoadout.ResolveItems(ClassWith(str: 15, @int: 0, 5, 6, 2), classNum: 1, Items());

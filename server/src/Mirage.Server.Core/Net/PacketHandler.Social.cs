@@ -98,7 +98,7 @@ public sealed partial class PacketHandler
         switch (kind)
         {
             case HotkeyKind.Item:
-                // Bound whether or not the bag currently holds one — an empty slot draws greyed rather than
+                // Bound whether or not the bag currently holds one — an empty slot draws grayed rather than
                 // unbinding itself, so drinking your last potion doesn't silently clear the key.
                 if (p.Num < 1 || p.Num > Constants.MaxItems || string.IsNullOrWhiteSpace(_world.Items[p.Num]?.Name)) return;
                 bound = new PlayerHotkey(HotkeyKind.Item, p.Num);

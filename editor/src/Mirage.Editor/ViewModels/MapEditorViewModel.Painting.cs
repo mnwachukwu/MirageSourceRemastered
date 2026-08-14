@@ -15,7 +15,7 @@ namespace Mirage.Editor.ViewModels;
 
 /// <summary>The paint entry points — left click, right click, delete and drag-selection phases —
 /// and what each editor mode does with a tile: place or erase a layer cell, stamp an attribute,
-/// apply a warp/item/key dialog, or navigate to a clicked neighbour map.</summary>
+/// apply a warp/item/key dialog, or navigate to a clicked neighbor map.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
     /// <summary>Called by TileGridControl on left-click at tile (x, y).</summary>

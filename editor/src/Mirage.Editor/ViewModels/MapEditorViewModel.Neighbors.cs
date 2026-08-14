@@ -13,7 +13,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 namespace Mirage.Editor.ViewModels;
 
-/// <summary>The 3x3 neighbour grid and auto-linking: resolving each adjacent map, and keeping the
+/// <summary>The 3x3 neighbor grid and auto-linking: resolving each adjacent map, and keeping the
 /// reciprocal links consistent when one edge is repointed.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {

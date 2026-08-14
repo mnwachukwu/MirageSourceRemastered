@@ -10,7 +10,7 @@
 // either: this imports nothing outside Node's standard library, so there is no install step and
 // nothing to keep up to date.
 //
-// WHY THIS EXISTS. Prose rots differently from code. A renamed file or a reorganised document breaks
+// WHY THIS EXISTS. Prose rots differently from code. A renamed file or a reorganized document breaks
 // links that nothing compiles and no test covers, and the person who moved the file is the least
 // likely to notice. Splitting the documentation out of the README broke four links and left one
 // reference pointing at a heading that had stopped existing some time earlier — none of which any

@@ -68,7 +68,7 @@ public class ShopSalesTableTests
         var packet = new EditorSaveShopPacket
         {
             ShopNum = 4,
-            Name = "Kilnforged Armoury",
+            Name = "Kilnforged Armory",
             ShopType = ShopType.Store,
             Sales = [31, 32, 33],
             Trades = [new EditorSaveShopPacket.TradeEntry(1, 500, 88, 1)],

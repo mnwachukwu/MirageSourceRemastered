@@ -45,7 +45,7 @@ jobs:
   # "Tests (ubuntu-latest) failed", which is exactly the ambiguous status the matrix exists to
   # avoid.
   #
-  # Documentation rot is invisible to everything else here. A renamed file or a reorganised
+  # Documentation rot is invisible to everything else here. A renamed file or a reorganized
   # document breaks links that nothing compiles and no test covers, and the person who moved the
   # file is the least likely to notice. This is the only check in the repository that reads prose.
   #

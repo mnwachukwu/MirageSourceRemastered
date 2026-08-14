@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace Mirage.Client.Shell.Panels;
 
-/// <summary>Tab strips and the per-tab rectangle maths — where each list, table and button row sits
+/// <summary>Tab strips and the per-tab rectangle math — where each list, table and button row sits
 /// inside the panel body. Shared by the Update and Draw passes so hit-testing and drawing can never
 /// disagree about a control's position.</summary>
 public sealed partial class SocialPanel : IGamePanel

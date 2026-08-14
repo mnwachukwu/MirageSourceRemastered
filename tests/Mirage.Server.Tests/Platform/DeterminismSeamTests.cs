@@ -256,10 +256,10 @@ public class DeterminismSeamTests
                     "the top of the weight range falls through to the last band");
     }
 
-    // ── The defaults must preserve production behaviour ───────────────────────
+    // ── The defaults must preserve production behavior ───────────────────────
 
     // A system built without the seams must still work off the real clock and real randomness — this is
-    // what makes the change behaviour-preserving for every existing construction site.
+    // what makes the change behavior-preserving for every existing construction site.
     [Test]
     public void OmittingTheSeams_FallsBackToTheRealImplementations()
     {
