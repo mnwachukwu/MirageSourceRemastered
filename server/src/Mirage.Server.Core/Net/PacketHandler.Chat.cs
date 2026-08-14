@@ -475,14 +475,40 @@ public sealed partial class PacketHandler
         // it (over threshold 1 -> x2, threshold 2 -> x10). Charged up front; the body clamp above bounds the length.
         int bodyMult = body.Length > Constants.MailVeryLongBodyThreshold ? Constants.MailVeryLongBodyCostMultiplier
                      : body.Length > Constants.MailLongBodyThreshold ? Constants.MailLongBodyCostMultiplier : 1;
-        int cost = (multi ? Constants.MailBaseSendCost * recipients.Count
-                          : Constants.MailBaseSendCost + Constants.MailAttachmentSendCost * attachCount) * bodyMult;
+        // Postage is two flat parts plus a percent of what the parcel is WORTH — see EconomyFormulas for
+        // why the scaling half is keyed on the shipment rather than the sender. A multi-recipient send
+        // carries no attachments (rejected above), so it has no value component.
+        long attachedValue = 0;
+        if (!multi)
+        {
+            var ch = sp.Char;
+            foreach (var spec in p.Attach.Take(Constants.MaxMailAttachments))
+            {
+                if (!SlotValidation.IsValidInvSlot(spec.InvSlot)) continue;
+                var slot = ch.Inv[spec.InvSlot];
+                if (slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+                // An EQUIPPED slot is refused by RemoveFromSlot, so it never actually ships — charging a
+                // percentage of it would bill for a parcel that does not leave. (The flat per-attachment
+                // fee still counts it, as it always has; that is a 50-gold quirk rather than a real one.)
+                if (spec.InvSlot == ch.WeaponSlot || spec.InvSlot == ch.ArmorSlot
+                    || spec.InvSlot == ch.HelmetSlot || spec.InvSlot == ch.ShieldSlot) continue;
+                // Mirrors RemoveFromSlot exactly: currency sends the requested amount, where 0 or an
+                // oversized request means the WHOLE stack; everything else always goes as a whole slot.
+                var def = _world.Items[slot.Num];
+                int quantity = def.Type == ItemType.Currency
+                    ? (spec.Quantity <= 0 || spec.Quantity > slot.Quantity ? slot.Quantity : spec.Quantity)
+                    : slot.Quantity;
+                attachedValue += EconomyFormulas.MailAttachmentValue(slot.Num, quantity, def.Price);
+            }
+        }
+        long cost = (multi ? EconomyFormulas.MailSendCost(0) * recipients.Count
+                           : EconomyFormulas.MailSendCost(attachCount, attachedValue)) * bodyMult;
         if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.GoldItemIndex) < cost)
         {
             MailMsg(index, ServerStrings.Mail_CannotAfford, GameColor.BrightRed, ("Cost", cost));
             return;
         }
-        _items.TakeItem(index, Constants.GoldItemIndex, cost);
+        _items.TakeItem(index, Constants.GoldItemIndex, (int)cost);
 
         // Player-origin mail rides "in transit" for a random 10-15 min before it matures on both ends.
         long deliverAt = NowUtc
@@ -511,8 +537,8 @@ public sealed partial class PacketHandler
         var attachments = new List<MailAttachment>();
         foreach (var spec in p.Attach.Take(Constants.MaxMailAttachments))
         {
-            var (num, val, dur) = _items.RemoveFromSlot(index, spec.InvSlot, spec.Amount);
-            if (num > 0) attachments.Add(new MailAttachment { ItemNum = num, Value = val, Dur = dur });
+            var (num, qty, dur) = _items.RemoveFromSlot(index, spec.InvSlot, spec.Quantity);
+            if (num > 0) attachments.Add(new MailAttachment { ItemNum = num, Quantity = qty, Dur = dur });
         }
 
         // Online recipient: deliver immediately. Offline: validate the account off-thread, then hop back to
@@ -621,13 +647,13 @@ public sealed partial class PacketHandler
     private void HandleMarketCreate(int index, MarketCreatePacket p)
     {
         if (!_pm[index].IsPlaying) return;
-        _market.List(index, p.InvSlot, p.Amount, p.Price);
+        _market.List(index, p.InvSlot, p.Quantity, p.Price);
     }
 
     private void HandleMarketBuy(int index, MarketBuyPacket p)
     {
         if (!_pm[index].IsPlaying) return;
-        _market.Buy(index, p.Id, p.Amount);
+        _market.Buy(index, p.Id, p.Quantity);
     }
 
     private void HandleMarketCancel(int index, MarketCancelPacket p)
@@ -659,7 +685,7 @@ public sealed partial class PacketHandler
     }
 
     private void HandleTradeRespond(int index, TradeRespondPacket p) { if (_pm[index].IsPlaying) _trade.Respond(index, p.Accept); }
-    private void HandleTradeOfferAdd(int index, TradeOfferAddPacket p) { if (_pm[index].IsPlaying) _trade.OfferAdd(index, p.InvSlot, p.Amount); }
+    private void HandleTradeOfferAdd(int index, TradeOfferAddPacket p) { if (_pm[index].IsPlaying) _trade.OfferAdd(index, p.InvSlot, p.Quantity); }
     private void HandleTradeOfferRemove(int index, TradeOfferRemovePacket p) { if (_pm[index].IsPlaying) _trade.OfferRemove(index, p.Index); }
     private void HandleTradeConfirm(int index, TradeConfirmPacket p) { if (_pm[index].IsPlaying) _trade.Confirm(index, p.Confirmed); }
     private void HandleTradeCancel(int index) { if (_pm[index].IsPlaying) _trade.Cancel(index); }

@@ -13,7 +13,7 @@ public sealed class MapItemRecord
     /// <summary>Item slot number.</summary>
     public int Num { get; set; }
     /// <summary>Stack quantity, for a currency-type item.</summary>
-    public int Value { get; set; }
+    public int Quantity { get; set; }
     /// <summary>Current durability of this copy.</summary>
     public int Dur { get; set; }
     /// <summary>Map-local tile X.</summary>

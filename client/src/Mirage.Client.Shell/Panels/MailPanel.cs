@@ -84,7 +84,7 @@ public sealed class MailPanel : IGamePanel
     private readonly ListBox _invList = new();          // inventory attach candidates
     private readonly List<int> _invSlots = new();       // row -> inventory slot
     private readonly ListBox _stagedList = new();       // staged attachments
-    private readonly List<(int Slot, int Amount)> _staged = new();   // Amount 0 = whole non-currency slot
+    private readonly List<(int Slot, int Quantity)> _staged = new();   // Quantity 0 = whole non-currency slot
     private readonly Button _attachBtn = new();
     private readonly Button _unstageBtn = new();
     private readonly Button _sendBtn = new();
@@ -328,7 +328,7 @@ public sealed class MailPanel : IGamePanel
 
     private void DoSend(ClientPacketSender sender)
     {
-        var attach = _staged.Select(s => new MailSendAttach { InvSlot = s.Slot, Amount = s.Amount }).ToList();
+        var attach = _staged.Select(s => new MailSendAttach { InvSlot = s.Slot, Quantity = s.Quantity }).ToList();
         sender.SendMailSend(_toField.Text.Trim(), _subjectField.Text, _bodyField.Text, attach, ParseCod());
         EndCompose();
     }
@@ -343,7 +343,7 @@ public sealed class MailPanel : IGamePanel
         var item = state.Items[invSlot.Num];
         if (item?.Type == ItemType.Currency)
         {
-            _amountPrompt.Open(ClientStrings.Get(ClientStrings.MailPanel_Attach), item.Name?.TrimEnd() ?? "", invSlot.Value,
+            _amountPrompt.Open(ClientStrings.Get(ClientStrings.MailPanel_Attach), item.Name?.TrimEnd() ?? "", invSlot.Quantity,
                 amt => { if (_staged.Count < Constants.MaxMailAttachments) _staged.Add((slot, amt)); });
         }
         else
@@ -489,7 +489,7 @@ public sealed class MailPanel : IGamePanel
         }
         else
         {
-            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.MailPanel_CostToSend, ("Price", ComputeSendCost())),
+            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.MailPanel_CostToSend, ("Price", ComputeSendCost(state))),
                 new Vector2(c.X + 4, _costLabelY), Color.Gold, c.Width - 8);
         }
 
@@ -504,15 +504,33 @@ public sealed class MailPanel : IGamePanel
     // Non-blank recipient tokens in the (comma-separated) To field.
     private int RecipientCount() => _toField.Text.Split(',').Count(t => t.Trim().Length > 0);
 
-    // Live send-cost preview mirroring the server rule: single = base + per-attachment; a comma-separated
-    // multi-recipient list (attachments disallowed) = base per recipient; DOUBLED for a long body.
-    private int ComputeSendCost()
+    // Live send-cost preview mirroring the server rule: single = base + per-attachment + a percent of what
+    // the parcel is WORTH; a comma-separated multi-recipient list (attachments disallowed) = base per
+    // recipient; escalated for a long body.
+    private long ComputeSendCost(ClientState state)
     {
         int recipients = RecipientCount();
-        int cost = recipients > 1
-            ? Constants.MailBaseSendCost * recipients
-            : Constants.MailBaseSendCost + Constants.MailAttachmentSendCost * _staged.Count;
+        long cost = recipients > 1
+            ? EconomyFormulas.MailSendCost(0) * recipients
+            : EconomyFormulas.MailSendCost(_staged.Count, StagedValue(state));
         return cost * BodyCostMultiplier();
+    }
+
+    // Gold value of everything staged, by the same rule the server charges on — EconomyFormulas owns the
+    // gold-is-a-currency-attachment special case so the two cannot drift. A staged entry carries a
+    // Quantity of 0 to mean "the whole non-currency slot", which is the stack size.
+    private long StagedValue(ClientState state)
+    {
+        long total = 0;
+        foreach (var (slot, quantity) in _staged)
+        {
+            if (slot < 1 || slot > Constants.MaxInv) continue;
+            var inv = state.Me.Inv[slot];
+            if (inv is null || inv.Num <= 0 || inv.Num > Constants.MaxItems) continue;
+            int qty = quantity > 0 ? quantity : inv.Quantity;
+            total += EconomyFormulas.MailAttachmentValue(inv.Num, qty, state.Items[inv.Num].Price);
+        }
+        return total;
     }
 
     // Tiered long-body cost multiplier (mirrors the server): x2 over the first threshold, x10 over the second.
@@ -559,7 +577,7 @@ public sealed class MailPanel : IGamePanel
         // Affordability: the postage AND any staged gold both draw from the SAME gold pile, so the true outlay
         // is their sum — block Send when the player can't cover it (the server still backstops postage). This
         // also stops staging more gold than remains after postage, which the server would silently under-escrow.
-        long need = ComputeSendCost() + StagedGold(state);
+        long need = ComputeSendCost(state) + StagedGold(state);
         if (need > state.PlayerGold())
             return ClientStrings.Format(ClientStrings.MailPanel_CannotAffordWarn, ("Cost", need));
         return "";
@@ -701,13 +719,13 @@ public sealed class MailPanel : IGamePanel
             var a = attach[ai];
             var def = a.ItemNum > 0 && a.ItemNum < state.Items.Length ? state.Items[a.ItemNum] : null;
             string name = def?.Name?.TrimEnd() ?? "";
-            string label = a.Value > 1 ? $"{name} ({a.Value:N0})" : name;
+            string label = a.Quantity > 1 ? $"{name} ({a.Quantity:N0})" : name;
             UiHelper.DrawLabel(sb, font, label, new Vector2(r.X + 6, ay), a.Claimed || IsInTransit(msg) || msg.CodPrice > 0 ? Color.Gray : Color.Gold, maxW);
             var rowRect = new Rectangle(r.X + 6, (int)ay, (int)maxW, lineH);
             if (def is not null && itemsTex is not null && rowRect.Contains(_input.MousePosition))
             {
                 Tooltip.NotifyHoverItem(TooltipScope, (TooltipScope, "read", msg.Id, ai), def,
-                    new PlayerInvSlot { Num = a.ItemNum, Value = a.Value, Dur = a.Dur },
+                    new PlayerInvSlot { Num = a.ItemNum, Quantity = a.Quantity, Dur = a.Dur },
                     state.Me, state.Classes, itemsTex, _input.MousePosition);
             }
 

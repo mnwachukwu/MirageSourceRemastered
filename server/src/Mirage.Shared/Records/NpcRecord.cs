@@ -94,7 +94,7 @@ public sealed class NpcRecord
         if (DropChance > 0 && DropItem > 0)
         {
             Drops ??= [];
-            Drops.Add(new NpcDrop { ItemNum = DropItem, Value = DropItemValue, Chance = DropChance });
+            Drops.Add(new NpcDrop { ItemNum = DropItem, Quantity = DropItemValue, Chance = DropChance });
         }
         DropChance = 0;
         DropItem = 0;

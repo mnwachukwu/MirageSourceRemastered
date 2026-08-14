@@ -21,8 +21,8 @@ public class TradeRowViewModelTests
     {
         var t = Trade();
         t.GiveItem = Sword;
-        t.GiveValue = 5;      // a sword never stacks
-        Assert.That(t.GiveValue, Is.EqualTo(1));
+        t.GiveQuantity = 5;      // a sword never stacks
+        Assert.That(t.GiveQuantity, Is.EqualTo(1));
     }
 
     [Test]
@@ -30,16 +30,16 @@ public class TradeRowViewModelTests
     {
         var t = Trade();
         t.GiveItem = Gold;
-        t.GiveValue = 100;
-        Assert.That(t.GiveValue, Is.EqualTo(100));
+        t.GiveQuantity = 100;
+        Assert.That(t.GiveQuantity, Is.EqualTo(100));
     }
 
     [Test]
     public void ClearingTheItem_ZeroesQuantity()
     {
-        var t = Trade(new TradeItemRecord { GiveItem = Gold, GiveValue = 50 });
+        var t = Trade(new TradeItemRecord { GiveItem = Gold, GiveQuantity = 50 });
         t.GiveItem = 0;
-        Assert.That(t.GiveValue, Is.EqualTo(0), "an empty side carries no quantity");
+        Assert.That(t.GiveQuantity, Is.EqualTo(0), "an empty side carries no quantity");
     }
 
     // Coercion applies symmetrically to the "get" side.
@@ -48,8 +48,8 @@ public class TradeRowViewModelTests
     {
         var t = Trade();
         t.GetItem = Sword;
-        t.GetValue = 9;
-        Assert.That(t.GetValue, Is.EqualTo(1));
+        t.GetQuantity = 9;
+        Assert.That(t.GetQuantity, Is.EqualTo(1));
     }
 
     [Test]
@@ -58,22 +58,22 @@ public class TradeRowViewModelTests
         var t = Trade();
         Assert.Multiple(() =>
         {
-            Assert.That(t.GiveValueMin, Is.EqualTo(0), "empty side: 0..0");
-            Assert.That(t.GiveValueMax, Is.EqualTo(0));
+            Assert.That(t.GiveQuantityMin, Is.EqualTo(0), "empty side: 0..0");
+            Assert.That(t.GiveQuantityMax, Is.EqualTo(0));
         });
 
         t.GiveItem = Sword;
         Assert.Multiple(() =>
         {
-            Assert.That(t.GiveValueMin, Is.EqualTo(1), "non-currency: exactly 1");
-            Assert.That(t.GiveValueMax, Is.EqualTo(1));
+            Assert.That(t.GiveQuantityMin, Is.EqualTo(1), "non-currency: exactly 1");
+            Assert.That(t.GiveQuantityMax, Is.EqualTo(1));
         });
 
         t.GiveItem = Gold;
         Assert.Multiple(() =>
         {
-            Assert.That(t.GiveValueMin, Is.EqualTo(1));
-            Assert.That(t.GiveValueMax, Is.EqualTo(9999), "currency: up to 9999");
+            Assert.That(t.GiveQuantityMin, Is.EqualTo(1));
+            Assert.That(t.GiveQuantityMax, Is.EqualTo(9999), "currency: up to 9999");
         });
     }
 
@@ -81,8 +81,8 @@ public class TradeRowViewModelTests
     [Test]
     public void ToRecord_RoundTripsAllFourFields()
     {
-        var t = Trade(new TradeItemRecord { GiveItem = Gold, GiveValue = 100, GetItem = Sword, GetValue = 1 });
+        var t = Trade(new TradeItemRecord { GiveItem = Gold, GiveQuantity = 100, GetItem = Sword, GetQuantity = 1 });
         var r = t.ToRecord();
-        Assert.That((r.GiveItem, r.GiveValue, r.GetItem, r.GetValue), Is.EqualTo((Gold, 100, Sword, 1)));
+        Assert.That((r.GiveItem, r.GiveQuantity, r.GetItem, r.GetQuantity), Is.EqualTo((Gold, 100, Sword, 1)));
     }
 }

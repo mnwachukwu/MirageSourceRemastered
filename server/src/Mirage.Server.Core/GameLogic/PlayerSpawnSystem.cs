@@ -44,8 +44,7 @@ public sealed class PlayerSpawnSystem : GameSystem
             return;
         }
 
-        int cost = (int)Math.Max(Constants.SpawnCostMinimum,
-            Math.Ceiling(Math.Pow(vp.Level, Constants.SpawnCostExponent) * Constants.SpawnCostMultiplier));
+        long cost = EconomyFormulas.InnSpawnCost(vp.Level);
         long gold = ItemSystem.HasItem(vp, _world.Items, Constants.GoldItemIndex);
         if (gold < cost)
         {
@@ -53,7 +52,7 @@ public sealed class PlayerSpawnSystem : GameSystem
             return;
         }
 
-        _items.TakeItem(index, Constants.GoldItemIndex, cost);
+        _items.TakeItem(index, Constants.GoldItemIndex, (int)cost);
         vp.SpawnMap = vp.Map;
         vp.SpawnX = vp.X;
         vp.SpawnY = vp.Y;

@@ -27,7 +27,7 @@ public class ClientStateTests
     {
         var s = new ClientState { MyIndex = 1 };
         s.Items[10] = new ItemRecord { Name = "Gold" };
-        s.Me.Inv[1] = new PlayerInvSlot { Num = 10, Value = 750 };
+        s.Me.Inv[1] = new PlayerInvSlot { Num = 10, Quantity = 750 };
         Assert.That(s.PlayerGold(), Is.EqualTo(750));
     }
 
@@ -36,7 +36,7 @@ public class ClientStateTests
     {
         var s = new ClientState { MyIndex = 1 };
         s.Items[10] = new ItemRecord { Name = "Sword" };
-        s.Me.Inv[1] = new PlayerInvSlot { Num = 10, Value = 1 };
+        s.Me.Inv[1] = new PlayerInvSlot { Num = 10, Quantity = 1 };
         Assert.That(s.PlayerGold(), Is.EqualTo(0));
     }
 

@@ -36,7 +36,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
     /// <summary>GiveItem: the item handed over; unused by every other spell type.</summary>
     [ObservableProperty] private short _itemNum;
     /// <summary>GiveItem: how many; unused by every other spell type.</summary>
-    [ObservableProperty] private short _itemAmount;
+    [ObservableProperty] private short _itemQuantity;
     /// <summary>GiveItem: its INT requirement, and hence its MP cost; unused by every other type.</summary>
     [ObservableProperty] private short _intReq;
     /// <summary>Minimum character level to learn it; 0 = no level gate. Applies to every spell type,
@@ -63,7 +63,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
         _type = r.Type;
         _vitalAmount = r.VitalAmount;
         _itemNum = r.ItemNum;
-        _itemAmount = r.ItemAmount;
+        _itemQuantity = r.ItemQuantity;
         _intReq = r.IntReq;
         _levelReq = r.LevelReq;
     }
@@ -72,7 +72,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
     partial void OnAllowedClassesChanged(List<short>? value) => MarkDirty();
 
     // VitalAmount and IntReq are the two gate values, so both re-raise the cost preview; ItemNum and
-    // ItemAmount say what GiveItem hands over and have no bearing on cost.
+    // ItemQuantity say what GiveItem hands over and have no bearing on cost.
     partial void OnVitalAmountChanged(short value)
     {
         MarkDirty();
@@ -81,7 +81,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
         OnPropertyChanged(nameof(ReagentCost));
     }
     partial void OnItemNumChanged(short value) => MarkDirty();
-    partial void OnItemAmountChanged(short value) => MarkDirty();
+    partial void OnItemQuantityChanged(short value) => MarkDirty();
     partial void OnLevelReqChanged(short value) => MarkDirty();
     partial void OnIntReqChanged(short value)
     {
@@ -130,7 +130,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             Type = r.Type;
             VitalAmount = r.VitalAmount;
             ItemNum = r.ItemNum;
-            ItemAmount = r.ItemAmount;
+            ItemQuantity = r.ItemQuantity;
             IntReq = r.IntReq;
             LevelReq = r.LevelReq;
         }
@@ -154,7 +154,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             Type = pkt.Type;
             VitalAmount = pkt.VitalAmount;
             ItemNum = pkt.ItemNum;
-            ItemAmount = pkt.ItemAmount;
+            ItemQuantity = pkt.ItemQuantity;
             IntReq = pkt.IntReq;
             LevelReq = pkt.LevelReq;
         }
@@ -181,7 +181,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             Type = Type,
             VitalAmount = VitalAmount,
             ItemNum = ItemNum,
-            ItemAmount = ItemAmount,
+            ItemQuantity = ItemQuantity,
             IntReq = IntReq,
             LevelReq = LevelReq,
         };
@@ -203,7 +203,7 @@ public sealed partial class SpellRowViewModel : ObservableObject
             Type = r.Type,
             VitalAmount = r.VitalAmount,
             ItemNum = r.ItemNum,
-            ItemAmount = r.ItemAmount,
+            ItemQuantity = r.ItemQuantity,
             IntReq = r.IntReq,
             LevelReq = r.LevelReq,
         };

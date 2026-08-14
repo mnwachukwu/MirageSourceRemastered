@@ -55,20 +55,20 @@ public sealed partial class PacketHandler
         }
 
         var chr = _pm[index].Char;
-        if (p.Value > chr.Inv[p.Slot].Value)
+        if (p.Quantity > chr.Inv[p.Slot].Quantity)
         {
-            HackingAttempt(index, "Item amount modification");
+            HackingAttempt(index, "Item quantity modification");
             return;
         }
 
         int itemNum = chr.Inv[p.Slot].Num;
-        if (itemNum > 0 && _world.Items[itemNum].Type == ItemType.Currency && p.Value <= 0)
+        if (itemNum > 0 && _world.Items[itemNum].Type == ItemType.Currency && p.Quantity <= 0)
         {
-            HackingAttempt(index, "Trying to drop 0 amount of currency");
+            HackingAttempt(index, "Trying to drop 0 quantity of currency");
             return;
         }
 
-        _items.PlayerMapDropItem(index, p.Slot, p.Value);
+        _items.PlayerMapDropItem(index, p.Slot, p.Quantity);
     }
 
     private void HandleMapDropBulk(int index, MapDropBulkPacket p)
@@ -80,12 +80,12 @@ public sealed partial class PacketHandler
             HackingAttempt(index, "Invalid MapDropBulk ItemNum");
             return;
         }
-        if (p.Amount < 0)
+        if (p.Quantity < 0)
         {
-            HackingAttempt(index, "Negative MapDropBulk Amount");
+            HackingAttempt(index, "Negative MapDropBulk Quantity");
             return;
         }
-        _items.PlayerMapDropBulk(index, p.ItemNum, p.Amount);
+        _items.PlayerMapDropBulk(index, p.ItemNum, p.Quantity);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -155,12 +155,12 @@ public sealed partial class PacketHandler
             HackingAttempt(index, "Invalid BankDeposit InvSlot");
             return;
         }
-        if (p.Amount < 0)
+        if (p.Quantity < 0)
         {
-            HackingAttempt(index, "Negative BankDeposit Amount");
+            HackingAttempt(index, "Negative BankDeposit Quantity");
             return;
         }
-        _bank.Deposit(index, p.InvSlot, p.Amount);
+        _bank.Deposit(index, p.InvSlot, p.Quantity);
     }
 
     private void HandleBankWithdraw(int index, BankWithdrawPacket p)
@@ -172,12 +172,12 @@ public sealed partial class PacketHandler
             HackingAttempt(index, "Invalid BankWithdraw BankSlot");
             return;
         }
-        if (p.Amount < 0)
+        if (p.Quantity < 0)
         {
-            HackingAttempt(index, "Negative BankWithdraw Amount");
+            HackingAttempt(index, "Negative BankWithdraw Quantity");
             return;
         }
-        _bank.Withdraw(index, p.BankSlot, p.Amount);
+        _bank.Withdraw(index, p.BankSlot, p.Quantity);
     }
 
     private void HandleBankDepositBulk(int index, BankDepositBulkPacket p)
@@ -189,12 +189,12 @@ public sealed partial class PacketHandler
             HackingAttempt(index, "Invalid BankDepositBulk ItemNum");
             return;
         }
-        if (p.Amount < 0)
+        if (p.Quantity < 0)
         {
-            HackingAttempt(index, "Negative BankDepositBulk Amount");
+            HackingAttempt(index, "Negative BankDepositBulk Quantity");
             return;
         }
-        _bank.DepositBulk(index, p.ItemNum, p.Amount);
+        _bank.DepositBulk(index, p.ItemNum, p.Quantity);
     }
 
     private void HandleBankWithdrawBulk(int index, BankWithdrawBulkPacket p)
@@ -206,12 +206,12 @@ public sealed partial class PacketHandler
             HackingAttempt(index, "Invalid BankWithdrawBulk ItemNum");
             return;
         }
-        if (p.Amount < 0)
+        if (p.Quantity < 0)
         {
-            HackingAttempt(index, "Negative BankWithdrawBulk Amount");
+            HackingAttempt(index, "Negative BankWithdrawBulk Quantity");
             return;
         }
-        _bank.WithdrawBulk(index, p.ItemNum, p.Amount);
+        _bank.WithdrawBulk(index, p.ItemNum, p.Quantity);
     }
 
     private void HandleBankSort(int index)
@@ -231,9 +231,16 @@ public sealed partial class PacketHandler
         // Send the shop's trades in list order; the client's display index maps 1:1 to the slot it sends
         // back (slot = index + 1), which ShopSystem.Trade resolves as TradeItem[slot - 1].
         var trades = shop.TradeItem
-            .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveValue, t.GetItem, t.GetValue))
+            .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
             .ToArray();
-        _dispatcher.SendTo(index, new SendTradePacket { ShopNum = shopNum, Trades = trades });
+        // The sales list rides along as bare item numbers — the client already has every item definition,
+        // so it can price and label the shopfront without a row per entry.
+        _dispatcher.SendTo(index, new SendTradePacket
+        {
+            ShopNum = shopNum,
+            Trades = trades,
+            Sales = shop.SalesItem.ToArray(),
+        });
     }
 
     // Resolve the map NPC at (map, slot) a player is interacting with, enforcing map visibility + the r=5 range

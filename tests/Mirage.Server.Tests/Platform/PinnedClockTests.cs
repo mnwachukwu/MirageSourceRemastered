@@ -189,7 +189,7 @@ public class PinnedClockTests
         var seller = Online(pm, 1, "seller");
         world.MarketListings[1] = new MarketListing
         {
-            Id = 1, Seller = "seller", ItemNum = 10, Value = 1, Price = 500, ListedUtc = 100_000,
+            Id = 1, Seller = "seller", ItemNum = 10, Quantity = 1, Price = 500, ListedUtc = 100_000,
         };
 
         // One second short of the lifetime: still listed.
@@ -257,7 +257,7 @@ public class PinnedClockTests
 
         var sp = Online(pm, 1);
         mail.Deliver("tester", "sender", "cod", "pay up",
-                     [new MailAttachment { ItemNum = 10, Value = 1 }], codPrice: 250);
+                     [new MailAttachment { ItemNum = 10, Quantity = 1 }], codPrice: 250);
 
         var msg = sp.Mail.Single();
         Assert.Multiple(() =>

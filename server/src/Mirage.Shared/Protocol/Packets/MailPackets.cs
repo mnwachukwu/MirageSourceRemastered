@@ -63,10 +63,10 @@ public sealed record MailSendPacket : IPacket
     [JsonPropertyName("cod")] public int CodPrice { get; init; }   // >0 = Collect-on-Delivery: recipient pays this to unlock
 }
 
-/// <summary>One staged attachment in a compose: an inventory slot + amount. Amount applies only to a
+/// <summary>One staged attachment in a compose: an inventory slot + quantity. Quantity applies only to a
 /// currency slot (a partial take); a non-currency slot is escrowed whole.</summary>
 public sealed record MailSendAttach
 {
     [JsonPropertyName("slot")] public int InvSlot { get; init; }
-    [JsonPropertyName("amt")] public int Amount { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }

@@ -196,7 +196,7 @@ public sealed class SpellSystem : GameSystem
             int slot = ItemSystem.FindOpenInvSlot(targetChar, _world.Items, spell.ItemNum);
             if (slot > 0)
             {
-                _items.GiveItem(targetIdx, spell.ItemNum, spell.ItemAmount);
+                _items.GiveItem(targetIdx, spell.ItemNum, spell.ItemQuantity);
                 SpendCastCost(index, mpCost, spell, reagentCost);
                 sp.AttackTimer = Environment.TickCount64;
                 SendToMap(_world, p.Map, new PlayerCastPacket

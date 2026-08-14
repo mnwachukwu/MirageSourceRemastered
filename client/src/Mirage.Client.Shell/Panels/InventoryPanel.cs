@@ -181,7 +181,7 @@ public sealed class InventoryPanel : IGamePanel
         if (item?.Type == ItemType.Currency)
         {
             string itemName = item.Name?.TrimEnd() ?? $"Item {inv.Num}";
-            int max = inv.Value;
+            int max = inv.Quantity;
             ConfirmDestroyThen(inv.Num, state, () => _prompt.Open(
                 ClientStrings.Get(ClientStrings.InventoryPanel_DropItemLabel),
                 itemName,
@@ -231,7 +231,7 @@ public sealed class InventoryPanel : IGamePanel
             new(ClientStrings.Get(ClientStrings.ContextMenu_DropX),
                 () => ConfirmDestroyThen(itemNum, state, () =>
                 {
-                    int max = isCurrency ? inv.Value : InventoryQuery.CountInvSlotsMatching(state, itemNum, skipEquipped: true);
+                    int max = isCurrency ? inv.Quantity : InventoryQuery.CountInvSlotsMatching(state, itemNum, skipEquipped: true);
                     if (max < 1) return;
                     _prompt.Open(
                         ClientStrings.Get(ClientStrings.InventoryPanel_DropItemLabel),
@@ -272,7 +272,7 @@ public sealed class InventoryPanel : IGamePanel
         {
             var slot = me.Inv?[i];
             h.Add(slot?.Num ?? 0);
-            h.Add(slot?.Value ?? 0);
+            h.Add(slot?.Quantity ?? 0);
             h.Add(slot?.Dur ?? 0);
         }
         return h.ToHashCode();

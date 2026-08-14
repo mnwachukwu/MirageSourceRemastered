@@ -34,6 +34,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 NonListable = item.NonListable,
                 NonMailable = item.NonMailable,
                 DestroyOnDrop = item.DestroyOnDrop,
+                NonJunkable = item.NonJunkable,
+                Price = item.Price,
             };
         }
     }
@@ -183,7 +185,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 Type = s.Type,
                 VitalAmount = s.VitalAmount,
                 ItemNum = s.ItemNum,
-                ItemAmount = s.ItemAmount,
+                ItemQuantity = s.ItemQuantity,
                 IntReq = s.IntReq,
             };
         }
@@ -210,6 +212,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
             NonListable = p.NonListable,
             NonMailable = p.NonMailable,
             DestroyOnDrop = p.DestroyOnDrop,
+            NonJunkable = p.NonJunkable,
+            Price = p.Price,
         };
     }
 
@@ -249,7 +253,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         if (_state.ActiveShopNum == p.ShopNum)
         {
             _state.ActiveTrades = p.Trades
-                .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveValue, t.GetItem, t.GetValue))
+                .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                 .ToArray();
         }
     }
@@ -264,7 +268,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             Type = p.Type,
             VitalAmount = p.VitalAmount,
             ItemNum = p.ItemNum,
-            ItemAmount = p.ItemAmount,
+            ItemQuantity = p.ItemQuantity,
             IntReq = p.IntReq,
         };
     }

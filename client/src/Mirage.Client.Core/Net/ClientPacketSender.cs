@@ -150,11 +150,11 @@ public sealed class ClientPacketSender
     public void SendMapGetItem()
         => _transport.Send(new MapGetItemPacket());
 
-    public void SendMapDropItem(int invSlot, int value)
-        => _transport.Send(new MapDropItemPacket { Slot = invSlot, Value = value });
+    public void SendMapDropItem(int invSlot, int quantity)
+        => _transport.Send(new MapDropItemPacket { Slot = invSlot, Quantity = quantity });
 
-    public void SendMapDropBulk(int itemNum, int amount)
-        => _transport.Send(new MapDropBulkPacket { ItemNum = itemNum, Amount = amount });
+    public void SendMapDropBulk(int itemNum, int quantity)
+        => _transport.Send(new MapDropBulkPacket { ItemNum = itemNum, Quantity = quantity });
 
     public void SendSortInventory()
         => _transport.Send(new SortInventoryPacket());
@@ -169,17 +169,17 @@ public sealed class ClientPacketSender
     public void SendBankOpen()
         => _transport.Send(new BankOpenPacket());
 
-    public void SendBankDeposit(int invSlot, int amount)
-        => _transport.Send(new BankDepositPacket { InvSlot = invSlot, Amount = amount });
+    public void SendBankDeposit(int invSlot, int quantity)
+        => _transport.Send(new BankDepositPacket { InvSlot = invSlot, Quantity = quantity });
 
-    public void SendBankWithdraw(int bankSlot, int amount)
-        => _transport.Send(new BankWithdrawPacket { BankSlot = bankSlot, Amount = amount });
+    public void SendBankWithdraw(int bankSlot, int quantity)
+        => _transport.Send(new BankWithdrawPacket { BankSlot = bankSlot, Quantity = quantity });
 
-    public void SendBankDepositBulk(int itemNum, int amount)
-        => _transport.Send(new BankDepositBulkPacket { ItemNum = itemNum, Amount = amount });
+    public void SendBankDepositBulk(int itemNum, int quantity)
+        => _transport.Send(new BankDepositBulkPacket { ItemNum = itemNum, Quantity = quantity });
 
-    public void SendBankWithdrawBulk(int itemNum, int amount)
-        => _transport.Send(new BankWithdrawBulkPacket { ItemNum = itemNum, Amount = amount });
+    public void SendBankWithdrawBulk(int itemNum, int quantity)
+        => _transport.Send(new BankWithdrawBulkPacket { ItemNum = itemNum, Quantity = quantity });
 
     public void SendBankSort()
         => _transport.Send(new BankSortPacket());
@@ -260,11 +260,11 @@ public sealed class ClientPacketSender
     public void SendMarketOpen()
         => _transport.Send(new MarketOpenPacket());
 
-    public void SendMarketCreate(int invSlot, int amount, int price)
-        => _transport.Send(new MarketCreatePacket { InvSlot = invSlot, Amount = amount, Price = price });
+    public void SendMarketCreate(int invSlot, int quantity, int price)
+        => _transport.Send(new MarketCreatePacket { InvSlot = invSlot, Quantity = quantity, Price = price });
 
-    public void SendMarketBuy(int id, int amount = 0)
-        => _transport.Send(new MarketBuyPacket { Id = id, Amount = amount });
+    public void SendMarketBuy(int id, int quantity = 0)
+        => _transport.Send(new MarketBuyPacket { Id = id, Quantity = quantity });
 
     public void SendMarketCancel(int id)
         => _transport.Send(new MarketCancelPacket { Id = id });
@@ -277,7 +277,7 @@ public sealed class ClientPacketSender
 
     public void SendTradeInvite(string target) => _transport.Send(new TradeInvitePacket { Target = target });
     public void SendTradeRespond(bool accept) => _transport.Send(new TradeRespondPacket { Accept = accept });
-    public void SendTradeOfferAdd(int invSlot, int amount) => _transport.Send(new TradeOfferAddPacket { InvSlot = invSlot, Amount = amount });
+    public void SendTradeOfferAdd(int invSlot, int quantity) => _transport.Send(new TradeOfferAddPacket { InvSlot = invSlot, Quantity = quantity });
     public void SendTradeOfferRemove(int index) => _transport.Send(new TradeOfferRemovePacket { Index = index });
     public void SendTradeConfirm(bool confirmed) => _transport.Send(new TradeConfirmPacket { Confirmed = confirmed });
     public void SendTradeCancel() => _transport.Send(new TradeCancelPacket());

@@ -56,15 +56,17 @@ public class GuildSystemTests
     [Test]
     public void PayTaxLate_RestoresPerks_AndStampsTheSettlementDate()
     {
+        // The vault is seeded in weeks of tax, not in literal gold: the guild gold family is rescaled as a
+        // unit, and this test is about the perk restore and the date stamp.
         long tax = 2 * Constants.GuildTaxPerLevel;
-        var (guilds, guild) = Setup(level: 2, vault: 10_000);
+        var (guilds, guild) = Setup(level: 2, vault: tax * 2);
 
         guilds.PayTaxLate(Idx);
 
         Assert.Multiple(() =>
         {
             Assert.That(guild.PerksActive, Is.True, "one week's tax restores the suspended perks");
-            Assert.That(guild.VaultGold, Is.EqualTo(10_000 - tax), "exactly one week, no back taxes");
+            Assert.That(guild.VaultGold, Is.EqualTo(tax), "exactly one week, no back taxes");
             Assert.That(guild.LastTaxPaidDate, Is.EqualTo(DateOnly.FromDateTime(DateTime.Now)),
                 "the manual payment stamps the settlement's per-date guard (server-local date)");
         });
@@ -75,7 +77,7 @@ public class GuildSystemTests
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
         long tax = 2 * Constants.GuildTaxPerLevel;
-        var (guilds, guild) = Setup(level: 2, vault: 10_000);
+        var (guilds, guild) = Setup(level: 2, vault: tax * 2);
 
         guilds.PayTaxLate(Idx);
         // Today IS the founding weekday, so /guildreset -> RunManualSettlement settles this very date.
@@ -84,7 +86,7 @@ public class GuildSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Tax, Is.EqualTo(TaxOutcome.None), "the date is already stamped as paid");
-            Assert.That(guild.VaultGold, Is.EqualTo(10_000 - tax), "the week's tax was taken once, by the manual payment");
+            Assert.That(guild.VaultGold, Is.EqualTo(tax), "the week's tax was taken once, by the manual payment");
         });
     }
 

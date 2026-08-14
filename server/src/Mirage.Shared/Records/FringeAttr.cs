@@ -24,7 +24,7 @@ public sealed class FringeAttr
 
     // Item
     public short ItemNum { get; set; }
-    public short ItemValue { get; set; }
+    public short ItemQuantity { get; set; }
     public short ItemRespawnSecs { get; set; }
 
     // Key (a locked door)
@@ -52,7 +52,7 @@ public sealed class FringeAttr
         {
             Type = a.Type,
             WarpMap = a.WarpMap, WarpX = a.WarpX, WarpY = a.WarpY, WarpLayer = a.WarpLayer,
-            ItemNum = a.ItemNum, ItemValue = a.ItemValue, ItemRespawnSecs = a.ItemRespawnSecs,
+            ItemNum = a.ItemNum, ItemQuantity = a.ItemQuantity, ItemRespawnSecs = a.ItemRespawnSecs,
             KeyItemNum = a.KeyItemNum, KeyIsConsumed = a.KeyIsConsumed,
             DoorX = a.DoorX, DoorY = a.DoorY, DoorLayer = a.DoorLayer,
             RampGroundSide = a.RampGroundSide,
@@ -66,7 +66,7 @@ public sealed class FringeAttr
     {
         Type = Type,
         WarpMap = WarpMap, WarpX = WarpX, WarpY = WarpY, WarpLayer = WarpLayer,
-        ItemNum = ItemNum, ItemValue = ItemValue, ItemRespawnSecs = ItemRespawnSecs,
+        ItemNum = ItemNum, ItemQuantity = ItemQuantity, ItemRespawnSecs = ItemRespawnSecs,
         KeyItemNum = KeyItemNum, KeyIsConsumed = KeyIsConsumed,
         DoorX = DoorX, DoorY = DoorY, DoorLayer = DoorLayer,
         RampGroundSide = RampGroundSide,

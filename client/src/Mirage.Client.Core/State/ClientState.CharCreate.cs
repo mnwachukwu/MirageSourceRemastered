@@ -61,7 +61,7 @@ public sealed partial class ClientState
             var c = p.Classes[i];
             _classLoadouts[i + 1] = new ClassLoadout(
                 c.Worn ?? [],
-                c.Carried is null ? [] : [.. c.Carried.Select(x => new CarriedStart(x.Num, x.Value))],
+                c.Carried is null ? [] : [.. c.Carried.Select(x => new CarriedStart(x.Num, x.Quantity))],
                 c.Spells ?? []);
         }
 

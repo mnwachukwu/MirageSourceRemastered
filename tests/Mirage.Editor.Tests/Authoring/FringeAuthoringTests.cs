@@ -199,7 +199,7 @@ public class FringeAuthoringTests
         vm.TileClicked(new TileClick(6, 6, false, false));   // opens the item dialog
         Assume.That(vm.ShowItemDialog, Is.True);
         vm.ItemTileNum = 5;
-        vm.ItemTileValue = 1;
+        vm.ItemTileQuantity = 1;
         vm.ItemTileRespawnSeconds = 30;
         vm.ConfirmItemCommand.Execute(null);
 

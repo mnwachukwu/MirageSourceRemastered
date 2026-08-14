@@ -125,13 +125,13 @@ public sealed class QuestSystem : GameSystem
 
         foreach (var r in rewardItems)   // gold is just item #1 here; currency stacks, so it never mails
         {
-            if (r.ItemNum <= 0 || r.ItemNum > Constants.MaxItems || r.Value <= 0) continue;
-            if (!_items.TryGiveItem(index, r.ItemNum, r.Value, 0))   // bag full (a non-currency item) -> mail it, never lost
+            if (r.ItemNum <= 0 || r.ItemNum > Constants.MaxItems || r.Quantity <= 0) continue;
+            if (!_items.TryGiveItem(index, r.ItemNum, r.Quantity, 0))   // bag full (a non-currency item) -> mail it, never lost
             {
                 _mail.Deliver(_pm[index].Login, QuestSender,
                     ServerStrings.Get(ServerStrings.Quest_RewardMailSubject),
                     ServerStrings.Get(ServerStrings.Quest_RewardMailBody),
-                    new List<MailAttachment> { new() { ItemNum = r.ItemNum, Value = r.Value } });
+                    new List<MailAttachment> { new() { ItemNum = r.ItemNum, Quantity = r.Quantity } });
             }
         }
         if (rewardExp > 0)

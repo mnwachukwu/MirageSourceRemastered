@@ -50,7 +50,8 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "warpy": tile.WarpY = reader.GetInt16(); break;
                 case "warplayer": tile.WarpLayer = ReadLayer(ref reader); break;
                 case "itemnum": tile.ItemNum = reader.GetInt16(); break;
-                case "itemvalue": tile.ItemValue = reader.GetInt16(); break;
+                // "itemvalue" is the pre-2026-08-13 spelling, kept so an existing map still loads.
+                case "itemquantity" or "itemvalue": tile.ItemQuantity = reader.GetInt16(); break;
                 case "itemrespawnsecs": tile.ItemRespawnSecs = reader.GetInt16(); break;
                 case "keyitemnum": tile.KeyItemNum = reader.GetInt16(); break;
                 case "keyisconsumed": tile.KeyIsConsumed = reader.GetBoolean(); break;
@@ -75,7 +76,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         if (value.Type != TileType.Walkable) writer.WriteString("type", value.Type.ToString());
         WriteAttrFields(writer, value.Type,
             value.WarpMap, value.WarpX, value.WarpY, value.WarpLayer,
-            value.ItemNum, value.ItemValue, value.ItemRespawnSecs,
+            value.ItemNum, value.ItemQuantity, value.ItemRespawnSecs,
             value.KeyItemNum, value.KeyIsConsumed,
             value.DoorX, value.DoorY, value.DoorLayer,
             value.RampGroundSide);
@@ -139,7 +140,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "warpy": fa.WarpY = reader.GetInt16(); break;
                 case "warplayer": fa.WarpLayer = ReadLayer(ref reader); break;
                 case "itemnum": fa.ItemNum = reader.GetInt16(); break;
-                case "itemvalue": fa.ItemValue = reader.GetInt16(); break;
+                case "itemquantity" or "itemvalue": fa.ItemQuantity = reader.GetInt16(); break;
                 case "itemrespawnsecs": fa.ItemRespawnSecs = reader.GetInt16(); break;
                 case "keyitemnum": fa.KeyItemNum = reader.GetInt16(); break;
                 case "keyisconsumed": fa.KeyIsConsumed = reader.GetBoolean(); break;
@@ -165,7 +166,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         if (fa.Type != TileType.Walkable) writer.WriteString("type", fa.Type.ToString());
         WriteAttrFields(writer, fa.Type,
             fa.WarpMap, fa.WarpX, fa.WarpY, fa.WarpLayer,
-            fa.ItemNum, fa.ItemValue, fa.ItemRespawnSecs,
+            fa.ItemNum, fa.ItemQuantity, fa.ItemRespawnSecs,
             fa.KeyItemNum, fa.KeyIsConsumed,
             fa.DoorX, fa.DoorY, fa.DoorLayer,
             fa.RampGroundSide);
@@ -184,7 +185,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
     private static void WriteAttrFields(
         Utf8JsonWriter writer, TileType type,
         short warpMap, short warpX, short warpY, WorldLayer warpLayer,
-        short itemNum, short itemValue, short itemRespawnSecs,
+        short itemNum, short itemQuantity, short itemRespawnSecs,
         short keyItemNum, bool keyIsConsumed,
         short doorX, short doorY, WorldLayer doorLayer,
         Direction rampGroundSide)
@@ -199,7 +200,9 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         if (TileAttrRules.UsesItem(type))
         {
             writer.WriteNumber("itemNum", itemNum);
-            writer.WriteNumber("itemValue", itemValue);
+            // Written as "itemQuantity" since 2026-08-13; the readers still accept the old "itemValue"
+            // spelling so a map authored before the rename loads untouched. See the read switches above.
+            writer.WriteNumber("itemQuantity", itemQuantity);
             if (itemRespawnSecs != 0) writer.WriteNumber("itemRespawnSecs", itemRespawnSecs);
         }
         if (TileAttrRules.UsesKey(type))

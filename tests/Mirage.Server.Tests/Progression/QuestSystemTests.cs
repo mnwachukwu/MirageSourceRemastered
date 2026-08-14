@@ -151,8 +151,8 @@ public class QuestSystemTests
         world.Items[Sword].Type = ItemType.Weapon;
         var q = KillQuest(world, 1, count: 1);
         q.RewardExp = 10;   // small: below the level-2 floor, so no level-up broadcast path is hit
-        q.RewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Value = 250 });   // gold is item #1
-        q.RewardItems.Add(new QuestReward { ItemNum = Sword, Value = 1 });
+        q.RewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Quantity = 250 });   // gold is item #1
+        q.RewardItems.Add(new QuestReward { ItemNum = Sword, Quantity = 1 });
         var sp = AddPlayer(pm, 1);
         quests.Accept(1, 1);
         Kill(objectives, Rat, 1);   // complete the objective
@@ -361,8 +361,8 @@ public class QuestSystemTests
         var q = KillQuest(world, 1, count: 1);
         q.Repeatable = true;
         q.Cadence = QuestCadence.Daily;
-        q.RewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Value = 1000 });        // main
-        q.RepeatRewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Value = 100 });   // repeat
+        q.RewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Quantity = 1000 });        // main
+        q.RepeatRewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Quantity = 100 });   // repeat
         var sp = AddPlayer(pm, 1);
 
         quests.Accept(1, 1);
@@ -385,8 +385,8 @@ public class QuestSystemTests
         var q = KillQuest(world, 1, count: 1);
         q.Repeatable = true;
         q.Cadence = QuestCadence.Daily;
-        q.RewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Value = 1000 });        // main
-        q.RepeatRewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Value = 100 });   // repeat
+        q.RewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Quantity = 1000 });        // main
+        q.RepeatRewardItems.Add(new QuestReward { ItemNum = Constants.GoldItemIndex, Quantity = 100 });   // repeat
         var sp = AddPlayer(pm, 1);
         quests.Accept(1, 1);
         Kill(objectives, Rat, 1);

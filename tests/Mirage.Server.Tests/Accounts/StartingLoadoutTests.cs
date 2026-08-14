@@ -210,7 +210,7 @@ public class StartingLoadoutTests
         Str = str,
         Int = @int,
         Def = str,   // irrelevant to the weapon gate; kept equal so nothing else silently fails
-        StartingItems = [.. itemNums.Select(n => new ClassStartingItem { ItemNum = (short)n, Value = 200 })],
+        StartingItems = [.. itemNums.Select(n => new ClassStartingItem { ItemNum = (short)n, Quantity = 200 })],
     };
 
     [Test]

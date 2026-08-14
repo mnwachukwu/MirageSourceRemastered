@@ -126,6 +126,8 @@ public sealed record EditorSaveItemPacket : IPacket
     [JsonPropertyName("nonListable")] public bool NonListable { get; init; }
     [JsonPropertyName("nonMailable")] public bool NonMailable { get; init; }
     [JsonPropertyName("destroyOnDrop")] public bool DestroyOnDrop { get; init; }
+    [JsonPropertyName("nonJunkable")] public bool NonJunkable { get; init; }
+    [JsonPropertyName("price")] public int Price { get; init; }
 }
 
 public sealed record EditorSaveNpcPacket : IPacket
@@ -166,12 +168,15 @@ public sealed record EditorSaveShopPacket : IPacket
     // client $ glyph + attack-key/right-click interact.
     [JsonPropertyName("keeper")] public int Keeper { get; init; }
     [JsonPropertyName("trades")] public TradeEntry[] Trades { get; init; } = [];
+    /// <summary>Item numbers this shop sells for gold, priced from the item. Plain numbers, not rows —
+    /// see <see cref="Records.ShopRecord.SalesItem"/>.</summary>
+    [JsonPropertyName("sales")] public int[] Sales { get; init; } = [];
 
     public sealed record TradeEntry(
         [property: JsonPropertyName("giveItem")] int GiveItem,
-        [property: JsonPropertyName("giveValue")] int GiveValue,
+        [property: JsonPropertyName("giveQuantity")] int GiveQuantity,
         [property: JsonPropertyName("getItem")] int GetItem,
-        [property: JsonPropertyName("getValue")] int GetValue
+        [property: JsonPropertyName("getQuantity")] int GetQuantity
     );
 }
 
@@ -185,7 +190,7 @@ public sealed record EditorSaveSpellPacket : IPacket
     // Type-specific fields; see SpellRecord for which apply to which SpellType.
     [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
     [JsonPropertyName("itemNum")] public short ItemNum { get; init; }
-    [JsonPropertyName("itemAmount")] public short ItemAmount { get; init; }
+    [JsonPropertyName("itemQuantity")] public short ItemQuantity { get; init; }
     [JsonPropertyName("intReq")] public short IntReq { get; init; }
     [JsonPropertyName("levelReq")] public short LevelReq { get; init; }
 }
@@ -288,7 +293,7 @@ public sealed record UpdateSpellPacket : IPacket
     // Type-specific fields; see SpellRecord for which apply to which SpellType.
     [JsonPropertyName("vitalAmount")] public short VitalAmount { get; init; }
     [JsonPropertyName("itemNum")] public short ItemNum { get; init; }
-    [JsonPropertyName("itemAmount")] public short ItemAmount { get; init; }
+    [JsonPropertyName("itemQuantity")] public short ItemQuantity { get; init; }
     [JsonPropertyName("intReq")] public short IntReq { get; init; }
     [JsonPropertyName("levelReq")] public short LevelReq { get; init; }
 }
@@ -303,6 +308,7 @@ public sealed record UpdateShopPacket : IPacket
     [JsonPropertyName("allowBanking")] public bool AllowBanking { get; init; }
     [JsonPropertyName("keeper")] public int Keeper { get; init; }
     [JsonPropertyName("trades")] public EditorSaveShopPacket.TradeEntry[] Trades { get; init; } = [];
+    [JsonPropertyName("sales")] public int[] Sales { get; init; } = [];
 }
 
 public sealed record UpdateClassPacket : IPacket

@@ -53,7 +53,7 @@ public sealed partial class GuildSystem : GameSystem
 
         // Acquiring consumes one of the day's slots up front — abandoning later does NOT give it back.
         guild.QuestsAcquiredToday++;
-        AssignRandomQuest(guild, candidates);
+        AssignRandomQuest(guild, candidates, _pm[index].Char.Level);
         SaveGuild(guild);
         NotifyOk(index, ServerStrings.Guild_QuestAcquired,
             ("Count", guild.Quest!.Objective.Count), ("Npc", _world.Npcs[guild.Quest.Objective.Target].TrimmedName));
@@ -125,14 +125,14 @@ public sealed partial class GuildSystem : GameSystem
     // notifies) if they can't afford it.
     private bool ChargeQuestCost(int index, GuildRecord guild)
     {
-        int cost = GuildQuests.AcquireCost(guild.Level);
+        long cost = GuildQuests.AcquireCost(guild.Level);
         if (cost <= 0) return true;
         if (ItemSystem.HasItem(_pm[index].Char, _world.Items, Constants.GoldItemIndex) < cost)
         {
             Notify(index, ServerStrings.Guild_QuestNeedGold, ("Cost", cost));
             return false;
         }
-        _items.TakeItem(index, Constants.GoldItemIndex, cost);
+        _items.TakeItem(index, Constants.GoldItemIndex, (int)cost);
         return true;
     }
 
@@ -153,7 +153,9 @@ public sealed partial class GuildSystem : GameSystem
     }
 
     // Draw a weighted-random target from the candidates and build the quest (objective + scaled rewards + 24h timer).
-    private void AssignRandomQuest(GuildRecord guild, IReadOnlyList<(int NpcId, int Difficulty)> candidates)
+    // playerLevel is the ACQUIRING member's character level — it scales the gold reward the same way it
+    // scaled the acquire cost, so the quest stays a net vault gain at every band (EconomyFormulas.BandScale).
+    private void AssignRandomQuest(GuildRecord guild, IReadOnlyList<(int NpcId, int Difficulty)> candidates, int playerLevel)
     {
         double pickRoll = CombatFormulas.RollPercent() / 100.0;
         int npcId = GuildQuests.PickQuestNpc(candidates, guild.Level, pickRoll);

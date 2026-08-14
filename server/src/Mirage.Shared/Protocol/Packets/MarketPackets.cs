@@ -27,24 +27,24 @@ public sealed record MarketOpenPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketOpen;
 }
 
-/// <summary>C->S: list an inventory stack for sale at a fixed gold price. <see cref="Amount"/> applies only
+/// <summary>C->S: list an inventory stack for sale at a fixed gold price. <see cref="Quantity"/> applies only
 /// to a currency slot (a partial take); a non-currency slot is listed whole.</summary>
 public sealed record MarketCreatePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketCreate;
     [JsonPropertyName("slot")] public int InvSlot { get; init; }
-    [JsonPropertyName("amt")] public int Amount { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
     [JsonPropertyName("price")] public int Price { get; init; }
 }
 
 /// <summary>C->S: buy a listing by id. The buyer is charged the price in gold; the goods and the (post-tax)
-/// payout are delivered as delayed marketplace mail. <see cref="Amount"/> buys only that many units of a
+/// payout are delivered as delayed marketplace mail. <see cref="Quantity"/> buys only that many units of a
 /// CURRENCY listing (a partial buy); 0 (or a non-currency listing) buys the whole stack.</summary>
 public sealed record MarketBuyPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketBuy;
     [JsonPropertyName("id")] public int Id { get; init; }
-    [JsonPropertyName("amt")] public int Amount { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }
 
 /// <summary>C->S: cancel your own listing by id; the escrowed item is returned to you.</summary>

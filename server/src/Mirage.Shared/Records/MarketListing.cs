@@ -11,7 +11,7 @@ public sealed class MarketListing
     public string Seller { get; set; } = "";
     /// <summary>The listed stack: 1-based item number, quantity / currency amount, and worn durability (gear).</summary>
     public int ItemNum { get; set; }
-    public int Value { get; set; }
+    public int Quantity { get; set; }
     public int Dur { get; set; }
     /// <summary>Total gold the buyer pays; the seller nets this minus the sale tax.</summary>
     public int Price { get; set; }

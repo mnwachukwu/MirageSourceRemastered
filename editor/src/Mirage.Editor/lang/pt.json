@@ -365,6 +365,8 @@
   "ItemEditor_NonListable": "Não anunciável",
   "ItemEditor_NonMailable": "Não enviável pelo correio",
   "ItemEditor_DestroyOnDrop": "Destruir ao largar",
+  "ItemEditor_NonJunkable": "Não descartável",
+  "ItemEditor_PriceLabel": "Preço (ouro):",
   "ItemEditor_FieldNotesHeader": "Notas dos campos",
   "ItemEditor_SaveItemButton": "Salvar item",
   "ItemEditor_SpellSearchPlaceholder": "Magia…",

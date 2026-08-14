@@ -333,8 +333,9 @@ public sealed class EditorPacketHandler
             Keeper = shop.Keeper,
             Trades = shop.TradeItem
                 .Select(t => new EditorSaveShopPacket.TradeEntry(
-                    t.GiveItem, t.GiveValue, t.GetItem, t.GetValue))
+                    t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                 .ToArray(),
+            Sales = [.. shop.SalesItem],
         });
     }
 
@@ -352,7 +353,7 @@ public sealed class EditorPacketHandler
             Type = spell.Type,
             VitalAmount = spell.VitalAmount,
             ItemNum = spell.ItemNum,
-            ItemAmount = spell.ItemAmount,
+            ItemQuantity = spell.ItemQuantity,
             IntReq = spell.IntReq,
         });
     }
@@ -437,7 +438,7 @@ public sealed class EditorPacketHandler
                     Keeper = shop.Keeper,
                     Trades = shop.TradeItem
                         .Select(t => new EditorSaveShopPacket.TradeEntry(
-                            t.GiveItem, t.GiveValue, t.GetItem, t.GetValue))
+                            t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                         .ToArray(),
                 };
             }).ToArray(),
@@ -458,7 +459,7 @@ public sealed class EditorPacketHandler
                     AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
                     Type = spell.Type,
                     VitalAmount = spell.VitalAmount, ItemNum = spell.ItemNum,
-                    ItemAmount = spell.ItemAmount, IntReq = spell.IntReq,
+                    ItemQuantity = spell.ItemQuantity, IntReq = spell.IntReq,
                 };
             }).ToArray(),
         });
@@ -509,7 +510,7 @@ public sealed class EditorPacketHandler
             return new ClassStartingItem
             {
                 ItemNum = s.ItemNum,
-                Value = isCurrency ? (s.Value < 1 ? (short)1 : s.Value) : (short)0,
+                Quantity = isCurrency ? (s.Quantity < 1 ? (short)1 : s.Quantity) : (short)0,
             };
         })];
         cls.StartingSpells = p.StartingSpells is null ? null : [.. p.StartingSpells];
@@ -554,6 +555,8 @@ public sealed class EditorPacketHandler
         item.NonListable = p.NonListable;
         item.NonMailable = p.NonMailable;
         item.DestroyOnDrop = p.DestroyOnDrop;
+        item.NonJunkable = p.NonJunkable;
+        item.Price = p.Price;
         // Clear anything the new Type doesn't use before it is stored or broadcast. The editor already
         // normalizes on its side, but the server is authoritative: it will not persist a stale Power on
         // something that stopped being equipment, whatever a client sends.
@@ -576,7 +579,7 @@ public sealed class EditorPacketHandler
         npc.AttackSay = p.AttackSay;
         npc.Sprite = p.Sprite;
         // Clamp to a valid footprint class on save so a malformed packet never persists a bad size
-        // (mirrors the DropItemValue normalization below).
+        // (mirrors the DropItemQuantity normalization below).
         npc.Size = Math.Clamp(p.Size, 1, Constants.MaxNpcSize);
         npc.SpawnSecs = p.SpawnSecs;
         npc.Behavior = p.Behavior;
@@ -594,7 +597,7 @@ public sealed class EditorPacketHandler
             {
                 ItemNum = d.ItemNum,
                 Chance = d.Chance,
-                Value = isCurrency ? (d.Value < 1 ? (short)1 : d.Value) : (short)0,
+                Quantity = isCurrency ? (d.Quantity < 1 ? (short)1 : d.Quantity) : (short)0,
             };
         })];
         npc.Str = p.Str;
@@ -674,11 +677,16 @@ public sealed class EditorPacketHandler
             .Select(t => new TradeItemRecord
             {
                 GiveItem = t.GiveItem,
-                GiveValue = NormalizeTradeQuantity(t.GiveItem, t.GiveValue),
+                GiveQuantity = NormalizeTradeQuantity(t.GiveItem, t.GiveQuantity),
                 GetItem = t.GetItem,
-                GetValue = NormalizeTradeQuantity(t.GetItem, t.GetValue),
+                GetQuantity = NormalizeTradeQuantity(t.GetItem, t.GetQuantity),
             })
             .ToList();
+
+        // Sales list: bare item numbers, canonicalized server-side (dead numbers and duplicates dropped)
+        // because the server is authoritative and will not store whatever a client happened to send.
+        shop.SalesItem = [.. p.Sales];
+        shop.Normalize(Constants.MaxItems);
 
         _bg.Run(_persistence.SaveShopAsync(n, shop), nameof(IPersistenceService.SaveShopAsync));
         _dispatcher.SendToAll(new UpdateShopPacket
@@ -691,8 +699,9 @@ public sealed class EditorPacketHandler
             Keeper = shop.Keeper,
             Trades = shop.TradeItem
                 .Select(t => new EditorSaveShopPacket.TradeEntry(
-                    t.GiveItem, t.GiveValue, t.GetItem, t.GetValue))
-                .ToArray()
+                    t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
+                .ToArray(),
+            Sales = [.. shop.SalesItem]
         });
 
         // A keeper reassignment (or a Store<->Inn flip on the same keeper) changes which NPC shows the $
@@ -805,8 +814,8 @@ public sealed class EditorPacketHandler
         var list = new List<QuestReward>();
         foreach (var r in src)
         {
-            if (r.ItemNum > 0 && r.ItemNum <= Constants.MaxItems && r.Value > 0)
-                list.Add(new QuestReward { ItemNum = r.ItemNum, Value = r.Value });
+            if (r.ItemNum > 0 && r.ItemNum <= Constants.MaxItems && r.Quantity > 0)
+                list.Add(new QuestReward { ItemNum = r.ItemNum, Quantity = r.Quantity });
         }
 
         return list;
@@ -907,7 +916,7 @@ public sealed class EditorPacketHandler
         spell.Type = p.Type;
         spell.VitalAmount = p.VitalAmount;
         spell.ItemNum = p.ItemNum;
-        spell.ItemAmount = p.ItemAmount;
+        spell.ItemQuantity = p.ItemQuantity;
         spell.IntReq = p.IntReq;
         spell.LevelReq = p.LevelReq;
         // As on the item path: the server clears what the new Type doesn't use before storing or
@@ -923,7 +932,7 @@ public sealed class EditorPacketHandler
             Type = spell.Type,
             VitalAmount = spell.VitalAmount,
             ItemNum = spell.ItemNum,
-            ItemAmount = spell.ItemAmount,
+            ItemQuantity = spell.ItemQuantity,
             IntReq = spell.IntReq,
         });
         _logger.LogInformation("Editor saved spell #{Num}.", n);

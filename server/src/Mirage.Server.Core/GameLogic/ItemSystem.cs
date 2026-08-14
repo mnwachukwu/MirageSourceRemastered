@@ -78,7 +78,7 @@ public sealed partial class ItemSystem : GameSystem
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             if (p.Inv[i].Num != itemNum) continue;
-            return items[itemNum].Type == ItemType.Currency ? p.Inv[i].Value : 1;
+            return items[itemNum].Type == ItemType.Currency ? p.Inv[i].Quantity : 1;
         }
         return 0;
     }
@@ -154,7 +154,7 @@ public sealed partial class ItemSystem : GameSystem
 
         var item = _world.Items[itemNum];
         p.Inv[slot].Num = itemNum;
-        p.Inv[slot].Value = p.Inv[slot].Value + value;
+        p.Inv[slot].Quantity = p.Inv[slot].Quantity + value;
 
         if (item.Type is ItemType.Armor or ItemType.Weapon or ItemType.Helmet or ItemType.Shield)
             p.Inv[slot].Dur = dur > 0 ? dur : item.Durability;
@@ -178,16 +178,16 @@ public sealed partial class ItemSystem : GameSystem
         if (item.Type == ItemType.Currency)
         {
             int itemNum = inv.Num;   // capture before a full take zeroes the shared slot object (inv is a reference)
-            int take = (amount <= 0 || amount > inv.Value) ? inv.Value : amount;
-            if (take >= inv.Value)
+            int take = (amount <= 0 || amount > inv.Quantity) ? inv.Quantity : amount;
+            if (take >= inv.Quantity)
             {
                 p.Inv[invSlot].Num = 0;
-                p.Inv[invSlot].Value = 0;
+                p.Inv[invSlot].Quantity = 0;
                 p.Inv[invSlot].Dur = 0;
             }
             else
             {
-                p.Inv[invSlot].Value -= take;
+                p.Inv[invSlot].Quantity -= take;
             }
 
             SendInventoryUpdate(index, invSlot);
@@ -199,9 +199,9 @@ public sealed partial class ItemSystem : GameSystem
             SendMsg(index, ServerStrings.BankSystem_UnequipFirst, GameColor.BrightRed);
             return (0, 0, 0);
         }
-        int num = inv.Num, val = inv.Value, dur = inv.Dur;
+        int num = inv.Num, val = inv.Quantity, dur = inv.Dur;
         p.Inv[invSlot].Num = 0;
-        p.Inv[invSlot].Value = 0;
+        p.Inv[invSlot].Quantity = 0;
         p.Inv[invSlot].Dur = 0;
         SendInventoryUpdate(index, invSlot);
         return (num, val, dur);
@@ -217,11 +217,11 @@ public sealed partial class ItemSystem : GameSystem
         if (items[itemNum].Type == ItemType.Currency)
         {
             for (int i = 1; i <= Constants.MaxInv; i++)
-                if (p.Inv[i] is { } s && s.Num == itemNum) { s.Value += value; return true; }
+                if (p.Inv[i] is { } s && s.Num == itemNum) { s.Quantity += value; return true; }
         }
 
         for (int i = 1; i <= Constants.MaxInv; i++)
-            if (p.Inv[i] is { Num: 0 } slot) { slot.Num = itemNum; slot.Value = value; slot.Dur = dur; return true; }
+            if (p.Inv[i] is { Num: 0 } slot) { slot.Num = itemNum; slot.Quantity = value; slot.Dur = dur; return true; }
         return false;
     }
 
@@ -236,13 +236,13 @@ public sealed partial class ItemSystem : GameSystem
             bool take = false;
             if (item.Type == ItemType.Currency)
             {
-                if (value >= p.Inv[i].Value)
+                if (value >= p.Inv[i].Quantity)
                 {
                     take = true;
                 }
                 else
                 {
-                    p.Inv[i].Value -= value;
+                    p.Inv[i].Quantity -= value;
                     SendInventoryUpdate(index, i);
                 }
             }
@@ -259,7 +259,7 @@ public sealed partial class ItemSystem : GameSystem
             }
             if (!take) return;
             p.Inv[i].Num = 0;
-            p.Inv[i].Value = 0;
+            p.Inv[i].Quantity = 0;
             p.Inv[i].Dur = 0;
             SendInventoryUpdate(index, i);
             return;

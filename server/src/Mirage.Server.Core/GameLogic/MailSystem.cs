@@ -148,7 +148,7 @@ public sealed class MailSystem : GameSystem
         foreach (var a in m.Attachments)
         {
             if (a.Claimed || a.ItemNum <= 0) continue;   // Value 0 is a valid gear stack (durability, not count)
-            if (_items.TryGiveItem(index, a.ItemNum, a.Value, a.Dur))
+            if (_items.TryGiveItem(index, a.ItemNum, a.Quantity, a.Dur))
             {
                 a.Claimed = true;
                 changed = true;
@@ -174,7 +174,7 @@ public sealed class MailSystem : GameSystem
         foreach (var a in m.Attachments)
         {
             if (a.Claimed || a.ItemNum <= 0) continue;
-            if (_items.TryGiveItem(index, a.ItemNum, a.Value, a.Dur)) a.Claimed = true;
+            if (_items.TryGiveItem(index, a.ItemNum, a.Quantity, a.Dur)) a.Claimed = true;
         }
 
         // The taxed net goes to the original sender (m.Sender) as a regular delayed P2P-style mail.
@@ -183,7 +183,7 @@ public sealed class MailSystem : GameSystem
         {
             long deliverAt = NowUtc
                 + Rng.Next(Constants.MailP2PDeliveryMinSeconds, Constants.MailP2PDeliveryMaxSeconds + 1);
-            var goldBack = new List<MailAttachment> { new() { ItemNum = Constants.GoldItemIndex, Value = net } };
+            var goldBack = new List<MailAttachment> { new() { ItemNum = Constants.GoldItemIndex, Quantity = net } };
             Deliver(m.Sender, ServerStrings.Get(ServerStrings.Mail_SystemSender),
                 ServerStrings.Get(ServerStrings.Mail_CodPaidSubject),
                 ServerStrings.Format(ServerStrings.Mail_CodPaidBody, ("Name", sp.Login), ("Gold", net)),

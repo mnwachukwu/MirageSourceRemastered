@@ -176,7 +176,7 @@ public sealed class TradeSystem : GameSystem
 
         var (num, val, dur) = _items.RemoveFromSlot(index, invSlot, amount);
         if (num <= 0) return;
-        me.TradeOffer.Add(new PlayerInvSlot { Num = num, Value = val, Dur = dur });
+        me.TradeOffer.Add(new PlayerInvSlot { Num = num, Quantity = val, Dur = dur });
         _pm.MarkDirty(index);   // escrowed off the player — persist so a disconnect can't dupe
         Unconfirm(index, partner);
         SyncBoth(index, partner);
@@ -263,8 +263,8 @@ public sealed class TradeSystem : GameSystem
 
         // PHASE 2: apply. Per side, granting the receives AND clearing the escrow land in ONE account file, so
         // each side's half is atomic; the phase-1 journal makes the PAIR atomic.
-        foreach (var it in pb.TradeOffer) _items.TryGiveItem(a, it.Num, it.Value, it.Dur);
-        foreach (var it in pa.TradeOffer) _items.TryGiveItem(b, it.Num, it.Value, it.Dur);
+        foreach (var it in pb.TradeOffer) _items.TryGiveItem(a, it.Num, it.Quantity, it.Dur);
+        foreach (var it in pa.TradeOffer) _items.TryGiveItem(b, it.Num, it.Quantity, it.Dur);
         pa.TradeOffer.Clear();
         pb.TradeOffer.Clear();
 
@@ -323,7 +323,7 @@ public sealed class TradeSystem : GameSystem
         var rec = account.Chars[charNum];
         if (rec is null || rec.TradeOffer.Count == 0) return;
         foreach (var it in receives)
-            ItemSystem.TryGiveItemOffline(rec, _world.Items, it.Num, it.Value, it.Dur);
+            ItemSystem.TryGiveItemOffline(rec, _world.Items, it.Num, it.Quantity, it.Dur);
         rec.TradeOffer.Clear();
         await _persistence.SaveAccountAsync(account).ConfigureAwait(false);
     }
@@ -437,10 +437,10 @@ public sealed class TradeSystem : GameSystem
     // Return one escrowed item to a player's bag, or mail it if the bag is full (never lose it).
     private void GiveOrMail(int index, PlayerInvSlot it)
     {
-        if (_items.TryGiveItem(index, it.Num, it.Value, it.Dur)) return;
+        if (_items.TryGiveItem(index, it.Num, it.Quantity, it.Dur)) return;
         _mail.Deliver(_pm[index].Login, TradeSender, ServerStrings.Get(ServerStrings.Trade_ReturnedSubject),
             ServerStrings.Get(ServerStrings.Trade_ReturnedBody),
-            new List<MailAttachment> { new() { ItemNum = it.Num, Value = it.Value, Dur = it.Dur } });
+            new List<MailAttachment> { new() { ItemNum = it.Num, Quantity = it.Quantity, Dur = it.Dur } });
     }
 
     private void EndTrade(int a, int b, string closeKey)
@@ -482,7 +482,7 @@ public sealed class TradeSystem : GameSystem
         });
     }
 
-    private static PlayerInvSlot Clone(PlayerInvSlot s) => new() { Num = s.Num, Value = s.Value, Dur = s.Dur };
+    private static PlayerInvSlot Clone(PlayerInvSlot s) => new() { Num = s.Num, Quantity = s.Quantity, Dur = s.Dur };
 
     // Two players are in trade range iff the partner sits inside this player's r=5 spell circle (world-space).
     private bool InRange(int a, int b)

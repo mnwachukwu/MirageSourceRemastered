@@ -87,7 +87,7 @@ public sealed partial class ClientState
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             var slot = Me?.Inv?[i];
-            if (slot is not null && Items[slot.Num]?.Name == "Gold") return slot.Value;
+            if (slot is not null && Items[slot.Num]?.Name == "Gold") return slot.Quantity;
         }
         return 0;
     }

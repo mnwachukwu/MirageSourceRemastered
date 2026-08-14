@@ -19,13 +19,13 @@ public sealed record TradeRespondPacket : IPacket
     [JsonPropertyName("accept")] public bool Accept { get; init; }
 }
 
-/// <summary>C->S: stage an inventory item into my trade offer (escrowed off me). Amount applies to a currency
+/// <summary>C->S: stage an inventory item into my trade offer (escrowed off me). Quantity applies to a currency
 /// slot (a partial take); a non-currency slot is staged whole.</summary>
 public sealed record TradeOfferAddPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.TradeOfferAdd;
     [JsonPropertyName("slot")] public int InvSlot { get; init; }
-    [JsonPropertyName("amt")] public int Amount { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }
 
 /// <summary>C->S: pull a staged item back out of my trade offer (returned to my inventory), by offer index.</summary>

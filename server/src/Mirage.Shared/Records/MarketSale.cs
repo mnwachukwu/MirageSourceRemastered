@@ -11,7 +11,7 @@ public sealed class MarketSale
     public string Buyer { get; set; } = "";
     /// <summary>What sold: 1-based item number and the quantity/currency amount in this sale.</summary>
     public int ItemNum { get; set; }
-    public int Value { get; set; }
+    public int Quantity { get; set; }
     /// <summary>Gross gold the buyer paid for this (possibly partial) sale.</summary>
     public int Price { get; set; }
     /// <summary>Sale tax withheld from the seller's payout (a gold sink).</summary>

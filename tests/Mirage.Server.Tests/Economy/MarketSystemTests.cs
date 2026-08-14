@@ -146,7 +146,7 @@ public class MarketSystemTests
         seller.Char.Inv[3].Num = Sword;
         seller.Char.Inv[3].Dur = 40;
         buyer.Char.Inv[1].Num = Gold;
-        buyer.Char.Inv[1].Value = 1000;
+        buyer.Char.Inv[1].Quantity = 1000;
         market.List(1, 3, 0, price: 500);
         int listingId = world.MarketListings.Values.First().Id;
 
@@ -162,7 +162,7 @@ public class MarketSystemTests
             Assert.That(buyer.Mail[0].Attachments[0].Dur, Is.EqualTo(40), "with the seller's worn durability");
             Assert.That(seller.Mail, Has.Count.EqualTo(1), "the payout is delivered to the seller as mail");
             Assert.That(seller.Mail[0].Attachments[0].ItemNum, Is.EqualTo(Gold));
-            Assert.That(seller.Mail[0].Attachments[0].Value, Is.EqualTo(500 - tax), "the seller nets the price minus the sale tax");
+            Assert.That(seller.Mail[0].Attachments[0].Quantity, Is.EqualTo(500 - tax), "the seller nets the price minus the sale tax");
         });
     }
 
@@ -191,7 +191,7 @@ public class MarketSystemTests
         var buyer = AtInn(world, pm, 2, "buyer");
         seller.Char.Inv[3].Num = Sword;
         buyer.Char.Inv[1].Num = Gold;
-        buyer.Char.Inv[1].Value = 100;  // short of the 500 price
+        buyer.Char.Inv[1].Quantity = 100;  // short of the 500 price
         market.List(1, 3, 0, 500);
         int id = world.MarketListings.Values.First().Id;
 
@@ -247,9 +247,9 @@ public class MarketSystemTests
         var seller = AtInn(world, pm, 1, "seller");
         var buyer = AtInn(world, pm, 2, "buyer");
         seller.Char.Inv[3].Num = Token;
-        seller.Char.Inv[3].Value = 1000;
+        seller.Char.Inv[3].Quantity = 1000;
         buyer.Char.Inv[1].Num = Gold;
-        buyer.Char.Inv[1].Value = 1000;
+        buyer.Char.Inv[1].Quantity = 1000;
         market.List(1, 3, amount: 1000, price: 2);   // 2 gold PER UNIT
         var listing = world.MarketListings.Values.First();
 
@@ -259,9 +259,9 @@ public class MarketSystemTests
         {
             Assert.That(ItemSystem.HasItem(buyer.Char, world.Items, Gold), Is.EqualTo(1000 - 600), "charged 300 units * 2/unit = 600 exactly");
             Assert.That(world.MarketListings, Has.Count.EqualTo(1), "the listing survives, reduced");
-            Assert.That(listing.Value, Is.EqualTo(700), "700 units remain");
+            Assert.That(listing.Quantity, Is.EqualTo(700), "700 units remain");
             Assert.That(listing.Price, Is.EqualTo(2), "the per-unit price is unchanged");
-            Assert.That(buyer.Mail[0].Attachments[0].Value, Is.EqualTo(300), "the buyer receives 300 tokens");
+            Assert.That(buyer.Mail[0].Attachments[0].Quantity, Is.EqualTo(300), "the buyer receives 300 tokens");
         });
     }
 
@@ -298,7 +298,7 @@ public class MarketSystemTests
         var buyer = AtInn(world, pm, 2, "buyer");
         seller.Char.Inv[3].Num = Sword;
         buyer.Char.Inv[1].Num = Gold;
-        buyer.Char.Inv[1].Value = 1000;
+        buyer.Char.Inv[1].Quantity = 1000;
         market.List(1, 3, 0, 500);
         int id = world.MarketListings.Values.First().Id;
 
@@ -326,7 +326,7 @@ public class MarketSystemTests
         world.Items[Token].Type = ItemType.Currency;
         var sp = AtInn(world, pm, 1, "seller");
         sp.Char.Inv[3].Num = Token;
-        sp.Char.Inv[3].Value = 1000;
+        sp.Char.Inv[3].Quantity = 1000;
 
         market.List(1, invSlot: 3, amount: 300, price: 2);   // list 300 of 1000 units at 2/ea
 
@@ -335,10 +335,10 @@ public class MarketSystemTests
             Assert.That(world.MarketListings, Has.Count.EqualTo(1));
             var l = world.MarketListings.Values.First();
             Assert.That(l.ItemNum, Is.EqualTo(Token));
-            Assert.That(l.Value, Is.EqualTo(300), "only the chosen units are listed");
+            Assert.That(l.Quantity, Is.EqualTo(300), "only the chosen units are listed");
             Assert.That(l.Price, Is.EqualTo(2), "priced per unit");
             Assert.That(sp.Char.Inv[3].Num, Is.EqualTo(Token), "the slot survives");
-            Assert.That(sp.Char.Inv[3].Value, Is.EqualTo(700), "the rest stays in the seller's bag");
+            Assert.That(sp.Char.Inv[3].Quantity, Is.EqualTo(700), "the rest stays in the seller's bag");
         });
     }
 

@@ -34,4 +34,35 @@ public sealed class ShopRecord
     // fixed 1-based array (a leading null at index 0 + slots 1..8); it deserializes into this list and is
     // compacted on load (drop null/empty) — see JsonPersistenceService and ShopRowViewModel.
     public List<TradeItemRecord> TradeItem { get; set; } = new();
+
+    /// <summary>Item numbers this shop SELLS for gold, priced from <see cref="ItemRecord.Price"/>.
+    ///
+    /// <para>A plain list of numbers rather than <see cref="TradeItemRecord"/> rows, because once price
+    /// lives on the item a sales row carries no other information. That is the whole reason for the split:
+    /// an ordinary storefront becomes "these items", authorable by picking them and renderable as a normal
+    /// item list — where the barter table renders as a wall of "give X -&gt; get Y" strings and needed a row
+    /// hand-written per item. 471 items could never have been a trade table.</para>
+    ///
+    /// <para><see cref="TradeItem"/> keeps everything it always did and is NOT superseded. Barter has cases
+    /// a single global price cannot express: "five Witch's Hair for a Ruby Pendant", and treasure, where two
+    /// different vendors may deliberately pay differently for the same thing. The accepted trade-off of
+    /// pricing from the item is that similar goods cost the same at every vendor; the trade table is the
+    /// escape hatch for when that matters.</para>
+    ///
+    /// <para>Deduplicated and stripped of dead numbers on load (see <see cref="Normalize"/>), so a stocking
+    /// pass that lists an item twice is harmless rather than a doubled row in the player's face.</para></summary>
+    public List<int> SalesItem { get; set; } = new();
+
+    /// <summary>Canonicalize the sales list: drop anything that is not a live item number, and collapse
+    /// duplicates while keeping the authored order — the order IS the display order, so re-sorting would
+    /// quietly rearrange a shopfront someone arranged deliberately.</summary>
+    public void Normalize(int maxItems)
+    {
+        if (SalesItem.Count == 0) return;
+        var seen = new HashSet<int>();
+        var kept = new List<int>(SalesItem.Count);
+        foreach (int num in SalesItem)
+            if (num > 0 && num <= maxItems && seen.Add(num)) kept.Add(num);
+        SalesItem = kept;
+    }
 }

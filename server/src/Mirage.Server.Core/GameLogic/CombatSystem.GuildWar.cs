@@ -189,7 +189,7 @@ public sealed partial class CombatSystem : GameSystem
             int maxDur = _world.Items[itemNum].Durability;
             if (maxDur <= 0) continue;
             wear[k] = EconomyFormulas.EquipmentDamageOnDeath(maxDur, Constants.GuildWarDeathWearPercent);
-            totalRepair += EconomyFormulas.RepairCost(wear[k], _world.Items[itemNum].Power);
+            totalRepair += EconomyFormulas.RepairCost(wear[k], _world.Items[itemNum]);
         }
         // Caster parity: the prepared spell's reagents wear like a weapon (doubled in war), ON TOP of
         // any actual weapon wear above — folded into the same repair total the vault absorbs 75% of
@@ -287,7 +287,7 @@ public sealed partial class CombatSystem : GameSystem
         for (int i = 0; i < count; i++)
         {
             int slot = occupied[i];
-            int amount = _world.Items[p.Inv[slot].Num].Type == ItemType.Currency ? p.Inv[slot].Value : 0;
+            int amount = _world.Items[p.Inv[slot].Num].Type == ItemType.Currency ? p.Inv[slot].Quantity : 0;
             _items.PlayerMapDropItemForDeath(index, slot, amount);
         }
     }
@@ -305,8 +305,8 @@ public sealed partial class CombatSystem : GameSystem
             if (CombatFormulas.RollPercent() >= Constants.NormalDropChancePercent) continue;
             int slot = slots[i];
             int itemNum = p.Inv[slot].Num;
-            int amount = _world.Items[itemNum].Type == ItemType.Currency && p.Inv[slot].Value > 0
-                ? Rng.Next(1, p.Inv[slot].Value + 1)
+            int amount = _world.Items[itemNum].Type == ItemType.Currency && p.Inv[slot].Quantity > 0
+                ? Rng.Next(1, p.Inv[slot].Quantity + 1)
                 : 0;
             _items.PlayerMapDropItemForDeath(index, slot, amount);
         }

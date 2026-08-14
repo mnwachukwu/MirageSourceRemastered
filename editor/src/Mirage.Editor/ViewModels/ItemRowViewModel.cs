@@ -46,6 +46,14 @@ public sealed partial class ItemRowViewModel : ObservableObject
     [ObservableProperty] private bool _nonListable;
     [ObservableProperty] private bool _nonMailable;
     [ObservableProperty] private bool _destroyOnDrop;
+    /// <summary>Blocks the generic shop sell path, which is a junk dump rather than a market. Set it on
+    /// currency (dumping gold for a fraction of itself is nonsense) and on treasure, whose worth is the
+    /// whole point of visiting a fence — left junkable it would just be dumped at the generic rate.</summary>
+    [ObservableProperty] private bool _nonJunkable;
+
+    /// <summary>Gold worth. Seeded from the economy formula for the whole armory, so authoring one by hand
+    /// is an OVERRIDE — which is exactly what treasure needs and what nothing else should want.</summary>
+    [ObservableProperty] private int _price;
 
     /// <summary>Whether the row holds edits not yet saved.</summary>
     public bool IsDirty { get; private set; }
@@ -73,6 +81,8 @@ public sealed partial class ItemRowViewModel : ObservableObject
         _nonListable = r.NonListable;
         _nonMailable = r.NonMailable;
         _destroyOnDrop = r.DestroyOnDrop;
+        _nonJunkable = r.NonJunkable;
+        _price = r.Price;
     }
 
     /// <summary>int view of <see cref="Pic"/> for the numeric spinner, which does not bind to short.</summary>
@@ -97,6 +107,8 @@ public sealed partial class ItemRowViewModel : ObservableObject
     partial void OnNonListableChanged(bool value) => MarkDirty();
     partial void OnNonMailableChanged(bool value) => MarkDirty();
     partial void OnDestroyOnDropChanged(bool value) => MarkDirty();
+    partial void OnNonJunkableChanged(bool value) => MarkDirty();
+    partial void OnPriceChanged(int value) => MarkDirty();
 
     // Changing the type re-labels and re-shows the fields, so every derived caption and visibility
     // flag has to re-raise alongside the dirty mark.
@@ -147,6 +159,8 @@ public sealed partial class ItemRowViewModel : ObservableObject
             NonListable = r.NonListable;
             NonMailable = r.NonMailable;
             DestroyOnDrop = r.DestroyOnDrop;
+            NonJunkable = r.NonJunkable;
+            Price = r.Price;
         }
         finally
         {
@@ -177,6 +191,8 @@ public sealed partial class ItemRowViewModel : ObservableObject
             NonListable = pkt.NonListable;
             NonMailable = pkt.NonMailable;
             DestroyOnDrop = pkt.DestroyOnDrop;
+            NonJunkable = pkt.NonJunkable;
+            Price = pkt.Price;
         }
         finally
         {
@@ -209,6 +225,8 @@ public sealed partial class ItemRowViewModel : ObservableObject
             NonListable = NonListable,
             NonMailable = NonMailable,
             DestroyOnDrop = DestroyOnDrop,
+            NonJunkable = NonJunkable,
+            Price = Price,
         };
         r.Normalize();
         return r;
@@ -236,6 +254,8 @@ public sealed partial class ItemRowViewModel : ObservableObject
             NonListable = r.NonListable,
             NonMailable = r.NonMailable,
             DestroyOnDrop = r.DestroyOnDrop,
+            NonJunkable = r.NonJunkable,
+            Price = r.Price,
         };
     }
 

@@ -95,6 +95,6 @@ public sealed class QuestRecord
 public sealed class QuestReward
 {
     public int ItemNum { get; set; }
-    public int Value { get; set; }
+    public int Quantity { get; set; }
     public QuestReward Clone() => (QuestReward)MemberwiseClone();
 }

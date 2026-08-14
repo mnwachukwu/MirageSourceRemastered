@@ -177,9 +177,9 @@ public sealed class ShopPanel : IGamePanel
         foreach (var trade in state.ActiveTrades)
         {
             h.Add(trade.GiveItem);
-            h.Add(trade.GiveValue);
+            h.Add(trade.GiveQuantity);
             h.Add(trade.GetItem);
-            h.Add(trade.GetValue);
+            h.Add(trade.GetQuantity);
         }
         return h.ToHashCode();
     }
@@ -209,10 +209,10 @@ public sealed class ShopPanel : IGamePanel
         foreach (var trade in state.ActiveTrades)
         {
             string give = trade.GiveItem > 0 && trade.GiveItem <= state.Items.Length - 1
-                ? $"{state.Items[trade.GiveItem]?.Name ?? "?"} x{trade.GiveValue}"
+                ? $"{state.Items[trade.GiveItem]?.Name ?? "?"} x{trade.GiveQuantity}"
                 : "?";
             string get = trade.GetItem > 0 && trade.GetItem <= state.Items.Length - 1
-                ? $"{state.Items[trade.GetItem]?.Name ?? "?"} x{trade.GetValue}"
+                ? $"{state.Items[trade.GetItem]?.Name ?? "?"} x{trade.GetQuantity}"
                 : "?";
             _tradeList.Items.Add($"{give} -> {get}");
         }
@@ -423,7 +423,7 @@ public sealed class ShopPanel : IGamePanel
             _ => null,
         };
 
-        string nameLine = get?.Type == ItemType.Currency ? $"{trade.GetValue} {name}" : name;
+        string nameLine = get?.Type == ItemType.Currency ? $"{trade.GetQuantity} {name}" : name;
 
         float textY = c.Y + 12;
         UiHelper.DrawLabel(sb, font, nameLine, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
@@ -478,7 +478,7 @@ public sealed class ShopPanel : IGamePanel
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_PotionEffect, ("Effect", potionEffect)), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
             textY += 18;
         }
-        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_TradeCost, ("Amount", trade.GiveValue), ("Item", giveName)), new Vector2(c.X + 8, textY), Color.Yellow, c.Width - 16);
+        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_TradeCost, ("Amount", trade.GiveQuantity), ("Item", giveName)), new Vector2(c.X + 8, textY), Color.Yellow, c.Width - 16);
         textY += 18;
 
         if (isEquip)

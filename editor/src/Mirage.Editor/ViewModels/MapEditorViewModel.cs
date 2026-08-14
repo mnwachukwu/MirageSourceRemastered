@@ -281,7 +281,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         TileType.Warp => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Warp,
             ("Name", EditorVocabulary.NameOf(type)), ("Map", MapLabel(a.WarpMap)), ("X", a.WarpX), ("Y", a.WarpY)),
         TileType.Item => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Item,
-            ("Name", EditorVocabulary.NameOf(type)), ("Item", ItemLabel(a.ItemNum)), ("Qty", a.ItemValue),
+            ("Name", EditorVocabulary.NameOf(type)), ("Item", ItemLabel(a.ItemNum)), ("Qty", a.ItemQuantity),
             ("Respawn", a.ItemRespawnSecs == 0
                 ? EditorStrings.Get(EditorStrings.MapEditor_AttrText_RespawnDefault)
                 : EditorStrings.Format(EditorStrings.MapEditor_AttrText_RespawnSeconds, ("Seconds", a.ItemRespawnSecs)))),

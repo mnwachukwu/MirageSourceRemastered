@@ -206,7 +206,7 @@ public sealed record SendMapPacket : IPacket
         [property: JsonPropertyName("wy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpY { get; init; }
         [property: JsonPropertyName("wl"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WorldLayer WarpLayer { get; init; }
         [property: JsonPropertyName("in"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemNum { get; init; }
-        [property: JsonPropertyName("iv"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemValue { get; init; }
+        [property: JsonPropertyName("iv"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemQuantity { get; init; }
         [property: JsonPropertyName("ir"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemRespawnSecs { get; init; }
         [property: JsonPropertyName("kn"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short KeyItemNum { get; init; }
         [property: JsonPropertyName("kc"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool KeyIsConsumed { get; init; }
@@ -218,7 +218,7 @@ public sealed record SendMapPacket : IPacket
         public static AttrFields? FromGround(TileRecord t) => !TileAttrRules.UsesAnyField(t.Type) ? null : new AttrFields
         {
             WarpMap = t.WarpMap, WarpX = t.WarpX, WarpY = t.WarpY, WarpLayer = t.WarpLayer,
-            ItemNum = t.ItemNum, ItemValue = t.ItemValue, ItemRespawnSecs = t.ItemRespawnSecs,
+            ItemNum = t.ItemNum, ItemQuantity = t.ItemQuantity, ItemRespawnSecs = t.ItemRespawnSecs,
             KeyItemNum = t.KeyItemNum, KeyIsConsumed = t.KeyIsConsumed,
             DoorX = t.DoorX, DoorY = t.DoorY, DoorLayer = t.DoorLayer,
             RampGroundSide = t.RampGroundSide,
@@ -227,7 +227,7 @@ public sealed record SendMapPacket : IPacket
         public static AttrFields? From(Records.FringeAttr a) => !TileAttrRules.UsesAnyField(a.Type) ? null : new AttrFields
         {
             WarpMap = a.WarpMap, WarpX = a.WarpX, WarpY = a.WarpY, WarpLayer = a.WarpLayer,
-            ItemNum = a.ItemNum, ItemValue = a.ItemValue, ItemRespawnSecs = a.ItemRespawnSecs,
+            ItemNum = a.ItemNum, ItemQuantity = a.ItemQuantity, ItemRespawnSecs = a.ItemRespawnSecs,
             KeyItemNum = a.KeyItemNum, KeyIsConsumed = a.KeyIsConsumed,
             DoorX = a.DoorX, DoorY = a.DoorY, DoorLayer = a.DoorLayer,
             RampGroundSide = a.RampGroundSide,
@@ -236,7 +236,7 @@ public sealed record SendMapPacket : IPacket
         public void ApplyTo(TileRecord t)
         {
             t.WarpMap = WarpMap; t.WarpX = WarpX; t.WarpY = WarpY; t.WarpLayer = WarpLayer;
-            t.ItemNum = ItemNum; t.ItemValue = ItemValue; t.ItemRespawnSecs = ItemRespawnSecs;
+            t.ItemNum = ItemNum; t.ItemQuantity = ItemQuantity; t.ItemRespawnSecs = ItemRespawnSecs;
             t.KeyItemNum = KeyItemNum; t.KeyIsConsumed = KeyIsConsumed;
             t.DoorX = DoorX; t.DoorY = DoorY; t.DoorLayer = DoorLayer;
             t.RampGroundSide = RampGroundSide;
@@ -245,7 +245,7 @@ public sealed record SendMapPacket : IPacket
         public void ApplyTo(Records.FringeAttr a)
         {
             a.WarpMap = WarpMap; a.WarpX = WarpX; a.WarpY = WarpY; a.WarpLayer = WarpLayer;
-            a.ItemNum = ItemNum; a.ItemValue = ItemValue; a.ItemRespawnSecs = ItemRespawnSecs;
+            a.ItemNum = ItemNum; a.ItemQuantity = ItemQuantity; a.ItemRespawnSecs = ItemRespawnSecs;
             a.KeyItemNum = KeyItemNum; a.KeyIsConsumed = KeyIsConsumed;
             a.DoorX = DoorX; a.DoorY = DoorY; a.DoorLayer = DoorLayer;
             a.RampGroundSide = RampGroundSide;

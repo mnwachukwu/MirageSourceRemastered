@@ -15,9 +15,9 @@ public sealed partial class TradeRowViewModel : ObservableObject
     public string GetItemPlaceholder => EditorStrings.Get(EditorStrings.ShopEditor_GetItemPlaceholder);
 
     [ObservableProperty] private int _giveItem;
-    [ObservableProperty] private int _giveValue;
+    [ObservableProperty] private int _giveQuantity;
     [ObservableProperty] private int _getItem;
-    [ObservableProperty] private int _getValue;
+    [ObservableProperty] private int _getQuantity;
 
     public bool IsDirty { get; private set; }
 
@@ -25,12 +25,12 @@ public sealed partial class TradeRowViewModel : ObservableObject
 
     // Per-side quantity limits, bound to the NumericUpDown Min/Max so the spinner can't leave the valid
     // range: an empty side (no item) pins to 0; a non-currency item pins to exactly 1 (it never stacks);
-    // a currency item allows 1..9999. CoerceGive/GetValue is the authoritative backstop for typed input
+    // a currency item allows 1..9999. CoerceGive/GetQuantity is the authoritative backstop for typed input
     // and item swaps; the server also re-normalizes on save.
-    public int GiveValueMin => GiveItem > 0 ? 1 : 0;
-    public int GiveValueMax => GiveItem <= 0 ? 0 : (_isCurrency(GiveItem) ? 9999 : 1);
-    public int GetValueMin => GetItem > 0 ? 1 : 0;
-    public int GetValueMax => GetItem <= 0 ? 0 : (_isCurrency(GetItem) ? 9999 : 1);
+    public int GiveQuantityMin => GiveItem > 0 ? 1 : 0;
+    public int GiveQuantityMax => GiveItem <= 0 ? 0 : (_isCurrency(GiveItem) ? 9999 : 1);
+    public int GetQuantityMin => GetItem > 0 ? 1 : 0;
+    public int GetQuantityMax => GetItem <= 0 ? 0 : (_isCurrency(GetItem) ? 9999 : 1);
 
     public NamedEntry? SelectedGiveItem
     {
@@ -64,9 +64,9 @@ public sealed partial class TradeRowViewModel : ObservableObject
         _entriesProvider = entriesProvider;
         _isCurrency = isCurrency;
         _giveItem = r.GiveItem;
-        _giveValue = r.GiveValue;
+        _giveQuantity = r.GiveQuantity;
         _getItem = r.GetItem;
-        _getValue = r.GetValue;
+        _getQuantity = r.GetQuantity;
     }
 
     partial void OnGiveItemChanged(int value)
@@ -75,40 +75,40 @@ public sealed partial class TradeRowViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedGiveItem));
         // Refresh the spinner range BEFORE coercing the value, so setting the value can't get clamped to
         // the previous item's (now stale) maximum.
-        OnPropertyChanged(nameof(GiveValueMin));
-        OnPropertyChanged(nameof(GiveValueMax));
-        CoerceGiveValue();
+        OnPropertyChanged(nameof(GiveQuantityMin));
+        OnPropertyChanged(nameof(GiveQuantityMax));
+        CoerceGiveQuantity();
     }
-    partial void OnGiveValueChanged(int value)
+    partial void OnGiveQuantityChanged(int value)
     {
         IsDirty = true;
-        CoerceGiveValue();
+        CoerceGiveQuantity();
     }
     partial void OnGetItemChanged(int value)
     {
         IsDirty = true;
         OnPropertyChanged(nameof(SelectedGetItem));
-        OnPropertyChanged(nameof(GetValueMin));
-        OnPropertyChanged(nameof(GetValueMax));
-        CoerceGetValue();
+        OnPropertyChanged(nameof(GetQuantityMin));
+        OnPropertyChanged(nameof(GetQuantityMax));
+        CoerceGetQuantity();
     }
-    partial void OnGetValueChanged(int value)
+    partial void OnGetQuantityChanged(int value)
     {
         IsDirty = true;
-        CoerceGetValue();
+        CoerceGetQuantity();
     }
 
-    // Snap the stored quantity into the side's valid range (see GiveValueMin/Max). Setter-guarded so a
+    // Snap the stored quantity into the side's valid range (see GiveQuantityMin/Max). Setter-guarded so a
     // no-op coercion doesn't re-enter or spuriously re-notify.
-    private void CoerceGiveValue()
+    private void CoerceGiveQuantity()
     {
-        int coerced = CoerceQuantity(GiveItem, GiveValue);
-        if (GiveValue != coerced) GiveValue = coerced;
+        int coerced = CoerceQuantity(GiveItem, GiveQuantity);
+        if (GiveQuantity != coerced) GiveQuantity = coerced;
     }
-    private void CoerceGetValue()
+    private void CoerceGetQuantity()
     {
-        int coerced = CoerceQuantity(GetItem, GetValue);
-        if (GetValue != coerced) GetValue = coerced;
+        int coerced = CoerceQuantity(GetItem, GetQuantity);
+        if (GetQuantity != coerced) GetQuantity = coerced;
     }
     private int CoerceQuantity(int itemId, int value)
     {
@@ -130,20 +130,20 @@ public sealed partial class TradeRowViewModel : ObservableObject
         // An item's currency-ness may have changed under us; refresh the spinner limits and snap the stored
         // quantities back into range, so a currency->normal flip caps a >1 qty at 1 immediately (not on next
         // edit). Coercion is a no-op unless a value is now out of range, so unrelated invalidations don't dirty.
-        OnPropertyChanged(nameof(GiveValueMin));
-        OnPropertyChanged(nameof(GiveValueMax));
-        OnPropertyChanged(nameof(GetValueMin));
-        OnPropertyChanged(nameof(GetValueMax));
-        CoerceGiveValue();
-        CoerceGetValue();
+        OnPropertyChanged(nameof(GiveQuantityMin));
+        OnPropertyChanged(nameof(GiveQuantityMax));
+        OnPropertyChanged(nameof(GetQuantityMin));
+        OnPropertyChanged(nameof(GetQuantityMax));
+        CoerceGiveQuantity();
+        CoerceGetQuantity();
     }
 
     public TradeItemRecord ToRecord() => new()
     {
         GiveItem = GiveItem,
-        GiveValue = GiveValue,
+        GiveQuantity = GiveQuantity,
         GetItem = GetItem,
-        GetValue = GetValue,
+        GetQuantity = GetQuantity,
     };
 
     private static NamedEntry? EntryFor(NamedEntry[] entries, int id) =>

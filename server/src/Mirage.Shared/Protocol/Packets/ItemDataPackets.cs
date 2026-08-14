@@ -25,7 +25,11 @@ public sealed record SendItemsPacket : IPacket
         [property: JsonPropertyName("nonTradeable")] bool NonTradeable,
         [property: JsonPropertyName("nonListable")] bool NonListable,
         [property: JsonPropertyName("nonMailable")] bool NonMailable,
-        [property: JsonPropertyName("destroyOnDrop")] bool DestroyOnDrop
+        [property: JsonPropertyName("destroyOnDrop")] bool DestroyOnDrop,
+        [property: JsonPropertyName("nonJunkable")] bool NonJunkable = false,
+        // Gold worth. The client needs it to quote a shop's sales list and to preview what a sell pays,
+        // both of which happen before any server round-trip.
+        [property: JsonPropertyName("price")] int Price = 0
     );
 }
 
@@ -49,4 +53,6 @@ public sealed record UpdateItemPacket : IPacket
     [JsonPropertyName("nonListable")] public bool NonListable { get; init; }
     [JsonPropertyName("nonMailable")] public bool NonMailable { get; init; }
     [JsonPropertyName("destroyOnDrop")] public bool DestroyOnDrop { get; init; }
+    [JsonPropertyName("nonJunkable")] public bool NonJunkable { get; init; }
+    [JsonPropertyName("price")] public int Price { get; init; }
 }

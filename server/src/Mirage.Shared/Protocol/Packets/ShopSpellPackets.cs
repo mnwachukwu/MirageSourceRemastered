@@ -46,17 +46,25 @@ public sealed record SendShopsPacket : IPacket
     );
 }
 
+/// <summary>S→C: everything needed to draw an open shop — its barter rows AND its sales list.
+///
+/// <para>The two are separate because they are different transactions, not two spellings of one. A trade row
+/// names both sides explicitly and can ask for anything; a sales entry is just an item number, priced from
+/// <see cref="Records.ItemRecord.Price"/>, which the client already holds from the item definitions. So the
+/// sales list costs one int per entry on the wire no matter how large the shopfront gets.</para></summary>
 public sealed record SendTradePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SendTrade;
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
     [JsonPropertyName("trades")] public TradeRow[] Trades { get; init; } = [];
+    /// <summary>Item numbers the shop sells for gold, in authored display order.</summary>
+    [JsonPropertyName("sales")] public int[] Sales { get; init; } = [];
 
     public sealed record TradeRow(
         [property: JsonPropertyName("giveItem")] int GiveItem,
-        [property: JsonPropertyName("giveValue")] int GiveValue,
+        [property: JsonPropertyName("giveQuantity")] int GiveQuantity,
         [property: JsonPropertyName("getItem")] int GetItem,
-        [property: JsonPropertyName("getValue")] int GetValue
+        [property: JsonPropertyName("getQuantity")] int GetQuantity
     );
 }
 
@@ -80,7 +88,7 @@ public sealed record SendSpellsPacket : IPacket
         // Type-specific fields; see SpellRecord for which apply to which SpellType.
         [property: JsonPropertyName("vitalAmount")] short VitalAmount,
         [property: JsonPropertyName("itemNum")] short ItemNum,
-        [property: JsonPropertyName("itemAmount")] short ItemAmount,
+        [property: JsonPropertyName("itemQuantity")] short ItemQuantity,
         [property: JsonPropertyName("intReq")] short IntReq,
         [property: JsonPropertyName("levelReq")] short LevelReq
     );

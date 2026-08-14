@@ -27,7 +27,7 @@ public sealed partial class ItemSystem : GameSystem
         var list = _world.MapItems[mapNum];
         var snapshot = list
             .Where(mi => mi.Num > 0 && mi.Source is ItemSource.PlayerDropped or ItemSource.NpcDropped or ItemSource.PlayerDeathDropped)
-            .Select(mi => new DroppedItemSaveData(mi.Num, mi.Value, mi.Dur, mi.X, mi.Y, mi.Source, mi.DropSeq))
+            .Select(mi => new DroppedItemSaveData(mi.Num, mi.Quantity, mi.Dur, mi.X, mi.Y, mi.Source, mi.DropSeq))
             .ToArray();
 
         MapSaveState state;
@@ -83,7 +83,7 @@ public sealed partial class ItemSystem : GameSystem
             {
                 Slot = _world.AllocateMapItemSlot(mapNum),
                 Num = drop.Num,
-                Value = drop.Value,
+                Quantity = drop.Value,
                 Dur = drop.Dur,
                 X = drop.X,
                 Y = drop.Y,
@@ -220,7 +220,7 @@ public sealed partial class ItemSystem : GameSystem
         var p = _pm[index].Char;
         var slots = new SendInventoryPacket.InvSlotData[Constants.MaxInv];
         for (int i = 1; i <= Constants.MaxInv; i++)
-            slots[i - 1] = new SendInventoryPacket.InvSlotData(i, p.Inv[i].Num, p.Inv[i].Value, p.Inv[i].Dur);
+            slots[i - 1] = new SendInventoryPacket.InvSlotData(i, p.Inv[i].Num, p.Inv[i].Quantity, p.Inv[i].Dur);
         _dispatcher.SendTo(index, new SendInventoryPacket { Slots = slots });
     }
 }

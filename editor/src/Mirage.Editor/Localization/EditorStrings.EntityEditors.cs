@@ -16,6 +16,8 @@ public static partial class EditorStrings
     public const string ItemEditor_NonListable = nameof(ItemEditor_NonListable);
     public const string ItemEditor_NonMailable = nameof(ItemEditor_NonMailable);
     public const string ItemEditor_DestroyOnDrop = nameof(ItemEditor_DestroyOnDrop);
+    public const string ItemEditor_NonJunkable = nameof(ItemEditor_NonJunkable);
+    public const string ItemEditor_PriceLabel = nameof(ItemEditor_PriceLabel);
     public const string ItemEditor_FieldNotesHeader = nameof(ItemEditor_FieldNotesHeader);
     public const string ItemEditor_SaveItemButton = nameof(ItemEditor_SaveItemButton);
     public const string ItemEditor_SpellSearchPlaceholder = nameof(ItemEditor_SpellSearchPlaceholder);

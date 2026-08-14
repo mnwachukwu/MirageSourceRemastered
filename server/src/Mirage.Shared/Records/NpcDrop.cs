@@ -24,7 +24,7 @@ public sealed class NpcDrop
     /// everything else, since one drop of a sword is one sword regardless. Clamped to at least 1 for
     /// currency at roll time, mirroring what the single-drop path always did.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public short Value { get; set; }
+    public short Quantity { get; set; }
 
     /// <summary>Chance as a direct percent: 1 = 1%, 50 = 50%, 100 or more = always. 0 or less never drops,
     /// which is the way to park a line without deleting it. Rolled against

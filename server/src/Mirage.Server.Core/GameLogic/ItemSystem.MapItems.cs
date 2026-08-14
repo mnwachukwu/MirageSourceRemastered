@@ -38,7 +38,7 @@ public sealed partial class ItemSystem : GameSystem
         {
             Slot = slot,
             Num = itemNum,
-            Value = value,
+            Quantity = value,
             Dur = dur,
             X = x,
             Y = y,
@@ -55,7 +55,7 @@ public sealed partial class ItemSystem : GameSystem
         SendToMap(_world, mapNum, new MapItemsPacket
         {
             MapNum = mapNum,
-            Items = [new MapItemsPacket.MapItemData(slot, mi.Num, mi.Value, mi.Dur, mi.X, mi.Y, mi.Source, mi.Layer)]
+            Items = [new MapItemsPacket.MapItemData(slot, mi.Num, mi.Quantity, mi.Dur, mi.X, mi.Y, mi.Source, mi.Layer)]
         });
         return slot;
     }
@@ -180,7 +180,7 @@ public sealed partial class ItemSystem : GameSystem
     {
         var attr = LayerLogic.AttrFor(tile, layer);
         if (attr.Type != TileType.Item) return;
-        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemValue <= 0) ? 1 : attr.ItemValue;
+        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemQuantity <= 0) ? 1 : attr.ItemQuantity;
         SpawnItem(attr.ItemNum, val, mapNum, x, y, layer: layer);
     }
 
@@ -218,7 +218,7 @@ public sealed partial class ItemSystem : GameSystem
         if (attr.Type != TileType.Item) return;
         long thresholdMs = (attr.ItemRespawnSecs > 0 ? attr.ItemRespawnSecs : Constants.DefaultItemRespawnSeconds) * 1000L;
         if (now - removedAt < thresholdMs) return;
-        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemValue <= 0) ? 1 : attr.ItemValue;
+        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemQuantity <= 0) ? 1 : attr.ItemQuantity;
         SpawnItem(attr.ItemNum, val, mapNum, x, y, ItemSource.TileDefined, layer: layer);
     }
 
@@ -276,13 +276,13 @@ public sealed partial class ItemSystem : GameSystem
         p.Inv[slot].Num = mi.Num;
         if (item.Type == ItemType.Currency)
         {
-            p.Inv[slot].Value += mi.Value;
+            p.Inv[slot].Quantity += mi.Quantity;
             msgKey = ServerStrings.ItemSystem_PickedUpMultiple;
-            msgArgs = [("Amount", mi.Value), ("Item", item.TrimmedName)];
+            msgArgs = [("Amount", mi.Quantity), ("Item", item.TrimmedName)];
         }
         else
         {
-            p.Inv[slot].Value = 0;
+            p.Inv[slot].Quantity = 0;
             msgKey = ServerStrings.ItemSystem_PickedUp;
             msgArgs = [("Item", item.TrimmedName)];
         }

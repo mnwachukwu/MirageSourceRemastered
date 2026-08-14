@@ -152,7 +152,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
             return false;
         }
 
-        long cost = ChallengeCost(guild, terr);
+        long cost = ChallengeCost(guild, terr, _pm[index].Char.Level);
         if (guild.VaultGold < cost)
         {
             Notify(index, ServerStrings.GuildTerritory_CantAfford, ("Cost", cost));
@@ -224,9 +224,12 @@ public sealed partial class GuildTerritorySystem : GameSystem
         NotifyOk(index, ServerStrings.GuildTerritory_WithdrawnOk, ("Territory", TerritoryName(terr)));
     }
 
-    private long ChallengeCost(GuildRecord guild, MapGroupRecord terr)
+    // playerLevel is the challenging member's character level — both branches scale with it
+    // (EconomyFormulas.BandScale), since guild level alone says nothing about how rich the members are.
+    private long ChallengeCost(GuildRecord guild, MapGroupRecord terr, int playerLevel)
     {
-        if (terr.ControllingGuild <= 0) return Constants.TerritoryUnclaimedChallengeCost;
+        if (terr.ControllingGuild <= 0)
+            return Constants.TerritoryUnclaimedChallengeCost;
         int ownerLevel = _guilds.GuildById(terr.ControllingGuild)?.Level ?? 0;
         return GuildWarFormulas.BaseDeclareCost(guild.Level, ownerLevel);   // no level-0-target doubling
     }

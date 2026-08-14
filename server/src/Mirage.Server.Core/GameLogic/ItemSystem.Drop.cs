@@ -172,16 +172,16 @@ public sealed partial class ItemSystem : GameSystem
         string itemName = item.TrimmedName;
         if (item.Type == ItemType.Currency)
         {
-            int destroyed = amount >= p.Inv[invSlot].Value ? p.Inv[invSlot].Value : Math.Max(0, amount);
-            if (amount >= p.Inv[invSlot].Value)
+            int destroyed = amount >= p.Inv[invSlot].Quantity ? p.Inv[invSlot].Quantity : Math.Max(0, amount);
+            if (amount >= p.Inv[invSlot].Quantity)
             {
                 p.Inv[invSlot].Num = 0;
-                p.Inv[invSlot].Value = 0;
+                p.Inv[invSlot].Quantity = 0;
                 p.Inv[invSlot].Dur = 0;
             }
             else
             {
-                p.Inv[invSlot].Value -= amount;
+                p.Inv[invSlot].Quantity -= amount;
             }
 
             SendMsg(index, currencyMsg, GameColor.BrightRed, ("Amount", destroyed), ("Item", itemName));
@@ -189,7 +189,7 @@ public sealed partial class ItemSystem : GameSystem
         else
         {
             p.Inv[invSlot].Num = 0;
-            p.Inv[invSlot].Value = 0;
+            p.Inv[invSlot].Quantity = 0;
             p.Inv[invSlot].Dur = 0;
             SendMsg(index, itemMsg, GameColor.BrightRed, ("Item", itemName));
         }
@@ -208,18 +208,18 @@ public sealed partial class ItemSystem : GameSystem
         int dropValue;
         if (item.Type == ItemType.Currency)
         {
-            dropValue = amount >= p.Inv[invSlot].Value ? p.Inv[invSlot].Value : amount;
+            dropValue = amount >= p.Inv[invSlot].Quantity ? p.Inv[invSlot].Quantity : amount;
             ViewportMsg(index, ServerStrings.ItemSystem_DropMultiple, GameColor.Yellow, ("Player", p.TrimmedName), ("Amount", dropValue), ("Item", item.TrimmedName));
 
-            if (amount >= p.Inv[invSlot].Value)
+            if (amount >= p.Inv[invSlot].Quantity)
             {
                 p.Inv[invSlot].Num = 0;
-                p.Inv[invSlot].Value = 0;
+                p.Inv[invSlot].Quantity = 0;
                 p.Inv[invSlot].Dur = 0;
             }
             else
             {
-                p.Inv[invSlot].Value -= amount;
+                p.Inv[invSlot].Quantity -= amount;
             }
         }
         else
@@ -237,7 +237,7 @@ public sealed partial class ItemSystem : GameSystem
             }
 
             p.Inv[invSlot].Num = 0;
-            p.Inv[invSlot].Value = 0;
+            p.Inv[invSlot].Quantity = 0;
             p.Inv[invSlot].Dur = 0;
         }
 

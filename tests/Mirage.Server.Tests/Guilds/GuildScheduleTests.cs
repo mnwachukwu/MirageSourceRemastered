@@ -13,6 +13,17 @@ public class GuildScheduleTests
     private static GuildRecord Guild(int level, long vault, DayOfWeek founding, bool perks = true) =>
         new() { Index = 1, Level = level, VaultGold = vault, FoundingWeekday = founding, PerksActive = perks };
 
+    // Vault seeds below are quoted in WEEKS OF TAX rather than in literal gold. The guild gold family is
+    // rescaled as a unit (x35 on 2026-08-14 — see Constants), and every one of these tests is about the
+    // state machine — pay, suspend, restore, charge once — not about what a week costs. Literal vaults
+    // made a pure rescale look like twelve broken tests.
+    private static long Tax(int level) => level * (long)Constants.GuildTaxPerLevel;
+
+    /// <summary>Gold that <paramref name="valor"/> buys off a tax bill, in whole increments — the same
+    /// arithmetic GuildScheduleSystem.GuildValorTaxOffset does, stated once here.</summary>
+    private static long ValorGold(int valor) =>
+        valor / Constants.GuildValorPerTaxDiscount * (long)Constants.GuildGoldPerTaxDiscount;
+
     // ── Catch-up date enumeration ─────────────────────────────────────────────
 
     [Test]
@@ -62,13 +73,13 @@ public class GuildScheduleTests
     {
         var taxDay = new DateOnly(2026, 7, 17);
         var otherDay = taxDay.AddDays(1);                          // guaranteed a different weekday
-        var g = Guild(level: 2, vault: 10_000, founding: taxDay.DayOfWeek);
+        var g = Guild(level: 2, vault: Tax(2) * 2, founding: taxDay.DayOfWeek);
 
         Assert.That(GuildScheduleSystem.SettleGuild(g, otherDay, nowUtc: 0).Tax, Is.EqualTo(TaxOutcome.None));
-        Assert.That(g.VaultGold, Is.EqualTo(10_000));             // untouched off the founding weekday
+        Assert.That(g.VaultGold, Is.EqualTo(Tax(2) * 2));         // untouched off the founding weekday
 
         Assert.That(GuildScheduleSystem.SettleGuild(g, taxDay, nowUtc: 0).Tax, Is.EqualTo(TaxOutcome.Paid));
-        Assert.That(g.VaultGold, Is.EqualTo(10_000 - 2 * Constants.GuildTaxPerLevel));
+        Assert.That(g.VaultGold, Is.EqualTo(Tax(2)));
     }
 
     // ── Daily income credit (L5 perk gold) ────────────────────────────────────
@@ -118,9 +129,9 @@ public class GuildScheduleTests
     [Test]
     public void ApplyWeeklyTax_Affordable_DeductsOneWeek()
     {
-        var g = Guild(level: 3, vault: 10_000, founding: DayOfWeek.Monday);
+        var g = Guild(level: 3, vault: Tax(3) * 2, founding: DayOfWeek.Monday);
         Assert.That(GuildScheduleSystem.ApplyWeeklyTax(g), Is.EqualTo(TaxOutcome.Paid));
-        Assert.That(g.VaultGold, Is.EqualTo(10_000 - 3 * Constants.GuildTaxPerLevel));
+        Assert.That(g.VaultGold, Is.EqualTo(Tax(3)), "two weeks' worth, minus the one week charged");
         Assert.That(g.PerksActive, Is.True);
     }
 
@@ -147,9 +158,9 @@ public class GuildScheduleTests
         var g = Guild(level: 2, vault: 500, founding: DayOfWeek.Monday);
         Assert.That(GuildScheduleSystem.ApplyWeeklyTax(g), Is.EqualTo(TaxOutcome.Missed));   // week 1: suspended
 
-        g.VaultGold = 5_000;                                                                 // donations arrive
+        g.VaultGold = Tax(2) * 2;                                                            // donations arrive
         Assert.That(GuildScheduleSystem.ApplyWeeklyTax(g), Is.EqualTo(TaxOutcome.RestoredAndPaid));
-        Assert.That(g.VaultGold, Is.EqualTo(5_000 - 2 * Constants.GuildTaxPerLevel));        // exactly one week, no back taxes
+        Assert.That(g.VaultGold, Is.EqualTo(Tax(2)), "exactly one week, no back taxes");
         Assert.That(g.PerksActive, Is.True);
     }
 
@@ -158,17 +169,21 @@ public class GuildScheduleTests
     [Test]
     public void GuildValorTaxOffset_CapsAtHalfTheTax()
     {
-        // L5 tax 5000, cap 50% = 2500 = 25 chunks -> 250 valor spent for 2500 gold off.
-        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(250, 5000), Is.EqualTo((250, 2500L)));
-        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(1000, 5000), Is.EqualTo((250, 2500L)));   // extra valor unused
+        // 250 valor is exactly the 50% cap on an L5 bill, by construction of the two constants — so this
+        // also asserts the relationship the Constants comment claims.
+        long l5 = Tax(5);
+        Assert.That(ValorGold(250), Is.EqualTo(l5 / 2), "250 valor is sized to be exactly the cap at L5");
+        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(250, l5), Is.EqualTo((250, ValorGold(250))));
+        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(1000, l5), Is.EqualTo((250, ValorGold(250))));   // extra valor unused
     }
 
     [Test]
     public void GuildValorTaxOffset_WholeIncrementsOnly()
     {
-        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(30, 5000), Is.EqualTo((30, 300L)));   // 3 chunks
-        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(5, 5000), Is.EqualTo((0, 0L)));       // < 10 valor = nothing
-        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(0, 5000), Is.EqualTo((0, 0L)));
+        long l5 = Tax(5);
+        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(30, l5), Is.EqualTo((30, ValorGold(30))));   // 3 chunks
+        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(5, l5), Is.EqualTo((0, 0L)));       // < 10 valor = nothing
+        Assert.That(GuildScheduleSystem.GuildValorTaxOffset(0, l5), Is.EqualTo((0, 0L)));
     }
 
     [Test]
@@ -178,26 +193,27 @@ public class GuildScheduleTests
         // vault valor reduces the gold actually owed (same offset the settlement applies).
         Assert.That(GuildTaxFormulas.WeeklyTax(0), Is.EqualTo(0L));
         long l5Base = GuildTaxFormulas.WeeklyTax(5);
-        Assert.That(GuildTaxFormulas.EffectiveTax(5, 0), Is.EqualTo(l5Base));            // no valor -> full base
-        Assert.That(GuildTaxFormulas.EffectiveTax(5, 250), Is.EqualTo(l5Base - 2500));   // 250 valor -> 2500 off (the 50% cap)
-        Assert.That(GuildTaxFormulas.EffectiveTax(5, 30), Is.EqualTo(l5Base - 300));     // 30 valor -> 300 off
+        Assert.That(GuildTaxFormulas.EffectiveTax(5, 0), Is.EqualTo(l5Base));                        // no valor -> full base
+        Assert.That(GuildTaxFormulas.EffectiveTax(5, 250), Is.EqualTo(l5Base - ValorGold(250)));     // the 50% cap
+        Assert.That(GuildTaxFormulas.EffectiveTax(5, 30), Is.EqualTo(l5Base - ValorGold(30)));       // 3 whole chunks
     }
 
     [Test]
     public void ApplyWeeklyTax_ValorOffsetsGold_AndIsConsumed()
     {
-        var g = Guild(level: 5, vault: 3_000, founding: DayOfWeek.Monday);
-        g.VaultValor = 250;                                    // 2500 gold off -> goldDue 2500
+        var g = Guild(level: 5, vault: Tax(5) - ValorGold(250) + 500, founding: DayOfWeek.Monday);
+        g.VaultValor = 250;                                    // buys off half the bill
         Assert.That(GuildScheduleSystem.ApplyWeeklyTax(g), Is.EqualTo(TaxOutcome.Paid));
-        Assert.That(g.VaultGold, Is.EqualTo(500));            // 3000 - 2500
+        Assert.That(g.VaultGold, Is.EqualTo(500));            // only the valor-reduced remainder was taken
         Assert.That(g.VaultValor, Is.EqualTo(0));             // spent
     }
 
     [Test]
     public void ApplyWeeklyTax_ValorMakesUnaffordableTaxAffordable()
     {
-        var g = Guild(level: 2, vault: 1_000, founding: DayOfWeek.Monday);   // owes 2000; gold alone can't pay
-        g.VaultValor = 100;                                    // 1000 gold off -> goldDue 1000
+        // Gold alone is short of the full bill; valor closes exactly the gap.
+        var g = Guild(level: 2, vault: Tax(2) - ValorGold(100), founding: DayOfWeek.Monday);
+        g.VaultValor = 100;
         Assert.That(GuildScheduleSystem.ApplyWeeklyTax(g), Is.EqualTo(TaxOutcome.Paid));
         Assert.That(g.VaultGold, Is.EqualTo(0));
         Assert.That(g.VaultValor, Is.EqualTo(0));
@@ -317,7 +333,10 @@ public class GuildScheduleTests
     public void SettleGuild_TaxThenWarUpkeepThenCredit_InThatOrder()
     {
         var taxDay = new DateOnly(2026, 7, 17);
-        var g = Guild(level: 1, vault: 1_800, founding: taxDay.DayOfWeek);   // tax 1000
+        // Exactly enough to cover the tax and the 700 upkeep with 100 to spare, so the order is visible in
+        // the final balance rather than merely plausible.
+        long opening = Tax(1) + 700 + 100;
+        var g = Guild(level: 1, vault: opening, founding: taxDay.DayOfWeek);
         g.PendingVaultGold = 5_000;                                          // credited AFTER debits
         g.Wars.Add(Aggressor(opp: 2, declareCost: 1400, goLiveUtc: 100));    // upkeep 700
 
@@ -326,7 +345,7 @@ public class GuildScheduleTests
         Assert.That(result.Tax, Is.EqualTo(TaxOutcome.Paid));
         Assert.That(result.WarMaintenancePaid, Is.EqualTo(700));
         Assert.That(result.GoldCredited, Is.EqualTo(5_000));
-        Assert.That(g.VaultGold, Is.EqualTo(5_100));          // 1800 - 1000 - 700 + 5000
+        Assert.That(g.VaultGold, Is.EqualTo(100 + 5_000));    // opening - tax - upkeep + income
     }
 
     // ── Settlement idempotency (/guildreset) ──────────────────────────────────
@@ -334,11 +353,11 @@ public class GuildScheduleTests
     public void SettleGuild_SameDateTwice_ChargesTaxAndMaintenanceOnce()
     {
         var taxDay = new DateOnly(2026, 7, 17);
-        var g = Guild(level: 2, vault: 10_000, founding: taxDay.DayOfWeek);   // tax 2000
+        var g = Guild(level: 2, vault: Tax(2) * 2, founding: taxDay.DayOfWeek);
         g.Wars.Add(Aggressor(opp: 2, declareCost: 1400, goLiveUtc: 100));     // upkeep 700
 
         var first = GuildScheduleSystem.SettleGuild(g, taxDay, nowUtc: 1000);
-        long afterFirst = g.VaultGold;                                        // 10000 - 2000 - 700 = 7300
+        long afterFirst = g.VaultGold;                                        // one week's tax and one upkeep
         var second = GuildScheduleSystem.SettleGuild(g, taxDay, nowUtc: 1000);   // re-run the SAME date
 
         Assert.Multiple(() =>

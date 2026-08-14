@@ -26,7 +26,7 @@ public sealed class ServerPlayer
         for (int i = 0; i < Bank.Length; i++)
         {
             var s = Bank[i];
-            c[i] = s is null ? null! : new PlayerInvSlot { Num = s.Num, Value = s.Value, Dur = s.Dur };
+            c[i] = s is null ? null! : new PlayerInvSlot { Num = s.Num, Quantity = s.Quantity, Dur = s.Dur };
         }
         return c;
     }

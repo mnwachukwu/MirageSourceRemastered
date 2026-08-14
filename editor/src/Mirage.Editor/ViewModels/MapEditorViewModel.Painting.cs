@@ -204,7 +204,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 var cur = ActiveAttrType(t);
                                 if (cur != TileType.Walkable && cur != TileType.Item) continue;
                                 var before = Snap(t);
-                                SetActiveAttr(t, new TileAttr { Type = TileType.Item, ItemNum = _retItemNum, ItemValue = _retItemValue, ItemRespawnSecs = _retItemRespawn });
+                                SetActiveAttr(t, new TileAttr { Type = TileType.Item, ItemNum = _retItemNum, ItemQuantity = _retItemQuantity, ItemRespawnSecs = _retItemRespawn });
                                 SelectedMap.UpdateRecord(map);
                                 InvalidateTileGrid?.Invoke(tx, ty);
                                 Record(tx, ty, before, Snap(t));
@@ -217,7 +217,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         var attr = ActiveAttrData(map.Tile[x, y]);
                         bool isItem = attr.Type == TileType.Item;
                         ItemTileNum = isItem ? attr.ItemNum : (short)0;
-                        ItemTileValue = isItem ? attr.ItemValue : (short)0;
+                        ItemTileQuantity = isItem ? attr.ItemQuantity : (short)0;
                         ItemTileRespawnSeconds = isItem ? attr.ItemRespawnSecs : (short)0;
                         _pendingTiles.Clear();
                         if (isItem)
@@ -450,7 +450,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private void ApplyItem(int x, int y)
     {
         if (SelectedMap is null) return;
-        SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Item, ItemNum = ItemTileNum, ItemValue = ItemTileValue, ItemRespawnSecs = ItemTileRespawnSeconds });
+        SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Item, ItemNum = ItemTileNum, ItemQuantity = ItemTileQuantity, ItemRespawnSecs = ItemTileRespawnSeconds });
         SelectedMap.UpdateRecord(SelectedMap.Record);
         InvalidateTileGrid?.Invoke(x, y);
     }

@@ -36,7 +36,7 @@ public static class InventoryListBuilder
             // Currency shows its stack size inline since the tooltip is optional — money piles are read at a glance.
             if (item?.Type == ItemType.Currency)
             {
-                list.Items.Add($"{i}: {name} ({slot.Value:N0})");
+                list.Items.Add($"{i}: {name} ({slot.Quantity:N0})");
                 continue;
             }
             bool equipped = state.Me != null &&
@@ -75,7 +75,7 @@ public static class InventoryListBuilder
                 var item = state.Items[slot.Num];
                 if (exclude(i, item)) continue;
                 string name = item?.Name?.TrimEnd() ?? $"Item {slot.Num}";
-                list.Items.Add(item?.Type == ItemType.Currency ? $"{name} ({slot.Value:N0})" : name);
+                list.Items.Add(item?.Type == ItemType.Currency ? $"{name} ({slot.Quantity:N0})" : name);
                 slots.Add(i);
             }
         }

@@ -45,7 +45,7 @@ public sealed partial class QuestRewardRowViewModel : ObservableObject
         _itemEntriesProvider = itemEntriesProvider;
         _isCurrency = isCurrency;
         _itemNum = r.ItemNum;
-        _value = r.Value;
+        _value = r.Quantity;
     }
 
     partial void OnItemNumChanged(int value)
@@ -82,7 +82,7 @@ public sealed partial class QuestRewardRowViewModel : ObservableObject
         CoerceValue();
     }
 
-    public QuestReward ToRecord() => new() { ItemNum = ItemNum, Value = Value };
+    public QuestReward ToRecord() => new() { ItemNum = ItemNum, Quantity = Value };
 
     private static NamedEntry? EntryFor(NamedEntry[] entries, int id) =>
         id > 0 && id < entries.Length ? entries[id] : null;

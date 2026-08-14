@@ -807,7 +807,7 @@ public sealed class JoinLeaveSystem : GameSystem
                 _world.Spells[i].Type,
                 _world.Spells[i].VitalAmount,
                 _world.Spells[i].ItemNum,
-                _world.Spells[i].ItemAmount,
+                _world.Spells[i].ItemQuantity,
                 _world.Spells[i].IntReq,
                 _world.Spells[i].LevelReq))
             .ToArray();
@@ -819,7 +819,7 @@ public sealed class JoinLeaveSystem : GameSystem
         // 1-based inventory slots (1..MaxInv)
         var slots = Enumerable.Range(1, Constants.MaxInv)
             .Select(i => new SendInventoryPacket.InvSlotData(
-                i, p.Inv[i].Num, p.Inv[i].Value, p.Inv[i].Dur))
+                i, p.Inv[i].Num, p.Inv[i].Quantity, p.Inv[i].Dur))
             .ToArray();
         return new SendInventoryPacket { Slots = slots };
     }
@@ -844,7 +844,7 @@ public sealed class JoinLeaveSystem : GameSystem
         for (int i = 0; i < list.Count; i++)
         {
             var mi = list[i];
-            buffer.Add(new MapItemsPacket.MapItemData(mi.Slot, mi.Num, mi.Value, mi.Dur, mi.X, mi.Y, mi.Source, mi.Layer));
+            buffer.Add(new MapItemsPacket.MapItemData(mi.Slot, mi.Num, mi.Quantity, mi.Dur, mi.X, mi.Y, mi.Source, mi.Layer));
             if (buffer.Count == MapItemsSnapshotChunkSize)
             {
                 _dispatcher.SendTo(index, new MapItemsPacket { MapNum = mapNum, Items = buffer.ToArray() });

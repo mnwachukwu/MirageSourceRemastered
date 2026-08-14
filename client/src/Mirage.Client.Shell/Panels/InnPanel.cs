@@ -96,8 +96,7 @@ public sealed class InnPanel : IGamePanel
 
             if (_setSpawnBtn.IsClicked(input))
             {
-                _spawnCost = (int)Math.Max(Constants.SpawnCostMinimum,
-                    Math.Ceiling(Math.Pow(state.Me.Level, Constants.SpawnCostExponent) * Constants.SpawnCostMultiplier));
+                _spawnCost = (int)EconomyFormulas.InnSpawnCost(state.Me.Level);
                 _confirmingSetSpawn = true;
             }
 
@@ -164,7 +163,7 @@ public sealed class InnPanel : IGamePanel
             var slot = state.Me.Inv[i];
             if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
             if (state.Items[slot.Num]?.Type == ItemType.Currency)
-                total += slot.Value;
+                total += slot.Quantity;
         }
         return total;
     }

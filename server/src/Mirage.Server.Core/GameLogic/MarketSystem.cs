@@ -130,7 +130,7 @@ public sealed class MarketSystem : GameSystem
             Id = NextId(),
             Seller = sp.Login,
             ItemNum = num,
-            Value = val,
+            Quantity = val,
             Dur = dur,
             Price = price,
             ListedUtc = NowUtc,
@@ -171,7 +171,7 @@ public sealed class MarketSystem : GameSystem
         // whole stack. Cost is exact — units * per-unit price, no proration.
         bool isCurrency = listing.ItemNum > 0 && listing.ItemNum < _world.Items.Length
             && _world.Items[listing.ItemNum].Type == ItemType.Currency;
-        int units = isCurrency && amount > 0 && amount < listing.Value ? amount : listing.Value;
+        int units = isCurrency && amount > 0 && amount < listing.Quantity ? amount : listing.Quantity;
         long cost = isCurrency ? (long)units * listing.Price : listing.Price;
         if (cost <= 0)
         {
@@ -189,9 +189,9 @@ public sealed class MarketSystem : GameSystem
         _pm.MarkDirty(index);   // the buyer's gold left the bag — persist within the tick
 
         // Shrink a partially-bought currency listing (per-unit price unchanged); otherwise remove it wholesale.
-        if (isCurrency && units < listing.Value)
+        if (isCurrency && units < listing.Quantity)
         {
-            listing.Value -= units;
+            listing.Quantity -= units;
             Persist(listing);
         }
         else
@@ -207,10 +207,10 @@ public sealed class MarketSystem : GameSystem
         // Goods -> buyer, post-tax payout -> seller, both as delayed marketplace mail.
         _mail.Deliver(sp.Login, MarketSender, ServerStrings.Get(ServerStrings.Market_BoughtSubject),
             ServerStrings.Get(ServerStrings.Market_BoughtBody),
-            new List<MailAttachment> { new() { ItemNum = listing.ItemNum, Value = units, Dur = listing.Dur } }, deliverAt);
+            new List<MailAttachment> { new() { ItemNum = listing.ItemNum, Quantity = units, Dur = listing.Dur } }, deliverAt);
         _mail.Deliver(listing.Seller, MarketSender, ServerStrings.Get(ServerStrings.Market_SoldSubject),
             ServerStrings.Format(ServerStrings.Market_SoldBody, ("Gold", payout), ("Tax", tax)),
-            new List<MailAttachment> { new() { ItemNum = Constants.GoldItemIndex, Value = payout } }, deliverAt);
+            new List<MailAttachment> { new() { ItemNum = Constants.GoldItemIndex, Quantity = payout } }, deliverAt);
 
         RecordSale(listing.Seller, sp.Login, listing.ItemNum, units, (int)cost, tax);
 
@@ -241,11 +241,11 @@ public sealed class MarketSystem : GameSystem
         _world.MarketListings.Remove(listingId);
         Unpersist(listingId);
 
-        if (!_items.TryGiveItem(index, listing.ItemNum, listing.Value, listing.Dur))
+        if (!_items.TryGiveItem(index, listing.ItemNum, listing.Quantity, listing.Dur))
         {
             _mail.Deliver(sp.Login, MarketSender, ServerStrings.Get(ServerStrings.Market_ReturnSubject),
                 ServerStrings.Get(ServerStrings.Market_ReturnBody),
-                new List<MailAttachment> { new() { ItemNum = listing.ItemNum, Value = listing.Value, Dur = listing.Dur } });
+                new List<MailAttachment> { new() { ItemNum = listing.ItemNum, Quantity = listing.Quantity, Dur = listing.Dur } });
         }
 
         _pm.MarkDirty(index);
@@ -274,7 +274,7 @@ public sealed class MarketSystem : GameSystem
             Unpersist(l.Id);
             _mail.Deliver(l.Seller, MarketSender, ServerStrings.Get(ServerStrings.Market_ExpiredSubject),
                 ServerStrings.Get(ServerStrings.Market_ExpiredBody),
-                new List<MailAttachment> { new() { ItemNum = l.ItemNum, Value = l.Value, Dur = l.Dur } });
+                new List<MailAttachment> { new() { ItemNum = l.ItemNum, Quantity = l.Quantity, Dur = l.Dur } });
         }
         SyncViewers();   // expired listings disappear for every open browser
     }
@@ -352,7 +352,7 @@ public sealed class MarketSystem : GameSystem
             Seller = seller,
             Buyer = buyer,
             ItemNum = itemNum,
-            Value = value,
+            Quantity = value,
             Price = price,
             Tax = tax,
             TimeUtc = NowUtc,

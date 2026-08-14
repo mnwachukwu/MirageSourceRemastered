@@ -28,18 +28,18 @@ public sealed record MapDropItemPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MapDropItem;
     [JsonPropertyName("slot")] public int Slot { get; init; }
-    [JsonPropertyName("value")] public int Value { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }
 
 /// <summary>C→S: bulk drop, keyed by item id rather than a specific inventory slot. Server scans
 /// inventory for matching non-currency slots (skipping equipped), clamps to the map's
-/// player-dropped clutter cap, and drops up to <c>Amount</c> items. Amount = 0 means "as many as
+/// player-dropped clutter cap, and drops up to <c>Quantity</c> items. Quantity = 0 means "as many as
 /// fit". Currency uses the per-slot <see cref="MapDropItemPacket"/>.</summary>
 public sealed record MapDropBulkPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MapDropBulk;
     [JsonPropertyName("itemNum")] public int ItemNum { get; init; }
-    [JsonPropertyName("amount")] public int Amount { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ public sealed record SendInventoryPacket : IPacket
     public sealed record InvSlotData(
         [property: JsonPropertyName("slot")] int Slot,
         [property: JsonPropertyName("num")] int Num,
-        [property: JsonPropertyName("value")] int Value,
+        [property: JsonPropertyName("quantity")] int Quantity,
         [property: JsonPropertyName("dur")] int Dur
     );
 }
@@ -62,7 +62,7 @@ public sealed record InventoryUpdatePacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.InventoryUpdate;
     [JsonPropertyName("slot")] public int Slot { get; init; }
     [JsonPropertyName("num")] public int Num { get; init; }
-    [JsonPropertyName("value")] public int Value { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
     [JsonPropertyName("dur")] public int Dur { get; init; }
 }
 
@@ -85,7 +85,7 @@ public sealed record MapItemsPacket : IPacket
     public sealed record MapItemData(
         [property: JsonPropertyName("slot")] int Slot,
         [property: JsonPropertyName("num")] int Num,
-        [property: JsonPropertyName("value")] int Value,
+        [property: JsonPropertyName("quantity")] int Quantity,
         [property: JsonPropertyName("dur")] int Dur,
         [property: JsonPropertyName("x")] int X,
         [property: JsonPropertyName("y")] int Y,

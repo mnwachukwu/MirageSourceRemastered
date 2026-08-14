@@ -29,7 +29,7 @@ public readonly record struct TileAttr
     // ── Item: what lies on this tile ────────────────────────────────────────────────────────────
     public short ItemNum { get; init; }
     /// <summary>Stack size for a Currency item; 1 for anything else.</summary>
-    public short ItemValue { get; init; }
+    public short ItemQuantity { get; init; }
     /// <summary>Seconds before it returns after being taken. 0 = use
     /// <see cref="Constants.DefaultItemRespawnSeconds"/>.</summary>
     public short ItemRespawnSecs { get; init; }

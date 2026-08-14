@@ -62,7 +62,7 @@ public static class StartingLoadout
 
             // Currency stacks; everything else is exactly one (the engine reads Value only for
             // currency), so it is normalized here rather than trusted from the record.
-            short value = item.Type == ItemType.Currency ? Math.Max((short)1, start.Value) : (short)0;
+            short value = item.Type == ItemType.Currency ? Math.Max((short)1, start.Quantity) : (short)0;
             granted.Add(new GrantedItem(slot, start.ItemNum, value, item.Type, item.Durability));
             slot++;
         }

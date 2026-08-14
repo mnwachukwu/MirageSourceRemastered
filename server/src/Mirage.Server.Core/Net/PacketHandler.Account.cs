@@ -403,7 +403,7 @@ public sealed partial class PacketHandler
         foreach (var g in StartingLoadout.ResolveItems(cls, chr.Class, _world.Items))
         {
             chr.Inv[g.Slot].Num = g.Num;
-            chr.Inv[g.Slot].Value = g.Value;
+            chr.Inv[g.Slot].Quantity = g.Value;
             chr.Inv[g.Slot].Dur = g.Durability;   // starts pristine
 
             if (!g.Worn) continue;

@@ -287,7 +287,8 @@ public static class PacketBuilder
                 x.item.Durability, x.item.VitalAmount, x.item.SpellNum, x.item.Power, x.item.LevelReq,
                 // Copied, not aliased: a packet outlives this call and the record stays editable.
                 x.item.AllowedClasses is null ? null : new List<short>(x.item.AllowedClasses),
-                x.item.NonTradeable, x.item.NonListable, x.item.NonMailable, x.item.DestroyOnDrop)).ToArray()
+                x.item.NonTradeable, x.item.NonListable, x.item.NonMailable, x.item.DestroyOnDrop,
+                x.item.NonJunkable, x.item.Price)).ToArray()
         };
 
     public static UpdateItemPacket UpdateItem(int itemNum, ItemRecord item) =>
@@ -306,6 +307,8 @@ public static class PacketBuilder
             NonListable = item.NonListable,
             NonMailable = item.NonMailable,
             DestroyOnDrop = item.DestroyOnDrop,
+            NonJunkable = item.NonJunkable,
+            Price = item.Price,
         };
 
     // ── Chat ─────────────────────────────────────────────────────────────────

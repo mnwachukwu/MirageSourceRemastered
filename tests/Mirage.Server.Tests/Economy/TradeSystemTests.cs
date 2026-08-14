@@ -256,7 +256,7 @@ public class TradeSystemTests
         var (world, pm, trade) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
         var a = AtPos(pm, 1, "Alice", 5, 5);
-        a.Char.TradeOffer.Add(new PlayerInvSlot { Num = Sword, Value = 1, Dur = 25 });   // as loaded from disk post-crash
+        a.Char.TradeOffer.Add(new PlayerInvSlot { Num = Sword, Quantity = 1, Dur = 25 });   // as loaded from disk post-crash
 
         trade.RecoverEscrowOnLogin(1);
 
@@ -297,19 +297,19 @@ public class TradeSystemTests
             var accA = new AccountRecord { Login = "alice" };
             accA.Chars[1].Name = "Alice";
             accA.Chars[1].Inv[1].Num = Shield;
-            accA.Chars[1].Inv[1].Value = 1;  // already received
+            accA.Chars[1].Inv[1].Quantity = 1;  // already received
             await persistence.SaveAccountAsync(accA);
 
             var accB = new AccountRecord { Login = "bob" };
             accB.Chars[1].Name = "Bob";
-            accB.Chars[1].TradeOffer.Add(new PlayerInvSlot { Num = Shield, Value = 1 });   // still escrowed
+            accB.Chars[1].TradeOffer.Add(new PlayerInvSlot { Num = Shield, Quantity = 1 });   // still escrowed
             await persistence.SaveAccountAsync(accB);
 
             persistence.SaveTradeJournal(new TradeJournal
             {
                 Id = 1,
-                ALogin = "alice", AChar = 1, AReceives = new() { new PlayerInvSlot { Num = Shield, Value = 1 } },
-                BLogin = "bob", BChar = 1, BReceives = new() { new PlayerInvSlot { Num = Sword, Value = 1 } },
+                ALogin = "alice", AChar = 1, AReceives = new() { new PlayerInvSlot { Num = Shield, Quantity = 1 } },
+                BLogin = "bob", BChar = 1, BReceives = new() { new PlayerInvSlot { Num = Sword, Quantity = 1 } },
             });
 
             await trade.RecoverJournalsAsync();

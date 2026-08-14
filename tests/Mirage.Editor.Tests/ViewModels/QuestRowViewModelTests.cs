@@ -43,7 +43,7 @@ public class QuestRowViewModelTests
     [Test]
     public void EditingARewardRow_MarksTheQuestDirty()
     {
-        var q = Quest(new QuestRecord { RewardItems = { new QuestReward { ItemNum = 1, Value = 10 } } });
+        var q = Quest(new QuestRecord { RewardItems = { new QuestReward { ItemNum = 1, Quantity = 10 } } });
         Assume.That(q.IsDirty, Is.False);
         q.RewardItems[0].ItemNum = 3;
         Assert.That(q.IsDirty, Is.True);
@@ -83,7 +83,7 @@ public class QuestRowViewModelTests
         var q = Quest(new QuestRecord
         {
             Objectives = { new Objective { Kind = ObjectiveKind.Kill, Count = 1 } },
-            RewardItems = { new QuestReward { ItemNum = 1, Value = 10 } },
+            RewardItems = { new QuestReward { ItemNum = 1, Quantity = 10 } },
         });
         q.Name = "Rat Problem";
         q.Objectives[0].Count = 5;
@@ -136,7 +136,7 @@ public class QuestRowViewModelTests
             Cadence = QuestCadence.Daily,
             Objectives = new List<Objective> { new() { Kind = ObjectiveKind.Kill, Target = 20, Count = 2 } },
             RewardExp = 100,
-            RewardItems = new List<QuestReward> { new() { ItemNum = 1, Value = 250 } },
+            RewardItems = new List<QuestReward> { new() { ItemNum = 1, Quantity = 250 } },
         });
 
         Assert.Multiple(() =>

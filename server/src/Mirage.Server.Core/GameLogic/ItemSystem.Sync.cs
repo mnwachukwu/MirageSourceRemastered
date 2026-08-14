@@ -24,7 +24,7 @@ public sealed partial class ItemSystem : GameSystem
         {
             Slot = slot,
             Num = p.Inv[slot].Num,
-            Value = p.Inv[slot].Value,
+            Quantity = p.Inv[slot].Quantity,
             Dur = p.Inv[slot].Dur
         });
     }
@@ -67,23 +67,31 @@ public sealed partial class ItemSystem : GameSystem
         SendMsg(index, ServerStrings.ItemSystem_UsedPotion, GameColor.White, ("Item", item.Name));
     }
 
-    /// <summary>PotionSub{Hp,Mp,Sp}: drain <see cref="ItemRecord.VitalAmount"/> from one vital
-    /// (floored at 0), and gain half that amount on each of the OTHER two vitals (clamped
-    /// to their maxes). Refuses (with a chat message) if the drained vital is already 0.
-    /// All three vital updates are broadcast even when only one moved meaningfully.</summary>
+    /// <summary>PotionSub{Hp,Mp,Sp}: drain <see cref="ItemRecord.VitalAmount"/> from one vital and pay a
+    /// PROPORTIONAL share into each of the OTHER two — see <see cref="StatFormulas.SubPotionGain"/> for
+    /// why the exchange goes through pool fractions rather than raw amounts.
+    ///
+    /// <para>A SHORT POUR IS ALLOWED and is paid for accordingly: the drain takes whatever the player can
+    /// spare, and the payout is sized on what was actually taken. HP additionally reserves a point (see
+    /// <see cref="StatFormulas.SubPotionDrain"/>) so a potion can never be lethal; refused outright only
+    /// when there is nothing left to spend. All three vitals are broadcast even when only one moved
+    /// meaningfully.</para></summary>
     private void ApplySubPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital drainVital)
     {
-        if (GetVital(p, drainVital) <= 0)
+        int have = GetVital(p, drainVital);
+        int drained = StatFormulas.SubPotionDrain(item.VitalAmount, have, drainVital == PotionVital.Hp);
+        if (drained <= 0)
         {
             SendMsg(index, ServerStrings.ItemSystem_CantUsePotion, GameColor.BrightRed);
             return;
         }
-        int gain = item.VitalAmount / 2;
-        SetVital(p, drainVital, Math.Max(GetVital(p, drainVital) - item.VitalAmount, 0));
+        int drainMax = GetVitalMax(p, drainVital);
+        SetVital(p, drainVital, have - drained);
         foreach (var v in new[] { PotionVital.Hp, PotionVital.Mp, PotionVital.Sp })
         {
-            if (v != drainVital)
-                SetVital(p, v, Math.Min(GetVital(p, v) + gain, GetVitalMax(p, v)));
+            if (v == drainVital) continue;
+            int gain = StatFormulas.SubPotionGain(drained, drainMax, GetVitalMax(p, v));
+            SetVital(p, v, Math.Min(GetVital(p, v) + gain, GetVitalMax(p, v)));
         }
 
         BroadcastVital(index, p, PotionVital.Hp);

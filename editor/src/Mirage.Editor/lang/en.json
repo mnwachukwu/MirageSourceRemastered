@@ -365,6 +365,8 @@
   "ItemEditor_NonListable": "Non-Listable",
   "ItemEditor_NonMailable": "Non-Mailable",
   "ItemEditor_DestroyOnDrop": "Destroy on Drop",
+  "ItemEditor_NonJunkable": "Non-Junkable",
+  "ItemEditor_PriceLabel": "Price (gold):",
   "ItemEditor_FieldNotesHeader": "Field Notes",
   "ItemEditor_SaveItemButton": "Save Item",
   "ItemEditor_SpellSearchPlaceholder": "Spell…",

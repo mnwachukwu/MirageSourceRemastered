@@ -12,7 +12,7 @@ namespace Mirage.Server.Tests;
 /// <summary>Stateful inventory flows on <see cref="ItemSystem"/>: currency accumulates into one slot, gear is
 /// stamped with max durability, a full bag rejects a give, currency is taken partially then fully, ground
 /// pickup is true LIFO (highest DropSeq first), the voluntary-drop cap refuses drops at the limit, and the
-/// Sub potion drains one vital while feeding half to each of the other two.</summary>
+/// Sub potion drains one vital and pays a PROPORTIONAL share into each of the other two.</summary>
 [TestFixture]
 public class ItemSystemStateTests
 {
@@ -42,7 +42,7 @@ public class ItemSystemStateTests
         items.GiveItem(Idx, Gold, 50);
         Assert.Multiple(() =>
         {
-            Assert.That(p.Inv[1].Value, Is.EqualTo(150), "currency stacks into a single slot");
+            Assert.That(p.Inv[1].Quantity, Is.EqualTo(150), "currency stacks into a single slot");
             Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(150));
         });
     }
@@ -103,12 +103,12 @@ public class ItemSystemStateTests
         var (world, _, items, p) = Setup();
         world.Items[Gold].Type = ItemType.Currency;
         p.Inv[3].Num = Gold;
-        p.Inv[3].Value = 100;
+        p.Inv[3].Quantity = 100;
         var (num, val, dur) = items.RemoveFromSlot(Idx, invSlot: 3, amount: 30);
         Assert.Multiple(() =>
         {
             Assert.That((num, val, dur), Is.EqualTo((Gold, 30, 0)), "takes the requested currency amount");
-            Assert.That(p.Inv[3].Value, Is.EqualTo(70), "the remainder stays in the slot");
+            Assert.That(p.Inv[3].Quantity, Is.EqualTo(70), "the remainder stays in the slot");
         });
     }
 
@@ -149,13 +149,13 @@ public class ItemSystemStateTests
         var (world, _, items, p) = Setup();
         world.Items[Gold].Type = ItemType.Currency;
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         items.TakeItem(Idx, Gold, 30);
         Assert.Multiple(() =>
         {
             Assert.That(p.Inv[1].Num, Is.EqualTo(Gold), "a partial take keeps the stack");
-            Assert.That(p.Inv[1].Value, Is.EqualTo(70));
+            Assert.That(p.Inv[1].Quantity, Is.EqualTo(70));
         });
 
         items.TakeItem(Idx, Gold, 999);   // >= remaining
@@ -228,8 +228,8 @@ public class ItemSystemStateTests
         var tile = world.Maps[Map].Tile[4, 5];
         tile.Type = TileType.Item;
         tile.ItemNum = Armor;
-        tile.ItemValue = 1;  // ground tile-item
-        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemValue = 1 };    // fringe tile-item, same (x,y)
+        tile.ItemQuantity = 1;  // ground tile-item
+        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemQuantity = 1 };    // fringe tile-item, same (x,y)
 
         items.SpawnMapItems(Map);
 
@@ -255,8 +255,8 @@ public class ItemSystemStateTests
         var tile = world.Maps[Map].Tile[4, 5];
         tile.Type = TileType.Item;
         tile.ItemNum = Armor;
-        tile.ItemValue = 1;  // ground tile-item
-        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemValue = 1 };    // fringe tile-item, same (x,y)
+        tile.ItemQuantity = 1;  // ground tile-item
+        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemQuantity = 1 };    // fringe tile-item, same (x,y)
 
         items.SpawnMapItems(Map);
         var list = world.MapItems[Map];
@@ -304,13 +304,13 @@ public class ItemSystemStateTests
         world.Items[Gold].Type = ItemType.Currency;
         world.Items[Gold].DestroyOnDrop = true;
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         items.PlayerMapDropItem(Idx, invSlot: 1, amount: 30);
 
         Assert.Multiple(() =>
         {
-            Assert.That(p.Inv[1].Value, Is.EqualTo(70), "a partial amount is destroyed, the remainder kept");
+            Assert.That(p.Inv[1].Quantity, Is.EqualTo(70), "a partial amount is destroyed, the remainder kept");
             Assert.That(p.Inv[1].Num, Is.EqualTo(Gold), "the slot survives a partial destroy");
             Assert.That(world.MapItems[Map], Is.Empty, "nothing hits the ground — a DestroyOnDrop item is destroyed");
         });
@@ -323,7 +323,7 @@ public class ItemSystemStateTests
         world.Items[Gold].Type = ItemType.Currency;
         world.Items[Gold].DestroyOnDrop = true;
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         items.PlayerMapDropItem(Idx, invSlot: 1, amount: 100);
 
@@ -359,21 +359,25 @@ public class ItemSystemStateTests
         world.Items[Gold].Type = ItemType.Currency;
         world.Items[Gold].DestroyOnDrop = true;
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         // The death roller passes a partial amount for currency; the destroy must HONOR it (not zero the stack).
         items.PlayerMapDropItemForDeath(Idx, invSlot: 1, amount: 40);
 
         Assert.Multiple(() =>
         {
-            Assert.That(p.Inv[1].Value, Is.EqualTo(60), "death destroy is partial by the passed amount");
+            Assert.That(p.Inv[1].Quantity, Is.EqualTo(60), "death destroy is partial by the passed amount");
             Assert.That(world.MapItems[Map], Is.Empty, "destroyed, not shed onto the corpse");
         });
     }
 
     [Test]
-    public void UseItem_SubPotion_DrainsOneVital_FeedsOtherTwoHalf()
+    public void UseItem_SubPotion_EqualPools_FeedsHalfTheDrain()
     {
+        // The CONTROL case. With every pool the same size, converting through pool fractions gives the
+        // same answer the old flat "half the drained amount" rule did — 40 of 100 is 40%, half of that
+        // is 20% of each 100-point pool. Kept precisely because it is the one shape where the old rule
+        // was right, and it must not move.
         var (world, _, items, p) = Setup();
         world.Items[SubHpPotion].Type = ItemType.PotionSubHp;
         world.Items[SubHpPotion].VitalAmount = 40;
@@ -393,6 +397,131 @@ public class ItemSystemStateTests
             Assert.That(p.Mp, Is.EqualTo(30), "feeds half (20) to each of the other two");
             Assert.That(p.Sp, Is.EqualTo(30));
             Assert.That(p.Inv[1].Num, Is.EqualTo(0), "the potion is consumed");
+        });
+    }
+
+    [Test]
+    public void UseItem_SubPotion_ConvertsThroughPoolFractions_NotRawAmounts()
+    {
+        // The real shape of the game: SP is a LINEAR pool and far smaller than HP. Draining half the HP
+        // bar must buy a quarter of the SP bar, not half the HP NUMBER — which at max level was 1,584
+        // stamina poured into a 901-point pool, most of it lost on the clamp.
+        var (world, _, items, p) = Setup();
+        world.Items[SubHpPotion].Type = ItemType.PotionSubHp;
+        world.Items[SubHpPotion].VitalAmount = 600;   // half of a 1,200 HP bar
+        p.MaxHp = 1_200;
+        p.MaxMp = 1_200;
+        p.MaxSp = 200;
+        p.Hp = 1_200;
+        p.Mp = 0;
+        p.Sp = 0;
+        p.Inv[1].Num = SubHpPotion;
+
+        items.UseItem(Idx, 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Hp, Is.EqualTo(600), "spent half the HP bar");
+            Assert.That(p.Mp, Is.EqualTo(300), "a quarter of the MP bar, which is the same size");
+            Assert.That(p.Sp, Is.EqualTo(50), "a quarter of the SMALL SP bar — 50, not 300");
+        });
+    }
+
+    [Test]
+    public void UseItem_SubPotion_SmallPoolIntoLargeOnes_IsWorthProportionallyTheSame()
+    {
+        // The other direction, which used to be worthless: draining the tiny SP pool paid a raw half of a
+        // tiny number into two huge pools — under 1% of an HP bar at max level. Proportionally it should
+        // be exactly as good a trade as the reverse.
+        var (world, _, items, p) = Setup();
+        const int SubSpPotion = 20;
+        world.Items[SubSpPotion].Type = ItemType.PotionSubSp;
+        world.Items[SubSpPotion].VitalAmount = 100;   // half of a 200 SP bar
+        p.MaxHp = 1_200;
+        p.MaxMp = 1_200;
+        p.MaxSp = 200;
+        p.Hp = 0;
+        p.Mp = 0;
+        p.Sp = 200;
+        p.Inv[1].Num = SubSpPotion;
+
+        items.UseItem(Idx, 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Sp, Is.EqualTo(100), "spent half the SP bar");
+            Assert.That(p.Hp, Is.EqualTo(300), "and bought a quarter of the HP bar — 300, not 50");
+            Assert.That(p.Mp, Is.EqualTo(300));
+        });
+    }
+
+    [Test]
+    public void UseItem_SubHpPotion_OverAPlayersWholeBar_TakesAllButOne_AndPaysForThat()
+    {
+        // A potion sized far above the drinker's pool still works — it just takes everything it can and
+        // pays for exactly that. Player death is raised ONLY by the combat damage path, which sets Dead
+        // and zero HP together; nothing sweeps for a zero-HP player anywhere else, so a drain that
+        // emptied the bar would leave a LIVE character standing at 0 with regen ticking them back up.
+        var (world, _, items, p) = Setup();
+        world.Items[SubHpPotion].Type = ItemType.PotionSubHp;
+        world.Items[SubHpPotion].VitalAmount = 3_000;   // far beyond this character's bar
+        p.MaxHp = 900;
+        p.MaxMp = 900;
+        p.MaxSp = 900;
+        p.Hp = 900;
+        p.Mp = 0;
+        p.Sp = 0;
+        p.Inv[1].Num = SubHpPotion;
+
+        items.UseItem(Idx, 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Hp, Is.EqualTo(1), "takes 899 — everything but the reserved point");
+            Assert.That(p.Dead, Is.False, "and never kills");
+            // 899 of a 900 bar is ~99.9%, so half of that lands just under half of each other bar.
+            Assert.That(p.Mp, Is.EqualTo(450).Within(1), "the payout is sized on the 899 actually taken");
+            Assert.That(p.Sp, Is.EqualTo(450).Within(1));
+            Assert.That(p.Inv[1].Num, Is.Zero, "the potion is consumed");
+        });
+    }
+
+    [Test]
+    public void UseItem_SubPotion_HpReservesItsLastPoint_ButManaAndStaminaDoNot()
+    {
+        var (world, _, items, p) = Setup();
+        world.Items[SubHpPotion].Type = ItemType.PotionSubHp;
+        world.Items[SubHpPotion].VitalAmount = 400;
+        p.MaxHp = 400;
+        p.MaxMp = 400;
+        p.MaxSp = 400;
+        p.Hp = 1;              // sitting exactly on the floor: nothing left to spend
+        p.Mp = 0;
+        p.Sp = 0;
+        p.Inv[1].Num = SubHpPotion;
+
+        items.UseItem(Idx, 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Hp, Is.EqualTo(1), "at the floor there is nothing to give");
+            Assert.That(p.Inv[1].Num, Is.EqualTo(SubHpPotion), "so the potion is refused, not wasted");
+            Assert.That(p.Mp, Is.Zero, "and nothing is paid out");
+        });
+
+        // Mana has no floor — running dry kills nobody, so it may be emptied outright.
+        const int SubMpPotion = 21;
+        world.Items[SubMpPotion].Type = ItemType.PotionSubMp;
+        world.Items[SubMpPotion].VitalAmount = 400;
+        p.Mp = 400;
+        p.Inv[2].Num = SubMpPotion;
+
+        items.UseItem(Idx, 2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Mp, Is.Zero, "mana may be spent to nothing");
+            Assert.That(p.Inv[2].Num, Is.Zero, "the potion is consumed");
         });
     }
 

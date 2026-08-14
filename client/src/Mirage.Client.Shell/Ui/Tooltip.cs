@@ -329,19 +329,16 @@ public static class Tooltip
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount} {sp}", GoodColor));
                 break;
             case ItemType.PotionSubHp when item.VitalAmount > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.VitalAmount} {hp}", WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount / 2} {mp} / +{item.VitalAmount / 2} {sp}", GoodColor));
+                AddSubPotionLines(item, me?.MaxHp ?? 0, hp, isHp: true, (me?.MaxMp ?? 0, mp), (me?.MaxSp ?? 0, sp));
                 break;
             case ItemType.PotionSubMp when item.VitalAmount > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.VitalAmount} {mp}", WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount / 2} {hp} / +{item.VitalAmount / 2} {sp}", GoodColor));
+                AddSubPotionLines(item, me?.MaxMp ?? 0, mp, isHp: false, (me?.MaxHp ?? 0, hp), (me?.MaxSp ?? 0, sp));
                 break;
             case ItemType.PotionSubSp when item.VitalAmount > 0:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{item.VitalAmount} {sp}", WarnColor));
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores), $"+{item.VitalAmount / 2} {hp} / +{item.VitalAmount / 2} {mp}", GoodColor));
+                AddSubPotionLines(item, me?.MaxSp ?? 0, sp, isHp: false, (me?.MaxHp ?? 0, hp), (me?.MaxMp ?? 0, mp));
                 break;
             case ItemType.Currency when slot is not null:
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Quantity), slot.Value.ToString("N0"), ValueColor));
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Quantity), slot.Quantity.ToString("N0"), ValueColor));
                 break;
         }
 
@@ -365,6 +362,28 @@ public static class Tooltip
             _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_LevelReq),
                 item.LevelReq.ToString(), meetsLevel ? GoodColor : WarnColor));
         }
+    }
+
+    /// <summary>The two lines a Sub* potion shows. What it PAYS depends on the reader's own pools, not on
+    /// the item — <see cref="StatFormulas.SubPotionGain"/> converts through pool fractions — so this is
+    /// computed against the viewing player rather than printed off <c>VitalAmount</c>.
+    ///
+    /// <para>With no player context (the character-create preview has no live vitals) only the drain is
+    /// shown: that half IS a property of the item, while the payout genuinely is not knowable yet.</para></summary>
+    private static void AddSubPotionLines(ItemRecord item, int drainMax, string drainName, bool isHp,
+        (int Max, string Name) first, (int Max, string Name) second)
+    {
+        // Quoted from a FULL bar, which is the most the potion can ever take: a short pour is allowed but
+        // pays less, and HP reserves its last point so a potion is never lethal. Showing the item's raw
+        // VitalAmount would promise 3,169 HP of exchange to a player whose whole bar is 900.
+        int drained = drainMax > 0 ? StatFormulas.SubPotionDrain(item.VitalAmount, drainMax, isHp) : item.VitalAmount;
+        _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Drains), $"-{drained} {drainName}", WarnColor));
+        if (drainMax <= 0 || first.Max <= 0 || second.Max <= 0) return;
+
+        int gainFirst = StatFormulas.SubPotionGain(drained, drainMax, first.Max);
+        int gainSecond = StatFormulas.SubPotionGain(drained, drainMax, second.Max);
+        _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_Restores),
+            $"+{gainFirst} {first.Name} / +{gainSecond} {second.Name}", GoodColor));
     }
 
     private static void BuildSpellLines(SpellRecord spell, PlayerRecord? me, ClassRecord?[] classes, ItemRecord?[] itemDefs, WeatherType weather)

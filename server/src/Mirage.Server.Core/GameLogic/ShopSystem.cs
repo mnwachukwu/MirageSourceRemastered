@@ -80,9 +80,9 @@ public sealed class ShopSystem : GameSystem
         // slips past the HasItem check below (HasItem(...) >= 0 is always true) and a zero get quantity
         // still mints the item, so a misconfigured slot would hand out free items. Reject outright. The
         // editor and the shop-save handler both keep quantities >= 1, so this only guards legacy/bad data.
-        if (trade.GiveItem <= 0 || trade.GetItem <= 0 || trade.GiveValue <= 0 || trade.GetValue <= 0) return;
+        if (trade.GiveItem <= 0 || trade.GetItem <= 0 || trade.GiveQuantity <= 0 || trade.GetQuantity <= 0) return;
 
-        if (ItemSystem.HasItem(p, _world.Items, trade.GiveItem) < trade.GiveValue)
+        if (ItemSystem.HasItem(p, _world.Items, trade.GiveItem) < trade.GiveQuantity)
         {
             SendMsg(index, ServerStrings.ShopSystem_NotEnoughTrade, GameColor.BrightRed);
             return;
@@ -94,8 +94,8 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        _items.TakeItem(index, trade.GiveItem, trade.GiveValue);
-        _items.GiveItem(index, trade.GetItem, trade.GetValue);
+        _items.TakeItem(index, trade.GiveItem, trade.GiveQuantity);
+        _items.GiveItem(index, trade.GetItem, trade.GetQuantity);
         SendMsg(index, ServerStrings.ShopSystem_TradedWith, GameColor.Yellow, ("ShopName", shop.TrimmedName));
     }
 
@@ -155,12 +155,15 @@ public sealed class ShopSystem : GameSystem
 
         // Cost per durability point + total for a full repair — the shared repair formula (also used by the
         // guild-war vault-repair sink, so both price durability the same way).
-        int ratePerPoint = EconomyFormulas.RepairRatePerPoint(item.Power);
-        int goldNeeded = EconomyFormulas.RepairCost(durNeeded, item.Power);
+        int goldNeeded = EconomyFormulas.RepairCost(durNeeded, item);
 
         long playerGold = ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex);
 
-        if (playerGold < ratePerPoint)
+        // How many points the purse actually covers. Asked exactly rather than as gold/ratePerPoint —
+        // the rate is a floored display figure, and dividing by it can name a point count that costs a
+        // gold more than the player has.
+        int affordable = Math.Min(EconomyFormulas.RepairPointsAffordable(playerGold, item), durNeeded);
+        if (affordable <= 0)
         {
             SendMsg(index, ServerStrings.ShopSystem_InsufficientGold, GameColor.BrightRed);
             return;
@@ -174,7 +177,7 @@ public sealed class ShopSystem : GameSystem
             {
                 Slot = invSlot,
                 Num = p.Inv[invSlot].Num,
-                Value = p.Inv[invSlot].Value,
+                Quantity = p.Inv[invSlot].Quantity,
                 Dur = p.Inv[invSlot].Dur
             });
             SendMsg(index, ServerStrings.ShopSystem_FullyRestored, GameColor.BrightBlue, ("Gold", goldNeeded));
@@ -182,15 +185,15 @@ public sealed class ShopSystem : GameSystem
         else
         {
             // Partial repair: restore as many durability points as the player can afford
-            int durPartial = (int)(playerGold / ratePerPoint);
-            int goldActual = EconomyFormulas.RepairCost(durPartial, item.Power);
+            int durPartial = affordable;
+            int goldActual = EconomyFormulas.RepairCost(durPartial, item);
             _items.TakeItem(index, Constants.GoldItemIndex, goldActual);
             p.Inv[invSlot].Dur += durPartial;
             _dispatcher.SendTo(index, new InventoryUpdatePacket
             {
                 Slot = invSlot,
                 Num = p.Inv[invSlot].Num,
-                Value = p.Inv[invSlot].Value,
+                Quantity = p.Inv[invSlot].Quantity,
                 Dur = p.Inv[invSlot].Dur
             });
             SendMsg(index, ServerStrings.ShopSystem_PartiallyFixed, GameColor.BrightBlue, ("Gold", goldActual));

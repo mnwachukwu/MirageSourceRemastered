@@ -213,12 +213,12 @@ public sealed partial class MapEditorViewModel : ObservableObject
             DialogError = EditorStrings.Get(EditorStrings.AttrDialog_SelectItem);
             return;
         }
-        if (ItemTileValue <= 0)
+        if (ItemTileQuantity <= 0)
         {
             DialogError = EditorStrings.Get(EditorStrings.AttrDialog_ValueAtLeastOne);
             return;
         }
-        if (ItemTileValue > 1 && !_data.IsCurrencyItem(ItemTileNum))
+        if (ItemTileQuantity > 1 && !_data.IsCurrencyItem(ItemTileNum))
         {
             DialogError = EditorStrings.Get(EditorStrings.AttrDialog_NonCurrencyQtyOne);
             return;
@@ -236,7 +236,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         {
             _hasRetainedItem = true;
             _retItemNum = ItemTileNum;
-            _retItemValue = ItemTileValue;
+            _retItemQuantity = ItemTileQuantity;
             _retItemRespawn = ItemTileRespawnSeconds;
         }
         ShowItemDialog = false;

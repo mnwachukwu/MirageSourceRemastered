@@ -365,6 +365,8 @@
   "ItemEditor_NonListable": "Non vendable au marché",
   "ItemEditor_NonMailable": "Non envoyable par courrier",
   "ItemEditor_DestroyOnDrop": "Détruit quand on le jette",
+  "ItemEditor_NonJunkable": "Non bradable",
+  "ItemEditor_PriceLabel": "Prix (or) :",
   "ItemEditor_FieldNotesHeader": "Notes sur les champs",
   "ItemEditor_SaveItemButton": "Enregistrer l'objet",
   "ItemEditor_SpellSearchPlaceholder": "Sort…",

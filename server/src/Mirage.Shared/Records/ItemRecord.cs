@@ -78,14 +78,46 @@ public sealed class ItemRecord
     public List<short>? AllowedClasses { get; set; }
 
     /// <summary>Item restriction flags. Each blocks exactly one action; banking is always allowed.
-    /// Absent = false, so existing item data is unaffected. All four are enforced server-side:
+    /// Absent = false, so existing item data is unaffected. All five are enforced server-side:
     /// <see cref="NonTradeable"/> in TradeSystem, <see cref="NonListable"/> in MarketSystem,
-    /// <see cref="NonMailable"/> on the mail-attach path, and <see cref="DestroyOnDrop"/> in
-    /// ItemSystem's drop paths.</summary>
+    /// <see cref="NonMailable"/> on the mail-attach path, <see cref="DestroyOnDrop"/> in
+    /// ItemSystem's drop paths, and <see cref="NonJunkable"/> on the shop sell path.
+    ///
+    /// <para><b><see cref="NonJunkable"/> is named for what the generic shop path really is:</b> a junk
+    /// dump. A vendor takes anything and pays a poor rate, which is the point — it is a floor under every
+    /// drop, not a market. Blocking an item there says "this is not junk", and it covers two quite
+    /// different cases. GOLD and VALOR are barred because dumping currency for a fraction of itself is
+    /// nonsense. TREASURE is barred because its full worth sits in <see cref="Price"/>: left junkable it
+    /// would be dumpable at the generic rate and the fence would be pointless. Blocked, it can only move
+    /// through an authored trade row — which is also what lets two vendors pay differently for the same
+    /// trinket.</para></summary>
     public bool NonTradeable { get; set; }   // can't be staged in a player trade
     public bool NonListable { get; set; }    // can't be sold on the marketplace
     public bool NonMailable { get; set; }    // can't be attached to / sent by mail
     public bool DestroyOnDrop { get; set; }  // dropping it (voluntary or on death) destroys it
+    public bool NonJunkable { get; set; }    // can't be dumped on a shop through the generic sell path
+
+    /// <summary>What the item is worth in gold: what a shop's SALES list charges for it, and the basis for
+    /// what one pays when buying it back (<see cref="EconomyFormulas.ItemSellValue"/>, a deliberately poor
+    /// fraction so player-to-player trade still wins).
+    ///
+    /// <para><b>int, not short.</b> Every other type-specific field here is a <c>short</c>, which makes
+    /// <c>short</c> the reflex — and the top-tier weapon prices at 1,369,194, which wraps silently at
+    /// 32,767. The whole ladder above about level 60 would be corrupt and nothing would report it.</para>
+    ///
+    /// <para>SEEDED, NOT AUTHORED. A generator pass writes <see cref="EconomyFormulas.ItemValue"/> into
+    /// every item, so 471 prices stay consistent with each other and with measured income without anyone
+    /// typing them. The field exists so a price CAN be overridden — which is the only way to express a
+    /// treasure item, whose worth is the point rather than a function of its power and tier.
+    /// <see cref="Normalize"/> clears it only for the types that cannot have a worth at all (gold has no
+    /// price in gold); it never recomputes one, because an authored price is data and re-seeding must not
+    /// silently overwrite a deliberate override.</para>
+    ///
+    /// <para>0 means "no derived worth". Combined with <see cref="NonJunkable"/> that is unambiguous:
+    /// a 0-price junkable item can still be dumped for nothing, purely to clear a bag, so not every
+    /// item has to be priced for the sell path to work on it.</para></summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int Price { get; set; }
 
     // ── Which fields apply to which type ──────────────────────────────────────
     // The single statement of that rule. The editor asks it what to show, and <see cref="Normalize"/>
@@ -111,6 +143,18 @@ public sealed class ItemRecord
     public static bool UsesVitalAmount(ItemType type) => IsPotion(type);
     public static bool UsesSpellNum(ItemType type) => type is ItemType.Spell;
 
+    /// <summary>Everything except gold can carry a <see cref="Price"/> — gold has no price in gold.
+    ///
+    /// <para>Key and None are deliberately INCLUDED even though <see cref="EconomyFormulas.ItemValue"/>
+    /// declines to derive a number for either. "The formula cannot price it" and "it may not have a price"
+    /// are different claims, and conflating them would silently zero any item whose worth is AUTHORED
+    /// rather than derived — which is exactly what a treasure item is. TREASURE IS TYPED None: it has no
+    /// stats, no level gate and no use, so every other <c>Uses*</c> rule already answers false for it and
+    /// <see cref="Normalize"/> keeps it clean without a special case. This admission is the one thing it
+    /// needs, and the reason it was worth checking rather than assuming: None was previously excluded
+    /// here precisely because it meant "blank record".</para></summary>
+    public static bool UsesPrice(ItemType type) => type is not ItemType.Currency;
+
     /// <summary>Everything a character equips or consumes can carry a level gate — the wearables, the
     /// potions and the spell scrolls. Currency and keys cannot: gold is not something you qualify for,
     /// and a door that refuses its own key because the holder is level 4 is a puzzle nobody asked for.</summary>
@@ -130,6 +174,9 @@ public sealed class ItemRecord
         if (!UsesSpellNum(Type)) SpellNum = 0;
         if (!UsesPower(Type)) Power = 0;
         if (!UsesLevelReq(Type)) LevelReq = 0;
+        // Cleared, never recomputed: a price that does not apply is stale data, but a price that DOES
+        // apply may be a deliberate override (treasure), and Normalize runs on every editor save.
+        if (!UsesPrice(Type)) Price = 0;
         AllowedClasses = UsesAllowedClasses(Type) ? ClassGate.Normalize(AllowedClasses) : null;
     }
 }

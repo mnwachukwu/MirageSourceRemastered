@@ -171,7 +171,7 @@ public partial class MapEditorView : LocalizedUserControl
         // The whole title is the attribute's name, so there is nothing left to translate around it.
         _itemTitle.Text = EditorVocabulary.NameOf(AttributeTool.Item);
         _itemItemLabel.Text = EditorStrings.Get(EditorStrings.ItemSpawnDialog_ItemLabel);
-        _itemValueLabel.Text = EditorStrings.Get(EditorStrings.ItemSpawnDialog_ValueLabel);
+        _itemQuantityLabel.Text = EditorStrings.Get(EditorStrings.ItemSpawnDialog_ValueLabel);
         _itemRespawnLabel.Text = EditorStrings.Get(EditorStrings.ItemSpawnDialog_RespawnLabel);
         string respawnTooltip = EditorStrings.Get(EditorStrings.ItemSpawnDialog_RespawnTooltip);
         ToolTip.SetTip(_itemRespawnLabel, respawnTooltip);

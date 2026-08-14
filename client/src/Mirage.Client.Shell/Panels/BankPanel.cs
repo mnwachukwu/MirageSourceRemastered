@@ -175,7 +175,7 @@ public sealed class BankPanel : IGamePanel
         if (item?.Type == ItemType.Currency)
         {
             string itemName = item.Name?.TrimEnd() ?? $"Item {inv.Num}";
-            int max = inv.Value;
+            int max = inv.Quantity;
             _prompt.Open(
                 ClientStrings.Get(ClientStrings.BankPanel_DepositItemLabel),
                 itemName,
@@ -197,7 +197,7 @@ public sealed class BankPanel : IGamePanel
         if (item?.Type == ItemType.Currency)
         {
             string itemName = item.Name?.TrimEnd() ?? $"Item {bank.Num}";
-            int max = bank.Value;
+            int max = bank.Quantity;
             _prompt.Open(
                 ClientStrings.Get(ClientStrings.BankPanel_WithdrawItemLabel),
                 itemName,
@@ -235,7 +235,7 @@ public sealed class BankPanel : IGamePanel
             new(ClientStrings.Get(ClientStrings.ContextMenu_DepositX),
                 () =>
                 {
-                    int max = isCurrency ? inv.Value : InventoryQuery.CountInvSlotsMatching(state, itemNum, skipEquipped: true);
+                    int max = isCurrency ? inv.Quantity : InventoryQuery.CountInvSlotsMatching(state, itemNum, skipEquipped: true);
                     if (max < 1) return;
                     _prompt.Open(
                         ClientStrings.Get(ClientStrings.BankPanel_DepositItemLabel),
@@ -272,7 +272,7 @@ public sealed class BankPanel : IGamePanel
             new(ClientStrings.Get(ClientStrings.ContextMenu_WithdrawX),
                 () =>
                 {
-                    int max = isCurrency ? bank.Value : CountBankSlotsMatching(state, itemNum);
+                    int max = isCurrency ? bank.Quantity : CountBankSlotsMatching(state, itemNum);
                     if (max < 1) return;
                     _prompt.Open(
                         ClientStrings.Get(ClientStrings.BankPanel_WithdrawItemLabel),
@@ -352,8 +352,8 @@ public sealed class BankPanel : IGamePanel
             string name = item?.Name?.TrimEnd() ?? $"Item {slot.Num}";
             if (item?.Type == ItemType.Currency)
             {
-                _bankGold += slot.Value;
-                _bankList.Items.Add($"{i}: {name} ({slot.Value:N0})");
+                _bankGold += slot.Quantity;
+                _bankList.Items.Add($"{i}: {name} ({slot.Quantity:N0})");
             }
             else
             {
@@ -379,7 +379,7 @@ public sealed class BankPanel : IGamePanel
         {
             var slot = me.Inv?[i];
             h.Add(slot?.Num ?? 0);
-            h.Add(slot?.Value ?? 0);
+            h.Add(slot?.Quantity ?? 0);
             h.Add(slot?.Dur ?? 0);
         }
         return h.ToHashCode();
@@ -391,7 +391,7 @@ public sealed class BankPanel : IGamePanel
         for (int i = 1; i <= Constants.MaxBankSlots; i++)
         {
             h.Add(state.Bank[i].Num);
-            h.Add(state.Bank[i].Value);
+            h.Add(state.Bank[i].Quantity);
             h.Add(state.Bank[i].Dur);
         }
         return h.ToHashCode();

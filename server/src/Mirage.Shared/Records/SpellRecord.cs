@@ -44,7 +44,7 @@ public sealed class SpellRecord
 
     /// <summary>GiveItem: how many of <see cref="ItemNum"/> to hand over.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public short ItemAmount { get; set; }
+    public short ItemQuantity { get; set; }
 
     /// <summary>GiveItem: the INT requirement to learn it, and hence its MP cost. Carried separately
     /// because GiveItem's <see cref="ItemNum"/> is an id rather than a magnitude, so unlike the
@@ -81,7 +81,7 @@ public sealed class SpellRecord
         if (!UsesItemFields(Type))
         {
             ItemNum = 0;
-            ItemAmount = 0;
+            ItemQuantity = 0;
             IntReq = 0;
         }
         // The class gate applies to every spell type, so unlike the fields above it is never cleared —

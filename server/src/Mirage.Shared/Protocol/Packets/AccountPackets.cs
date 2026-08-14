@@ -135,7 +135,7 @@ public sealed record SendClassesPacket : IPacket
     /// else, which is always exactly one).</summary>
     public sealed record CarriedItem(
         [property: JsonPropertyName("num")] int Num,
-        [property: JsonPropertyName("value")] int Value
+        [property: JsonPropertyName("quantity")] int Quantity
     );
 }
 

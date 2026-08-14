@@ -131,7 +131,7 @@ public sealed class QuestDialogPanel : IGamePanel
         {
             if (r.ItemNum < 1 || r.ItemNum >= state.Items.Length) continue;
             string item = state.Items[r.ItemNum]?.Name?.TrimEnd() ?? "?";
-            sb.DrawString(font, ClientStrings.Format(ClientStrings.QuestDialog_RewardItem, ("Item", item), ("Qty", r.Value)), new Vector2(c.X + Pad + 6, y), Color.White);
+            sb.DrawString(font, ClientStrings.Format(ClientStrings.QuestDialog_RewardItem, ("Item", item), ("Qty", r.Quantity)), new Vector2(c.X + Pad + 6, y), Color.White);
             y += LineH;
         }
 

@@ -30,7 +30,7 @@ public class PushChangesPacketCoverageTests
     {
         Name = "Cave Troll", AttackSay = "Rrraagh!", Sprite = 42, Size = 3, SpawnSecs = 90,
         Behavior = NpcBehavior.AttackOnSight, Group = 7, Range = 9,
-        Drops = [new NpcDrop { ItemNum = 12, Value = 250, Chance = 35 },
+        Drops = [new NpcDrop { ItemNum = 12, Quantity = 250, Chance = 35 },
                  new NpcDrop { ItemNum = 7, Chance = 3 }],
         Str = 61, Def = 62, Spd = 63, Int = 64,
         ExtraHp = 1500, IsBoss = true, EmitsLight = true, Light = Lantern,
@@ -57,7 +57,7 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.Drops, Is.Not.Null);
             Assert.That(pkt.Drops!, Has.Count.EqualTo(2));
             Assert.That(pkt.Drops[0].ItemNum, Is.EqualTo(12));
-            Assert.That(pkt.Drops[0].Value, Is.EqualTo((short)250));
+            Assert.That(pkt.Drops[0].Quantity, Is.EqualTo((short)250));
             Assert.That(pkt.Drops[0].Chance, Is.EqualTo((short)35));
             Assert.That(pkt.Drops[1].ItemNum, Is.EqualTo(7));
             Assert.That(pkt.Drops[1].Chance, Is.EqualTo((short)3));

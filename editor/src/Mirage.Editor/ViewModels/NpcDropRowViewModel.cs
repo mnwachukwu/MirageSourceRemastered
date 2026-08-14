@@ -60,7 +60,7 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
         _itemEntriesProvider = itemEntriesProvider;
         _isCurrency = isCurrency;
         _itemNum = d.ItemNum;
-        _value = d.Value;
+        _value = d.Quantity;
         _chance = d.Chance;
     }
 
@@ -108,7 +108,7 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
         CoerceValue();
     }
 
-    public NpcDrop ToRecord() => new() { ItemNum = ItemNum, Value = (short)Value, Chance = (short)Chance };
+    public NpcDrop ToRecord() => new() { ItemNum = ItemNum, Quantity = (short)Value, Chance = (short)Chance };
 
     private static NamedEntry? EntryFor(NamedEntry[] entries, int id) =>
         id > 0 && id < entries.Length ? entries[id] : null;

@@ -471,7 +471,7 @@ public sealed class NewCharScreen : IGameScreen
         if (_ctx.State.LoadoutItem(num) is not { } item) return;
         // A stand-in bag slot: currency shows the stack it arrives as, equipment shows full durability,
         // because nothing has been used yet.
-        var slot = new PlayerInvSlot { Num = num, Value = value, Dur = item.Durability };
+        var slot = new PlayerInvSlot { Num = num, Quantity = value, Dur = item.Durability };
         Tooltip.NotifyHoverItem(_tooltipScope, ("item", num), item, slot, me, _ctx.State.Classes,
             _ctx.Items, _input.MousePosition);
     }

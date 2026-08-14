@@ -249,7 +249,7 @@ public sealed partial class PacketHandler
             switch (seenItem.Type)
             {
                 case ItemType.Currency:
-                    Say(ServerStrings.SearchSystem_SeeCurrency, GameColor.Yellow, ("Amount", mi.Value), ("Name", seenName));
+                    Say(ServerStrings.SearchSystem_SeeCurrency, GameColor.Yellow, ("Amount", mi.Quantity), ("Name", seenName));
                     break;
                 case ItemType.Weapon:
                 case ItemType.Armor:

@@ -253,7 +253,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 items[item.Slot] = mi;
             }
             mi.Num = item.Num;
-            mi.Value = item.Value;
+            mi.Quantity = item.Quantity;
             mi.Dur = item.Dur;
             mi.X = item.X;
             mi.Y = item.Y;

@@ -300,12 +300,12 @@ public sealed partial class CombatSystem : GameSystem
             if (gid < 1 || !creditedGuilds.Add(gid)) continue;
             var guild = _world.Guilds.GetValueOrDefault(gid);
             _guilds.AddGuildExp(guild, Constants.GuildExpPerKill);
-            // L5 perk: a chance each KO trickles 1 gold into the guild's daily accumulator (credited at
-            // the 00:00 settlement, after debits). Accrues in memory; the settlement persists it.
+            // L5 perk: a chance each KO trickles GuildPerkVaultGold into the guild's daily accumulator
+            // (credited at the 00:00 settlement, after debits). Accrues in memory; the settlement persists it.
             if (GuildPerks.IsActive(guild, Constants.GuildPerkLevelVaultGold)
                 && CombatFormulas.RollPercent() < Constants.GuildPerkVaultGoldChancePercent)
             {
-                guild!.PendingVaultGold += 1;
+                guild!.PendingVaultGold += Constants.GuildPerkVaultGold;
                 _world.DirtyGuilds.Add(gid);   // flushed on the periodic save + shutdown (never lost)
             }
             // (Guild-quest progress advances through the objective kernel above, not here.)
@@ -418,7 +418,7 @@ public sealed partial class CombatSystem : GameSystem
 
             bool isCurrency = _world.Items[entry.ItemNum].Type == ItemType.Currency;
             // Currency needs a stack of at least 1 or the drop is a no-op; other items ignore Value.
-            int value = isCurrency ? Math.Max((short)1, entry.Value) : entry.Value;
+            int value = isCurrency ? Math.Max((short)1, entry.Quantity) : entry.Quantity;
             bool doubled = doublePerk && CombatFormulas.RollPercent() < Constants.GuildPerkDoubleDropChancePercent;
             if (doubled && isCurrency) value *= 2;
             landed.Add((entry.ItemNum, value, isCurrency, doubled));

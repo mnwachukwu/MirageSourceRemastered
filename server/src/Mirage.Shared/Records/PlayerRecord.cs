@@ -203,13 +203,13 @@ public sealed class PlayerRecord
         for (int i = 0; i < Inv.Length; i++)
         {
             var s = Inv[i];
-            c.Inv[i] = s is null ? null! : new PlayerInvSlot { Num = s.Num, Value = s.Value, Dur = s.Dur };
+            c.Inv[i] = s is null ? null! : new PlayerInvSlot { Num = s.Num, Quantity = s.Quantity, Dur = s.Dur };
         }
         // Deep-copy the trade escrow too — the game thread keeps mutating it mid-trade while this snapshot
         // is written off-thread (same reason Inv is cloned, not shared).
         c.TradeOffer = new List<PlayerInvSlot>(TradeOffer.Count);
         foreach (var s in TradeOffer)
-            c.TradeOffer.Add(new PlayerInvSlot { Num = s.Num, Value = s.Value, Dur = s.Dur });
+            c.TradeOffer.Add(new PlayerInvSlot { Num = s.Num, Quantity = s.Quantity, Dur = s.Dur });
         // Deep-copy quest state (QuestSystem mutates Progress live as kills land while this snapshot writes).
         c.Quests = new List<PlayerQuest>(Quests.Count);
         foreach (var q in Quests) c.Quests.Add(q.Clone());

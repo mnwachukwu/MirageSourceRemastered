@@ -82,10 +82,27 @@ public static class Constants
     // from DeliverAt like the normal retention) - far shorter than the 30-day normal retention, so locked items
     // don't sit forever. The sender may set a CoD price up to MarketMaxPrice (the marketplace price ceiling).
     public const int CodLifetimeSeconds = 3 * 24 * 60 * 60;   // 3 days
-    // Cost to send mail (a gold sink): a base fee plus a per-attachment surcharge. A multi-recipient send
-    // (attachments disallowed) costs the base fee per recipient. Client previews the total; server charges it.
+    // Cost to send mail (a gold sink): a base fee plus a per-attachment surcharge (EconomyFormulas.
+    // MailSendCost). A multi-recipient send (attachments disallowed) costs the base fee per recipient.
+    // Client previews the total; server charges it.
+    // FLAT ON PURPOSE. Briefly scaled to the sender's level, which is unenforceable: hand the parcel to a
+    // level-1 mule and the fee drops to the floor. Anything payable on someone else's behalf cannot be
+    // priced by who pays it.
+    // The two flat parts stay SMALL and unchanged: mail is available from level 1, and any flat fee large
+    // enough to matter at level 255 would be unaffordable at level 5. Scale comes from the third part.
     public const int MailBaseSendCost = 10;
     public const int MailAttachmentSendCost = 50;
+    // Percent of the parcel's gold value, added on top (2026-08-14). Keyed on the SHIPMENT, not the
+    // sender, so the mule that defeats a level-scaled fee is irrelevant here — the parcel is worth what it
+    // is worth whoever posts it. Deliberately under the 5% MarketSaleTaxPercent that the marketplace and
+    // CoD both charge: those buy escrow, plain mail does not, and the gap is the price of trust.
+    public const int MailAttachedValuePercent = 2;
+    // Share of the DRAINED FRACTION a Sub* potion pays into each of the other two vitals — see
+    // StatFormulas.SubPotionGain. Spending a quarter of one bar buys an eighth of each of the others,
+    // which holds at any pool size; the old rule paid half the raw amount and only made sense while every
+    // pool was equal.
+    public const int SubPotionExchangePercent = 50;
+
     // Player marketplace: sale tax (a gold sink, shown to the seller up front), per-seller listing cap, and
     // the maximum gold price a single listing can be set to.
     public const int MarketSaleTaxPercent = 5;
@@ -153,6 +170,11 @@ public static class Constants
 
     public const int MaxLevel = 255;
     public const int PointsPerLevel = 3;
+
+    // Levels one gear tier covers. The armory authors a rung every five levels (five per band), so a piece
+    // bought on tier is worn for five levels before the next one is reachable. EconomyFormulas prices
+    // equipment against the gold earned across exactly this span — buy once, wear it the whole rung.
+    public const int GearTierLevels = 5;
 
     // Action-bar slots, bound to keys 1..4 (and to the gamepad's four face buttons under a trigger
     // modifier).  Four is a UI limit as much as a design one: the bar sits in the sidebar strip above the
@@ -330,24 +352,45 @@ public static class Constants
     // or banked. Per-character; the code references this index to grant/spend it, exactly like gold.
     public const int ValorItemIndex = 3;
 
-    // ── Inn: set-spawn cost formula ──────────────────────────────────────────
-    // cost = ceil(level ^ SpawnCostExponent × SpawnCostMultiplier), floored at SpawnCostMinimum
-    public const double SpawnCostExponent = 1.25;
-    public const double SpawnCostMultiplier = 5.0;
+    // ── Inn: set-spawn cost ──────────────────────────────────────────────────
+    // The cost itself is EconomyFormulas.InnSpawnCost — a share of one level's earnings. It was
+    // ceil(level^1.25 x 5) until 2026-08-13, which is the same trap every other sink fell into: an
+    // exponent of 1.25 against income growing at L^2.675 meant 5,095 gold at level 255 out of 7.25M
+    // earned crossing that level. This is only the floor now, for the levels where the curve is still
+    // paying single digits.
     public const int SpawnCostMinimum = 5;
 
     // ── Guild ────────────────────────────────────────────────────────────────
+    // THE WHOLE GUILD GOLD FAMILY WAS MULTIPLIED BY 35 ON 2026-08-14, and it is meant to stay a family.
+    // Every gold figure below (and in guild quests, wars, and territory) came from one internally
+    // consistent set built around a 1,000-gold guild. Nothing about those RATIOS was wrong — the scale
+    // was. A 1,000-gold guild is 3.7% of what a level-27 player earns crossing a single level and half a
+    // percent of everything they have ever earned, so "founding a guild is a commitment" stopped being
+    // true almost immediately. Multiplying the closed system by one factor fixes the scale and preserves
+    // every deliberate relationship inside it; retuning the members individually would not.
+    //
+    // The anchor is 35,000 to found a guild (Matt's call), which is one level's income at level 30 —
+    // about 30 hours of at-level grinding by .Tools/Simulations/FightSim. It is NOT a level gate; there
+    // is no level requirement on founding a guild. It is the level the number was SIZED against, so that
+    // a flat cost still has a defensible player behind it.
+    //
+    // FLAT, all of it: a guild is funded collectively from a vault, so pricing anything here by whichever
+    // member clicks the button is both arbitrary and trivially minimised by using the lowest-level one.
+    // See EconomyFormulas for why that rules out scaling these by the actor's level.
+
     // Gold to found a new guild. Consumed on success (a creation sink; the new guild's vault starts
     // empty). Charged via GoldItemIndex, client-blocked then server-revalidated.
-    public const int GuildCreationCost = 1000;
+    public const int GuildCreationCost = 35_000;
     // Weekly guild tax = guild Level * this, taken from the vault at the daily 00:00 settlement on the
-    // guild's founding weekday. L0 = free (no perks either); L1 = 1000, ... L5 = 5000.
-    public const int GuildTaxPerLevel = 1000;
+    // guild's founding weekday. L0 = free (no perks either); L1 = 35,000, ... L5 = 175,000.
+    public const int GuildTaxPerLevel = 35_000;
     // Valor auto-offsets the weekly tax at settlement (consumed before gold): every
     // GuildValorPerTaxDiscount valor in the vault removes GuildGoldPerTaxDiscount gold from the tax, in whole
-    // increments, capped at GuildValorTaxOffsetCapPercent% of the tax (at L5: 250 valor -> 2500 off of 5000).
+    // increments, capped at GuildValorTaxOffsetCapPercent% of the tax (at L5: 250 valor -> 87,500 off of
+    // 175,000). Scaled with the tax it offsets — leaving it behind would have quietly cut valor's relief
+    // from half the bill to a seventieth of it, which is a nerf nobody would have written down.
     public const int GuildValorPerTaxDiscount = 10;
-    public const int GuildGoldPerTaxDiscount = 100;
+    public const int GuildGoldPerTaxDiscount = 3_500;
     public const int GuildValorTaxOffsetCapPercent = 50;
     // Max descriptive labels (GuildLabel) a leader may apply to a guild.
     public const int MaxGuildLabels = 3;
@@ -389,6 +432,10 @@ public static class Constants
     public const int GuildPerkDoubleDropChancePercent = 5;
     public const int GuildPerkLevelVaultGold = 5;
     public const int GuildPerkVaultGoldChancePercent = 25;
+    // Gold the L5 perk trickles into the vault on a qualifying KO. Was a literal 1 inside
+    // CombatSystem.PlayerVsNpc — the only member of the guild gold family that wasn't a constant, which is
+    // exactly why it would have been the one left behind by the 2026-08-14 rescale.
+    public const int GuildPerkVaultGold = 35;
     // Recent vault-log entries kept for the Vault tab's Donations + Spending views (newest-first, capped). Display-only.
     public const int GuildRecentVaultLogMax = 15;
 
@@ -397,7 +444,7 @@ public static class Constants
     // fresh acquire) with no refund; the acquire cost is what limits re-rolling.
     public const int GuildQuestMaxPerDay = 3;
     // Acquire cost = this * guild level (L0 = free), charged in gold.
-    public const int GuildQuestCostPerLevel = 500;
+    public const int GuildQuestCostPerLevel = 17_500;
     // A quest expires this many hours after it is acquired.
     public const int GuildQuestDurationHours = 24;
     // Kill count = base + difficulty/perKill, clamped to max; difficulty = the target NPC's Str+Def+Int.
@@ -414,8 +461,11 @@ public static class Constants
     // difficulty mob; scales with guild level (to chase the ballooning curve) + mob difficulty.
     public const long GuildQuestBaseExp = 33_000;
     public const long GuildQuestExpPerDifficulty = 300;
-    public const long GuildQuestBaseGold = 250;
-    public const long GuildQuestGoldPerDifficulty = 5;
+    // The gold half of the reward scales with the acquire cost that gates it — a quest has to stay worth
+    // running, and cost and payout are two ends of the same lever. The XP half is untouched: guild XP is
+    // its own currency and has no exchange rate with the player economy.
+    public const long GuildQuestBaseGold = 8_750;
+    public const long GuildQuestGoldPerDifficulty = 175;
     // BOSS mobs (NpcRecord.IsBoss) use a COMPRESSED kill-count curve so a quest to kill bosses is tens, not
     // hundreds: kills = clamp(BossBaseKills + difficulty * BossKillsPer100Difficulty / 100, 1, BossMaxKills).
     // Still scales with strength, just on a much smaller axis (~30 for a weak boss up to the cap for a maxed one).
@@ -434,11 +484,11 @@ public static class Constants
     // so throwaway guilds can't become war-harassment machines.
     public const int GuildWarMinLevelToDeclare = 1;
     // Declare cost (gold, from the vault) = base - (targetLevel - declarerLevel) x step: punching DOWN
-    // (a lower target) costs more, punching UP costs less, same level = flat base. E.g. L1-on-L5 = 600,
-    // L5-on-L1 = 1400. Floored so a huge gap can't drive it to nothing.
-    public const int GuildWarDeclareBaseCost = 1000;
-    public const int GuildWarDeclareLevelStep = 100;
-    public const int GuildWarDeclareMinCost = 100;
+    // (a lower target) costs more, punching UP costs less, same level = flat base. E.g. L1-on-L5 = 21,000,
+    // L5-on-L1 = 49,000. Floored so a huge gap can't drive it to nothing.
+    public const int GuildWarDeclareBaseCost = 35_000;
+    public const int GuildWarDeclareLevelStep = 3_500;
+    public const int GuildWarDeclareMinCost = 3_500;
     // Declaring on a level-0 guild DOUBLES the whole cost (that war can never go mutual, so its daily
     // maintenance is paid indefinitely — costly for a low payout, which protects level-0 guilds).
     public const int GuildWarL0TargetCostMultiplier = 2;
@@ -505,12 +555,12 @@ public static class Constants
     // guild's vault: the non-owner base if the killer isn't in the owning guild, the owner base if they are
     // (stacks with the L5 perk for an owning member). Scaled by the weeks-held multiplier. PvP never feeds it.
     public const int TerritoryIncomeChancePercent = 25;
-    public const int TerritoryIncomeNonOwnerGold = 1;
-    public const int TerritoryIncomeOwnerGold = 2;
+    public const int TerritoryIncomeNonOwnerGold = 35;
+    public const int TerritoryIncomeOwnerGold = 70;
     // Weeks-held income multiplier caps here (= 1 "month"): weeks 0->x1, 1->x2, 2->x3, 3+->x4.
     public const int TerritoryWeeksHeldCap = 4;
     // Per-territory per-day accrual cap (anti-snowball); resets when the day's income is credited.
-    public const long TerritoryIncomeDailyCap = 500;
+    public const long TerritoryIncomeDailyCap = 17_500;
     // The weekly boundary at which each territory's IncomeThisWeek is snapshotted into PreviousWeekIncome
     // (the day after war night). WeeksHeld itself ticks at war-night retention.
     public const DayOfWeek TerritoryWeekResetDay = DayOfWeek.Sunday;
@@ -524,7 +574,7 @@ public static class Constants
     public const int TerritoryMaxChallengers = 4;
     // Flat cost to challenge an UNCLAIMED territory (a non-refundable sink). An OWNED territory costs the base
     // grudge-war declare formula on the two guilds' levels (no level-0-target doubling) — GuildWarFormulas.BaseDeclareCost.
-    public const int TerritoryUnclaimedChallengeCost = 1000;
+    public const int TerritoryUnclaimedChallengeCost = 35_000;
 
     // ── Seasonal leaderboard ─────────────────────────────────────────────────
     // A season is this many whole weeks (4 x 13 = 52/yr). Boundaries roll on TerritoryWeekResetDay (Sunday,
@@ -543,10 +593,10 @@ public static class Constants
     public const int TerritorySeasonHoldBonusCapWeeks = 12;   // streak weeks the bonus scales with, then flat
     // Season-end placing payouts: the per-active-member gold (delivered to their account; DEFERRED delivery) and
     // the guild-vault gold (credited now). "Other scorers" (4th+) get the flat scorer payout; non-scorers get 0.
-    public const long TerritorySeason1stMemberGold = 5000, TerritorySeason1stVaultGold = 20000;
-    public const long TerritorySeason2ndMemberGold = 2500, TerritorySeason2ndVaultGold = 10000;
-    public const long TerritorySeason3rdMemberGold = 1000, TerritorySeason3rdVaultGold = 5000;
-    public const long TerritorySeasonScorerMemberGold = 500, TerritorySeasonScorerVaultGold = 1000;
+    public const long TerritorySeason1stMemberGold = 175_000, TerritorySeason1stVaultGold = 700_000;
+    public const long TerritorySeason2ndMemberGold = 87_500, TerritorySeason2ndVaultGold = 350_000;
+    public const long TerritorySeason3rdMemberGold = 35_000, TerritorySeason3rdVaultGold = 175_000;
+    public const long TerritorySeasonScorerMemberGold = 17_500, TerritorySeasonScorerVaultGold = 35_000;
 
     // ── Territory capture contest (king-of-the-hill) ─────────────────────────
     // War-night phases (Server Time): a 10-min setup ramp, the 20-min king-of-the-hill contest, a 10-min

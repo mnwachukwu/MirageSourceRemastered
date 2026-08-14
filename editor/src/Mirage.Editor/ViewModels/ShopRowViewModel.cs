@@ -36,6 +36,14 @@ public sealed partial class ShopRowViewModel : ObservableObject
 
     public ObservableCollection<TradeRowViewModel> Trades { get; } = [];
 
+    /// <summary>Item numbers this shop sells for gold, in display order.
+    ///
+    /// <para>Carried through load and save even though nothing in the editor edits it yet. That is the
+    /// point: a shop stocked by the content generator must survive being opened and saved in the editor,
+    /// and a field the round-trip forgets is silently destructive — the save would look successful and the
+    /// shopfront would simply be gone. The picker UI lands with the shop panel work.</para></summary>
+    public List<int> SalesItems { get; private set; } = [];
+
     /// <summary>True when the trade table has no rows — drives the editor's empty-state hint.</summary>
     public bool HasNoTrades => Trades.Count == 0;
 
@@ -196,6 +204,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = r.ShopType;
             AllowBanking = r.AllowBanking;
             Keeper = r.Keeper;
+            SalesItems = [.. r.SalesItem];
             LoadTrades(r);
         }
         finally
@@ -217,6 +226,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = pkt.ShopType;
             AllowBanking = pkt.AllowBanking;
             Keeper = pkt.Keeper;
+            SalesItems = [.. pkt.Sales];
             Trades.Clear();
             int slot = 1;
             foreach (var t in pkt.Trades)
@@ -225,9 +235,9 @@ public sealed partial class ShopRowViewModel : ObservableObject
                 Trades.Add(new TradeRowViewModel(slot++, new TradeItemRecord
                 {
                     GiveItem = t.GiveItem,
-                    GiveValue = t.GiveValue,
+                    GiveQuantity = t.GiveQuantity,
                     GetItem = t.GetItem,
-                    GetValue = t.GetValue,
+                    GetQuantity = t.GetQuantity,
                 }, _entriesProvider, _isCurrency));
             }
         }
@@ -251,6 +261,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = ShopType,
             AllowBanking = AllowBanking,
             Keeper = Keeper,
+            SalesItem = [.. SalesItems],
         };
         // Persist a dense list of real trades only — empty rows (either side itemless) are dropped, so a
         // blank row anywhere leaves no gap in the saved data.
@@ -269,6 +280,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
         AllowBanking = AllowBanking,
         Keeper = Keeper,
         Trades = Trades.Select(t => new EditorSaveShopPacket.TradeEntry(
-            t.GiveItem, t.GiveValue, t.GetItem, t.GetValue)).ToArray(),
+            t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity)).ToArray(),
+        Sales = [.. SalesItems],
     };
 }

@@ -12,6 +12,14 @@ public static class GuildWarFormulas
 {
     private const double PercentDenominator = 100.0;
 
+    // BOTH declare costs are keyed on the two GUILD levels only, and are otherwise FLAT.
+    //
+    // They briefly took the declaring player's character level and scaled by it. That is unenforceable: the
+    // cost comes out of a shared vault, so a guild simply has its lowest-level member press Declare and the
+    // scale floors at 1.0 — turning a 906,226-gold declaration back into 1,000. A price set by whoever
+    // clicks is a price the payer chooses. It is also arbitrary on its own terms, since the vault was filled
+    // by the whole roster rather than by that member.
+
     /// <summary>Gold to declare war (paid from the declarer's vault): base cost minus a step per level the
     /// target sits BELOW the declarer (punching down costs more, up costs less, same level = flat base),
     /// doubled when the target is level 0 (that war can never go mutual, so it self-limits). Floored at
@@ -24,8 +32,8 @@ public static class GuildWarFormulas
         return Math.Max(Constants.GuildWarDeclareMinCost, cost);
     }
 
-    /// <summary>The declare cost WITHOUT the level-0-target doubling (floored the same). The cost to challenge
-    /// an OWNED territory: the base 11.2 formula on the two guilds' levels, no L0-target 2x.</summary>
+    /// <summary>The declare cost WITHOUT the level-0-target doubling (floored the same). The cost to
+    /// challenge an OWNED territory: the base 11.2 formula on the two guilds' levels, no L0-target 2x.</summary>
     public static long BaseDeclareCost(int declarerLevel, int targetLevel) =>
         Math.Max(Constants.GuildWarDeclareMinCost,
                  Constants.GuildWarDeclareBaseCost - (long)(targetLevel - declarerLevel) * Constants.GuildWarDeclareLevelStep);

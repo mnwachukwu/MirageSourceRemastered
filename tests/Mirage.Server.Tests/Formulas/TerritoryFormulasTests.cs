@@ -28,10 +28,15 @@ public class TerritoryFormulasTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(TerritoryFormulas.IncomeForKill(false, 0), Is.EqualTo(1)); // fresh, non-owner: 1g x1
-            Assert.That(TerritoryFormulas.IncomeForKill(true, 0), Is.EqualTo(2));  // fresh, owner: 2g x1
-            Assert.That(TerritoryFormulas.IncomeForKill(false, 3), Is.EqualTo(4)); // held 3+ wk: 1g x4
-            Assert.That(TerritoryFormulas.IncomeForKill(true, 5), Is.EqualTo(8));  // held 3+ wk, owner: 2g x4
+            // Quoted against the constants: the guild gold family is rescaled as a unit (x35 on
+            // 2026-08-14), and what this test protects is the owner/non-owner gap and the weeks-held
+            // multiplier, neither of which a rescale touches.
+            int nonOwner = Constants.TerritoryIncomeNonOwnerGold, owner = Constants.TerritoryIncomeOwnerGold;
+            Assert.That(TerritoryFormulas.IncomeForKill(false, 0), Is.EqualTo(nonOwner));    // fresh, non-owner: x1
+            Assert.That(TerritoryFormulas.IncomeForKill(true, 0), Is.EqualTo(owner));        // fresh, owner: x1
+            Assert.That(TerritoryFormulas.IncomeForKill(false, 3), Is.EqualTo(nonOwner * 4));// held 3+ wk: x4
+            Assert.That(TerritoryFormulas.IncomeForKill(true, 5), Is.EqualTo(owner * 4));    // held 3+ wk, owner: x4
+            Assert.That(owner, Is.GreaterThan(nonOwner), "owning the territory must beat farming someone else's");
         });
     }
 

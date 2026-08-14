@@ -45,7 +45,7 @@ public class PlayerSpawnSystemTests
         if (gold > 0)
         {
             p.Inv[1].Num = Gold;
-            p.Inv[1].Value = gold;
+            p.Inv[1].Quantity = gold;
         }
         // Setting a spawn happens at an Inn keeper: open the keeper's inn so ConfirmSetSpawn resolves
         // the active shop (keeper on the player's tile + observed + in range).

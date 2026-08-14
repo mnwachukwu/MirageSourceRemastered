@@ -21,7 +21,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             if (!SlotValidation.IsValidInvSlot(slot.Slot)) continue;
             var inv = _state.Me.Inv[slot.Slot];
             inv.Num = slot.Num;
-            inv.Value = slot.Value;
+            inv.Quantity = slot.Quantity;
             inv.Dur = slot.Dur;
         }
         InventoryChanged?.Invoke();
@@ -32,7 +32,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         if (!SlotValidation.IsValidInvSlot(p.Slot)) return;
         var inv = _state.Me.Inv[p.Slot];
         inv.Num = p.Num;
-        inv.Value = p.Value;
+        inv.Quantity = p.Quantity;
         inv.Dur = p.Dur;
         InventoryChanged?.Invoke();
     }

@@ -24,8 +24,8 @@ public class ShopRowViewModelTests
         return r;
     }
 
-    static TradeItemRecord Trade(int giveItem = 1, int giveValue = 100, int getItem = 2, int getValue = 1) =>
-        new() { GiveItem = giveItem, GiveValue = giveValue, GetItem = getItem, GetValue = getValue };
+    static TradeItemRecord Trade(int giveItem = 1, int giveQuantity = 100, int getItem = 2, int getQuantity = 1) =>
+        new() { GiveItem = giveItem, GiveQuantity = giveQuantity, GetItem = getItem, GetQuantity = getQuantity };
 
     [Test]
     public void StoreAndInn_AreMutuallyExclusiveRadios()
@@ -140,7 +140,7 @@ public class ShopRowViewModelTests
         {
             Name = "General Store",
             ShopType = ShopType.Store,
-            Trades = [new EditorSaveShopPacket.TradeEntry(GiveItem: 1, GiveValue: 100, GetItem: 2, GetValue: 1)],
+            Trades = [new EditorSaveShopPacket.TradeEntry(GiveItem: 1, GiveQuantity: 100, GetItem: 2, GetQuantity: 1)],
         });
 
         Assert.Multiple(() =>
@@ -166,7 +166,7 @@ public class ShopRowViewModelTests
     [Test]
     public void ToRecord_RoundTripsFlagsAndTrades()
     {
-        var rec = ShopWith(Trade(giveItem: 1, giveValue: 100, getItem: 2, getValue: 1));
+        var rec = ShopWith(Trade(giveItem: 1, giveQuantity: 100, getItem: 2, getQuantity: 1));
         rec.Name = "Shop";
         rec.ShopType = ShopType.Store;
         rec.FixesItems = true;
@@ -181,7 +181,7 @@ public class ShopRowViewModelTests
             Assert.That(back.FixesItems, Is.True);
             Assert.That(back.TradeItem, Has.Count.EqualTo(1));
             Assert.That(back.TradeItem[0].GiveItem, Is.EqualTo(1));
-            Assert.That(back.TradeItem[0].GiveValue, Is.EqualTo(100));
+            Assert.That(back.TradeItem[0].GiveQuantity, Is.EqualTo(100));
         });
     }
 

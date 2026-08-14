@@ -27,7 +27,7 @@ public class NpcDropTableTests
             Assert.That(npc.Drops!, Has.Count.EqualTo(1));
             Assert.That(npc.Drops[0].ItemNum, Is.EqualTo(12));
             Assert.That(npc.Drops[0].Chance, Is.EqualTo((short)40));
-            Assert.That(npc.Drops[0].Value, Is.EqualTo((short)7));
+            Assert.That(npc.Drops[0].Quantity, Is.EqualTo((short)7));
             // Cleared, so the next save writes the table and nothing else — the file stops being legacy.
             Assert.That(npc.DropChance, Is.EqualTo((short)0));
             Assert.That(npc.DropItem, Is.EqualTo(0));
@@ -55,7 +55,7 @@ public class NpcDropTableTests
         var npc = new NpcRecord
         {
             Name = "Bandit",
-            Drops = [new NpcDrop { ItemNum = 1, Value = 10, Chance = 90 },
+            Drops = [new NpcDrop { ItemNum = 1, Quantity = 10, Chance = 90 },
                      new NpcDrop { ItemNum = 40, Chance = 2 }],
         };
 

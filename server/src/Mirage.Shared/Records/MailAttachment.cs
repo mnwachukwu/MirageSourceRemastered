@@ -9,7 +9,7 @@ public sealed class MailAttachment
     /// <summary>1-based item number (0 = none). Gold uses <c>Constants.GoldItemIndex</c>.</summary>
     public int ItemNum { get; set; }
     /// <summary>Stack size for items, or the gold/currency amount.</summary>
-    public int Value { get; set; }
+    public int Quantity { get; set; }
     /// <summary>Durability carried from the sender so a worn item does not reset to max when claimed.
     /// 0 for currency and fresh items (claim then applies the item's default durability).</summary>
     public int Dur { get; set; }

@@ -60,7 +60,7 @@ public sealed class BankSystem : GameSystem
 
         if (item.Type == ItemType.Currency)
         {
-            int depositAmt = (amount <= 0 || amount > inv.Value) ? inv.Value : amount;
+            int depositAmt = (amount <= 0 || amount > inv.Quantity) ? inv.Quantity : amount;
             bankSlot = FindOpenBankSlot(bank, inv.Num, isCurrency: true);
             if (bankSlot == 0)
             {
@@ -69,17 +69,17 @@ public sealed class BankSystem : GameSystem
             }
 
             bank[bankSlot].Num = inv.Num;
-            bank[bankSlot].Value += depositAmt;
+            bank[bankSlot].Quantity += depositAmt;
 
-            if (depositAmt >= inv.Value)
+            if (depositAmt >= inv.Quantity)
             {
                 p.Inv[invSlot].Num = 0;
-                p.Inv[invSlot].Value = 0;
+                p.Inv[invSlot].Quantity = 0;
                 p.Inv[invSlot].Dur = 0;
             }
             else
             {
-                p.Inv[invSlot].Value -= depositAmt;
+                p.Inv[invSlot].Quantity -= depositAmt;
             }
         }
         else
@@ -103,11 +103,11 @@ public sealed class BankSystem : GameSystem
             }
 
             bank[bankSlot].Num = inv.Num;
-            bank[bankSlot].Value = 0;
+            bank[bankSlot].Quantity = 0;
             bank[bankSlot].Dur = inv.Dur;
 
             p.Inv[invSlot].Num = 0;
-            p.Inv[invSlot].Value = 0;
+            p.Inv[invSlot].Quantity = 0;
             p.Inv[invSlot].Dur = 0;
         }
 
@@ -142,28 +142,28 @@ public sealed class BankSystem : GameSystem
 
         if (item.Type == ItemType.Currency)
         {
-            int withdrawAmt = (amount <= 0 || amount > bank.Value) ? bank.Value : amount;
+            int withdrawAmt = (amount <= 0 || amount > bank.Quantity) ? bank.Quantity : amount;
             p.Inv[invSlot].Num = bank.Num;
-            p.Inv[invSlot].Value += withdrawAmt;
+            p.Inv[invSlot].Quantity += withdrawAmt;
 
-            if (withdrawAmt >= bank.Value)
+            if (withdrawAmt >= bank.Quantity)
             {
                 sp.Bank[bankSlot].Num = 0;
-                sp.Bank[bankSlot].Value = 0;
+                sp.Bank[bankSlot].Quantity = 0;
             }
             else
             {
-                sp.Bank[bankSlot].Value -= withdrawAmt;
+                sp.Bank[bankSlot].Quantity -= withdrawAmt;
             }
         }
         else
         {
             p.Inv[invSlot].Num = bank.Num;
-            p.Inv[invSlot].Value = bank.Value;
+            p.Inv[invSlot].Quantity = bank.Quantity;
             p.Inv[invSlot].Dur = bank.Dur;
 
             sp.Bank[bankSlot].Num = 0;
-            sp.Bank[bankSlot].Value = 0;
+            sp.Bank[bankSlot].Quantity = 0;
             sp.Bank[bankSlot].Dur = 0;
         }
 
@@ -209,11 +209,11 @@ public sealed class BankSystem : GameSystem
             if (bankSlot == 0) break;
 
             bank[bankSlot].Num = itemNum;
-            bank[bankSlot].Value = 0;
+            bank[bankSlot].Quantity = 0;
             bank[bankSlot].Dur = p.Inv[invSlot].Dur;
 
             p.Inv[invSlot].Num = 0;
-            p.Inv[invSlot].Value = 0;
+            p.Inv[invSlot].Quantity = 0;
             p.Inv[invSlot].Dur = 0;
 
             _items.SendInventoryUpdate(index, invSlot);
@@ -262,11 +262,11 @@ public sealed class BankSystem : GameSystem
             if (invSlot == 0) break;
 
             p.Inv[invSlot].Num = itemNum;
-            p.Inv[invSlot].Value = bank[bankSlot].Value;
+            p.Inv[invSlot].Quantity = bank[bankSlot].Quantity;
             p.Inv[invSlot].Dur = bank[bankSlot].Dur;
 
             bank[bankSlot].Num = 0;
-            bank[bankSlot].Value = 0;
+            bank[bankSlot].Quantity = 0;
             bank[bankSlot].Dur = 0;
 
             _items.SendInventoryUpdate(index, invSlot);
@@ -365,7 +365,7 @@ public sealed class BankSystem : GameSystem
         {
             var b = bank[i];
             if (b.Num > 0)
-                slots.Add(new SendBankPacket.BankSlotData(i, b.Num, b.Value, b.Dur));
+                slots.Add(new SendBankPacket.BankSlotData(i, b.Num, b.Quantity, b.Dur));
         }
         _dispatcher.SendTo(index, new SendBankPacket { Slots = slots.ToArray() });
     }
@@ -378,7 +378,7 @@ public sealed class BankSystem : GameSystem
         {
             Slot = slot,
             Num = b.Num,
-            Value = b.Value,
+            Quantity = b.Quantity,
             Dur = b.Dur
         });
     }

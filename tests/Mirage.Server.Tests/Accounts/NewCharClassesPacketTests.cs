@@ -43,7 +43,7 @@ public class NewCharClassesPacketTests
             Description = "Hits things.",
             Str = 15,
             Def = 15,
-            StartingItems = [new() { ItemNum = 1, Value = 200 }, new() { ItemNum = 3 }, new() { ItemNum = 5 }],
+            StartingItems = [new() { ItemNum = 1, Quantity = 200 }, new() { ItemNum = 3 }, new() { ItemNum = 5 }],
         },
         new()
         {
@@ -66,7 +66,7 @@ public class NewCharClassesPacketTests
         {
             Assert.That(fighter.Worn, Is.EqualTo(new[] { 3 }));
             Assert.That(fighter.Carried!.Select(c => c.Num), Is.EqualTo(new[] { 1, 5 }));
-            Assert.That(fighter.Carried![0].Value, Is.EqualTo(200), "currency keeps its stack");
+            Assert.That(fighter.Carried![0].Quantity, Is.EqualTo(200), "currency keeps its stack");
             Assert.That(fighter.Description, Is.EqualTo("Hits things."));
         });
     }

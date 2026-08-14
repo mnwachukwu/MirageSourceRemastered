@@ -112,6 +112,47 @@ public static class StatFormulas
         p.MaxSp = (int)Math.Round(GetPlayerMaxSp(p, cls) * spM, MidpointRounding.AwayFromZero);
     }
 
+    // ── Sub-potion vital exchange ─────────────────────────────────────────────
+    // A Sub* potion drains one vital and pays into the other two. It used to pay a flat HALF OF THE
+    // DRAINED AMOUNT into each, which is only coherent while every pool is the same size — and they are
+    // not. HP and MP genuinely mirror each other, but SP is LINEAR and far smaller, so at max level a
+    // SubHp draining ~3,169 HP paid 1,584 into a 901-point stamina bar (two thirds of it evaporating on
+    // the clamp) while a SubSp draining 225 SP paid 112 into a 12,675-point HP bar — under 1% of it.
+    // The exchange ran one way and was worthless the other.
+    //
+    // Converting through POOL FRACTIONS instead makes it symmetric and pool-size agnostic: spending a
+    // quarter of one bar buys an eighth of each of the others, whatever their absolute sizes, at every
+    // level and for every build.
+
+    /// <summary>Vital points a Sub* potion actually takes: its own <paramref name="vitalAmount"/>, or
+    /// everything the player can spare if that is less.  0 means there is nothing to spend and the potion
+    /// must be refused outright.
+    ///
+    /// <para>A short pour is fine and is paid for accordingly — <see cref="SubPotionGain"/> sizes the
+    /// payout on what was DRAINED, not on the item, so spending 899 of a 3,000-point potion buys 899
+    /// points' worth of exchange rather than the full one.</para>
+    ///
+    /// <para><b>HP reserves a point; MP and SP do not.</b>  A potion must never be lethal, and the reason
+    /// is structural rather than cosmetic: player death is raised ONLY by the combat damage path, which
+    /// sets <c>Dead</c> and zero HP together. Nothing sweeps for a zero-HP player anywhere else, so a
+    /// drain that emptied the bar would leave a LIVE character standing at 0 — no corpse, no respawn,
+    /// and regen quietly ticking them back up. Running dry on mana or stamina kills nobody and is
+    /// allowed.</para></summary>
+    public static int SubPotionDrain(int vitalAmount, int current, bool isHp) =>
+        Math.Max(0, Math.Min(vitalAmount, current - (isHp ? 1 : 0)));
+
+    /// <summary>What a Sub* potion pays into ONE of the other two vitals: the fraction of its own pool
+    /// that was actually drained, times <see cref="Constants.SubPotionExchangePercent"/>%, applied to the
+    /// RECEIVING pool.  Shared by the server's item-use path and the client's tooltip so the number a
+    /// player is shown is the number they get.</summary>
+    public static int SubPotionGain(int drained, int drainedMax, int targetMax)
+    {
+        if (drained <= 0 || drainedMax <= 0 || targetMax <= 0) return 0;
+        double fraction = Math.Min(1.0, (double)drained / drainedMax);
+        return (int)Math.Round(fraction * Constants.SubPotionExchangePercent / PercentDenominator * targetMax,
+            MidpointRounding.AwayFromZero);
+    }
+
     // ── Player regen ──────────────────────────────────────────────────────────
     // HP and MP regen use the SAME shifted-quadratic shape as the corresponding pool, scaled by
     // RegenDivisor.  That keeps `regen / pool` roughly constant at every level (~7-10% per tick)

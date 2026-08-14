@@ -112,7 +112,7 @@ public sealed class TradePanel : IGamePanel
         var item = state.Items[invSlot.Num];
         if (item?.Type == ItemType.Currency)
         {
-            _amountPrompt.Open(ClientStrings.Get(ClientStrings.TradePanel_OfferButton), item.Name?.TrimEnd() ?? "", invSlot.Value,
+            _amountPrompt.Open(ClientStrings.Get(ClientStrings.TradePanel_OfferButton), item.Name?.TrimEnd() ?? "", invSlot.Quantity,
                 amt => sender.SendTradeOfferAdd(slot, amt));
         }
         else
@@ -209,7 +209,7 @@ public sealed class TradePanel : IGamePanel
     {
         var def = it.Num > 0 && it.Num < state.Items.Length ? state.Items[it.Num] : null;
         string name = def?.Name?.TrimEnd() ?? $"Item {it.Num}";
-        return it.Value > 1 ? $"{name} ({it.Value:N0})" : name;
+        return it.Quantity > 1 ? $"{name} ({it.Quantity:N0})" : name;
     }
 
     // Inventory offer candidates each frame: skip empty, equipped, and untradeable items (already-offered

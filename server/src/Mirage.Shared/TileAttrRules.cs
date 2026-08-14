@@ -28,7 +28,7 @@ public static class TileAttrRules
     public static void Normalize(TileRecord t)
     {
         if (!UsesWarp(t.Type)) { t.WarpMap = 0; t.WarpX = 0; t.WarpY = 0; t.WarpLayer = default; }
-        if (!UsesItem(t.Type)) { t.ItemNum = 0; t.ItemValue = 0; t.ItemRespawnSecs = 0; }
+        if (!UsesItem(t.Type)) { t.ItemNum = 0; t.ItemQuantity = 0; t.ItemRespawnSecs = 0; }
         if (!UsesKey(t.Type)) { t.KeyItemNum = 0; t.KeyIsConsumed = false; }
         if (!UsesDoor(t.Type)) { t.DoorX = 0; t.DoorY = 0; t.DoorLayer = default; }
         if (!UsesRamp(t.Type)) t.RampGroundSide = default;
@@ -37,7 +37,7 @@ public static class TileAttrRules
     public static void Normalize(FringeAttr a)
     {
         if (!UsesWarp(a.Type)) { a.WarpMap = 0; a.WarpX = 0; a.WarpY = 0; a.WarpLayer = default; }
-        if (!UsesItem(a.Type)) { a.ItemNum = 0; a.ItemValue = 0; a.ItemRespawnSecs = 0; }
+        if (!UsesItem(a.Type)) { a.ItemNum = 0; a.ItemQuantity = 0; a.ItemRespawnSecs = 0; }
         if (!UsesKey(a.Type)) { a.KeyItemNum = 0; a.KeyIsConsumed = false; }
         if (!UsesDoor(a.Type)) { a.DoorX = 0; a.DoorY = 0; a.DoorLayer = default; }
         if (!UsesRamp(a.Type)) a.RampGroundSide = default;

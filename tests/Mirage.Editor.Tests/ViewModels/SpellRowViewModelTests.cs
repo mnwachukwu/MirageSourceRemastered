@@ -98,14 +98,14 @@ public class SpellRowViewModelTests
     {
         var give = new SpellRowViewModel(4, new SpellRecord
         {
-            Name = "Conjure", Type = SpellType.GiveItem, ItemNum = 9, ItemAmount = 3, IntReq = 20,
+            Name = "Conjure", Type = SpellType.GiveItem, ItemNum = 9, ItemQuantity = 3, IntReq = 20,
         });
 
         var asGiven = give.ToRecord();
         Assert.Multiple(() =>
         {
             Assert.That(asGiven.ItemNum, Is.EqualTo((short)9));
-            Assert.That(asGiven.ItemAmount, Is.EqualTo((short)3));
+            Assert.That(asGiven.ItemQuantity, Is.EqualTo((short)3));
             Assert.That(asGiven.IntReq, Is.EqualTo((short)20));
             Assert.That(asGiven.VitalAmount, Is.EqualTo((short)0));
         });
@@ -118,7 +118,7 @@ public class SpellRowViewModelTests
         {
             Assert.That(retyped.VitalAmount, Is.EqualTo((short)30));
             Assert.That(retyped.ItemNum, Is.EqualTo((short)0), "no longer hands over an item");
-            Assert.That(retyped.ItemAmount, Is.EqualTo((short)0));
+            Assert.That(retyped.ItemQuantity, Is.EqualTo((short)0));
             Assert.That(retyped.IntReq, Is.EqualTo((short)0), "gates off VitalAmount now, not IntReq");
         });
     }

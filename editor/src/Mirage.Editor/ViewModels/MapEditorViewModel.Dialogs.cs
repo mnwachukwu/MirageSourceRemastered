@@ -31,7 +31,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     [ObservableProperty] private bool _showItemDialog;
     [ObservableProperty] private short _itemTileNum;
-    [ObservableProperty] private short _itemTileValue;
+    [ObservableProperty] private short _itemTileQuantity;
     [ObservableProperty] private short _itemTileRespawnSeconds;
 
     [ObservableProperty] private bool _showKeyDialog;
@@ -68,7 +68,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private WorldLayer _retWarpDestLayer;
 
     private bool _hasRetainedItem;
-    private short _retItemNum, _retItemValue, _retItemRespawn;
+    private short _retItemNum, _retItemQuantity, _retItemRespawn;
 
     private bool _hasRetainedKey;
     private short _retKeyItemNum;

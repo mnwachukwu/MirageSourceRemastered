@@ -19,7 +19,10 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
     protected override string GetFilterText(ItemRowViewModel row) => row.DisplayName;
     public IEnumerable<ItemType> ItemTypes { get; } = Enum.GetValues<ItemType>();
     private static readonly IReadOnlyList<EnumFilterOption<ItemType>> _itemTypeFilters =
-        Enum.GetValues<ItemType>().Where(t => t != ItemType.None).Select(t => new EnumFilterOption<ItemType>(t)).ToArray();
+        // None is INCLUDED, unlike most "skip the blank enum member" filters: it is the type treasure
+        // carries, so excluding it would make the one item family that has to be authored by hand the
+        // only one the author cannot filter to.
+        Enum.GetValues<ItemType>().Select(t => new EnumFilterOption<ItemType>(t)).ToArray();
     public IReadOnlyList<EnumFilterOption<ItemType>> ItemTypeFilters => _itemTypeFilters;
     [ObservableProperty] private EnumFilterOption<ItemType>? _typeFilter;
     partial void OnTypeFilterChanged(EnumFilterOption<ItemType>? value)

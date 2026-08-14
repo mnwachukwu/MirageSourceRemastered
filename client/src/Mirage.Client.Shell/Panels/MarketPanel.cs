@@ -199,7 +199,7 @@ public sealed class MarketPanel : IGamePanel
         // Browse: buy. A currency listing (>1 unit) prompts for how many units to buy; anything else buys whole.
         long myGold = state.PlayerGold();
         bool own = sel is not null && string.Equals(sel.Seller, state.MyLogin, StringComparison.OrdinalIgnoreCase);
-        bool partial = sel is not null && IsCurrency(state, sel.ItemNum) && sel.Value > 1;
+        bool partial = sel is not null && IsCurrency(state, sel.ItemNum) && sel.Quantity > 1;
         int maxUnits = sel is not null ? MaxBuyable(sel, myGold) : 0;
         bool canBuy = sel is not null && !own && (partial ? maxUnits >= 1 : sel.Price <= myGold);
         _buyBtn.Enabled = canBuy;
@@ -244,16 +244,16 @@ public sealed class MarketPanel : IGamePanel
         if (_confirmListBtn.Enabled && _confirmListBtn.IsClicked(input))
         {
             var inv = state.Me?.Inv?[slot];
-            if (inv is not null && IsCurrency(state, inv.Num) && inv.Value > 1)
+            if (inv is not null && IsCurrency(state, inv.Num) && inv.Quantity > 1)
             {
                 // Currency: choose how many units to list (a partial listing) at the per-unit price.
                 int listSlot = slot, unitPrice = price;
-                _listQtyPrompt.Open(ClientStrings.Get(ClientStrings.MarketPanel_QtyPrompt), ItemName(inv.Num), inv.Value,
+                _listQtyPrompt.Open(ClientStrings.Get(ClientStrings.MarketPanel_QtyPrompt), ItemName(inv.Num), inv.Quantity,
                     units => { sender.SendMarketCreate(listSlot, units, unitPrice); _listing = false; });
             }
             else
             {
-                sender.SendMarketCreate(slot, inv?.Value ?? 0, price);   // whole slot (amount ignored for gear)
+                sender.SendMarketCreate(slot, inv?.Quantity ?? 0, price);   // whole slot (amount ignored for gear)
                 _listing = false;
             }
             return;
@@ -326,7 +326,7 @@ public sealed class MarketPanel : IGamePanel
             }
 
             if (itemsTex is not null && _salesTable.HoveredItem is { } hs)
-                ShowItemTooltip(state, itemsTex, hs.ItemNum, hs.Value, 0, (TooltipScope, "sale", hs.Id));
+                ShowItemTooltip(state, itemsTex, hs.ItemNum, hs.Quantity, 0, (TooltipScope, "sale", hs.Id));
             _panel.DrawOverlay(sb);
             return;
         }
@@ -345,7 +345,7 @@ public sealed class MarketPanel : IGamePanel
         }
 
         if (itemsTex is not null && _table.HoveredItem is { } hov)
-            ShowItemTooltip(state, itemsTex, hov.ItemNum, hov.Value, hov.Dur, (TooltipScope, "row", hov.Id));
+            ShowItemTooltip(state, itemsTex, hov.ItemNum, hov.Quantity, hov.Dur, (TooltipScope, "row", hov.Id));
 
         if (_tab == Tab.Mine) _cancelListingBtn.Draw(sb, font, _input, normalColor: UiHelper.DangerButtonNormal, hoverColor: UiHelper.DangerButtonHover);
         else _buyBtn.Draw(sb, font, _input);
@@ -368,7 +368,7 @@ public sealed class MarketPanel : IGamePanel
         {
             int slot = _invSlots[_invList.HoveredIndex];
             var s = state.Me?.Inv?[slot];
-            if (s is not null) ShowItemTooltip(state, itemsTex, s.Num, s.Value, s.Dur, (TooltipScope, "inv", slot));
+            if (s is not null) ShowItemTooltip(state, itemsTex, s.Num, s.Quantity, s.Dur, (TooltipScope, "inv", slot));
         }
 
         // A currency stack is priced PER UNIT; anything else is a whole-stack price.
@@ -401,7 +401,7 @@ public sealed class MarketPanel : IGamePanel
     private static int ParsePrice(string s) => int.TryParse(s, out int p) && p > 0 ? Math.Min(p, Constants.MarketMaxPrice) : 0;
 
     // Most units of a currency listing the buyer can afford at its per-unit price (capped at the stock).
-    private static int MaxBuyable(MarketListing l, long gold) => l.Price <= 0 ? 0 : (int)Math.Min(l.Value, gold / l.Price);
+    private static int MaxBuyable(MarketListing l, long gold) => l.Price <= 0 ? 0 : (int)Math.Min(l.Quantity, gold / l.Price);
 
     private bool IsCurrency(ClientState state, int itemNum)
         => itemNum > 0 && itemNum < state.Items.Length && state.Items[itemNum]?.Type == ItemType.Currency;
@@ -428,7 +428,7 @@ public sealed class MarketPanel : IGamePanel
         var def = state.Items[itemNum];
         if (def is not null)
         {
-            Tooltip.NotifyHoverItem(TooltipScope, key, def, new PlayerInvSlot { Num = itemNum, Value = value, Dur = dur },
+            Tooltip.NotifyHoverItem(TooltipScope, key, def, new PlayerInvSlot { Num = itemNum, Quantity = value, Dur = dur },
                 state.Me, state.Classes, itemsTex, _input.MousePosition);
         }
     }

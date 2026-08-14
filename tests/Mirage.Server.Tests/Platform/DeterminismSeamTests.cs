@@ -169,7 +169,7 @@ public class DeterminismSeamTests
 
         const long deliverAt = 10_600;                        // 10 minutes out
         mail.Deliver("tester", "sender", "subject", "body",
-                     [new MailAttachment { ItemNum = Constants.GoldItemIndex, Value = 500 }],
+                     [new MailAttachment { ItemNum = Constants.GoldItemIndex, Quantity = 500 }],
                      deliverAt: deliverAt);
 
         var msg = sp.Mail.Single();

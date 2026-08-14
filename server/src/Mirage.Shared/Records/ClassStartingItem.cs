@@ -10,5 +10,5 @@ public sealed class ClassStartingItem
 
     /// <summary>How many. Meaningful for currency (the stack size); every other type gets exactly one,
     /// since a character cannot start with two of the same sword in one slot.</summary>
-    public short Value { get; set; }
+    public short Quantity { get; set; }
 }

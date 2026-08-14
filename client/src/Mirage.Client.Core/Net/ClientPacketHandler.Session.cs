@@ -104,14 +104,14 @@ public sealed partial class ClientPacketHandler : IClientEvents
         for (int i = 1; i <= Constants.MaxBankSlots; i++)
         {
             _state.Bank[i].Num = 0;
-            _state.Bank[i].Value = 0;
+            _state.Bank[i].Quantity = 0;
             _state.Bank[i].Dur = 0;
         }
         foreach (var s in p.Slots)
         {
             if (!SlotValidation.IsValidBankSlot(s.Slot)) continue;
             _state.Bank[s.Slot].Num = s.Num;
-            _state.Bank[s.Slot].Value = s.Value;
+            _state.Bank[s.Slot].Quantity = s.Quantity;
             _state.Bank[s.Slot].Dur = s.Dur;
         }
         _state.BankOpen = true;
@@ -121,7 +121,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     {
         if (!SlotValidation.IsValidBankSlot(p.Slot)) return;
         _state.Bank[p.Slot].Num = p.Num;
-        _state.Bank[p.Slot].Value = p.Value;
+        _state.Bank[p.Slot].Quantity = p.Quantity;
         _state.Bank[p.Slot].Dur = p.Dur;
     }
 

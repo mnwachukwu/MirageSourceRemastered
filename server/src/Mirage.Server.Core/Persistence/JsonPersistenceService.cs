@@ -340,6 +340,9 @@ public sealed class JsonPersistenceService : IPersistenceService
             shop.TradeItem = shop.TradeItem
                 .Where(t => t is not null && (t.GiveItem > 0 || t.GetItem > 0))
                 .ToList();
+            // Sales list: drop dead item numbers and duplicates. A shop authored before the sales table
+            // simply has none, which needs no migration — an absent list deserializes to an empty one.
+            shop.Normalize(Constants.MaxItems);
         }
 
         return (result, padded);

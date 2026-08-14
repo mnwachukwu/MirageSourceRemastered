@@ -34,7 +34,7 @@ public partial class SpellEditorView : LocalizedUserControl
         _mpCostNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_MpCostNote);
         _formulaNotesHeader.Text = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
         _giveItemLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_ItemNumber);
-        _itemAmountLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_Quantity);
+        _itemQuantityLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_Quantity);
         _intReqLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_IntReq);
         _fmtMagnitudeIntro.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeIntro);
         _fmtMagnitudeBullet1.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_MagnitudeBullet1);

@@ -66,16 +66,16 @@ public class MailSystemTests
     [Test]
     public void Clone_DeepCopiesAttachments()
     {
-        var m = new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = 5, Value = 10 } } };
+        var m = new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = 5, Quantity = 10 } } };
 
         var copy = m.Clone();
-        copy.Attachments[0].Value = 999;
-        copy.Attachments.Add(new MailAttachment { ItemNum = 6, Value = 1 });
+        copy.Attachments[0].Quantity = 999;
+        copy.Attachments.Add(new MailAttachment { ItemNum = 6, Quantity = 1 });
 
         Assert.Multiple(() =>
         {
             Assert.That(m.Attachments, Has.Count.EqualTo(1), "the clone's list is separate from the original's");
-            Assert.That(m.Attachments[0].Value, Is.EqualTo(10), "mutating the clone leaves the original attachment untouched");
+            Assert.That(m.Attachments[0].Quantity, Is.EqualTo(10), "mutating the clone leaves the original attachment untouched");
         });
     }
 
@@ -121,7 +121,7 @@ public class MailSystemTests
     {
         var (world, _, mail, sp) = Setup();
         world.Items[Gold].Type = ItemType.Currency;
-        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Gold, Value = 500 } } });
+        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Gold, Quantity = 500 } } });
 
         mail.Claim(Idx, 1);
 
@@ -138,7 +138,7 @@ public class MailSystemTests
         var (world, _, mail, sp) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Sword].Durability =80;  // max durability
-        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Sword, Value = 1, Dur = 55 } } });
+        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Sword, Quantity = 1, Dur = 55 } } });
 
         mail.Claim(Idx, 1);
 
@@ -158,7 +158,7 @@ public class MailSystemTests
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Armor].Type = ItemType.Armor;
         for (int i = 1; i <= Constants.MaxInv; i++) sp.Char.Inv[i].Num = Sword;   // no free slot
-        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Armor, Value = 1 } } });
+        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Armor, Quantity = 1 } } });
 
         mail.Claim(Idx, 1);
 
@@ -179,15 +179,15 @@ public class MailSystemTests
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Armor].Type = ItemType.Armor;
         sp.Char.Inv[1].Num = Gold;
-        sp.Char.Inv[1].Value = 200;  // an existing gold pile
+        sp.Char.Inv[1].Quantity = 200;  // an existing gold pile
         for (int i = 2; i <= Constants.MaxInv; i++) sp.Char.Inv[i].Num = Sword;   // every other slot full
         sp.Mail.Add(new MailMessage
         {
             Id = 1,
             Attachments =
             {
-                new MailAttachment { ItemNum = Gold, Value = 100 },
-                new MailAttachment { ItemNum = Armor, Value = 1 },
+                new MailAttachment { ItemNum = Gold, Quantity = 100 },
+                new MailAttachment { ItemNum = Armor, Quantity = 1 },
             },
         });
 
@@ -209,7 +209,7 @@ public class MailSystemTests
         var (world, _, mail, sp) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Sword].Durability =100;
-        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Sword, Value = 0, Dur = 30 } } });
+        sp.Mail.Add(new MailMessage { Id = 1, Attachments = { new MailAttachment { ItemNum = Sword, Quantity = 0, Dur = 30 } } });
 
         mail.Claim(Idx, 1);
 
@@ -233,7 +233,7 @@ public class MailSystemTests
         var sender = Online(pm, 1, "sender");
         var recipient = Online(pm, 2, "recipient");
         long deliverAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 600;
-        var attach = new List<MailAttachment> { new() { ItemNum = Gold, Value = 500 } };
+        var attach = new List<MailAttachment> { new() { ItemNum = Gold, Quantity = 500 } };
 
         mail.SendPlayerMail("sender", "recipient", "hi", "there", attach, deliverAt);
 
@@ -260,7 +260,7 @@ public class MailSystemTests
         world.Items[Gold].Type = ItemType.Currency;
         var sp = Online(pm, 1, "tester");
         long future = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 600;
-        sp.Mail.Add(new MailMessage { Id = 1, DeliverAt = future, Attachments = { new MailAttachment { ItemNum = Gold, Value = 500 } } });
+        sp.Mail.Add(new MailMessage { Id = 1, DeliverAt = future, Attachments = { new MailAttachment { ItemNum = Gold, Quantity = 500 } } });
 
         mail.Claim(Idx, 1);
 
@@ -278,7 +278,7 @@ public class MailSystemTests
         world.Items[Gold].Type = ItemType.Currency;
         var sp = Online(pm, 1, "tester");
         long past = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - 10;
-        sp.Mail.Add(new MailMessage { Id = 1, DeliverAt = past, Attachments = { new MailAttachment { ItemNum = Gold, Value = 500 } } });
+        sp.Mail.Add(new MailMessage { Id = 1, DeliverAt = past, Attachments = { new MailAttachment { ItemNum = Gold, Quantity = 500 } } });
 
         mail.Claim(Idx, 1);
 
@@ -298,7 +298,7 @@ public class MailSystemTests
         world.Items[Gold].Type = ItemType.Currency;
         var sp = Online(pm, 1, "tester");
 
-        mail.Deliver("tester", "System", "notice", "body", new List<MailAttachment> { new() { ItemNum = Gold, Value = 100 } });
+        mail.Deliver("tester", "System", "notice", "body", new List<MailAttachment> { new() { ItemNum = Gold, Quantity = 100 } });
 
         Assert.Multiple(() =>
         {
@@ -433,9 +433,9 @@ public class MailSystemTests
     {
         var attach = new List<MailAttachment>
         {
-            new() { ItemNum = Sword, Value = 1 },
-            new() { ItemNum = Armor, Value = 1 },
-            new() { ItemNum = Gold, Value = 500 },
+            new() { ItemNum = Sword, Quantity = 1 },
+            new() { ItemNum = Armor, Quantity = 1 },
+            new() { ItemNum = Gold, Quantity = 500 },
         };
         Assert.That(MailSystem.CodItemCount(attach), Is.EqualTo(2));
     }
@@ -450,7 +450,7 @@ public class MailSystemTests
         var sender = Online(pm, 1, "sender");
         var recipient = Online(pm, 2, "recipient");
         long deliverAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 600;
-        var attach = new List<MailAttachment> { new() { ItemNum = Sword, Value = 1 } };
+        var attach = new List<MailAttachment> { new() { ItemNum = Sword, Quantity = 1 } };
 
         mail.SendPlayerMail("sender", "recipient", "cod", "pay up", attach, deliverAt, codPrice: 100);
 
@@ -482,7 +482,7 @@ public class MailSystemTests
         receiver.Mail.Add(new MailMessage
         {
             Id = 1, Sender = "sender", DeliverAt = past, DeleteAt = past + Constants.CodLifetimeSeconds,
-            CodPrice = 100, Attachments = { new MailAttachment { ItemNum = Sword, Value = 1, Dur = 40 } },
+            CodPrice = 100, Attachments = { new MailAttachment { ItemNum = Sword, Quantity = 1, Dur = 40 } },
         });
 
         mail.CompleteCod(2, 1);
@@ -497,7 +497,7 @@ public class MailSystemTests
 
             Assert.That(sender.Mail, Has.Count.EqualTo(1), "the sender is mailed the net gold");
             Assert.That(sender.Mail[0].Attachments[0].ItemNum, Is.EqualTo(Gold));
-            Assert.That(sender.Mail[0].Attachments[0].Value, Is.EqualTo(95), "100 price minus the 5% single-item tax");
+            Assert.That(sender.Mail[0].Attachments[0].Quantity, Is.EqualTo(95), "100 price minus the 5% single-item tax");
         });
     }
 
@@ -513,7 +513,7 @@ public class MailSystemTests
         receiver.Mail.Add(new MailMessage
         {
             Id = 1, Sender = "sender", DeliverAt = now - 100, DeleteAt = now - 1,   // matured, past its 3-day return
-            CodPrice = 100, Attachments = { new MailAttachment { ItemNum = Sword, Value = 1, Dur = 33 } },
+            CodPrice = 100, Attachments = { new MailAttachment { ItemNum = Sword, Quantity = 1, Dur = 33 } },
         });
 
         mail.TickExpiry();
@@ -539,8 +539,8 @@ public class MailSystemTests
         world.Items[Armor].Type = ItemType.Armor;
         var twoItems = new List<MailAttachment>
         {
-            new() { ItemNum = Sword, Value = 1 },
-            new() { ItemNum = Armor, Value = 1 },
+            new() { ItemNum = Sword, Quantity = 1 },
+            new() { ItemNum = Armor, Quantity = 1 },
         };
 
         Assert.That(ItemSystem.CanReceiveAll(sp.Char, world.Items, twoItems), Is.True, "an empty bag has room for two");
@@ -549,8 +549,8 @@ public class MailSystemTests
         Assert.That(ItemSystem.CanReceiveAll(sp.Char, world.Items, twoItems), Is.False, "two items can't fit one slot");
 
         sp.Char.Inv[1].Num = Gold;
-        sp.Char.Inv[1].Value = 50;  // slot 1 is now an existing gold pile; bag otherwise full
-        var goldOnly = new List<MailAttachment> { new() { ItemNum = Gold, Value = 100 } };
+        sp.Char.Inv[1].Quantity = 50;  // slot 1 is now an existing gold pile; bag otherwise full
+        var goldOnly = new List<MailAttachment> { new() { ItemNum = Gold, Quantity = 100 } };
         Assert.That(ItemSystem.CanReceiveAll(sp.Char, world.Items, goldOnly), Is.True, "gold stacks onto the pile, needs no slot");
     }
 

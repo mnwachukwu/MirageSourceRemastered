@@ -92,7 +92,7 @@ public sealed partial class ClassStartingItemRowViewModel : ObservableObject
         _itemLookup = itemLookup;
         _classInfo = classInfo;
         _itemNum = s.ItemNum;
-        _value = s.Value;
+        _value = s.Quantity;
     }
 
     partial void OnItemNumChanged(int value)
@@ -132,7 +132,7 @@ public sealed partial class ClassStartingItemRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsSkipped));
     }
 
-    public ClassStartingItem ToRecord() => new() { ItemNum = ItemNum, Value = (short)Value };
+    public ClassStartingItem ToRecord() => new() { ItemNum = ItemNum, Quantity = (short)Value };
 
     private static NamedEntry? EntryFor(NamedEntry[] entries, int id) =>
         id > 0 && id < entries.Length ? entries[id] : null;

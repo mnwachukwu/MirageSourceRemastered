@@ -364,7 +364,7 @@ public sealed class GuildScheduleSystem : GameSystem
                 ServerStrings.Get(ServerStrings.GuildSchedule_SeasonMemberSubject),
                 ServerStrings.Format(ServerStrings.GuildSchedule_SeasonMemberBody,
                     ("Season", _seasonNumber), ("Placing", placing), ("Gold", perMember)),
-                new List<MailAttachment> { new() { ItemNum = Constants.GoldItemIndex, Value = (int)perMember } });
+                new List<MailAttachment> { new() { ItemNum = Constants.GoldItemIndex, Quantity = (int)perMember } });
         }
     }
 

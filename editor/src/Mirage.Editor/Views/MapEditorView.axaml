@@ -728,10 +728,10 @@
                              FilterMode="Custom" MinimumPrefixLength="0"/>
           </Grid>
           <Grid ColumnDefinitions="95,*">
-            <TextBlock x:Name="_itemValueLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="_itemQuantityLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
-                           Value="{Binding ItemTileValue}"
-                           Minimum="1" Maximum="{Binding ItemTileValueMax}" FormatString="0"/>
+                           Value="{Binding ItemTileQuantity}"
+                           Minimum="1" Maximum="{Binding ItemTileQuantityMax}" FormatString="0"/>
           </Grid>
           <Grid ColumnDefinitions="95,*">
             <TextBlock x:Name="_itemRespawnLabel" Grid.Column="0" VerticalAlignment="Center"/>

@@ -177,7 +177,16 @@
             <CheckBox x:Name="_nonListableCheck"   IsChecked="{Binding SelectedItem.NonListable}"/>
             <CheckBox x:Name="_nonMailableCheck"   IsChecked="{Binding SelectedItem.NonMailable}"/>
             <CheckBox x:Name="_destroyOnDropCheck" IsChecked="{Binding SelectedItem.DestroyOnDrop}"/>
+            <CheckBox x:Name="_nonJunkableCheck"   IsChecked="{Binding SelectedItem.NonJunkable}"/>
           </StackPanel>
+
+          <!-- Gold worth. Seeded across the armory by the economy generator, so a hand-typed value here is
+               an override — which is how a treasure item gets a worth no formula can derive. -->
+          <Grid ColumnDefinitions="165,*" Margin="0,6,0,0">
+            <TextBlock x:Name="_priceLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding SelectedItem.Price}"
+                           Minimum="0" Maximum="2000000000" Increment="1" FormatString="0"/>
+          </Grid>
 
           <Separator Margin="0,4,0,2" Background="#333"/>
 

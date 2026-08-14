@@ -125,8 +125,8 @@
                                          FilterMode="Custom" MinimumPrefixLength="0"
                                          PlaceholderText="{Binding GiveItemPlaceholder}"
                                          BorderThickness="0,0,1,1" CornerRadius="0"/>
-                        <NumericUpDown Grid.Column="1" Value="{Binding GiveValue}"
-                                       Minimum="{Binding GiveValueMin}" Maximum="{Binding GiveValueMax}" FormatString="0"
+                        <NumericUpDown Grid.Column="1" Value="{Binding GiveQuantity}"
+                                       Minimum="{Binding GiveQuantityMin}" Maximum="{Binding GiveQuantityMax}" FormatString="0"
                                        BorderThickness="0,0,1,1" CornerRadius="0"/>
                         <controls:DropdownAutoCompleteBox Grid.Column="2"
                                          ItemsSource="{Binding ItemEntries}"
@@ -135,8 +135,8 @@
                                          FilterMode="Custom" MinimumPrefixLength="0"
                                          PlaceholderText="{Binding GetItemPlaceholder}"
                                          BorderThickness="0,0,1,1" CornerRadius="0"/>
-                        <NumericUpDown Grid.Column="3" Value="{Binding GetValue}"
-                                       Minimum="{Binding GetValueMin}" Maximum="{Binding GetValueMax}" FormatString="0"
+                        <NumericUpDown Grid.Column="3" Value="{Binding GetQuantity}"
+                                       Minimum="{Binding GetQuantityMin}" Maximum="{Binding GetQuantityMax}" FormatString="0"
                                        BorderThickness="0,0,1,1" CornerRadius="0"/>
                         <Button Grid.Column="4" Content="-" FontWeight="Bold"
                                 Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.RemoveTradeCommand}"

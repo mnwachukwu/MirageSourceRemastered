@@ -365,6 +365,8 @@
   "ItemEditor_NonListable": "No anunciable",
   "ItemEditor_NonMailable": "No enviable por correo",
   "ItemEditor_DestroyOnDrop": "Destruir al tirar",
+  "ItemEditor_NonJunkable": "No desechable",
+  "ItemEditor_PriceLabel": "Precio (oro):",
   "ItemEditor_FieldNotesHeader": "Notas de los campos",
   "ItemEditor_SaveItemButton": "Guardar objeto",
   "ItemEditor_SpellSearchPlaceholder": "Hechizo…",

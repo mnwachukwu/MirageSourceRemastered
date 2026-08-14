@@ -98,17 +98,17 @@ public class BankSystemTests
         var (world, _, bank, p, sp) = Setup();
         world.Items[Gold].Type = ItemType.Currency;
         p.Inv[2].Num = Gold;
-        p.Inv[2].Value = 1000;
+        p.Inv[2].Quantity = 1000;
         sp.Bank[5].Num = Gold;
-        sp.Bank[5].Value = 200;  // an existing gold pile in the bank
+        sp.Bank[5].Quantity = 200;  // an existing gold pile in the bank
 
         bank.Deposit(Idx, invSlot: 2, amount: 300);
 
         Assert.Multiple(() =>
         {
-            Assert.That(sp.Bank[5].Value, Is.EqualTo(500), "deposit stacks onto the existing pile");
+            Assert.That(sp.Bank[5].Quantity, Is.EqualTo(500), "deposit stacks onto the existing pile");
             Assert.That(p.Inv[2].Num, Is.EqualTo(Gold), "a partial deposit keeps the inventory stack");
-            Assert.That(p.Inv[2].Value, Is.EqualTo(700), "with the remainder");
+            Assert.That(p.Inv[2].Quantity, Is.EqualTo(700), "with the remainder");
         });
     }
 
@@ -118,7 +118,7 @@ public class BankSystemTests
         var (world, _, bank, p, sp) = Setup();
         world.Items[Gold].Type = ItemType.Currency;
         sp.Bank[5].Num = Gold;
-        sp.Bank[5].Value = 400;
+        sp.Bank[5].Quantity = 400;
 
         bank.Withdraw(Idx, bankSlot: 5, amount: 0);   // amount <= 0 => withdraw all
 
@@ -159,7 +159,7 @@ public class BankSystemTests
 
         sp.Bank[1].Num = Potion;                          // deliberately out of order
         sp.Bank[2].Num = Gold;
-        sp.Bank[2].Value = 100;
+        sp.Bank[2].Quantity = 100;
         sp.Bank[3].Num = Sword;
         sp.Bank[3].Dur = 100;
 

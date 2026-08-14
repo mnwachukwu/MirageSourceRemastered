@@ -39,7 +39,8 @@ public static class GuildQuests
 
     /// <summary>The gold a Leader pays to acquire a quest: <see cref="Constants.GuildQuestCostPerLevel"/> per
     /// guild level (L0 = free). Centralized here so the reward can guarantee it beats the cost.</summary>
-    public static int AcquireCost(int guildLevel) => Math.Max(0, guildLevel) * Constants.GuildQuestCostPerLevel;
+    public static long AcquireCost(int guildLevel) =>
+        Math.Max(0, guildLevel) * (long)Constants.GuildQuestCostPerLevel;
 
     /// <summary>A quest's random size factor from a [0,1) roll: maps to
     /// [1 - <see cref="Constants.GuildQuestVariationPercent"/>%, 1 + that%], so 0.5 = the flat baseline. The
@@ -85,6 +86,9 @@ public static class GuildQuests
     /// quest pays <see cref="Constants.GuildQuestBossRewardPercent"/>%, and at MAX guild level it gets a
     /// <see cref="Constants.GuildQuestMaxLevelGoldBonusPercent"/>% bump (standing in for the eschewed XP). Always
     /// at least the acquire cost plus a base margin so completing a quest is a net vault gain (never a loss).</summary>
+    /// <para>Keyed on GUILD level only, like the acquire cost it has to beat. Both were briefly scaled by
+    /// the acquiring member's character level, which set a vault-funded price by whoever happened to click
+    /// — see the note in <see cref="GuildWarFormulas"/>.</para>
     public static long RewardGold(int difficulty, int guildLevel, double roll01, bool isBoss)
     {
         double baseGold = Constants.GuildQuestBaseGold * (guildLevel + 1) + (long)Math.Max(0, difficulty) * Constants.GuildQuestGoldPerDifficulty;

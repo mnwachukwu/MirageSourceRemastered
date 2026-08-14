@@ -111,7 +111,7 @@ public class ItemFormulaTests
         var p = new PlayerRecord();
         var items = BuildItems();
         p.Inv[3].Num = Gold;
-        p.Inv[3].Value = 250;
+        p.Inv[3].Quantity = 250;
         Assert.That(ItemSystem.HasItem(p, items, Gold), Is.EqualTo(250));
     }
 
@@ -121,7 +121,7 @@ public class ItemFormulaTests
         var p = new PlayerRecord();
         var items = BuildItems();
         p.Inv[3].Num = Wep;
-        p.Inv[3].Value = 999;  // Value ignored for non-currency
+        p.Inv[3].Quantity = 999;  // Value ignored for non-currency
         Assert.That(ItemSystem.HasItem(p, items, Wep), Is.EqualTo(1));
     }
 

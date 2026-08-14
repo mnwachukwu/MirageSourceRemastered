@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests;
 
-/// <summary>Store trade + item repair. Trade swaps GiveItem*GiveValue for GetItem*GetValue with the gates
+/// <summary>Store trade + item repair. Trade swaps GiveItem*GiveQuantity for GetItem*GetQuantity with the gates
 /// (at the shop, a Store, well-formed slot, enough to give, room to receive); FixItem prices durability off
 /// the shared repair formula and does a full repair when affordable, a best-effort partial when not, and
 /// refuses below one point's cost.</summary>
@@ -64,7 +64,7 @@ public class ShopSystemTests
     {
         var trades = world.Shops[ShopNum].TradeItem;
         trades.Clear();
-        trades.Add(new TradeItemRecord { GiveItem = giveItem, GiveValue = giveVal, GetItem = getItem, GetValue = getVal });
+        trades.Add(new TradeItemRecord { GiveItem = giveItem, GiveQuantity = giveVal, GetItem = getItem, GetQuantity = getVal });
     }
 
     [Test]
@@ -74,7 +74,7 @@ public class ShopSystemTests
         world.Items[Sword].Type = ItemType.Weapon;
         SetTrade(world, Gold, 100, Sword, 1);
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         shop.Trade(Idx, ShopNum, tradeSlot: 1);
 
@@ -92,7 +92,7 @@ public class ShopSystemTests
         world.Items[Sword].Type = ItemType.Weapon;
         SetTrade(world, Gold, 100, Sword, 1);
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 50;  // only 50 of the 100 needed
+        p.Inv[1].Quantity = 50;  // only 50 of the 100 needed
 
         shop.Trade(Idx, ShopNum, 1);
 
@@ -110,7 +110,7 @@ public class ShopSystemTests
         world.Items[Sword].Type = ItemType.Weapon;
         SetTrade(world, Gold, 100, Sword, 1);
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         shop.Trade(Idx, ShopNum, 1);
 
@@ -123,9 +123,9 @@ public class ShopSystemTests
     {
         var (world, shop, p) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
-        SetTrade(world, Gold, 0, Sword, 1);   // GiveValue 0
+        SetTrade(world, Gold, 0, Sword, 1);   // GiveQuantity 0
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         shop.Trade(Idx, ShopNum, 1);
 
@@ -134,63 +134,89 @@ public class ShopSystemTests
 
     // ── FixItem ──────────────────────────────────────────────────────────────────
 
-    // Sword: max durability 100, Power 10 => ratePerPoint 2, full 60-point repair costs 60.
+    // A mid-band sword: max durability 100 at its tier's medium Power. Repair is now a share of the item's
+    // VALUE (EconomyFormulas.RepairCost), so these tests take their expected gold FROM the formula rather
+    // than restating its arithmetic — what is under test here is the shop's behaviour (does it charge
+    // exactly the quoted cost, restore exactly what was bought, refuse when a single point is unaffordable),
+    // not the price curve, which EconomyFormulasTests pins separately. A tier-100 piece is used so the
+    // numbers are large enough that the partial-repair division is actually exercised.
+    const short RepairTier = 100;
+
+    static ItemRecord SwordDef(GameWorld world) => world.Items[Sword];
+
     static void PlaceRepairableSword(GameWorld world, PlayerRecord p, int currentDur, int gold)
     {
         world.Shops[ShopNum].FixesItems = true;
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Sword].Durability = 100;
-        world.Items[Sword].Power = 10;
+        world.Items[Sword].LevelReq = RepairTier;
+        world.Items[Sword].Power = (short)EconomyFormulas.ReferencePower(RepairTier);
         p.Inv[2].Num = Sword;
         p.Inv[2].Dur = currentDur;
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = gold;
+        p.Inv[1].Quantity = gold;
     }
 
     [Test]
     public void FixItem_Affordable_FullyRepairs()
     {
         var (world, shop, p) = Setup();
-        PlaceRepairableSword(world, p, currentDur: 40, gold: 100);   // needs 60 gold
+        PlaceRepairableSword(world, p, currentDur: 40, gold: 0);
+        int cost = EconomyFormulas.RepairCost(60, SwordDef(world));
+        int purse = cost * 2;
+        p.Inv[1].Quantity = purse;
 
         shop.FixItem(Idx, invSlot: 2);
 
         Assert.Multiple(() =>
         {
             Assert.That(p.Inv[2].Dur, Is.EqualTo(100), "restored to max durability");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(40), "the full cost (60) is deducted");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(purse - cost),
+                "exactly the quoted full-repair cost is deducted");
         });
     }
 
-    // Can't afford a full repair (30 < 60): buy as many points as 30 gold covers (15 points @ 2 = 30).
+    // Can't afford a full repair: buy as many points as the purse covers, at the quoted per-point rate.
     [Test]
     public void FixItem_Unaffordable_PartiallyRepairs()
     {
         var (world, shop, p) = Setup();
-        PlaceRepairableSword(world, p, currentDur: 40, gold: 30);
+        PlaceRepairableSword(world, p, currentDur: 40, gold: 0);
+        var def = SwordDef(world);
+        int purse = EconomyFormulas.RepairCost(60, def) / 2;   // half of what a full repair costs
+        p.Inv[1].Quantity = purse;
+
+        int expectedPoints = EconomyFormulas.RepairPointsAffordable(purse, def);
+        int expectedCost = EconomyFormulas.RepairCost(expectedPoints, def);
 
         shop.FixItem(Idx, invSlot: 2);
 
         Assert.Multiple(() =>
         {
-            Assert.That(p.Inv[2].Dur, Is.EqualTo(55), "restores the 15 points the gold covers");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(15), "spends the 15 gold it cost");
+            Assert.That(expectedPoints, Is.GreaterThan(0).And.LessThan(60), "the case must actually be partial");
+            Assert.That(p.Inv[2].Dur, Is.EqualTo(40 + expectedPoints), "restores the points the gold covers");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(purse - expectedCost),
+                "spends what those points cost");
+            Assert.That(expectedCost, Is.LessThanOrEqualTo(purse), "a partial repair never costs more than the purse");
         });
     }
 
-    // Below the cost of even one durability point (1 < ratePerPoint 2), the repair is refused outright.
+    // Below the cost of even one durability point, the repair is refused outright.
     [Test]
     public void FixItem_BelowOnePointCost_Refused()
     {
         var (world, shop, p) = Setup();
-        PlaceRepairableSword(world, p, currentDur: 40, gold: 1);
+        PlaceRepairableSword(world, p, currentDur: 40, gold: 0);
+        int broke = EconomyFormulas.RepairRatePerPoint(SwordDef(world)) - 1;
+        Assume.That(broke, Is.GreaterThan(0), "the per-point rate must exceed 1 for this case to exist");
+        p.Inv[1].Quantity = broke;
 
         shop.FixItem(Idx, invSlot: 2);
 
         Assert.Multiple(() =>
         {
             Assert.That(p.Inv[2].Dur, Is.EqualTo(40), "no repair");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(1), "no gold spent");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(broke), "no gold spent");
         });
     }
 
@@ -213,7 +239,7 @@ public class ShopSystemTests
         world.Items[Potion].Type = ItemType.PotionAddHp;
         p.Inv[2].Num = Potion;
         p.Inv[1].Num = Gold;
-        p.Inv[1].Value = 100;
+        p.Inv[1].Quantity = 100;
 
         shop.FixItem(Idx, invSlot: 2);
 

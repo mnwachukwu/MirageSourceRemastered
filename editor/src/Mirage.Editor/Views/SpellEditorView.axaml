@@ -132,9 +132,9 @@
           </Grid>
 
           <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.IsGiveItem}">
-            <TextBlock x:Name="_itemAmountLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="_itemQuantityLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
-                           Value="{Binding SelectedSpell.ItemAmount}"
+                           Value="{Binding SelectedSpell.ItemQuantity}"
                            Minimum="0" Maximum="9999" FormatString="0"/>
           </Grid>
 

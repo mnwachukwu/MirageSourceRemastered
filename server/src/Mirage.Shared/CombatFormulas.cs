@@ -448,9 +448,28 @@ public static class CombatFormulas
     // "1 cast = 1 durability cost" than a warrior is to "1 hit = 1 durability".  So reagents/cast =
     // round(VitalAmount/10 × 0.48) ≈ VitalAmount/21.  Consumption scales with spell power (the spell's VitalAmount,
     // the mirror of a weapon's Power), never the reagent item's fixed value.  Floored at 1 for a token cost.
-    private const double RepairGoldPerDurabilityDivisor = 10.0;   // = ShopSystem ratePerPoint (Power/5), halved for full repair
-    public static int SubHpReagentCost(int vitalAmount) =>
-        Math.Max(1, (int)Math.Round(vitalAmount / RepairGoldPerDurabilityDivisor * AvgDurabilityDegradePerHit(), MidpointRounding.AwayFromZero));
+    /// <summary>Reagents a SubHp cast consumes — the magic-side mirror of a warrior's weapon-repair upkeep,
+    /// priced in reagents worth 1 gold each.
+    ///
+    /// <para>A warrior's per-SWING upkeep is (gold per durability point) x (durability actually lost that
+    /// swing). A swing CHIPS on a rising chance (<see cref="DurabilityDegradeChancePercent"/>) rather than
+    /// every hit, so the true loss per swing is the swing-weighted average of those chances
+    /// (<see cref="AvgDurabilityDegradePerHit"/>, ~0.48) — a caster is no more bound to "1 cast = 1
+    /// durability" than a warrior is to "1 hit = 1 durability".</para>
+    ///
+    /// <para>The gold-per-point half comes from <see cref="EconomyFormulas.RepairGoldPerDurabilityPoint"/>,
+    /// which reads the LIVE repair rule. It used to be restated here as <c>Power/10</c>, a copy of the repair
+    /// formula as it stood at the time; when repair became a share of the item's value the copy silently went
+    /// stale and casters ended up paying 1/87th of a warrior's upkeep at max level. Deriving it means a
+    /// change to repair moves both sides at once, which is the only way this parity survives a retune.</para>
+    ///
+    /// <para>Takes the spell's LEVEL, not its magnitude: the warrior it is matched against is defined by
+    /// tier, and VitalAmount is the spell's power WITHIN a tier — the analogue of a weapon's bulk, not of
+    /// its rung.</para></summary>
+    public static int SubHpReagentCost(int spellLevelReq) =>
+        Math.Max(1, (int)Math.Round(
+            EconomyFormulas.RepairGoldPerDurabilityPoint(spellLevelReq) * AvgDurabilityDegradePerHit(),
+            MidpointRounding.AwayFromZero));
 
     // The wear percent of a normal (non-PK, non-war) death — the basis the caster-death multiplier is
     // calibrated to (a PK/war death passes 20, i.e. double).

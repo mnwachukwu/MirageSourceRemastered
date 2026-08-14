@@ -19,22 +19,29 @@ public class GuildWarFormulasTests
             Is.EqualTo(Constants.GuildWarDeclareBaseCost));
     }
 
+    // The three below are quoted against the constants, not literals. The guild gold family is rescaled
+    // as a unit (x35 on 2026-08-14) and what these protect is the DIRECTION and SIZE of the level tilt,
+    // which a rescale leaves alone. Literals here only proved nobody had retuned the guild economy.
     [Test]
-    public void DeclareCost_PunchingUp_CostsLess()   // L1 -> L5 = 1000 - 4*100 = 600
+    public void DeclareCost_PunchingUp_CostsLess()   // L1 -> L5 = base - 4*step
     {
-        Assert.That(GuildWarFormulas.DeclareCost(1, 5), Is.EqualTo(600));
+        Assert.That(GuildWarFormulas.DeclareCost(1, 5),
+            Is.EqualTo(Constants.GuildWarDeclareBaseCost - 4 * Constants.GuildWarDeclareLevelStep));
     }
 
     [Test]
-    public void DeclareCost_PunchingDown_CostsMore()   // L5 -> L1 = 1000 - (-4)*100 = 1400
+    public void DeclareCost_PunchingDown_CostsMore()   // L5 -> L1 = base + 4*step
     {
-        Assert.That(GuildWarFormulas.DeclareCost(5, 1), Is.EqualTo(1400));
+        Assert.That(GuildWarFormulas.DeclareCost(5, 1),
+            Is.EqualTo(Constants.GuildWarDeclareBaseCost + 4 * Constants.GuildWarDeclareLevelStep));
     }
 
     [Test]
-    public void DeclareCost_Level0Target_DoublesWholeCost()   // L5 -> L0 = (1000 + 500) * 2 = 3000
+    public void DeclareCost_Level0Target_DoublesWholeCost()   // L5 -> L0 = (base + 5*step) * 2
     {
-        Assert.That(GuildWarFormulas.DeclareCost(5, 0), Is.EqualTo(3000));
+        Assert.That(GuildWarFormulas.DeclareCost(5, 0),
+            Is.EqualTo((Constants.GuildWarDeclareBaseCost + 5 * Constants.GuildWarDeclareLevelStep)
+                       * Constants.GuildWarL0TargetCostMultiplier));
     }
 
     [Test]
