@@ -1,0 +1,23 @@
+{
+  "name": "Emberspeaker Warden",
+  "attackSay": "Eight of us. You are not making it seven.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 120,
+  "behavior": "Guard",
+  "group": 0,
+  "range": 15,
+  "str": 0,
+  "def": 274,
+  "spd": 156,
+  "int": 352,
+  "extraHp": 500000,
+  "isBoss": false,
+  "emitsLight": false,
+  "light": {
+    "rgb": 11834985,
+    "radius": 3,
+    "flicker": "Flame",
+    "intensity": 1
+  }
+}

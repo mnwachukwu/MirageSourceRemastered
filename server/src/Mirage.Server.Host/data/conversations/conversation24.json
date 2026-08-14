@@ -1,0 +1,46 @@
+{
+  "name": "Cinder (Fence)",
+  "speakerNpc": 148,
+  "rootNodeId": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "speaker": "",
+      "text": "Third of us. Grip, Coin, me. Same trade, same lack of questions, worse weather.\n\nWhat have you got that\u0027s no use to anyone?",
+      "choices": [
+        {
+          "label": "Let\u0027s trade.",
+          "nextNodeId": 0,
+          "action": "OpenShop"
+        },
+        {
+          "label": "Three of you, all the way out here?",
+          "nextNodeId": 2,
+          "action": "None"
+        },
+        {
+          "label": "Nothing.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "speaker": "",
+      "text": "There\u0027ll always be three of us. Wherever people carry things they can\u0027t explain, someone turns up who won\u0027t ask.\n\nThe old man\u0027s boat is how it moves. When he stops running it, we\u0027ll be three strangers with three boxes and nothing between us.",
+      "choices": [
+        {
+          "label": "Let\u0027s trade.",
+          "nextNodeId": 0,
+          "action": "OpenShop"
+        },
+        {
+          "label": "Right.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    }
+  ]
+}

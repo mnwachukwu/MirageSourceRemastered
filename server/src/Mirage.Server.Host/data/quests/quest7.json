@@ -1,0 +1,36 @@
+{
+  "name": "The King in the Reeds",
+  "description": "Something wearing a crown walks up out of the deep water at the marsh\u0027s edge, and it is walking further inland each week.\n\nPut it down. It will be back \u2014 it has been back every week I have kept this list \u2014 but each week you put it down is a week it does not reach the Landing.",
+  "objectives": [
+    {
+      "kind": "Kill",
+      "target": 116,
+      "count": 1,
+      "progress": 0
+    }
+  ],
+  "reqLevel": 20,
+  "reqStr": 0,
+  "reqDef": 0,
+  "reqSpd": 0,
+  "reqInt": 0,
+  "prereqQuest": 0,
+  "rewardExp": 37704,
+  "rewardItems": [
+    {
+      "itemNum": 1,
+      "quantity": 2279
+    }
+  ],
+  "repeatRewardExp": 37704,
+  "repeatRewardItems": [
+    {
+      "itemNum": 1,
+      "quantity": 2279
+    }
+  ],
+  "giverNpc": 126,
+  "turnInNpc": 0,
+  "repeatable": true,
+  "cadence": "Weekly"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Ashell the Thin, Taking Words",
+  "fixesItems": false,
+  "shopType": "Store",
+  "allowBanking": false,
+  "keeper": 131,
+  "tradeItem": [],
+  "salesItem": [
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    314,
+    315,
+    343,
+    344,
+    345,
+    346,
+    347,
+    348,
+    349,
+    350,
+    351
+  ]
+}

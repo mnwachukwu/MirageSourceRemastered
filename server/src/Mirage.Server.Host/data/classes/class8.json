@@ -1,8 +1,8 @@
 {
   "name": "Slinger",
   "description": "Nimble caster. High power range with speed.",
-  "spriteMale": 8,
-  "spriteFemale": 18,
+  "spriteMale": 25,
+  "spriteFemale": 26,
   "str": 0,
   "def": 0,
   "spd": 5,

@@ -1,8 +1,8 @@
 {
   "name": "Sage",
   "description": "Wise caster. High defense range.",
-  "spriteMale": 6,
-  "spriteFemale": 16,
+  "spriteMale": 33,
+  "spriteFemale": 41,
   "str": 0,
   "def": 15,
   "spd": 0,

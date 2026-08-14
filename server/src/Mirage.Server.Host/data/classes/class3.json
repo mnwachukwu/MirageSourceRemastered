@@ -2,7 +2,7 @@
   "name": "Knight",
   "description": "Fights to defend. High defense melee.",
   "spriteMale": 3,
-  "spriteFemale": 13,
+  "spriteFemale": 32,
   "str": 5,
   "def": 15,
   "spd": 0,

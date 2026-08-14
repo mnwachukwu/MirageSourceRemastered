@@ -1,8 +1,8 @@
 {
   "name": "Warrior",
   "description": "Fights for honor. High power melee.",
-  "spriteMale": 1,
-  "spriteFemale": 11,
+  "spriteMale": 34,
+  "spriteFemale": 10,
   "str": 15,
   "def": 5,
   "spd": 0,

@@ -1,8 +1,8 @@
 {
   "name": "Soldier",
   "description": "Fights for order. Even melee.",
-  "spriteMale": 2,
-  "spriteFemale": 12,
+  "spriteMale": 0,
+  "spriteFemale": 32,
   "str": 10,
   "def": 10,
   "spd": 0,

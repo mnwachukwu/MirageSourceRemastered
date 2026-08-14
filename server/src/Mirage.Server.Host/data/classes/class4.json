@@ -1,8 +1,8 @@
 {
   "name": "Sorcerer",
   "description": "Innately talented. High power range.",
-  "spriteMale": 4,
-  "spriteFemale": 14,
+  "spriteMale": 45,
+  "spriteFemale": 9,
   "str": 0,
   "def": 5,
   "spd": 0,

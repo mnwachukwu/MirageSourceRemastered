@@ -1,8 +1,8 @@
 {
   "name": "Wizard",
   "description": "Studious caster. Even range.",
-  "spriteMale": 5,
-  "spriteFemale": 15,
+  "spriteMale": 39,
+  "spriteFemale": 40,
   "str": 0,
   "def": 10,
   "spd": 0,

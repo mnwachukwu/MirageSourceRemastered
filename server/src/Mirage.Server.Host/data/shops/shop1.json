@@ -1,0 +1,9 @@
+{
+  "name": "Fenn\u0027s Landing Inn",
+  "fixesItems": false,
+  "shopType": "Inn",
+  "allowBanking": true,
+  "keeper": 125,
+  "tradeItem": [],
+  "salesItem": []
+}

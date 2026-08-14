@@ -1,8 +1,8 @@
 {
   "name": "Duelist",
   "description": "Nimble fighter. High power melee with speed.",
-  "spriteMale": 7,
-  "spriteFemale": 17,
+  "spriteMale": 4,
+  "spriteFemale": 10,
   "str": 15,
   "def": 0,
   "spd": 5,

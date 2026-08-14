@@ -1,0 +1,46 @@
+{
+  "name": "Osric Tallow (Weaponsmith)",
+  "speakerNpc": 127,
+  "rootNodeId": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "speaker": "",
+      "text": "Mind the sparks.\n\nI sell edges and I fix edges. Bring me a thing that used to cut and I\u0027ll tell you whether it can again.",
+      "choices": [
+        {
+          "label": "Show me the rack.",
+          "nextNodeId": 0,
+          "action": "OpenShop"
+        },
+        {
+          "label": "Why is half the rack empty?",
+          "nextNodeId": 2,
+          "action": "None"
+        },
+        {
+          "label": "Nothing today.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "speaker": "",
+      "text": "Because half of what I make walks into the fen and doesn\u0027t walk back. I stock what I can replace.\n\nThe good stuff \u2014 the pieces I\u0027d be proud of \u2014 you\u0027ll not buy those from me. You\u0027ll take them off something that took them off someone else. That\u0027s the honest shape of it.",
+      "choices": [
+        {
+          "label": "Show me the rack.",
+          "nextNodeId": 0,
+          "action": "OpenShop"
+        },
+        {
+          "label": "Right.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    }
+  ]
+}

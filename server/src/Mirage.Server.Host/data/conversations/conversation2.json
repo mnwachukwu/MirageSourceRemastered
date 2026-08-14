@@ -1,0 +1,73 @@
+{
+  "name": "Sera Quill (Quest-giver)",
+  "speakerNpc": 126,
+  "rootNodeId": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "speaker": "",
+      "text": "You\u0027re upright and you\u0027re armed. I have a list, and everyone on it is neither.\n\nI don\u0027t send people to die. I send them to fetch, and if fetching turns into dying that\u0027s the marsh\u0027s doing, not mine.",
+      "choices": [
+        {
+          "label": "What needs doing?",
+          "nextNodeId": 0,
+          "action": "OpenQuests"
+        },
+        {
+          "label": "Who put you in charge of a list?",
+          "nextNodeId": 2,
+          "action": "None"
+        },
+        {
+          "label": "What\u0027s the Company?",
+          "nextNodeId": 3,
+          "action": "None"
+        },
+        {
+          "label": "Not today.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "speaker": "",
+      "text": "Nobody. That\u0027s rather the point \u2014 there\u0027s no one left to. I started writing things down so we\u0027d know what we\u0027d lost, and it turned into a list of things someone might go and get back.",
+      "choices": [
+        {
+          "label": "Show me the list.",
+          "nextNodeId": 0,
+          "action": "OpenQuests"
+        },
+        {
+          "label": "What\u0027s the Company?",
+          "nextNodeId": 3,
+          "action": "None"
+        },
+        {
+          "label": "I see.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "speaker": "",
+      "text": "Warlord Hesk\u0027s outfit. Halberdiers, outriders, a captain who was a decent man before the pay stopped. They hold the causeway and tax anyone crossing it.\n\nThey\u0027re not monsters. That\u0027s what makes them a problem \u2014 a monster you can simply kill.",
+      "choices": [
+        {
+          "label": "Show me the list.",
+          "nextNodeId": 0,
+          "action": "OpenQuests"
+        },
+        {
+          "label": "Enough.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    }
+  ]
+}

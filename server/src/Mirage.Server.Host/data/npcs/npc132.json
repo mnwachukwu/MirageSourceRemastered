@@ -1,0 +1,23 @@
+{
+  "name": "Grip",
+  "attackSay": "No questions asked. That\u0027s not a slogan, it\u0027s a policy, and it\u0027s load-bearing.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 60,
+  "behavior": "Friendly",
+  "group": 0,
+  "range": 4,
+  "str": 18,
+  "def": 143,
+  "spd": 18,
+  "int": 18,
+  "extraHp": 0,
+  "isBoss": false,
+  "emitsLight": false,
+  "light": {
+    "rgb": 11834985,
+    "radius": 3,
+    "flicker": "Flame",
+    "intensity": 1
+  }
+}

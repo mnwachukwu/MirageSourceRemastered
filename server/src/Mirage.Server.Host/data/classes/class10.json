@@ -1,8 +1,8 @@
 {
   "name": "Wanderer",
-  "description": "Future undecided. Jack of all trades.",
-  "spriteMale": 10,
-  "spriteFemale": 20,
+  "description": "Past unknown, future undecided. Jack of all trades.",
+  "spriteMale": 1,
+  "spriteFemale": 1,
   "str": 5,
   "def": 5,
   "spd": 5,
