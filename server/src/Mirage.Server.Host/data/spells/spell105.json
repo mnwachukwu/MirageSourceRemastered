@@ -1,0 +1,10 @@
+{
+  "name": "Master Attunement",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 158,
+  "levelReq": 100
+}

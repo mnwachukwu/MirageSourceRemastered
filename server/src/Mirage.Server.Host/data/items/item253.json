@@ -1,0 +1,13 @@
+{
+  "name": "Peerless Bloodletting Vial",
+  "pic": 20,
+  "type": 8,
+  "vitalAmount": 2822,
+  "levelReq": 240,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 18628
+}

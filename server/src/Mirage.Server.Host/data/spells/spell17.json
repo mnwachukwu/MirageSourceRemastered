@@ -1,0 +1,12 @@
+{
+  "name": "Novice Vigour",
+  "allowedClasses": [
+    7,
+    8,
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 8,
+  "levelReq": 1
+}

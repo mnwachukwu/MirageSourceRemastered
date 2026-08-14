@@ -1,0 +1,39 @@
+{
+  "name": "Warlord\u0027s Guard",
+  "attackSay": "None pass to the Warlord.",
+  "sprite": 0,
+  "size": 2,
+  "spawnSecs": 100,
+  "behavior": 0,
+  "group": 0,
+  "range": 8,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 48,
+      "chance": 60
+    },
+    {
+      "itemNum": 278,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 43,
+      "quantity": 0,
+      "chance": 4
+    },
+    {
+      "itemNum": 202,
+      "quantity": 0,
+      "chance": 10
+    }
+  ],
+  "str": 34,
+  "def": 27,
+  "spd": 5,
+  "int": 8,
+  "extraHp": 404,
+  "isBoss": false,
+  "emitsLight": true
+}

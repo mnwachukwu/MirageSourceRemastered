@@ -1,0 +1,13 @@
+{
+  "name": "Greater Vigour Draught",
+  "pic": 20,
+  "type": 7,
+  "vitalAmount": 90,
+  "levelReq": 100,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 1791
+}

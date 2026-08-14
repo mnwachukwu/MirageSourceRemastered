@@ -1,0 +1,10 @@
+{
+  "name": "Celestial Attunement",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 384,
+  "levelReq": 250
+}

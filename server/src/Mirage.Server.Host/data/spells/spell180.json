@@ -1,0 +1,10 @@
+{
+  "name": "Sovereign Endurance",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 188,
+  "levelReq": 120
+}

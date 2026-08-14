@@ -1,0 +1,21 @@
+{
+  "name": "Steel Sword",
+  "pic": 10,
+  "type": 1,
+  "durability": 320,
+  "power": 19,
+  "levelReq": 10,
+  "allowedClasses": [
+    1,
+    2,
+    3,
+    7,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 397
+}

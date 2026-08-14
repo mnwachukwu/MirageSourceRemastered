@@ -1,0 +1,10 @@
+{
+  "name": "Gold",
+  "pic": 2,
+  "type": 12,
+  "nonTradeable": false,
+  "nonListable": true,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": true
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Grand Restoration",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 166,
+  "levelReq": 105
+}

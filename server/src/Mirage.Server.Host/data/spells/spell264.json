@@ -1,0 +1,10 @@
+{
+  "name": "Absolute Restoration",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 391,
+  "levelReq": 255
+}

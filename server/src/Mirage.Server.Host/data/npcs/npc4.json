@@ -1,0 +1,17 @@
+{
+  "name": "Carrion Strider",
+  "attackSay": "",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 25,
+  "behavior": 1,
+  "group": 0,
+  "range": 5,
+  "str": 13,
+  "def": 10,
+  "spd": 5,
+  "int": 2,
+  "extraHp": 0,
+  "isBoss": false,
+  "emitsLight": false
+}

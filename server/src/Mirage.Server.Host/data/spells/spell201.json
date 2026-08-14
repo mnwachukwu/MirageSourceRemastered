@@ -1,0 +1,10 @@
+{
+  "name": "Void Exsanguination",
+  "allowedClasses": [
+    4,
+    10
+  ],
+  "type": 3,
+  "vitalAmount": 368,
+  "levelReq": 240
+}

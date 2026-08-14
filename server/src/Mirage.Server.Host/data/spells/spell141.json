@@ -1,0 +1,10 @@
+{
+  "name": "Arch Attunement",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 174,
+  "levelReq": 110
+}

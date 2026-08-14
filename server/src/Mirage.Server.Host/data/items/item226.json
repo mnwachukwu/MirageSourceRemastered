@@ -1,0 +1,13 @@
+{
+  "name": "Exalted Healing Draught",
+  "pic": 20,
+  "type": 5,
+  "vitalAmount": 665,
+  "levelReq": 110,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2311
+}

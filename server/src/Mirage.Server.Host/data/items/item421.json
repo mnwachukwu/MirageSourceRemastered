@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Arch Weariness",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 133,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 303259
+}

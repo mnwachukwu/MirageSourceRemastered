@@ -1,0 +1,44 @@
+{
+  "name": "Duelist",
+  "description": "Nimble fighter. High power melee with speed.",
+  "spriteMale": 7,
+  "spriteFemale": 17,
+  "str": 15,
+  "def": 0,
+  "spd": 5,
+  "int": 0,
+  "startingItems": [
+    {
+      "itemNum": 1,
+      "quantity": 200
+    },
+    {
+      "itemNum": 5,
+      "quantity": 0
+    },
+    {
+      "itemNum": 184,
+      "quantity": 0
+    },
+    {
+      "itemNum": 184,
+      "quantity": 0
+    },
+    {
+      "itemNum": 185,
+      "quantity": 0
+    },
+    {
+      "itemNum": 185,
+      "quantity": 0
+    },
+    {
+      "itemNum": 186,
+      "quantity": 0
+    },
+    {
+      "itemNum": 186,
+      "quantity": 0
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Astral Buckler",
+  "pic": 13,
+  "type": 4,
+  "durability": 1150,
+  "power": 217,
+  "levelReq": 235,
+  "allowedClasses": [
+    2,
+    3,
+    6,
+    7,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 845315
+}

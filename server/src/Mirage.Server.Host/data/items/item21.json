@@ -1,0 +1,18 @@
+{
+  "name": "Iron Plate",
+  "pic": 11,
+  "type": 2,
+  "durability": 280,
+  "power": 16,
+  "levelReq": 5,
+  "allowedClasses": [
+    3,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 122
+}

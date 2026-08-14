@@ -1,0 +1,10 @@
+{
+  "name": "Valor",
+  "pic": 1,
+  "type": 12,
+  "nonTradeable": true,
+  "nonListable": true,
+  "nonMailable": true,
+  "destroyOnDrop": true,
+  "nonJunkable": true
+}

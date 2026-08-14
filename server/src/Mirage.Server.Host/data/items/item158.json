@@ -1,0 +1,20 @@
+{
+  "name": "Eternal Kite Shield",
+  "pic": 13,
+  "type": 4,
+  "durability": 1570,
+  "power": 301,
+  "levelReq": 245,
+  "allowedClasses": [
+    2,
+    3,
+    6,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 1257379
+}

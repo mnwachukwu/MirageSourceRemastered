@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Grand Exsanguination",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 111,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 268393
+}

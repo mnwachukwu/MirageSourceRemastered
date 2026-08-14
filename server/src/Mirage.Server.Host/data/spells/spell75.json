@@ -1,0 +1,10 @@
+{
+  "name": "Expert Exsanguination",
+  "allowedClasses": [
+    4,
+    10
+  ],
+  "type": 3,
+  "vitalAmount": 38,
+  "levelReq": 20
+}

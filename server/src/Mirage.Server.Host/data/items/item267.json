@@ -1,0 +1,13 @@
+{
+  "name": "Ineffable Enervating Vial",
+  "pic": 20,
+  "type": 10,
+  "vitalAmount": 221,
+  "levelReq": 250,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 20777
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Emberguard",
+  "attackSay": "The Throne is not for you.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 95,
+  "behavior": 0,
+  "group": 0,
+  "range": 10,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1005,
+      "chance": 60
+    },
+    {
+      "itemNum": 285,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 142,
+      "quantity": 0,
+      "chance": 1
+    }
+  ],
+  "str": 381,
+  "def": 299,
+  "spd": 41,
+  "int": 16,
+  "extraHp": 8695,
+  "isBoss": false,
+  "emitsLight": true
+}

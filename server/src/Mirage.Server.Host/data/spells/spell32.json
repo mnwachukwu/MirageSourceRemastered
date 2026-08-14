@@ -1,0 +1,11 @@
+{
+  "name": "Apprentice Meditation",
+  "allowedClasses": [
+    6,
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 13,
+  "levelReq": 5
+}

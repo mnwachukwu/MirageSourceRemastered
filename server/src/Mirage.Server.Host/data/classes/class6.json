@@ -1,0 +1,57 @@
+{
+  "name": "Sage",
+  "description": "Wise caster. High defense range.",
+  "spriteMale": 6,
+  "spriteFemale": 16,
+  "str": 0,
+  "def": 15,
+  "spd": 0,
+  "int": 5,
+  "startingItems": [
+    {
+      "itemNum": 1,
+      "quantity": 200
+    },
+    {
+      "itemNum": 8,
+      "quantity": 0
+    },
+    {
+      "itemNum": 10,
+      "quantity": 0
+    },
+    {
+      "itemNum": 14,
+      "quantity": 0
+    },
+    {
+      "itemNum": 184,
+      "quantity": 0
+    },
+    {
+      "itemNum": 184,
+      "quantity": 0
+    },
+    {
+      "itemNum": 185,
+      "quantity": 0
+    },
+    {
+      "itemNum": 185,
+      "quantity": 0
+    },
+    {
+      "itemNum": 186,
+      "quantity": 0
+    },
+    {
+      "itemNum": 186,
+      "quantity": 0
+    }
+  ],
+  "startingSpells": [
+    10,
+    13,
+    16
+  ]
+}

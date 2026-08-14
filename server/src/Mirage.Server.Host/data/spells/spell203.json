@@ -1,0 +1,10 @@
+{
+  "name": "Void Mana Siphon",
+  "allowedClasses": [
+    6,
+    10
+  ],
+  "type": 4,
+  "vitalAmount": 295,
+  "levelReq": 240
+}

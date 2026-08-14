@@ -1,0 +1,49 @@
+{
+  "name": "Throne Adept",
+  "attackSay": "Every name burns the same.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 95,
+  "behavior": 0,
+  "group": 0,
+  "range": 12,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1016,
+      "chance": 60
+    },
+    {
+      "itemNum": 285,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 2,
+      "quantity": 3,
+      "chance": 20
+    },
+    {
+      "itemNum": 139,
+      "quantity": 0,
+      "chance": 1
+    },
+    {
+      "itemNum": 250,
+      "quantity": 0,
+      "chance": 10
+    },
+    {
+      "itemNum": 490,
+      "quantity": 0,
+      "chance": 6
+    }
+  ],
+  "str": 151,
+  "def": 205,
+  "spd": 54,
+  "int": 332,
+  "extraHp": 550,
+  "isBoss": false,
+  "emitsLight": true
+}

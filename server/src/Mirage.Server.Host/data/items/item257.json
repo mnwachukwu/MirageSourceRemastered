@@ -1,0 +1,13 @@
+{
+  "name": "Transcendent Mana Draught",
+  "pic": 20,
+  "type": 6,
+  "vitalAmount": 2937,
+  "levelReq": 245,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 19684
+}

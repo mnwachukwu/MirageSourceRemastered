@@ -1,0 +1,13 @@
+{
+  "name": "Modest Vigour Draught",
+  "pic": 20,
+  "type": 7,
+  "vitalAmount": 11,
+  "levelReq": 10,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 4
+}

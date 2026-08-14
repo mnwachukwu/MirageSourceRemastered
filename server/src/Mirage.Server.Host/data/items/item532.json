@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Celestial Mend",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 244,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2653243
+}

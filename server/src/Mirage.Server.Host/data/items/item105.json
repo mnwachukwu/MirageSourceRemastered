@@ -1,0 +1,18 @@
+{
+  "name": "Obsidian Plate",
+  "pic": 11,
+  "type": 2,
+  "durability": 1340,
+  "power": 181,
+  "levelReq": 115,
+  "allowedClasses": [
+    3,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 212726
+}

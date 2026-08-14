@@ -1,0 +1,13 @@
+{
+  "name": "Potent Vigour Draught",
+  "pic": 20,
+  "type": 7,
+  "vitalAmount": 20,
+  "levelReq": 20,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 24
+}

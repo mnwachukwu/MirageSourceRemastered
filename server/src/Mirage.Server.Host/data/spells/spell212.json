@@ -1,0 +1,11 @@
+{
+  "name": "Void Meditation",
+  "allowedClasses": [
+    6,
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 295,
+  "levelReq": 240
+}

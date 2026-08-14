@@ -1,0 +1,29 @@
+{
+  "name": "Ragged Vagrant",
+  "attackSay": "Stay back! I warned you!",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 25,
+  "behavior": 1,
+  "group": 0,
+  "range": 4,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 4,
+      "chance": 60
+    },
+    {
+      "itemNum": 274,
+      "quantity": 2,
+      "chance": 2
+    }
+  ],
+  "str": 8,
+  "def": 7,
+  "spd": 2,
+  "int": 1,
+  "extraHp": 8,
+  "isBoss": false,
+  "emitsLight": true
+}

@@ -1,0 +1,39 @@
+{
+  "name": "Cinder Cantor",
+  "attackSay": "The hymn is a furnace.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 90,
+  "behavior": 0,
+  "group": 0,
+  "range": 12,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1000,
+      "chance": 60
+    },
+    {
+      "itemNum": 284,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 2,
+      "quantity": 3,
+      "chance": 20
+    },
+    {
+      "itemNum": 473,
+      "quantity": 0,
+      "chance": 6
+    }
+  ],
+  "str": 149,
+  "def": 203,
+  "spd": 54,
+  "int": 328,
+  "extraHp": 540,
+  "isBoss": false,
+  "emitsLight": true
+}

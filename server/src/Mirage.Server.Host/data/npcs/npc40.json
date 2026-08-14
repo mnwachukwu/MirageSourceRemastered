@@ -1,0 +1,54 @@
+{
+  "name": "Ferry of Ash",
+  "attackSay": "CREEEAAAK... HSSSSS!",
+  "sprite": 0,
+  "size": 3,
+  "spawnSecs": 420,
+  "behavior": 1,
+  "group": 0,
+  "range": 6,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 409,
+      "chance": 90
+    },
+    {
+      "itemNum": 278,
+      "quantity": 12,
+      "chance": 2
+    },
+    {
+      "itemNum": 56,
+      "quantity": 0,
+      "chance": 16
+    },
+    {
+      "itemNum": 63,
+      "quantity": 0,
+      "chance": 12
+    },
+    {
+      "itemNum": 210,
+      "quantity": 0,
+      "chance": 30
+    },
+    {
+      "itemNum": 371,
+      "quantity": 0,
+      "chance": 20
+    },
+    {
+      "itemNum": 376,
+      "quantity": 0,
+      "chance": 15
+    }
+  ],
+  "str": 37,
+  "def": 32,
+  "spd": 2,
+  "int": 5,
+  "extraHp": 2599,
+  "isBoss": true,
+  "emitsLight": true
+}

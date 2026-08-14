@@ -1,0 +1,10 @@
+{
+  "name": "Celestial Heal",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 307,
+  "levelReq": 250
+}

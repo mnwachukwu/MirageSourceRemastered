@@ -1,0 +1,24 @@
+{
+  "name": "Eternal Dagger",
+  "pic": 10,
+  "type": 1,
+  "durability": 1170,
+  "power": 226,
+  "levelReq": 245,
+  "allowedClasses": [
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    9,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 944079
+}

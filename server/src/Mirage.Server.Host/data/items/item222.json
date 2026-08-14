@@ -1,0 +1,13 @@
+{
+  "name": "Superior Vigour Draught",
+  "pic": 20,
+  "type": 7,
+  "vitalAmount": 94,
+  "levelReq": 105,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2041
+}

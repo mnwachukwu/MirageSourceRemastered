@@ -1,0 +1,21 @@
+{
+  "name": "Eternal Buckler",
+  "pic": 13,
+  "type": 4,
+  "durability": 1170,
+  "power": 226,
+  "levelReq": 245,
+  "allowedClasses": [
+    2,
+    3,
+    6,
+    7,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 944079
+}

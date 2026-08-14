@@ -1,0 +1,11 @@
+{
+  "name": "Abyssal Opal",
+  "pic": 27,
+  "type": 0,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": true,
+  "price": 5069
+}

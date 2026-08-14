@@ -1,0 +1,13 @@
+{
+  "name": "Resplendent Healing Draught",
+  "pic": 20,
+  "type": 5,
+  "vitalAmount": 778,
+  "levelReq": 120,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2917
+}

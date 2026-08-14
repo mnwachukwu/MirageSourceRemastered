@@ -1,0 +1,54 @@
+{
+  "name": "Ash Marshal Vane",
+  "attackSay": "Two will not be enough.",
+  "sprite": 0,
+  "size": 2,
+  "spawnSecs": 1500,
+  "behavior": 1,
+  "group": 0,
+  "range": 11,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 8243,
+      "chance": 90
+    },
+    {
+      "itemNum": 286,
+      "quantity": 12,
+      "chance": 2
+    },
+    {
+      "itemNum": 155,
+      "quantity": 0,
+      "chance": 4
+    },
+    {
+      "itemNum": 156,
+      "quantity": 0,
+      "chance": 3
+    },
+    {
+      "itemNum": 258,
+      "quantity": 0,
+      "chance": 30
+    },
+    {
+      "itemNum": 506,
+      "quantity": 0,
+      "chance": 20
+    },
+    {
+      "itemNum": 511,
+      "quantity": 0,
+      "chance": 15
+    }
+  ],
+  "str": 414,
+  "def": 188,
+  "spd": 75,
+  "int": 75,
+  "extraHp": 52408,
+  "isBoss": true,
+  "emitsLight": true
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Minor Bloodletting Vial",
+  "pic": 20,
+  "type": 8,
+  "vitalAmount": 8,
+  "levelReq": 1,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 1
+}

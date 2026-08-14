@@ -1,0 +1,39 @@
+{
+  "name": "Abyssal Cantor",
+  "attackSay": "The deep has a liturgy. Learn it.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 75,
+  "behavior": 0,
+  "group": 0,
+  "range": 11,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 425,
+      "chance": 60
+    },
+    {
+      "itemNum": 282,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 2,
+      "quantity": 3,
+      "chance": 20
+    },
+    {
+      "itemNum": 443,
+      "quantity": 0,
+      "chance": 6
+    }
+  ],
+  "str": 75,
+  "def": 102,
+  "spd": 27,
+  "int": 165,
+  "extraHp": 132,
+  "isBoss": false,
+  "emitsLight": true
+}

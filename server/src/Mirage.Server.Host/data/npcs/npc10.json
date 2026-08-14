@@ -1,0 +1,29 @@
+{
+  "name": "Orc Raider",
+  "attackSay": "Blood for the warband!",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 45,
+  "behavior": 0,
+  "group": 0,
+  "range": 7,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 22,
+      "chance": 60
+    },
+    {
+      "itemNum": 276,
+      "quantity": 1,
+      "chance": 2
+    }
+  ],
+  "str": 21,
+  "def": 18,
+  "spd": 4,
+  "int": 4,
+  "extraHp": 22,
+  "isBoss": false,
+  "emitsLight": true
+}

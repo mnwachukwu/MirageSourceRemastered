@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Sovereign Vigour",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 179,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 381192
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Strong Mana Draught",
+  "pic": 20,
+  "type": 6,
+  "vitalAmount": 34,
+  "levelReq": 15,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 11
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Iron Sword",
+  "pic": 10,
+  "type": 1,
+  "durability": 220,
+  "power": 13,
+  "levelReq": 5,
+  "allowedClasses": [
+    1,
+    2,
+    3,
+    7,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 99
+}

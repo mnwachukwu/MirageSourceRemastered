@@ -1,0 +1,21 @@
+{
+  "name": "Runed Sword",
+  "pic": 10,
+  "type": 1,
+  "durability": 1020,
+  "power": 133,
+  "levelReq": 105,
+  "allowedClasses": [
+    1,
+    2,
+    3,
+    7,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 134197
+}

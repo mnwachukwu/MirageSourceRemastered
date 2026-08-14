@@ -1,0 +1,14 @@
+{
+  "name": "Eternal Tunic",
+  "pic": 11,
+  "type": 2,
+  "durability": 1170,
+  "power": 226,
+  "levelReq": 245,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 944079
+}

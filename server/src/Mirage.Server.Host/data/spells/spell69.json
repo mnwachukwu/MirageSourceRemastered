@@ -1,0 +1,10 @@
+{
+  "name": "Adept Attunement",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 31,
+  "levelReq": 15
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Kilnforged Tunic",
+  "pic": 11,
+  "type": 2,
+  "durability": 340,
+  "power": 23,
+  "levelReq": 20,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 1460
+}

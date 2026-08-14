@@ -1,0 +1,34 @@
+{
+  "name": "Kiln Halberdier",
+  "attackSay": "The Kiln keeps its own.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 105,
+  "behavior": 0,
+  "group": 0,
+  "range": 10,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1066,
+      "chance": 60
+    },
+    {
+      "itemNum": 287,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 160,
+      "quantity": 0,
+      "chance": 1
+    }
+  ],
+  "str": 349,
+  "def": 297,
+  "spd": 70,
+  "int": 58,
+  "extraHp": 3590,
+  "isBoss": false,
+  "emitsLight": true
+}

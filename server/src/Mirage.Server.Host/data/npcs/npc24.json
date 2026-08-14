@@ -1,0 +1,34 @@
+{
+  "name": "Tollman\u0027s Thug",
+  "attackSay": "The road is not free.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 30,
+  "behavior": 1,
+  "group": 0,
+  "range": 5,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 8,
+      "chance": 60
+    },
+    {
+      "itemNum": 275,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 4,
+      "quantity": 0,
+      "chance": 4
+    }
+  ],
+  "str": 15,
+  "def": 12,
+  "spd": 2,
+  "int": 1,
+  "extraHp": 31,
+  "isBoss": false,
+  "emitsLight": true
+}

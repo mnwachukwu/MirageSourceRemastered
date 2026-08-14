@@ -1,0 +1,19 @@
+{
+  "name": "Warded Helm",
+  "pic": 12,
+  "type": 3,
+  "durability": 1050,
+  "power": 139,
+  "levelReq": 110,
+  "allowedClasses": [
+    2,
+    3,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 151629
+}

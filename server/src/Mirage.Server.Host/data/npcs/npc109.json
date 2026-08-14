@@ -1,0 +1,39 @@
+{
+  "name": "Throne Sentinel",
+  "attackSay": "None pass while I stand.",
+  "sprite": 0,
+  "size": 2,
+  "spawnSecs": 110,
+  "behavior": 0,
+  "group": 0,
+  "range": 11,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1071,
+      "chance": 60
+    },
+    {
+      "itemNum": 287,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 167,
+      "quantity": 0,
+      "chance": 1
+    },
+    {
+      "itemNum": 264,
+      "quantity": 0,
+      "chance": 10
+    }
+  ],
+  "str": 358,
+  "def": 283,
+  "spd": 51,
+  "int": 84,
+  "extraHp": 34739,
+  "isBoss": false,
+  "emitsLight": true
+}

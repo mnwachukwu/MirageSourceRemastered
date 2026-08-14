@@ -1,0 +1,13 @@
+{
+  "name": "Resplendent Mana Draught",
+  "pic": 20,
+  "type": 6,
+  "vitalAmount": 778,
+  "levelReq": 120,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2917
+}

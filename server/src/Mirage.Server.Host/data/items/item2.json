@@ -1,0 +1,10 @@
+{
+  "name": "Magical Reagent",
+  "pic": 28,
+  "type": 12,
+  "nonTradeable": false,
+  "nonListable": true,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false
+}

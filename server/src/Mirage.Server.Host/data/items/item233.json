@@ -1,0 +1,13 @@
+{
+  "name": "Radiant Mana Draught",
+  "pic": 20,
+  "type": 6,
+  "vitalAmount": 721,
+  "levelReq": 115,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2603
+}

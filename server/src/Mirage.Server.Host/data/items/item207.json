@@ -1,0 +1,13 @@
+{
+  "name": "Strong Enervating Vial",
+  "pic": 20,
+  "type": 10,
+  "vitalAmount": 15,
+  "levelReq": 15,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 11
+}

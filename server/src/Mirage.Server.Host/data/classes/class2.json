@@ -1,0 +1,56 @@
+{
+  "name": "Soldier",
+  "description": "Fights for order. Even melee.",
+  "spriteMale": 2,
+  "spriteFemale": 12,
+  "str": 10,
+  "def": 10,
+  "spd": 0,
+  "int": 0,
+  "startingItems": [
+    {
+      "itemNum": 1,
+      "quantity": 200
+    },
+    {
+      "itemNum": 5,
+      "quantity": 0
+    },
+    {
+      "itemNum": 8,
+      "quantity": 0
+    },
+    {
+      "itemNum": 11,
+      "quantity": 0
+    },
+    {
+      "itemNum": 14,
+      "quantity": 0
+    },
+    {
+      "itemNum": 184,
+      "quantity": 0
+    },
+    {
+      "itemNum": 184,
+      "quantity": 0
+    },
+    {
+      "itemNum": 185,
+      "quantity": 0
+    },
+    {
+      "itemNum": 185,
+      "quantity": 0
+    },
+    {
+      "itemNum": 186,
+      "quantity": 0
+    },
+    {
+      "itemNum": 186,
+      "quantity": 0
+    }
+  ]
+}

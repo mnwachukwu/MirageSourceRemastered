@@ -1,0 +1,11 @@
+{
+  "name": "Arch Mend",
+  "allowedClasses": [
+    6,
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 104,
+  "levelReq": 110
+}

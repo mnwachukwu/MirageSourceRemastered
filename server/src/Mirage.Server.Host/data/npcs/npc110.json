@@ -1,0 +1,29 @@
+{
+  "name": "Last Ashwalker",
+  "attackSay": "I walked out of the fire once.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 110,
+  "behavior": 0,
+  "group": 0,
+  "range": 11,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1077,
+      "chance": 60
+    },
+    {
+      "itemNum": 288,
+      "quantity": 1,
+      "chance": 2
+    }
+  ],
+  "str": 403,
+  "def": 316,
+  "spd": 43,
+  "int": 17,
+  "extraHp": 9683,
+  "isBoss": false,
+  "emitsLight": true
+}

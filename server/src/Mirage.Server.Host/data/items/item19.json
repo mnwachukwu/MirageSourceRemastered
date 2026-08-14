@@ -1,0 +1,14 @@
+{
+  "name": "Iron Tunic",
+  "pic": 11,
+  "type": 2,
+  "durability": 170,
+  "power": 10,
+  "levelReq": 5,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 77
+}

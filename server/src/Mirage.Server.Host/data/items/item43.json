@@ -1,0 +1,14 @@
+{
+  "name": "Tempered Tunic",
+  "pic": 11,
+  "type": 2,
+  "durability": 290,
+  "power": 19,
+  "levelReq": 15,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 755
+}

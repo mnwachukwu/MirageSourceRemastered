@@ -1,0 +1,34 @@
+{
+  "name": "Deserter",
+  "attackSay": "I will not hang for this.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 30,
+  "behavior": 1,
+  "group": 0,
+  "range": 5,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 5,
+      "chance": 60
+    },
+    {
+      "itemNum": 274,
+      "quantity": 4,
+      "chance": 2
+    },
+    {
+      "itemNum": 13,
+      "quantity": 0,
+      "chance": 4
+    }
+  ],
+  "str": 12,
+  "def": 10,
+  "spd": 2,
+  "int": 2,
+  "extraHp": 10,
+  "isBoss": false,
+  "emitsLight": true
+}

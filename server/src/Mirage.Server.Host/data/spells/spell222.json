@@ -1,0 +1,9 @@
+{
+  "name": "Eternal Mana Rupture",
+  "allowedClasses": [
+    10
+  ],
+  "type": 4,
+  "vitalAmount": 376,
+  "levelReq": 245
+}

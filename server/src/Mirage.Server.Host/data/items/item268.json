@@ -1,0 +1,13 @@
+{
+  "name": "Absolute Healing Draught",
+  "pic": 20,
+  "type": 5,
+  "vitalAmount": 3169,
+  "levelReq": 255,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 21907
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Novice Attunement",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 10,
+  "levelReq": 1
+}

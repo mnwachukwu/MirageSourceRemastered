@@ -1,0 +1,14 @@
+{
+  "name": "Godmarked Tunic",
+  "pic": 11,
+  "type": 2,
+  "durability": 1190,
+  "power": 230,
+  "levelReq": 250,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 993886
+}

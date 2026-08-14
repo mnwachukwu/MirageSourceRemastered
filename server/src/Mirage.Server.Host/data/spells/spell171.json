@@ -1,0 +1,9 @@
+{
+  "name": "Sovereign Exhaustion",
+  "allowedClasses": [
+    10
+  ],
+  "type": 5,
+  "vitalAmount": 188,
+  "levelReq": 120
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Arch Second Wind",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 142,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 303259
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Eternal Mana Leech",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 220,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 2514758
+}

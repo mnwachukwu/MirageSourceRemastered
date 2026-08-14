@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Elder Restoration",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 156,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 340831
+}

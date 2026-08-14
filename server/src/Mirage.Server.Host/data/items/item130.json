@@ -1,0 +1,14 @@
+{
+  "name": "Astral Cap",
+  "pic": 12,
+  "type": 3,
+  "durability": 1150,
+  "power": 217,
+  "levelReq": 235,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 845315
+}

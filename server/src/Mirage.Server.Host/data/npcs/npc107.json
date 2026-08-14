@@ -1,0 +1,39 @@
+{
+  "name": "Ember Ordinal",
+  "attackSay": "The sum of you is a small heat.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 105,
+  "behavior": 0,
+  "group": 0,
+  "range": 12,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1066,
+      "chance": 60
+    },
+    {
+      "itemNum": 287,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 2,
+      "quantity": 3,
+      "chance": 20
+    },
+    {
+      "itemNum": 534,
+      "quantity": 0,
+      "chance": 6
+    }
+  ],
+  "str": 157,
+  "def": 214,
+  "spd": 57,
+  "int": 346,
+  "extraHp": 603,
+  "isBoss": false,
+  "emitsLight": true
+}

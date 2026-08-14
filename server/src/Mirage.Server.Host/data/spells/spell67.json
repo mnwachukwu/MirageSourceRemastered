@@ -1,0 +1,13 @@
+{
+  "name": "Adept Focus",
+  "allowedClasses": [
+    4,
+    5,
+    6,
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 19,
+  "levelReq": 15
+}

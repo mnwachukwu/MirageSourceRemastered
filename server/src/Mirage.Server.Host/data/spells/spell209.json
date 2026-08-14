@@ -1,0 +1,10 @@
+{
+  "name": "Void Heal",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 295,
+  "levelReq": 240
+}

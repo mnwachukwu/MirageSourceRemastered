@@ -1,0 +1,17 @@
+{
+  "name": "Reedmarsh Wolfman",
+  "attackSay": "Grrrr...",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 35,
+  "behavior": 1,
+  "group": 0,
+  "range": 6,
+  "str": 14,
+  "def": 11,
+  "spd": 5,
+  "int": 2,
+  "extraHp": 0,
+  "isBoss": false,
+  "emitsLight": false
+}

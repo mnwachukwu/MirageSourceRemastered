@@ -1,0 +1,34 @@
+{
+  "name": "Tidewatch Sentinel",
+  "attackSay": "The tide watches. So do I.",
+  "sprite": 0,
+  "size": 2,
+  "spawnSecs": 110,
+  "behavior": 0,
+  "group": 0,
+  "range": 8,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 51,
+      "chance": 60
+    },
+    {
+      "itemNum": 278,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 57,
+      "quantity": 0,
+      "chance": 4
+    }
+  ],
+  "str": 36,
+  "def": 28,
+  "spd": 5,
+  "int": 8,
+  "extraHp": 431,
+  "isBoss": false,
+  "emitsLight": true
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Journeyman Vigour",
+  "allowedClasses": [
+    7,
+    8,
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 19,
+  "levelReq": 10
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Apprentice Heal",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 13,
+  "levelReq": 5
+}

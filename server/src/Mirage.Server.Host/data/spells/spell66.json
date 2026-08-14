@@ -1,0 +1,10 @@
+{
+  "name": "Adept Restoration",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 31,
+  "levelReq": 15
+}

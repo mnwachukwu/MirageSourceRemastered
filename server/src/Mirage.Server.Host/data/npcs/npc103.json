@@ -1,0 +1,39 @@
+{
+  "name": "Pyre Ordinal",
+  "attackSay": "The reckoning is arithmetic.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 105,
+  "behavior": 0,
+  "group": 0,
+  "range": 12,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 1051,
+      "chance": 60
+    },
+    {
+      "itemNum": 286,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 2,
+      "quantity": 3,
+      "chance": 20
+    },
+    {
+      "itemNum": 506,
+      "quantity": 0,
+      "chance": 6
+    }
+  ],
+  "str": 155,
+  "def": 211,
+  "spd": 56,
+  "int": 342,
+  "extraHp": 588,
+  "isBoss": false,
+  "emitsLight": true
+}

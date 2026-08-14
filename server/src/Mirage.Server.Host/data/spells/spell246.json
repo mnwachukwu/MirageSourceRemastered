@@ -1,0 +1,10 @@
+{
+  "name": "Celestial Restoration",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 384,
+  "levelReq": 250
+}

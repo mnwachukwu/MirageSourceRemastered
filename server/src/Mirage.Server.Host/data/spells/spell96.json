@@ -1,0 +1,9 @@
+{
+  "name": "Master Mana Rupture",
+  "allowedClasses": [
+    10
+  ],
+  "type": 4,
+  "vitalAmount": 158,
+  "levelReq": 100
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Transcendent Siphon Vial",
+  "pic": 20,
+  "type": 9,
+  "vitalAmount": 2937,
+  "levelReq": 245,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 19684
+}

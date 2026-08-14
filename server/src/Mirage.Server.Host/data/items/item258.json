@@ -1,0 +1,13 @@
+{
+  "name": "Transcendent Vigour Draught",
+  "pic": 20,
+  "type": 7,
+  "vitalAmount": 217,
+  "levelReq": 245,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 19684
+}

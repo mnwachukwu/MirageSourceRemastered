@@ -1,0 +1,13 @@
+{
+  "name": "Ineffable Healing Draught",
+  "pic": 20,
+  "type": 5,
+  "vitalAmount": 3050,
+  "levelReq": 250,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 20777
+}

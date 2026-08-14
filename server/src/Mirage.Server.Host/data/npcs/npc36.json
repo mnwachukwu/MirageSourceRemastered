@@ -1,0 +1,34 @@
+{
+  "name": "Oathbreaker",
+  "attackSay": "I sold the oath. I kept the sword.",
+  "sprite": 0,
+  "size": 2,
+  "spawnSecs": 120,
+  "behavior": 0,
+  "group": 0,
+  "range": 8,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 39,
+      "chance": 60
+    },
+    {
+      "itemNum": 277,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 40,
+      "quantity": 0,
+      "chance": 4
+    }
+  ],
+  "str": 30,
+  "def": 24,
+  "spd": 4,
+  "int": 7,
+  "extraHp": 333,
+  "isBoss": false,
+  "emitsLight": true
+}

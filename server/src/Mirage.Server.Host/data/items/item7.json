@@ -1,0 +1,14 @@
+{
+  "name": "Rusted Tunic",
+  "pic": 11,
+  "type": 2,
+  "durability": 80,
+  "power": 6,
+  "levelReq": 1,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 11
+}

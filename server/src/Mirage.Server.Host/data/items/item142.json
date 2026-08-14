@@ -1,0 +1,14 @@
+{
+  "name": "Sundered Cap",
+  "pic": 12,
+  "type": 3,
+  "durability": 1160,
+  "power": 221,
+  "levelReq": 240,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 891825
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Peerless Siphon Vial",
+  "pic": 20,
+  "type": 9,
+  "vitalAmount": 2822,
+  "levelReq": 240,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 18628
+}

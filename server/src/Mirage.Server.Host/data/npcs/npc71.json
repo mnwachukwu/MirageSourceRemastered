@@ -1,0 +1,39 @@
+{
+  "name": "Abyssal Reader",
+  "attackSay": "I have read what the deep wrote.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 75,
+  "behavior": 0,
+  "group": 0,
+  "range": 11,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 412,
+      "chance": 60
+    },
+    {
+      "itemNum": 281,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 2,
+      "quantity": 3,
+      "chance": 20
+    },
+    {
+      "itemNum": 426,
+      "quantity": 0,
+      "chance": 6
+    }
+  ],
+  "str": 73,
+  "def": 99,
+  "spd": 26,
+  "int": 161,
+  "extraHp": 125,
+  "isBoss": false,
+  "emitsLight": true
+}

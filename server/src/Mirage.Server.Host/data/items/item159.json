@@ -1,0 +1,18 @@
+{
+  "name": "Eternal Tower Shield",
+  "pic": 13,
+  "type": 4,
+  "durability": 1960,
+  "power": 376,
+  "levelReq": 245,
+  "allowedClasses": [
+    3,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 1570680
+}

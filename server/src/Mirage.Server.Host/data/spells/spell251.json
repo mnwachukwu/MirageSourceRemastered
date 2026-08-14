@@ -1,0 +1,12 @@
+{
+  "name": "Celestial Vigour",
+  "allowedClasses": [
+    7,
+    8,
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 307,
+  "levelReq": 250
+}

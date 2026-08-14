@@ -1,0 +1,11 @@
+{
+  "name": "Sovereign Mend",
+  "allowedClasses": [
+    6,
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 113,
+  "levelReq": 120
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Adept Meditation",
+  "allowedClasses": [
+    6,
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 25,
+  "levelReq": 15
+}

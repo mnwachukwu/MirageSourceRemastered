@@ -1,0 +1,34 @@
+{
+  "name": "Ashen Colossus",
+  "attackSay": "GRRRRIND",
+  "sprite": 0,
+  "size": 3,
+  "spawnSecs": 200,
+  "behavior": 0,
+  "group": 0,
+  "range": 10,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 995,
+      "chance": 60
+    },
+    {
+      "itemNum": 284,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 133,
+      "quantity": 0,
+      "chance": 1
+    }
+  ],
+  "str": 354,
+  "def": 301,
+  "spd": 24,
+  "int": 52,
+  "extraHp": 69547,
+  "isBoss": false,
+  "emitsLight": true
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Absolute Attunement",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 1,
+  "vitalAmount": 391,
+  "levelReq": 255
+}

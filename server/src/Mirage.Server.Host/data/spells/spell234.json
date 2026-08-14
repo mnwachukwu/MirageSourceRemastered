@@ -1,0 +1,10 @@
+{
+  "name": "Eternal Endurance",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 376,
+  "levelReq": 245
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Dawnforged Helm",
+  "pic": 12,
+  "type": 3,
+  "durability": 1100,
+  "power": 151,
+  "levelReq": 120,
+  "allowedClasses": [
+    2,
+    3,
+    10
+  ],
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 190596
+}

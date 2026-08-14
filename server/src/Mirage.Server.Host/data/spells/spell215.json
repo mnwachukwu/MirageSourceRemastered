@@ -1,0 +1,12 @@
+{
+  "name": "Void Vigour",
+  "allowedClasses": [
+    7,
+    8,
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 295,
+  "levelReq": 240
+}

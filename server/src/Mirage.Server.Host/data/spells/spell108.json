@@ -1,0 +1,10 @@
+{
+  "name": "Master Endurance",
+  "allowedClasses": [
+    9,
+    10
+  ],
+  "type": 2,
+  "vitalAmount": 158,
+  "levelReq": 100
+}

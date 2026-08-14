@@ -1,0 +1,34 @@
+{
+  "name": "Silt Wader",
+  "attackSay": "The tide took the road. It will take you.",
+  "sprite": 0,
+  "size": 1,
+  "spawnSecs": 50,
+  "behavior": 0,
+  "group": 0,
+  "range": 9,
+  "drops": [
+    {
+      "itemNum": 1,
+      "quantity": 356,
+      "chance": 60
+    },
+    {
+      "itemNum": 279,
+      "quantity": 1,
+      "chance": 2
+    },
+    {
+      "itemNum": 70,
+      "quantity": 0,
+      "chance": 2
+    }
+  ],
+  "str": 144,
+  "def": 123,
+  "spd": 29,
+  "int": 24,
+  "extraHp": 594,
+  "isBoss": false,
+  "emitsLight": true
+}

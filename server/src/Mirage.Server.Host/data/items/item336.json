@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Journeyman Restoration",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 48,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 795
+}

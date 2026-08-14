@@ -1,0 +1,12 @@
+{
+  "name": "Elder Life Siphon",
+  "allowedClasses": [
+    4,
+    5,
+    8,
+    10
+  ],
+  "type": 3,
+  "vitalAmount": 145,
+  "levelReq": 115
+}

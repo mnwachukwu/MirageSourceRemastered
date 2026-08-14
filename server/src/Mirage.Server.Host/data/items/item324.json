@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Apprentice Endurance",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 36,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 199
+}

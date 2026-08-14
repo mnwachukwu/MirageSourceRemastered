@@ -1,0 +1,9 @@
+{
+  "name": "Empyrean Mana Rupture",
+  "allowedClasses": [
+    10
+  ],
+  "type": 4,
+  "vitalAmount": 361,
+  "levelReq": 235
+}

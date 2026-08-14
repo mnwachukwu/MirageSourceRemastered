@@ -1,0 +1,12 @@
+{
+  "name": "Scroll of Arch Vigour",
+  "pic": 21,
+  "type": 13,
+  "spellNum": 143,
+  "nonTradeable": false,
+  "nonListable": false,
+  "nonMailable": false,
+  "destroyOnDrop": false,
+  "nonJunkable": false,
+  "price": 303259
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Adept Mend",
+  "allowedClasses": [
+    6,
+    9,
+    10
+  ],
+  "type": 0,
+  "vitalAmount": 19,
+  "levelReq": 15
+}
