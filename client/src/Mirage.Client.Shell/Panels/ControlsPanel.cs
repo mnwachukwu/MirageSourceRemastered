@@ -23,7 +23,7 @@ public sealed class ControlsPanel : IGamePanel
     private const int TabGap = 2;
     private const int MinTabW = 80;
 
-    // The control-scheme images are authored at this fixed size (tools/generate_control_images).
+    // The control-scheme images are authored at this fixed size (Art/generate_control_images.py in the .Tools repo).
     private const int RefImageW = 800;
     private const int RefImageH = 600;
     // A residual letterbox bar this small (px) is an integer-rounding sliver, not a real aspect

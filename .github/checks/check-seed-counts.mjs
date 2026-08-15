@@ -21,10 +21,20 @@
 // populated it must not go red, or this check is the first thing anybody deletes.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+// Walk UP for a repo marker rather than assuming "my parent is the root". The old form hardcoded one
+// directory of nesting, so moving this file — which happened the moment tools/ was retired in favour of
+// .github/checks/ — silently pointed it at a folder with no data/ and no README, where it would have
+// found nothing to check and said so cheerfully. Same strategy check-doc-links.mjs already used.
+function findRepoRoot(start) {
+  for (let dir = resolve(start); ; dir = dirname(dir)) {
+    if (existsSync(join(dir, '.git')) || existsSync(join(dir, 'Mirage.slnx'))) return dir;
+    if (dirname(dir) === dir) return resolve(start);
+  }
+}
+const repoRoot = findRepoRoot(dirname(fileURLToPath(import.meta.url)));
 const dataDir = join(repoRoot, 'server', 'src', 'Mirage.Server.Host', 'data');
 const readmePath = join(repoRoot, 'README.md');
 

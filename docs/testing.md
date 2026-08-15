@@ -79,10 +79,10 @@ not, instead of one green row and two a reader has to reason about.
 ## The documentation is checked too
 
 ```sh
-node tools/check-doc-links.mjs
+node .github/checks/check-doc-links.mjs
 ```
 
-[`tools/check-doc-links.mjs`](../tools/check-doc-links.mjs) reads every Markdown file in the
+[`.github/checks/check-doc-links.mjs`](../.github/checks/check-doc-links.mjs) reads every Markdown file in the
 repository and follows every link that points inside it — a path, an in-page anchor, or both. It runs
 as its own CI job and gates a release alongside the suites.
 

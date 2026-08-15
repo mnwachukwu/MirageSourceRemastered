@@ -68,12 +68,12 @@ jobs:
       # are a .NET 10 feature, so the SDK an image happens to carry cannot be assumed. Thirty
       # seconds of setup to check sixty lines' worth of links was the wrong trade.
       - name: Check every link in the Markdown resolves
-        run: node tools/check-doc-links.mjs
+        run: node .github/checks/check-doc-links.mjs
 
       # Numbers rot the same way links do, and the README's seed counts have gone stale twice. The
       # site is written FROM this README by its own stated rule, so a wrong count publishes twice.
       - name: Check the README's seed counts match data/
-        run: node tools/check-seed-counts.mjs
+        run: node .github/checks/check-seed-counts.mjs
 
   # ---- Does it work off Windows? ---------------------------------------------------------------
   #
