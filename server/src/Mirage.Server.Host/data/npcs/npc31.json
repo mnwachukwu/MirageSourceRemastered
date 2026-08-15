@@ -1,7 +1,7 @@
 {
   "name": "Gravebound",
   "attackSay": "UUURRRGHH...",
-  "sprite": 14,
+  "sprite": 18,
   "size": 3,
   "spawnSecs": 110,
   "behavior": 0,

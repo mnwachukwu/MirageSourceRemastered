@@ -1,7 +1,7 @@
 {
   "name": "Rookery Birdman",
   "attackSay": "SKREEEEE!",
-  "sprite": 12,
+  "sprite": 14,
   "size": 1,
   "spawnSecs": 50,
   "behavior": 0,
