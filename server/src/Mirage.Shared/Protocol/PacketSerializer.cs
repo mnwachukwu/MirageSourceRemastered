@@ -294,6 +294,8 @@ public static class PacketSerializer
                 // Inventory / items
                 PacketNames.UseItem => JsonSerializer.Deserialize<UseItemPacket>(line, Options),
                 PacketNames.MapGetItem => JsonSerializer.Deserialize<MapGetItemPacket>(line, Options),
+                PacketNames.MapPickUp => JsonSerializer.Deserialize<MapPickUpPacket>(line, Options),
+                PacketNames.MapPickUpAll => JsonSerializer.Deserialize<MapPickUpAllPacket>(line, Options),
                 PacketNames.MapDropItem => JsonSerializer.Deserialize<MapDropItemPacket>(line, Options),
                 PacketNames.MapDropBulk => JsonSerializer.Deserialize<MapDropBulkPacket>(line, Options),
                 PacketNames.SortInventory => JsonSerializer.Deserialize<SortInventoryPacket>(line, Options),

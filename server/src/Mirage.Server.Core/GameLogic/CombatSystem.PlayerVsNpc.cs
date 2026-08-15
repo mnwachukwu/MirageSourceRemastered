@@ -369,30 +369,29 @@ public sealed partial class CombatSystem : GameSystem
         var dropTable = npcRec.Drops;
         if (dropTable is null || !dropTable.Any(d => d.IsLive)) return;
 
-        int lootTagWinner = 0;
-        bool lootWasRolled = false;
-        List<(int player, int roll)> lootFinalRolls = [];
+        // ── Who shared the kill ──────────────────────────────────────────────────
+        // Everyone who dealt at least LootDamageContributionThreshold of the top damage, is still
+        // playing, and is still watching this map. Worked out ONCE and used for everything below: the
+        // per-item tag rolls and the currency split both draw from this same set, so "who earned a
+        // share of this kill" has exactly one definition.
+        //
+        // Party membership is deliberately irrelevant. Two strangers who both fought the mob both
+        // earned a cut, and a party member who stood at the back did not.
+        var contributors = new List<int>();
+        int topContributor = 0;
 
         if (maxDmg > 0)
         {
             // Clamp to 1 so 0-damage players never qualify: at maxDmg=1 the raw 95% truncates
             // to 0 and would let everyone on the map roll.
             int threshold = Math.Max(1, (int)(maxDmg * Constants.LootDamageContributionThreshold));
-            var candidates = new List<int>();
             for (int i = 1; i <= Constants.MaxPlayers; i++)
             {
                 if (mapNpc.DamageByPlayer[i] < threshold) continue;
                 if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
-                candidates.Add(i);
-            }
-            if (candidates.Count == 1)
-            {
-                lootTagWinner = candidates[0];
-            }
-            else if (candidates.Count > 1)
-            {
-                lootWasRolled = true;
-                lootTagWinner = ResolveLootRoll(candidates, out lootFinalRolls);
+                contributors.Add(i);
+                if (topContributor == 0 || mapNpc.DamageByPlayer[i] > mapNpc.DamageByPlayer[topContributor])
+                    topContributor = i;
             }
         }
 
@@ -405,8 +404,13 @@ public sealed partial class CombatSystem : GameSystem
         // (it was always "your drop rate", not "your one drop"), and L4's double is rolled PER LINE — one
         // lucky sword does not also double the gold, which would make the perk swing wildly with table
         // length rather than paying out per thing dropped.
-        bool dropRateperk = GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDropRate);
-        bool doublePerk = GuildPerks.IsActive(GuildOf(lootTagWinner), Constants.GuildPerkLevelDoubleDrop);
+        //
+        // Both now read the TOP DAMAGE CONTRIBUTOR's guild rather than a tag winner's, because there is
+        // no longer one winner per kill to ask. Whether a line lands at all is a property of the kill,
+        // so it needs a single answer, and the biggest contributor is a defensible and DETERMINISTIC
+        // one — strictly less arbitrary than the coin-flip winner it replaces.
+        bool dropRateperk = GuildPerks.IsActive(GuildOf(topContributor), Constants.GuildPerkLevelDropRate);
+        bool doublePerk = GuildPerks.IsActive(GuildOf(topContributor), Constants.GuildPerkLevelDoubleDrop);
 
         var landed = new List<(int ItemNum, int Value, bool IsCurrency, bool Doubled)>();
         foreach (var entry in dropTable)
@@ -444,48 +448,152 @@ public sealed partial class CombatSystem : GameSystem
             }
         }
 
-        if (lootWasRolled && lootTagWinner > 0)
+        // Spawns one stack on the corpse tile, tagged to `owner` (0 = untagged, free to anyone).
+        // Everything lands on the SAME tile: scattering across neighbours was considered and rejected,
+        // because the only thing it bought was stopping someone standing on the pile to deny it — and
+        // pickup at range solves that outright. Several tagged stacks sharing a tile is fine; they are
+        // told apart by their tag, not by where they sit.
+        void Spawn(int itemNum, int value, int owner)
         {
-            // ONE roll decides the whole corpse, not one per item — the tag is priority on this kill's
-            // loot, so splitting a table between two players would be a different (and worse) rule. The
-            // roll message therefore names everything that dropped rather than repeating per item.
-            string winnerName = _pm[lootTagWinner].Char.Name.Trim();
-            string allNames = string.Join(", ", landed.Select(d => _world.Items[d.ItemNum].TrimmedName));
-            foreach (var (player, _) in lootFinalRolls)
-            {
-                string rollList = string.Join(", ", lootFinalRolls.Select(r =>
-                    $"{(r.player == player ? "You" : _pm[r.player].Char.Name.Trim())} ({r.roll})"));
-                foreach (var d in landed) SendDropNotice(player, d);
-                SendMsg(player, ServerStrings.CombatSystem_LootRolling, GameColor.Yellow, ChatChannel.Rewards, ("Item", allNames), ("Rolls", rollList));
-                if (player == lootTagWinner)
-                    SendMsg(player, ServerStrings.CombatSystem_LootWon, GameColor.BrightGreen, ChatChannel.Rewards, ("Item", allNames), ("Seconds", Constants.LootTagDurationMs / 1000));
-                else
-                    SendMsg(player, ServerStrings.CombatSystem_LootLost, GameColor.Yellow, ChatChannel.Rewards, ("WinnerName", winnerName), ("Item", allNames));
-            }
-        }
-        else if (lootTagWinner > 0)
-        {
-            foreach (var d in landed) SendDropNotice(lootTagWinner, d);
+            int slot = _items.SpawnItem(itemNum, value, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
+            if (slot > 0 && owner > 0) _items.TagMapItem(mapNum, slot, owner, Constants.LootTagDurationMs);
         }
 
         foreach (var d in landed)
         {
-            int itemSlot = _items.SpawnItem(d.ItemNum, d.Value, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
-            if (itemSlot > 0 && lootTagWinner > 0)
+            string itemName = _world.Items[d.ItemNum].TrimmedName;
+
+            // ── Currency: split across everyone who earned it ────────────────────
+            // Gold is the one thing on the table that CAN be divided, so tagging the whole purse to a
+            // single roll winner was the sharpest edge of the old rule. The split reuses the same
+            // contributor set the tag rolls use rather than inventing a second notion of who shared
+            // the kill — and pointedly is not the party, since a party is not who fought the mob.
+            if (d.IsCurrency && contributors.Count > 1)
             {
-                var taggedItem = _world.MapItemBySlot(mapNum, itemSlot);
-                if (taggedItem is not null)
+                int[] shares = SplitCurrency(d.Value, contributors.Count);
+                int leftover = d.Value % contributors.Count;
+
+                // Whoever comes first takes the larger share, so when the purse does not divide evenly
+                // the ORDER is the whole question — and it is settled by a roll, exactly like a sword.
+                // Awarding the odd coin to the top damager was the first attempt and is worse: inside
+                // this set everyone is within 5% of each other by definition, so "hit hardest" is noise
+                // dressed up as merit, and it would hand the same player the extra coin every kill.
+                var order = new List<int>(contributors);
+                List<(int player, int roll)> remainderRolls = [];
+
+                if (leftover > 0)
                 {
-                    taggedItem.TaggedToPlayer = lootTagWinner;
-                    taggedItem.TagExpiresAt = Environment.TickCount64 + Constants.LootTagDurationMs;
+                    // One winner drawn at a time out of a shrinking pool, so two spare coins go to two
+                    // different people. ResolveLootRoll re-rolls ties, which is why this reuses it
+                    // rather than sorting one round of rolls — a tie for gold should break the same way
+                    // a tie for loot does.
+                    var pool = new List<int>(contributors);
+                    var winners = new List<int>(leftover);
+                    for (int k = 0; k < leftover; k++)
+                    {
+                        int winner = ResolveLootRoll(pool, out var rolls);
+                        if (k == 0) remainderRolls = rolls;   // the round everyone took part in
+                        winners.Add(winner);
+                        pool.Remove(winner);
+                    }
+                    order = [.. winners, .. pool];
+                }
+
+                for (int i = 0; i < order.Count; i++)
+                {
+                    if (shares[i] <= 0) continue;         // no empty stacks for a purse too small to go round
+                    Spawn(d.ItemNum, shares[i], order[i]);
+
+                    // Reported before the share, so "a roll happened" arrives ahead of "here is why
+                    // yours is smaller than theirs" rather than after it.
+                    if (remainderRolls.Count > 0)
+                    {
+                        string rollList = string.Join(", ", remainderRolls.Select(r =>
+                            $"{(r.player == order[i] ? "You" : _pm[r.player].Char.Name.Trim())} ({r.roll})"));
+                        SendMsg(order[i], ServerStrings.CombatSystem_LootRolling, GameColor.Yellow, ChatChannel.Rewards,
+                            ("Item", itemName), ("Rolls", rollList));
+                    }
+
+                    SendMsg(order[i], ServerStrings.CombatSystem_LootCurrencySplit, GameColor.Yellow, ChatChannel.Rewards,
+                        ("NpcName", npcName), ("Amount", d.Value), ("Item", itemName),
+                        ("Ways", order.Count), ("Share", shares[i]));
+                }
+                continue;
+            }
+
+            // ── Everything else: one owner, decided PER ITEM ─────────────────────
+            // A kill that drops a sword and a potion can tag them to different people. The eligibility
+            // gate is unchanged; what changed is that it is rolled once per thing dropped instead of
+            // once per corpse, so a single unlucky roll no longer costs a contributor the entire kill.
+            int owner = 0;
+            if (contributors.Count == 1)
+            {
+                owner = contributors[0];
+                SendDropNotice(owner, d);
+            }
+            else if (contributors.Count > 1)
+            {
+                owner = ResolveLootRoll(contributors, out var rolls);
+                string winnerName = _pm[owner].Char.Name.Trim();
+                foreach (var (player, _) in rolls)
+                {
+                    string rollList = string.Join(", ", rolls.Select(r =>
+                        $"{(r.player == player ? "You" : _pm[r.player].Char.Name.Trim())} ({r.roll})"));
+                    SendDropNotice(player, d);
+                    SendMsg(player, ServerStrings.CombatSystem_LootRolling, GameColor.Yellow, ChatChannel.Rewards,
+                        ("Item", itemName), ("Rolls", rollList));
+                    if (player == owner)
+                        SendMsg(player, ServerStrings.CombatSystem_LootWon, GameColor.BrightGreen, ChatChannel.Rewards,
+                            ("Item", itemName), ("Seconds", Constants.LootTagDurationMs / 1000));
+                    else
+                        SendMsg(player, ServerStrings.CombatSystem_LootLost, GameColor.Yellow, ChatChannel.Rewards,
+                            ("WinnerName", winnerName), ("Item", itemName));
                 }
             }
-            // L4 double-drop of a non-currency item: a second identical copy on the same tile (untagged — a
-            // free bonus on the ground; currency was doubled in-place above).
+
+            Spawn(d.ItemNum, d.Value, owner);
+
+            // L4 double-drop of a non-currency item: a second identical copy on the same tile, and
+            // UNTAGGED — a free bonus on the ground rather than more of the winner's pile. (Currency
+            // was doubled in place above, before any split, so the whole party shares the perk.)
             if (d.Doubled && !d.IsCurrency)
-                _items.SpawnItem(d.ItemNum, d.Value, mapNum, mapNpc.X, mapNpc.Y, ItemSource.NpcDropped, layer: mapNpc.Layer);
+                Spawn(d.ItemNum, d.Value, owner: 0);
         }
         _items.EnqueueSaveDroppedItems(mapNum);
+    }
+
+    /// <summary>
+    /// Divide a currency drop among the players who earned a share of the kill.
+    ///
+    /// <para>Returns one amount per recipient, in the order they were given. This decides the SHAPE of
+    /// the split and nothing about who stands where — the caller orders the recipients, and does it by
+    /// rolling, so keeping the arithmetic separate from the draw is what makes the arithmetic
+    /// testable.</para>
+    ///
+    /// <para><b>The remainder rule:</b> an even share each, then the leftover coins one apiece to
+    /// whoever comes first. Gold is integral, so three players splitting 10 must either lose a coin or
+    /// invent one; the odd coin goes to a roll winner, which is the same answer the engine already
+    /// gives for a sword two people both want.</para>
+    ///
+    /// <para>It degrades correctly when the purse is smaller than the party: 3 gold among 4 pays three
+    /// of them a coin each and the fourth nothing, rather than rounding everybody to zero. The caller
+    /// skips a zero rather than spawning an empty stack.</para>
+    ///
+    /// <para><b>Conserves the total exactly</b> — nothing is created and nothing is destroyed, which
+    /// is the property worth pinning, since this is the only place in the engine that divides
+    /// currency.</para>
+    /// </summary>
+    public static int[] SplitCurrency(int total, int recipients)
+    {
+        if (recipients <= 0) return [];
+        if (total <= 0) return new int[recipients];
+
+        int share = total / recipients;
+        int leftover = total % recipients;
+
+        var shares = new int[recipients];
+        for (int i = 0; i < recipients; i++) shares[i] = share + (i < leftover ? 1 : 0);
+        return shares;
     }
 
     /// <summary>Zero a victim NPC's combat ledger — damage credits, attack-say dedup, and the

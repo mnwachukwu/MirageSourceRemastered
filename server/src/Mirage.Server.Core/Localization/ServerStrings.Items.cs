@@ -42,6 +42,9 @@ public static partial class ServerStrings
     public const string ItemSystem_UsedPotion = nameof(ItemSystem_UsedPotion);
     public const string ItemSystem_CantUsePotion = nameof(ItemSystem_CantUsePotion);
     public const string ItemSystem_LootClaimed = nameof(ItemSystem_LootClaimed);
+    public const string ItemSystem_LootGone = nameof(ItemSystem_LootGone);
+    public const string ItemSystem_LootTooFar = nameof(ItemSystem_LootTooFar);
+    public const string ItemSystem_LootLeftBehind = nameof(ItemSystem_LootLeftBehind);
     public const string ItemSystem_PickedUpMultiple = nameof(ItemSystem_PickedUpMultiple);
     public const string ItemSystem_PickedUp = nameof(ItemSystem_PickedUp);
     public const string ItemSystem_DropMultiple = nameof(ItemSystem_DropMultiple);

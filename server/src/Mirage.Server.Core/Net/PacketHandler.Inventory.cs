@@ -38,6 +38,24 @@ public sealed partial class PacketHandler
         _items.PlayerMapGetItem(index);
     }
 
+    /// <summary>Tile menu → pick up one named item, possibly from a few tiles away. The same
+    /// alive-and-playing gate as the pick-up key; ItemSystem owns the reach check, because reach is
+    /// world geometry rather than a protocol concern.</summary>
+    private void HandleMapPickUp(int index, MapPickUpPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;
+        _items.PlayerMapPickUpAt(index, p.MapNum, p.Slot);
+    }
+
+    /// <summary>Tile menu → pick up everything claimable on one tile.</summary>
+    private void HandleMapPickUpAll(int index, MapPickUpAllPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;
+        _items.PlayerMapPickUpAllAt(index, p.MapNum, p.X, p.Y, p.Layer);
+    }
+
     private void HandleSortInventory(int index)
     {
         if (!_pm[index].IsPlaying) return;

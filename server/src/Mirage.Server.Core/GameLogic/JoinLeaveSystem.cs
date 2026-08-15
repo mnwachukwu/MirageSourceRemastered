@@ -844,7 +844,7 @@ public sealed class JoinLeaveSystem : GameSystem
         for (int i = 0; i < list.Count; i++)
         {
             var mi = list[i];
-            buffer.Add(new MapItemsPacket.MapItemData(mi.Slot, mi.Num, mi.Quantity, mi.Dur, mi.X, mi.Y, mi.Source, mi.Layer));
+            buffer.Add(MapItemsPacket.MapItemData.From(mi, Environment.TickCount64));
             if (buffer.Count == MapItemsSnapshotChunkSize)
             {
                 _dispatcher.SendTo(index, new MapItemsPacket { MapNum = mapNum, Items = buffer.ToArray() });

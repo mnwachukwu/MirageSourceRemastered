@@ -473,6 +473,12 @@ public sealed partial class PacketHandler
                 case MapGetItemPacket:
                     HandleMapGetItem(index);
                     break;
+                case MapPickUpPacket p:
+                    HandleMapPickUp(index, p);
+                    break;
+                case MapPickUpAllPacket p:
+                    HandleMapPickUpAll(index, p);
+                    break;
                 case MapDropItemPacket p:
                     HandleMapDropItem(index, p);
                     break;

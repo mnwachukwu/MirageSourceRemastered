@@ -70,6 +70,11 @@ public static partial class ClientStrings
     public const string ContextMenu_Shop = nameof(ContextMenu_Shop);
     public const string ContextMenu_Inn = nameof(ContextMenu_Inn);
     public const string ContextMenu_Talk = nameof(ContextMenu_Talk);
+    public const string ContextMenu_PickUp = nameof(ContextMenu_PickUp);
+    public const string ContextMenu_YourLoot = nameof(ContextMenu_YourLoot);
+    public const string ContextMenu_PickUpAll = nameof(ContextMenu_PickUpAll);
+    public const string ContextMenu_LootHeldBy = nameof(ContextMenu_LootHeldBy);
+    public const string ContextMenu_TileGround = nameof(ContextMenu_TileGround);
     public const string ContextMenu_QuestAccept = nameof(ContextMenu_QuestAccept);
     public const string ContextMenu_QuestTurnIn = nameof(ContextMenu_QuestTurnIn);
     public const string ContextMenu_Trade = nameof(ContextMenu_Trade);

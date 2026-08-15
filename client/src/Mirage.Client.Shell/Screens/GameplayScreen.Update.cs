@@ -494,26 +494,14 @@ public sealed partial class GameplayScreen : IGameScreen
         // if the menu is already open (it consumes the click itself this frame).
         if (!mouseOverFloating && !MouseOverFloatingAt(input.RightPressOrigin) && !_contextMenu.IsOpen && input.IsRightMouseClicked())
         {
-            var hovered = ComputeHoveredEntity();
-            if (hovered.Kind == TargetKind.Player && hovered.A != _ctx.State.MyIndex)
-            {
-                var p = _ctx.State.Players[hovered.A];
-                if (!string.IsNullOrEmpty(p.Name))
-                {
-                    OpenPlayerContextMenu(p.Name.Trim(), input.MousePosition);
-                    input.ConsumeRightMouseClick();
-                }
-            }
-            else if (hovered.Kind is TargetKind.Npc or TargetKind.Traversal)
-            {
-                // Right-click a keeper/quest NPC (any range) → a range-gated menu. Gather EVERY NPC stacked under the
-                // cursor (both planes); OpenNpcMenusForStack keeps only the menu-bearing ones and, when more than one
-                // qualifies, labels each set of actions by its NPC's name.
-                float rwx = input.MousePosition.X + _camera.CameraX;
-                float rwy = input.MousePosition.Y + _camera.CameraY;
-                OpenNpcMenusForStack(FindNpcsAtPixel(rwx, rwy), input.MousePosition);
-                if (_contextMenu.IsOpen) input.ConsumeRightMouseClick();
-            }
+            // ONE menu for the whole square rather than a branch per entity kind. The old form asked
+            // "what did I click", which cannot answer for loot (it has no sprite worth aiming at) and
+            // is ambiguous across the two planes anyway. Asking "what is HERE" has a single answer,
+            // and it is what lets an item be taken without standing on it.
+            float rwx = input.MousePosition.X + _camera.CameraX;
+            float rwy = input.MousePosition.Y + _camera.CameraY;
+            OpenTileContextMenu(FindNpcsAtPixel(rwx, rwy), rwx, rwy, input.MousePosition);
+            if (_contextMenu.IsOpen) input.ConsumeRightMouseClick();
         }
     }
 

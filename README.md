@@ -34,16 +34,27 @@ I don't know why I did this.
 
 On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all eighteen projects together.
 
-Two things people expect to find here live **outside** this repository, in a sibling folder checked out beside it:
+Two things people expect to find here live **outside** this repository, in a sibling `MirageSourceRemastered.Tools` folder:
 
-| Where | What | Why not here |
-|---|---|---|
-| `../MirageSourceRemastered.Tools/Simulations/` | Standalone balance simulators — they answer "what would this feel like" against the shipped formulas | No dependency on the engine; nothing here builds or ships them |
-| `../MirageSourceRemastered.Tools/` (the rest) | The content generators that produced the seed — the armory, bestiary, spellbook, classes, conversations, quests and shops each have one | They write `data/` and are never referenced by it; the world is the artifact, not the script |
-| `../MirageSourceRemastered.Tools/vb6-to-cs-converter/` | The VB6 → JSON migration tool | Referenced only when importing an old world; it reaches back to `Mirage.Shared` by relative path, so the two folders must stay siblings |
+| What | Why not here |
+|---|---|
+| Standalone balance simulators — they answer "what would this feel like" against the shipped formulas | No dependency on the engine; nothing here builds or ships them |
+| The content generators that produced the seed — the armory, bestiary, spellbook, classes, conversations, quests and shops each have one | They write `data/` and are never referenced by it; the world is the artifact, not the script |
+| The VB6 → JSON migration tool | Referenced only when importing an old world; it reaches back to `Mirage.Shared` by a relative path, so the two folders must stay siblings |
+
+> ### ⚠️ That repository is **not currently published**
+>
+> It is a private authoring toolchain. Everything it produces — the world in `data/`, the app icons,
+> the control-scheme images — is committed **here**, so nothing in this repository depends on having
+> it, and nothing you can do with this repository requires it. But the paths above are not links, and
+> a `../MirageSourceRemastered.Tools` in an instruction anywhere in these docs is describing how
+> something was made, not telling you to go and run it.
+>
+> It may open up later. Until it does, the honest summary is: **you get the artifacts, not the
+> factory.**
 
 Deliberately described rather than enumerated: the previous version of this table named three simulators
-by hand and was wrong about all of it within a few months. Run `ls` in that folder for the current set.
+by hand and was wrong about all of it within a few months.
 
 ---
 
@@ -70,9 +81,7 @@ dotnet run --project client/src/Mirage.Client.Shell
 dotnet run --project editor/src/Mirage.Editor
 ```
 
-> **Importing VB6 world data:** if you have an existing VB6 server directory, run the standalone converter before starting the server. It lives **outside this repository**, in the sibling `MirageSourceRemastered.Tools/vb6-to-cs-converter/` folder:
-> `dotnet run --project ../MirageSourceRemastered.Tools/vb6-to-cs-converter/src/Mirage.Vb6Converter -- --migrate <vb6-server-path> [<data-output-path>]`
-> It converts all binary `.dat` maps and INI data files to JSON in one pass (account passwords are hashed during conversion). Source files are never modified.
+> **Importing VB6 world data:** a converter exists that turns an original VB6 server directory into this JSON format in one pass — all binary `.dat` maps and INI data files, with account passwords hashed on the way through and the source files never modified. It lives in the **unpublished** tools repository described above, so it is not something you can currently run. Writing your own is tractable — the target format is plain JSON, `server/src/Mirage.Shared/Records/` defines every record with its fields documented, and `server/src/Mirage.Server.Host/data/` is 1,122 worked examples. If you have a VB6 world you want migrated, open an issue.
 
 > **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 174 NPCs, 35 conversations, 54 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
 >
@@ -82,7 +91,7 @@ dotnet run --project editor/src/Mirage.Editor
 >
 > **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
 >
-> It is included as a courtesy — enough to start a server and see the systems work, and a worked example of what the record formats look like — but it is not a playable game and was never intended as one. Building an actual world means authoring your own content in the editor, or adapting the generators in the sibling `MirageSourceRemastered.Tools/` folder that produced this one.
+> It is included as a courtesy — enough to start a server and see the systems work, and a worked example of what the record formats look like — but it is not a playable game and was never intended as one. Building an actual world means authoring your own content in the editor. It is regular enough to look machine-written because it is, but the generators that wrote it are part of the unpublished toolchain above, so the editor is the path.
 
 ---
 

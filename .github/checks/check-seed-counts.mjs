@@ -25,7 +25,7 @@ import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Walk UP for a repo marker rather than assuming "my parent is the root". The old form hardcoded one
-// directory of nesting, so moving this file — which happened the moment tools/ was retired in favour of
+// directory of nesting, so moving this file — which happened the moment tools/ was retired in favor of
 // .github/checks/ — silently pointed it at a folder with no data/ and no README, where it would have
 // found nothing to check and said so cheerfully. Same strategy check-doc-links.mjs already used.
 function findRepoRoot(start) {

@@ -200,7 +200,7 @@
                        Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
           </Grid>
 
-          <!-- Column headers: three unlabelled number boxes in a row is a guessing game, and quantity
+          <!-- Column headers: three unlabeled number boxes in a row is a guessing game, and quantity
                only applies to currency, which is impossible to infer from a disabled spinner alone. -->
           <Grid ColumnDefinitions="*,70,70,28">
             <TextBlock x:Name="_dropItemHeader"     Grid.Column="1" FontSize="10" Foreground="#888" HorizontalAlignment="Center"/>

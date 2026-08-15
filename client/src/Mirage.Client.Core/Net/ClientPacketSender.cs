@@ -150,6 +150,17 @@ public sealed class ClientPacketSender
     public void SendMapGetItem()
         => _transport.Send(new MapGetItemPacket());
 
+    /// <summary>Tile menu → take one named drop. Identified by its stable per-map slot, so a pile
+    /// that shifted while the menu was open still yields the item that was clicked.</summary>
+    public void SendMapPickUp(int mapNum, int slot)
+        => _transport.Send(new MapPickUpPacket { MapNum = mapNum, Slot = slot });
+
+    /// <summary>Tile menu → take everything on one square this player can claim. A tile rather than a
+    /// list of slots: the set is decided server-side at the moment of the request, so anything that
+    /// dropped or was taken since the menu opened is accounted for without the client being right.</summary>
+    public void SendMapPickUpAll(int mapNum, int x, int y, WorldLayer layer)
+        => _transport.Send(new MapPickUpAllPacket { MapNum = mapNum, X = x, Y = y, Layer = layer });
+
     public void SendMapDropItem(int invSlot, int quantity)
         => _transport.Send(new MapDropItemPacket { Slot = invSlot, Quantity = quantity });
 

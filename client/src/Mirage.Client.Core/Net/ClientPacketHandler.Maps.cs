@@ -259,6 +259,12 @@ public sealed partial class ClientPacketHandler : IClientEvents
             mi.Y = item.Y;
             mi.Layer = item.Layer;   // two-layer world: for the render pass-split (drops on/under a bridge)
             mi.Source = item.Source;
+            // The loot claim, translated onto THIS machine's clock: the wire carries how long the tag
+            // has left, because a server TickCount64 means nothing here. Used by the tile menu to tell
+            // your loot from somebody else's; the server still re-checks every pick-up, so this is a
+            // display fact rather than a permission.
+            mi.TaggedToPlayer = item.TaggedTo;
+            mi.TagExpiresAt = item.TagMsLeft > 0 ? Environment.TickCount64 + item.TagMsLeft : 0;
         }
         if (IsCenter(p.MapNum)) MapItemChanged?.Invoke(0); // 0 = full refresh (center inventory UI)
     }

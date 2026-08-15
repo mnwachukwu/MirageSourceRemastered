@@ -39,6 +39,8 @@ public static class PacketNames
     public const string NeedNeighborMap = "needneighbormap";
     public const string RequestRegionSync = "reqregionsync";
     public const string MapGetItem = "mapgetitem";
+    public const string MapPickUp = "mappickup";
+    public const string MapPickUpAll = "mappickupall";
     public const string MapDropItem = "mapdropitem";
     public const string MapDropBulk = "mapdropbulk";
     public const string SortInventory = "sortinventory";

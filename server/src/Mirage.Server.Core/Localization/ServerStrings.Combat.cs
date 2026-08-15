@@ -93,6 +93,7 @@ public static partial class ServerStrings
     public const string CombatSystem_ExpPartnerKill = nameof(CombatSystem_ExpPartnerKill);
     public const string CombatSystem_LootNpcDrops = nameof(CombatSystem_LootNpcDrops);
     public const string CombatSystem_LootNpcDropsCurrency = nameof(CombatSystem_LootNpcDropsCurrency);
+    public const string CombatSystem_LootCurrencySplit = nameof(CombatSystem_LootCurrencySplit);
     public const string CombatSystem_LootRolling = nameof(CombatSystem_LootRolling);
     public const string CombatSystem_LootWon = nameof(CombatSystem_LootWon);
     public const string CombatSystem_LootLost = nameof(CombatSystem_LootLost);

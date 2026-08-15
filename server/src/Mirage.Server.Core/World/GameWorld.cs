@@ -125,6 +125,32 @@ public sealed class GameWorld
         npcNum = mn.Num;
         return true;
     }
+
+    /// <summary>Is a dropped item close enough for <paramref name="pc"/> to reach, and on a plane that
+    /// connects to theirs? The same world-geometry rule as <see cref="IsNpcInInteractRange"/>, and for the
+    /// same reason: the tile menu offers pick-up from a distance, so the SERVER has to be the one deciding
+    /// what "close enough" means. A modified client cannot vacuum a map from across it.
+    ///
+    /// <para>Size 1 rather than a footprint — an item occupies its own tile and nothing more.</para>
+    ///
+    /// <para>Note this is a strictly WIDER gate than standing on the item, which is the point: the reason
+    /// loot was scattered across neighbouring tiles in other engines is that a player could stand on the
+    /// pile and deny it. Reaching from r=5 removes the problem at its source instead.</para></summary>
+    public bool IsMapItemInReach(int index, PlayerRecord pc, int mapNum, MapItemRecord mi)
+    {
+        if (mapNum < 1 || mapNum > Constants.MaxMaps) return false;
+        if (mi.Num <= 0 || mi.Num > Constants.MaxItems) return false;
+        if (!IsObserving(index, mapNum)) return false;
+
+        var (myWX, myWY) = WorldCoordHelper.ToWorld(1, 1, pc.X, pc.Y);
+        var tw = WorldCoordHelper.ToWorldRelative(Maps, pc.Map, mapNum, mi.X, mi.Y);
+        if (tw is null || !WorldCoordHelper.IsInSpellRange(myWX, myWY, 1, tw.Value.worldX, tw.Value.worldY, 1))
+            return false;
+
+        var grid = WorldCoordHelper.BuildMapGrid(Maps, pc.Map);
+        return LayerLogic.LayerConnects(new ServerTileView(this, grid), myWX, myWY, pc.Layer,
+                                        tw.Value.worldX, tw.Value.worldY, mi.Layer);
+    }
     public bool IndoorsOf(int mapNum) => MapGroupResolve.Indoors(Maps[mapNum], GroupOf(mapNum));
     public bool AlwaysDarkOf(int mapNum) => MapGroupResolve.AlwaysDark(Maps[mapNum], GroupOf(mapNum));
     public int BootMapOf(int mapNum) => MapGroupResolve.BootMap(Maps[mapNum], GroupOf(mapNum));

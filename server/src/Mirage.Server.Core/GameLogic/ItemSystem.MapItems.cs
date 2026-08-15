@@ -55,9 +55,31 @@ public sealed partial class ItemSystem : GameSystem
         SendToMap(_world, mapNum, new MapItemsPacket
         {
             MapNum = mapNum,
-            Items = [new MapItemsPacket.MapItemData(slot, mi.Num, mi.Quantity, mi.Dur, mi.X, mi.Y, mi.Source, mi.Layer)]
+            Items = [MapItemsPacket.MapItemData.From(mi, Environment.TickCount64)]
         });
         return slot;
+    }
+
+    /// <summary>Stamp a loot claim on a just-spawned drop and tell the map about it.
+    ///
+    /// <para>A second packet rather than a parameter on <c>SpawnItem</c>, because the tag is decided
+    /// AFTER the item exists — the roll that picks an owner needs the drop to have landed first. The
+    /// re-broadcast is what stops the claim being invisible: it is set between the spawn packet and
+    /// anything else, so without this every client would have been told the item is unowned and never
+    /// corrected.</para></summary>
+    public void TagMapItem(int mapNum, int slot, int owner, long durationMs)
+    {
+        var mi = _world.MapItemBySlot(mapNum, slot);
+        if (mi is null || owner <= 0) return;
+
+        mi.TaggedToPlayer = owner;
+        mi.TagExpiresAt = Environment.TickCount64 + durationMs;
+
+        SendToMap(_world, mapNum, new MapItemsPacket
+        {
+            MapNum = mapNum,
+            Items = [MapItemsPacket.MapItemData.From(mi, Environment.TickCount64)]
+        });
     }
 
     /// <summary>
@@ -251,22 +273,57 @@ public sealed partial class ItemSystem : GameSystem
         }
         if (top is null) return;
 
-        var mi = top;
+        TryTakeMapItem(index, mapNum, top, announceRefusal: true);
+    }
+
+    /// <summary>Why a pick-up did not happen, or that it did.</summary>
+    public enum PickUpResult
+    {
+        Taken,
+        /// <summary>Somebody else's loot tag is still live on it.</summary>
+        Claimed,
+        /// <summary>No inventory slot can take it.</summary>
+        BagFull,
+    }
+
+    /// <summary>
+    /// Move one map item into a player's bag, with the claim check, the bag check, and every side effect
+    /// the old inline version had: the tile respawn timer, the two persistence enqueues, and the message.
+    ///
+    /// <para>Extracted so the three ways of picking something up — standing on it and pressing the key,
+    /// the tile menu's single Pick Up, and its Pick Up All — cannot drift apart. They differ ONLY in how
+    /// they choose the item and whether they announce a refusal; what "taking it" means is here.</para>
+    ///
+    /// <para><b>Range is NOT checked here.</b> Each caller has already established reach in its own way —
+    /// standing on the tile, or <see cref="GameWorld.IsMapItemInReach"/> — and folding it in would make
+    /// the key path pay for a geometry test it answers by construction.</para>
+    ///
+    /// <para><paramref name="announceRefusal"/> is off for bulk pick-up, which reports once at the end
+    /// rather than complaining per item — eight "your inventory is full" lines is not a better answer
+    /// than one.</para>
+    /// </summary>
+    private PickUpResult TryTakeMapItem(int index, int mapNum, MapItemRecord mi, bool announceRefusal)
+    {
+        var p = _pm[index].Char;
+
         long nowMs = Environment.TickCount64;
         if (mi.TaggedToPlayer > 0 && nowMs < mi.TagExpiresAt && mi.TaggedToPlayer != index)
         {
-            string ownerName = _pm[mi.TaggedToPlayer].Char.Name.Trim();
-            string itemName = _world.Items[mi.Num].TrimmedName;
-            int secsLeft = (int)Math.Ceiling((mi.TagExpiresAt - nowMs) / 1000.0);
-            SendMsg(index, ServerStrings.ItemSystem_LootClaimed, GameColor.Yellow, ("Item", itemName), ("Owner", ownerName), ("Seconds", secsLeft));
-            return;
+            if (announceRefusal)
+            {
+                string ownerName = _pm[mi.TaggedToPlayer].Char.Name.Trim();
+                string claimedName = _world.Items[mi.Num].TrimmedName;
+                int secsLeft = (int)Math.Ceiling((mi.TagExpiresAt - nowMs) / 1000.0);
+                SendMsg(index, ServerStrings.ItemSystem_LootClaimed, GameColor.Yellow, ("Item", claimedName), ("Owner", ownerName), ("Seconds", secsLeft));
+            }
+            return PickUpResult.Claimed;
         }
 
         int slot = FindOpenInvSlot(p, _world.Items, mi.Num);
         if (slot == 0)
         {
-            SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
-            return;
+            if (announceRefusal) SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
+            return PickUpResult.BagFull;
         }
 
         var item = _world.Items[mi.Num];
@@ -312,5 +369,95 @@ public sealed partial class ItemSystem : GameSystem
         // Persist the inventory gain in the same tick as the map removal above, so a crash between the
         // two can't clear the item from the map without granting it.
         _pm.MarkDirty(index);
+        return PickUpResult.Taken;
+    }
+
+    // ── Pick up at range, from the tile menu ──────────────────────────────────
+
+    /// <summary>Pick up ONE named map item from a distance — the tile menu's Pick Up.
+    ///
+    /// <para>Identified by its stable per-map slot rather than by position, so the thing that gets taken
+    /// is the thing that was clicked even if the pile shifted between the menu opening and the click.
+    /// A slot that no longer resolves means somebody else got there first, which is a race and not an
+    /// error: it says so quietly rather than reporting a fault.</para></summary>
+    public void PlayerMapPickUpAt(int index, int mapNum, int slot)
+    {
+        if (!_pm[index].IsPlaying) return;
+        var p = _pm[index].Char;
+
+        var mi = _world.MapItemBySlot(mapNum, slot);
+        if (mi is null || mi.Num <= 0)
+        {
+            SendMsg(index, ServerStrings.ItemSystem_LootGone, GameColor.Yellow);
+            return;
+        }
+
+        // The menu is a convenience; this is the authority. Re-checked on arrival because the player may
+        // have walked away — or never been close in the first place.
+        if (!_world.IsMapItemInReach(index, p, mapNum, mi))
+        {
+            SendMsg(index, ServerStrings.ItemSystem_LootTooFar, GameColor.BrightRed);
+            return;
+        }
+
+        TryTakeMapItem(index, mapNum, mi, announceRefusal: true);
+    }
+
+    /// <summary>Pick up everything on one tile that this player can claim — the tile menu's Pick Up All.
+    ///
+    /// <para><b>One at a time, and a partial result is a SUCCESS.</b> A bag that fills halfway through
+    /// leaves the rest on the ground and says how many; failing the whole batch because the last item
+    /// would not fit is how a player loses a kill to a full bag. Ordered top-of-stack first, so what a
+    /// partial pick-up takes is the same thing the pick-up key would have taken.</para>
+    ///
+    /// <para>Items claimed by somebody else are skipped in silence: the caller asked for THEIR loot, and
+    /// a refusal per stranger's stack would turn a shared corpse into a wall of text.</para></summary>
+    public void PlayerMapPickUpAllAt(int index, int mapNum, int x, int y, WorldLayer layer)
+    {
+        if (!_pm[index].IsPlaying) return;
+        var p = _pm[index].Char;
+
+        // Snapshotted before taking anything: TryTakeMapItem removes from this same list, and mutating a
+        // collection while walking it is the classic way to skip every other entry.
+        var onTile = new List<MapItemRecord>();
+        var list = _world.MapItems[mapNum];
+        for (int i = 0; i < list.Count; i++)
+        {
+            var m = list[i];
+            if (m.Num <= 0 || m.Num > Constants.MaxItems) continue;
+            if (m.X != x || m.Y != y || m.Layer != layer) continue;
+            onTile.Add(m);
+        }
+        if (onTile.Count == 0)
+        {
+            SendMsg(index, ServerStrings.ItemSystem_LootGone, GameColor.Yellow);
+            return;
+        }
+
+        // Reach is a property of the TILE, so it is answered once off the first item rather than per
+        // stack — every item here is on the same square by construction.
+        if (!_world.IsMapItemInReach(index, p, mapNum, onTile[0]))
+        {
+            SendMsg(index, ServerStrings.ItemSystem_LootTooFar, GameColor.BrightRed);
+            return;
+        }
+
+        onTile.Sort((a, b) => b.DropSeq.CompareTo(a.DropSeq));   // top of the stack first
+
+        int taken = 0, left = 0;
+        foreach (var mi in onTile)
+        {
+            switch (TryTakeMapItem(index, mapNum, mi, announceRefusal: false))
+            {
+                case PickUpResult.Taken: taken++; break;
+                case PickUpResult.BagFull: left++; break;
+                // Claimed: somebody else's. Not mine to take and not worth a line about.
+            }
+        }
+
+        if (left > 0)
+            SendMsg(index, ServerStrings.ItemSystem_LootLeftBehind, GameColor.BrightRed, ("Count", left));
+        else if (taken == 0)
+            SendMsg(index, ServerStrings.ItemSystem_LootGone, GameColor.Yellow);
     }
 }
