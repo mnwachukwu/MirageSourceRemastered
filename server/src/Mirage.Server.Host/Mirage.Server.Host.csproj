@@ -18,6 +18,9 @@
   <ItemGroup>
     <None Include="data\*.json" />
     <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Shipped rather than written on first boot, so the settings are discoverable. Every value is a
+         default, so deleting it changes nothing. -->
+    <Content Include="serverconfig.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

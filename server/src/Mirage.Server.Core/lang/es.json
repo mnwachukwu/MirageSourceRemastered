@@ -666,7 +666,7 @@
   "Net_EditorRefusedFull":        "Conexión de editor rechazada: no hay espacios libres.",
 
   "Console_Prompt":               "Consola del servidor {GameName} - escribe /help para ver los comandos.",
-  "Console_Help":                 "Comandos: /who  /kick <nombre> [minutos]  /ban <nombre>  /mute <nombre> [minutos]  /refreshbanlist  /shutdown  /help",
+  "Console_Help":                 "Jugadores: /who  /kick <nombre> [minutos]  /ban <nombre>  /mute <nombre> [minutos]  /refreshbanlist  /setaccess <nivel> <nombre>\nMundo: /tod <fase>  /weather <tipo>  /motd <texto>  /respawn <mapa>  /mapreport\nHermandades: /startwar  /advancewar  /endwar  /guildreset [day|week|season]\nServidor: /shutdown  /help",
   "Console_Shutdown":             "Cierre solicitado.",
   "Console_UnknownCommand":       "Comando desconocido: {Cmd}  (escribe /help para ver la lista)",
   "Console_WhoTotal":             "  Total conectados: {Count}",
@@ -676,5 +676,22 @@
   "Console_PlayerNotOnline":      "El jugador '{Name}' no está conectado.",
   "Console_Kicked":               "{Name} (espacio {Slot}) expulsado durante {Minutes} minuto(s).",
   "Console_Banned":               "{Name} (espacio {Slot}) baneado.",
-  "Console_Muted":                "{Name} (espacio {Slot}) silenciado durante {Minutes} minuto(s)."
+  "Console_Muted":                "{Name} (espacio {Slot}) silenciado durante {Minutes} minuto(s).",
+  "Console_TodUsage":             "Uso: /tod <fase>   ({Values})",
+  "Console_TodSet":               "La hora del día ahora es {Phase}.",
+  "Console_WeatherUsage":         "Uso: /weather <tipo>   ({Values})",
+  "Console_WeatherSet":           "El clima ahora es {Weather}.",
+  "Console_MotdUsage":            "Uso: /motd <texto>",
+  "Console_MotdSet":              "El mensaje del día ahora es: {Motd}",
+  "Console_SetAccessUsage":       "Uso: /setaccess <nivel> <nombre>   ({Values})",
+  "Console_AccessSet":            "{Name} ahora tiene acceso {Level}.",
+  "Console_RespawnUsage":         "Uso: /respawn <mapa>   (1-{Max})",
+  "Console_MapRespawned":         "Objetos y NPC del mapa {Map} regenerados.",
+  "Console_MapReport":            "Mapas sin crear: {Ranges}",
+  "Console_WarStarted":           "Noche de guerra iniciada en {Count} territorio(s).",
+  "Console_WarAdvanced":          "Fase de la noche de guerra avanzada.",
+  "Console_WarEnded":             "Noche de guerra terminada en {Count} territorio(s).",
+  "Console_NoWarInProgress":      "No hay ninguna noche de guerra en curso.",
+  "Console_GuildResetUsage":      "Uso: /guildreset [day|week|season]",
+  "Console_GuildReset":           "Liquidación manual de tipo {Scope} ejecutada."
 }

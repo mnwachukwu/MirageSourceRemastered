@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Logging;
@@ -30,18 +31,23 @@ VelopackApp.Build().Run();
 
 // Resolve data-relative paths in appsettings.json against the exe directory.
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-var startupConfig = new ConfigurationBuilder()
-    .SetBasePath(AppContext.BaseDirectory)
-    .AddJsonFile("appsettings.json", optional: true)
-    .Build();
-string serverLanguage = startupConfig["Language"] ?? "en";
+
+// ── Operator settings ─────────────────────────────────────────────────────────
+// Read before anything else, because the language it carries decides what every line below is written
+// in — including the complaint about the file itself, which is why THAT one is in English.
+// A bad config never blocks a boot: the server runs on stock settings and says so.
+var (serverConfig, configError) = ServerConfigStore.Load(ServerConfigStore.DefaultPath);
 string langDir = Path.Combine(AppContext.BaseDirectory, "lang");
-ServerStrings.Load(langDir, serverLanguage);
+ServerStrings.Load(langDir, serverConfig.Language);
 
 // ── Bootstrap logger (used during startup before appsettings.json is loaded) ──
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
+
+// Reported now rather than at load time: the bootstrap logger did not exist yet up there. Always said
+// out loud, because the alternative is an operator whose settings silently do nothing.
+if (configError is not null) Log.Warning("{ConfigError}", configError);
 
 // ── Build and run the host ────────────────────────────────────────────────────
 
@@ -58,6 +64,10 @@ var host = Host.CreateDefaultBuilder(args)
         // reproducible stress run). Tests pin them per-system instead of through this container.
         services.AddSingleton<IClock>(SystemClock.Instance);
         services.AddSingleton<IRandomSource>(SharedRandom.Instance);
+
+        // Registered like the two above: systems take it as an optional parameter defaulting to
+        // ServerConfig.Default, so this line is what makes the FILE take effect.
+        services.AddSingleton(serverConfig);
 
         // World state (all mutable game arrays)
         services.AddSingleton<GameWorld>();

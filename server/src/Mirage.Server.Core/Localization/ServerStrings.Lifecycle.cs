@@ -54,6 +54,25 @@ public static partial class ServerStrings
     public const string Console_Kicked = nameof(Console_Kicked);
     public const string Console_Banned = nameof(Console_Banned);
     public const string Console_Muted = nameof(Console_Muted);
+    // World-level admin commands. Every usage line lists its valid values from the enum itself, so the
+    // console can never advertise a phase or weather the server would then refuse.
+    public const string Console_TodUsage = nameof(Console_TodUsage);
+    public const string Console_TodSet = nameof(Console_TodSet);
+    public const string Console_WeatherUsage = nameof(Console_WeatherUsage);
+    public const string Console_WeatherSet = nameof(Console_WeatherSet);
+    public const string Console_MotdUsage = nameof(Console_MotdUsage);
+    public const string Console_MotdSet = nameof(Console_MotdSet);
+    public const string Console_SetAccessUsage = nameof(Console_SetAccessUsage);
+    public const string Console_AccessSet = nameof(Console_AccessSet);
+    public const string Console_RespawnUsage = nameof(Console_RespawnUsage);
+    public const string Console_MapRespawned = nameof(Console_MapRespawned);
+    public const string Console_MapReport = nameof(Console_MapReport);
+    public const string Console_WarStarted = nameof(Console_WarStarted);
+    public const string Console_WarAdvanced = nameof(Console_WarAdvanced);
+    public const string Console_WarEnded = nameof(Console_WarEnded);
+    public const string Console_NoWarInProgress = nameof(Console_NoWarInProgress);
+    public const string Console_GuildResetUsage = nameof(Console_GuildResetUsage);
+    public const string Console_GuildReset = nameof(Console_GuildReset);
 
     // ── Common ────────────────────────────────────────────────────────────────
     public const string Common_InventoryFull = nameof(Common_InventoryFull);

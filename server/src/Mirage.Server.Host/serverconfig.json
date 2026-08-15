@@ -1,0 +1,9 @@
+{
+  "port": 4000,
+  "language": "en",
+  "deathPenalty": {
+    "durabilityLoss": true,
+    "itemDrop": true,
+    "expLoss": true
+  }
+}

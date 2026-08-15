@@ -1,0 +1,217 @@
+using Mirage.Server.Core.Configuration;
+using NUnit.Framework;
+
+namespace Mirage.Server.Tests;
+
+/// <summary>
+/// Loading and saving <c>serverconfig.json</c>. What matters is the WRONG file: silently reverting to
+/// stock rules is worse than refusing to start, because the operator's switches look accepted. Every
+/// failure path yields a working config AND a message, and these assert on both.
+/// </summary>
+[TestFixture]
+public class ServerConfigStoreTests
+{
+    string _dir = "";
+
+    [SetUp]
+    public void CreateScratchDir()
+    {
+        _dir = Path.Combine(Path.GetTempPath(), "mirage-cfg-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_dir);
+    }
+
+    [TearDown]
+    public void RemoveScratchDir()
+    {
+        if (Directory.Exists(_dir)) Directory.Delete(_dir, recursive: true);
+    }
+
+    string Path_(string name) => Path.Combine(_dir, name);
+
+    [Test]
+    public void NoFileAtAll_IsStockRulesAndNotAComplaint()
+    {
+        // The common case by far: an operator who has never changed anything. It must not look like an
+        // error, or the warning becomes noise that hides the one that matters.
+        var (config, error) = ServerConfigStore.Load(Path_("absent.json"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error, Is.Null);
+            Assert.That(config.DeathPenalty.DurabilityLoss, Is.True);
+            Assert.That(config.DeathPenalty.ItemDrop, Is.True);
+            Assert.That(config.DeathPenalty.ExpLoss, Is.True);
+            Assert.That(config.Port, Is.EqualTo(Mirage.Shared.Constants.GamePort));
+            Assert.That(config.Language, Is.EqualTo("en"));
+        });
+    }
+
+    [Test]
+    public void PortAndLanguage_LiveHereNow_NotInAppSettings()
+    {
+        // Split by what they configure: appsettings.json is the APPLICATION (Serilog), hand-authored and
+        // commented; this is the SERVER and is machine-owned, which is what lets the shell rewrite it.
+        string path = Path_("moved.json");
+        File.WriteAllText(path, """{ "port": 7777, "language": "fr" }""");
+
+        var (config, error) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error, Is.Null);
+            Assert.That(config.Port, Is.EqualTo(7777));
+            Assert.That(config.Language, Is.EqualTo("fr"));
+            Assert.That(config.DeathPenalty.ItemDrop, Is.True, "and the rules still default");
+        });
+    }
+
+    [Test]
+    public void EditingOneSetting_LeavesTheOthersAlone()
+    {
+        // The shell's two forms own different parts of this file — the rules tab owns three switches,
+        // the language picker owns one string — and each amends the loaded config with `with` rather
+        // than building a fresh one. Building fresh would silently reset the port every time somebody
+        // pressed Save, which is the kind of thing nobody notices until a server comes up on 4000.
+        string path = Path_("partial-edit.json");
+        ServerConfigStore.Save(path, new ServerConfig { Port = 7777, Language = "pt" });
+
+        var (loaded, _) = ServerConfigStore.Load(path);
+        ServerConfigStore.Save(path, loaded with
+        {
+            DeathPenalty = new DeathPenaltyConfig { ExpLoss = false },
+        });
+        var (after, _) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(after.DeathPenalty.ExpLoss, Is.False, "the edit landed");
+            Assert.That(after.Port, Is.EqualTo(7777), "and the port survived it");
+            Assert.That(after.Language, Is.EqualTo("pt"), "as did the language");
+        });
+    }
+
+    [Test]
+    public void MalformedFile_FallsBackToStockRules_ButSaysSo()
+    {
+        string path = Path_("broken.json");
+        File.WriteAllText(path, "{ \"deathPenalty\": { \"itemDrop\": ");
+
+        var (config, error) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(config.DeathPenalty.ItemDrop, Is.True, "a server still boots");
+            Assert.That(error, Is.Not.Null, "but never in silence");
+            Assert.That(error, Does.Contain("broken.json"), "and the message names the file");
+        });
+    }
+
+    [Test]
+    public void PartialFile_TakesTheDefaultsForWhateverItOmits()
+    {
+        // The forward-compatibility case: today's file read by a build that has since grown a field.
+        // Absent means default, so an old config never silently switches a new rule off.
+        string path = Path_("partial.json");
+        File.WriteAllText(path, "{ \"deathPenalty\": { \"expLoss\": false } }");
+
+        var (config, error) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error, Is.Null);
+            Assert.That(config.DeathPenalty.ExpLoss, Is.False, "what it said");
+            Assert.That(config.DeathPenalty.ItemDrop, Is.True, "and defaults for what it did not");
+            Assert.That(config.DeathPenalty.DurabilityLoss, Is.True);
+        });
+    }
+
+    [Test]
+    public void CommentsAndTrailingCommas_AreAccepted()
+    {
+        // appsettings.json next door is commented, so an operator hand-editing this one has every reason
+        // to expect the same. Losing the comments on a later save from the shell is the documented cost;
+        // having the file silently ignored would not be.
+        string path = Path_("annotated.json");
+        File.WriteAllText(path, """
+            {
+              // no gear damage on this server
+              "deathPenalty": {
+                "durabilityLoss": false,
+              },
+            }
+            """);
+
+        var (config, error) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error, Is.Null);
+            Assert.That(config.DeathPenalty.DurabilityLoss, Is.False);
+        });
+    }
+
+    [Test]
+    public void SaveThenLoad_RoundTripsEverySwitch()
+    {
+        string path = Path_("round-trip.json");
+        var written = new ServerConfig
+        {
+            DeathPenalty = new DeathPenaltyConfig { DurabilityLoss = false, ItemDrop = true, ExpLoss = false },
+        };
+
+        string? saveError = ServerConfigStore.Save(path, written);
+        var (read, loadError) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(saveError, Is.Null);
+            Assert.That(loadError, Is.Null);
+            Assert.That(read, Is.EqualTo(written), "records compare by value, so this covers every field at once");
+        });
+    }
+
+    [Test]
+    public void Save_LeavesNoTemporaryFileBehind()
+    {
+        // The write goes through a .tmp and a move so an interrupted save can't truncate the file the
+        // next boot reads. The temp must not survive a successful one.
+        string path = Path_("clean.json");
+
+        ServerConfigStore.Save(path, ServerConfig.Default);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(File.Exists(path), Is.True);
+            Assert.That(File.Exists(path + ".tmp"), Is.False);
+        });
+    }
+
+    [Test]
+    public void Save_OverwritesAnExistingConfig()
+    {
+        // The shell's normal path: the file already exists, because it ships with the server.
+        string path = Path_("existing.json");
+        ServerConfigStore.Save(path, ServerConfig.Default);
+
+        string? error = ServerConfigStore.Save(path, new ServerConfig
+        {
+            DeathPenalty = new DeathPenaltyConfig { ItemDrop = false },
+        });
+        var (read, _) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error, Is.Null);
+            Assert.That(read.DeathPenalty.ItemDrop, Is.False);
+        });
+    }
+
+    [Test]
+    public void DefaultPath_SitsBesideTheExecutable()
+    {
+        // Resolved off AppContext.BaseDirectory rather than the working directory, because the shell
+        // starts the server as a child process and a child inherits a working directory it never chose.
+        Assert.That(ServerConfigStore.DefaultPath,
+            Is.EqualTo(Path.Combine(AppContext.BaseDirectory, "serverconfig.json")));
+    }
+}

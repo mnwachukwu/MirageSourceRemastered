@@ -51,8 +51,12 @@ public sealed partial class CombatSystem : GameSystem
         if (leveled) PlayerLeveledUp?.Invoke(index);
     }
 
-    private long ApplyExpLoss(int index, long amount)
+    // Returns the EXP actually taken, which the PvP paths hand to the killers — so 0 means "nothing to
+    // transfer" and the call sites test for it. The floor below takes at least 1, which is why the switch
+    // is an early return rather than a zeroed amount.
+    internal long ApplyExpLoss(int index, long amount)
     {
+        if (!Config.DeathPenalty.ExpLoss) return 0;
         var p = _pm[index].Char;
         long actual = Math.Max(amount, 1L);
         p.Exp = Math.Max(p.Exp - actual, 0L);

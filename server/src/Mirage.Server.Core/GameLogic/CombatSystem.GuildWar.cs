@@ -173,8 +173,12 @@ public sealed partial class CombatSystem : GameSystem
     // normal death's wear), otherwise the vault pays nothing and the full doubled wear falls on the player.
     // Returns whether the vault covered this death (true when there was nothing to cover — drives the
     // bankruptcy streak) and the gold it drained from the vault (the attrition "treasury damage").
-    private (bool Covered, long Drained) ApplyWarDeathDurability(int victim, GuildRecord guild)
+    // Rides the DurabilityLoss switch: a war death's only penalty IS gear wear. Off reports (covered,
+    // nothing drained) — what an uncovered death already reports — so the bankruptcy streak is untripped
+    // and attrition falls back to the floored base rate.
+    internal (bool Covered, long Drained) ApplyWarDeathDurability(int victim, GuildRecord guild)
     {
+        if (!Config.DeathPenalty.DurabilityLoss) return (true, 0);
         var p = _pm[victim].Char;
         int[] slots = [p.WeaponSlot, p.ArmorSlot, p.HelmetSlot, p.ShieldSlot];
         // Pass 1: doubled wear per slot + the repair cost of all of it (the normal repair formula).
@@ -268,15 +272,21 @@ public sealed partial class CombatSystem : GameSystem
     // General caster parity (non-war deaths): destroy the prepared-spell-priced reagents (on top
     // of any weapon wear from DegradeEquipped). The remaining reagents still face the normal drop roll, so
     // call this BEFORE the drop step. No-op for a non-caster.
-    private void DestroyCasterDeathReagents(int index, int wearPercent)
+    internal void DestroyCasterDeathReagents(int index, int wearPercent)
     {
+        // Reagents are the caster's durability — see DeathPenaltyConfig.DurabilityLoss for why they ride
+        // that switch and not the item drop.
+        if (!Config.DeathPenalty.DurabilityLoss) return;
         int loss = CasterReagentLoss(index, wearPercent);
         if (loss <= 0) return;
         _items.TakeItem(index, Constants.CastingReagentItemIndex, loss);
         SendMsg(index, ServerStrings.CombatSystem_ReagentsLostOnDeath, GameColor.BrightRed, ChatChannel.System, ("Count", loss));
     }
-    private void DropNonEquippedInventory(int index)
+    // The three drop helpers are gated at the top so no roll is consumed. Between them they are the whole
+    // of "you drop things when you die".
+    internal void DropNonEquippedInventory(int index)
     {
+        if (!Config.DeathPenalty.ItemDrop) return;
         var p = _pm[index].Char;
         var equipped = new HashSet<int> { p.WeaponSlot, p.ArmorSlot, p.HelmetSlot, p.ShieldSlot };
         equipped.Remove(0);
@@ -291,8 +301,9 @@ public sealed partial class CombatSystem : GameSystem
             _items.PlayerMapDropItemForDeath(index, slot, amount);
         }
     }
-    private void DropRandomNonEquippedInventory(int index)
+    internal void DropRandomNonEquippedInventory(int index)
     {
+        if (!Config.DeathPenalty.ItemDrop) return;
         var p = _pm[index].Char;
         var equipped = new HashSet<int> { p.WeaponSlot, p.ArmorSlot, p.HelmetSlot, p.ShieldSlot };
         equipped.Remove(0);
@@ -311,8 +322,9 @@ public sealed partial class CombatSystem : GameSystem
             _items.PlayerMapDropItemForDeath(index, slot, amount);
         }
     }
-    private void DropRandomEquipped(int index)
+    internal void DropRandomEquipped(int index)
     {
+        if (!Config.DeathPenalty.ItemDrop) return;
         var p = _pm[index].Char;
         int[] eqSlots = [p.WeaponSlot, p.ArmorSlot, p.HelmetSlot, p.ShieldSlot];
         foreach (int slot in eqSlots)

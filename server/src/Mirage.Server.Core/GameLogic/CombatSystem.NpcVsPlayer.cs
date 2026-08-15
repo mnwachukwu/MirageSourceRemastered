@@ -438,7 +438,9 @@ public sealed partial class CombatSystem : GameSystem
                     DegradeEquipped(victimIndex, 20);
 
                     long loss = ApplyExpLoss(victimIndex, ExpFormulas.DeathExpLossPk(vp.Level));
-                    SendMsg(victimIndex, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
+                    // Silent at 0: the operator switched EXP loss off, so there is no penalty to report.
+                    if (loss > 0)
+                        SendMsg(victimIndex, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
                     // PK flag is NOT cleared by an NPC kill — only a player kill removes it.
                 }
                 else
@@ -452,7 +454,8 @@ public sealed partial class CombatSystem : GameSystem
                     DegradeEquipped(victimIndex, 10);
 
                     long loss = ApplyExpLoss(victimIndex, ExpFormulas.DeathExpLossNormal(vp.Level));
-                    SendMsg(victimIndex, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
+                    if (loss > 0)
+                        SendMsg(victimIndex, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
                 }
             }
             else

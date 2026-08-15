@@ -5,6 +5,7 @@ using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
+using Mirage.Server.Core.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 
@@ -14,16 +15,30 @@ namespace Mirage.Server.Host.Services;
 /// Reads admin commands from <see cref="System.Console.ReadLine"/> in a background task.
 /// Runs until the host is stopping.
 ///
-/// Available commands:
+/// Players:
 ///   /who                        — list online players
 ///   /kick name [minutes]        — kick a player (default 60 min, range 1-1440)
 ///   /ban  name                  — ban a player
 ///   /mute name [minutes]        — mute a player (default 60 min, range 1-1440)
 ///   /refreshbanlist             — reload banlist.json from disk
+///   /setaccess level name       — set an ACCOUNT's admin level
+/// World:
+///   /tod phase                  — jump the time of day
+///   /weather type               — set the weather
+///   /motd text                  — set the message of the day
+///   /respawn map                — reset one map's items and NPCs
+///   /mapreport                  — list unauthored map numbers
+/// Guilds and territory:
+///   /startwar /advancewar /endwar   — drive war night
+///   /guildreset [day|week|season]   — force a settlement
+/// Server:
 ///   /shutdown                   — request graceful shutdown
 ///   /help                       — list commands
+///
+/// <para>The world-level commands live in <see cref="ConsoleCommands"/>'s .World partial, which also
+/// explains which of the in-game admin commands are deliberately absent and why.</para>
 /// </summary>
-public sealed class ConsoleCommands : IHostedService
+public sealed partial class ConsoleCommands : IHostedService
 {
     private const int DefaultPenaltyMinutes = 60;
     private const int MaxPenaltyMinutes = 1440;
@@ -36,6 +51,16 @@ public sealed class ConsoleCommands : IHostedService
     private readonly IBackgroundPersistence _bg;
     private readonly PlayerSaver _saver;
     private readonly ILogger<ConsoleCommands> _logger;
+    // The systems the world-level commands act through (see ConsoleCommands.World.cs). Taken as
+    // dependencies rather than reached through the packet handler, because a console command has no
+    // packet and no sender — it is the same action, arrived at from the other side.
+    private readonly GameWorld _world;
+    private readonly ItemSystem _items;
+    private readonly SpawnSystem _spawn;
+    private readonly TimeOfDaySystem _tod;
+    private readonly WeatherSystem _weather;
+    private readonly GuildScheduleSystem _guildSchedule;
+    private readonly GuildTerritorySystem _territory;
 
     private Task? _loopTask;
     private CancellationTokenSource? _cts;
@@ -48,6 +73,13 @@ public sealed class ConsoleCommands : IHostedService
         IPersistenceService persistence,
         IBackgroundPersistence bg,
         PlayerSaver saver,
+        GameWorld world,
+        ItemSystem items,
+        SpawnSystem spawn,
+        TimeOfDaySystem tod,
+        WeatherSystem weather,
+        GuildScheduleSystem guildSchedule,
+        GuildTerritorySystem territory,
         ILogger<ConsoleCommands> logger)
     {
         _lifetime = lifetime;
@@ -57,6 +89,13 @@ public sealed class ConsoleCommands : IHostedService
         _persistence = persistence;
         _bg = bg;
         _saver = saver;
+        _world = world;
+        _items = items;
+        _spawn = spawn;
+        _tod = tod;
+        _weather = weather;
+        _guildSchedule = guildSchedule;
+        _territory = territory;
         _logger = logger;
     }
 
@@ -142,6 +181,50 @@ public sealed class ConsoleCommands : IHostedService
 
             case "/refreshbanlist":
                 CmdRefreshBanList();
+                break;
+
+            // ── World-level admin commands (ConsoleCommands.World.cs) ─────────
+            // All posted to the game thread for the same reason /who is: they read or mutate world
+            // state, and the game thread is the only place that state is consistent. The two that
+            // touch neither (/help, /shutdown) stay off it.
+            case "/tod":
+                _gameLoop.Post(() => CmdTimeOfDay(args));
+                break;
+
+            case "/weather":
+                _gameLoop.Post(() => CmdWeather(args));
+                break;
+
+            case "/motd":
+                _gameLoop.Post(() => CmdMotd(args));
+                break;
+
+            case "/setaccess":
+                _gameLoop.Post(() => CmdSetAccess(args));
+                break;
+
+            case "/respawn":
+                _gameLoop.Post(() => CmdRespawn(args));
+                break;
+
+            case "/mapreport":
+                _gameLoop.Post(CmdMapReport);
+                break;
+
+            case "/startwar":
+                _gameLoop.Post(CmdStartWar);
+                break;
+
+            case "/advancewar":
+                _gameLoop.Post(CmdAdvanceWar);
+                break;
+
+            case "/endwar":
+                _gameLoop.Post(CmdEndWar);
+                break;
+
+            case "/guildreset":
+                _gameLoop.Post(() => CmdGuildReset(args));
                 break;
 
             case "/shutdown":

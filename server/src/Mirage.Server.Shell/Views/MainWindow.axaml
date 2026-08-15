@@ -1,0 +1,185 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mirage.Server.Shell.ViewModels"
+        x:Class="Mirage.Server.Shell.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Width="920" Height="620"
+        MinWidth="640" MinHeight="420">
+
+  <TabControl Margin="8">
+
+    <!-- ── Console ──────────────────────────────────────────────────────────
+         The server's own stdout, plus a box that types into its stdin. Every admin command the CLI
+         understands arrives through that box, so the shell inherits the whole set without
+         reimplementing one of them. -->
+    <TabItem Header="{Binding ConsoleTabHeader}">
+      <Grid RowDefinitions="Auto,*,Auto" Margin="4">
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+          <Button Content="{Binding StartLabel}" Command="{Binding StartCommand}" IsEnabled="{Binding CanStart}" MinWidth="88"/>
+          <Button Content="{Binding StopLabel}" Command="{Binding StopCommand}" IsEnabled="{Binding CanStop}" MinWidth="88"/>
+          <TextBlock Text="{Binding StateLabel}" Foreground="{Binding StateBrush}"
+                     VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="SemiBold"/>
+        </StackPanel>
+
+        <!-- A read-only TextBox, not a list of TextBlocks: selection has to sweep ACROSS lines, because
+             the thing anyone copies out of a server console is a stack trace, and a per-line control can
+             only ever select within one line. Read-only still allows select, Ctrl+A and Ctrl+C. -->
+        <TextBox Grid.Row="1" Name="ConsoleOutput" Classes="log"
+                 Text="{Binding ConsoleText, Mode=OneWay}"
+                 Background="#11151C" BorderBrush="#2A3240" BorderThickness="1" Padding="8"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                 VerticalContentAlignment="Top"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+          <TextBox Grid.Column="0" Text="{Binding CommandText}" PlaceholderText="{Binding CommandHint}"
+                   IsEnabled="{Binding CanStop}">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding SendCommandCommand}"/>
+            </TextBox.KeyBindings>
+          </TextBox>
+          <Button Grid.Column="1" Content="{Binding SendLabel}" Command="{Binding SendCommandCommand}"
+                  IsEnabled="{Binding CanStop}" MinWidth="80" Margin="8,0,0,0"/>
+        </Grid>
+
+      </Grid>
+    </TabItem>
+
+    <!-- ── Commands ─────────────────────────────────────────────────────────
+         Forms rather than a syntax to memorise. Every one composes the same text the console box would
+         take and sends it down the same pipe, so the CLI stays the single source of truth. -->
+    <TabItem Header="{Binding CommandsTabHeader}">
+      <ScrollViewer>
+        <StackPanel Margin="12" Spacing="16" MaxWidth="760" HorizontalAlignment="Left">
+          <TextBlock Classes="hint" Text="{Binding CommandsBlurb}"/>
+          <ItemsControl ItemsSource="{Binding CommandGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:CommandGroup">
+                <StackPanel Spacing="6" Margin="0,0,0,14">
+                  <TextBlock Classes="heading" Text="{Binding Title}"/>
+                  <ItemsControl ItemsSource="{Binding Commands}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ShellCommand">
+                        <Border BorderBrush="#2A3240" BorderThickness="0,0,0,1" Padding="0,8">
+                          <Grid ColumnDefinitions="150,*,Auto" RowDefinitions="Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Verb}"
+                                       FontFamily="Cascadia Mono,Consolas,monospace" FontSize="13"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                       Classes="hint" Text="{Binding Description}" Margin="0,4,12,0"/>
+                            <!-- One row of inputs; each parameter picks its own control. -->
+                            <ItemsControl Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Parameters}"
+                                          IsVisible="{Binding HasParameters}">
+                              <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6"/></ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CommandParameter">
+                                  <Panel>
+                                    <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Value}"
+                                              IsVisible="{Binding IsChoice}" MinWidth="130"/>
+                                    <!-- Bounded spinner: a map id is a number, so the box is one. -->
+                                    <NumericUpDown Value="{Binding Amount}" Minimum="{Binding Minimum}"
+                                                   Maximum="{Binding Maximum}" FormatString="0"
+                                                   Increment="1" ParsingNumberStyle="Integer"
+                                                   IsVisible="{Binding IsNumber}" MinWidth="130"/>
+                                    <TextBox Text="{Binding Value}" PlaceholderText="{Binding Name}"
+                                             IsVisible="{Binding IsText}" MinWidth="130"/>
+                                    <!-- A MOTD is a paragraph, so give it the room. Newlines are folded
+                                         out on send (see AsArgument). -->
+                                    <TextBox Text="{Binding Value}" PlaceholderText="{Binding Name}"
+                                             IsVisible="{Binding IsParagraph}" MinWidth="330"
+                                             AcceptsReturn="True" TextWrapping="Wrap"
+                                             MinHeight="64" MaxHeight="120"
+                                             VerticalContentAlignment="Top"/>
+                                  </Panel>
+                                </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="6">
+                              <Button Command="{Binding RunCommand}" MinWidth="84"
+                                      Content="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RunLabel}"
+                                      IsVisible="{Binding !IsConfirming}"/>
+                              <!-- Ban and setaccess ask twice; kick and mute do not. -->
+                              <Button Command="{Binding RunCommand}" MinWidth="84"
+                                      Content="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ConfirmLabel}"
+                                      IsVisible="{Binding IsConfirming}"/>
+                              <Button Command="{Binding CancelConfirmCommand}"
+                                      Content="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).CancelLabel}"
+                                      IsVisible="{Binding IsConfirming}"/>
+                            </StackPanel>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ── Configuration ────────────────────────────────────────────────────
+         Explicit Save / Revert rather than write-on-toggle: these change what dying costs every player
+         on the server, and the restart notice below is the honest account of when they take effect. -->
+    <TabItem Header="{Binding ConfigurationTabHeader}">
+      <ScrollViewer>
+        <StackPanel Margin="12" Spacing="14" MaxWidth="620" HorizontalAlignment="Left">
+
+          <StackPanel Spacing="4">
+            <TextBlock Classes="heading" Text="{Binding DeathPenaltyHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding DeathPenaltyBlurb}"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2">
+            <CheckBox IsChecked="{Binding DurabilityLoss}" Content="{Binding DurabilityLossLabel}"/>
+            <TextBlock Classes="hint" Text="{Binding DurabilityLossHint}" Margin="28,0,0,0"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2">
+            <CheckBox IsChecked="{Binding ItemDrop}" Content="{Binding ItemDropLabel}"/>
+            <TextBlock Classes="hint" Text="{Binding ItemDropHint}" Margin="28,0,0,0"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2">
+            <CheckBox IsChecked="{Binding ExpLoss}" Content="{Binding ExpLossLabel}"/>
+            <TextBlock Classes="hint" Text="{Binding ExpLossHint}" Margin="28,0,0,0"/>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+            <Button Content="{Binding SaveLabel}" Command="{Binding SaveConfigCommand}" MinWidth="88"/>
+            <Button Content="{Binding RevertLabel}" Command="{Binding RevertConfigCommand}" MinWidth="88"/>
+          </StackPanel>
+
+          <TextBlock Classes="hint" Text="{Binding RestartRequiredNotice}"/>
+          <TextBlock Classes="hint" Text="{Binding ConfigStatus}" Foreground="#C6D0E0"/>
+
+          <!-- Language applies on selection, not on Save: it belongs to a different file with a
+               different lifetime, and a display preference that needed confirming would read as
+               broken. See the note on SelectedLanguage. -->
+          <StackPanel Spacing="4" Margin="0,10,0,0">
+            <TextBlock Classes="heading" Text="{Binding LanguageHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding LanguageBlurb}"/>
+            <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      MinWidth="200" HorizontalAlignment="Left" Margin="0,6,0,0">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:MainWindowViewModel+LanguageChoice">
+                  <TextBlock Text="{Binding DisplayName}"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Classes="hint" Text="{Binding LanguageServerNote}"/>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+  </TabControl>
+</Window>

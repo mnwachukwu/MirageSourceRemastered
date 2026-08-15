@@ -2,7 +2,7 @@
 
   <!-- Thin delegator — the test-side mirror of Mirage.Publish.csproj.
        Right-click → Build (or `dotnet msbuild Mirage.Test.csproj /t:TestAll`, or a bare
-       `dotnet msbuild Mirage.Test.csproj`) runs all four suites in one shot and fails if any fails.
+       `dotnet msbuild Mirage.Test.csproj`) runs all five suites in one shot and fails if any fails.
        Lives in the /Tests/ solution folder alongside the suites it drives. -->
 
   <PropertyGroup>
@@ -11,7 +11,8 @@
     <_ClientCoreTests>$(MSBuildThisFileDirectory)tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
     <_ClientShellTests>$(MSBuildThisFileDirectory)tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
     <_EditorTests>$(MSBuildThisFileDirectory)tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj</_EditorTests>
-    <_AllTests>$(_ServerTests);$(_ClientCoreTests);$(_ClientShellTests);$(_EditorTests)</_AllTests>
+    <_ServerShellTests>$(MSBuildThisFileDirectory)tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
+    <_AllTests>$(_ServerTests);$(_ClientCoreTests);$(_ClientShellTests);$(_EditorTests);$(_ServerShellTests)</_AllTests>
   </PropertyGroup>
 
   <!-- Build the suites through the MSBuild task rather than letting each `dotnet test` build its own.
@@ -37,7 +38,7 @@
 
   <Target Name="TestAll" DependsOnTargets="BuildSuites">
     <!-- ContinueOnError so one red suite doesn't hide the rest; each exit code is captured, then the
-         run fails at the end if any suite returned non-zero (all-pass concatenates to "0000"). -->
+         run fails at the end if any suite returned non-zero (all-pass concatenates to "00000"). -->
     <Message Text="── Server ──" Importance="High" />
     <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_ServerExit" />
@@ -55,8 +56,13 @@
       <Output TaskParameter="ExitCode" PropertyName="_EditorExit" />
     </Exec>
 
-    <Error Condition="'$(_ServerExit)$(_ClientCoreExit)$(_ClientShellExit)$(_EditorExit)' != '0000'"
-           Text="Test suites failed — Server=$(_ServerExit) Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit) Editor=$(_EditorExit)." />
+    <Message Text="── Server.Shell ──" Importance="High" />
+    <Exec Command="dotnet test &quot;$(_ServerShellTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_ServerShellExit" />
+    </Exec>
+
+    <Error Condition="'$(_ServerExit)$(_ClientCoreExit)$(_ClientShellExit)$(_EditorExit)$(_ServerShellExit)' != '00000'"
+           Text="Test suites failed — Server=$(_ServerExit) Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit) Editor=$(_EditorExit) Server.Shell=$(_ServerShellExit)." />
     <Message Text="═══ All test suites passed ═══" Importance="High" />
   </Target>
 

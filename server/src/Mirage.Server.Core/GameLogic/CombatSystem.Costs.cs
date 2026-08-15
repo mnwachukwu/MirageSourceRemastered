@@ -56,8 +56,12 @@ public sealed partial class CombatSystem : GameSystem
             _ => false
         };
 
-    private void DegradeEquipped(int index, int percentOfMax)
+    // Death-time gear wear, gated here rather than at the four death sites so their load-bearing
+    // drop-before-degrade order can't drift. Per-hit combat wear (DegradeItemDurability) is NOT gated:
+    // the switch is about what dying costs.
+    internal void DegradeEquipped(int index, int percentOfMax)
     {
+        if (!Config.DeathPenalty.DurabilityLoss) return;
         var p = _pm[index].Char;
         // Snapshot slot values upfront — UnequipSlot clears equipment slot references on breakage.
         int[] slots = [p.WeaponSlot, p.ArmorSlot, p.HelmetSlot, p.ShieldSlot];

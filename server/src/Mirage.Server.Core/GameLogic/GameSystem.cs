@@ -1,3 +1,4 @@
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.Net;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
@@ -44,13 +45,20 @@ public abstract class GameSystem
     /// test. Defaults to <c>Random.Shared</c>, matching the direct calls it replaced.</summary>
     protected readonly IRandomSource Rng;
 
+    /// <summary>The operator's server-only rules. Injected on the same terms as <see cref="Clock"/> and
+    /// <see cref="Rng"/> — optional, defaulting to the stock rules, so a system constructed without one
+    /// behaves exactly as it did before the seam existed, and a test can pin a switch the same way it
+    /// pins a roll. Immutable, so passing the one instance to every system is safe.</summary>
+    protected readonly ServerConfig Config;
+
     protected GameSystem(IPacketDispatcher dispatcher, ChatChannel defaultChannel = ChatChannel.System,
-                         IClock? clock = null, IRandomSource? rng = null)
+                         IClock? clock = null, IRandomSource? rng = null, ServerConfig? config = null)
     {
         _dispatcher = dispatcher;
         _defaultChannel = defaultChannel;
         Clock = clock ?? SystemClock.Instance;
         Rng = rng ?? SharedRandom.Instance;
+        Config = config ?? ServerConfig.Default;
     }
 
     /// <summary>Now as a Unix second — the shorthand the deadline arithmetic throughout the systems

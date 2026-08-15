@@ -1,3 +1,4 @@
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
@@ -43,8 +44,8 @@ public sealed partial class CombatSystem : GameSystem
                         ItemSystem items, MovementSystem movement, JoinLeaveSystem joinLeave, BloodSystem blood,
                         ObjectiveSystem objectives, GuildSystem guilds, GuildWarSystem guildWar,
                         GuildTerritorySystem territory,
-                        IClock? clock = null, IRandomSource? rng = null)
-        : base(dispatcher, ChatChannel.Combat, clock: clock, rng: rng)
+                        IClock? clock = null, IRandomSource? rng = null, ServerConfig? config = null)
+        : base(dispatcher, ChatChannel.Combat, clock: clock, rng: rng, config: config)
     {
         _world = world;
         _pm = pm;

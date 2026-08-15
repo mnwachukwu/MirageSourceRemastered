@@ -18,16 +18,57 @@
     <!-- Its own app's icon — see the note in Mirage.Client.Publish.csproj. -->
     <_InstallerIcon>$(RepoRoot)assets/icons/server.ico</_InstallerIcon>
     <_Csproj>$(MSBuildThisFileDirectory)src/Mirage.Server.Host/Mirage.Server.Host.csproj</_Csproj>
+    <!-- The shell is a SECOND exe in this package, not a fourth app: one installer, two exes. The
+         mainExe stays the server — the CLI is what a service manager launches. -->
+    <_ShellCsproj>$(MSBuildThisFileDirectory)src/Mirage.Server.Shell/Mirage.Server.Shell.csproj</_ShellCsproj>
   </PropertyGroup>
+
+  <!-- DebugType=none covers MANAGED symbols only. Avalonia's SkiaSharp and HarfBuzz ship NATIVE .pdb
+       files as package content — 105 MB between them, which more than doubles the installer. -->
+  <!-- Publish into an EMPTY folder, always. $(_Rid) is passed by the caller.
+
+       A repeat publish into a stale folder silently drops the project's own content files —
+       appsettings.json, serverconfig.json, lang/*.json — while leaving anything the SDK never tracked
+       alone. It packages into an installer whose server cannot start (ServerStrings.Load throws on the
+       missing lang/en.json). Only bites on the SECOND publish, which is why CI never saw it.
+
+       Both folders: the shell has the same problem in its own, where it drops lang/shell/*.json and
+       every label renders as "[Window_Title]". -->
+  <Target Name="_CleanPayload">
+    <RemoveDir Directories="$(DistRoot)server/$(_Rid);$(DistRoot)server-shell/$(_Rid)" />
+  </Target>
+
+  <Target Name="_StripPublishPdbs">
+    <ItemGroup>
+      <_StrayPdb Include="$(DistRoot)server/*/*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_StrayPdb)" />
+  </Target>
+
+  <!-- Folds the shell's output into the server's payload. RecursiveDir keeps lang/shell/ nested —
+       flattened, it would overwrite the server's own table and stop it booting. Copied rather than
+       published straight in, because two projects cannot share a PublishDir. -->
+  <Target Name="_CopyShellIntoPayload">
+    <ItemGroup>
+      <_ShellPayload Include="$(DistRoot)server-shell/$(_Rid)/**/*" Exclude="$(DistRoot)server-shell/$(_Rid)/**/*.pdb" />
+    </ItemGroup>
+    <Error Condition="'@(_ShellPayload)' == ''"
+           Text="The shell published nothing into $(DistRoot)server-shell/$(_Rid)/. The installer would ship without it." />
+    <Copy SourceFiles="@(_ShellPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/%(RecursiveDir)" />
+  </Target>
 
   <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->
 
   <Target Name="PublishServer_Win">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CleanPayload" Properties="_Rid=win-x64" />
     <Message Text="── Publishing Server / win-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=win-x64 --nologo" />
+    <Message Text="── Publishing Server Shell / win-x64 (same folder) ──" Importance="High" />
+    <Exec Command="dotnet publish &quot;$(_ShellCsproj)&quot; /p:PublishProfile=win-x64 --nologo" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopyShellIntoPayload" Properties="_Rid=win-x64" />
   </Target>
 
-  <Target Name="PackageServer_Win" DependsOnTargets="PublishServer_Win">
+  <Target Name="PackageServer_Win" DependsOnTargets="PublishServer_Win;_StripPublishPdbs">
     <Message Text="── Packaging Server / win-x64 (.exe installer) ──" Importance="High" />
     <PropertyGroup>
       <_Channel>win</_Channel>
@@ -55,11 +96,15 @@
   <!-- ═══════════════════════════════════════ LINUX ═════════════════════════════════════════ -->
 
   <Target Name="PublishServer_Linux">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CleanPayload" Properties="_Rid=linux-x64" />
     <Message Text="── Publishing Server / linux-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=linux-x64 --nologo" />
+    <Message Text="── Publishing Server Shell / linux-x64 (same folder) ──" Importance="High" />
+    <Exec Command="dotnet publish &quot;$(_ShellCsproj)&quot; /p:PublishProfile=linux-x64 --nologo" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopyShellIntoPayload" Properties="_Rid=linux-x64" />
   </Target>
 
-  <Target Name="PackageServer_Linux" DependsOnTargets="PublishServer_Linux">
+  <Target Name="PackageServer_Linux" DependsOnTargets="PublishServer_Linux;_StripPublishPdbs">
     <Message Text="── Packaging Server / linux-x64 (AppImage) ──" Importance="High" />
     <PropertyGroup>
       <_Channel>linux</_Channel>
@@ -89,11 +134,15 @@
   <!-- ═══════════════════════════════════════ MACOS ═════════════════════════════════════════ -->
 
   <Target Name="PublishServer_Osx">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CleanPayload" Properties="_Rid=osx-x64" />
     <Message Text="── Publishing Server / osx-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=osx-x64 --nologo" />
+    <Message Text="── Publishing Server Shell / osx-x64 (same folder) ──" Importance="High" />
+    <Exec Command="dotnet publish &quot;$(_ShellCsproj)&quot; /p:PublishProfile=osx-x64 --nologo" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopyShellIntoPayload" Properties="_Rid=osx-x64" />
   </Target>
 
-  <Target Name="PackageServer_Osx" DependsOnTargets="PublishServer_Osx">
+  <Target Name="PackageServer_Osx" DependsOnTargets="PublishServer_Osx;_StripPublishPdbs">
     <Message Text="── Packaging Server / osx-x64 (.app.tar.gz) ──" Importance="High" />
     <PropertyGroup>
       <_Channel>osx</_Channel>

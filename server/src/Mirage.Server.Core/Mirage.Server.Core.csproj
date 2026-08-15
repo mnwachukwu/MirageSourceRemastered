@@ -8,6 +8,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
   </ItemGroup>
 
+  <!-- The death-penalty helpers are internal rather than private so their config switches can be pinned
+       without standing up the respawn and persistence paths. Mirage.Client.Shell does the same. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mirage.Server.Tests" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

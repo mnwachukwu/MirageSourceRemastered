@@ -219,12 +219,17 @@ public sealed partial class CombatSystem : GameSystem
         DropRandomNonEquippedInventory(victim);
         DegradeEquipped(victim, 10);
 
+        // A PvP kill pays out of the victim's loss, so with no loss there is nothing to report and
+        // nothing to pay — including the level-gap notice, which explains a share never on the table.
         long loss = ApplyExpLoss(victim, ExpFormulas.DeathExpLossNormal(vp.Level));
-        SendMsg(victim, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
-        if (Math.Abs(ap.Level - vp.Level) >= Constants.PvpLevelGapMax)
-            SendMsg(attacker, ServerStrings.CombatSystem_LevelGapNoExp, GameColor.BrightBlue, ChatChannel.Rewards);
-        else
-            DistributePvpKillExp(victim, loss, ap.Map);
+        if (loss > 0)
+        {
+            SendMsg(victim, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
+            if (Math.Abs(ap.Level - vp.Level) >= Constants.PvpLevelGapMax)
+                SendMsg(attacker, ServerStrings.CombatSystem_LevelGapNoExp, GameColor.BrightBlue, ChatChannel.Rewards);
+            else
+                DistributePvpKillExp(victim, loss, ap.Map);
+        }
     }
 
     // Arena duel result broadcast: reaches the kill map's observers + both duelists, once each. The
@@ -328,11 +333,14 @@ public sealed partial class CombatSystem : GameSystem
                     DegradeEquipped(victim, 20);
 
                     long loss = ApplyExpLoss(victim, ExpFormulas.DeathExpLossPk(vp.Level));
-                    SendMsg(victim, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
-                    if (Math.Abs(ap.Level - vp.Level) >= Constants.PvpLevelGapMax)
-                        SendMsg(attacker, ServerStrings.CombatSystem_LevelGapNoExp, GameColor.BrightBlue, ChatChannel.Rewards);
-                    else
-                        DistributePvpKillExp(victim, loss, ap.Map);
+                    if (loss > 0)   // nothing lost, so nothing to report and nothing to transfer
+                    {
+                        SendMsg(victim, ServerStrings.CombatSystem_ExpLoss, GameColor.BrightRed, ChatChannel.Rewards, ("Loss", loss));
+                        if (Math.Abs(ap.Level - vp.Level) >= Constants.PvpLevelGapMax)
+                            SendMsg(attacker, ServerStrings.CombatSystem_LevelGapNoExp, GameColor.BrightBlue, ChatChannel.Rewards);
+                        else
+                            DistributePvpKillExp(victim, loss, ap.Map);
+                    }
 
                     long reducedExpiry = vp.PkExpiryUtc - Constants.PkKillReductionSeconds;
                     if (reducedExpiry <= nowUtcPk)

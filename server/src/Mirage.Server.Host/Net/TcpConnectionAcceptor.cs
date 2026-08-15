@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
@@ -51,7 +51,7 @@ public sealed class TcpConnectionAcceptor : IDisposable
         GameLoop gameLoop,
         ILogger<TcpConnectionAcceptor> logger,
         ILoggerFactory loggerFactory,
-        IConfiguration configuration)
+        ServerConfig config)
     {
         _dispatcher = dispatcher;
         _handler = handler;
@@ -62,7 +62,9 @@ public sealed class TcpConnectionAcceptor : IDisposable
         _gameLoop = gameLoop;
         _logger = logger;
         _receiveLogger = loggerFactory.CreateLogger("Mirage.Server.Host.Net.ReceiveLoop");
-        _port = int.TryParse(configuration["Port"], out int p) ? p : Constants.GamePort;
+        // serverconfig.json, not appsettings.json: the port is something an operator sets about their
+        // SERVER, so it sits with the language and the game rules rather than with the log pipeline.
+        _port = config.Port;
 
         _listener = new System.Net.Sockets.TcpListener(IPAddress.Any, _port);
         _cert = CreateSelfSignedCert();

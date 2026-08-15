@@ -3,6 +3,7 @@
     <Project Path="server/src/Mirage.Shared/Mirage.Shared.csproj" />
     <Project Path="server/src/Mirage.Server.Core/Mirage.Server.Core.csproj" />
     <Project Path="server/src/Mirage.Server.Host/Mirage.Server.Host.csproj" />
+    <Project Path="server/src/Mirage.Server.Shell/Mirage.Server.Shell.csproj" />
   </Folder>
   <Folder Name="/Client/">
     <Project Path="client/src/Mirage.Client.Core/Mirage.Client.Core.csproj" />
@@ -17,6 +18,7 @@
     <Project Path="client/Mirage.Client.Test.csproj" />
     <Project Path="editor/Mirage.Editor.Test.csproj" />
     <Project Path="tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj" />
+    <Project Path="tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj" />
     <Project Path="tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj" />
     <Project Path="tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj" />
     <Project Path="tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj" />

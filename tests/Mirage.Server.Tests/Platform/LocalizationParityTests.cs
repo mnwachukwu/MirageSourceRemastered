@@ -100,6 +100,9 @@ public class LocalizationParityTests
         {
             foreach (var (key, value) in StringLoader.Load(file))
             {
+                // Console_* is printed to stdout and never reaches a client, so the client's font atlas
+                // is not its constraint — the grouped /help listing is deliberately multi-line.
+                if (key.StartsWith("Console_", StringComparison.Ordinal)) continue;
                 if (TextValidation.IsValidText(value)) continue;
                 string bad = string.Join(" ", value.Where(c => !TextValidation.IsValidChar(c))
                                                    .Distinct()
