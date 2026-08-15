@@ -1,7 +1,7 @@
 {
   "name": "Reedmarsh Wolfman",
   "attackSay": "Grrrr...",
-  "sprite": 0,
+  "sprite": 13,
   "size": 1,
   "spawnSecs": 35,
   "behavior": 1,

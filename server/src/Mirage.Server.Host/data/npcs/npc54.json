@@ -1,7 +1,7 @@
 {
   "name": "Silt Wader",
   "attackSay": "The tide took the road. It will take you.",
-  "sprite": 0,
+  "sprite": 40,
   "size": 1,
   "spawnSecs": 50,
   "behavior": 0,

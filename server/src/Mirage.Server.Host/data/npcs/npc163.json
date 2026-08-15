@@ -1,7 +1,7 @@
 {
   "name": "Rope-Hand Muir",
   "attackSay": "Every knot on this deck is mine. Every one of them holds.",
-  "sprite": 0,
+  "sprite": 41,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

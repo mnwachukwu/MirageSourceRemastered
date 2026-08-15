@@ -1,7 +1,7 @@
 {
   "name": "Silt Runner",
   "attackSay": "SKTCH",
-  "sprite": 0,
+  "sprite": 37,
   "size": 1,
   "spawnSecs": 70,
   "behavior": 0,

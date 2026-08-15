@@ -1,7 +1,7 @@
 {
   "name": "Tidecaller Warden",
   "attackSay": "I hold the stair. Ask the water how that goes.",
-  "sprite": 0,
+  "sprite": 40,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

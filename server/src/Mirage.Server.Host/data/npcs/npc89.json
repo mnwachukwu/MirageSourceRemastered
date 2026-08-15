@@ -1,7 +1,7 @@
 {
   "name": "Kiln Serjeant",
   "attackSay": "Stoke it. Stoke it higher.",
-  "sprite": 0,
+  "sprite": 3,
   "size": 1,
   "spawnSecs": 90,
   "behavior": 0,

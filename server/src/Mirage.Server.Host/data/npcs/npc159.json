@@ -1,7 +1,7 @@
 {
   "name": "The Bellows-Keeper",
   "attackSay": "Warm enough today. Don\u0027t waste it standing about with me.",
-  "sprite": 0,
+  "sprite": 25,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

@@ -1,7 +1,7 @@
 {
   "name": "The Kiln Warden",
   "attackSay": "The Kiln takes what it is owed.",
-  "sprite": 0,
+  "sprite": 36,
   "size": 1,
   "spawnSecs": 300,
   "behavior": 1,

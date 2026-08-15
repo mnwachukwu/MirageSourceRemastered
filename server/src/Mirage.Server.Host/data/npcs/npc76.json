@@ -1,7 +1,7 @@
 {
   "name": "Abyssal Cantor",
   "attackSay": "The deep has a liturgy. Learn it.",
-  "sprite": 0,
+  "sprite": 6,
   "size": 1,
   "spawnSecs": 75,
   "behavior": 0,

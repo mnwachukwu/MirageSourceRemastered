@@ -1,7 +1,7 @@
 {
   "name": "Deepwatch Serjeant",
   "attackSay": "The watch changed. Nobody came.",
-  "sprite": 0,
+  "sprite": 36,
   "size": 1,
   "spawnSecs": 70,
   "behavior": 0,

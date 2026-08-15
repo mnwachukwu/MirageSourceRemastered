@@ -1,7 +1,7 @@
 {
   "name": "Drowned Oarsman",
   "attackSay": "Sit down. We are nearly there.",
-  "sprite": 0,
+  "sprite": 17,
   "size": 1,
   "spawnSecs": 55,
   "behavior": 0,

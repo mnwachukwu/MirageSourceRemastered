@@ -1,7 +1,7 @@
 {
   "name": "Tollman\u0027s Thug",
   "attackSay": "The road is not free.",
-  "sprite": 0,
+  "sprite": 15,
   "size": 1,
   "spawnSecs": 30,
   "behavior": 1,

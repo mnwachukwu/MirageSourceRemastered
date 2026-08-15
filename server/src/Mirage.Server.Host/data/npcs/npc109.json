@@ -1,7 +1,7 @@
 {
   "name": "Carnifex",
   "attackSay": "The Throne asked for a headsman. Here I am.",
-  "sprite": 0,
+  "sprite": 1,
   "size": 2,
   "spawnSecs": 110,
   "behavior": 0,

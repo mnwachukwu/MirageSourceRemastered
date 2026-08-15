@@ -1,7 +1,7 @@
 {
   "name": "Ordinal Kesh",
   "attackSay": "Mending words, mostly. They\u0027re the ones people come back for.",
-  "sprite": 0,
+  "sprite": 31,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

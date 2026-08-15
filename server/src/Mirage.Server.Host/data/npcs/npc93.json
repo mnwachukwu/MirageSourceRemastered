@@ -1,7 +1,7 @@
 {
   "name": "Iconoclast",
   "attackSay": "Your Throne is a picture. I break pictures.",
-  "sprite": 0,
+  "sprite": 39,
   "size": 1,
   "spawnSecs": 95,
   "behavior": 0,

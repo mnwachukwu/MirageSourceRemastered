@@ -1,7 +1,7 @@
 {
   "name": "The Marsh Tyrant",
   "attackSay": "TWO OF YOU. GOOD.",
-  "sprite": 0,
+  "sprite": 37,
   "size": 2,
   "spawnSecs": 300,
   "behavior": 1,

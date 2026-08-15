@@ -1,7 +1,7 @@
 {
   "name": "Maud Greave",
   "attackSay": "Hold still. No, I\u0027m guessing your size. Force of habit.",
-  "sprite": 0,
+  "sprite": 26,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

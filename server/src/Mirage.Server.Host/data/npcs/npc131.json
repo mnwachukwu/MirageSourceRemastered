@@ -1,7 +1,7 @@
 {
   "name": "Ashell the Thin",
   "attackSay": "Everything here costs you something to cast. That\u0027s the honest part.",
-  "sprite": 0,
+  "sprite": 16,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

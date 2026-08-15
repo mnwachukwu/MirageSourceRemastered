@@ -1,7 +1,7 @@
 {
   "name": "Emberguard",
   "attackSay": "The Throne is not for you.",
-  "sprite": 0,
+  "sprite": 15,
   "size": 1,
   "spawnSecs": 95,
   "behavior": 0,

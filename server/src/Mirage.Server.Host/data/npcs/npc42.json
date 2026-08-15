@@ -1,7 +1,7 @@
 {
   "name": "Company Outrider",
   "attackSay": "Riders! To me!",
-  "sprite": 0,
+  "sprite": 6,
   "size": 1,
   "spawnSecs": 50,
   "behavior": 0,

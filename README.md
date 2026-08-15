@@ -74,7 +74,7 @@ dotnet run --project editor/src/Mirage.Editor
 > `dotnet run --project ../MirageSourceRemastered.Tools/vb6-to-cs-converter/src/Mirage.Vb6Converter -- --migrate <vb6-server-path> [<data-output-path>]`
 > It converts all binary `.dat` maps and INI data files to JSON in one pass (account passwords are hashed during conversion). Source files are never modified.
 
-> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 174 NPCs, 35 conversations, 24 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
+> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 174 NPCs, 35 conversations, 54 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
 >
 > Those counts are checked against the folder by `tools/check-seed-counts.mjs`, which CI runs — they have gone stale twice.
 >

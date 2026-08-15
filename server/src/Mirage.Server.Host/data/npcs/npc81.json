@@ -1,7 +1,7 @@
 {
   "name": "Tidewatch Pikeman",
   "attackSay": "The Crown keeps its own hours.",
-  "sprite": 0,
+  "sprite": 25,
   "size": 1,
   "spawnSecs": 80,
   "behavior": 0,

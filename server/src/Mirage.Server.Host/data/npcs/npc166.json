@@ -1,7 +1,7 @@
 {
   "name": "Ash-Sweep Tam",
   "attackSay": "Sweep it or it climbs the walls. I\u0027ve seen it climb the walls.",
-  "sprite": 0,
+  "sprite": 27,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

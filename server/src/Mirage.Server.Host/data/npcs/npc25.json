@@ -1,7 +1,7 @@
 {
   "name": "Snare-Setter",
   "attackSay": "You stepped where you should not.",
-  "sprite": 0,
+  "sprite": 39,
   "size": 1,
   "spawnSecs": 30,
   "behavior": 1,

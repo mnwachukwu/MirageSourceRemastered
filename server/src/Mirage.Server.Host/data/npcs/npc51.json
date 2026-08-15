@@ -1,7 +1,7 @@
 {
   "name": "Ferryman\u0027s Boy",
   "attackSay": "My father will hear of this!",
-  "sprite": 0,
+  "sprite": 3,
   "size": 1,
   "spawnSecs": 30,
   "behavior": 1,

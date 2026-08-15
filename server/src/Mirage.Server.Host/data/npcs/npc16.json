@@ -1,7 +1,7 @@
 {
   "name": "Fallen Knight",
   "attackSay": "I kept my oath. It kept nothing.",
-  "sprite": 0,
+  "sprite": 24,
   "size": 1,
   "spawnSecs": 60,
   "behavior": 0,

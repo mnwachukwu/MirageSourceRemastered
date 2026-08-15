@@ -1,7 +1,7 @@
 {
   "name": "Company Halberdier",
   "attackSay": "Form up! Form up!",
-  "sprite": 0,
+  "sprite": 4,
   "size": 1,
   "spawnSecs": 40,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "The Ashen Throne",
   "attackSay": "SIT, IF YOU CAN.",
-  "sprite": 0,
+  "sprite": 3,
   "size": 3,
   "spawnSecs": 1800,
   "behavior": 1,

@@ -1,7 +1,7 @@
 {
   "name": "Reed-Cutter Wend",
   "attackSay": "Mind the stilts \u2014 third one\u0027s rotten and I\u0027m not fixing it twice.",
-  "sprite": 0,
+  "sprite": 34,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

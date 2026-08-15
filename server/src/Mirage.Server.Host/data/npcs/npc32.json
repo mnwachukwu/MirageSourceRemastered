@@ -1,7 +1,7 @@
 {
   "name": "Company Captain",
   "attackSay": "I buried better men than you.",
-  "sprite": 0,
+  "sprite": 42,
   "size": 1,
   "spawnSecs": 240,
   "behavior": 1,

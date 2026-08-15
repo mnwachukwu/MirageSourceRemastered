@@ -1,7 +1,7 @@
 {
   "name": "Ash Marshal Vane",
   "attackSay": "Two will not be enough.",
-  "sprite": 0,
+  "sprite": 45,
   "size": 2,
   "spawnSecs": 1500,
   "behavior": 1,

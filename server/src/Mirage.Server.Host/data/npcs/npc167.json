@@ -1,7 +1,7 @@
 {
   "name": "Kettle",
   "attackSay": "Cold room, warm soup. That\u0027s the whole arrangement. Take a bowl.",
-  "sprite": 0,
+  "sprite": 35,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

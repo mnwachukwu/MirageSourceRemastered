@@ -1,7 +1,7 @@
 {
   "name": "Leviathan Prime",
   "attackSay": "HHHHOOOOOOORRRRNNNN",
-  "sprite": 0,
+  "sprite": 33,
   "size": 3,
   "spawnSecs": 1200,
   "behavior": 1,

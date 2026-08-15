@@ -19,6 +19,11 @@
           "action": "None"
         },
         {
+          "label": "Nobody writes it down?",
+          "nextNodeId": 4,
+          "action": "None"
+        },
+        {
           "label": "Just passing.",
           "nextNodeId": 0,
           "action": "None"
@@ -53,7 +58,29 @@
           "action": "None"
         },
         {
+          "label": "Nobody writes it down?",
+          "nextNodeId": 4,
+          "action": "None"
+        },
+        {
           "label": "I\u0027ll leave you to it.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "speaker": "",
+      "text": "Sera keeps the ledger. Four years of ditch and not a line of it in there.\n\nMy mother would have called that a trust unclean. She had a phrase for everything and about four of them were kind.",
+      "choices": [
+        {
+          "label": "Heard anything worth hearing?",
+          "nextNodeId": 3,
+          "action": "None"
+        },
+        {
+          "label": "She sounds like a piece of work.",
           "nextNodeId": 0,
           "action": "None"
         }

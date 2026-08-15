@@ -1,7 +1,7 @@
 {
   "name": "Scorchwing",
   "attackSay": "SKREEEEEEE!",
-  "sprite": 0,
+  "sprite": 4,
   "size": 1,
   "spawnSecs": 90,
   "behavior": 0,

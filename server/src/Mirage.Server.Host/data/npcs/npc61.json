@@ -1,7 +1,7 @@
 {
   "name": "Kelp Stalker",
   "attackSay": "SHHHK-SHHHK",
-  "sprite": 0,
+  "sprite": 41,
   "size": 1,
   "spawnSecs": 55,
   "behavior": 0,

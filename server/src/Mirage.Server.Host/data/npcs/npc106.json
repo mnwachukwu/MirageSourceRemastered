@@ -1,7 +1,7 @@
 {
   "name": "Slag Titan",
   "attackSay": "MMMMOOOLLLTEN",
-  "sprite": 0,
+  "sprite": 36,
   "size": 3,
   "spawnSecs": 220,
   "behavior": 0,

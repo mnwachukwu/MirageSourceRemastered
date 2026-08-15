@@ -1,7 +1,7 @@
 {
   "name": "Ashen Pikeman",
   "attackSay": "Hold the line! Hold!",
-  "sprite": 0,
+  "sprite": 42,
   "size": 1,
   "spawnSecs": 60,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "Silt Crawler",
   "attackSay": "SKRTCH-SKRTCH-SKRTCH",
-  "sprite": 0,
+  "sprite": 3,
   "size": 2,
   "spawnSecs": 55,
   "behavior": 0,

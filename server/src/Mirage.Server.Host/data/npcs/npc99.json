@@ -1,7 +1,7 @@
 {
   "name": "Molten Colossus",
   "attackSay": "SSSSHHHLLLAG",
-  "sprite": 0,
+  "sprite": 35,
   "size": 3,
   "spawnSecs": 210,
   "behavior": 0,

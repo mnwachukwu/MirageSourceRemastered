@@ -1,7 +1,7 @@
 {
   "name": "Pyre Vanguard",
   "attackSay": "First into the fire. Always.",
-  "sprite": 0,
+  "sprite": 30,
   "size": 1,
   "spawnSecs": 100,
   "behavior": 0,

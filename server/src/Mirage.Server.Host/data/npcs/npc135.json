@@ -1,7 +1,7 @@
 {
   "name": "Brac Ironhand",
   "attackSay": "Careful \u2014 everything on that wall is sharper than it looks.",
-  "sprite": 0,
+  "sprite": 10,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

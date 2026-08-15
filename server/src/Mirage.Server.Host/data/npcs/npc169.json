@@ -1,7 +1,7 @@
 {
   "name": "Landing Warden",
   "attackSay": "This is a safe place. I am why.",
-  "sprite": 0,
+  "sprite": 10,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

@@ -1,7 +1,7 @@
 {
   "name": "Ash Liturgist",
   "attackSay": "Kneel in the cinders. It is warmer.",
-  "sprite": 0,
+  "sprite": 10,
   "size": 1,
   "spawnSecs": 100,
   "behavior": 0,

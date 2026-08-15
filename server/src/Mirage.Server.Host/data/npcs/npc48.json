@@ -1,7 +1,7 @@
 {
   "name": "Tide-Picker",
   "attackSay": "I was here first!",
-  "sprite": 0,
+  "sprite": 2,
   "size": 1,
   "spawnSecs": 20,
   "behavior": 1,

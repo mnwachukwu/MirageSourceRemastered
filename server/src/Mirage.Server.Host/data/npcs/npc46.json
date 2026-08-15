@@ -1,7 +1,7 @@
 {
   "name": "Drowned Pilgrim",
   "attackSay": "Kneel, and the water is kind.",
-  "sprite": 0,
+  "sprite": 44,
   "size": 1,
   "spawnSecs": 60,
   "behavior": 0,

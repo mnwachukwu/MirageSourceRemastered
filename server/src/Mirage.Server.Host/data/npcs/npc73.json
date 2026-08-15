@@ -1,7 +1,7 @@
 {
   "name": "Coral Halberdier",
   "attackSay": "Stand off the reef.",
-  "sprite": 0,
+  "sprite": 43,
   "size": 1,
   "spawnSecs": 70,
   "behavior": 0,

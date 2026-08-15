@@ -1,7 +1,7 @@
 {
   "name": "Cantor Wex",
   "attackSay": "Mending words, mostly. They\u0027re the ones people come back for.",
-  "sprite": 0,
+  "sprite": 4,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

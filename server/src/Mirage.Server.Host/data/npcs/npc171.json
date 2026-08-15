@@ -1,7 +1,7 @@
 {
   "name": "Deck Warden",
   "attackSay": "Nothing comes up the shelf. Nothing.",
-  "sprite": 0,
+  "sprite": 5,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

@@ -1,7 +1,7 @@
 {
   "name": "Highland Wolfman",
   "attackSay": "GRRRRRR...",
-  "sprite": 0,
+  "sprite": 13,
   "size": 1,
   "spawnSecs": 40,
   "behavior": 0,

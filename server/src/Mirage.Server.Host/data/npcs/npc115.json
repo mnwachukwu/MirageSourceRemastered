@@ -1,7 +1,7 @@
 {
   "name": "Warlord Hesk",
   "attackSay": "Bring all four. Bring forty.",
-  "sprite": 0,
+  "sprite": 32,
   "size": 2,
   "spawnSecs": 600,
   "behavior": 1,

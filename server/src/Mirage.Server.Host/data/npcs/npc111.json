@@ -1,7 +1,7 @@
 {
   "name": "Cinder Darter",
   "attackSay": "Sparks first. Then me.",
-  "sprite": 0,
+  "sprite": 23,
   "size": 1,
   "spawnSecs": 100,
   "behavior": 0,

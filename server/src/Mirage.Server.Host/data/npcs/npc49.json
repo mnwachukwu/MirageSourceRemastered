@@ -1,7 +1,7 @@
 {
   "name": "Bog Runner",
   "attackSay": "",
-  "sprite": 0,
+  "sprite": 20,
   "size": 1,
   "spawnSecs": 20,
   "behavior": 1,

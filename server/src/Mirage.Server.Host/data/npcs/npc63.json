@@ -1,7 +1,7 @@
 {
   "name": "Pale Leviathan",
   "attackSay": "GLLLLRRRRHHH...",
-  "sprite": 0,
+  "sprite": 16,
   "size": 3,
   "spawnSecs": 150,
   "behavior": 0,

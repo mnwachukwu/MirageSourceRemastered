@@ -1,7 +1,7 @@
 {
   "name": "Flarewing",
   "attackSay": "KREEE-AAAK!",
-  "sprite": 0,
+  "sprite": 27,
   "size": 1,
   "spawnSecs": 90,
   "behavior": 0,

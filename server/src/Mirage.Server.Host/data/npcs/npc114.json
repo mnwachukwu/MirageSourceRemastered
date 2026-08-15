@@ -1,7 +1,7 @@
 {
   "name": "The Bog Oracle",
   "attackSay": "I saw you both coming.",
-  "sprite": 0,
+  "sprite": 44,
   "size": 1,
   "spawnSecs": 300,
   "behavior": 1,

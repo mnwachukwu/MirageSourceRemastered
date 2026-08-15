@@ -1,7 +1,7 @@
 {
   "name": "Kiln-Forged",
   "attackSay": "I remember being iron.",
-  "sprite": 0,
+  "sprite": 42,
   "size": 1,
   "spawnSecs": 100,
   "behavior": 0,

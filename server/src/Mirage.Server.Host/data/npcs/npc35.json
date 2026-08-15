@@ -1,7 +1,7 @@
 {
   "name": "Orc Bloodsinger",
   "attackSay": "Sing, brothers! Sing!",
-  "sprite": 0,
+  "sprite": 46,
   "size": 1,
   "spawnSecs": 55,
   "behavior": 0,

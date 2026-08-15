@@ -1,7 +1,7 @@
 {
   "name": "Emberguard Serjeant",
   "attackSay": "The guard does not rotate. Ever.",
-  "sprite": 0,
+  "sprite": 41,
   "size": 1,
   "spawnSecs": 95,
   "behavior": 0,

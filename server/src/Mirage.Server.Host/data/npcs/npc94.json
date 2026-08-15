@@ -1,7 +1,7 @@
 {
   "name": "Pyre Scribe",
   "attackSay": "I am writing your name in the embers.",
-  "sprite": 0,
+  "sprite": 9,
   "size": 1,
   "spawnSecs": 95,
   "behavior": 0,

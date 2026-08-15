@@ -1,7 +1,7 @@
 {
   "name": "Hedge Cultist",
   "attackSay": "The Drowned King is waking!",
-  "sprite": 0,
+  "sprite": 23,
   "size": 1,
   "spawnSecs": 40,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "Sellsword",
   "attackSay": "Nothing personal.",
-  "sprite": 0,
+  "sprite": 44,
   "size": 1,
   "spawnSecs": 45,
   "behavior": 0,

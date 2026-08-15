@@ -1,7 +1,7 @@
 {
   "name": "Wolfman Alpha",
   "attackSay": "AWOOOOOOOOO!",
-  "sprite": 0,
+  "sprite": 13,
   "size": 2,
   "spawnSecs": 300,
   "behavior": 1,

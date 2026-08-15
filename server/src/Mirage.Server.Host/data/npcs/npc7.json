@@ -1,7 +1,7 @@
 {
   "name": "Moor Wolfman",
   "attackSay": "AWOOOOOO!",
-  "sprite": 0,
+  "sprite": 13,
   "size": 1,
   "spawnSecs": 40,
   "behavior": 0,

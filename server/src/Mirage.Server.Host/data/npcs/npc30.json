@@ -1,7 +1,7 @@
 {
   "name": "Orc Shieldbearer",
   "attackSay": "Come on then!",
-  "sprite": 0,
+  "sprite": 46,
   "size": 1,
   "spawnSecs": 45,
   "behavior": 0,

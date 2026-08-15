@@ -1,7 +1,7 @@
 {
   "name": "The Ferryman",
   "attackSay": "Been further out than most. Couldn\u0027t tell you why, if you asked.",
-  "sprite": 0,
+  "sprite": 33,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

@@ -1,7 +1,7 @@
 {
   "name": "Hulking Gravebound",
   "attackSay": "HHHRRRAAAGH!",
-  "sprite": 0,
+  "sprite": 14,
   "size": 3,
   "spawnSecs": 160,
   "behavior": 0,

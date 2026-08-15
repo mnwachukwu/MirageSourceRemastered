@@ -1,7 +1,7 @@
 {
   "name": "Sunken Pikeman",
   "attackSay": "Formation! Hold the shallows!",
-  "sprite": 0,
+  "sprite": 2,
   "size": 1,
   "spawnSecs": 55,
   "behavior": 0,

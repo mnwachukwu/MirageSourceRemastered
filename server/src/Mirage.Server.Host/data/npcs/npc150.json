@@ -1,7 +1,7 @@
 {
   "name": "Wenn the Chronicler",
   "attackSay": "Been further out than most. Couldn\u0027t tell you why, if you asked.",
-  "sprite": 0,
+  "sprite": 2,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

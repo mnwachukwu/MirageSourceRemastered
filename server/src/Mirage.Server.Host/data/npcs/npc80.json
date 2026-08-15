@@ -1,7 +1,7 @@
 {
   "name": "Reach Behemoth",
   "attackSay": "HHHOOOOORRRNNN",
-  "sprite": 0,
+  "sprite": 44,
   "size": 3,
   "spawnSecs": 180,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "Drowned Liturgist",
   "attackSay": "Every drowning is a sacrament.",
-  "sprite": 0,
+  "sprite": 2,
   "size": 1,
   "spawnSecs": 85,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "Bone-Reader",
   "attackSay": "I have already read your ending.",
-  "sprite": 0,
+  "sprite": 16,
   "size": 1,
   "spawnSecs": 45,
   "behavior": 0,

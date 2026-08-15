@@ -1,7 +1,7 @@
 {
   "name": "The Drowned King",
   "attackSay": "AT LAST. ALL OF YOU.",
-  "sprite": 0,
+  "sprite": 2,
   "size": 3,
   "spawnSecs": 600,
   "behavior": 1,

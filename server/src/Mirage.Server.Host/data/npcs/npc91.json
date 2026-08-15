@@ -1,7 +1,7 @@
 {
   "name": "Sparkrunner",
   "attackSay": "Too slow. Everyone is too slow.",
-  "sprite": 0,
+  "sprite": 25,
   "size": 1,
   "spawnSecs": 85,
   "behavior": 0,

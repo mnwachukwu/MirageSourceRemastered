@@ -1,7 +1,7 @@
 {
   "name": "Drowned Herald",
   "attackSay": "Kneel. He is coming.",
-  "sprite": 0,
+  "sprite": 31,
   "size": 1,
   "spawnSecs": 85,
   "behavior": 0,

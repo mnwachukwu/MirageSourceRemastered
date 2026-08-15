@@ -1,7 +1,7 @@
 {
   "name": "Salter Bly",
   "attackSay": "Salt keeps things. That\u0027s all salt has ever done, and look where we are.",
-  "sprite": 0,
+  "sprite": 4,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

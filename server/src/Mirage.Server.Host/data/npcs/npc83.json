@@ -1,7 +1,7 @@
 {
   "name": "Cinder Saint",
   "attackSay": "I was canonised in the burning.",
-  "sprite": 0,
+  "sprite": 7,
   "size": 1,
   "spawnSecs": 90,
   "behavior": 0,

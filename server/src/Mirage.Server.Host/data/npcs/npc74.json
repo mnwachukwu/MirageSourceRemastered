@@ -1,7 +1,7 @@
 {
   "name": "Riptide Skirmisher",
   "attackSay": "The current is on my side.",
-  "sprite": 0,
+  "sprite": 26,
   "size": 1,
   "spawnSecs": 65,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "Mud Lark",
   "attackSay": "Get off! It is mine!",
-  "sprite": 0,
+  "sprite": 3,
   "size": 1,
   "spawnSecs": 20,
   "behavior": 1,

@@ -1,7 +1,7 @@
 {
   "name": "Nell Saltbraid",
   "attackSay": "Hold still. No, I\u0027m guessing your size. Force of habit.",
-  "sprite": 0,
+  "sprite": 40,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

@@ -1,7 +1,7 @@
 {
   "name": "Ferry of Ash",
   "attackSay": "CREEEAAAK... HSSSSS!",
-  "sprite": 0,
+  "sprite": 29,
   "size": 3,
   "spawnSecs": 420,
   "behavior": 1,

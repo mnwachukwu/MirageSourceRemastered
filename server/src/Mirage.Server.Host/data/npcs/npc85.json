@@ -1,7 +1,7 @@
 {
   "name": "Ember Darter",
   "attackSay": "Catch me and you burn.",
-  "sprite": 0,
+  "sprite": 33,
   "size": 1,
   "spawnSecs": 85,
   "behavior": 0,

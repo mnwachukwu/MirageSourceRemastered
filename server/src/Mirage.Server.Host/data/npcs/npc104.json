@@ -1,7 +1,7 @@
 {
   "name": "Ashfall Prowler",
   "attackSay": "The ash hides me. It does not hide you.",
-  "sprite": 0,
+  "sprite": 17,
   "size": 1,
   "spawnSecs": 95,
   "behavior": 0,

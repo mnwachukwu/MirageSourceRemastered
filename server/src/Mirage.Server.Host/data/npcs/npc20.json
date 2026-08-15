@@ -1,7 +1,7 @@
 {
   "name": "The Drowned Hulk",
   "attackSay": "GROOOAAANNN...",
-  "sprite": 0,
+  "sprite": 28,
   "size": 3,
   "spawnSecs": 420,
   "behavior": 1,

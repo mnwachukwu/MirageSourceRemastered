@@ -1,7 +1,7 @@
 {
   "name": "Sister Ivane",
   "attackSay": "You will drown with the rest!",
-  "sprite": 0,
+  "sprite": 2,
   "size": 1,
   "spawnSecs": 240,
   "behavior": 1,

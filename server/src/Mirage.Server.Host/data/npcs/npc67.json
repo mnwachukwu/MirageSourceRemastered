@@ -1,7 +1,7 @@
 {
   "name": "Drowned Legionary",
   "attackSay": "The legion never stood down.",
-  "sprite": 0,
+  "sprite": 10,
   "size": 1,
   "spawnSecs": 60,
   "behavior": 0,

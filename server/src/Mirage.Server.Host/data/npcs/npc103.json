@@ -1,7 +1,7 @@
 {
   "name": "Pyre Ordinal",
   "attackSay": "The reckoning is arithmetic.",
-  "sprite": 0,
+  "sprite": 5,
   "size": 1,
   "spawnSecs": 105,
   "behavior": 0,

@@ -1,7 +1,7 @@
 {
   "name": "Fathom Scribe",
   "attackSay": "I am still taking the minutes.",
-  "sprite": 0,
+  "sprite": 17,
   "size": 1,
   "spawnSecs": 70,
   "behavior": 0,

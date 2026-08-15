@@ -1,7 +1,7 @@
 {
   "name": "Last Legionary",
   "attackSay": "There is no one left to relieve me.",
-  "sprite": 0,
+  "sprite": 31,
   "size": 1,
   "spawnSecs": 110,
   "behavior": 0,

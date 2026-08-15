@@ -1,7 +1,7 @@
 {
   "name": "Ember Ordinal",
   "attackSay": "The sum of you is a small heat.",
-  "sprite": 0,
+  "sprite": 43,
   "size": 1,
   "spawnSecs": 105,
   "behavior": 0,

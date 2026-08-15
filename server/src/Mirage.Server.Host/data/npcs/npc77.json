@@ -1,7 +1,7 @@
 {
   "name": "Drowned Vanguard",
   "attackSay": "We were the first down.",
-  "sprite": 0,
+  "sprite": 23,
   "size": 1,
   "spawnSecs": 75,
   "behavior": 0,

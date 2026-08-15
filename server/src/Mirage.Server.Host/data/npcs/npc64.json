@@ -1,7 +1,7 @@
 {
   "name": "Undertow Acolyte",
   "attackSay": "Down is a direction you can be taught.",
-  "sprite": 0,
+  "sprite": 27,
   "size": 1,
   "spawnSecs": 60,
   "behavior": 0,

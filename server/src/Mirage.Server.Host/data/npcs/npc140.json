@@ -1,7 +1,7 @@
 {
   "name": "Coin",
   "attackSay": "No questions asked. That\u0027s not a slogan, it\u0027s a policy, and it\u0027s load-bearing.",
-  "sprite": 0,
+  "sprite": 36,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

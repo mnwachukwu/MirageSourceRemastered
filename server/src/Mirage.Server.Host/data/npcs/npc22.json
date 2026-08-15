@@ -1,7 +1,7 @@
 {
   "name": "Reed Cutter",
   "attackSay": "I have nothing worth taking.",
-  "sprite": 0,
+  "sprite": 15,
   "size": 1,
   "spawnSecs": 25,
   "behavior": 1,
