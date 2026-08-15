@@ -8,8 +8,27 @@ namespace Mirage.Editor.Services;
 
 public sealed class EditorDataService
 {
-    private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
-    private static readonly JsonSerializerOptions ReadOpts = new() { PropertyNameCaseInsensitive = true };
+    // ── Enums travel as STRINGS, and this reader must accept them ────────────────────────────────
+    // JsonPersistenceService.Options (the server's) carries a JsonStringEnumConverter, so every record
+    // the SERVER writes has "shopType": "Inn" rather than "shopType": 2. Without the converter here the
+    // editor cannot read its own game's files: the deserialize throws and the whole collection comes up
+    // empty, with no error surfaced anywhere.
+    //
+    // It hid for a long time because the collections that existed first were authored by generators that
+    // happened to emit numeric enums, and a numeric enum parses with or without the converter. The
+    // moment shops, quests and conversations were generated through the server's own option set, three
+    // entire sections stopped loading at once. Reading is the half that matters; writing carries it too
+    // so a file the editor saves matches what the server would have written.
+    private static readonly JsonSerializerOptions JsonOpts = new()
+    {
+        WriteIndented = true,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+    };
+    private static readonly JsonSerializerOptions ReadOpts = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+    };
 
     // ── Offline data loaded from disk ─────────────────────────────────────────
     public ItemRecord[] OfflineItems { get; private set; } = [];
@@ -146,6 +165,18 @@ public sealed class EditorDataService
         if (num >= OfflineSpells.Length || string.IsNullOrEmpty(OfflineSpells[num].Name)) return null;
         var r = OfflineSpells[num];
         return (r.Type, r.VitalAmount, r.LevelReq, r.AllowedClasses);
+    }
+
+    /// <summary>What item <paramref name="num"/> sells for in a shop's sales table, from the LIVE world when
+    /// connected and the offline records otherwise. Null when the item does not exist; 0 is a real answer
+    /// (an unpriced item, which the sales table flags rather than hides — listing one gives it away free).</summary>
+    public int? ItemPrice(int num)
+    {
+        if (num <= 0) return null;
+        if (IsOnline)
+            return _onlineItemGates is not null && _onlineItemGates.TryGetValue(num, out var g) ? g.Price : null;
+        if (num >= OfflineItems.Length || string.IsNullOrEmpty(OfflineItems[num].Name)) return null;
+        return OfflineItems[num].Price;
     }
 
     public bool IsOnline => OnlineItems != null;

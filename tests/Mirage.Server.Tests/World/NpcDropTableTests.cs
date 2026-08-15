@@ -25,9 +25,9 @@ public class NpcDropTableTests
         {
             Assert.That(npc.Drops, Is.Not.Null);
             Assert.That(npc.Drops!, Has.Count.EqualTo(1));
-            Assert.That(npc.Drops[0].ItemNum, Is.EqualTo(12));
-            Assert.That(npc.Drops[0].Chance, Is.EqualTo((short)40));
-            Assert.That(npc.Drops[0].Quantity, Is.EqualTo((short)7));
+            Assert.That(npc.Drops![0].ItemNum, Is.EqualTo(12));
+            Assert.That(npc.Drops![0].Chance, Is.EqualTo((short)40));
+            Assert.That(npc.Drops![0].Quantity, Is.EqualTo((short)7));
             // Cleared, so the next save writes the table and nothing else — the file stops being legacy.
             Assert.That(npc.DropChance, Is.EqualTo((short)0));
             Assert.That(npc.DropItem, Is.EqualTo(0));
@@ -64,7 +64,7 @@ public class NpcDropTableTests
         Assert.Multiple(() =>
         {
             Assert.That(npc.Drops!, Has.Count.EqualTo(2));
-            Assert.That(npc.Drops[0].ItemNum, Is.EqualTo(1));
+            Assert.That(npc.Drops![0].ItemNum, Is.EqualTo(1));
             Assert.That(npc.Drops[1].ItemNum, Is.EqualTo(40));
         });
     }
@@ -88,7 +88,7 @@ public class NpcDropTableTests
         Assert.Multiple(() =>
         {
             Assert.That(npc.Drops!, Has.Count.EqualTo(1));
-            Assert.That(npc.Drops[0].ItemNum, Is.EqualTo(1));
+            Assert.That(npc.Drops![0].ItemNum, Is.EqualTo(1));
         });
     }
 
@@ -104,16 +104,35 @@ public class NpcDropTableTests
         Assert.That(npc.Drops, Is.Null);
     }
 
+    // The table used to be capped at 8 lines. That cap is GONE, and this test is its inverse: a long table
+    // must survive Normalize intact. Because quantity does not stack off a Currency item, repeated lines
+    // are the only way to author a multi-item payout — so truncating here would silently delete loot, and
+    // did: seven boss hoards sat exactly on the old cap.
     [Test]
-    public void Normalize_CapsTheTable()
+    public void Normalize_KeepsALongTable_ThereIsNoLengthCap()
     {
+        const int Lines = 40;
         var npc = new NpcRecord { Name = "Hoarder", Drops = [] };
-        for (int i = 1; i <= Constants.MaxNpcDrops + 5; i++)
+        for (int i = 1; i <= Lines; i++)
             npc.Drops.Add(new NpcDrop { ItemNum = i, Chance = 10 });
 
         npc.Normalize();
 
-        Assert.That(npc.Drops!, Has.Count.EqualTo(Constants.MaxNpcDrops));
+        Assert.That(npc.Drops!, Has.Count.EqualTo(Lines));
+    }
+
+    // A hoard is N lines of ONE, never one line of N. Normalize must not "helpfully" fold identical lines
+    // together — twelve independent 2% rolls and one 2% roll for twelve gems are different payouts.
+    [Test]
+    public void Normalize_DoesNotCollapseRepeatedLinesOfTheSameItem()
+    {
+        var npc = new NpcRecord { Name = "Boss", Drops = [] };
+        for (int i = 0; i < 12; i++)
+            npc.Drops.Add(new NpcDrop { ItemNum = 7, Chance = 2 });
+
+        npc.Normalize();
+
+        Assert.That(npc.Drops!, Has.Count.EqualTo(12));
     }
 
     [Test]

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Mirage.Shared.Records;
 
 /// <summary>
@@ -23,6 +25,7 @@ public sealed class ConversationRecord
     }
     /// <summary>Cached <see cref="Name"/>.TrimEnd() — names come padded; the non-empty trimmed name is the
     /// universal "this slot is a real conversation" predicate (like quests/items).</summary>
+    [JsonIgnore]
     public string TrimmedName => _trimmedName ??= _name.TrimEnd();
 
     /// <summary>NPC number this conversation is attached to (0 = not attached to any NPC in-world). The
@@ -46,7 +49,9 @@ public sealed class ConversationRecord
     }
 
     /// <summary>The node a conversation opens on: <see cref="RootNodeId"/> if it resolves, else the first
-    /// node, else null (an empty tree).</summary>
+    /// node, else null (an empty tree). <b>Derived — never persisted.</b> Without the attribute it
+    /// serialized a full duplicate of the root node's subtree into every saved conversation.</summary>
+    [JsonIgnore]
     public ConversationNode? RootNode => NodeById(RootNodeId) ?? (Nodes.Count > 0 ? Nodes[0] : null);
 
     /// <summary>Deep copy for an off-thread snapshot / broadcast (the node + choice lists are mutable refs).</summary>

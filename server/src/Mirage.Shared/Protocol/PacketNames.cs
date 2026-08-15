@@ -45,6 +45,8 @@ public static class PacketNames
     public const string GetStats = "getstats";
     public const string Trade = "trade";
     public const string TradeRequest = "traderequest";
+    public const string ShopBuy = "shopbuy";     // C->S: buy one entry from a shop's SALES list (gold -> item)
+    public const string ShopSell = "shopsell";   // C->S: sell an inventory slot to the open shop (item -> gold)
     public const string FixItem = "fixitem";
     public const string Party = "party";
     public const string JoinParty = "joinparty";

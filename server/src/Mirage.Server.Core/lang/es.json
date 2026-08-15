@@ -420,6 +420,12 @@
   "ShopSystem_InsufficientGold": "¡Oro insuficiente para reparar este objeto!",
   "ShopSystem_FullyRestored":  "¡El objeto fue restaurado por completo por {Gold} de oro!",
   "ShopSystem_PartiallyFixed": "¡El objeto fue reparado en parte por {Gold} de oro!",
+  "ShopSystem_Bought":         "Compraste {ItemName} por {Gold} de oro.",
+  "ShopSystem_NotForSale":     "{ItemName} no está a la venta aquí.",
+  "ShopSystem_Sold":           "Vendiste {ItemName} por {Gold} de oro.",
+  "ShopSystem_SoldForNothing": "El tendero se queda con {ItemName} sin pagar nada.",
+  "ShopSystem_CannotSell":     "{ItemName} no se puede vender aquí.",
+  "ShopSystem_UnequipFirst":   "Quítate {ItemName} antes de venderlo.",
 
   "BankSystem_NoBankHere":   "Aquí no puedes entrar al banco.",
   "BankSystem_BankFull":     "Tu almacén está lleno.",

@@ -127,7 +127,20 @@ public sealed partial class ClassRowViewModel : ObservableObject
 
     private void OnLoadoutRowChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        MarkDirty();
+        // Only a row reporting its OWN edit marks the class dirty.
+        //
+        // A child row re-raises derived state constantly — NotifyDerived alone raises seven properties,
+        // and it runs whenever the loadout previews are refreshed, which includes simply selecting the
+        // class. Treating every one of those as an edit meant OPENING a class marked it modified, which
+        // is how the unsaved-changes dot became noise. The rows already track a correct IsDirty (set only
+        // in their ItemNum/Value setters); this just asks them instead of assuming.
+        bool realEdit = sender switch
+        {
+            ClassStartingItemRowViewModel item => item.IsDirty,
+            ClassStartingSpellRowViewModel spell => spell.IsDirty,
+            _ => true,
+        };
+        if (realEdit) MarkDirty();
         OnPropertyChanged(nameof(LoadoutSummary));
         OnPropertyChanged(nameof(HasSkippedStartingItems));
     }
@@ -203,6 +216,8 @@ public sealed partial class ClassRowViewModel : ObservableObject
     {
         Index = index;
         IsLoaded = isLoaded;
+        // Backing fields, not properties: an assignment through the property would fire OnXChanged and
+        // mark a freshly-loaded row dirty before anyone has touched it.
         _name = r.Name;
         _description = r.Description;
         _spriteMale = r.SpriteMale;
@@ -211,8 +226,25 @@ public sealed partial class ClassRowViewModel : ObservableObject
         _def = r.Def;
         _spd = r.Spd;
         _int = r.Int;
-        LoadStartingItems(r.StartingItems);
-        LoadStartingSpells(r.StartingSpells);
+
+        // The loadout has no backing-field shortcut — building it subscribes OnLoadoutRowChanged to each
+        // child row, and a child re-raising anything derived (NotifyDerived alone raises seven) lands on
+        // MarkDirty. So it is loaded under the same guard LoadFromRecord uses, and the row ends CLEAN.
+        //
+        // Without this every class with a starting loadout showed the unsaved-changes dot the moment the
+        // offline list was built, which is worse than cosmetic: it makes the dot meaningless, so a real
+        // unsaved edit is indistinguishable from ten rows that were merely read off disk.
+        _loading = true;
+        try
+        {
+            LoadStartingItems(r.StartingItems);
+            LoadStartingSpells(r.StartingSpells);
+        }
+        finally
+        {
+            _loading = false;
+        }
+        ClearDirty();
     }
 
     partial void OnNameChanged(string value) => MarkDirty();
@@ -261,9 +293,13 @@ public sealed partial class ClassRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDirty));
     }
 
-    /// <summary>Mark the row clean after a successful save or discard.</summary>
+    /// <summary>Mark the row clean after a successful save or discard. Clears the CHILD rows too — a row
+    /// left dirty would re-mark the class on its next derived re-raise, so the dot would come straight
+    /// back without anyone touching anything.</summary>
     public void ClearDirty()
     {
+        foreach (var item in StartingItems) item.ClearDirty();
+        foreach (var spell in StartingSpells) spell.ClearDirty();
         IsDirty = false;
         OnPropertyChanged(nameof(IsDirty));
     }

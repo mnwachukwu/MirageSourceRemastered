@@ -7,6 +7,7 @@ using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
+using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 
 namespace Mirage.Client.Shell.Panels;
@@ -29,6 +30,8 @@ public sealed class ShopPanel : IGamePanel
         IsOpen = true;
         _tradeDirty = true;
         _fixSlotDirty = true;
+        _salesDirty = true;
+        _sellDirty = true;
     }
     public void Close()
     {
@@ -44,7 +47,36 @@ public sealed class ShopPanel : IGamePanel
 
     // True while a confirm sub-view is showing — lets GameplayScreen suppress Escape-closes-panel.
     public bool IsCapturingInput =>
-        _viewState == ViewState.ConfirmingRepair || _viewState == ViewState.ConfirmingTrade;
+        _viewState is ViewState.ConfirmingRepair or ViewState.ConfirmingTrade
+                   or ViewState.ConfirmingBuy or ViewState.ConfirmingSell;
+
+    // ── The three storefronts ─────────────────────────────────────────────────
+    // BUY is the gold shopfront (ShopRecord.SalesItem, priced from ItemRecord.Price), TRADE is the
+    // barter table (give -> get rows), SELL is the player's own bag. They are separate tabs rather
+    // than one list because they are separate transactions — see SendTradePacket's note on why the
+    // sales list is item numbers while a trade row names both sides.
+    private enum Tab { Buy, Trade, Sell }
+    private Tab _tab = Tab.Buy;
+    private const int TabStripH = 24;
+
+    // Buy tab
+    private readonly ListBox _salesList = new() { ShowTruncationTooltip = false };
+    private readonly Button _buyBtn = new();
+    private readonly Button _buyConfirmBtn = new();
+    private readonly Button _buyCancelBtn = new();
+    private int _pendingBuySlot;
+    private int _salesHash;
+    private bool _salesDirty = true;
+
+    // Sell tab — maps list index → inventory slot, exactly as the repair picker does.
+    private readonly ListBox _sellList = new() { ShowTruncationTooltip = false };
+    private readonly Button _sellBtn = new();
+    private readonly Button _sellConfirmBtn = new();
+    private readonly Button _sellCancelBtn = new();
+    private readonly List<int> _sellSlotNums = new();
+    private int _pendingSellSlot;
+    private int _sellHash;
+    private bool _sellDirty = true;
 
     // Normal trade mode
     private readonly ListBox _tradeList = new();
@@ -65,7 +97,7 @@ public sealed class ShopPanel : IGamePanel
     private readonly Button _tradeCancelBtn = new();
     private int _labelsGeneration = -1;
 
-    private enum ViewState { None, SelectingSlot, ConfirmingRepair, ConfirmingTrade }
+    private enum ViewState { None, SelectingSlot, ConfirmingRepair, ConfirmingTrade, ConfirmingBuy, ConfirmingSell }
     private ViewState _viewState;
     private int _pendingFixSlot;
     private int _pendingTradeSlot;
@@ -152,22 +184,116 @@ public sealed class ShopPanel : IGamePanel
             return;
         }
 
-        SetButtonBounds(c);
-        _tradeList.Update(input, TradeListBoundsOf(c));
-
-        if (_tradeBtn.IsClicked(input) && _tradeList.SelectedIndex >= 0)
+        if (_viewState == ViewState.ConfirmingBuy)
         {
-            _pendingTradeSlot = _tradeList.SelectedIndex + 1;
-            _viewState = ViewState.ConfirmingTrade;
+            SetBuyConfirmButtonBounds(c);
+            if (_buyConfirmBtn.IsClicked(input))
+            {
+                sender.SendShopBuy(state.ActiveShopNum, _pendingBuySlot);
+                _viewState = ViewState.None;
+            }
+            if (_buyCancelBtn.IsClicked(input) || input.IsKeyPressed(Keys.Escape))
+            {
+                input.ConsumeKey(Keys.Escape);
+                _viewState = ViewState.None;
+            }
+            return;
         }
 
+        if (_viewState == ViewState.ConfirmingSell)
+        {
+            SetSellConfirmButtonBounds(c);
+            if (_sellConfirmBtn.IsClicked(input))
+            {
+                // Quantity 0 = the whole stack. The server prices it; nothing here proposes a value.
+                sender.SendShopSell(_pendingSellSlot, 0);
+                _viewState = ViewState.None;
+                _sellDirty = true;
+            }
+            if (_sellCancelBtn.IsClicked(input) || input.IsKeyPressed(Keys.Escape))
+            {
+                input.ConsumeKey(Keys.Escape);
+                _viewState = ViewState.None;
+            }
+            return;
+        }
+
+        UpdateTabs(input, c);
+        SetButtonBounds(c);
+
         var shop = state.ActiveShopNum > 0 ? state.ShopDefs[state.ActiveShopNum] : null;
+
+        switch (_tab)
+        {
+            case Tab.Buy:
+                _salesList.Update(input, TradeListBoundsOf(c));
+                _buyBtn.Enabled = _salesList.SelectedIndex >= 0 && _salesList.SelectedIndex < state.ActiveSales.Length;
+                if (_buyBtn.IsClicked(input) && _buyBtn.Enabled)
+                {
+                    _pendingBuySlot = _salesList.SelectedIndex + 1;   // 1-based on the wire
+                    _viewState = ViewState.ConfirmingBuy;
+                }
+                break;
+
+            case Tab.Trade:
+                _tradeList.Update(input, TradeListBoundsOf(c));
+                if (_tradeBtn.IsClicked(input) && _tradeList.SelectedIndex >= 0)
+                {
+                    _pendingTradeSlot = _tradeList.SelectedIndex + 1;
+                    _viewState = ViewState.ConfirmingTrade;
+                }
+                break;
+
+            case Tab.Sell:
+                _sellList.Update(input, TradeListBoundsOf(c));
+                _sellBtn.Enabled = _sellList.SelectedIndex >= 0 && _sellList.SelectedIndex < _sellSlotNums.Count;
+                if (_sellBtn.IsClicked(input) && _sellBtn.Enabled)
+                {
+                    _pendingSellSlot = _sellSlotNums[_sellList.SelectedIndex];
+                    _viewState = ViewState.ConfirmingSell;
+                }
+                break;
+        }
+
         _fixBtn.Enabled = shop?.FixesItems ?? false;
         if (_fixBtn.IsClicked(input))
         {
             _viewState = ViewState.SelectingSlot;
             _fixSlotList.SelectedIndex = 0;
         }
+    }
+
+    // Tab strip across the top of the content area. Switching tabs clears the selection so a stale
+    // index from one list can never be read against another — the lists are different lengths and
+    // mean different things.
+    private void UpdateTabs(InputState input, Rectangle c)
+    {
+        if (!input.IsMouseClicked()) return;
+        var rects = TabRects(c);
+        for (int i = 0; i < rects.Length; i++)
+        {
+            if (!input.IsClickIn(rects[i])) continue;
+            var picked = (Tab)i;
+            if (picked != _tab)
+            {
+                _tab = picked;
+                _salesList.SelectedIndex = -1;
+                _tradeList.SelectedIndex = -1;
+                _sellList.SelectedIndex = -1;
+            }
+            input.ConsumeMouseClick();
+            break;
+        }
+    }
+
+    private static Rectangle[] TabRects(Rectangle c)
+    {
+        const int count = 3, gap = 2;
+        int w = (c.Width - gap * (count - 1)) / count;
+        var rects = new Rectangle[count];
+        for (int i = 0; i < count; i++)
+            rects[i] = new Rectangle(c.X + i * (w + gap), c.Y + 2, w, TabStripH - 4);
+        return rects;
     }
 
     private static int ComputeTradeHash(ClientState state)
@@ -218,6 +344,58 @@ public sealed class ShopPanel : IGamePanel
         }
     }
 
+    /// <summary>The gold shopfront. Price comes from the item definition the client already holds —
+    /// the wire only carried numbers — so a shop of any size costs one int per entry.</summary>
+    private void RefreshSales(ClientState state)
+    {
+        _salesList.Items.Clear();
+        foreach (int num in state.ActiveSales)
+        {
+            var item = num > 0 && num <= Constants.MaxItems ? state.Items[num] : null;
+            string name = item?.Name?.Trim() ?? "?";
+            _salesList.Items.Add(item is null
+                ? name
+                : ClientStrings.Format(ClientStrings.ShopPanel_SalesRow, ("Item", name), ("Gold", item.Price)));
+        }
+    }
+
+    /// <summary>What the player can sell, and for how much. Mirrors the server's Sell rules exactly —
+    /// equipped gear and NonJunkable items are excluded rather than listed and then refused, because a
+    /// row you can click and be told no about is worse than a row that is not there.</summary>
+    private void RefreshSellSlots(ClientState state)
+    {
+        _sellList.Items.Clear();
+        _sellSlotNums.Clear();
+        var me = state.Me;
+        for (int i = 1; i <= Constants.MaxInv; i++)
+        {
+            var slot = me?.Inv?[i];
+            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+            var item = state.Items[slot.Num];
+            if (item is null || item.NonJunkable) continue;
+            if (me is not null && (me.WeaponSlot == i || me.ArmorSlot == i || me.HelmetSlot == i || me.ShieldSlot == i))
+                continue;
+
+            var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= Constants.MaxSpells
+                ? state.SpellDefs[item.SpellNum] : null;
+            int offer = EconomyFormulas.ItemSellValue(item, slot.Dur, spell);
+            if (item.Type == ItemType.Currency) offer *= Math.Max(slot.Quantity, 1);
+
+            string name = item.Name?.Trim() ?? "?";
+            if (item.Type == ItemType.Currency) name = $"{name} x{Math.Max(slot.Quantity, 1)}";
+            _sellList.Items.Add(ClientStrings.Format(ClientStrings.ShopPanel_SellRow, ("Item", name), ("Gold", offer)));
+            _sellSlotNums.Add(i);
+        }
+    }
+
+    private static int ComputeSalesHash(ClientState state)
+    {
+        var h = new HashCode();
+        h.Add(state.ActiveShopNum);
+        foreach (int num in state.ActiveSales) h.Add(num);
+        return h.ToHashCode();
+    }
+
     private void RefreshFixSlots(ClientState state)
     {
         _fixSlotList.Items.Clear();
@@ -253,6 +431,12 @@ public sealed class ShopPanel : IGamePanel
         {
             _labelsGeneration = ClientStrings.Generation;
             _tradeBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_TradeButton);
+            _buyBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_BuyButton);
+            _sellBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_SellButton);
+            _buyConfirmBtn.Label = ClientStrings.Get(ClientStrings.Common_Confirm);
+            _buyCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
+            _sellConfirmBtn.Label = ClientStrings.Get(ClientStrings.Common_Confirm);
+            _sellCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
             _fixBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_FixItemButton);
             _fixConfirmBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_FixButton);
             _fixCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
@@ -280,7 +464,8 @@ public sealed class ShopPanel : IGamePanel
             _panel.Draw(sb, font, title, isActive);
             var c2 = _panel.ContentBounds;
             SetTradeConfirmButtonBounds(c2);
-            DrawTradeConfirm(sb, font, state, c2, itemsTex);
+            DrawTradeConfirm(sb, font, state, c2, itemsTex, state.ActiveTrades[_pendingTradeSlot - 1],
+                _tradeConfirmBtn, _tradeCancelBtn);
             _panel.DrawOverlay(sb);
             return;
         }
@@ -305,6 +490,26 @@ public sealed class ShopPanel : IGamePanel
             return;
         }
 
+        if (_viewState == ViewState.ConfirmingBuy)
+        {
+            _panel.Draw(sb, font, title, isActive);
+            var c2 = _panel.ContentBounds;
+            SetBuyConfirmButtonBounds(c2);
+            DrawBuyConfirm(sb, font, state, c2, itemsTex);
+            _panel.DrawOverlay(sb);
+            return;
+        }
+
+        if (_viewState == ViewState.ConfirmingSell)
+        {
+            _panel.Draw(sb, font, title, isActive);
+            var c2 = _panel.ContentBounds;
+            SetSellConfirmButtonBounds(c2);
+            DrawSellConfirm(sb, font, state, c2, itemsTex);
+            _panel.DrawOverlay(sb);
+            return;
+        }
+
         int tradeHash = ComputeTradeHash(state);
         if (_tradeDirty || tradeHash != _tradeHash)
         {
@@ -312,13 +517,43 @@ public sealed class ShopPanel : IGamePanel
             _tradeDirty = false;
             Refresh(state);
         }
+        int salesHash = ComputeSalesHash(state);
+        if (_salesDirty || salesHash != _salesHash)
+        {
+            _salesHash = salesHash;
+            _salesDirty = false;
+            RefreshSales(state);
+        }
+        // The sell list reuses the repair picker's hash: both are "what is in the bag, and how worn",
+        // which is exactly what changes a sell offer.
+        int sellHash = ComputeFixSlotHash(state);
+        if (_sellDirty || sellHash != _sellHash)
+        {
+            _sellHash = sellHash;
+            _sellDirty = false;
+            RefreshSellSlots(state);
+        }
         _panel.Draw(sb, font, title, isActive);
 
         var c = _panel.ContentBounds;
         SetButtonBounds(c);
+        DrawTabs(sb, font, c);
 
-        _tradeList.Draw(sb, font, TradeListBoundsOf(c));
-        _tradeBtn.Draw(sb, font, _input);
+        switch (_tab)
+        {
+            case Tab.Buy:
+                _salesList.Draw(sb, font, TradeListBoundsOf(c));
+                _buyBtn.Draw(sb, font, _input);
+                break;
+            case Tab.Trade:
+                _tradeList.Draw(sb, font, TradeListBoundsOf(c));
+                _tradeBtn.Draw(sb, font, _input);
+                break;
+            case Tab.Sell:
+                _sellList.Draw(sb, font, TradeListBoundsOf(c));
+                _sellBtn.Draw(sb, font, _input);
+                break;
+        }
         _fixBtn.Draw(sb, font, _input);
 
         long gold = state.PlayerGold();
@@ -360,8 +595,12 @@ public sealed class ShopPanel : IGamePanel
 
         int maxDur = item?.Durability ?? 0;
         int durNeeded = maxDur - inv.Dur;
-        int ratePerPoint = Math.Max(1, (item?.Power ?? 0) / 5);
-        int goldNeeded = Math.Max(1, durNeeded * ratePerPoint / 2);
+        // Quote through the SHIPPED formula, not a local approximation. This used to read
+        // `Power / 5` and halve it — a rule that predates #63's RepairPowerDivisor going 10 -> 40,
+        // so the panel was quoting roughly four times the real price and the player was charged
+        // something else entirely at the counter. EconomyFormulas is in Mirage.Shared precisely so
+        // both ends can agree without a round-trip.
+        int goldNeeded = item is not null ? EconomyFormulas.RepairCost(durNeeded, item) : 0;
         long playerGold = state.PlayerGold();
 
         UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_DurabilityLabel, ("Current", inv.Dur), ("Max", maxDur)), new Vector2(c.X + 8, textY), UiHelper.DurabilityColor(inv.Dur, maxDur), c.Width - 16);
@@ -377,10 +616,13 @@ public sealed class ShopPanel : IGamePanel
         {
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_FullRepairCost, ("Gold", goldNeeded)), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
         }
-        else if (playerGold >= ratePerPoint)
+        else if (item is not null && EconomyFormulas.RepairPointsAffordable(playerGold, item) > 0)
         {
-            int durPartial = (int)(playerGold / ratePerPoint);
-            int goldActual = Math.Max(1, durPartial * ratePerPoint / 2);
+            // Ask the formula how many points the purse covers rather than dividing by a display
+            // rate — the server does exactly this, and dividing can name a point count that costs
+            // a gold more than the player actually has.
+            int durPartial = Math.Min(EconomyFormulas.RepairPointsAffordable(playerGold, item), durNeeded);
+            int goldActual = EconomyFormulas.RepairCost(durPartial, item);
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_PartialRepairCost, ("Gold", goldActual)), new Vector2(c.X + 8, textY), Color.Yellow, c.Width - 16);
             textY += 18;
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_DurabilityGain, ("Amount", durPartial)), new Vector2(c.X + 8, textY), Color.LightGray, c.Width - 16);
@@ -394,9 +636,16 @@ public sealed class ShopPanel : IGamePanel
         _repairCancelBtn.Draw(sb, font, _input);
     }
 
-    private void DrawTradeConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
+    /// <summary>The acquisition confirm, shared by barter and by buying.
+    ///
+    /// <para>A PURCHASE IS A TRADE ROW: give N gold, get one item. Expressing it that way rather than
+    /// writing a second confirm screen is what keeps the two in step — the spell-taught line, the potion
+    /// effect, the durability readout, the stat and INT requirements and the "you already know this
+    /// spell" warning are all things a buyer needs exactly as much as a barterer, and there is now one
+    /// copy of them.</para></summary>
+    private void DrawTradeConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c,
+        Texture2D? itemsTex, SendTradePacket.TradeRow trade, Button confirmBtn, Button cancelBtn)
     {
-        var trade = state.ActiveTrades[_pendingTradeSlot - 1];
         var get = trade.GetItem > 0 && trade.GetItem <= Constants.MaxItems ? state.Items[trade.GetItem] : null;
         var give = trade.GiveItem > 0 && trade.GiveItem <= Constants.MaxItems ? state.Items[trade.GiveItem] : null;
         var me = state.Me;
@@ -567,8 +816,83 @@ public sealed class ShopPanel : IGamePanel
         else if (isSpell && (!meetsInt || !meetsClass))
             UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.ShopPanel_CannotLearnSpell), new Vector2(c.X + 8, textY), Color.OrangeRed, c.Width - 16);
 
-        _tradeConfirmBtn.Draw(sb, font, _input);
-        _tradeCancelBtn.Draw(sb, font, _input);
+        confirmBtn.Draw(sb, font, _input);
+        cancelBtn.Draw(sb, font, _input);
+    }
+
+    /// <summary>Buying renders through the shared acquisition confirm by describing the purchase as the
+    /// trade row it actually is — gold in, item out.</summary>
+    private void DrawBuyConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
+    {
+        int itemNum = _pendingBuySlot >= 1 && _pendingBuySlot <= state.ActiveSales.Length
+            ? state.ActiveSales[_pendingBuySlot - 1] : 0;
+        var item = itemNum > 0 && itemNum <= Constants.MaxItems ? state.Items[itemNum] : null;
+        var row = new SendTradePacket.TradeRow(Constants.GoldItemIndex, item?.Price ?? 0, itemNum, 1);
+        DrawTradeConfirm(sb, font, state, c, itemsTex, row, _buyConfirmBtn, _buyCancelBtn);
+    }
+
+    /// <summary>Selling gets its own compact confirm rather than the acquisition one: the player already
+    /// owns the thing, so requirements and effect previews are noise. What matters is what is being given
+    /// up, its condition — which is what sets the offer — and what the shop pays.</summary>
+    private void DrawSellConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
+    {
+        var inv = state.Me?.Inv?[_pendingSellSlot];
+        var item = inv is not null && inv.Num > 0 && inv.Num <= Constants.MaxItems ? state.Items[inv.Num] : null;
+
+        var bgRect = new Rectangle(c.X + 2, c.Y + 2, c.Width - 4, c.Height - 4);
+        UiHelper.DrawFilledRect(sb, bgRect, UiHelper.ConfirmOverlayBg);
+        UiHelper.DrawBorder(sb, bgRect, UiHelper.ConfirmOverlayBorder);
+
+        string name = item?.Name?.Trim() ?? "?";
+        int quantity = item?.Type == ItemType.Currency ? Math.Max(inv?.Quantity ?? 1, 1) : 1;
+
+        float textY = c.Y + 12;
+        UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.ShopPanel_SellItemLabel), new Vector2(c.X + 8, textY), Color.LightGray, c.Width - 16);
+        textY += 18;
+        UiHelper.DrawLabel(sb, font, quantity > 1 ? $"{name} x{quantity}" : name, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
+        textY += 18;
+        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, textY);
+
+        if (item is not null && item.Durability > 0)
+        {
+            UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_DurabilityLabel, ("Current", inv!.Dur), ("Max", item.Durability)), new Vector2(c.X + 8, textY), UiHelper.DurabilityColor(inv.Dur, item.Durability), c.Width - 16);
+            textY += 18;
+        }
+
+        var spell = item?.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= Constants.MaxSpells
+            ? state.SpellDefs[item.SpellNum] : null;
+        int offer = item is not null ? EconomyFormulas.ItemSellValue(item, inv!.Dur, spell) * quantity : 0;
+
+        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_SellOffer, ("Gold", offer)),
+            new Vector2(c.X + 8, textY), offer > 0 ? Color.Gold : Color.OrangeRed, c.Width - 16);
+        textY += 18;
+        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.Common_GoldLabel, ("Gold", state.PlayerGold())), new Vector2(c.X + 8, textY), Color.Gold, c.Width - 16);
+        textY += 20;
+
+        // A worthless item still sells — the vendor doubles as the way to empty a bag. Say so plainly
+        // rather than leaving the player wondering whether the button is broken.
+        if (offer <= 0)
+            UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.ShopPanel_SellForNothing), new Vector2(c.X + 8, textY), Color.OrangeRed, c.Width - 16);
+
+        _sellConfirmBtn.Draw(sb, font, _input);
+        _sellCancelBtn.Draw(sb, font, _input);
+    }
+
+    private void DrawTabs(SpriteBatch sb, SpriteFont font, Rectangle c)
+    {
+        var rects = TabRects(c);
+        string[] labels =
+        [
+            ClientStrings.Get(ClientStrings.ShopPanel_BuyTab),
+            ClientStrings.Get(ClientStrings.ShopPanel_TradeTab),
+            ClientStrings.Get(ClientStrings.ShopPanel_SellTab),
+        ];
+        for (int i = 0; i < rects.Length; i++)
+        {
+            bool active = (Tab)i == _tab;
+            bool hovered = !active && rects[i].Contains(_input.MousePosition);
+            TabStrip.DrawCenteredTab(sb, font, rects[i], labels[i], active, hovered);
+        }
     }
 
     // 32×32 item icon left-justified to the same x as the surrounding text on both confirm
@@ -586,8 +910,25 @@ public sealed class ShopPanel : IGamePanel
 
     private void SetButtonBounds(Rectangle c)
     {
-        _tradeBtn.Bounds = UiHelper.PanelBottomButton(c, 0);
+        // Slot 0 is whichever action the active tab owns; slot 1 is always Repair, so its position
+        // does not move as the player switches tabs.
+        var action = UiHelper.PanelBottomButton(c, 0);
+        _buyBtn.Bounds = action;
+        _tradeBtn.Bounds = action;
+        _sellBtn.Bounds = action;
         _fixBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
+    }
+
+    private void SetBuyConfirmButtonBounds(Rectangle c)
+    {
+        _buyConfirmBtn.Bounds = UiHelper.PanelBottomButton(c, 0);
+        _buyCancelBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
+    }
+
+    private void SetSellConfirmButtonBounds(Rectangle c)
+    {
+        _sellConfirmBtn.Bounds = UiHelper.PanelBottomButton(c, 0);
+        _sellCancelBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
     }
 
     private void SetFixButtonBounds(Rectangle c)
@@ -611,7 +952,7 @@ public sealed class ShopPanel : IGamePanel
     private static Rectangle ListBoundsOf(Rectangle c) =>
         new(c.X + 4, c.Y + 2, c.Width - 8, Math.Max(0, c.Height - 44));
 
-    // Leaves extra room at the bottom for the gold label above the buttons.
+    // Leaves room for the tab strip above and the gold label + buttons below.
     private static Rectangle TradeListBoundsOf(Rectangle c) =>
-        new(c.X + 4, c.Y + 2, c.Width - 8, Math.Max(0, c.Height - 66));
+        new(c.X + 4, c.Y + TabStripH + 2, c.Width - 8, Math.Max(0, c.Height - TabStripH - 66));
 }

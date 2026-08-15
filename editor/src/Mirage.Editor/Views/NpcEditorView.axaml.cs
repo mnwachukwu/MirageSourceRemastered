@@ -43,6 +43,8 @@ public partial class NpcEditorView : LocalizedUserControl
         // One label for the whole table now, plus the add-row button. The per-field labels the single
         // drop had (chance / item / quantity) are column positions in the table instead.
         _dropTableLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropTableLabel);
+        _dropItemHeader.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropQuantityHeader);
+        _dropChanceHeader.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropChanceHeader);
         _addDropButton.Content = EditorStrings.Get(EditorStrings.NpcEditor_AddDrop);
 
         _strLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_StrLabel);

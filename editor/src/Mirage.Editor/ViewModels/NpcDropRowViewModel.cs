@@ -75,7 +75,7 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
     }
     partial void OnValueChanged(int value)
     {
-        IsDirty = true;
+        if (!_refreshing) IsDirty = true;
         CoerceValue();
     }
     partial void OnChanceChanged(int value)
@@ -98,6 +98,9 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
 
     public void ClearDirty() => IsDirty = false;
 
+    // Set while a REFRESH re-normalizes the row, so the resulting write is not counted as an author edit.
+    private bool _refreshing;
+
     public void NotifyEntriesChanged()
     {
         OnPropertyChanged(nameof(ItemEntries));
@@ -105,7 +108,13 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
         OnPropertyChanged(nameof(ValueMin));
         OnPropertyChanged(nameof(ValueMax));
         OnPropertyChanged(nameof(ValueApplies));
-        CoerceValue();
+        // The coercion here is NORMALIZATION, not an edit — and it is NOT the no-op it looks like: the item
+        // list arriving is what first makes currency-ness knowable, and authored data may legitimately carry
+        // a quantity on a non-currency drop, so this write fires on the very first selection. Marking dirty
+        // for it flagged every NPC with such a drop as modified merely by being opened.
+        _refreshing = true;
+        try { CoerceValue(); }
+        finally { _refreshing = false; }
     }
 
     public NpcDrop ToRecord() => new() { ItemNum = ItemNum, Quantity = (short)Value, Chance = (short)Chance };

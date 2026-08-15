@@ -250,7 +250,8 @@ public sealed class EditorPacketHandler
             .Where(i => !string.IsNullOrEmpty(_world.Items[i].Name))
             .Select(i => new EditorDataPacket.ItemGate(i, _world.Items[i].Type, _world.Items[i].Power,
                 _world.Items[i].LevelReq,
-                _world.Items[i].AllowedClasses is null ? null : new List<short>(_world.Items[i].AllowedClasses!)))
+                _world.Items[i].AllowedClasses is null ? null : new List<short>(_world.Items[i].AllowedClasses!),
+                _world.Items[i].Price))
             .ToArray();
         var spellGates = Enumerable.Range(1, Constants.MaxSpells)
             .Where(i => !string.IsNullOrEmpty(_world.Spells[i].Name))

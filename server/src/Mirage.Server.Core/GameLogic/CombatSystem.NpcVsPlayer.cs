@@ -162,6 +162,17 @@ public sealed partial class CombatSystem : GameSystem
         ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: false);
     }
 
+    /// <summary>Whether a guard may strike <paramref name="index"/> on its own account — the same test the
+    /// guard AI acquires by (<c>NpcAiSystem.Behaviors</c>): a PK past their grace, or an active PvP
+    /// aggressor. Anyone else is a bystander.</summary>
+    private bool IsGuardFairGame(int index, long now)
+    {
+        if (!_pm[index].IsPlaying) return false;
+        long nowUtc = NowUtc;
+        bool isPk = _pm[index].Char.IsPk(nowUtc) && _pm[index].PkGraceUntilUtc <= nowUtc;
+        return isPk || _pm[index].PvpAttackerUntil > now;
+    }
+
     /// <summary>
     /// Large-NPC melee: ONE swing (cooldown + swoosh FX stamped once) that strikes every tile just past the
     /// NPC's leading edge in its facing direction, damaging each player standing there.  The caller already
@@ -202,6 +213,15 @@ public sealed partial class CombatSystem : GameSystem
                 if (pc.Map == tMap && pc.X == tx && pc.Y == ty
                     && LayerLogic.LayerConnects(view, swx - edx, swy - edy, mapNpc.Layer, swx, swy, pc.Layer))
                 {
+                    // A GUARD spares bystanders. An ordinary large mob swings at everything on the strip
+                    // — it does not care who is standing there — but a guard is not trying to kill
+                    // innocents, and a wide guard cutting down the crowd behind its actual target would
+                    // make the safest tiles in the world the most dangerous.
+                    //
+                    // The primary victim is always struck: the guard acquired them legitimately, which
+                    // includes the case of someone who attacked the guard itself and is neither PK nor
+                    // flagged. Everyone ELSE on the strip has to be fair game in their own right.
+                    if (npcRec.Behavior == NpcBehavior.Guard && i != victimIndex && !IsGuardFairGame(i, now)) continue;
                     ApplyNpcMeleeHitOnPlayer(mapNum, mapNpc, npcRec, i, now);
                 }
             }

@@ -51,9 +51,14 @@ public static class Constants
     // the other record editors, so a cap bounds the slot list. 1000 mirrors the other record families
     // (items/npcs/shops/spells).
     public const int MaxMapGroups = 1000;
-    // Lines in one NPC's drop table. Every line rolls independently on a kill, so this is a backstop
-    // against a runaway table burying a tile in loot, not a design target — most NPCs want 0-3.
-    public const int MaxNpcDrops = 8;
+    // NO CAP ON DROP-TABLE LENGTH — deliberately. There was one (8), justified as a backstop against a
+    // table "burying a tile in loot", and it guarded a hazard that does not exist: MaxMapItems bounds only
+    // PLAYER-dropped clutter, NPC loot is exempt from it by design, and MapItems is an unbounded list. What
+    // the cap actually did was silently truncate authored content — seven boss tables sat exactly on it.
+    //
+    // Repeated lines are now the ONLY way to author a multi-item payout, because quantity does not stack
+    // off a Currency item (see NpcDrop), so a length limit is a limit on payouts. Restraint belongs to the
+    // author, and the editor shows expected-drops-per-kill so the sum of independent chances stays visible.
     public const int MaxInv = 50;
     public const int MaxBankSlots = 100;
     public const int MaxMapItems = 20;

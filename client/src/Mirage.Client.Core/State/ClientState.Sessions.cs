@@ -16,6 +16,10 @@ public sealed partial class ClientState
 
     public int ActiveShopNum { get; set; }
     public SendTradePacket.TradeRow[] ActiveTrades { get; set; } = [];
+    /// <summary>Item numbers the open shop sells for gold, in authored order. Only the NUMBERS travel —
+    /// the price is <c>ItemRecord.Price</c> from the item definitions the client already holds, so the
+    /// panel looks it up rather than being quoted it per entry.</summary>
+    public int[] ActiveSales { get; set; } = [];
     // The keeper's shop number carried on OpenInnPacket: the InnPanel resolves banking / set-
     // spawn / market against this rather than the map, so an inn keeper works from anywhere.
     public int ActiveInnShopNum { get; set; }

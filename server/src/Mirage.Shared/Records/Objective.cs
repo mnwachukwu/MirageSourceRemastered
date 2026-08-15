@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Mirage.Shared.Records;
 
 /// <summary>One progress-tracked goal in the shared objective kernel: "do <see cref="Kind"/> to
@@ -19,7 +21,10 @@ public sealed class Objective
     /// <summary>How many have been done so far (clamped to 0..<see cref="Count"/>).</summary>
     public int Progress { get; set; }
 
-    /// <summary>True once enough progress has accrued.</summary>
+    /// <summary>True once enough progress has accrued. Derived, so it is neither persisted nor sent —
+    /// a get-only property can never round-trip anyway; the receiver recomputes it from
+    /// <see cref="Progress"/> and <see cref="Count"/>, which do travel.</summary>
+    [JsonIgnore]
     public bool IsComplete => Progress >= Count;
 
     /// <summary>Advance this objective if <paramref name="kind"/> and <paramref name="target"/> match

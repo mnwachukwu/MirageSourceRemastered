@@ -47,6 +47,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private bool _isOnline;
     /// <summary>Progress line shown while the post-connect eager load runs; empty when idle.</summary>
     [ObservableProperty] private string _loadingStatus = "";
+
+    /// <summary>True while first-run startup is still reading data off disk. Drives the blocking overlay
+    /// in MainWindow.
+    ///
+    /// <para>It starts TRUE rather than being set when loading begins. App.axaml.cs launches
+    /// <see cref="InitializeAsync"/> fire-and-forget (<c>_ = vm.InitializeAsync()</c>), so the window is
+    /// on screen and taking clicks before the first line of it runs — and a click that lands in that gap
+    /// is silently swallowed, which reads as "the app ignored me" rather than "it was not ready". Any
+    /// default of false leaves exactly that window open.</para></summary>
+    [ObservableProperty] private bool _isLoading = true;
     private CancellationTokenSource? _eagerLoadCts;
 
     // Stable section ids — used for switching and lookup. Display labels are localized separately
@@ -150,14 +160,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// then open the map editor. Always starts offline — connecting is an explicit user action.</summary>
     public async Task InitializeAsync()
     {
-        await _data.LoadOfflineAsync();
-        // Populate the editable assets dir with the bundled defaults (if-missing) before first load.
-        await Task.Run(EditorPaths.SeedAssets);
-        _bitmaps.Load(EditorPaths.Assets);
-        ApplyBitmaps();
-        MapEditor.ReloadAssetsRequested = ReloadAssets;
-        RefreshEditors(online: false);
-        SelectedSection = _sectionMap["Maps"];
+        // finally, not a trailing assignment: if any step throws, the overlay must still come down or
+        // the editor is bricked behind a panel with no way to reach the error.
+        try
+        {
+            LoadingStatus = EditorStrings.Get(EditorStrings.MainWindow_LoadingData);
+            await _data.LoadOfflineAsync();
+            // Populate the editable assets dir with the bundled defaults (if-missing) before first load.
+            LoadingStatus = EditorStrings.Get(EditorStrings.MainWindow_LoadingAssets);
+            await Task.Run(EditorPaths.SeedAssets);
+            _bitmaps.Load(EditorPaths.Assets);
+            ApplyBitmaps();
+            MapEditor.ReloadAssetsRequested = ReloadAssets;
+            RefreshEditors(online: false);
+            SelectedSection = _sectionMap["Maps"];
+        }
+        finally
+        {
+            IsLoading = false;
+            LoadingStatus = "";
+        }
     }
 
     // Pushes the currently-loaded bitmaps into the editors that render with them.

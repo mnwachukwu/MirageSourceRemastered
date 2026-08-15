@@ -71,6 +71,16 @@ public static partial class ClientStrings
     // ── ShopPanel ─────────────────────────────────────────────────────────────
     public const string ShopPanel_TradeButton = nameof(ShopPanel_TradeButton);
     public const string ShopPanel_FixItemButton = nameof(ShopPanel_FixItemButton);
+    public const string ShopPanel_BuyTab = nameof(ShopPanel_BuyTab);
+    public const string ShopPanel_TradeTab = nameof(ShopPanel_TradeTab);
+    public const string ShopPanel_SellTab = nameof(ShopPanel_SellTab);
+    public const string ShopPanel_BuyButton = nameof(ShopPanel_BuyButton);
+    public const string ShopPanel_SellButton = nameof(ShopPanel_SellButton);
+    public const string ShopPanel_SalesRow = nameof(ShopPanel_SalesRow);
+    public const string ShopPanel_SellRow = nameof(ShopPanel_SellRow);
+    public const string ShopPanel_SellItemLabel = nameof(ShopPanel_SellItemLabel);
+    public const string ShopPanel_SellOffer = nameof(ShopPanel_SellOffer);
+    public const string ShopPanel_SellForNothing = nameof(ShopPanel_SellForNothing);
     public const string ShopPanel_FixButton = nameof(ShopPanel_FixButton);
     public const string ShopPanel_RepairItemLabel = nameof(ShopPanel_RepairItemLabel);
     public const string ShopPanel_DurabilityLabel = nameof(ShopPanel_DurabilityLabel);

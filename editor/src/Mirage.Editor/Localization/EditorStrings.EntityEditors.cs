@@ -215,6 +215,16 @@ public static partial class EditorStrings
     public const string ShopEditor_TradesColGiveQty = nameof(ShopEditor_TradesColGiveQty);
     public const string ShopEditor_TradesColGetItem = nameof(ShopEditor_TradesColGetItem);
     public const string ShopEditor_TradesColGetQty = nameof(ShopEditor_TradesColGetQty);
+    public const string ShopEditor_SalesHeader = nameof(ShopEditor_SalesHeader);
+    public const string ShopEditor_SalesHint = nameof(ShopEditor_SalesHint);
+    public const string ShopEditor_SalesColItem = nameof(ShopEditor_SalesColItem);
+    public const string ShopEditor_SalesColPrice = nameof(ShopEditor_SalesColPrice);
+    public const string ShopEditor_SalesColOrder = nameof(ShopEditor_SalesColOrder);
+    public const string ShopEditor_SalesItemPlaceholder = nameof(ShopEditor_SalesItemPlaceholder);
+    public const string ShopEditor_SalesNoPrice = nameof(ShopEditor_SalesNoPrice);
+    public const string ShopEditor_SalesSummary = nameof(ShopEditor_SalesSummary);
+    public const string ShopEditor_SalesWarnDuplicate = nameof(ShopEditor_SalesWarnDuplicate);
+    public const string ShopEditor_SalesWarnNoPrice = nameof(ShopEditor_SalesWarnNoPrice);
     public const string ShopEditor_GiveItemPlaceholder = nameof(ShopEditor_GiveItemPlaceholder);
     public const string ShopEditor_GetItemPlaceholder = nameof(ShopEditor_GetItemPlaceholder);
     public const string ShopEditor_SaveShopButton = nameof(ShopEditor_SaveShopButton);
@@ -330,6 +340,8 @@ public static partial class EditorStrings
     public const string NpcEditor_DropChanceAlways = nameof(NpcEditor_DropChanceAlways);  // "100% (always drops)"
     public const string NpcEditor_DropItemPlaceholder = nameof(NpcEditor_DropItemPlaceholder);
     public const string NpcEditor_DropTableLabel = nameof(NpcEditor_DropTableLabel);
+    public const string NpcEditor_DropQuantityHeader = nameof(NpcEditor_DropQuantityHeader);
+    public const string NpcEditor_DropChanceHeader = nameof(NpcEditor_DropChanceHeader);
     public const string NpcEditor_AddDrop = nameof(NpcEditor_AddDrop);
     // Expected drops per kill = the SUM of the live chances, because drop lines roll independently
     // rather than competing for one slot. Surfaced because that sum is what a long table gets wrong.

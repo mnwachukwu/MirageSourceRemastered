@@ -81,7 +81,7 @@ public sealed partial class TradeRowViewModel : ObservableObject
     }
     partial void OnGiveQuantityChanged(int value)
     {
-        IsDirty = true;
+        if (!_refreshing) IsDirty = true;
         CoerceGiveQuantity();
     }
     partial void OnGetItemChanged(int value)
@@ -94,7 +94,7 @@ public sealed partial class TradeRowViewModel : ObservableObject
     }
     partial void OnGetQuantityChanged(int value)
     {
-        IsDirty = true;
+        if (!_refreshing) IsDirty = true;
         CoerceGetQuantity();
     }
 
@@ -122,6 +122,9 @@ public sealed partial class TradeRowViewModel : ObservableObject
 
     public void ClearDirty() => IsDirty = false;
 
+    // Set while a REFRESH re-normalizes the row — see NpcDropRowViewModel for the failure this prevents.
+    private bool _refreshing;
+
     public void NotifyEntriesChanged()
     {
         OnPropertyChanged(nameof(ItemEntries));
@@ -129,13 +132,21 @@ public sealed partial class TradeRowViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedGetItem));
         // An item's currency-ness may have changed under us; refresh the spinner limits and snap the stored
         // quantities back into range, so a currency->normal flip caps a >1 qty at 1 immediately (not on next
-        // edit). Coercion is a no-op unless a value is now out of range, so unrelated invalidations don't dirty.
+        // edit). This is NORMALIZATION, not an author edit — and it is not the no-op it first appears: the
+        // arriving item list is what makes currency-ness knowable at all, so an authored value outside the
+        // rule gets rewritten on the very FIRST selection. Marking dirty for it flags a shop as modified
+        // merely by being opened.
         OnPropertyChanged(nameof(GiveQuantityMin));
         OnPropertyChanged(nameof(GiveQuantityMax));
         OnPropertyChanged(nameof(GetQuantityMin));
         OnPropertyChanged(nameof(GetQuantityMax));
-        CoerceGiveQuantity();
-        CoerceGetQuantity();
+        _refreshing = true;
+        try
+        {
+            CoerceGiveQuantity();
+            CoerceGetQuantity();
+        }
+        finally { _refreshing = false; }
     }
 
     public TradeItemRecord ToRecord() => new()

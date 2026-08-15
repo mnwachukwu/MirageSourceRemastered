@@ -328,6 +328,8 @@ public static class PacketSerializer
                 PacketNames.NpcInteract => JsonSerializer.Deserialize<NpcInteractPacket>(line, Options),
                 PacketNames.Trade => JsonSerializer.Deserialize<TradePacket>(line, Options),
                 PacketNames.TradeRequest => JsonSerializer.Deserialize<TradeRequestPacket>(line, Options),
+                PacketNames.ShopBuy => JsonSerializer.Deserialize<ShopBuyPacket>(line, Options),
+                PacketNames.ShopSell => JsonSerializer.Deserialize<ShopSellPacket>(line, Options),
                 PacketNames.FixItem => JsonSerializer.Deserialize<FixItemPacket>(line, Options),
 
                 // Party

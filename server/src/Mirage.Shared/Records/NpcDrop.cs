@@ -11,18 +11,26 @@ namespace Mirage.Shared.Records;
 /// make "usually gold, occasionally also a potion" unauthorable.</para>
 ///
 /// <para>The cost of independent rolls is that expected yield is the SUM of the chances, so a table with
-/// ten 50% lines drops five things a kill. Authoring restraint, not a cap, keeps that sane —
-/// <see cref="NpcRecord.Drops"/> is capped only at <see cref="Constants.MaxNpcDrops"/> so a runaway table
-/// cannot flood a tile.</para></summary>
+/// ten 50% lines drops five things a kill. Authoring restraint keeps that sane; there is deliberately NO
+/// length cap on <see cref="NpcRecord.Drops"/>, because repeated lines are the only way to author a
+/// multi-item payout (see <see cref="Quantity"/>), which makes any length limit a limit on payout.</para>
+///
+/// <para>A hoard of twelve is therefore twelve lines at one chance each, not one line of twelve — and it
+/// behaves better for it: instead of a flat 2% for the whole pile, a boss becomes ~21% to yield at least
+/// one, occasionally two, which is the shape a windfall wants.</para></summary>
 public sealed class NpcDrop
 {
     /// <summary>1-based index into the item table. 0 or out of range = an inert line, skipped at roll time
     /// rather than treated as an error; an editor can hold a half-authored row without breaking a kill.</summary>
     public int ItemNum { get; set; }
 
-    /// <summary>How many. Meaningful for a CURRENCY item, where it is the stack size; ignored for
-    /// everything else, since one drop of a sword is one sword regardless. Clamped to at least 1 for
-    /// currency at roll time, mirroring what the single-drop path always did.</summary>
+    /// <summary>How many. Meaningful ONLY for a CURRENCY item, where it is the stack size. Clamped to at
+    /// least 1 for currency at roll time, mirroring what the single-drop path always did.
+    ///
+    /// <para>⚠️ For anything else this field is DEAD — not "usually one", but never read at all.
+    /// <c>ItemSystem.FindOpenInvSlot</c> merges slots for Currency alone; everything else takes a fresh
+    /// slot and <c>HasItem</c> reports a flat 1 no matter what is written here. A line of
+    /// <c>{sword, quantity 12}</c> yields ONE sword, silently. Author twelve lines instead.</para></summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public short Quantity { get; set; }
 

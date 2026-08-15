@@ -260,12 +260,16 @@ public sealed record EditorDataPacket : IPacket
     [JsonPropertyName("itemGates")] public ItemGate[] ItemGates { get; init; } = [];
     [JsonPropertyName("spellGates")] public SpellGate[] SpellGates { get; init; } = [];
 
+    // Price rides along with the gate facts rather than getting a packet of its own: the shop editor's sales
+    // table shows what each listed item will actually cost, and that number lives on the item record. Both
+    // consumers want "tell me about item N from the LIVE world", so one lookup serves them.
     public sealed record ItemGate(
         [property: JsonPropertyName("num")] int Num,
         [property: JsonPropertyName("type")] ItemType Type,
         [property: JsonPropertyName("power")] int Power,
         [property: JsonPropertyName("levelReq")] short LevelReq,
-        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses);
+        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses,
+        [property: JsonPropertyName("price")] int Price = 0);
 
     public sealed record SpellGate(
         [property: JsonPropertyName("num")] int Num,

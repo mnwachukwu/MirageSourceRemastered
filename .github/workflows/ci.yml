@@ -70,6 +70,11 @@ jobs:
       - name: Check every link in the Markdown resolves
         run: node tools/check-doc-links.mjs
 
+      # Numbers rot the same way links do, and the README's seed counts have gone stale twice. The
+      # site is written FROM this README by its own stated rule, so a wrong count publishes twice.
+      - name: Check the README's seed counts match data/
+        run: node tools/check-seed-counts.mjs
+
   # ---- Does it work off Windows? ---------------------------------------------------------------
   #
   # The build job below compiles for all three platforms from one Windows runner, which proves they

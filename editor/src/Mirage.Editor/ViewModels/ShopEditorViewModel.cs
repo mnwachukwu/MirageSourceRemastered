@@ -63,7 +63,7 @@ public sealed partial class ShopEditorViewModel : EditorViewModelBase<ShopRowVie
         SelectedShop = null;
         Shops.Clear();
         for (int i = 1; i < _data.OfflineShops.Length; i++)
-            Shops.Add(new ShopRowViewModel(i, _data.OfflineShops[i], () => _data.LiveItemEntries, () => _data.LiveNpcEntries, _data.IsCurrencyItem));
+            Shops.Add(new ShopRowViewModel(i, _data.OfflineShops[i], () => _data.LiveItemEntries, () => _data.LiveNpcEntries, _data.IsCurrencyItem, _data.ItemPrice));
         StatusMessage = EditorStrings.Format(EditorStrings.EntityEditor_LoadedOffline,
             ("Count", Shops.Count), ("EntityType", TypeNamePlural));
     }
@@ -77,7 +77,7 @@ public sealed partial class ShopEditorViewModel : EditorViewModelBase<ShopRowVie
         SelectedShop = null;
         Shops.Clear();
         foreach (var entry in _data.OnlineShops)
-            Shops.Add(new ShopRowViewModel(entry.Num, new ShopRecord { Name = entry.Name }, () => _data.LiveItemEntries, () => _data.LiveNpcEntries, _data.IsCurrencyItem, isLoaded: false));
+            Shops.Add(new ShopRowViewModel(entry.Num, new ShopRecord { Name = entry.Name }, () => _data.LiveItemEntries, () => _data.LiveNpcEntries, _data.IsCurrencyItem, _data.ItemPrice, isLoaded: false));
         StatusMessage = EditorStrings.Format(EditorStrings.EntityEditor_LoadedOnline,
             ("Count", Shops.Count), ("EntityType", TypeNamePlural));
     }

@@ -131,6 +131,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     {
         _state.ActiveShopNum = p.ShopNum;
         _state.ActiveTrades = p.Trades;
+        _state.ActiveSales = p.Sales;
         ShopOpened?.Invoke(p.ShopNum);
     }
 

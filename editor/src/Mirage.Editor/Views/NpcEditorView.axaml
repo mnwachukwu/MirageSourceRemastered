@@ -183,13 +183,28 @@
                            Minimum="0" Maximum="255" FormatString="0"/>
           </Grid>
 
-          <!-- Drop table. A child table like the quest editor's rewards: every line is an item, a
-               quantity (currency only) and a chance, and each rolls INDEPENDENTLY on a kill — which is
-               why the yield readout below sums the chances rather than showing a single number. -->
-          <Grid ColumnDefinitions="130,*" Margin="0,4,0,0">
-            <TextBlock x:Name="_dropTableLabel" Grid.Column="0" VerticalAlignment="Center"/>
+    <!-- Drop table. A child table like the quest editor's rewards: every line is an item, a
+         quantity (currency only) and a chance, and each rolls INDEPENDENTLY on a kill — which is
+         why the yield readout sums the chances rather than showing a single number.
+
+         BOXED, matching the class editor's starting-loadout panel. It is a nested table of its own
+         rows sitting in a column of plain single-value fields, and unboxed it read as though the
+         drop rows were more stat fields — the eye had nothing telling it where the mob's own
+         properties stopped and its loot began. -->
+    <Border BorderBrush="#333" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0">
+      <StackPanel Spacing="4">
+
+          <Grid ColumnDefinitions="130,*">
+            <TextBlock x:Name="_dropTableLabel" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold"/>
             <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.DropYieldText}"
                        Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+          </Grid>
+
+          <!-- Column headers: three unlabelled number boxes in a row is a guessing game, and quantity
+               only applies to currency, which is impossible to infer from a disabled spinner alone. -->
+          <Grid ColumnDefinitions="*,70,70,28">
+            <TextBlock x:Name="_dropItemHeader"     Grid.Column="1" FontSize="10" Foreground="#888" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="_dropChanceHeader"   Grid.Column="2" FontSize="10" Foreground="#888" HorizontalAlignment="Center"/>
           </Grid>
 
           <ItemsControl ItemsSource="{Binding SelectedNpc.Drops}" Margin="0,2,0,0">
@@ -199,7 +214,7 @@
                   <controls:DropdownAutoCompleteBox Grid.Column="0"
                                    ItemsSource="{Binding ItemEntries}"
                                    SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                                   Watermark="{Binding ItemPlaceholder}"
+                                   PlaceholderText="{Binding ItemPlaceholder}"
                                    ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                                    FilterMode="Custom" MinimumPrefixLength="0"/>
                   <!-- Quantity is meaningless off a currency item; the server zeroes it on save, so the
@@ -213,7 +228,7 @@
                                  Value="{Binding Chance}"
                                  Minimum="0" Maximum="100" FormatString="0" ShowButtonSpinner="False"/>
                   <Button Grid.Column="3" Content="X" Margin="4,0,0,0" Padding="6,2" FontSize="11"
-                          Command="{Binding $parent[ItemsControl].((vm:NpcRowViewModel)DataContext).RemoveDropCommand}"
+                          Command="{Binding $parent[ItemsControl].DataContext.SelectedNpc.RemoveDropCommand}"
                           CommandParameter="{Binding}"/>
                 </Grid>
               </DataTemplate>
@@ -226,6 +241,9 @@
           <TextBlock Text="{Binding SelectedNpc.DropConfigWarning}"
                      IsVisible="{Binding SelectedNpc.HasDropConfigWarning}"
                      Foreground="#E0A030" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,2"/>
+
+      </StackPanel>
+    </Border>
 
           <Grid ColumnDefinitions="130,*">
             <TextBlock x:Name="_strLabel"       Grid.Column="0" VerticalAlignment="Center"/>

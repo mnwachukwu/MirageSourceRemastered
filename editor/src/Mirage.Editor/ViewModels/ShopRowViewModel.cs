@@ -36,22 +36,52 @@ public sealed partial class ShopRowViewModel : ObservableObject
 
     public ObservableCollection<TradeRowViewModel> Trades { get; } = [];
 
-    /// <summary>Item numbers this shop sells for gold, in display order.
-    ///
-    /// <para>Carried through load and save even though nothing in the editor edits it yet. That is the
-    /// point: a shop stocked by the content generator must survive being opened and saved in the editor,
-    /// and a field the round-trip forgets is silently destructive — the save would look successful and the
-    /// shopfront would simply be gone. The picker UI lands with the shop panel work.</para></summary>
-    public List<int> SalesItems { get; private set; } = [];
+    /// <summary>The shop's SALES table — items sold for gold at <see cref="ItemRecord.Price"/>, in the order
+    /// the player sees them. Order is authored, not derived: <c>ShopRecord.Normalize</c> deliberately keeps
+    /// it, so the move-up/move-down commands are editing a real property rather than a cosmetic one.</summary>
+    public ObservableCollection<ShopSalesRowViewModel> Sales { get; } = [];
 
     /// <summary>True when the trade table has no rows — drives the editor's empty-state hint.</summary>
     public bool HasNoTrades => Trades.Count == 0;
 
-    public bool IsDirty => _textDirty || _fixesDirty || _typeDirty || _structuralDirty || Trades.Any(t => t.IsDirty);
+    /// <summary>True when the sales table has no rows.</summary>
+    public bool HasNoSales => Sales.Count == 0;
+
+    /// <summary>"N items, worth X gold" — the running total, because a storefront's job is a price list and
+    /// the sum is the thing that is hard to eyeball down a column of forty.</summary>
+    public string SalesSummary
+    {
+        get
+        {
+            int live = Sales.Count(s => !s.IsEmpty);
+            if (live == 0) return string.Empty;
+            long total = Sales.Where(s => !s.IsEmpty).Sum(s => (long)s.Price);
+            return EditorStrings.Format(EditorStrings.ShopEditor_SalesSummary, ("Items", live), ("Gold", $"{total:n0}"));
+        }
+    }
+
+    // Non-blocking authoring guards, mirroring the NPC drop table's. Neither is an error — the record's
+    // Normalize drops both on load — but both are silent, and silent is what makes them worth surfacing.
+    /// <summary>Warning text for a sales table that lists the same item twice, or lists an unpriced one.</summary>
+    public string SalesWarning
+    {
+        get
+        {
+            var live = Sales.Where(s => !s.IsEmpty).ToList();
+            if (live.Select(s => s.ItemNum).Distinct().Count() != live.Count)
+                return EditorStrings.Get(EditorStrings.ShopEditor_SalesWarnDuplicate);
+            return live.Any(s => s.HasNoPrice) ? EditorStrings.Get(EditorStrings.ShopEditor_SalesWarnNoPrice) : string.Empty;
+        }
+    }
+    /// <summary>Whether to show the sales-configuration warning.</summary>
+    public bool HasSalesWarning => SalesWarning.Length > 0;
+
+    public bool IsDirty => _textDirty || _fixesDirty || _typeDirty || _structuralDirty
+        || Trades.Any(t => t.IsDirty) || Sales.Any(s => s.IsDirty);
     private bool _textDirty;
     private bool _fixesDirty;
     private bool _typeDirty;
-    private bool _structuralDirty;   // a trade row was added/removed (structural change, not a field edit)
+    private bool _structuralDirty;   // a trade/sales row was added, removed or REORDERED (not a field edit)
     private bool _loading;
 
     public string DisplayName => $"{Index}: {(string.IsNullOrEmpty(Name) ? EditorStrings.Get(EditorStrings.Common_EmptyName) : Name)}";
@@ -59,6 +89,9 @@ public sealed partial class ShopRowViewModel : ObservableObject
     private readonly Func<NamedEntry[]> _entriesProvider;
     private readonly Func<NamedEntry[]> _npcEntriesProvider;
     private readonly Func<int, bool> _isCurrency;
+    // Defaulted rather than required so the plain `new ShopRowViewModel(...)` sites (and the tests) keep
+    // working; a row built without it still round-trips its sales table, it just cannot show prices.
+    private readonly Func<int, int?> _priceOf;
 
     public NamedEntry[] KeeperEntries => _npcEntriesProvider();
 
@@ -76,13 +109,14 @@ public sealed partial class ShopRowViewModel : ObservableObject
     private static NamedEntry? EntryFor(NamedEntry[] entries, int id) =>
         id > 0 && id < entries.Length ? entries[id] : null;
 
-    public ShopRowViewModel(int index, ShopRecord r, Func<NamedEntry[]> entriesProvider, Func<NamedEntry[]> npcEntriesProvider, Func<int, bool> isCurrency, bool isLoaded = true)
+    public ShopRowViewModel(int index, ShopRecord r, Func<NamedEntry[]> entriesProvider, Func<NamedEntry[]> npcEntriesProvider, Func<int, bool> isCurrency, Func<int, int?>? priceOf = null, bool isLoaded = true)
     {
         Index = index;
         IsLoaded = isLoaded;
         _entriesProvider = entriesProvider;
         _npcEntriesProvider = npcEntriesProvider;
         _isCurrency = isCurrency;
+        _priceOf = priceOf ?? (_ => null);
         _name = r.Name;
         _fixesItems = r.FixesItems;
         _shopType = r.ShopType;
@@ -90,9 +124,17 @@ public sealed partial class ShopRowViewModel : ObservableObject
         _keeper = r.Keeper;
 
         Trades.CollectionChanged += OnTradesCollectionChanged;
+        Sales.CollectionChanged += OnSalesCollectionChanged;
+        // Guarded exactly like the NPC drop table: building child rows subscribes handlers that land on the
+        // dirty flag, and an unguarded load flags every stocked shop as edited the moment it is opened.
         _loading = true;
-        LoadTrades(r);
-        _loading = false;
+        try
+        {
+            LoadTrades(r);
+            LoadSales(r.SalesItem);
+        }
+        finally { _loading = false; }
+        ClearDirty();   // a row built straight from disk has not been edited
     }
 
     private void OnTradesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -129,6 +171,86 @@ public sealed partial class ShopRowViewModel : ObservableObject
     {
         if (_loading) return;
         OnPropertyChanged(nameof(IsDirty));
+    }
+
+    // ── Sales table ───────────────────────────────────────────────────────────
+
+    private void OnSalesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems is not null)
+            foreach (ShopSalesRowViewModel s in e.OldItems) s.PropertyChanged -= OnSalesRowPropertyChanged;
+        if (e.NewItems is not null)
+            foreach (ShopSalesRowViewModel s in e.NewItems) s.PropertyChanged += OnSalesRowPropertyChanged;
+
+        RenumberSales();
+        NotifySalesDerived();
+        MoveSaleUpCommand.NotifyCanExecuteChanged();
+        MoveSaleDownCommand.NotifyCanExecuteChanged();
+        if (_loading) return;
+        _structuralDirty = true;
+        OnPropertyChanged(nameof(IsDirty));
+    }
+
+    private void OnSalesRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Only a row reporting its OWN edit counts — the same rule the drop table uses. NotifySalesDerived
+        // re-raises across every row and runs on selection, so treating any raise as an edit would mark a
+        // shop modified merely by opening it.
+        NotifySalesDerived();
+        if (_loading || sender is not ShopSalesRowViewModel { IsDirty: true }) return;
+        OnPropertyChanged(nameof(IsDirty));
+    }
+
+    // SlotIndex IS the player-visible position, so it has to follow every insert, remove and reorder.
+    private void RenumberSales()
+    {
+        for (int i = 0; i < Sales.Count; i++) Sales[i].SlotIndex = i + 1;
+    }
+
+    private void NotifySalesDerived()
+    {
+        OnPropertyChanged(nameof(HasNoSales));
+        OnPropertyChanged(nameof(SalesSummary));
+        OnPropertyChanged(nameof(SalesWarning));
+        OnPropertyChanged(nameof(HasSalesWarning));
+    }
+
+    /// <summary>Add an empty sales row. Unbounded — a storefront is "these items", and the seeded ones
+    /// already run to dozens; the only ceiling is the item table itself.</summary>
+    [RelayCommand]
+    private void AddSale() =>
+        Sales.Add(new ShopSalesRowViewModel(Sales.Count + 1, 0, _entriesProvider, _priceOf));
+
+    [RelayCommand]
+    private void RemoveSale(ShopSalesRowViewModel row) => Sales.Remove(row);
+
+    [RelayCommand(CanExecute = nameof(CanMoveSaleUp))]
+    private void MoveSaleUp(ShopSalesRowViewModel row)
+    {
+        int i = Sales.IndexOf(row);
+        if (i > 0) Sales.Move(i, i - 1);
+    }
+    private bool CanMoveSaleUp(ShopSalesRowViewModel? row) => row is not null && Sales.IndexOf(row) > 0;
+
+    [RelayCommand(CanExecute = nameof(CanMoveSaleDown))]
+    private void MoveSaleDown(ShopSalesRowViewModel row)
+    {
+        int i = Sales.IndexOf(row);
+        if (i >= 0 && i < Sales.Count - 1) Sales.Move(i, i + 1);
+    }
+    private bool CanMoveSaleDown(ShopSalesRowViewModel? row) =>
+        row is not null && Sales.IndexOf(row) is >= 0 and var i && i < Sales.Count - 1;
+
+    // Build sales rows from a list of item numbers. Callers set _loading around this.
+    private void LoadSales(List<int> nums)
+    {
+        Sales.Clear();
+        int slot = 1;
+        foreach (int num in nums)
+        {
+            if (num <= 0) continue;   // the record's Normalize drops these too; don't show a dead row
+            Sales.Add(new ShopSalesRowViewModel(slot++, num, _entriesProvider, _priceOf));
+        }
     }
 
     partial void OnNameChanged(string value)
@@ -170,7 +292,10 @@ public sealed partial class ShopRowViewModel : ObservableObject
     public void ClearDirty()
     {
         _textDirty = _fixesDirty = _typeDirty = _structuralDirty = false;
+        // Child rows too: one left dirty re-marks the shop on its next derived re-raise, and the dot comes
+        // straight back with nobody having touched anything.
         foreach (var t in Trades) t.ClearDirty();
+        foreach (var s in Sales) s.ClearDirty();
         OnPropertyChanged(nameof(IsDirty));
     }
 
@@ -179,6 +304,8 @@ public sealed partial class ShopRowViewModel : ObservableObject
         OnPropertyChanged(nameof(KeeperEntries));
         OnPropertyChanged(nameof(SelectedKeeper));
         foreach (var t in Trades) t.NotifyEntriesChanged();
+        foreach (var s in Sales) s.NotifyEntriesChanged();
+        NotifySalesDerived();   // prices may have moved under us — the summary and warnings follow
     }
 
     // Build trade rows from a record, skipping empties and the legacy null-at-index-0, so the table shows
@@ -204,16 +331,15 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = r.ShopType;
             AllowBanking = r.AllowBanking;
             Keeper = r.Keeper;
-            SalesItems = [.. r.SalesItem];
             LoadTrades(r);
+            LoadSales(r.SalesItem);
         }
         finally
         {
             _loading = false;
         }
-        _textDirty = _fixesDirty = _typeDirty = _structuralDirty = false;
+        ClearDirty();
         OnPropertyChanged(nameof(DisplayName));
-        OnPropertyChanged(nameof(IsDirty));
     }
 
     public void ApplyPacket(UpdateShopPacket pkt)
@@ -226,7 +352,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = pkt.ShopType;
             AllowBanking = pkt.AllowBanking;
             Keeper = pkt.Keeper;
-            SalesItems = [.. pkt.Sales];
+            LoadSales([.. pkt.Sales]);
             Trades.Clear();
             int slot = 1;
             foreach (var t in pkt.Trades)
@@ -261,7 +387,9 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = ShopType,
             AllowBanking = AllowBanking,
             Keeper = Keeper,
-            SalesItem = [.. SalesItems],
+            // Dense and in authored order — the order IS the shopfront. Half-authored rows are dropped here
+            // the same way empty trades are, so the file says what it means.
+            SalesItem = [.. Sales.Where(s => !s.IsEmpty).Select(s => s.ItemNum)],
         };
         // Persist a dense list of real trades only — empty rows (either side itemless) are dropped, so a
         // blank row anywhere leaves no gap in the saved data.
@@ -281,6 +409,6 @@ public sealed partial class ShopRowViewModel : ObservableObject
         Keeper = Keeper,
         Trades = Trades.Select(t => new EditorSaveShopPacket.TradeEntry(
             t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity)).ToArray(),
-        Sales = [.. SalesItems],
+        Sales = [.. Sales.Where(s => !s.IsEmpty).Select(s => s.ItemNum)],
     };
 }

@@ -338,6 +338,27 @@ public sealed partial class PacketHandler
             _shop.Trade(index, shopNum, p.Slot);
     }
 
+    private void HandleShopBuy(int index, ShopBuyPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't shop
+        // Resolve the shop from the SERVER's active-shop record, never from the packet: the client's
+        // shopNum is a display hint, and trusting it would let a modified client buy from any shop in
+        // the world. Same rule HandleTrade follows.
+        int shopNum = _pm[index].ActiveShop(_world, index);
+        if (shopNum > 0)
+            _shop.Buy(index, shopNum, p.SalesSlot);
+        else
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+    }
+
+    private void HandleShopSell(int index, ShopSellPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Dead) return;  // a corpse can't shop
+        _shop.Sell(index, p.InvSlot, p.Quantity);
+    }
+
     private void HandleFixItem(int index, FixItemPacket p)
     {
         if (!_pm[index].IsPlaying) return;

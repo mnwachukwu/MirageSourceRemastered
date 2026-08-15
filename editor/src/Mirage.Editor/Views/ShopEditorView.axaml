@@ -155,6 +155,78 @@
             </StackPanel>
           </Border>
 
+          <!-- ── Sales table: items sold for gold at the item's own Price ──
+               A separate section rather than more columns on the barter table, because a sales row carries
+               one fact (which item) where a trade row carries four. Store-only, same as trades. -->
+          <Grid ColumnDefinitions="*,Auto" Margin="0,12,0,2" IsVisible="{Binding SelectedShop.IsStore}">
+            <TextBlock x:Name="_salesHeader" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="{Binding SelectedShop.SalesSummary}"
+                       Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+          </Grid>
+          <TextBlock x:Name="_salesHint" Margin="0,0,0,4" Foreground="#888" FontSize="11"
+                     TextWrapping="Wrap" IsVisible="{Binding SelectedShop.IsStore}"/>
+          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4"
+                  IsVisible="{Binding SelectedShop.IsStore}">
+            <StackPanel>
+              <!-- Order | item picker | price | reorder + remove -->
+              <Grid ColumnDefinitions="44,*,90,86" Background="#2A2A2A">
+                <TextBlock x:Name="_colSalesOrder" Grid.Column="0" Padding="6,4" FontWeight="SemiBold"/>
+                <TextBlock x:Name="_colSalesItem"  Grid.Column="1" Padding="6,4" FontWeight="SemiBold"/>
+                <TextBlock x:Name="_colSalesPrice" Grid.Column="2" Padding="6,4" FontWeight="SemiBold"
+                           HorizontalAlignment="Right"/>
+              </Grid>
+              <TextBlock x:Name="_noSalesHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+                         IsVisible="{Binding SelectedShop.HasNoSales}"/>
+              <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding SelectedShop.Sales}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="44,*,90,86" HorizontalAlignment="Stretch">
+                        <TextBlock Grid.Column="0" Text="{Binding SlotIndex}" Padding="6,0"
+                                   VerticalAlignment="Center" Foreground="#888"/>
+                        <controls:DropdownAutoCompleteBox Grid.Column="1"
+                                         ItemsSource="{Binding ItemEntries}"
+                                         SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                                         ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                         FilterMode="Custom" MinimumPrefixLength="0"
+                                         PlaceholderText="{Binding ItemPlaceholder}"
+                                         BorderThickness="0,0,1,1" CornerRadius="0"/>
+                        <!-- Read-only: price lives on the item, so editing it here would be a lie about
+                             which vendor it applies to. Two mutually exclusive TextBlocks rather than one
+                             with a bound brush — HasPrice/HasNoPrice are exact complements, so exactly one
+                             ever renders and there is nothing to overlap. -->
+                        <TextBlock Grid.Column="2" Text="{Binding PriceText}" Padding="6,0"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   IsVisible="{Binding HasPrice}"/>
+                        <TextBlock Grid.Column="2" Text="{Binding PriceText}" Padding="6,0"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Foreground="#E0A030" FontStyle="Italic"
+                                   IsVisible="{Binding HasNoPrice}"/>
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2" Margin="2,0,0,1">
+                          <Button Content="^" FontWeight="Bold" Classes="glyph"
+                                  Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.MoveSaleUpCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <Button Content="v" FontWeight="Bold" Classes="glyph"
+                                  Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.MoveSaleDownCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <Button Content="-" FontWeight="Bold" Classes="glyph"
+                                  Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.RemoveSaleCommand}"
+                                  CommandParameter="{Binding}"/>
+                        </StackPanel>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+              <Button x:Name="_addSaleBtn"
+                      Command="{Binding SelectedShop.AddSaleCommand}"
+                      HorizontalAlignment="Left" Margin="8,6" Padding="10,3"/>
+            </StackPanel>
+          </Border>
+          <TextBlock Text="{Binding SelectedShop.SalesWarning}"
+                     IsVisible="{Binding SelectedShop.HasSalesWarning}"
+                     Foreground="#E0A030" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,2"/>
+
           <TextBlock Text="{Binding StatusMessage}"
                      Foreground="#88FF88"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />

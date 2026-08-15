@@ -99,6 +99,124 @@ public sealed class ShopSystem : GameSystem
         SendMsg(index, ServerStrings.ShopSystem_TradedWith, GameColor.Yellow, ("ShopName", shop.TrimmedName));
     }
 
+    // ── Buy / sell ────────────────────────────────────────────────────────────
+    // The gold storefront, as opposed to Trade's barter table. A sales entry is just an item number:
+    // the price comes from ItemRecord.Price, which is what let a shopfront be authored by picking
+    // items instead of hand-writing a give->get row each (see ShopRecord.SalesItem).
+
+    /// <summary>Buy one unit of a sales-list entry for its <see cref="ItemRecord.Price"/>.
+    /// <para>Refuses unless the shop is open for this player, is a Store, the entry is priced, the purse
+    /// covers it, and the bag has room — in that order, so the player gets the most specific message.</para></summary>
+    public void Buy(int index, int shopNum, int salesSlot)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (shopNum <= 0 || shopNum > Constants.MaxShops) return;
+        var p = _pm[index].Char;
+        var shop = _world.Shops[shopNum];
+
+        // 1-based on the wire, like TradeSlot: the client sends its display index + 1.
+        if (salesSlot < 1 || salesSlot > shop.SalesItem.Count) return;
+
+        if (_pm[index].ActiveShop(_world, index) != shopNum || shop.ShopType != ShopType.Store)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_NotAtShop, GameColor.BrightRed);
+            return;
+        }
+
+        int itemNum = shop.SalesItem[salesSlot - 1];
+        if (itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        var item = _world.Items[itemNum];
+
+        // An unpriced entry is a data bug, and handing it over free is the same class of bug as the
+        // zero-quantity trade row that used to mint items. Refuse rather than give it away.
+        int price = item.Price;
+        if (price <= 0)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_NotForSale, GameColor.BrightRed, ("ItemName", item.TrimmedName));
+            return;
+        }
+
+        if (ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex) < price)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_InsufficientGold, GameColor.BrightRed);
+            return;
+        }
+
+        if (ItemSystem.FindOpenInvSlot(p, _world.Items, itemNum) == 0)
+        {
+            SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
+            return;
+        }
+
+        _items.TakeItem(index, Constants.GoldItemIndex, price);
+        _items.GiveItem(index, itemNum, 1);
+        SendMsg(index, ServerStrings.ShopSystem_Bought, GameColor.Yellow,
+            ("ItemName", item.TrimmedName), ("Gold", price));
+    }
+
+    /// <summary>Sell one inventory slot to the open shop for
+    /// <see cref="EconomyFormulas.ItemSellValue"/> — a quarter of the item's value, scaled by condition.
+    ///
+    /// <para><b>A zero-gold sale still goes through.</b> A broken piece, or anything the pricing model
+    /// values at nothing, is bought for nothing rather than refused: the vendor doubles as the way to
+    /// empty a bag, and a slot you cannot clear is worse than a slot that clears for free. What is
+    /// refused is <see cref="ItemRecord.NonJunkable"/> — gold, valor and treasure — because those either
+    /// are the currency or are meant to reach a specific buyer through the barter table.</para></summary>
+    public void Sell(int index, int invSlot, int quantity)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (!SlotValidation.IsValidInvSlot(invSlot)) return;
+
+        var p = _pm[index].Char;
+        int shopNum = _pm[index].ActiveShop(_world, index);
+        if (shopNum <= 0 || _world.Shops[shopNum].ShopType != ShopType.Store)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_NotAtShop, GameColor.BrightRed);
+            return;
+        }
+
+        int itemNum = p.Inv[invSlot].Num;
+        if (itemNum <= 0)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_NoItemInSlot, GameColor.BrightRed);
+            return;
+        }
+
+        var item = _world.Items[itemNum];
+        if (item.NonJunkable)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_CannotSell, GameColor.BrightRed, ("ItemName", item.TrimmedName));
+            return;
+        }
+
+        // Selling gear off your own back would silently unequip it; make the player take it off first,
+        // the same rule the bank deposit uses.
+        if (p.WeaponSlot == invSlot || p.ArmorSlot == invSlot || p.HelmetSlot == invSlot || p.ShieldSlot == invSlot)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_UnequipFirst, GameColor.BrightRed, ("ItemName", item.TrimmedName));
+            return;
+        }
+
+        // Currency-style stacks sell by amount (0 or an oversized ask means the whole stack, matching
+        // RemoveFromSlot); everything else is one indivisible piece and carries its own durability.
+        bool stacks = item.Type == ItemType.Currency;
+        int have = stacks ? Math.Max(p.Inv[invSlot].Quantity, 1) : 1;
+        int amount = stacks ? (quantity <= 0 || quantity > have ? have : quantity) : 1;
+
+        var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= Constants.MaxSpells
+            ? _world.Spells[item.SpellNum] : null;
+        long gold = (long)EconomyFormulas.ItemSellValue(item, p.Inv[invSlot].Dur, spell) * amount;
+
+        _items.TakeItem(index, itemNum, amount);
+        if (gold > 0) _items.GiveItem(index, Constants.GoldItemIndex, (int)Math.Min(gold, int.MaxValue));
+
+        if (gold > 0)
+            SendMsg(index, ServerStrings.ShopSystem_Sold, GameColor.Yellow,
+                ("ItemName", item.TrimmedName), ("Gold", gold));
+        else
+            SendMsg(index, ServerStrings.ShopSystem_SoldForNothing, GameColor.Gray, ("ItemName", item.TrimmedName));
+    }
+
     // ── Fix item ──────────────────────────────────────────────────────────────
 
     /// <summary>Repair one inventory slot at a repair-capable Store, charging by the durability points

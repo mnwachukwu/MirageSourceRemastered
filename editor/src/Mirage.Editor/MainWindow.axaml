@@ -4,6 +4,8 @@
         Width="1280" Height="720"
         MinWidth="800" MinHeight="500">
 
+  <Grid>
+
   <DockPanel>
 
     <!-- ── Toolbar ── -->
@@ -75,4 +77,22 @@
     <ContentControl Content="{Binding CurrentEditor}" Margin="0" />
 
   </DockPanel>
+
+    <!-- ── Startup overlay ──────────────────────────────────────────────────────────────────────
+         App.axaml.cs starts loading fire-and-forget (`_ = vm.InitializeAsync()`), so this window is
+         on screen and accepting clicks before any data exists. A click in that gap is SILENTLY
+         dropped: the UI looks finished, so it reads as the app ignoring you rather than as the app
+         not being ready. This covers the window until the data is in.
+
+         The Border needs a non-null Background to swallow pointer input — a transparent one would
+         dim the UI and let every click straight through, which is the worst of both. -->
+    <Border IsVisible="{Binding IsLoading}" Background="#E61A1A1A">
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14">
+        <TextBlock Text="{Binding LoadingStatus}"
+                   HorizontalAlignment="Center" FontSize="13" Foreground="#DDD"/>
+        <ProgressBar IsIndeterminate="True" Width="240" Height="4"/>
+      </StackPanel>
+    </Border>
+
+  </Grid>
 </Window>

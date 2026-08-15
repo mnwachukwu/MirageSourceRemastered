@@ -23,16 +23,25 @@ namespace Mirage.Server.Tests;
 [TestFixture]
 public class SeedIntegrityTests
 {
+    /// <summary>Must MIRROR <c>JsonPersistenceService.Options</c>. The point of this fixture is to read the
+    /// seed the way the engine reads it, so a divergence here can pass a file the server would reject — or,
+    /// as happened, reject a file the server reads fine. The converter is the part that bites: the server
+    /// writes enums as STRINGS (<c>"action": "OpenShop"</c>), and without it every conversation in the seed
+    /// failed to deserialize while the running game loaded them without complaint.</summary>
     private static readonly JsonSerializerOptions Json = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
     private static Dictionary<int, ItemRecord> _items = new();
     private static Dictionary<int, NpcRecord> _npcs = new();
     private static Dictionary<int, SpellRecord> _spells = new();
     private static Dictionary<int, ClassRecord> _classes = new();
+    private static Dictionary<int, ConversationRecord> _conversations = new();
+    private static Dictionary<int, QuestRecord> _quests = new();
+    private static Dictionary<int, ShopRecord> _shops = new();
 
     [OneTimeSetUp]
     public void LoadSeed()
@@ -43,6 +52,9 @@ public class SeedIntegrityTests
         _npcs = LoadAll<NpcRecord>(data, "npcs", "npc");
         _spells = LoadAll<SpellRecord>(data, "spells", "spell");
         _classes = LoadAll<ClassRecord>(data, "classes", "class");
+        _conversations = LoadAll<ConversationRecord>(data, "conversations", "conversation");
+        _quests = LoadAll<QuestRecord>(data, "quests", "quest");
+        _shops = LoadAll<ShopRecord>(data, "shops", "shop");
     }
 
     // Walk up from the test binary to the repo root (marked by the solution file), rather than counting
@@ -266,6 +278,559 @@ public class SeedIntegrityTests
                 Assert.That(drop.Quantity, Is.GreaterThan(0),
                     $"{npc.Name} drops gold with no quantity — check that gen-npcs.mjs still emits "
                     + "'quantity', which the compiler cannot verify for a JS generator");
+        });
+    }
+
+    // ── Conversations ─────────────────────────────────────────────────────────
+    // gen-conversations.cs runs these same structural checks before it writes. They are repeated here
+    // because the generator only validates its own INTENT — a tree edited afterwards in the editor, or
+    // by hand, reaches the world without passing through it. This fixture checks what is on DISK.
+
+    private static void RequireConversations()
+    {
+        RequireSeed();
+        if (_conversations.Count == 0) Assert.Ignore("no conversations authored");
+    }
+
+    /// <summary>The numbering contract the whole content chain rests on. A conversation names its NPC by
+    /// number, but the friendly NPCs are authored LAST (they need conversation/shop/quest numbers), so
+    /// gen-conversations RESERVES the range and everything downstream reads it back off disk. If this
+    /// drifts, #51/#52/#53 wire content onto NPCs that do not exist — silently, because an unresolvable
+    /// SpeakerNpc just means "no conversation" rather than an error.</summary>
+    [Test]
+    public void EveryConversation_SpeaksForItsReservedNpc()
+    {
+        RequireConversations();
+        const int firstFriendlyNpc = 125;   // 1-124 is the hostile bestiary
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, conv) in _conversations.OrderBy(kv => kv.Key))
+            {
+                Assert.That(conv.SpeakerNpc, Is.EqualTo(firstFriendlyNpc + num - 1),
+                    $"conversation{num} ({conv.TrimmedName}) breaks the reserved numbering — "
+                    + "speakerNpc must be 124 + the conversation number");
+                Assert.That(conv.SpeakerNpc, Is.GreaterThanOrEqualTo(firstFriendlyNpc),
+                    $"conversation{num} speaks for npc {conv.SpeakerNpc}, inside the hostile bestiary — "
+                    + "a mob would open a dialogue tree instead of fighting");
+            }
+        });
+    }
+
+    /// <summary>Two conversations claiming the same NPC is not an error anywhere in the engine —
+    /// <c>GameWorld.ConversationForNpc</c> takes the FIRST non-empty match, so the second one simply never
+    /// opens. Authored dialogue that silently never appears is exactly what this fixture is for.</summary>
+    [Test]
+    public void NoTwoConversations_ClaimTheSameNpc()
+    {
+        RequireConversations();
+        var dupes = _conversations.Where(kv => kv.Value.TrimmedName.Length > 0)
+                                  .GroupBy(kv => kv.Value.SpeakerNpc)
+                                  .Where(g => g.Count() > 1);
+        Assert.That(dupes.Select(g => $"npc {g.Key} claimed by conversations {string.Join(", ", g.Select(kv => kv.Key))}"),
+            Is.Empty, "only the lowest-numbered conversation for an NPC is ever reachable");
+    }
+
+    /// <summary>Every branch must land somewhere real. An unresolvable NextNodeId does not throw — it ends
+    /// the conversation, exactly as the 0 sentinel does — so a typo reads in-game as an NPC who abruptly
+    /// stops talking.</summary>
+    [Test]
+    public void EveryConversationChoice_ResolvesOrDeliberatelyEnds()
+    {
+        RequireConversations();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, conv) in _conversations.OrderBy(kv => kv.Key))
+            {
+                if (conv.TrimmedName.Length == 0) continue;
+                var ids = conv.Nodes.Select(n => n.Id).ToHashSet();
+                Assert.That(conv.RootNode, Is.Not.Null, $"conversation{num} has no reachable root node");
+
+                foreach (var node in conv.Nodes)
+                {
+                    Assert.That(node.Choices, Is.Not.Empty,
+                        $"conversation{num} node {node.Id} offers no choices — the player is trapped in it");
+
+                    foreach (var ch in node.Choices)
+                        if (ch.Action == ConversationAction.None && ch.NextNodeId != 0)
+                            Assert.That(ids, Does.Contain(ch.NextNodeId),
+                                $"conversation{num} node {node.Id} choice \"{ch.Label}\" points at "
+                                + $"node {ch.NextNodeId}, which does not exist");
+
+                    // An exit must be REACHABLE, not immediate. A node whose branches all continue one
+                    // more step is fine authoring (a joke with a forced punchline is exactly that);
+                    // what is unacceptable is a cycle with no exit anywhere in it.
+                    var walked = new HashSet<int> { node.Id };
+                    var pending = new Queue<ConversationNode>([node]);
+                    bool escapes = false;
+                    while (pending.Count > 0 && !escapes)
+                    {
+                        var at = pending.Dequeue();
+                        if (at.Choices.Any(ch => ch.Action != ConversationAction.None || ch.NextNodeId == 0))
+                        {
+                            escapes = true;
+                            break;
+                        }
+                        foreach (var ch in at.Choices)
+                            if (ch.NextNodeId != 0 && walked.Add(ch.NextNodeId)
+                                && conv.NodeById(ch.NextNodeId) is { } next)
+                                pending.Enqueue(next);
+                    }
+                    Assert.That(escapes, Is.True,
+                        $"conversation{num} node {node.Id} can never reach an exit — the player is stuck");
+                }
+            }
+        });
+    }
+
+    /// <summary>Authored text nobody can reach is the failure mode a word count hides: the tree looks full,
+    /// and a whole branch is orphaned because the choice that pointed at it was retargeted.</summary>
+    [Test]
+    public void NoConversationNode_IsUnreachableFromItsRoot()
+    {
+        RequireConversations();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, conv) in _conversations.OrderBy(kv => kv.Key))
+            {
+                if (conv.TrimmedName.Length == 0 || conv.RootNode is null) continue;
+
+                var seen = new HashSet<int> { conv.RootNode.Id };
+                var queue = new Queue<int>([conv.RootNode.Id]);
+                while (queue.Count > 0)
+                {
+                    int id = queue.Dequeue();
+                    var node = conv.NodeById(id);
+                    if (node is null) continue;
+                    foreach (var ch in node.Choices)
+                        if (ch.Action == ConversationAction.None && ch.NextNodeId != 0
+                            && conv.NodeById(ch.NextNodeId) is not null && seen.Add(ch.NextNodeId))
+                            queue.Enqueue(ch.NextNodeId);
+                }
+
+                foreach (var node in conv.Nodes)
+                    Assert.That(seen, Does.Contain(node.Id),
+                        $"conversation{num} ({conv.TrimmedName}) node {node.Id} is unreachable from the root");
+            }
+        });
+    }
+
+    /// <summary>The editor enforces both caps on the way in; nothing enforces them on a file written by a
+    /// generator or edited by hand, and the choice cap is a real render limit rather than a round
+    /// number.</summary>
+    [Test]
+    public void EveryConversation_StaysWithinTheEngineCaps()
+    {
+        RequireConversations();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, conv) in _conversations.OrderBy(kv => kv.Key))
+            {
+                Assert.That(conv.Nodes, Has.Count.LessThanOrEqualTo(Constants.MaxConversationNodes),
+                    $"conversation{num} exceeds MaxConversationNodes");
+                foreach (var node in conv.Nodes)
+                    Assert.That(node.Choices, Has.Count.LessThanOrEqualTo(Constants.MaxConversationChoices),
+                        $"conversation{num} node {node.Id} exceeds MaxConversationChoices — the panel "
+                        + "renders a menu, and the editor caps this for a reason");
+            }
+        });
+    }
+
+    // ── Quests ────────────────────────────────────────────────────────────────
+
+    private static void RequireQuests()
+    {
+        RequireSeed();
+        if (_quests.Count == 0) Assert.Ignore("no quests authored");
+    }
+
+    /// <summary>Expected gold-equivalent per kill off an NPC's authored drop table — the same figure
+    /// gen-quests sizes rewards from, recomputed here so the two cannot drift apart silently.</summary>
+    private static double Yield(int npcNum)
+    {
+        if (!_npcs.TryGetValue(npcNum, out var npc) || npc.Drops is null) return 0;
+        double total = 0;
+        foreach (var d in npc.Drops)
+        {
+            if (!_items.TryGetValue(d.ItemNum, out var item)) continue;
+            int unit = d.ItemNum == Constants.GoldItemIndex ? 1 : item.Price;
+            total += Math.Min((int)d.Chance, 100) / 100.0 * Math.Max((int)d.Quantity, 1) * unit;
+        }
+        return total;
+    }
+
+    /// <summary>ObjectiveKind declares Kill, Fetch, Gather and Explore, but
+    /// <c>ObjectiveSystem.RecordNpcKill</c> is the only advance site in the engine and it advances Kill
+    /// alone — the rest are declared plumbing. A Fetch quest would be accepted, tracked, and sit at 0/1
+    /// forever with no error anywhere. This is the check that stops an editor session authoring one.</summary>
+    [Test]
+    public void EveryQuestObjective_IsAKillOnARealNpc()
+    {
+        RequireQuests();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+            {
+                if (quest.TrimmedName.Length == 0) continue;
+                Assert.That(quest.Objectives, Is.Not.Empty, $"quest{num} has no objectives to complete");
+                foreach (var o in quest.Objectives)
+                {
+                    Assert.That(o.Kind, Is.EqualTo(ObjectiveKind.Kill),
+                        $"quest{num} ({quest.TrimmedName}) uses {o.Kind}, which no engine path advances — "
+                        + "it can never be completed");
+                    Assert.That(_npcs, Does.ContainKey(o.Target),
+                        $"quest{num} targets npc {o.Target}, which is not in the seed");
+                    Assert.That(o.Count, Is.GreaterThan(0), $"quest{num} objective needs a positive count");
+                }
+            }
+        });
+    }
+
+    /// <summary>The cross-collection reachability rule. Interaction is TALK-FIRST
+    /// (<c>PacketHandler.HandleNpcInteract</c>): conversation, then a visible quest, then the shop. So an
+    /// NPC that has a conversation is only reached THROUGH it, and a quest-giver whose tree carries no
+    /// <c>OpenQuests</c> choice offers a quest that no player can ever see or hand in. Nothing in the
+    /// engine reports this — the quest simply never appears.</summary>
+    [Test]
+    public void EveryQuestGiver_CanActuallyBeAskedForIt()
+    {
+        RequireQuests();
+        if (_conversations.Count == 0) Assert.Ignore("no conversations authored to check against");
+
+        bool OffersQuests(int npcNum) =>
+            _conversations.Values.Any(c => c.TrimmedName.Length > 0 && c.SpeakerNpc == npcNum
+                && c.Nodes.Any(n => n.Choices.Any(ch => ch.Action == ConversationAction.OpenQuests)));
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+            {
+                if (quest.TrimmedName.Length == 0 || quest.GiverNpc == 0) continue;
+
+                Assert.That(OffersQuests(quest.GiverNpc), Is.True,
+                    $"quest{num} ({quest.TrimmedName}) is given by npc {quest.GiverNpc}, whose conversation "
+                    + "has no OpenQuests choice — talk-first means the quest is unreachable");
+                Assert.That(OffersQuests(quest.EffectiveTurnInNpc), Is.True,
+                    $"quest{num} turns in at npc {quest.EffectiveTurnInNpc}, whose conversation has no "
+                    + "OpenQuests choice — the quest could be accepted but never handed in");
+            }
+        });
+    }
+
+    /// <summary>THE ANTI-FARM INVARIANT. A repeatable quest that pays more gold per kill than the kills
+    /// themselves yield turns questing into a strictly better loop than playing, and it compounds without
+    /// limit because the quest resets. One-shot quests are deliberately exempt: they anchor to a share of
+    /// the level instead, which is safe precisely because it cannot repeat.</summary>
+    [Test]
+    public void NoRepeatableQuest_OutPaysTheGrindItAsksFor()
+    {
+        RequireQuests();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+            {
+                if (quest.TrimmedName.Length == 0 || !quest.Repeatable) continue;
+
+                int kills = quest.Objectives.Sum(o => o.Count);
+                if (kills == 0) continue;
+                double grind = quest.Objectives.Sum(o => Yield(o.Target) * o.Count);
+                if (grind <= 0) continue;   // targets with no drop table are caught by their own test
+
+                // Subsequent completions pay the repeat set — or the main set when no repeat set exists.
+                var payingSet = quest.HasRepeatRewards ? quest.RepeatRewardItems : quest.RewardItems;
+                long gold = payingSet.Where(r => r.ItemNum == Constants.GoldItemIndex).Sum(r => (long)r.Quantity);
+
+                Assert.That(gold, Is.LessThan(grind),
+                    $"quest{num} ({quest.TrimmedName}) is repeatable and pays {gold:n0} gold for a grind "
+                    + $"worth {grind:n0} — turning it in beats killing, forever");
+            }
+        });
+    }
+
+    /// <summary>A chain must be walkable: the prerequisite has to exist and be reachable at or below the
+    /// level of the quest it unlocks, or the player meets the second door before the first.</summary>
+    [Test]
+    public void EveryQuestChain_CanBeWalkedInOrder()
+    {
+        RequireQuests();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+            {
+                if (quest.TrimmedName.Length == 0 || quest.PrereqQuest == 0) continue;
+
+                Assert.That(_quests, Does.ContainKey(quest.PrereqQuest),
+                    $"quest{num} requires quest {quest.PrereqQuest}, which does not exist");
+                if (!_quests.TryGetValue(quest.PrereqQuest, out var prereq)) continue;
+
+                Assert.That(prereq.ReqLevel, Is.LessThanOrEqualTo(quest.ReqLevel),
+                    $"quest{num} ({quest.TrimmedName}) unlocks at level {quest.ReqLevel} but its "
+                    + $"prerequisite \"{prereq.TrimmedName}\" needs {prereq.ReqLevel}");
+                Assert.That(prereq.GiverNpc, Is.EqualTo(quest.GiverNpc),
+                    $"quest{num} chains off a quest given by a different NPC — the seed's three bands "
+                    + "have no content between them, so a cross-hub chain cannot be walked");
+            }
+        });
+    }
+
+    /// <summary>A chain whose fights get harder while the ask stays flat reads as filler, so an objective
+    /// may never shrink as its chain deepens. The one exception is a shrink TO A SINGLE TARGET — that is
+    /// a boss step, and asking for one of something is the point of a boss.</summary>
+    [Test]
+    public void EveryQuestChain_EscalatesItsObjective()
+    {
+        RequireQuests();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+            {
+                if (quest.TrimmedName.Length == 0 || quest.PrereqQuest == 0) continue;
+                if (!_quests.TryGetValue(quest.PrereqQuest, out var prereq)) continue;
+
+                int kills = quest.Objectives.Sum(o => o.Count);
+                int before = prereq.Objectives.Sum(o => o.Count);
+                if (kills == 1 || before == 1) continue;   // a boss step on either side
+
+                Assert.That(kills, Is.GreaterThanOrEqualTo(before),
+                    $"quest{num} ({quest.TrimmedName}) asks for {kills} kills, fewer than its "
+                    + $"prerequisite \"{prereq.TrimmedName}\" at {before} — a chain must not get easier");
+            }
+        });
+    }
+
+    /// <summary>A quest flagged <c>Repeatable</c> with <c>Cadence.None</c> is a trap the engine cannot
+    /// report: <c>QuestSystem.PeriodKeyFor</c> returns "" for None, and <c>IsOnRepeatCooldown</c> compares
+    /// the stored key against it — so the empty key equals its own and the quest reports a PERMANENT
+    /// cooldown. It advertises itself as repeatable in the panel and then never re-opens.</summary>
+    [Test]
+    public void EveryRepeatableQuest_DeclaresACadenceThatCanRollOver()
+    {
+        RequireQuests();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+            {
+                if (quest.TrimmedName.Length == 0) continue;
+                if (quest.Repeatable)
+                    Assert.That(quest.Cadence, Is.Not.EqualTo(QuestCadence.None),
+                        $"quest{num} ({quest.TrimmedName}) is repeatable with no cadence — its period key "
+                        + "never changes, so it reports a permanent cooldown and never re-opens");
+                else
+                    Assert.That(quest.Cadence, Is.EqualTo(QuestCadence.None),
+                        $"quest{num} ({quest.TrimmedName}) carries a {quest.Cadence} cadence but is not "
+                        + "repeatable — the cadence does nothing and misleads the next reader");
+            }
+        });
+    }
+
+    // ── The content chain closes ──────────────────────────────────────────────
+
+    /// <summary>The last link. Conversations RESERVED npc numbers 125+ before those NPCs existed, and
+    /// shops and quests were then authored against them — so until the friendly-NPC generator ran, every
+    /// one of those references pointed at nothing. None of it errors at runtime: an unresolvable
+    /// SpeakerNpc simply means "no conversation", a missing keeper means "no shop". Silence all the way
+    /// down, which is exactly why it is checked here.</summary>
+    [Test]
+    public void EveryAuthoredReference_NamesAnNpcThatExists()
+    {
+        RequireSeed();
+        if (_npcs.Count == 0) Assert.Ignore("no npcs authored");
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, conv) in _conversations.Where(kv => kv.Value.TrimmedName.Length > 0))
+                Assert.That(_npcs, Does.ContainKey(conv.SpeakerNpc),
+                    $"conversation{num} ({conv.TrimmedName}) speaks for npc {conv.SpeakerNpc}, which does not exist");
+
+            foreach (var (num, shop) in _shops.Where(kv => kv.Value.Keeper > 0))
+                Assert.That(_npcs, Does.ContainKey(shop.Keeper),
+                    $"shop{num} ({shop.TrimmedName}) is kept by npc {shop.Keeper}, which does not exist");
+
+            foreach (var (num, quest) in _quests.Where(kv => kv.Value.GiverNpc > 0))
+            {
+                Assert.That(_npcs, Does.ContainKey(quest.GiverNpc),
+                    $"quest{num} ({quest.TrimmedName}) is given by npc {quest.GiverNpc}, which does not exist");
+                Assert.That(_npcs, Does.ContainKey(quest.EffectiveTurnInNpc),
+                    $"quest{num} turns in at npc {quest.EffectiveTurnInNpc}, which does not exist");
+            }
+        });
+    }
+
+    /// <summary>Anyone who carries content must be non-hostile and must not be loot. A shopkeeper on
+    /// AttackOnSight would attack the customer; one with a drop table turns a storefront into a farm.</summary>
+    [Test]
+    public void EveryContentCarrier_IsFriendlyAndCarriesNoLoot()
+    {
+        RequireSeed();
+        var carriers = _conversations.Values.Where(c => c.TrimmedName.Length > 0).Select(c => c.SpeakerNpc)
+            .Concat(_shops.Values.Where(s => s.Keeper > 0).Select(s => s.Keeper))
+            .Concat(_quests.Values.Where(q => q.GiverNpc > 0).Select(q => q.GiverNpc))
+            .Distinct().Where(_npcs.ContainsKey).ToArray();
+        if (carriers.Length == 0) Assert.Ignore("no content carriers authored");
+
+        Assert.Multiple(() =>
+        {
+            foreach (int num in carriers)
+            {
+                var npc = _npcs[num];
+                Assert.That(npc.Behavior, Is.EqualTo(NpcBehavior.Friendly),
+                    $"npc {num} ({npc.TrimmedName}) carries content but is {npc.Behavior} — it would fight its own customers");
+                Assert.That(npc.Drops ?? [], Is.Empty,
+                    $"npc {num} ({npc.TrimmedName}) carries content AND a drop table — killing the shopkeeper pays");
+            }
+        });
+    }
+
+    /// <summary>A guard is meant to be an unwinnable fight, and Matt's call is that LEVEL is the wrong
+    /// lever for that — it is a derived number, and pushing it past the ceiling only makes the stat line
+    /// strange. Guards therefore sit AT the player ceiling and are made unwinnable by
+    /// <see cref="NpcRecord.ExtraHp"/>, which the record documents as exactly this: "the intended way to
+    /// restore an old-style extreme-DEF wall".
+    ///
+    /// <para>They also come in two shapes. A melee guard runs INT 0 so it never casts; a caster guard runs
+    /// STR 0, so <c>P(cast) = Int/(Int+Str)</c> makes it cast every beat. Dropping the unused stat is what
+    /// lets the other three read high at 255 rather than four mediocre numbers — so a guard with all four
+    /// stats populated is a guard that has quietly lost its teeth.</para></summary>
+    [Test]
+    public void EveryGuard_IsAMaxedWallThatDropsNothing()
+    {
+        RequireSeed();
+        var guards = _npcs.Where(kv => kv.Value.Behavior == NpcBehavior.Guard).ToArray();
+        if (guards.Length == 0) Assert.Ignore("no guards authored");
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, g) in guards)
+            {
+                string who = $"guard {num} ({g.TrimmedName})";
+                int level = StatFormulas.NpcLevel(g.Str, g.Def, g.Int, g.Spd);
+
+                Assert.That(level, Is.EqualTo(Constants.MaxLevel),
+                    $"{who} computes to level {level} — guards sit exactly at the player ceiling");
+                Assert.That(g.ExtraHp, Is.GreaterThan(0),
+                    $"{who} has no ExtraHp — at level {Constants.MaxLevel} with no HP wall it is just a "
+                    + "very good player, and a maxed character can kill it");
+                Assert.That(g.Spd, Is.GreaterThan(0),
+                    $"{who} has no SPD — guards always run, and one that cannot close is one you walk away from");
+                Assert.That(g.Str == 0 || g.Int == 0, Is.True,
+                    $"{who} carries both STR and INT — a guard commits to melee (INT 0) or to casting "
+                    + "(STR 0); splitting the budget four ways makes all of it mediocre");
+                Assert.That(g.Drops ?? [], Is.Empty,
+                    $"{who} carries loot — killing guards must never be worth doing");
+            }
+        });
+    }
+
+    // ── Shops ─────────────────────────────────────────────────────────────────
+
+    private static void RequireShops()
+    {
+        RequireSeed();
+        if (_shops.Count == 0) Assert.Ignore("no shops authored");
+    }
+
+    /// <summary>The companion to <see cref="EveryQuestGiver_CanActuallyBeAskedForIt"/>, and the reason
+    /// #50 came before #52. Interaction is TALK-FIRST (<c>PacketHandler.HandleNpcInteract</c>):
+    /// conversation, then a visible quest, then the keeper shop. So a keeper who HAS a conversation is
+    /// only ever reached through it, and a shop whose keeper's tree carries no <c>OpenShop</c> choice can
+    /// never be opened by any player — the NPC just talks. Nothing in the engine reports this.</summary>
+    [Test]
+    public void EveryShopKeeper_CanActuallyBeAskedToOpenIt()
+    {
+        RequireShops();
+        if (_conversations.Count == 0) Assert.Ignore("no conversations authored to check against");
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, shop) in _shops.OrderBy(kv => kv.Key))
+            {
+                if (shop.Keeper == 0) continue;   // an unassigned shop is unreachable by design, not by accident
+
+                var conv = _conversations.Values.FirstOrDefault(c =>
+                    c.TrimmedName.Length > 0 && c.SpeakerNpc == shop.Keeper);
+                if (conv is null) continue;   // no conversation at all: interact falls through to the shop
+
+                bool opensShop = conv.Nodes.Any(n => n.Choices.Any(ch => ch.Action == ConversationAction.OpenShop));
+                Assert.That(opensShop, Is.True,
+                    $"shop{num} ({shop.TrimmedName}) is kept by npc {shop.Keeper}, whose conversation has no "
+                    + "OpenShop choice — talk-first means the storefront can never be reached");
+            }
+        });
+    }
+
+    /// <summary>One keeper, one shop. <c>GameWorld.ShopAssignedToNpc</c> resolves the first match, so a
+    /// second shop on the same NPC is simply invisible — an authored storefront nobody can open.</summary>
+    [Test]
+    public void NoTwoShops_ShareAKeeper()
+    {
+        RequireShops();
+        var dupes = _shops.Where(kv => kv.Value.Keeper > 0)
+                          .GroupBy(kv => kv.Value.Keeper)
+                          .Where(g => g.Count() > 1);
+        Assert.That(dupes.Select(g => $"npc {g.Key} keeps shops {string.Join(", ", g.Select(kv => kv.Key))}"),
+            Is.Empty, "only the first shop found for a keeper is ever opened");
+    }
+
+    /// <summary>A sales row priced at 0 is dead: <c>ShopSystem.Buy</c> refuses it rather than giving the
+    /// item away, so it renders in the panel and does nothing when clicked. This is also the tripwire for
+    /// a regenerated armory — <c>gen-items --apply</c> rewrites every item WITHOUT prices, so forgetting
+    /// seed-prices afterwards empties every storefront in the world without erroring.</summary>
+    [Test]
+    public void EveryShopSalesRow_IsPricedAndPurchasable()
+    {
+        RequireShops();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, shop) in _shops.OrderBy(kv => kv.Key))
+                foreach (int itemNum in shop.SalesItem)
+                {
+                    Assert.That(_items, Does.ContainKey(itemNum), $"shop{num} sells missing item {itemNum}");
+                    if (!_items.TryGetValue(itemNum, out var item)) continue;
+                    Assert.That(item.Price, Is.GreaterThan(0),
+                        $"shop{num} sells \"{item.TrimmedName}\" at price 0 — Buy refuses it, so the row is dead");
+                    Assert.That(item.NonJunkable, Is.False,
+                        $"shop{num} sells NonJunkable \"{item.TrimmedName}\" — that is currency or treasure");
+                }
+        });
+    }
+
+    /// <summary>Treasure is <c>NonJunkable</c>, so the universal 25% sell-back cannot touch it — a fence's
+    /// barter row is the ONLY way it converts to gold. #58 moved roughly 30% of the bestiary's gold income
+    /// into treasure, so a treasure with no buyer is that share of the economy stranded in bags.</summary>
+    [Test]
+    public void EveryTreasure_HasSomewhereToBeSold()
+    {
+        RequireShops();
+        var treasures = _items.Where(kv => kv.Value.NonJunkable && kv.Value.Price > 0
+                                        && kv.Key != Constants.GoldItemIndex && kv.Key != Constants.ValorItemIndex)
+                              .Select(kv => kv.Key).ToArray();
+        if (treasures.Length == 0) Assert.Ignore("no treasure authored");
+
+        var bought = _shops.Values.SelectMany(s => s.TradeItem).Select(t => t.GiveItem).ToHashSet();
+        Assert.Multiple(() =>
+        {
+            foreach (int t in treasures)
+                Assert.That(bought, Does.Contain(t),
+                    $"\"{_items[t].TrimmedName}\" is NonJunkable and no shop's trade table buys it — "
+                    + "it can never become gold");
+        });
+    }
+
+    /// <summary>Rewards must name real items. Gold is item #1 like anywhere else in the engine, so this
+    /// also catches a reward that forgot to be currency.</summary>
+    [Test]
+    public void EveryQuestReward_NamesAnItemThatExists()
+    {
+        RequireQuests();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, quest) in _quests.OrderBy(kv => kv.Key))
+                foreach (var reward in quest.RewardItems.Concat(quest.RepeatRewardItems))
+                {
+                    Assert.That(_items, Does.ContainKey(reward.ItemNum),
+                        $"quest{num} rewards item {reward.ItemNum}, which is not in the seed");
+                    Assert.That(reward.Quantity, Is.GreaterThan(0),
+                        $"quest{num} rewards item {reward.ItemNum} with no quantity");
+                }
         });
     }
 }

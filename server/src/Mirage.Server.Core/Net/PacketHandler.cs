@@ -526,6 +526,12 @@ public sealed partial class PacketHandler
                 case TradeRequestPacket p:
                     HandleTradeRequest(index, p);
                     break;
+                case ShopBuyPacket p:
+                    HandleShopBuy(index, p);
+                    break;
+                case ShopSellPacket p:
+                    HandleShopSell(index, p);
+                    break;
                 case FixItemPacket p:
                     HandleFixItem(index, p);
                     break;

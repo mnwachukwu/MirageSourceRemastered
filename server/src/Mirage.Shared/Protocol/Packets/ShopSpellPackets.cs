@@ -26,6 +26,25 @@ public sealed record TradePacket : IPacket
     [JsonPropertyName("tradeSlot")] public int TradeSlot { get; init; }
 }
 
+/// <summary>C→S: buy one entry from the open shop's SALES list. <paramref name="SalesSlot"/> is 1-based to
+/// match <see cref="TradePacket.TradeSlot"/> — the client sends its display index + 1.</summary>
+public sealed record ShopBuyPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBuy;
+    [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
+    [JsonPropertyName("salesSlot")] public int SalesSlot { get; init; }
+}
+
+/// <summary>C→S: sell one inventory slot to the open shop. <see cref="Quantity"/> applies to stackables
+/// (currency); 0 or more than the stack holds means "all of it", mirroring the drop/deposit convention.
+/// The server prices it — the client never proposes a value.</summary>
+public sealed record ShopSellPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopSell;
+    [JsonPropertyName("invSlot")] public int InvSlot { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
+}
+
 public sealed record FixItemPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.FixItem;

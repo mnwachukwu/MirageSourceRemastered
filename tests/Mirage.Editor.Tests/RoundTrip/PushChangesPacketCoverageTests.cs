@@ -56,11 +56,11 @@ public class PushChangesPacketCoverageTests
             // silently kept one drop would be the same class of bug as the footprint reset below.
             Assert.That(pkt.Drops, Is.Not.Null);
             Assert.That(pkt.Drops!, Has.Count.EqualTo(2));
-            Assert.That(pkt.Drops[0].ItemNum, Is.EqualTo(12));
-            Assert.That(pkt.Drops[0].Quantity, Is.EqualTo((short)250));
-            Assert.That(pkt.Drops[0].Chance, Is.EqualTo((short)35));
-            Assert.That(pkt.Drops[1].ItemNum, Is.EqualTo(7));
-            Assert.That(pkt.Drops[1].Chance, Is.EqualTo((short)3));
+            Assert.That(pkt.Drops![0].ItemNum, Is.EqualTo(12));
+            Assert.That(pkt.Drops![0].Quantity, Is.EqualTo((short)250));
+            Assert.That(pkt.Drops![0].Chance, Is.EqualTo((short)35));
+            Assert.That(pkt.Drops![1].ItemNum, Is.EqualTo(7));
+            Assert.That(pkt.Drops![1].Chance, Is.EqualTo((short)3));
             Assert.That(pkt.Str, Is.EqualTo(61));
             Assert.That(pkt.Def, Is.EqualTo(62));
             Assert.That(pkt.Spd, Is.EqualTo(63));

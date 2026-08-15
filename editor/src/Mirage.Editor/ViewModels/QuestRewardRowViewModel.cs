@@ -58,7 +58,7 @@ public sealed partial class QuestRewardRowViewModel : ObservableObject
     }
     partial void OnValueChanged(int value)
     {
-        IsDirty = true;
+        if (!_refreshing) IsDirty = true;
         CoerceValue();
     }
 
@@ -73,13 +73,21 @@ public sealed partial class QuestRewardRowViewModel : ObservableObject
 
     public void ClearDirty() => IsDirty = false;
 
+    // Set while a REFRESH re-normalizes the row — see NpcDropRowViewModel for the failure this prevents.
+    private bool _refreshing;
+
     public void NotifyEntriesChanged()
     {
         OnPropertyChanged(nameof(ItemEntries));
         OnPropertyChanged(nameof(SelectedItem));
         OnPropertyChanged(nameof(ValueMin));
         OnPropertyChanged(nameof(ValueMax));
-        CoerceValue();
+        // Normalization, not an author edit: the arriving item list is what makes currency-ness knowable,
+        // so this can rewrite a loaded value on the very first selection. Marking dirty for it would flag a
+        // quest as modified merely by being opened.
+        _refreshing = true;
+        try { CoerceValue(); }
+        finally { _refreshing = false; }
     }
 
     public QuestReward ToRecord() => new() { ItemNum = ItemNum, Quantity = Value };

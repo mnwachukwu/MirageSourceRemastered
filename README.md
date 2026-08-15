@@ -32,14 +32,18 @@ I don't know why I did this.
 
 `Mirage.Shared` is referenced by all three solutions, replacing VB6's duplicated `modTypes.bas` definitions and the server/client divergence they caused.
 
-On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all fifteen projects together.
+On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all eighteen projects together.
 
 Two things people expect to find here live **outside** this repository, in a sibling folder checked out beside it:
 
 | Where | What | Why not here |
 |---|---|---|
-| `../MirageSourceRemastered.Tools/Simulations/` | `CombatSim`, `OscSim`, `KiteBiasSim` — standalone balance simulators | No dependency on the engine; nothing here builds or ships them |
+| `../MirageSourceRemastered.Tools/Simulations/` | Standalone balance simulators — they answer "what would this feel like" against the shipped formulas | No dependency on the engine; nothing here builds or ships them |
+| `../MirageSourceRemastered.Tools/` (the rest) | The content generators that produced the seed — the armory, bestiary, spellbook, classes, conversations, quests and shops each have one | They write `data/` and are never referenced by it; the world is the artifact, not the script |
 | `../MirageSourceRemastered.Tools/vb6-to-cs-converter/` | The VB6 → JSON migration tool | Referenced only when importing an old world; it reaches back to `Mirage.Shared` by relative path, so the two folders must stay siblings |
+
+Deliberately described rather than enumerated: the previous version of this table named three simulators
+by hand and was wrong about all of it within a few months. Run `ls` in that folder for the current set.
 
 ---
 
@@ -70,7 +74,11 @@ dotnet run --project editor/src/Mirage.Editor
 > `dotnet run --project ../MirageSourceRemastered.Tools/vb6-to-cs-converter/src/Mirage.Vb6Converter -- --migrate <vb6-server-path> [<data-output-path>]`
 > It converts all binary `.dat` maps and INI data files to JSON in one pass (account passwords are hashed during conversion). Source files are never modified.
 
-> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — ten classes, 471 items, 270 spells and 84 NPCs. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
+> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 174 NPCs, 35 conversations, 24 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
+>
+> Those counts are checked against the folder by `tools/check-seed-counts.mjs`, which CI runs — they have gone stale twice.
+>
+> **There are no maps in it, and that is the important caveat.** The seed is a content *library*, not a world: it defines what exists — the items, the bestiary, the townsfolk, the shops they keep and the quests they give — but nothing places any of it on a tile. Start a server against this `data/` and you get the 174 NPCs as definitions and a set of blank maps with none of them standing anywhere. Placing them is map authoring, which is what the editor is for.
 >
 > **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
 >

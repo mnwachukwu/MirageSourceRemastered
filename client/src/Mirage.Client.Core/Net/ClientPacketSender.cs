@@ -192,6 +192,14 @@ public sealed class ClientPacketSender
     public void SendTrade(int shopNum, int tradeSlot)
         => _transport.Send(new TradePacket { ShopNum = shopNum, TradeSlot = tradeSlot });
 
+    public void SendShopBuy(int shopNum, int salesSlot)
+        => _transport.Send(new ShopBuyPacket { ShopNum = shopNum, SalesSlot = salesSlot });
+
+    /// <summary>Sell an inventory slot to the open shop. <paramref name="quantity"/> 0 means the whole
+    /// stack; the server prices it, so nothing here proposes a value.</summary>
+    public void SendShopSell(int invSlot, int quantity = 0)
+        => _transport.Send(new ShopSellPacket { InvSlot = invSlot, Quantity = quantity });
+
     public void SendFixItem(int invSlot)
         => _transport.Send(new FixItemPacket { InvSlot = invSlot });
 

@@ -167,7 +167,7 @@ public sealed partial class NpcRowViewModel : ObservableObject
         foreach (var d in Drops) d.PropertyChanged -= OnDropRowChanged;
         Drops.Clear();
         if (drops is null) { NotifyDropDerived(); return; }
-        for (int i = 0; i < drops.Count && i < Constants.MaxNpcDrops; i++)
+        for (int i = 0; i < drops.Count; i++)
         {
             var row = new NpcDropRowViewModel(i + 1, drops[i], () => _itemEntriesProvider(), n => _isCurrency(n));
             row.PropertyChanged += OnDropRowChanged;
@@ -178,6 +178,11 @@ public sealed partial class NpcRowViewModel : ObservableObject
 
     private void OnDropRowChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        // Only a row reporting its OWN edit marks the NPC dirty — the same rule ClassRowViewModel uses
+        // for its loadout. NotifyDropDerived re-raises derived state on every row, and it runs on
+        // selection, so treating any child raise as an edit made merely OPENING an NPC look modified.
+        // The _loading guard does not help here: this fires long after construction.
+        if (sender is NpcDropRowViewModel { IsDirty: false }) { NotifyDropDerived(); return; }
         if (!_loading) MarkDirty();
         NotifyDropDerived();
     }
@@ -189,11 +194,11 @@ public sealed partial class NpcRowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasDropConfigWarning));
     }
 
-    /// <summary>Add an empty drop row, up to <see cref="Constants.MaxNpcDrops"/>.</summary>
+    /// <summary>Add an empty drop row. Unbounded — a hoard is authored as repeated lines, so a length cap
+    /// would be a cap on payout; <see cref="DropYieldText"/> is what keeps the running total honest.</summary>
     [RelayCommand]
     private void AddDrop()
     {
-        if (Drops.Count >= Constants.MaxNpcDrops) return;
         var row = new NpcDropRowViewModel(Drops.Count + 1, new NpcDrop(), () => _itemEntriesProvider(), n => _isCurrency(n));
         row.PropertyChanged += OnDropRowChanged;
         Drops.Add(row);
@@ -238,7 +243,11 @@ public sealed partial class NpcRowViewModel : ObservableObject
         _behavior = r.Behavior;
         _group = r.Group;
         _range = r.Range;
-        LoadDrops(r.Drops);
+        // Guarded like ClassRowViewModel's loadout: building drop rows subscribes change handlers that
+        // land on MarkDirty, so an unguarded load flags every NPC with a drop table as edited on sight.
+        _loading = true;
+        try { LoadDrops(r.Drops); }
+        finally { _loading = false; }
         _str = r.Str;
         _def = r.Def;
         _spd = r.Spd;
@@ -251,6 +260,7 @@ public sealed partial class NpcRowViewModel : ObservableObject
         _lightRadius = r.Light.Radius;
         _lightFlicker = r.Light.Flicker;
         _lightIntensity = (int)Math.Round(r.Light.Intensity * 100);
+        ClearDirty();   // a row built straight from disk has not been edited
     }
 
     partial void OnNameChanged(string value) => MarkDirty();
@@ -351,6 +361,9 @@ public sealed partial class NpcRowViewModel : ObservableObject
     /// <summary>Mark the row clean after a successful save or discard.</summary>
     public void ClearDirty()
     {
+        // Child rows too: one left dirty would re-mark the NPC on its next derived re-raise, and the
+        // dot would come straight back with nobody having touched anything.
+        foreach (var drop in Drops) drop.ClearDirty();
         IsDirty = false;
         OnPropertyChanged(nameof(IsDirty));
     }

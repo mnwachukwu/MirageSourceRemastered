@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Mirage.Shared.Records;
 
 /// <summary>
@@ -21,6 +23,7 @@ public sealed class QuestRecord
         }
     }
     /// <summary>Cached <see cref="Name"/>.TrimEnd() — names come padded; message sites trim.</summary>
+    [JsonIgnore]
     public string TrimmedName => _trimmedName ??= _name.TrimEnd();
 
     /// <summary>Journal / flavor text shown in the quest dialog and log.</summary>
@@ -57,6 +60,7 @@ public sealed class QuestRecord
     public List<QuestReward> RepeatRewardItems { get; set; } = new();
 
     /// <summary>Whether a distinct repeat-reward set is defined (else subsequent completions pay the main set).</summary>
+    [JsonIgnore]
     public bool HasRepeatRewards => RepeatRewardExp > 0 || RepeatRewardItems.Count > 0;
 
     // ── NPC roles (kept here, NOT on NpcRecord) ─────────────────────────────────
@@ -70,6 +74,7 @@ public sealed class QuestRecord
     public QuestCadence Cadence { get; set; }
 
     /// <summary>Where to turn the quest in — the turn-in NPC, falling back to the giver.</summary>
+    [JsonIgnore]
     public int EffectiveTurnInNpc => TurnInNpc != 0 ? TurnInNpc : GiverNpc;
 
     /// <summary>Deep copy for an off-thread snapshot / broadcast (the lists are mutable references).</summary>

@@ -50,6 +50,8 @@ public static partial class EditorStrings
     public const string MainWindow_StatusOffline = nameof(MainWindow_StatusOffline);
     public const string MainWindow_StatusOnline = nameof(MainWindow_StatusOnline);
     public const string MainWindow_LoadingSection = nameof(MainWindow_LoadingSection);
+    public const string MainWindow_LoadingData = nameof(MainWindow_LoadingData);
+    public const string MainWindow_LoadingAssets = nameof(MainWindow_LoadingAssets);
     public const string MainWindow_LoadingSectionProgress = nameof(MainWindow_LoadingSectionProgress);
     public const string MainWindow_DisconnectedAlert = nameof(MainWindow_DisconnectedAlert);
 

@@ -55,6 +55,27 @@
     <ClientWindowIcon Condition="'$(ClientWindowIcon)' == ''">$(RepoRoot)client\src\Mirage.Client.Shell\Icon.bmp</ClientWindowIcon>
   </PropertyGroup>
 
+  <!--
+    Warnings are errors, everywhere.
+
+    Not a style preference: the two warnings this repo was carrying were both real. Three Avalonia
+    views bound to AutoCompleteBox.Watermark, which is obsolete and would simply stop existing on a
+    future Avalonia — a silent UI regression, since a dropped binding renders as an empty box rather
+    than a build failure. The other two were CS8602 dereferences in tests, which is the compiler
+    pointing at an assertion that could NullReferenceException instead of failing with a useful
+    message.
+
+    The real argument is that a warning nobody must act on is a warning everybody scrolls past, and
+    then a warning that mattered arrives and lands in the same blind spot. Zero is the only count
+    that stays legible.
+
+    If a warning ever needs to be allowed, suppress THAT diagnostic with a comment saying why —
+    do not turn this off.
+  -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <!-- Strip .pdb files from all publish output. DebugType=none suppresses
        symbol generation entirely so nothing sneaks in via referenced libs. -->
   <PropertyGroup Condition="'$(PublishDir)' != ''">

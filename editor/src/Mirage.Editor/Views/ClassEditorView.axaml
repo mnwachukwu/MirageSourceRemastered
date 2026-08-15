@@ -293,7 +293,7 @@
                       <controls:DropdownAutoCompleteBox Grid.Column="0"
                                        ItemsSource="{Binding ItemEntries}"
                                        SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
-                                       Watermark="{Binding ItemPlaceholder}"
+                                       PlaceholderText="{Binding ItemPlaceholder}"
                                        ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                                        FilterMode="Custom" MinimumPrefixLength="0"/>
                       <!-- Quantity is meaningless off currency; the server zeroes it, so the spinner
@@ -312,7 +312,7 @@
                         </TextBlock.Styles>
                       </TextBlock>
                       <Button Grid.Column="3" Content="X" Margin="4,0,0,0" Padding="6,2" FontSize="11"
-                              Command="{Binding $parent[ItemsControl].((vm:ClassRowViewModel)DataContext).RemoveStartingItemCommand}"
+                              Command="{Binding $parent[ItemsControl].DataContext.SelectedClass.RemoveStartingItemCommand}"
                               CommandParameter="{Binding}"/>
                     </Grid>
                   </DataTemplate>
@@ -336,13 +336,13 @@
                       <controls:DropdownAutoCompleteBox Grid.Column="0"
                                        ItemsSource="{Binding SpellEntries}"
                                        SelectedItem="{Binding SelectedSpell, Mode=TwoWay}"
-                                       Watermark="{Binding SpellPlaceholder}"
+                                       PlaceholderText="{Binding SpellPlaceholder}"
                                        ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                                        FilterMode="Custom" MinimumPrefixLength="0"/>
                       <TextBlock Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11"
                                  Foreground="#99BBDD" Text="{Binding DetailText}"/>
                       <Button Grid.Column="2" Content="X" Margin="4,0,0,0" Padding="6,2" FontSize="11"
-                              Command="{Binding $parent[ItemsControl].((vm:ClassRowViewModel)DataContext).RemoveStartingSpellCommand}"
+                              Command="{Binding $parent[ItemsControl].DataContext.SelectedClass.RemoveStartingSpellCommand}"
                               CommandParameter="{Binding}"/>
                     </Grid>
                   </DataTemplate>

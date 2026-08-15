@@ -57,6 +57,214 @@ public class ShopSystemTests
         sp.SetActiveShop(ShopNum, sp.Char.Map, KeeperSlot);
     }
 
+    // ── Buy (the gold storefront) ────────────────────────────────────────────────
+    // Sales entries are item NUMBERS priced from ItemRecord.Price, as opposed to Trade's give->get rows.
+
+    static void SetSales(GameWorld world, params int[] itemNums)
+    {
+        var sales = world.Shops[ShopNum].SalesItem;
+        sales.Clear();
+        sales.AddRange(itemNums);
+    }
+
+    [Test]
+    public void Buy_ChargesThePriceAndHandsOverTheItem()
+    {
+        var (world, shop, p) = Setup();
+        world.Items[Sword].Type = ItemType.Weapon;
+        world.Items[Sword].Price = 250;
+        SetSales(world, Sword);
+        p.Inv[1].Num = Gold;
+        p.Inv[1].Quantity = 400;
+
+        shop.Buy(Idx, ShopNum, salesSlot: 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(150), "the price is taken");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1), "the item is received");
+        });
+    }
+
+    [Test]
+    public void Buy_WithoutEnoughGold_Refused()
+    {
+        var (world, shop, p) = Setup();
+        world.Items[Sword].Type = ItemType.Weapon;
+        world.Items[Sword].Price = 250;
+        SetSales(world, Sword);
+        p.Inv[1].Num = Gold;
+        p.Inv[1].Quantity = 100;
+
+        shop.Buy(Idx, ShopNum, 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "nothing is taken");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "nothing is received");
+        });
+    }
+
+    /// <summary>An unpriced entry in a sales list is a data bug. Handing it over free is the same failure
+    /// as the zero-quantity trade row that used to mint items, so it is refused rather than given away.</summary>
+    [Test]
+    public void Buy_UnpricedEntry_IsRefusedRatherThanFree()
+    {
+        var (world, shop, p) = Setup();
+        world.Items[Sword].Type = ItemType.Weapon;
+        world.Items[Sword].Price = 0;
+        SetSales(world, Sword);
+        p.Inv[1].Num = Gold;
+        p.Inv[1].Quantity = 400;
+
+        shop.Buy(Idx, ShopNum, 1);
+
+        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "a 0-price entry is not free stock");
+    }
+
+    [Test]
+    public void Buy_AtAnInn_Refused()
+    {
+        var (world, shop, p) = Setup(ShopType.Inn);
+        world.Items[Sword].Type = ItemType.Weapon;
+        world.Items[Sword].Price = 10;
+        SetSales(world, Sword);
+        p.Inv[1].Num = Gold;
+        p.Inv[1].Quantity = 400;
+
+        shop.Buy(Idx, ShopNum, 1);
+
+        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0));
+    }
+
+    // ── Sell ─────────────────────────────────────────────────────────────────────
+
+    [Test]
+    public void Sell_PaysTheSellValueAndTakesTheItem()
+    {
+        var (world, shop, p) = Setup();
+        var sword = world.Items[Sword];
+        sword.Type = ItemType.Weapon;
+        sword.Power = 40;
+        sword.LevelReq = 10;
+        sword.Durability = 100;
+        p.Inv[1].Num = Sword;
+        p.Inv[1].Dur = 100;   // pristine
+
+        int expected = EconomyFormulas.ItemSellValue(sword, 100);
+        shop.Sell(Idx, invSlot: 1, quantity: 0);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "the item leaves the bag");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(expected), "paid at the sell rate");
+            Assert.That(expected, Is.GreaterThan(0), "the fixture item should be worth something");
+        });
+    }
+
+    /// <summary>Condition is priced in: half-worn fetches about half. The exact figure is the formula's,
+    /// not restated here — what is pinned is that wear reduces the offer and that a pristine piece is
+    /// worth strictly more than a worn one.</summary>
+    [Test]
+    public void Sell_PaysLessForAWornItem()
+    {
+        var (world, shop, p) = Setup();
+        var sword = world.Items[Sword];
+        sword.Type = ItemType.Weapon;
+        sword.Power = 40;
+        sword.LevelReq = 10;
+        sword.Durability = 100;
+
+        int pristine = EconomyFormulas.ItemSellValue(sword, 100);
+        int worn = EconomyFormulas.ItemSellValue(sword, 50);
+        Assert.That(worn, Is.LessThan(pristine), "condition must move the offer");
+
+        p.Inv[1].Num = Sword;
+        p.Inv[1].Dur = 50;
+        shop.Sell(Idx, 1, 0);
+
+        Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(worn));
+    }
+
+    /// <summary>A worthless item still sells. The vendor doubles as the way to empty a bag, and a slot
+    /// you cannot clear is worse than one that clears for nothing.</summary>
+    [Test]
+    public void Sell_WorthlessItem_StillClearsTheSlot()
+    {
+        var (world, shop, p) = Setup();
+        var sword = world.Items[Sword];
+        sword.Type = ItemType.Weapon;
+        sword.Power = 40;
+        sword.Durability = 100;
+        p.Inv[1].Num = Sword;
+        p.Inv[1].Dur = 0;   // broken: the shop buys scrap for nothing
+
+        shop.Sell(Idx, 1, 0);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "the slot clears");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(0), "and pays nothing");
+        });
+    }
+
+    /// <summary>NonJunkable is what gold, valor and treasure carry. Gold cannot be sold for gold, and
+    /// treasure is meant to reach a specific buyer through the barter table rather than a universal one.</summary>
+    [Test]
+    public void Sell_NonJunkableItem_Refused()
+    {
+        var (world, shop, p) = Setup();
+        var trinket = world.Items[Potion];
+        trinket.Type = ItemType.None;
+        trinket.Price = 500;
+        trinket.NonJunkable = true;
+        p.Inv[1].Num = Potion;
+        p.Inv[1].Quantity = 1;
+
+        shop.Sell(Idx, 1, 0);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Potion), Is.EqualTo(1), "treasure stays in the bag");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(0), "and pays nothing");
+        });
+    }
+
+    /// <summary>Selling gear off your own back would silently unequip it, so the player is made to take
+    /// it off first — the same rule the bank deposit uses.</summary>
+    [Test]
+    public void Sell_EquippedItem_Refused()
+    {
+        var (world, shop, p) = Setup();
+        var sword = world.Items[Sword];
+        sword.Type = ItemType.Weapon;
+        sword.Power = 40;
+        sword.Durability = 100;
+        p.Inv[1].Num = Sword;
+        p.Inv[1].Dur = 100;
+        p.WeaponSlot = 1;
+
+        shop.Sell(Idx, 1, 0);
+
+        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1), "equipped gear is not sold out from under you");
+    }
+
+    [Test]
+    public void Sell_AtAnInn_Refused()
+    {
+        var (world, shop, p) = Setup(ShopType.Inn);
+        var sword = world.Items[Sword];
+        sword.Type = ItemType.Weapon;
+        sword.Power = 40;
+        sword.Durability = 100;
+        p.Inv[1].Num = Sword;
+        p.Inv[1].Dur = 100;
+
+        shop.Sell(Idx, 1, 0);
+
+        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1));
+    }
+
     // ── Trade ────────────────────────────────────────────────────────────────────
 
     // Trades are a dense 0-based list now; slot 1 (what the tests trade against) is TradeItem[0].

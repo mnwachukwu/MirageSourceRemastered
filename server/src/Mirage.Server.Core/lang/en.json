@@ -420,6 +420,12 @@
   "ShopSystem_InsufficientGold": "Insufficient gold to fix this item!",
   "ShopSystem_FullyRestored":  "Item has been totally restored for {Gold} gold!",
   "ShopSystem_PartiallyFixed": "Item has been partially fixed for {Gold} gold!",
+  "ShopSystem_Bought":         "You bought {ItemName} for {Gold} gold.",
+  "ShopSystem_NotForSale":     "{ItemName} is not for sale here.",
+  "ShopSystem_Sold":           "You sold {ItemName} for {Gold} gold.",
+  "ShopSystem_SoldForNothing": "The shopkeeper takes {ItemName} off your hands for nothing.",
+  "ShopSystem_CannotSell":     "{ItemName} cannot be sold here.",
+  "ShopSystem_UnequipFirst":   "Take off {ItemName} before selling it.",
 
   "BankSystem_NoBankHere":   "You cannot access the bank here.",
   "BankSystem_BankFull":     "Your bank is full.",
