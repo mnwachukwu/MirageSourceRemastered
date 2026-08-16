@@ -47,6 +47,49 @@ public static class ShellStrings
     public const string Server_Mute = nameof(Server_Mute);
     public const string Server_Ban = nameof(Server_Ban);
     public const string Server_Minutes = nameof(Server_Minutes);
+
+    // ── The load benchmark ────────────────────────────────────────────────────
+    // Opened from the dashboard rather than given a tab of its own: it is a measurement an operator takes
+    // once, not a place they work.
+    public const string Bench_Open = nameof(Bench_Open);
+    public const string Bench_Title = nameof(Bench_Title);
+    public const string Bench_Blurb = nameof(Bench_Blurb);
+    public const string Bench_Caveat = nameof(Bench_Caveat);
+    public const string Bench_Warning = nameof(Bench_Warning);
+    public const string Bench_Target = nameof(Bench_Target);
+    public const string Bench_Run = nameof(Bench_Run);
+    public const string Bench_Stop = nameof(Bench_Stop);
+    public const string Bench_Close = nameof(Bench_Close);
+    public const string Bench_Preparing = nameof(Bench_Preparing);
+    public const string Bench_Booting = nameof(Bench_Booting);
+    public const string Bench_Joining = nameof(Bench_Joining);
+    public const string Bench_Measuring = nameof(Bench_Measuring);
+    public const string Bench_Finishing = nameof(Bench_Finishing);
+    public const string Bench_Progress = nameof(Bench_Progress);           // "{Players}" "{Target}"
+    public const string Bench_Bands = nameof(Bench_Bands);
+    public const string Bench_BandLabel = nameof(Bench_BandLabel);         // "{Percent}"
+    public const string Bench_AtLeast = nameof(Bench_AtLeast);             // "{Players}"
+    public const string Bench_Steps = nameof(Bench_Steps);
+    public const string Bench_ColPlayers = nameof(Bench_ColPlayers);
+    public const string Bench_ColGameThread = nameof(Bench_ColGameThread);
+    public const string Bench_ColCpu = nameof(Bench_ColCpu);
+    public const string Bench_ColMemory = nameof(Bench_ColMemory);
+    public const string Bench_ColOverruns = nameof(Bench_ColOverruns);
+    public const string Bench_ColPackets = nameof(Bench_ColPackets);
+    public const string Bench_Reached = nameof(Bench_Reached);             // "{Peak}"
+    public const string Bench_Saturated = nameof(Bench_Saturated);         // "{Peak}"
+    public const string Bench_JoinsFailed = nameof(Bench_JoinsFailed);     // "{Peak}" "{Reason}"
+    public const string Bench_Dropped = nameof(Bench_Dropped);             // "{Peak}"
+    public const string Bench_Cancelled = nameof(Bench_Cancelled);
+    public const string Bench_Baseline = nameof(Bench_Baseline);           // "{Memory}"
+    public const string Bench_PerPlayer = nameof(Bench_PerPlayer);         // "{Memory}"
+    public const string Bench_Cores = nameof(Bench_Cores);                 // "{Cores}"
+    public const string Bench_MissedBeats = nameof(Bench_MissedBeats);     // "{Count}"
+    public const string Bench_Apply = nameof(Bench_Apply);
+    public const string Bench_Applied = nameof(Bench_Applied);             // "{Players}"
+    public const string Bench_Failed = nameof(Bench_Failed);               // "{Error}"
+    public const string Bench_Unavailable = nameof(Bench_Unavailable);
+
     public const string Tab_Configuration = nameof(Tab_Configuration);
     public const string Tab_Commands = nameof(Tab_Commands);
 
@@ -128,6 +171,8 @@ public static class ShellStrings
     public const string Hosting_DataDirDefault = nameof(Hosting_DataDirDefault);
     public const string Hosting_Browse = nameof(Hosting_Browse);
     public const string Hosting_UseDefault = nameof(Hosting_UseDefault);
+    public const string Hosting_MaxPlayers = nameof(Hosting_MaxPlayers);
+    public const string Hosting_MaxPlayersHint = nameof(Hosting_MaxPlayersHint);
 
     // ── Where players start, and when the weekly contest runs ─────────────────
     public const string World_SpawnHeading = nameof(World_SpawnHeading);

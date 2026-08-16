@@ -23,6 +23,11 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
     /// heals itself rather than leaving a dashboard quietly wrong.</summary>
     public static readonly TimeSpan Backstop = TimeSpan.FromSeconds(30);
 
+    /// <summary>How often the timer fires. <see cref="Backstop"/> unless something asked for faster on the
+    /// command line — the load benchmark does, because a ramp step is shorter than the backstop and it
+    /// needs a reading per step. Nothing else changes it, so an ordinary dashboard stays as quiet.</summary>
+    public TimeSpan Cadence { get; set; } = Backstop;
+
     private static readonly JsonSerializerOptions Json = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -70,7 +75,7 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
         // Push on the change itself, so a roster is right the moment somebody joins. The timer is only
         // the backstop that heals a missed one.
         _pm.RosterChanged += Publish;
-        _timer = new Timer(_ => Publish(), null, Backstop, Backstop);
+        _timer = new Timer(_ => Publish(), null, Cadence, Cadence);
         return Task.CompletedTask;
     }
 

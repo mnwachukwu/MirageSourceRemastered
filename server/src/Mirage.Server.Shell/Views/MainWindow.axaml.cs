@@ -58,6 +58,13 @@ public sealed partial class MainWindow : FAAppWindow
         if (picked.Count > 0 && picked[0].TryGetLocalPath() is { } path) vm.DataDir = path;
     }
 
+    /// <summary>Code-behind because a dialog needs an owner, and an owner is a window.</summary>
+    private async void OpenBenchmark(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        await new BenchWindow { DataContext = vm.CreateBenchmark() }.ShowDialog(this);
+    }
+
     /// <summary>Code-behind for the same reason as the folder picker: the clipboard hangs off the TopLevel.</summary>
     private async void CopyManagementToken(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {

@@ -215,14 +215,22 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task<bool> CharExistsAsync(string name)
     {
-        // Canonical (case- and underscore-insensitive) collision check: compare identity keys, so "B_o_b"
-        // can't be created alongside "Bob". The stored set keeps its lowercased form; keying both sides here
-        // also matches any pre-existing underscore entries without a data migration.
-        var names = await LoadCharNamesAsync();
-        string key = NameRules.Key(name);
-        foreach (var n in names)
-            if (NameRules.Key(n) == key) return true;
-        return false;
+        // Under the same lock as the writers. Reading this file while another character creation is
+        // rewriting it throws a sharing violation, which surfaces as a failed character create for
+        // whoever lost the race — two people pressing Create at the same moment is enough.
+        await _accountLock.WaitAsync();
+        try
+        {
+            // Canonical (case- and underscore-insensitive) collision check: compare identity keys, so "B_o_b"
+            // can't be created alongside "Bob". The stored set keeps its lowercased form; keying both sides here
+            // also matches any pre-existing underscore entries without a data migration.
+            var names = await LoadCharNamesAsync();
+            string key = NameRules.Key(name);
+            foreach (var n in names)
+                if (NameRules.Key(n) == key) return true;
+            return false;
+        }
+        finally { _accountLock.Release(); }
     }
 
     public async Task AddCharNameAsync(string name)
@@ -234,7 +242,7 @@ public sealed class JsonPersistenceService : IPersistenceService
         {
             var names = await LoadCharNamesAsync();
             names.Add(name.ToLowerInvariant());
-            await File.WriteAllTextAsync(CharNamesFile, JsonSerializer.Serialize(names, Options));
+            await WriteCharNamesAsync(names);
         }
         finally { _accountLock.Release(); }
     }
@@ -246,10 +254,15 @@ public sealed class JsonPersistenceService : IPersistenceService
         {
             var names = await LoadCharNamesAsync();
             names.Remove(name.ToLowerInvariant());
-            await File.WriteAllTextAsync(CharNamesFile, JsonSerializer.Serialize(names, Options));
+            await WriteCharNamesAsync(names);
         }
         finally { _accountLock.Release(); }
     }
+
+    /// <summary>Atomic, like the account file: this is the registry that stops two players taking the same
+    /// character name, and a torn write would either lose names or leave the file unreadable.</summary>
+    private Task WriteCharNamesAsync(HashSet<string> names) =>
+        WriteAllTextAtomicAsync(CharNamesFile, JsonSerializer.Serialize(names, Options));
 
     private async Task<HashSet<string>> LoadCharNamesAsync()
     {

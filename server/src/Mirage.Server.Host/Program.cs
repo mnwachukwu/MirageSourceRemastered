@@ -10,6 +10,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Host;
 using Mirage.Server.Host.Logging;
 using Mirage.Server.Host.Management;
 using Mirage.Server.Host.Net;
@@ -37,7 +38,10 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 // Read before anything else, because the language it carries decides what every line below is written
 // in — including the complaint about the file itself, which is why THAT one is in English.
 // A bad config never blocks a boot: the server runs on stock settings and says so.
-var (serverConfig, configError) = ServerConfigStore.Load(ServerConfigStore.DefaultPath);
+// --config points at another file, so a second server can run from this install without disturbing the
+// one an operator configured. See StartupArgs.
+var (serverConfig, configError) = ServerConfigStore.Load(
+    StartupArgs.ConfigPath(args) ?? ServerConfigStore.DefaultPath);
 string langDir = Path.Combine(AppContext.BaseDirectory, "lang");
 ServerStrings.Load(langDir, serverConfig.Language);
 
@@ -170,7 +174,8 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton(sp =>
         {
             var broadcaster = ActivatorUtilities.CreateInstance<StatusBroadcaster>(sp);
-            broadcaster.WriteToStdout = args.Contains("--status-events");
+            broadcaster.WriteToStdout = StartupArgs.StatusEvents(args, out var cadence);
+            broadcaster.Cadence = cadence;
             return broadcaster;
         });
         services.AddHostedService(sp => sp.GetRequiredService<StatusBroadcaster>());

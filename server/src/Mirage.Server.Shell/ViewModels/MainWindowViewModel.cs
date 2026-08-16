@@ -356,6 +356,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string BanLabel => ShellStrings.Get(ShellStrings.Server_Ban);
     public string MinutesLabel => ShellStrings.Get(ShellStrings.Server_Minutes);
 
+    // ── The load benchmark ────────────────────────────────────────────────────
+    // Opened from here rather than given a tab: it is a measurement taken once, and it owns a whole second
+    // server for as long as its window is up.
+
+    public string BenchOpenLabel => ShellStrings.Get(ShellStrings.Bench_Open);
+    public string BenchUnavailableNotice => ShellStrings.Get(ShellStrings.Bench_Unavailable);
+
+    /// <summary>The benchmark measures the machine this window is running on. Attached to a remote server
+    /// that is the wrong box, and a number read off it would be nobody's answer.</summary>
+    public bool CanBenchmark => !IsRemote;
+
+    /// <summary>Builds the dialog's view-model. The config is read from disk when the run starts rather
+    /// than captured now, so the benchmark measures the server as it is configured — not as this form
+    /// happens to be left.</summary>
+    public BenchViewModel CreateBenchmark() => new(
+        () => ServerConfigStore.Load(_configPath).Config,
+        players => MaxPlayers = players);
+
     /// <summary>Nothing has been heard from a server yet, so the page has nothing true to show.</summary>
     public bool HasStatus => Status is not null;
     public bool HasPlayers => Players.Count > 0;
@@ -608,6 +626,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(StartLabel));
         OnPropertyChanged(nameof(StopLabel));
         OnPropertyChanged(nameof(CanEditServerFile));
+        OnPropertyChanged(nameof(CanBenchmark));
         OnStateChanged();
     }
 
@@ -712,6 +731,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string DataDirPlaceholder => ShellStrings.Get(ShellStrings.Hosting_DataDirDefault);
     public string BrowseLabel => ShellStrings.Get(ShellStrings.Hosting_Browse);
     public string UseDefaultLabel => ShellStrings.Get(ShellStrings.Hosting_UseDefault);
+    public string MaxPlayersLabel => ShellStrings.Get(ShellStrings.Hosting_MaxPlayers);
+    public string MaxPlayersHint => ShellStrings.Get(ShellStrings.Hosting_MaxPlayersHint);
+
+    /// <summary>How many players this server accepts at once. Small by default on purpose: the right
+    /// number is a property of the machine, and the State tab's benchmark measures it. The spinner's
+    /// ceiling is the protocol's — above it the server would issue slot numbers a shipped client cannot
+    /// index.</summary>
+    [ObservableProperty]
+    public partial decimal MaxPlayers { get; set; } = ServerConfig.Default.MaxPlayers;
+
+    public decimal MaxPlayersCeiling => Constants.MaxPlayers;
 
     /// <summary>The game port. Same rule as the management section: this describes the server whose
     /// serverconfig.json sits beside this shell, so it is unavailable while attached to a remote one.</summary>
@@ -844,6 +874,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             Port = (int)GamePort,
             // Trimmed, because a path with a stray space is a world folder that silently does not exist.
             DataDir = DataDir.Trim(),
+            MaxPlayers = (int)MaxPlayers,
             Spawn = new SpawnConfig { Map = (int)SpawnMap, X = (int)SpawnX, Y = (int)SpawnY },
             Schedule = new ScheduleConfig { WarNightDay = WarNightDay, WarNightHour = (int)WarNightHour },
             DeathPenalty = new DeathPenaltyConfig
@@ -943,6 +974,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         var (config, error) = ServerConfigStore.Load(_configPath);
         GamePort = config.Port;
         DataDir = config.DataDir;
+        MaxPlayers = config.MaxPlayers;
         SpawnMap = config.Spawn.Map;
         SpawnX = config.Spawn.X;
         SpawnY = config.Spawn.Y;
