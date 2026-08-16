@@ -115,23 +115,25 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         Enqueue(_players[index], json);
     }
 
+    // Every broadcast below walks PlayerManager.Online rather than 1..Slots, so the cost follows who is
+    // actually on rather than the limit the operator configured. The predicates are unchanged; the only
+    // slots the set leaves out are combat ghosts, whose socket is already gone — an enqueue to one was
+    // always a write into a null channel.
+
     public void SendToAll(IPacket packet)
     {
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX all] {Line}", json);
-        for (int i = 1; i <= _pm.Slots; i++)
-        {
-            if (_pm[i].IsConnected) Enqueue(_players[i], json);
-        }
+        foreach (int i in _pm.Online) Enqueue(_players[i], json);
     }
 
     public void SendToAllBut(int exclude, IPacket packet)
     {
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX allBut {Exclude}] {Line}", exclude, json);
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
-            if (i != exclude && _pm[i].IsConnected) Enqueue(_players[i], json);
+            if (i != exclude) Enqueue(_players[i], json);
         }
     }
 
@@ -162,7 +164,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
 
     public void SendToViewportAt(int mapNum, int x, int y, IPacket packet)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         // Speaker tile sits at the center cell of its own observable area, so its world coords
         // anchor at (MapTilesX, MapTilesY).  Same arithmetic as the player path above —
         // SendToViewport is just SendToViewportAt with the speaker's char position.
@@ -222,7 +224,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX admins] {Line}", json);
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
             if (_pm[i].IsPlaying && _pm[i].Char.Access > AdminLevel.Player)
                 Enqueue(_players[i], json);
@@ -233,7 +235,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         if (guildId < 1) return;
         string json = PacketSerializer.Serialize(packet);
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
             if (_pm[i].IsPlaying && _pm[i].Guild == guildId)
                 Enqueue(_players[i], json);
@@ -244,7 +246,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         if (guildId < 1) return;
         string json = PacketSerializer.Serialize(packet);
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
             if (i != exclude && _pm[i].IsPlaying && _pm[i].Guild == guildId)
                 Enqueue(_players[i], json);
@@ -281,9 +283,9 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToAll(string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
-            if (!_pm[i].IsConnected || IgnoreSuppresses(i, meta)) continue;
+            if (IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
             Enqueue(_players[i], PacketSerializer.Serialize(BuildChatPacket(text, meta)));
         }
@@ -292,9 +294,9 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToAllBut(int exclude, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
-            if (i == exclude || !_pm[i].IsConnected || IgnoreSuppresses(i, meta)) continue;
+            if (i == exclude || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
             Enqueue(_players[i], PacketSerializer.Serialize(BuildChatPacket(text, meta)));
         }
@@ -337,7 +339,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToViewportAt(int mapNum, int x, int y, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         int spWX = WorldCoordHelper.MapTilesX + x;
         int spWY = WorldCoordHelper.MapTilesY + y;
 
@@ -356,7 +358,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToAdmins(string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
             if (!_pm[i].IsPlaying || _pm[i].Char.Access <= AdminLevel.Player || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
@@ -368,7 +370,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         params (string Key, object? Value)[] args)
     {
         if (guildId < 1) return;
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
             if (!_pm[i].IsPlaying || _pm[i].Guild != guildId || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
@@ -380,7 +382,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         params (string Key, object? Value)[] args)
     {
         if (guildId < 1) return;
-        for (int i = 1; i <= _pm.Slots; i++)
+        foreach (int i in _pm.Online)
         {
             if (!_pm[i].IsPlaying || _pm[i].Guild != guildId || _pm[i].GuildRank < GuildRank.Officer
                 || IgnoreSuppresses(i, meta))

@@ -30,6 +30,7 @@ public sealed class JoinLeaveSystem : GameSystem
     private readonly WeatherSystem _weather;
     private readonly BloodSystem _blood;
     private readonly ILogger<JoinLeaveSystem> _logger;
+    private readonly Configuration.ServerConfig _config;
 
     public JoinLeaveSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher,
                            PlayerSaver saver, MovementSystem movement,
@@ -37,9 +38,11 @@ public sealed class JoinLeaveSystem : GameSystem
                            ConversationSystem conversations,
                            TimeOfDaySystem tod, WeatherSystem weather, BloodSystem blood,
                            ILogger<JoinLeaveSystem> logger,
-                           IClock? clock = null)
+                           IClock? clock = null,
+                           Configuration.ServerConfig? config = null)
         : base(dispatcher, clock: clock)
     {
+        _config = config ?? Configuration.ServerConfig.Default;
         _world = world;
         _pm = pm;
         _saver = saver;
@@ -117,7 +120,7 @@ public sealed class JoinLeaveSystem : GameSystem
         // assigns by num into a MaxItems-sized array, so a sparse list lands in the same places a dense
         // one would. Without the filter the join payload carries every empty slot up to MaxItems, which
         // is the one place raising that ceiling would cost real bandwidth per login.
-        var itemList = Enumerable.Range(1, Constants.MaxItems)
+        var itemList = Enumerable.Range(1, _world.Limits.Items)
             .Where(i => !string.IsNullOrEmpty(_world.Items[i].Name))
             .Select(i => (i, _world.Items[i]));
         _dispatcher.SendTo(index, PacketBuilder.SendItems(itemList));
@@ -193,7 +196,7 @@ public sealed class JoinLeaveSystem : GameSystem
         _dispatcher.SendLocalizedChatToAll(
             ServerStrings.JoinLeave_JoinBroadcast,
             new ChatMetadata(joinColor, ChatChannel.JoinLeaveNotice),
-            ("Name", p.TrimmedName), ("GameName", Constants.GameName));
+            ("Name", p.TrimmedName), ("GameName", _config.GameName));
         if (pkExpiredOnLogin)
         {
             _dispatcher.SendLocalizedChatToAll(
@@ -318,7 +321,7 @@ public sealed class JoinLeaveSystem : GameSystem
     /// </summary>
     public void BroadcastMapRefresh(int editedMapNum)
     {
-        if (editedMapNum <= 0 || editedMapNum > Constants.MaxMaps) return;
+        if (editedMapNum <= 0 || editedMapNum > _world.Limits.Maps) return;
         // Snapshot the observer set: PlayerWarp's RemoveObserver/AddObserver mutates it mid-iteration.
         var observers = _world.MapObservers[editedMapNum].ToArray();
         foreach (int i in observers)
@@ -365,7 +368,7 @@ public sealed class JoinLeaveSystem : GameSystem
             {
                 if (col == 1 && row == 1) continue; // center already sent
                 int mapNum = grid[col, row];
-                if (mapNum <= 0 || mapNum > Constants.MaxMaps) continue;
+                if (mapNum <= 0 || mapNum > _world.Limits.Maps) continue;
                 _dispatcher.SendTo(index, new CheckForMapPacket
                 {
                     MapNum = mapNum,
@@ -472,7 +475,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
         _party.DisbandParty(index);
 
-        _logger.LogInformation("{Login}/{Name} has left {GameName}.", sp.Login, p.TrimmedName, Constants.GameName);
+        _logger.LogInformation("{Login}/{Name} has left {GameName}.", sp.Login, p.TrimmedName, _config.GameName);
 
         sp.BankPlaytime(NowUtc);   // final playtime bank before the logout save
         _saver.SaveCharInBackground(sp.Login, sp.CharNum, p.Clone(), sp.CloneBank());
@@ -481,7 +484,7 @@ public sealed class JoinLeaveSystem : GameSystem
         _dispatcher.SendLocalizedChatToAll(
             ServerStrings.JoinLeave_LeaveBroadcast,
             new ChatMetadata(leaveColor, ChatChannel.JoinLeaveNotice),
-            ("Name", p.TrimmedName), ("GameName", Constants.GameName));
+            ("Name", p.TrimmedName), ("GameName", _config.GameName));
 
         SendToMapBut(_world, p.Map, index, PacketBuilder.LeaveMap(index));
         _dispatcher.SendToAll(PacketBuilder.PlayersOnline(_pm.TotalOnline));
@@ -529,7 +532,7 @@ public sealed class JoinLeaveSystem : GameSystem
         _dispatcher.SendLocalizedChatToAll(
             ServerStrings.JoinLeave_LeaveBroadcast,
             new ChatMetadata(leaveColor, ChatChannel.JoinLeaveNotice),
-            ("Name", p.TrimmedName), ("GameName", Constants.GameName));
+            ("Name", p.TrimmedName), ("GameName", _config.GameName));
         // No PlayersOnline update here — the ghost still counts as a player in the world.
 
         // Keep InGame = true and do not broadcast LeaveMap — the ghost body remains on the map.
@@ -640,7 +643,7 @@ public sealed class JoinLeaveSystem : GameSystem
     {
         _dispatcher.SendLocalizedChatTo(index, ServerStrings.JoinLeave_Welcome,
             new ChatMetadata(GameColor.BrightBlue, ChatChannel.Always),
-            ("GameName", Constants.GameName), ("Major", Constants.ClientMajor), ("Minor", Constants.ClientMinor), ("Revision", Constants.ClientRevision));
+            ("GameName", _config.GameName), ("Major", Constants.ClientMajor), ("Minor", Constants.ClientMinor), ("Revision", Constants.ClientRevision));
         _dispatcher.SendLocalizedChatTo(index, ServerStrings.JoinLeave_HelpHint,
             new ChatMetadata(GameColor.Cyan, ChatChannel.Always));
 
@@ -687,7 +690,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
     private SendNpcsPacket BuildSendNpcs()
     {
-        var npcs = Enumerable.Range(1, Constants.MaxNpcs)
+        var npcs = Enumerable.Range(1, _world.Limits.Npcs)
             .Where(i => !string.IsNullOrEmpty(_world.Npcs[i].Name))
             .Select(i => new SendNpcsPacket.NpcData(
                 i,
@@ -706,7 +709,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
     private SendShopsPacket BuildSendShops()
     {
-        var shops = Enumerable.Range(1, Constants.MaxShops)
+        var shops = Enumerable.Range(1, _world.Limits.Shops)
             .Where(i => !string.IsNullOrEmpty(_world.Shops[i].Name))
             .Select(i => new SendShopsPacket.ShopData(
                 i,
@@ -723,7 +726,7 @@ public sealed class JoinLeaveSystem : GameSystem
     // thread re-authors a def. TurnInNpc is the RAW value (0 = same as giver); the client resolves the effective.
     private SendQuestsPacket BuildSendQuests()
     {
-        var quests = Enumerable.Range(1, Constants.MaxQuests)
+        var quests = Enumerable.Range(1, _world.Limits.Quests)
             .Where(i => _world.Quests[i].TrimmedName.Length > 0)
             .Select(i =>
             {
@@ -760,7 +763,7 @@ public sealed class JoinLeaveSystem : GameSystem
     // snapshot can't tear if the game thread re-authors a def.
     private SendConversationsPacket BuildSendConversations()
     {
-        var convs = Enumerable.Range(1, Constants.MaxConversations)
+        var convs = Enumerable.Range(1, _world.Limits.Conversations)
             .Where(i => _world.Conversations[i].TrimmedName.Length > 0)
             .Select(i =>
             {
@@ -800,7 +803,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
     private SendSpellsPacket BuildSendSpells()
     {
-        var spells = Enumerable.Range(1, Constants.MaxSpells)
+        var spells = Enumerable.Range(1, _world.Limits.Spells)
             .Where(i => !string.IsNullOrEmpty(_world.Spells[i].Name))
             .Select(i => new SendSpellsPacket.SpellData(
                 i,

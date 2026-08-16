@@ -261,9 +261,9 @@ public sealed class HudPanel
         int barW = InnerWidth;
         int y = 5;
 
-        var titleSize = titleFont.MeasureString(Constants.GameName);
+        var titleSize = titleFont.MeasureString(state.GameName);
         float titleX = SidebarLeft + SidebarWidth / 2f - titleSize.X / 2f;
-        sb.DrawString(titleFont, Constants.GameName, new Vector2(titleX, y), UiHelper.DlgLabelColor);
+        sb.DrawString(titleFont, state.GameName, new Vector2(titleX, y), UiHelper.DlgLabelColor);
         y += titleFont.LineSpacing + 2;
 
         if (me.Name != _cachedPlayerNameRaw)

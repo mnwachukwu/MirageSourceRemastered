@@ -275,7 +275,7 @@ public sealed class GameLoop : IDisposable
     private void SpawnTick()
     {
         long now = Environment.TickCount64;
-        for (int mapNum = 1; mapNum <= Constants.MaxMaps; mapNum++)
+        for (int mapNum = 1; mapNum <= _world.Limits.Maps; mapNum++)
             _items.CheckItemRespawn(mapNum, now);
     }
 

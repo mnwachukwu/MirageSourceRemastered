@@ -148,7 +148,7 @@ public sealed partial class ItemSystem : GameSystem
         for (int i = 1; i <= count; i++)
         {
             var s = slots[i];
-            if (s.Num <= 0 || s.Num > Constants.MaxItems) continue;
+            if (s.Num <= 0 || s.Num >= items.Length) continue;
             var item = items[s.Num];
             var (cat, sub, mag) = SortKey(s.Num, item, isEquipped(i));
             occupied.Add(new SortEntry(s, cat, sub, mag, item.TrimmedName));

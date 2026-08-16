@@ -25,7 +25,7 @@ public static class InventoryListBuilder
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             var slot = state.Me?.Inv?[i];
-            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems)
+            if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items)
             {
                 list.Items.Add($"{i}: {ClientStrings.Get(ClientStrings.Common_Empty)}");
                 continue;
@@ -70,7 +70,7 @@ public static class InventoryListBuilder
             for (int i = 1; i <= Constants.MaxInv; i++)
             {
                 var slot = me.Inv[i];
-                if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+                if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) continue;
                 if (me.WeaponSlot == i || me.ArmorSlot == i || me.HelmetSlot == i || me.ShieldSlot == i) continue;
                 var item = state.Items[slot.Num];
                 if (exclude(i, item)) continue;

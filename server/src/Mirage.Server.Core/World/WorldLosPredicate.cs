@@ -33,7 +33,7 @@ internal readonly struct WorldLosPredicate(GameWorld world, MapGrid grid, WorldL
     public bool IsBlocked(int worldX, int worldY)
     {
         var (mapNum, lx, ly) = WorldCoordHelper.ResolveWorldTile(_grid, worldX, worldY);
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return true;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return true;
         var map = _world.Maps[mapNum];
         if (map is null) return true;
         var tile = map.Tile[lx, ly];

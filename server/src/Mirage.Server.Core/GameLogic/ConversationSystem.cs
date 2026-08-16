@@ -37,7 +37,7 @@ public sealed class ConversationSystem : GameSystem
     public void MarkSpoken(int index, int convNum)
     {
         var sp = _pm[index];
-        if (!sp.IsPlaying || !SlotValidation.IsValidConversationNum(convNum)) return;
+        if (!sp.IsPlaying || !SlotValidation.IsValidConversationNum(convNum, _world.Limits.Conversations)) return;
         if (_world.Conversations[convNum].TrimmedName.Length == 0) return;   // not a real conversation
         var spoken = sp.Char.ConversationsSpoken;
         if (spoken.Contains(convNum)) return;                                // already gray — nothing to do

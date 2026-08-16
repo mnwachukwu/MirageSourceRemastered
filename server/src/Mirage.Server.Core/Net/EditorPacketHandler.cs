@@ -206,19 +206,19 @@ public sealed class EditorPacketHandler
 
     private EditorDataPacket BuildEditorDataPacket()
     {
-        var items = Enumerable.Range(1, Constants.MaxItems)
+        var items = Enumerable.Range(1, _world.Limits.Items)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Items[i].Name))
             .ToArray();
-        var npcs = Enumerable.Range(1, Constants.MaxNpcs)
+        var npcs = Enumerable.Range(1, _world.Limits.Npcs)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Npcs[i].Name))
             .ToArray();
-        var shops = Enumerable.Range(1, Constants.MaxShops)
+        var shops = Enumerable.Range(1, _world.Limits.Shops)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Shops[i].Name))
             .ToArray();
-        var spells = Enumerable.Range(1, Constants.MaxSpells)
+        var spells = Enumerable.Range(1, _world.Limits.Spells)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Spells[i].Name))
             .ToArray();
-        var maps = Enumerable.Range(1, Constants.MaxMaps)
+        var maps = Enumerable.Range(1, _world.Limits.Maps)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Maps[i].Name))
             .ToArray();
 
@@ -228,40 +228,40 @@ public sealed class EditorPacketHandler
 
         // MapGroups live in a sparse Dictionary; project the editor's 1-based slot range over it (absent
         // slots -> blank name), matching how every other record type presents a fixed slot list.
-        var mapGroups = Enumerable.Range(1, Constants.MaxMapGroups)
+        var mapGroups = Enumerable.Range(1, _world.Limits.MapGroups)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.MapGroups.GetValueOrDefault(i)?.Name ?? ""))
             .ToArray();
 
-        var quests = Enumerable.Range(1, Constants.MaxQuests)
+        var quests = Enumerable.Range(1, _world.Limits.Quests)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Quests[i].Name))
             .ToArray();
 
-        var conversations = Enumerable.Range(1, Constants.MaxConversations)
+        var conversations = Enumerable.Range(1, _world.Limits.Conversations)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.Conversations[i].Name))
             .ToArray();
 
-        var currencyItems = Enumerable.Range(1, Constants.MaxItems)
+        var currencyItems = Enumerable.Range(1, _world.Limits.Items)
             .Where(i => _world.Items[i].Type == ItemType.Currency)
             .ToArray();
 
         // Gate facts for the class editor's starting-loadout tables, from the LIVE world. Only authored
         // slots are sent — a blank row has nothing to gate and would just pad the payload.
-        var itemGates = Enumerable.Range(1, Constants.MaxItems)
+        var itemGates = Enumerable.Range(1, _world.Limits.Items)
             .Where(i => !string.IsNullOrEmpty(_world.Items[i].Name))
             .Select(i => new EditorDataPacket.ItemGate(i, _world.Items[i].Type, _world.Items[i].Power,
                 _world.Items[i].LevelReq,
                 _world.Items[i].AllowedClasses is null ? null : new List<short>(_world.Items[i].AllowedClasses!),
                 _world.Items[i].Price))
             .ToArray();
-        var spellGates = Enumerable.Range(1, Constants.MaxSpells)
+        var spellGates = Enumerable.Range(1, _world.Limits.Spells)
             .Where(i => !string.IsNullOrEmpty(_world.Spells[i].Name))
             .Select(i => new EditorDataPacket.SpellGate(i, _world.Spells[i].Type, _world.Spells[i].VitalAmount,
                 _world.Spells[i].LevelReq,
                 _world.Spells[i].AllowedClasses is null ? null : new List<short>(_world.Spells[i].AllowedClasses!)))
             .ToArray();
 
-        var npcSizes = new int[Constants.MaxNpcs + 1];
-        for (int i = 1; i <= Constants.MaxNpcs; i++) npcSizes[i] = _world.Npcs[i].EffectiveSize;
+        var npcSizes = new int[_world.Limits.Npcs + 1];
+        for (int i = 1; i <= _world.Limits.Npcs; i++) npcSizes[i] = _world.Npcs[i].EffectiveSize;
 
         return new EditorDataPacket
         {
@@ -285,7 +285,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.ItemNum;
-        if (!SlotValidation.IsValidItemNum(n)) return;
+        if (!SlotValidation.IsValidItemNum(n, _world.Limits.Items)) return;
         _dispatcher.SendToEditor(editorIndex, PacketBuilder.UpdateItem(n, _world.Items[n]));
     }
 
@@ -293,7 +293,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.NpcNum;
-        if (!SlotValidation.IsValidNpcNum(n)) return;
+        if (!SlotValidation.IsValidNpcNum(n, _world.Limits.Npcs)) return;
         var npc = _world.Npcs[n];
         _dispatcher.SendToEditor(editorIndex, new UpdateNpcPacket
         {
@@ -322,7 +322,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.ShopNum;
-        if (!SlotValidation.IsValidShopNum(n)) return;
+        if (!SlotValidation.IsValidShopNum(n, _world.Limits.Shops)) return;
         var shop = _world.Shops[n];
         _dispatcher.SendToEditor(editorIndex, new UpdateShopPacket
         {
@@ -344,7 +344,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.SpellNum;
-        if (!SlotValidation.IsValidSpellNum(n)) return;
+        if (!SlotValidation.IsValidSpellNum(n, _world.Limits.Spells)) return;
         var spell = _world.Spells[n];
         _dispatcher.SendToEditor(editorIndex, new UpdateSpellPacket
         {
@@ -363,7 +363,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.MapNum;
-        if (!SlotValidation.IsValidMapNum(n)) return;
+        if (!SlotValidation.IsValidMapNum(n, _world.Limits.Maps)) return;
         _dispatcher.SendToEditor(editorIndex, PacketBuilder.SendMap(n, _world.Maps[n], forEditor: true));
     }
 
@@ -394,7 +394,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllItemsPacket
         {
-            Items = Enumerable.Range(1, Constants.MaxItems)
+            Items = Enumerable.Range(1, _world.Limits.Items)
                 .Select(n => PacketBuilder.UpdateItem(n, _world.Items[n]))
                 .ToArray(),
         });
@@ -405,7 +405,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllNpcsPacket
         {
-            Npcs = Enumerable.Range(1, Constants.MaxNpcs).Select(n =>
+            Npcs = Enumerable.Range(1, _world.Limits.Npcs).Select(n =>
             {
                 var npc = _world.Npcs[n];
                 return new UpdateNpcPacket
@@ -429,7 +429,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllShopsPacket
         {
-            Shops = Enumerable.Range(1, Constants.MaxShops).Select(n =>
+            Shops = Enumerable.Range(1, _world.Limits.Shops).Select(n =>
             {
                 var shop = _world.Shops[n];
                 return new UpdateShopPacket
@@ -451,7 +451,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllSpellsPacket
         {
-            Spells = Enumerable.Range(1, Constants.MaxSpells).Select(n =>
+            Spells = Enumerable.Range(1, _world.Limits.Spells).Select(n =>
             {
                 var spell = _world.Spells[n];
                 return new UpdateSpellPacket
@@ -506,7 +506,7 @@ public sealed class EditorPacketHandler
         // lands on disk is exactly what character creation will grant.
         cls.StartingItems = p.StartingItems is null ? null : [.. p.StartingItems.Select(s =>
         {
-            bool isCurrency = SlotValidation.IsValidItemNum(s.ItemNum)
+            bool isCurrency = SlotValidation.IsValidItemNum(s.ItemNum, _world.Limits.Items)
                               && _world.Items[s.ItemNum].Type == ItemType.Currency;
             return new ClassStartingItem
             {
@@ -540,7 +540,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
 
         int n = p.ItemNum;
-        if (!SlotValidation.IsValidItemNum(n)) return;
+        if (!SlotValidation.IsValidItemNum(n, _world.Limits.Items)) return;
 
         var item = _world.Items[n];
         item.Name = p.Name;
@@ -573,7 +573,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
 
         int n = p.NpcNum;
-        if (!SlotValidation.IsValidNpcNum(n)) return;
+        if (!SlotValidation.IsValidNpcNum(n, _world.Limits.Npcs)) return;
 
         var npc = _world.Npcs[n];
         npc.Name = p.Name;
@@ -592,7 +592,7 @@ public sealed class EditorPacketHandler
         // legacy single-drop fields, so what lands on disk is exactly what the roller reads.
         npc.Drops = p.Drops is null ? null : [.. p.Drops.Select(d =>
         {
-            bool isCurrency = d.ItemNum > 0 && d.ItemNum <= Constants.MaxItems
+            bool isCurrency = d.ItemNum > 0 && d.ItemNum <= _world.Limits.Items
                               && _world.Items[d.ItemNum].Type == ItemType.Currency;
             return new NpcDrop
             {
@@ -654,7 +654,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
 
         int n = p.ShopNum;
-        if (!SlotValidation.IsValidShopNum(n)) return;
+        if (!SlotValidation.IsValidShopNum(n, _world.Limits.Shops)) return;
 
         var shop = _world.Shops[n];
         // Capture the pre-save keeper binding + type: a change to either moves/relabels the $ glyph and the
@@ -686,7 +686,7 @@ public sealed class EditorPacketHandler
         // Sales list: bare item numbers, canonicalized server-side (dead numbers and duplicates dropped)
         // because the server is authoritative and will not store whatever a client happened to send.
         shop.SalesItem = [.. p.Sales];
-        shop.Normalize(Constants.MaxItems);
+        shop.Normalize(_world.Limits.Items);
 
         _bg.Run(_persistence.SaveShopAsync(n, shop), nameof(IPersistenceService.SaveShopAsync));
         _dispatcher.SendToAll(new UpdateShopPacket
@@ -710,8 +710,8 @@ public sealed class EditorPacketHandler
         // reads the just-saved shop.
         if (oldKeeper != shop.Keeper || oldShopType != shop.ShopType)
         {
-            if (SlotValidation.IsValidNpcNum(oldKeeper)) _dispatcher.SendToAll(BuildUpdateNpc(oldKeeper));
-            if (shop.Keeper != oldKeeper && SlotValidation.IsValidNpcNum(shop.Keeper))
+            if (SlotValidation.IsValidNpcNum(oldKeeper, _world.Limits.Npcs)) _dispatcher.SendToAll(BuildUpdateNpc(oldKeeper));
+            if (shop.Keeper != oldKeeper && SlotValidation.IsValidNpcNum(shop.Keeper, _world.Limits.Npcs))
                 _dispatcher.SendToAll(BuildUpdateNpc(shop.Keeper));
         }
         _logger.LogInformation("Editor saved shop #{Num}.", n);
@@ -722,7 +722,7 @@ public sealed class EditorPacketHandler
     private void HandleEditorRequestQuest(int editorIndex, EditorRequestQuestPacket p)
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
-        if (!SlotValidation.IsValidQuestNum(p.QuestNum)) return;
+        if (!SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
         _dispatcher.SendToEditor(editorIndex, BuildUpdateQuest(p.QuestNum));
     }
 
@@ -731,7 +731,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllQuestsPacket
         {
-            Quests = Enumerable.Range(1, Constants.MaxQuests).Select(BuildUpdateQuest).ToArray(),
+            Quests = Enumerable.Range(1, _world.Limits.Quests).Select(BuildUpdateQuest).ToArray(),
         });
     }
 
@@ -739,7 +739,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.QuestNum;
-        if (!SlotValidation.IsValidQuestNum(n)) return;
+        if (!SlotValidation.IsValidQuestNum(n, _world.Limits.Quests)) return;
 
         var quest = _world.Quests[n];
         quest.Name = p.Name;
@@ -757,9 +757,9 @@ public sealed class EditorPacketHandler
         quest.AllowedClasses = ClassGate.Normalize(p.AllowedClasses);
         quest.PrereqQuest = p.PrereqQuest;
         quest.RewardExp = p.RewardExp;
-        quest.RewardItems = NormalizeQuestRewards(p.RewardItems);
+        quest.RewardItems = NormalizeQuestRewards(p.RewardItems, _world.Limits.Items);
         quest.RepeatRewardExp = p.RepeatRewardExp;
-        quest.RepeatRewardItems = NormalizeQuestRewards(p.RepeatRewardItems);
+        quest.RepeatRewardItems = NormalizeQuestRewards(p.RepeatRewardItems, _world.Limits.Items);
         quest.GiverNpc = p.GiverNpc;
         quest.TurnInNpc = p.TurnInNpc;
         quest.Repeatable = p.Repeatable;
@@ -809,12 +809,12 @@ public sealed class EditorPacketHandler
     }
 
     // Keep only real rewards (a valid item + positive value); gold is item #1 like everywhere else.
-    private static List<QuestReward> NormalizeQuestRewards(List<QuestReward> src)
+    private static List<QuestReward> NormalizeQuestRewards(List<QuestReward> src, int maxItems)
     {
         var list = new List<QuestReward>();
         foreach (var r in src)
         {
-            if (r.ItemNum > 0 && r.ItemNum <= Constants.MaxItems && r.Quantity > 0)
+            if (r.ItemNum > 0 && r.ItemNum <= maxItems && r.Quantity > 0)
                 list.Add(new QuestReward { ItemNum = r.ItemNum, Quantity = r.Quantity });
         }
 
@@ -826,7 +826,7 @@ public sealed class EditorPacketHandler
     private void HandleEditorRequestConversation(int editorIndex, EditorRequestConversationPacket p)
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
-        if (!SlotValidation.IsValidConversationNum(p.ConvNum)) return;
+        if (!SlotValidation.IsValidConversationNum(p.ConvNum, _world.Limits.Conversations)) return;
         _dispatcher.SendToEditor(editorIndex, BuildUpdateConversation(p.ConvNum));
     }
 
@@ -835,7 +835,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllConversationsPacket
         {
-            Conversations = Enumerable.Range(1, Constants.MaxConversations).Select(BuildUpdateConversation).ToArray(),
+            Conversations = Enumerable.Range(1, _world.Limits.Conversations).Select(BuildUpdateConversation).ToArray(),
         });
     }
 
@@ -843,7 +843,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.ConvNum;
-        if (!SlotValidation.IsValidConversationNum(n)) return;
+        if (!SlotValidation.IsValidConversationNum(n, _world.Limits.Conversations)) return;
 
         var conv = _world.Conversations[n];
         conv.Name = p.Name;
@@ -898,7 +898,7 @@ public sealed class EditorPacketHandler
     // (it never stacks); a currency item -> the caller's value floored at 1.
     private int NormalizeTradeQuantity(int itemNum, int value)
     {
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return 0;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return 0;
         if (_world.Items[itemNum].Type != ItemType.Currency) return 1;
         return value < 1 ? 1 : value;
     }
@@ -908,7 +908,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
 
         int n = p.SpellNum;
-        if (!SlotValidation.IsValidSpellNum(n)) return;
+        if (!SlotValidation.IsValidSpellNum(n, _world.Limits.Spells)) return;
 
         var spell = _world.Spells[n];
         spell.Name = p.Name;
@@ -943,7 +943,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
 
         int mapNum = p.MapNum;
-        if (!SlotValidation.IsValidMapNum(mapNum)) return;
+        if (!SlotValidation.IsValidMapNum(mapNum, _world.Limits.Maps)) return;
 
         var src = p.Map;
         var map = _world.Maps[mapNum];
@@ -983,14 +983,14 @@ public sealed class EditorPacketHandler
         // Drop empty/out-of-range rows defensively and cap at MaxMapNpcs runtime posts; SpawnNpc (below) reads
         // these by index, so a pinned entry respawns at its tile immediately after the save.
         map.Npcs = src.Npcs
-            .Where(e => e.Npc > 0 && e.Npc <= Constants.MaxNpcs)
+            .Where(e => e.Npc > 0 && e.Npc <= _world.Limits.Npcs)
             .Take(Constants.MaxMapNpcs)
             .ToList();
 
         // Size-aware save backstop: drop any pin whose footprint runs off-map, covers a
         // blocked tile, or overlaps an earlier-kept pin (first-wins) — so a bad pin never persists; that NPC then
         // spawns at a random valid tile (SpawnNpc's fallback).
-        int NpcFootprintSize(int npcId) => npcId >= 1 && npcId <= Constants.MaxNpcs ? _world.Npcs[npcId].EffectiveSize : 1;
+        int NpcFootprintSize(int npcId) => npcId >= 1 && npcId <= _world.Limits.Npcs ? _world.Npcs[npcId].EffectiveSize : 1;
         for (int i = 0; i < map.Npcs.Count; i++)
         {
             var e = map.Npcs[i];
@@ -1055,7 +1055,7 @@ public sealed class EditorPacketHandler
     {
         if (!IsEditorAuthenticated(editorIndex)) return;
         int n = p.GroupNum;
-        if (!SlotValidation.IsValidMapGroupNum(n)) return;
+        if (!SlotValidation.IsValidMapGroupNum(n, _world.Limits.MapGroups)) return;
         var group = _world.MapGroups.GetValueOrDefault(n) ?? new MapGroupRecord { Index = n };
         _dispatcher.SendToEditor(editorIndex, BuildUpdateMapGroup(n, group));
     }
@@ -1065,7 +1065,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllMapGroupsPacket
         {
-            MapGroups = Enumerable.Range(1, Constants.MaxMapGroups)
+            MapGroups = Enumerable.Range(1, _world.Limits.MapGroups)
                 .Select(n => BuildUpdateMapGroup(n, _world.MapGroups.GetValueOrDefault(n) ?? new MapGroupRecord { Index = n }))
                 .ToArray(),
         });
@@ -1076,7 +1076,7 @@ public sealed class EditorPacketHandler
         if (!IsEditorAuthenticated(editorIndex)) return;
 
         int n = p.GroupNum;
-        if (!SlotValidation.IsValidMapGroupNum(n)) return;
+        if (!SlotValidation.IsValidMapGroupNum(n, _world.Limits.MapGroups)) return;
 
         // Reuse the existing record so runtime-only state (ControllingGuild) survives an authoring save;
         // create it on first save (groups are a sparse Dictionary, unlike the pre-sized record arrays).

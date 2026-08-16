@@ -68,7 +68,7 @@ public sealed partial class GameplayScreen : IGameScreen
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
-                    if (n.Num == 0 || n.Num > Constants.MaxNpcs) continue;
+                    if (n.Num == 0 || n.Num > state.Limits.Npcs) continue;
                     var def = state.NpcDefs[n.Num];
                     if (def is null) continue;
                     TryAddNpc(new TargetRef(TargetKind.Npc, i, cellMap), offX + n.X, offY + n.Y, def.EffectiveSize, def.Behavior, n.Layer);
@@ -79,7 +79,7 @@ public sealed partial class GameplayScreen : IGameScreen
         // Visiting (chasing) guests, placed at their current cell.
         foreach (var t in state.TraversalNpcs.Values)
         {
-            if (t.Num == 0 || t.Num > Constants.MaxNpcs) continue;
+            if (t.Num == 0 || t.Num > state.Limits.Npcs) continue;
             var def = state.NpcDefs[t.Num];
             if (def is null) continue;
             var off = CellOffsetForMapClient(t.CurrentMapNum);
@@ -89,7 +89,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
         if (!_skipPlayersWithTabTarget && !safeMap)
         {
-            for (int i = 1; i <= Constants.MaxPlayers; i++)
+            for (int i = 1; i <= state.PlayerSlots; i++)
             {
                 if (i == state.MyIndex) continue;
                 var p = state.Players[i];
@@ -155,7 +155,7 @@ public sealed partial class GameplayScreen : IGameScreen
             return new TargetRef(TargetKind.Player, state.MyIndex, 0);
         }
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= state.PlayerSlots; i++)
         {
             if (i == state.MyIndex) continue;
             var p = state.Players[i];
@@ -182,7 +182,7 @@ public sealed partial class GameplayScreen : IGameScreen
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
-                    if (n.Num == 0 || n.Num > Constants.MaxNpcs) continue;
+                    if (n.Num == 0 || n.Num > state.Limits.Npcs) continue;
                     if (Hit(wx, wy, cellOx + n.X, cellOy + n.Y, n.XOffset, n.YOffset, state.NpcDefs[n.Num]?.EffectiveSize ?? 1))
                     {
                         var hit = new TargetRef(TargetKind.Npc, i, mapNum);
@@ -195,7 +195,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
         foreach (var t in state.TraversalNpcs.Values)
         {
-            if (t.Num <= 0 || t.Num > Constants.MaxNpcs) continue;
+            if (t.Num <= 0 || t.Num > state.Limits.Npcs) continue;
             var off = CellOffsetForMapClient(t.CurrentMapNum);
             if (off is null) continue;
             if (Hit(wx, wy, off.Value.ox + t.X, off.Value.oy + t.Y, t.XOffset, t.YOffset, state.NpcDefs[t.Num]?.EffectiveSize ?? 1))
@@ -228,7 +228,7 @@ public sealed partial class GameplayScreen : IGameScreen
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
-                    if (n.Num == 0 || n.Num > Constants.MaxNpcs) continue;
+                    if (n.Num == 0 || n.Num > state.Limits.Npcs) continue;
                     if (HitFootprint(wx, wy, cellOx + n.X, cellOy + n.Y, n.XOffset, n.YOffset, state.NpcDefs[n.Num]?.EffectiveSize ?? 1))
                         hits.Add(new TargetRef(TargetKind.Npc, i, mapNum));
                 }
@@ -237,7 +237,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
         foreach (var t in state.TraversalNpcs.Values)
         {
-            if (t.Num <= 0 || t.Num > Constants.MaxNpcs) continue;
+            if (t.Num <= 0 || t.Num > state.Limits.Npcs) continue;
             var off = CellOffsetForMapClient(t.CurrentMapNum);
             if (off is null) continue;
             if (HitFootprint(wx, wy, off.Value.ox + t.X, off.Value.oy + t.Y, t.XOffset, t.YOffset, state.NpcDefs[t.Num]?.EffectiveSize ?? 1))

@@ -145,7 +145,7 @@ public sealed class BankPanel : IGamePanel
         {
             int slot = _invList.SelectedIndex + 1;
             var inv = state.Me.Inv[slot];
-            if (inv.Num > 0 && inv.Num <= Constants.MaxItems)
+            if (inv.Num > 0 && inv.Num <= state.Limits.Items)
                 BeginDeposit(slot, state, sender);
         }
 
@@ -153,7 +153,7 @@ public sealed class BankPanel : IGamePanel
         {
             int slot = _bankList.SelectedIndex + 1;
             var bankSlot = state.Bank[slot];
-            if (bankSlot.Num > 0 && bankSlot.Num <= Constants.MaxItems)
+            if (bankSlot.Num > 0 && bankSlot.Num <= state.Limits.Items)
                 BeginWithdraw(slot, state, sender);
         }
 
@@ -218,7 +218,7 @@ public sealed class BankPanel : IGamePanel
     {
         if (_cachedFont is null) return;
         var inv = state.Me?.Inv?[invSlot];
-        if (inv is null || inv.Num <= 0 || inv.Num > Constants.MaxItems) return;
+        if (inv is null || inv.Num <= 0 || inv.Num > state.Limits.Items) return;
         int itemNum = inv.Num;
         var item = state.Items[itemNum];
         if (item is null) return;
@@ -255,7 +255,7 @@ public sealed class BankPanel : IGamePanel
     {
         if (_cachedFont is null) return;
         var bank = state.Bank[bankSlot];
-        if (bank.Num <= 0 || bank.Num > Constants.MaxItems) return;
+        if (bank.Num <= 0 || bank.Num > state.Limits.Items) return;
         int itemNum = bank.Num;
         var item = state.Items[itemNum];
         if (item is null) return;
@@ -292,7 +292,7 @@ public sealed class BankPanel : IGamePanel
 
     private static bool BankHasRoomFor(ClientState state, int itemNum)
     {
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return false;
+        if (itemNum <= 0 || itemNum > state.Limits.Items) return false;
         var item = state.Items[itemNum];
         bool isCurrency = item?.Type == ItemType.Currency;
         if (isCurrency)
@@ -307,7 +307,7 @@ public sealed class BankPanel : IGamePanel
 
     private static bool InvHasRoomFor(ClientState state, int itemNum)
     {
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return false;
+        if (itemNum <= 0 || itemNum > state.Limits.Items) return false;
         var me = state.Me;
         if (me?.Inv is null) return false;
         var item = state.Items[itemNum];
@@ -342,7 +342,7 @@ public sealed class BankPanel : IGamePanel
         for (int i = 1; i <= Constants.MaxBankSlots; i++)
         {
             var slot = state.Bank[i];
-            if (slot.Num <= 0 || slot.Num > Constants.MaxItems)
+            if (slot.Num <= 0 || slot.Num > state.Limits.Items)
             {
                 _bankList.Items.Add($"{i}: {ClientStrings.Get(ClientStrings.Common_Empty)}");
                 continue;
@@ -469,7 +469,7 @@ public sealed class BankPanel : IGamePanel
         if (hovered < 0) return;
         int slotIdx = hovered + 1;
         var slot = state.Me?.Inv?[slotIdx];
-        if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) return;
+        if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) return;
         var item = state.Items[slot.Num];
         if (item is null) return;
         Tooltip.NotifyHoverItem(TooltipScopeInv, (TooltipScopeInv, slotIdx, slot.Num), item, slot, state.Me, state.Classes, itemsTex, _input.MousePosition);
@@ -481,7 +481,7 @@ public sealed class BankPanel : IGamePanel
         if (hovered < 0) return;
         int bankSlot = hovered + 1;
         var slot = state.Bank[bankSlot];
-        if (slot.Num <= 0 || slot.Num > Constants.MaxItems) return;
+        if (slot.Num <= 0 || slot.Num > state.Limits.Items) return;
         var item = state.Items[slot.Num];
         if (item is null) return;
         Tooltip.NotifyHoverItem(TooltipScopeBank, (TooltipScopeBank, bankSlot, slot.Num), item, slot, state.Me, state.Classes, itemsTex, _input.MousePosition);
@@ -493,7 +493,7 @@ public sealed class BankPanel : IGamePanel
         if (_invList.SelectedIndex < 0) return false;
         int slot = _invList.SelectedIndex + 1;
         var inv = state.Me?.Inv?[slot];
-        if (inv is null || inv.Num <= 0 || inv.Num > Constants.MaxItems) return false;
+        if (inv is null || inv.Num <= 0 || inv.Num > state.Limits.Items) return false;
         itemNum = inv.Num;
         return true;
     }
@@ -504,7 +504,7 @@ public sealed class BankPanel : IGamePanel
         if (_bankList.SelectedIndex < 0) return false;
         int slot = _bankList.SelectedIndex + 1;
         var bank = state.Bank[slot];
-        if (bank.Num <= 0 || bank.Num > Constants.MaxItems) return false;
+        if (bank.Num <= 0 || bank.Num > state.Limits.Items) return false;
         itemNum = bank.Num;
         return true;
     }

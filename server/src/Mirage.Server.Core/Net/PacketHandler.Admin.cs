@@ -109,7 +109,7 @@ public sealed partial class PacketHandler
             return;
         }
 
-        if (p.MapNum <= 0 || p.MapNum > Constants.MaxMaps)
+        if (p.MapNum <= 0 || p.MapNum > _world.Limits.Maps)
         {
             HackingAttempt(index, "Invalid map");
             return;
@@ -167,7 +167,7 @@ public sealed partial class PacketHandler
 
         var sb = new System.Text.StringBuilder("Free Maps: ");
         int start = 1, end = 1;
-        for (int i = 1; i <= Constants.MaxMaps; i++)
+        for (int i = 1; i <= _world.Limits.Maps; i++)
         {
             if (string.IsNullOrWhiteSpace(_world.Maps[i].Name))
             {
@@ -248,7 +248,7 @@ public sealed partial class PacketHandler
 
         _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_KickBroadcast,
             new ChatMetadata(GameColor.White, ChatChannel.Notice),
-            ("Target", targetName), ("GameName", Constants.GameName), ("Admin", adminName), ("Minutes", minutes));
+            ("Target", targetName), ("GameName", _config.GameName), ("Admin", adminName), ("Minutes", minutes));
         _logger.LogInformation("{Admin} has kicked {Target} for {Minutes} minute(s).", adminName, targetName, minutes);
         AlertAndDisconnect(n, ServerStrings.AdminCommand_Kicked,
             ("Admin", adminName), ("Minutes", minutes));
@@ -283,8 +283,8 @@ public sealed partial class PacketHandler
         _logger.LogInformation("{Admin} has banned {Target}.", adminName, targetName);
         _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_BanBroadcast,
             new ChatMetadata(GameColor.White, ChatChannel.Notice),
-            ("Target", targetName), ("GameName", Constants.GameName), ("Admin", adminName));
-        AlertAndDisconnect(n, ServerStrings.Auth_Banned, ("GameName", Constants.GameName));
+            ("Target", targetName), ("GameName", _config.GameName), ("Admin", adminName));
+        AlertAndDisconnect(n, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
     }
 
     private void HandleMutePlayer(int index, MutePlayerPacket p)
@@ -519,7 +519,7 @@ public sealed partial class PacketHandler
                 new ChatMetadata(GameColor.White, ChatChannel.Notice),
                 ("Player", $"{_pm[index].Login}/{_pm[index].Char.Name.Trim()}"), ("Reason", reason));
         }
-        AlertAndDisconnect(index, ServerStrings.AdminCommand_ConnectionLost, ("GameName", Constants.GameName));
+        AlertAndDisconnect(index, ServerStrings.AdminCommand_ConnectionLost, ("GameName", _config.GameName));
     }
 
     private static bool IsValidName(string name) => NameRules.HasValidChars(name);

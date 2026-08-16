@@ -33,6 +33,8 @@ public sealed partial class NpcAiSystem : GameSystem
         _spawn = spawn;
         _items = items;
         _blood = blood;
+        _occupancyCache = new byte[_world.Limits.Maps + 1][];
+        _occupancyCacheTicks = new long[_world.Limits.Maps + 1];
     }
 
     // A badly wounded NPC/guest (<= BloodTrailHpThreshold of max HP) drips onto each fresh tile it moves to.
@@ -94,8 +96,10 @@ public sealed partial class NpcAiSystem : GameSystem
     // high player counts, where the roster scan dominates everything else in the BFS.  Lazy-
     // allocated per map (3,456 bytes each — 2 layers x 1,728) so an unused map costs nothing.  Tick parity is
     // tracked by stamping the cached AI-now value; any value != _aiNow means rebuild on next access.
-    private readonly byte[]?[] _occupancyCache = new byte[Constants.MaxMaps + 1][];
-    private readonly long[] _occupancyCacheTicks = new long[Constants.MaxMaps + 1];
+    // Sized in the constructor, not here: a field initializer cannot see _world, and the length has to
+    // follow the operator's map count.
+    private readonly byte[]?[] _occupancyCache;
+    private readonly long[] _occupancyCacheTicks;
 
     // Per-pass shared BFS direction-field cache for the chase legs pass.  One target-rooted expansion
     // (FillPathField) solves the next-step for EVERY source tile toward that target, so a gang of N chasers
@@ -137,7 +141,7 @@ public sealed partial class NpcAiSystem : GameSystem
         _pathNow = now;
         bool regenTick = now > _giveNpcHpTimer + NpcHpRegenMs;
 
-        for (int mapNum = 1; mapNum <= Constants.MaxMaps; mapNum++)
+        for (int mapNum = 1; mapNum <= _world.Limits.Maps; mapNum++)
         {
             // Seamless world: run the full, player-scanning AI only on maps someone can SEE (it or a
             // neighbor of their map) — an unobserved map can't have a player in target range, so its
@@ -175,7 +179,7 @@ public sealed partial class NpcAiSystem : GameSystem
     public void RunMovement(long now)
     {
         _pathNow = now;
-        for (int mapNum = 1; mapNum <= Constants.MaxMaps; mapNum++)
+        for (int mapNum = 1; mapNum <= _world.Limits.Maps; mapNum++)
         {
             if (_world.MapObservers[mapNum].Count == 0) continue;   // chasing only happens where someone watches
             for (int slot = 1; slot <= Constants.MaxMapNpcs; slot++)

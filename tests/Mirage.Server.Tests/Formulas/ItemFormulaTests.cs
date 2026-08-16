@@ -14,7 +14,7 @@ namespace Mirage.Server.Tests;
 [TestFixture]
 public class ItemFormulaTests
 {
-    // Item ids used across the fixture (all <= Constants.MaxItems = 255).
+    // Item ids used across the fixture (all <= RecordLimits.Default.Items = 255).
     const int Gold = Constants.GoldItemIndex;   // 1, Currency
     const int Cur = 5;                           // a non-gold currency
     const int Wep = 10, Arm = 11, Key = 12, Hlm = 13, Shd = 14, Spl = 15;
@@ -22,8 +22,8 @@ public class ItemFormulaTests
 
     static ItemRecord[] BuildItems()
     {
-        var items = new ItemRecord[Constants.MaxItems + 1];
-        for (int i = 0; i <= Constants.MaxItems; i++) items[i] = new ItemRecord();
+        var items = new ItemRecord[RecordLimits.Default.Items + 1];
+        for (int i = 0; i <= RecordLimits.Default.Items; i++) items[i] = new ItemRecord();
         items[Gold].Type = ItemType.Currency;
         items[Cur].Type = ItemType.Currency;
         items[Wep].Type = ItemType.Weapon;
@@ -51,7 +51,7 @@ public class ItemFormulaTests
         Assert.Multiple(() =>
         {
             Assert.That(ItemSystem.FindOpenInvSlot(p, items, 0), Is.EqualTo(0));
-            Assert.That(ItemSystem.FindOpenInvSlot(p, items, Constants.MaxItems + 1), Is.EqualTo(0));
+            Assert.That(ItemSystem.FindOpenInvSlot(p, items, RecordLimits.Default.Items + 1), Is.EqualTo(0));
         });
     }
 

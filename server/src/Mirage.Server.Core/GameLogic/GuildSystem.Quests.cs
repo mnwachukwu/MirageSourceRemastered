@@ -203,14 +203,14 @@ public sealed partial class GuildSystem : GameSystem
     {
         var seen = new HashSet<int>();
         var list = new List<(int, int)>();
-        for (int m = 1; m <= Constants.MaxMaps; m++)
+        for (int m = 1; m <= _world.Limits.Maps; m++)
         {
             var map = _world.Maps[m];
             if (map is null) continue;
             foreach (var entry in map.Npcs)
             {
                 int npcId = entry.Npc;
-                if (npcId < 1 || npcId > Constants.MaxNpcs || !seen.Add(npcId)) continue;
+                if (npcId < 1 || npcId > _world.Limits.Npcs || !seen.Add(npcId)) continue;
                 var npc = _world.Npcs[npcId];
                 if (npc is null || npc.Behavior is not (NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)) continue;
                 list.Add((npcId, NpcDifficulty(npc)));

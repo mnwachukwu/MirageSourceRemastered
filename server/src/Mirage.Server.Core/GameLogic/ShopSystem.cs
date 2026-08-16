@@ -56,7 +56,7 @@ public sealed class ShopSystem : GameSystem
     public void Trade(int index, int shopNum, int tradeSlot)
     {
         if (!_pm[index].IsPlaying) return;
-        if (shopNum <= 0 || shopNum > Constants.MaxShops) return;
+        if (shopNum <= 0 || shopNum > _world.Limits.Shops) return;
         var p = _pm[index].Char;
         var shop = _world.Shops[shopNum];
 
@@ -110,7 +110,7 @@ public sealed class ShopSystem : GameSystem
     public void Buy(int index, int shopNum, int salesSlot)
     {
         if (!_pm[index].IsPlaying) return;
-        if (shopNum <= 0 || shopNum > Constants.MaxShops) return;
+        if (shopNum <= 0 || shopNum > _world.Limits.Shops) return;
         var p = _pm[index].Char;
         var shop = _world.Shops[shopNum];
 
@@ -124,7 +124,7 @@ public sealed class ShopSystem : GameSystem
         }
 
         int itemNum = shop.SalesItem[salesSlot - 1];
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return;
         var item = _world.Items[itemNum];
 
         // An unpriced entry is a data bug, and handing it over free is the same class of bug as the
@@ -203,7 +203,7 @@ public sealed class ShopSystem : GameSystem
         int have = stacks ? Math.Max(p.Inv[invSlot].Quantity, 1) : 1;
         int amount = stacks ? (quantity <= 0 || quantity > have ? have : quantity) : 1;
 
-        var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= Constants.MaxSpells
+        var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= _world.Limits.Spells
             ? _world.Spells[item.SpellNum] : null;
         long gold = (long)EconomyFormulas.ItemSellValue(item, p.Inv[invSlot].Dur, spell) * amount;
 

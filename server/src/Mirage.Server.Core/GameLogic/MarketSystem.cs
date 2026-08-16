@@ -107,7 +107,7 @@ public sealed class MarketSystem : GameSystem
         }
 
         var slot = sp.Char.Inv[invSlot];
-        if (slot.Num <= 0 || slot.Num > Constants.MaxItems)
+        if (slot.Num <= 0 || slot.Num > _world.Limits.Items)
         {
             SendMsg(index, ServerStrings.Market_CannotList, GameColor.BrightRed);
             return;

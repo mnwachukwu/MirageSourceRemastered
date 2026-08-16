@@ -526,7 +526,7 @@ public sealed class MailPanel : IGamePanel
         {
             if (slot < 1 || slot > Constants.MaxInv) continue;
             var inv = state.Me.Inv[slot];
-            if (inv is null || inv.Num <= 0 || inv.Num > Constants.MaxItems) continue;
+            if (inv is null || inv.Num <= 0 || inv.Num > state.Limits.Items) continue;
             int qty = quantity > 0 ? quantity : inv.Quantity;
             total += EconomyFormulas.MailAttachmentValue(inv.Num, qty, state.Items[inv.Num].Price);
         }

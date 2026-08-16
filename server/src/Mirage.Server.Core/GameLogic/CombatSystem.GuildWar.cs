@@ -240,13 +240,13 @@ public sealed partial class CombatSystem : GameSystem
         if (p.PreparedSpell > 0 && p.PreparedSpell < p.Spell.Length)
         {
             int prepNum = p.Spell[p.PreparedSpell];
-            if (prepNum > 0 && prepNum <= Constants.MaxSpells) return _world.Spells[prepNum].VitalAmount;
+            if (prepNum > 0 && prepNum <= _world.Limits.Spells) return _world.Spells[prepNum].VitalAmount;
         }
         int best = 0;
         for (int i = 1; i < p.Spell.Length; i++)
         {
             int sn = p.Spell[i];
-            if (sn <= 0 || sn > Constants.MaxSpells) continue;
+            if (sn <= 0 || sn > _world.Limits.Spells) continue;
             var s = _world.Spells[sn];
             if (s.Type == SpellType.SubHp && s.VitalAmount > best) best = s.VitalAmount;
         }

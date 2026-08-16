@@ -82,6 +82,10 @@ public static partial class ClientStrings
 
     // ── LoadingScreen ─────────────────────────────────────────────────────────
     public const string LoadingScreen_DefaultMessage = nameof(LoadingScreen_DefaultMessage);
+    // The server sends a position and a count; the sentence around them is written here, so waiting reads
+    // in the language the menus are already in.
+    public const string LoadingScreen_QueuePosition = nameof(LoadingScreen_QueuePosition);   // "{Position}" "{Total}"
+    public const string LoadingScreen_QueueHint = nameof(LoadingScreen_QueueHint);
 
     // ── GameplayScreen ────────────────────────────────────────────────────────
     public const string GameplayScreen_DebugOverlayOn = nameof(GameplayScreen_DebugOverlayOn);

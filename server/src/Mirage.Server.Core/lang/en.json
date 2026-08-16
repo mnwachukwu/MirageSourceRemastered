@@ -662,8 +662,11 @@
   "Net_NewConnection":            "New connection from {Ip}.",
   "Net_PlayerDisconnected":       "Player slot {Slot} ({Ip}) disconnected.",
   "Net_EditorDisconnected":       "Editor slot {Slot} disconnected.",
+  "Net_PlayerQueued":             "Server full; {Ip} is waiting in the login queue.",
   "Net_PlayerRefusedFull":        "Player connection refused from {Ip}: server full.",
   "Net_EditorRefusedFull":        "Editor connection refused: no open editor slots.",
+  "Net_ServerFullAlert":          "The server is full. Please try again shortly.",
+  "Net_EditorFullAlert":          "The editor is full. Please try again shortly.",
 
   "Management_Listening":         "Remote management listening on port {Port}.",
   "Management_TokenMissing":      "Remote management is not running: a port is set but no token is. Set one in serverconfig.json, or set the port to 0 to turn remote management off.",

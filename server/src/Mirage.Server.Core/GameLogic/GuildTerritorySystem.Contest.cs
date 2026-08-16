@@ -182,7 +182,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private List<int> TerritoryMaps(int territoryIndex)
     {
         var maps = new List<int>();
-        for (int m = 1; m <= Constants.MaxMaps; m++)
+        for (int m = 1; m <= _world.Limits.Maps; m++)
             if (_world.Maps[m].MapGroup == territoryIndex) maps.Add(m);
         return maps;
     }

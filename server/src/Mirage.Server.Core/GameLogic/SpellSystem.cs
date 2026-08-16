@@ -238,7 +238,7 @@ public sealed class SpellSystem : GameSystem
         // to the caster's map and report "no longer valid".  TargetInRange (world-distance) is the real
         // gate below — an out-of-view target simply reads "out of range", and a still-visible one casts.
         // Ctrl+Cast resolves on the caster's OWN map — don't let a cross-map NPC target redirect a self-cast.
-        if (!forceSelf && (sp.TargetType == 1 || sp.TargetType == 3) && sp.TargetMap > 0 && sp.TargetMap <= Constants.MaxMaps)
+        if (!forceSelf && (sp.TargetType == 1 || sp.TargetType == 3) && sp.TargetMap > 0 && sp.TargetMap <= _world.Limits.Maps)
             mapNum = sp.TargetMap;
 
         if (sp.TargetType == 3 && !forceSelf)
@@ -728,7 +728,7 @@ public sealed class SpellSystem : GameSystem
             for (int r = 0; r < 3; r++)
             {
                 int m = grid[c, r];
-                if (m <= 0 || m > Constants.MaxMaps) continue;
+                if (m <= 0 || m > _world.Limits.Maps) continue;
                 var list = _world.MapTraversalNpcs[m];
                 for (int i = 0; i < list.Count; i++)
                 {

@@ -25,7 +25,7 @@ public sealed class SpawnSystem : GameSystem
     public void SpawnNpc(int mapNpcSlot, int mapNum)
     {
         if (mapNpcSlot <= 0 || mapNpcSlot > Constants.MaxMapNpcs) return;
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
 
         // Territory war: a map whose territory has a live contest spawns no NPCs for the whole war
         // state (setup + contest + cooldown). The single spawn chokepoint, so respawn / guest-return / bulk
@@ -187,7 +187,7 @@ public sealed class SpawnSystem : GameSystem
 
     public void SpawnAllMapNpcs()
     {
-        for (int i = 1; i <= Constants.MaxMaps; i++)
+        for (int i = 1; i <= _world.Limits.Maps; i++)
             SpawnMapNpcs(i);
     }
 
@@ -198,7 +198,7 @@ public sealed class SpawnSystem : GameSystem
     /// slots (a native away chasing as a guest) already read Num = 0, so they are left untouched.</summary>
     public void DespawnMapNpcs(int mapNum)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         for (int i = 1; i <= Constants.MaxMapNpcs; i++)
         {
             var mn = _world.MapNpcs[mapNum, i];

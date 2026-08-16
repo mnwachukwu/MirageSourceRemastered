@@ -28,7 +28,7 @@ public sealed partial class ItemSystem : GameSystem
     public int SpawnItem(int itemNum, int value, int mapNum, int x, int y, ItemSource source = ItemSource.TileDefined, int durOverride = -1,
         WorldLayer layer = WorldLayer.Ground)
     {
-        if (itemNum < 0 || itemNum > Constants.MaxItems || mapNum <= 0 || mapNum > Constants.MaxMaps) return 0;
+        if (itemNum < 0 || itemNum > _world.Limits.Items || mapNum <= 0 || mapNum > _world.Limits.Maps) return 0;
 
         bool isEquipment = itemNum != 0 && ItemRecord.IsEquipment(_world.Items[itemNum].Type);
         int dur = durOverride >= 0 ? durOverride : (isEquipment ? _world.Items[itemNum].Durability : 0);
@@ -93,7 +93,7 @@ public sealed partial class ItemSystem : GameSystem
     /// </summary>
     public void RemoveMapItem(int mapNum, int slotId)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps || slotId <= 0) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps || slotId <= 0) return;
         var list = _world.MapItems[mapNum];
         int x = 0, y = 0;
         bool found = false;
@@ -126,7 +126,7 @@ public sealed partial class ItemSystem : GameSystem
     /// </summary>
     public int RemoveMatchingMapItems(int mapNum, Predicate<MapItemRecord> match)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return 0;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return 0;
         var list = _world.MapItems[mapNum];
         if (list.Count == 0) return 0;
 
@@ -160,7 +160,7 @@ public sealed partial class ItemSystem : GameSystem
     /// </summary>
     public void ClearMapItems(int mapNum)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         for (int s = 1; s <= Constants.MaxMapNpcs; s++)
             _world.MapNpcs[mapNum, s].JanitorTarget = 0;
 
@@ -183,7 +183,7 @@ public sealed partial class ItemSystem : GameSystem
     /// and a Fringe item authored on the same tile both appear on their own layer.</summary>
     public void SpawnMapItems(int mapNum)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         var map = _world.Maps[mapNum];
         // Two-plane world: a tile-defined item can be authored on the Ground OR the Fringe layer (its FringeAttr),
         // so scan both planes at every tile and spawn each on its own layer.
@@ -209,7 +209,7 @@ public sealed partial class ItemSystem : GameSystem
     /// <summary>Spawn the tile-defined items of every map — the boot-time seeding pass.</summary>
     public void SpawnAllMapsItems()
     {
-        for (int i = 1; i <= Constants.MaxMaps; i++)
+        for (int i = 1; i <= _world.Limits.Maps; i++)
             SpawnMapItems(i);
     }
 
@@ -218,7 +218,7 @@ public sealed partial class ItemSystem : GameSystem
     /// <see cref="Constants.DefaultItemRespawnSeconds"/> when it authors none.</summary>
     public void CheckItemRespawn(int mapNum, long now)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         var map = _world.Maps[mapNum];
         var temp = _world.TempTiles[mapNum];
         for (int y = 0; y <= Constants.MaxMapY; y++)
@@ -263,7 +263,7 @@ public sealed partial class ItemSystem : GameSystem
         for (int i = 0; i < list.Count; i++)
         {
             var m = list[i];
-            if (m.Num == 0 || m.Num > Constants.MaxItems) continue;
+            if (m.Num == 0 || m.Num > _world.Limits.Items) continue;
             if (m.X != p.X || m.Y != p.Y || m.Layer != p.Layer) continue;   // same tile AND same layer
             if (m.DropSeq > topSeq)
             {
@@ -424,7 +424,7 @@ public sealed partial class ItemSystem : GameSystem
         for (int i = 0; i < list.Count; i++)
         {
             var m = list[i];
-            if (m.Num <= 0 || m.Num > Constants.MaxItems) continue;
+            if (m.Num <= 0 || m.Num > _world.Limits.Items) continue;
             if (m.X != x || m.Y != y || m.Layer != layer) continue;
             onTile.Add(m);
         }

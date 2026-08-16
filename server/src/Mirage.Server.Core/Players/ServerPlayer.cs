@@ -32,7 +32,33 @@ public sealed class ServerPlayer
     }
 
     // ── Runtime (not persisted) ───────────────────────────────────────────────
-    public bool IsConnected { get; set; }
+
+    /// <summary>Whether a socket is attached to this slot.
+    ///
+    /// <para>Writing it also maintains <see cref="PlayerManager.Online"/>, which is what every broadcast
+    /// walks instead of the whole slot array. Doing it HERE rather than at the two or three places that
+    /// connect and disconnect is the whole point: occupancy is expressed by assigning this property —
+    /// including at thirty-odd test setup sites — and an index maintained anywhere else would be a second
+    /// copy of the truth, drifting the moment something set the flag without going through it.</para></summary>
+    public bool IsConnected
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            ConnectionChanged?.Invoke(Slot, value);
+        }
+    }
+
+    /// <summary>This player's 1-based slot, stamped by <see cref="PlayerManager"/>. 0 on an instance
+    /// built outside one, which is what makes <see cref="ConnectionChanged"/> safe to leave unwired.</summary>
+    internal int Slot { get; init; }
+
+    /// <summary>Wired by <see cref="PlayerManager"/> so the online set follows the flag above. Null on a
+    /// stand-alone instance, where there is no set to keep.</summary>
+    internal Action<int, bool>? ConnectionChanged { get; init; }
+
     public bool IsGhost { get; set; }
     public bool InGame { get; set; }
     public string RemoteIp { get; set; } = "";

@@ -105,6 +105,58 @@ public sealed record AlertMsgPacket : IPacket
     [JsonPropertyName("code")] public AlertCode Code { get; init; } = AlertCode.None;
 }
 
+/// <summary>
+/// S-&gt;C: what this server is, sent the moment a connection is accepted and before anything else.
+///
+/// <para><b>This is the pre-login handshake.</b> A client compiles against the PROTOCOL ceilings — the
+/// largest numbers the wire can carry — but a given server runs on its own, usually much smaller, limits.
+/// Being told them up front is what lets a client work to the server's shape instead of the protocol's.
+/// It arrives before credentials are sent, so nothing about it depends on who is connecting.</para>
+///
+/// <para>Carries the player limit and the game's name. The remaining record ceilings join it, and at that
+/// point the client sizes its tables from what it was told rather than from anything compiled in.</para>
+/// </summary>
+public sealed record ServerHelloPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ServerHello;
+
+    /// <summary>How many player slots THIS server has. Never above the protocol ceiling, because a
+    /// higher slot number could not be indexed by a client that allocated for the ceiling.</summary>
+    [JsonPropertyName("maxPlayers")] public int MaxPlayers { get; init; }
+
+    /// <summary>What this game is called. A client ships with no game identity — it wears the ENGINE's
+    /// name until it is told this, and shows it from here on. Empty leaves the engine name in place.</summary>
+    [JsonPropertyName("gameName")] public string GameName { get; init; } = "";
+
+    /// <summary>How many of each record family this server has. The client sizes its tables and bounds
+    /// every record number against these, rather than against anything it was compiled with — see
+    /// <see cref="RecordLimits"/> for why a compiled-in ceiling is a bug rather than a default.</summary>
+    [JsonPropertyName("records")] public RecordLimits Records { get; init; } = RecordLimits.Default;
+}
+
+/// <summary>
+/// S-&gt;C: you are waiting for a slot on a full server, and this is where you are in the line.
+///
+/// <para>Numbers rather than a sentence, unlike <see cref="AlertMsgPacket"/>: the client has its own
+/// string table and renders the line in the language the PLAYER chose, which is the one the menus are
+/// already in. Pushed when the position changes, never polled.</para>
+///
+/// <para>The connection holding this has no player slot and no session — it is a socket in a list. There
+/// is no matching C→S packet: waiting is not something a client does, it is something that happens to
+/// it.</para>
+/// </summary>
+public sealed record QueueUpdatePacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.QueueUpdate;
+
+    /// <summary>1 = next in line. Never 0 — a promoted connection gets the ordinary login flow instead,
+    /// which is the only signal the client needs that the wait is over.</summary>
+    [JsonPropertyName("pos")] public int Position { get; init; }
+
+    /// <summary>How many are waiting, so "3rd" can be shown as "3rd of 40".</summary>
+    [JsonPropertyName("total")] public int Total { get; init; }
+}
+
 /// <summary>S-&gt;C: the class list, in response to <see cref="GetClassesPacket"/>.</summary>
 public sealed record SendClassesPacket : IPacket
 {

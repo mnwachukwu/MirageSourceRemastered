@@ -93,7 +93,7 @@ public sealed partial class PacketHandler
     {
         if (!_pm[index].IsPlaying) return;
         if (_pm[index].Char.Dead) return;  // a corpse can't drop items
-        if (p.ItemNum <= 0 || p.ItemNum > Constants.MaxItems)
+        if (p.ItemNum <= 0 || p.ItemNum > _world.Limits.Items)
         {
             HackingAttempt(index, "Invalid MapDropBulk ItemNum");
             return;
@@ -202,7 +202,7 @@ public sealed partial class PacketHandler
     {
         if (!_pm[index].IsPlaying) return;
         if (_pm[index].Char.Dead) return;  // a corpse can't use the bank
-        if (p.ItemNum <= 0 || p.ItemNum > Constants.MaxItems)
+        if (p.ItemNum <= 0 || p.ItemNum > _world.Limits.Items)
         {
             HackingAttempt(index, "Invalid BankDepositBulk ItemNum");
             return;
@@ -219,7 +219,7 @@ public sealed partial class PacketHandler
     {
         if (!_pm[index].IsPlaying) return;
         if (_pm[index].Char.Dead) return;  // a corpse can't use the bank
-        if (p.ItemNum <= 0 || p.ItemNum > Constants.MaxItems)
+        if (p.ItemNum <= 0 || p.ItemNum > _world.Limits.Items)
         {
             HackingAttempt(index, "Invalid BankWithdrawBulk ItemNum");
             return;

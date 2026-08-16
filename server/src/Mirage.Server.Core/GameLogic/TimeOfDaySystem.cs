@@ -102,7 +102,7 @@ public sealed class TimeOfDaySystem : GameSystem
         if (wasNight == isNight) return;
         double ratio = isNight ? Constants.NpcNightHpMultiplier : 1.0 / Constants.NpcNightHpMultiplier;
 
-        for (int m = 1; m <= Constants.MaxMaps; m++)
+        for (int m = 1; m <= _world.Limits.Maps; m++)
         {
             bool anyNative = false;
             for (int s = 1; s <= Constants.MaxMapNpcs; s++)

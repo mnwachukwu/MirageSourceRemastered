@@ -171,8 +171,32 @@ public static class ShellStrings
     public const string Hosting_DataDirDefault = nameof(Hosting_DataDirDefault);
     public const string Hosting_Browse = nameof(Hosting_Browse);
     public const string Hosting_UseDefault = nameof(Hosting_UseDefault);
+    public const string Hosting_GameName = nameof(Hosting_GameName);
+    public const string Hosting_GameNameHint = nameof(Hosting_GameNameHint);
     public const string Hosting_MaxPlayers = nameof(Hosting_MaxPlayers);
     public const string Hosting_MaxPlayersHint = nameof(Hosting_MaxPlayersHint);
+
+    // ── How many of each record family this world has room for ────────────────
+    public const string Records_Heading = nameof(Records_Heading);
+    public const string Records_Blurb = nameof(Records_Blurb);
+    public const string Records_Items = nameof(Records_Items);
+    public const string Records_Npcs = nameof(Records_Npcs);
+    public const string Records_Shops = nameof(Records_Shops);
+    public const string Records_Spells = nameof(Records_Spells);
+    public const string Records_Quests = nameof(Records_Quests);
+    public const string Records_Conversations = nameof(Records_Conversations);
+    public const string Records_Maps = nameof(Records_Maps);
+    public const string Records_MapGroups = nameof(Records_MapGroups);
+
+    // ── What happens once the limit is reached ────────────────────────────────
+    public const string Capacity_Heading = nameof(Capacity_Heading);
+    public const string Capacity_Blurb = nameof(Capacity_Blurb);
+    public const string Capacity_Reserved = nameof(Capacity_Reserved);
+    public const string Capacity_ReservedHint = nameof(Capacity_ReservedHint);
+    public const string Capacity_QueueDepth = nameof(Capacity_QueueDepth);
+    public const string Capacity_QueueDepthHint = nameof(Capacity_QueueDepthHint);
+    public const string Capacity_Grace = nameof(Capacity_Grace);
+    public const string Capacity_GraceHint = nameof(Capacity_GraceHint);
 
     // ── Where players start, and when the weekly contest runs ─────────────────
     public const string World_SpawnHeading = nameof(World_SpawnHeading);

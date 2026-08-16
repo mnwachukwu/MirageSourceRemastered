@@ -435,7 +435,7 @@ public sealed partial class PacketHandler
         {
             if (!SlotValidation.IsValidInvSlot(spec.InvSlot)) continue;
             int num = sp.Char.Inv[spec.InvSlot].Num;
-            if (num > 0 && num <= Constants.MaxItems && _world.Items[num].NonMailable)
+            if (num > 0 && num <= _world.Limits.Items && _world.Items[num].NonMailable)
             {
                 MailMsg(index, ServerStrings.Mail_CannotMailItem, GameColor.BrightRed);
                 return;
@@ -486,7 +486,7 @@ public sealed partial class PacketHandler
             {
                 if (!SlotValidation.IsValidInvSlot(spec.InvSlot)) continue;
                 var slot = ch.Inv[spec.InvSlot];
-                if (slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+                if (slot.Num <= 0 || slot.Num > _world.Limits.Items) continue;
                 // An EQUIPPED slot is refused by RemoveFromSlot, so it never actually ships — charging a
                 // percentage of it would bill for a parcel that does not leave. (The flat per-attachment
                 // fee still counts it, as it always has; that is a 50-gold quirk rather than a real one.)
@@ -697,14 +697,14 @@ public sealed partial class PacketHandler
     // is driven from the quest-log panel (no NPC), so it stays proximity-free.
     private void HandleQuestAccept(int index, QuestAcceptPacket p)
     {
-        if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum)) return;
+        if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
         if (!TryResolveInteractNpc(index, p.MapNum, p.NpcSlot, out int npcNum)) return;
         if (_world.Quests[p.QuestNum].GiverNpc != npcNum) return;   // accepting is only allowed at the giver
         _quests.Accept(index, p.QuestNum);
     }
     private void HandleQuestTurnIn(int index, QuestTurnInPacket p)
     {
-        if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum)) return;
+        if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
         if (!TryResolveInteractNpc(index, p.MapNum, p.NpcSlot, out int npcNum)) return;
         if (_world.Quests[p.QuestNum].EffectiveTurnInNpc != npcNum) return;   // turning in is only allowed at the turn-in NPC
         _quests.TurnIn(index, p.QuestNum);

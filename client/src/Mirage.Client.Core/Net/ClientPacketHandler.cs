@@ -119,6 +119,12 @@ public sealed partial class ClientPacketHandler : IClientEvents
             case AlertMsgPacket p:
                 HandleAlertMsg(p);
                 break;
+            case ServerHelloPacket p:
+                HandleServerHello(p);
+                break;
+            case QueueUpdatePacket p:
+                HandleQueueUpdate(p);
+                break;
             case SendClassesPacket p:
                 HandleSendClasses(p);
                 break;
@@ -416,6 +422,31 @@ public sealed partial class ClientPacketHandler : IClientEvents
     // ── Pre-login / account ────────────────────────────────────────────────────
 
     private void HandleAlertMsg(AlertMsgPacket p) => AlertMessage?.Invoke(p.Message, p.Code);
+
+    /// <summary>What this server is, before we have told it anything about ourselves. Currently just the
+    /// player limit, which is what every per-frame pass bounds itself by — see
+    /// <see cref="ClientState.PlayerSlots"/>.</summary>
+    private void HandleServerHello(ServerHelloPacket p)
+    {
+        _state.PlayerSlots = p.MaxPlayers;
+        _state.GameName = p.GameName;
+        // Before a single record arrives, so every table is already the right size to receive them.
+        _state.ApplyServerLimits(p.Records);
+        GameNameChanged?.Invoke(_state.GameName);
+    }
+
+    /// <summary>Raised when a server names the world. The window title lives on the game object rather
+    /// than in <see cref="ClientState"/>, so it has to be told rather than read.</summary>
+    public event Action<string>? GameNameChanged;
+
+    /// <summary>The server is full and we are waiting for a slot. Stores the numbers and nothing else —
+    /// the sentence is written by the screen, out of the CLIENT's string table, so the line a player reads
+    /// while waiting is in the language their menus are already in.</summary>
+    private void HandleQueueUpdate(QueueUpdatePacket p)
+    {
+        _state.QueuePosition = p.Position;
+        _state.QueueTotal = p.Total;
+    }
 
     private void HandleSendClasses(SendClassesPacket p) => ApplyClasses(p.Classes);
 

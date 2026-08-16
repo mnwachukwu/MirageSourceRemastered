@@ -50,7 +50,7 @@ public static class WorldBarAnimator
             TickNpc(tn, t, now);
         }
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= state.PlayerSlots; i++)
         {
             var p = state.Players[i];
             if (string.IsNullOrEmpty(p.Name) || p.MaxHp <= 0) continue;

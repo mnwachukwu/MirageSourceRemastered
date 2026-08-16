@@ -78,7 +78,81 @@ public sealed partial class ClientState
 
     // ── Players (1-based, 1..MaxPlayers) ─────────────────────────────────────
 
+    /// <summary>
+    /// The highest slot THIS server will ever use, from its pre-login hello.
+    ///
+    /// <para>Every per-frame pass over players walks this instead of <see cref="Constants.MaxPlayers"/>,
+    /// which is the PROTOCOL ceiling — the largest slot the wire can carry, and far more than a typical
+    /// server runs. A world configured for twenty costs twenty checks a pass, not five hundred.</para>
+    ///
+    /// <para>Starts at the ceiling, and that is the only safe direction to be wrong in: too high wastes a
+    /// few checks on empty slots, too low would skip a real player mid-step. The hello arrives on every
+    /// connection before login, so no world pass ever runs on a value from an earlier server.</para>
+    ///
+    /// <para><see cref="Players"/> itself stays ceiling-sized. It is one array of references, it is what
+    /// the protocol permits, and sizing it from the wire would mean allocating it after construction for
+    /// nothing.</para>
+    /// </summary>
+    public int PlayerSlots
+    {
+        get;
+        set => field = Math.Clamp(value, 1, Constants.MaxPlayers);
+    } = Constants.MaxPlayers;
+
+    /// <summary>
+    /// What to call the game we are connected to — the window title, the menu, the HUD.
+    ///
+    /// <para><b>A client has no game identity of its own.</b> It ships branded with the ENGINE's name
+    /// (<see cref="Constants.GameName"/>) and wears it until a server's pre-login hello names the game,
+    /// from which point it shows that. This is a deliberate handshake, not a bait and switch: launching
+    /// "Mirage Source Remastered" and arriving in "Brightwater" is how a single client reaches every
+    /// server, and it is documented as a known limitation.</para>
+    ///
+    /// <para>NOT a file path, ever. <c>AppPaths</c> stays on the engine name so a player's settings folder
+    /// never moves when they join a differently-named game.</para>
+    /// </summary>
+    public string GameName
+    {
+        get;
+        set => field = value.Trim() is { Length: > 0 } named ? named : Constants.GameName;
+    } = Constants.GameName;
+
     public PlayerRecord[] Players { get; } = InitPlayers();
+
+    // ── Record ceilings ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// How many of each record family the CONNECTED SERVER has. Every bounds check on a record number
+    /// reads this, and the tables below are cut from it.
+    ///
+    /// <para><b>Not a compiled-in ceiling.</b> That was the bug: <c>Constants.Max*</c> is <c>const</c> and
+    /// therefore baked into every shipped client, so a client built against 1000 items would reject item
+    /// 1200 as out of range on a server that had authored it — either throwing, or silently treating a
+    /// legitimate record as a hacking attempt.</para>
+    ///
+    /// <para>Starts at the stock values so a freshly-constructed state is usable, and is replaced the
+    /// moment a server says otherwise. The hello arrives before any record packet, so nothing is ever
+    /// bounded by the starting values in a real session.</para>
+    /// </summary>
+    public RecordLimits Limits { get; private set; } = RecordLimits.Default;
+
+    /// <summary>Adopts a server's ceilings and re-cuts every record table to match. Called from the
+    /// pre-login hello, before the server sends a single record.</summary>
+    public void ApplyServerLimits(RecordLimits limits)
+    {
+        Limits = limits.Clamped(RecordLimits.Ceiling);
+
+        Items = new ItemRecord[Limits.Items + 1];
+        NpcDefs = new NpcRecord[Limits.Npcs + 1];
+        NpcKeeperShop = new int[Limits.Npcs + 1];
+        NpcQuestGlyph = new int[Limits.Npcs + 1];
+        NpcConvGlyph = new int[Limits.Npcs + 1];
+        ShopDefs = new ShopRecord[Limits.Shops + 1];
+        SpellDefs = new SpellRecord[Limits.Spells + 1];
+        QuestDefs = new QuestRecord[Limits.Quests + 1];
+        ConvDefs = new ConversationRecord[Limits.Conversations + 1];
+        MapGroups = new MapGroupRecord?[Limits.MapGroups + 1];
+    }
 
     private static PlayerRecord[] InitPlayers()
     {

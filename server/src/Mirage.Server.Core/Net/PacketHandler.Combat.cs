@@ -48,7 +48,7 @@ public sealed partial class PacketHandler
         // The tile is the click scan's anchor for the item listing only; target acquisition is
         // resolved by identity from the client's proposal, not by scanning entities at the tile.
         int tileMapNum = _pm[index].Char.Map;
-        if (p.MapNum > 0 && p.MapNum <= Constants.MaxMaps && _world.IsObserving(index, p.MapNum))
+        if (p.MapNum > 0 && p.MapNum <= _world.Limits.Maps && _world.IsObserving(index, p.MapNum))
             tileMapNum = p.MapNum;
         int myLevel = _pm[index].Char.Level;
 
@@ -102,7 +102,7 @@ public sealed partial class PacketHandler
             }
             case 1: // Native-slot NPC
             {
-                if (!SlotValidation.IsValidMapNum(p.ProposedMap) || !SlotValidation.IsValidNpcSlot(p.ProposedId))
+                if (!SlotValidation.IsValidMapNum(p.ProposedMap, _world.Limits.Maps) || !SlotValidation.IsValidNpcSlot(p.ProposedId))
                 {
                     targetFailed = true;
                     break;
@@ -162,7 +162,7 @@ public sealed partial class PacketHandler
             }
             case 3: // Traversal NPC (addressed by (SpawnMap, SpawnSlot) identity)
             {
-                if (!SlotValidation.IsValidMapNum(p.ProposedMap) || !SlotValidation.IsValidNpcSlot(p.ProposedId))
+                if (!SlotValidation.IsValidMapNum(p.ProposedMap, _world.Limits.Maps) || !SlotValidation.IsValidNpcSlot(p.ProposedId))
                 {
                     targetFailed = true;
                     break;

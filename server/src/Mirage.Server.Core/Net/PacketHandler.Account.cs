@@ -246,7 +246,7 @@ public sealed partial class PacketHandler
         string ip = _pm[index].RemoteIp;
         if (await _persistence.IsBannedAsync(name, ip))
         {
-            AlertAndDisconnect(index, ServerStrings.Auth_Banned, ("GameName", Constants.GameName));
+            AlertAndDisconnect(index, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
             return;
         }
 
@@ -500,7 +500,7 @@ public sealed partial class PacketHandler
 
         sp.CharNum = slot;
         _joinLeave.JoinGame(index);
-        _logger.LogInformation("{Login}/{Name} has began playing {GameName}.", sp.Login, sp.Char.Name.Trim(), Constants.GameName);
+        _logger.LogInformation("{Login}/{Name} has began playing {GameName}.", sp.Login, sp.Char.Name.Trim(), _config.GameName);
     }
 
     private void HandleLogoutToCharSelect(int index)

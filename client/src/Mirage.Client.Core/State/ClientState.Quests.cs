@@ -15,11 +15,11 @@ public sealed partial class ClientState
     // per NPC template, recomputed from the above whenever the defs or log change.
 
     /// <summary>Quest definitions (1-based); null slot = no such quest.</summary>
-    public QuestRecord[] QuestDefs { get; } = new QuestRecord[Constants.MaxQuests + 1];
+    public QuestRecord[] QuestDefs { get; private set; } = new QuestRecord[RecordLimits.Default.Quests + 1];
 
     /// <summary>NPC template num → overhead quest glyph (0 none / 1 gray "?" / 2 gray "!" / 3 yellow "?" /
     /// 4 yellow "!"; higher wins). Derived, never pushed. Parallel to NpcDefs.</summary>
-    public int[] NpcQuestGlyph { get; } = new int[Constants.MaxNpcs + 1];
+    public int[] NpcQuestGlyph { get; private set; } = new int[RecordLimits.Default.Npcs + 1];
 
     /// <summary>The player's quest log — one entry per accepted quest (a never-started quest has no entry).
     /// Replaced whole by each QuestLogPacket.</summary>
@@ -190,11 +190,11 @@ public sealed partial class ClientState
     // whenever the defs or the spoken-set change.
 
     /// <summary>Conversation definitions (1-based); null slot = no such conversation.</summary>
-    public ConversationRecord[] ConvDefs { get; } = new ConversationRecord[Constants.MaxConversations + 1];
+    public ConversationRecord[] ConvDefs { get; private set; } = new ConversationRecord[RecordLimits.Default.Conversations + 1];
 
     /// <summary>NPC template num → overhead conversation glyph (0 none / 1 gray "..." spoken / 2 yellow "..."
     /// unspoken; higher wins so an unspoken conversation outranks a spoken one). Derived, never pushed.</summary>
-    public int[] NpcConvGlyph { get; } = new int[Constants.MaxNpcs + 1];
+    public int[] NpcConvGlyph { get; private set; } = new int[RecordLimits.Default.Npcs + 1];
 
     public const int ConvGlyphNone = 0, ConvGlyphSpoken = 1, ConvGlyphUnspoken = 2;
 
@@ -259,13 +259,13 @@ public sealed partial class ClientState
     // server's GameWorld.*Of(mapNum) — instead of the server baking resolved values into each map packet. That
     // is what lets a group edit land live with no map reload or revision bump. Index 0 unused; a null slot means
     // "no such group" and resolves to the map's own raw values / hard defaults.
-    public MapGroupRecord?[] MapGroups { get; } = new MapGroupRecord?[Constants.MaxMapGroups + 1];
+    public MapGroupRecord?[] MapGroups { get; private set; } = new MapGroupRecord?[RecordLimits.Default.MapGroups + 1];
 
     /// <summary>The cached MapGroup a map belongs to, or null (group-less map, or the group not yet received).</summary>
     public MapGroupRecord? GroupOf(MapRecord? map)
     {
         int g = map?.MapGroup ?? 0;
-        return g > 0 && g <= Constants.MaxMapGroups ? MapGroups[g] : null;
+        return g > 0 && g <= Limits.MapGroups ? MapGroups[g] : null;
     }
 
     // Effective inheritable map values — resolve the map's own value over its group's over the hard default via

@@ -166,7 +166,7 @@ public sealed class InventoryPanel : IGamePanel
         {
             int slot = _list.SelectedIndex + 1;
             var inv = state.Me.Inv[slot];
-            if (inv.Num > 0 && inv.Num <= Constants.MaxItems)
+            if (inv.Num > 0 && inv.Num <= state.Limits.Items)
                 BeginDrop(slot, state, sender);
         }
 
@@ -214,7 +214,7 @@ public sealed class InventoryPanel : IGamePanel
     {
         if (_cachedFont is null) return;
         var inv = state.Me?.Inv?[invSlot];
-        if (inv is null || inv.Num <= 0 || inv.Num > Constants.MaxItems) return;
+        if (inv is null || inv.Num <= 0 || inv.Num > state.Limits.Items) return;
         int itemNum = inv.Num;
         var item = state.Items[itemNum];
         if (item is null) return;
@@ -343,7 +343,7 @@ public sealed class InventoryPanel : IGamePanel
         if (hovered < 0) return;
         int slotIdx = hovered + 1;
         var slot = state.Me?.Inv?[slotIdx];
-        if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) return;
+        if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) return;
         var item = state.Items[slot.Num];
         if (item is null) return;
         var key = (TooltipScope, slotIdx, slot.Num);
@@ -402,7 +402,7 @@ public sealed class InventoryPanel : IGamePanel
             for (int i = 1; i <= Constants.MaxInv; i++)
             {
                 var slot = inv[i];
-                if (slot is not null && slot.Num > 0 && slot.Num <= Constants.MaxItems) count++;
+                if (slot is not null && slot.Num > 0 && slot.Num <= state.Limits.Items) count++;
             }
         }
         float capacity = count / (float)Constants.MaxInv;
@@ -421,7 +421,7 @@ public sealed class InventoryPanel : IGamePanel
             for (int i = 1; i <= Constants.MaxInv; i++)
             {
                 var slot = me.Inv[i];
-                if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+                if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) continue;
                 switch (state.Items[slot.Num]?.Type)
                 {
                     case ItemType.PotionAddHp:
@@ -497,7 +497,7 @@ public sealed class InventoryPanel : IGamePanel
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             var slot = me.Inv[i];
-            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+            if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) continue;
             switch (state.Items[slot.Num]?.Type)
             {
                 case ItemType.PotionAddHp:

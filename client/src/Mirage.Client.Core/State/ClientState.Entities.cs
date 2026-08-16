@@ -158,7 +158,7 @@ public sealed partial class ClientState
     }
 
     private int NpcSizeFor(int num)
-        => num > 0 && num <= Constants.MaxNpcs && NpcDefs[num] is not null ? NpcDefs[num].EffectiveSize : 1;
+        => num > 0 && num <= Limits.Npcs && NpcDefs[num] is not null ? NpcDefs[num].EffectiveSize : 1;
 
     /// <summary>
     /// Ground items on the 8 neighbor maps ([col,row]; [1,1] unused — center uses
@@ -213,12 +213,12 @@ public sealed partial class ClientState
 
     // ── World data (1-based, loaded once on join) ─────────────────────────────
 
-    public ItemRecord[] Items { get; } = new ItemRecord[Constants.MaxItems + 1];
-    public NpcRecord[] NpcDefs { get; } = new NpcRecord[Constants.MaxNpcs + 1];
+    public ItemRecord[] Items { get; private set; } = new ItemRecord[RecordLimits.Default.Items + 1];
+    public NpcRecord[] NpcDefs { get; private set; } = new NpcRecord[RecordLimits.Default.Npcs + 1];
     // Client-only: NPC template num → keeper-shop KIND (0 none / 1 store / 2 inn; from SendNpcsPacket +
     // UpdateNpcPacket). Drives the $ vendor glyph, the melee-key/right-click interact routing, and the
     // right-click menu label (Shop vs Inn). Parallel to NpcDefs; never persisted.
-    public int[] NpcKeeperShop { get; } = new int[Constants.MaxNpcs + 1];
-    public ShopRecord[] ShopDefs { get; } = new ShopRecord[Constants.MaxShops + 1];
-    public SpellRecord[] SpellDefs { get; } = new SpellRecord[Constants.MaxSpells + 1];
+    public int[] NpcKeeperShop { get; private set; } = new int[RecordLimits.Default.Npcs + 1];
+    public ShopRecord[] ShopDefs { get; private set; } = new ShopRecord[RecordLimits.Default.Shops + 1];
+    public SpellRecord[] SpellDefs { get; private set; } = new SpellRecord[RecordLimits.Default.Spells + 1];
 }

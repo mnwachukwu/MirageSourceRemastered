@@ -197,7 +197,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
         var sp = _pm[playerIndex];
         if (!sp.IsPlaying) return false;
         int m = sp.Char.Map;
-        return m >= 1 && m <= Constants.MaxMaps && _world.Maps[m].MapGroup == territoryIndex;
+        return m >= 1 && m <= _world.Limits.Maps && _world.Maps[m].MapGroup == territoryIndex;
     }
 
     private string TerritoryNameOf(TerritoryContest c) =>

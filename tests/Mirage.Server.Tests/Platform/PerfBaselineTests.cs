@@ -134,13 +134,13 @@ public class PerfBaselineTests
 
         // Populate the definition tables the builders project over, so the measurement reflects a real
         // server rather than empty arrays.
-        for (int i = 1; i <= Constants.MaxItems; i++)
+        for (int i = 1; i <= RecordLimits.Default.Items; i++)
             world.Items[i] = new ItemRecord { Name = $"item{i}" };
-        for (int i = 1; i <= Constants.MaxNpcs; i++)
+        for (int i = 1; i <= RecordLimits.Default.Npcs; i++)
             world.Npcs[i] = new NpcRecord { Name = $"npc{i}", Behavior = NpcBehavior.AttackOnSight };
-        for (int i = 1; i <= Constants.MaxShops; i++)
+        for (int i = 1; i <= RecordLimits.Default.Shops; i++)
             world.Shops[i] = new ShopRecord { Name = $"shop{i}" };
-        for (int i = 1; i <= Constants.MaxSpells; i++)
+        for (int i = 1; i <= RecordLimits.Default.Spells; i++)
             world.Spells[i] = new SpellRecord { Name = $"spell{i}" };
 
         var join = new JoinLeaveSystem(world, new PlayerManager(), new NoOpDispatcher(),

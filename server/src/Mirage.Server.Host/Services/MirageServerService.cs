@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Persistence;
@@ -37,6 +38,7 @@ public sealed class MirageServerService : IHostedService
     private readonly QuestSystem _quests;
     private readonly TcpConnectionAcceptor _acceptor;
     private readonly ILogger<MirageServerService> _logger;
+    private readonly ServerConfig _config;
 
     private CancellationTokenSource? _cts;
 
@@ -58,8 +60,10 @@ public sealed class MirageServerService : IHostedService
         CombatSystem combat,
         QuestSystem quests,
         TcpConnectionAcceptor acceptor,
+        ServerConfig config,
         ILogger<MirageServerService> logger)
     {
+        _config = config;
         _world = world;
         _pm = pm;
         _persistence = persistence;
@@ -91,7 +95,7 @@ public sealed class MirageServerService : IHostedService
             ?? "unknown";
         var version = rawVersion.Split('+')[0];
         LocalizedLog.Info(_logger, ServerStrings.Server_Starting,
-            ("GameName", Constants.GameName), ("Version", version));
+            ("GameName", _config.GameName), ("Version", version));
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_RunningInLanguage));
 
         await LoadWorldDataAsync(ct);
@@ -103,12 +107,12 @@ public sealed class MirageServerService : IHostedService
 
         // Spawn map items for every map that has item-spawn tiles
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_SpawningMapItems));
-        for (short i = 1; i <= Constants.MaxMaps; i++)
+        for (short i = 1; i <= _world.Limits.Maps; i++)
             _items.SpawnMapItems(i);
 
         // Restore dropped items that survived the last shutdown
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingDroppedItems));
-        for (int i = 1; i <= Constants.MaxMaps; i++)
+        for (int i = 1; i <= _world.Limits.Maps; i++)
         {
             var drops = await _persistence.LoadDroppedItemsAsync(i);
             if (drops.Length > 0) _items.LoadDroppedItems(i, drops);
@@ -117,7 +121,7 @@ public sealed class MirageServerService : IHostedService
         // Runtime-data load summary: guilds + archived seasons (loaded in LoadWorldDataAsync) and the map items
         // now present across all maps (spawned + restored above).
         int mapItemCount = 0;
-        for (int i = 1; i <= Constants.MaxMaps; i++) mapItemCount += _world.MapItems[i]?.Count ?? 0;
+        for (int i = 1; i <= _world.Limits.Maps; i++) mapItemCount += _world.MapItems[i]?.Count ?? 0;
         LocalizedLog.Info(_logger, ServerStrings.Server_RuntimeDataSummary,
             ("Guilds", _world.Guilds.Count), ("Seasons", _world.SeasonArchives.Count), ("MapItems", mapItemCount));
 
@@ -131,12 +135,12 @@ public sealed class MirageServerService : IHostedService
         _acceptor.Start(_cts.Token);
 
         LocalizedLog.Info(_logger, ServerStrings.Server_Ready,
-            ("GameName", Constants.GameName), ("ElapsedMs", sw.ElapsedMilliseconds));
+            ("GameName", _config.GameName), ("ElapsedMs", sw.ElapsedMilliseconds));
     }
 
     public async Task StopAsync(CancellationToken ct)
     {
-        LocalizedLog.Info(_logger, ServerStrings.Server_ShuttingDown, ("GameName", Constants.GameName));
+        LocalizedLog.Info(_logger, ServerStrings.Server_ShuttingDown, ("GameName", _config.GameName));
 
         _acceptor.Stop();
         _gameLoop.Stop();   // game thread fully joined here — state is frozen, safe to read directly
@@ -181,7 +185,7 @@ public sealed class MirageServerService : IHostedService
     private async Task SaveAllDroppedItemsAsync()
     {
         int saved = 0;
-        for (int mapNum = 1; mapNum <= Constants.MaxMaps; mapNum++)
+        for (int mapNum = 1; mapNum <= _world.Limits.Maps; mapNum++)
         {
             if (_world.MapItems[mapNum].Count == 0) continue;
             try
@@ -235,13 +239,13 @@ public sealed class MirageServerService : IHostedService
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingConversations));
         var (conversations, conversationsPadded) = await _persistence.LoadAllConversationsAsync();
 
-        CopyArray(items, _world.Items, Constants.MaxItems);
-        CopyArray(npcs, _world.Npcs, Constants.MaxNpcs);
-        CopyArray(shops, _world.Shops, Constants.MaxShops);
-        CopyArray(spells, _world.Spells, Constants.MaxSpells);
+        CopyArray(items, _world.Items, _world.Limits.Items);
+        CopyArray(npcs, _world.Npcs, _world.Limits.Npcs);
+        CopyArray(shops, _world.Shops, _world.Limits.Shops);
+        CopyArray(spells, _world.Spells, _world.Limits.Spells);
         CopyArray(classes, _world.Classes, Constants.MaxClasses);
-        CopyArray(quests, _world.Quests, Constants.MaxQuests);
-        CopyArray(conversations, _world.Conversations, Constants.MaxConversations);
+        CopyArray(quests, _world.Quests, _world.Limits.Quests);
+        CopyArray(conversations, _world.Conversations, _world.Limits.Conversations);
 
         // Guilds — runtime-created and unbounded; load every guild file present into the sparse map.
         var guilds = await _persistence.LoadAllGuildsAsync();
@@ -270,7 +274,7 @@ public sealed class MirageServerService : IHostedService
         // Maps — load all; create an empty file for any that don't exist on disk
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingMaps));
         int mapsLoaded = 0, mapsCreated = 0;
-        for (short i = 1; i <= Constants.MaxMaps; i++)
+        for (short i = 1; i <= _world.Limits.Maps; i++)
         {
             ct.ThrowIfCancellationRequested();
             var map = await _persistence.LoadMapAsync(i);

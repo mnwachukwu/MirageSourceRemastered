@@ -29,7 +29,7 @@ public sealed partial class GameplayScreen : IGameScreen
     {
         long now = Environment.TickCount64;
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= state.PlayerSlots; i++)
         {
             var p = state.Players[i];
             if (string.IsNullOrEmpty(p.Name)) continue;

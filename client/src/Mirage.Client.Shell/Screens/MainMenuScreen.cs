@@ -54,7 +54,14 @@ public sealed class MainMenuScreen : IGameScreen
         }
     }
 
-    public void OnEnter() => _ctx.PlayMenuMusic();
+    /// <summary>Back at the main menu we are in no world, so the client drops whatever name the last
+    /// server gave it and wears the engine's again. Without this the menu would still be advertising a
+    /// server you have already left. Empty resets it — see <see cref="ClientState.GameName"/>.</summary>
+    public void OnEnter()
+    {
+        _ctx.State.GameName = "";
+        _ctx.PlayMenuMusic();
+    }
     public void OnExit() { }
 
     public void Update(GameTime gameTime, InputState input)
@@ -76,7 +83,7 @@ public sealed class MainMenuScreen : IGameScreen
     {
         SpriteFont btnFont = _ctx.MenuFont ?? font;
         UiHelper.DrawMenuDialog(sb, _ctx.Graphics.Viewport.Bounds, out _, out _, _ctx.MenuArt);
-        UiHelper.DrawMenuTitle(sb, _ctx.TitleFont ?? font, Constants.GameName);
+        UiHelper.DrawMenuTitle(sb, _ctx.TitleFont ?? font, _ctx.State.GameName);
         _buttons[0].Draw(sb, btnFont, _input, UiHelper.PrimaryButtonNormal, UiHelper.PrimaryButtonHover);
         _buttons[1].Draw(sb, btnFont, _input, UiHelper.AccentButtonNormal, UiHelper.AccentButtonHover);
         _buttons[2].Draw(sb, btnFont, _input, UiHelper.DangerButtonNormal, UiHelper.DangerButtonHover);

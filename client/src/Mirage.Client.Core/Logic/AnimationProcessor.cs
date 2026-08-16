@@ -24,7 +24,7 @@ public static class AnimationProcessor
         long tickNow = Environment.TickCount64;
 
         // Clear expired player attack animations and spell cast lock
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= state.PlayerSlots; i++)
         {
             var p = state.Players[i];
             if (p.Attacking && tickNow - p.AttackTimer >= AttackClearMs)

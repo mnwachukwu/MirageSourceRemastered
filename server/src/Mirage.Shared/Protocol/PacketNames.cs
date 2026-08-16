@@ -232,6 +232,8 @@ public static class PacketNames
 
     // ── S→C ─────────────────────────────────────────────────────────────────
     public const string AlertMsg = "alertmsg";
+    public const string ServerHello = "serverhello";
+    public const string QueueUpdate = "queueupdate";
     public const string SendChars = "sendchars";
     public const string JoinMap = "joinmap";
     public const string LeaveMap = "leavemap";

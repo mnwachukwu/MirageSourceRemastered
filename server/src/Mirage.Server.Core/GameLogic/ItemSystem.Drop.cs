@@ -56,7 +56,7 @@ public sealed partial class ItemSystem : GameSystem
     public void PlayerMapDropBulk(int index, int itemNum, int amount)
     {
         if (!_pm[index].IsPlaying) return;
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return;
         if (amount < 0) return;
 
         var item = _world.Items[itemNum];

@@ -12,6 +12,7 @@ public sealed class JsonPersistenceService : IPersistenceService
     private readonly string _dataPath;
     private readonly ILogger<JsonPersistenceService> _logger;
     private readonly IChatLog _chatLog;
+    private readonly RecordLimits _limits;
     private readonly SemaphoreSlim _accountLock = new(1, 1);
     private readonly SemaphoreSlim _banLock = new(1, 1);
     private List<BanEntry>? _bansCache;
@@ -25,8 +26,13 @@ public sealed class JsonPersistenceService : IPersistenceService
         Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 
-    public JsonPersistenceService(string dataPath, ILogger<JsonPersistenceService> logger, IChatLog chatLog)
+    /// <summary><paramref name="limits"/> decides how far each family is padded on load — the same object
+    /// <see cref="World.GameWorld"/> sizes its arrays from, so the folder and the world always agree on how
+    /// many slots exist.</summary>
+    public JsonPersistenceService(string dataPath, ILogger<JsonPersistenceService> logger, IChatLog chatLog,
+                                  RecordLimits? limits = null)
     {
+        _limits = limits ?? RecordLimits.Default;
         _dataPath = dataPath;
         _logger = logger;
         _chatLog = chatLog;
@@ -315,20 +321,20 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task<(ItemRecord[] records, int padded)> LoadAllItemsAsync()
     {
-        var result = new ItemRecord[Constants.MaxItems + 1];
-        for (int i = 0; i <= Constants.MaxItems; i++) result[i] = new ItemRecord();
-        int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxItems, ItemFile);
+        var result = new ItemRecord[_limits.Items + 1];
+        for (int i = 0; i <= _limits.Items; i++) result[i] = new ItemRecord();
+        int padded = await CheckAndLoadRecordsAsync(result, _limits.Items, ItemFile);
         return (result, padded);
     }
 
     public async Task<(NpcRecord[] records, int padded)> LoadAllNpcsAsync()
     {
-        var result = new NpcRecord[Constants.MaxNpcs + 1];
-        for (int i = 0; i <= Constants.MaxNpcs; i++) result[i] = new NpcRecord();
-        int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxNpcs, NpcFile);
+        var result = new NpcRecord[_limits.Npcs + 1];
+        for (int i = 0; i <= _limits.Npcs; i++) result[i] = new NpcRecord();
+        int padded = await CheckAndLoadRecordsAsync(result, _limits.Npcs, NpcFile);
         // Size 0 ("not defined" in a legacy or blank record) normalizes to the 1x1 default so the whole
         // server and the editor see a valid footprint class. Sentinel handling, not a data migration.
-        for (int i = 1; i <= Constants.MaxNpcs; i++)
+        for (int i = 1; i <= _limits.Npcs; i++)
         {
             if (result[i].Size < 1) result[i].Size = 1;
             // THIS one IS a data migration: it folds a pre-table record's single DropChance/DropItem/
@@ -342,9 +348,9 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task<(ShopRecord[] records, int padded)> LoadAllShopsAsync()
     {
-        var result = new ShopRecord[Constants.MaxShops + 1];
-        for (int i = 0; i <= Constants.MaxShops; i++) result[i] = new ShopRecord();
-        int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxShops, ShopFile);
+        var result = new ShopRecord[_limits.Shops + 1];
+        for (int i = 0; i <= _limits.Shops; i++) result[i] = new ShopRecord();
+        int padded = await CheckAndLoadRecordsAsync(result, _limits.Shops, ShopFile);
         // Compact each shop's trades: drop the legacy null-at-index-0 and any empty slots so the in-memory
         // list is dense (matching how the editor authors + saves them). Legacy shop JSON stored a fixed
         // 1-based array ([null, slot1..slot8]); this normalizes it on load — no file rewrite required.
@@ -355,7 +361,7 @@ public sealed class JsonPersistenceService : IPersistenceService
                 .ToList();
             // Sales list: drop dead item numbers and duplicates. A shop authored before the sales table
             // simply has none, which needs no migration — an absent list deserializes to an empty one.
-            shop.Normalize(Constants.MaxItems);
+            shop.Normalize(_limits.Items);
         }
 
         return (result, padded);
@@ -363,9 +369,9 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task<(SpellRecord[] records, int padded)> LoadAllSpellsAsync()
     {
-        var result = new SpellRecord[Constants.MaxSpells + 1];
-        for (int i = 0; i <= Constants.MaxSpells; i++) result[i] = new SpellRecord();
-        int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxSpells, SpellFile);
+        var result = new SpellRecord[_limits.Spells + 1];
+        for (int i = 0; i <= _limits.Spells; i++) result[i] = new SpellRecord();
+        int padded = await CheckAndLoadRecordsAsync(result, _limits.Spells, SpellFile);
         return (result, padded);
     }
 
@@ -382,17 +388,17 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task<(QuestRecord[] records, int padded)> LoadAllQuestsAsync()
     {
-        var result = new QuestRecord[Constants.MaxQuests + 1];
-        for (int i = 0; i <= Constants.MaxQuests; i++) result[i] = new QuestRecord();
-        int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxQuests, QuestFile);
+        var result = new QuestRecord[_limits.Quests + 1];
+        for (int i = 0; i <= _limits.Quests; i++) result[i] = new QuestRecord();
+        int padded = await CheckAndLoadRecordsAsync(result, _limits.Quests, QuestFile);
         return (result, padded);
     }
 
     public async Task<(ConversationRecord[] records, int padded)> LoadAllConversationsAsync()
     {
-        var result = new ConversationRecord[Constants.MaxConversations + 1];
-        for (int i = 0; i <= Constants.MaxConversations; i++) result[i] = new ConversationRecord();
-        int padded = await CheckAndLoadRecordsAsync(result, Constants.MaxConversations, ConversationFile);
+        var result = new ConversationRecord[_limits.Conversations + 1];
+        for (int i = 0; i <= _limits.Conversations; i++) result[i] = new ConversationRecord();
+        int padded = await CheckAndLoadRecordsAsync(result, _limits.Conversations, ConversationFile);
         return (result, padded);
     }
 
@@ -424,25 +430,25 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task SaveItemAsync(int num, ItemRecord item)
     {
-        if (!SlotValidation.IsValidItemNum(num)) return;
+        if (!SlotValidation.IsValidItemNum(num, _limits.Items)) return;
         await File.WriteAllTextAsync(ItemFile(num), JsonSerializer.Serialize(item, Options));
     }
 
     public async Task SaveNpcAsync(int num, NpcRecord npc)
     {
-        if (!SlotValidation.IsValidNpcNum(num)) return;
+        if (!SlotValidation.IsValidNpcNum(num, _limits.Npcs)) return;
         await File.WriteAllTextAsync(NpcFile(num), JsonSerializer.Serialize(npc, Options));
     }
 
     public async Task SaveShopAsync(int num, ShopRecord shop)
     {
-        if (!SlotValidation.IsValidShopNum(num)) return;
+        if (!SlotValidation.IsValidShopNum(num, _limits.Shops)) return;
         await File.WriteAllTextAsync(ShopFile(num), JsonSerializer.Serialize(shop, Options));
     }
 
     public async Task SaveSpellAsync(int num, SpellRecord spell)
     {
-        if (!SlotValidation.IsValidSpellNum(num)) return;
+        if (!SlotValidation.IsValidSpellNum(num, _limits.Spells)) return;
         await File.WriteAllTextAsync(SpellFile(num), JsonSerializer.Serialize(spell, Options));
     }
 
@@ -454,13 +460,13 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     public async Task SaveQuestAsync(int num, QuestRecord quest)
     {
-        if (!SlotValidation.IsValidQuestNum(num)) return;
+        if (!SlotValidation.IsValidQuestNum(num, _limits.Quests)) return;
         await File.WriteAllTextAsync(QuestFile(num), JsonSerializer.Serialize(quest, Options));
     }
 
     public async Task SaveConversationAsync(int num, ConversationRecord conversation)
     {
-        if (!SlotValidation.IsValidConversationNum(num)) return;
+        if (!SlotValidation.IsValidConversationNum(num, _limits.Conversations)) return;
         await File.WriteAllTextAsync(ConversationFile(num), JsonSerializer.Serialize(conversation, Options));
     }
 

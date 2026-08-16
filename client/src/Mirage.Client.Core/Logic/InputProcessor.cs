@@ -96,7 +96,7 @@ public static class InputProcessor
             bool effectivelyPk = me.IsPk(nowUtcLocal) && me.PkGraceUntilUtc <= nowUtcLocal;
             if (!blocked && (effectivelyPk || state.MoralOf(state.Map) != MapMoral.Safe))
             {
-                for (int i = 1; i <= Constants.MaxPlayers; i++)
+                for (int i = 1; i <= state.PlayerSlots; i++)
                 {
                     var p = state.Players[i];
                     if (p == me || string.IsNullOrEmpty(p.Name)) continue;
@@ -226,7 +226,7 @@ public static class InputProcessor
         if (!playersPassThrough)
         {
             int destMapNum = state.NeighborMapNums[col, row];
-            for (int i = 1; i <= Constants.MaxPlayers; i++)
+            for (int i = 1; i <= state.PlayerSlots; i++)
             {
                 var p = state.Players[i];
                 if (p == me || string.IsNullOrEmpty(p.Name)) continue;
@@ -317,7 +317,7 @@ public static class InputProcessor
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
-                    if (n.Num <= 0 || n.Num > Constants.MaxNpcs) continue;
+                    if (n.Num <= 0 || n.Num > state.Limits.Npcs) continue;
                     int size = state.NpcDefs[n.Num]?.EffectiveSize ?? 1;
                     var (awx, awy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
                     if (!WorldCoordHelper.FootprintContains(awx, awy, size, frontWX, frontWY)) continue;

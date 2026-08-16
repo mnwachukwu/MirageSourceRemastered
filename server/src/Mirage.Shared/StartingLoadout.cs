@@ -42,7 +42,7 @@ public static class StartingLoadout
         foreach (var start in cls.StartingItems ?? [])
         {
             if (slot > Constants.MaxInv) break;
-            if (!SlotValidation.IsValidItemNum(start.ItemNum) || start.ItemNum >= items.Length) continue;
+            if (start.ItemNum < 1 || start.ItemNum >= items.Length) continue;
             var item = items[start.ItemNum];
             if (string.IsNullOrEmpty(item.Name)) continue;   // an authored reference to a blank slot
 
@@ -76,7 +76,7 @@ public static class StartingLoadout
         foreach (int spellNum in cls.StartingSpells ?? [])
         {
             if (granted.Count >= Constants.MaxPlayerSpells) break;
-            if (!SlotValidation.IsValidSpellNum(spellNum) || spellNum >= spells.Length) continue;
+            if (spellNum < 1 || spellNum >= spells.Length) continue;
             var spell = spells[spellNum];
             if (string.IsNullOrEmpty(spell.Name)) continue;
             if (!ClassGate.Allows(spell.AllowedClasses, classNum)) continue;

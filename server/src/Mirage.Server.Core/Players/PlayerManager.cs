@@ -12,12 +12,59 @@ public sealed class PlayerManager
     /// scan below walks THIS, so a 20-player world does no work for the 480 slots it will never use.</summary>
     public int Slots { get; }
 
+    // The connected slots, unordered, packed into the front of the array. _onlineAt maps a slot to its
+    // position so a disconnect is a swap-with-last rather than a scan.
+    private readonly int[] _online;
+    private readonly int[] _onlineAt;
+    private int _onlineCount;
+
     public PlayerManager(Configuration.ServerConfig? config = null)
     {
         Slots = (config ?? Configuration.ServerConfig.Default).MaxPlayers;
         _players = new ServerPlayer[Slots + 1];
+        _online = new int[Slots + 1];
+        _onlineAt = new int[Slots + 1];
         for (int i = 1; i <= Slots; i++)
-            _players[i] = new ServerPlayer { DamageByPlayer = new int[Slots + 1] };
+        {
+            _players[i] = new ServerPlayer
+            {
+                DamageByPlayer = new int[Slots + 1],
+                Slot = i,
+                ConnectionChanged = OnConnectionChanged,
+            };
+        }
+    }
+
+    /// <summary>
+    /// The slots that currently hold a connection. Every broadcast walks THIS instead of 1..Slots, so a
+    /// server sized for 500 does not pay for 500 when twelve people are on.
+    ///
+    /// <para>Unordered, and it is a superset of who is in the world — a caller still applies its own
+    /// predicate (in-game, admin, guild). The only thing it is NOT a superset of is combat ghosts, which
+    /// have no socket left, so nothing can be sent to them either way.</para>
+    ///
+    /// <para><b>Safe to walk while it changes.</b> A span captures the length at the call, and a removal
+    /// swaps the last entry down; the worst a mid-walk disconnect can do is show a slot that has just left
+    /// — which every call site filters anyway — or skip one that was already leaving. Both are what the
+    /// old array scan did too.</para>
+    /// </summary>
+    public ReadOnlySpan<int> Online => _online.AsSpan(0, _onlineCount);
+
+    /// <summary>Maintained by <see cref="ServerPlayer.IsConnected"/>, which is the only writer.</summary>
+    private void OnConnectionChanged(int slot, bool connected)
+    {
+        if (slot < 1 || slot > Slots) return;
+        if (connected)
+        {
+            _onlineAt[slot] = _onlineCount;
+            _online[_onlineCount++] = slot;
+            return;
+        }
+
+        int at = _onlineAt[slot];
+        int last = _online[--_onlineCount];
+        _online[at] = last;
+        _onlineAt[last] = at;
     }
 
     public ServerPlayer this[int index] => _players[index];
@@ -47,12 +94,22 @@ public sealed class PlayerManager
             _players[index].SaveDirty = true;
     }
 
-    /// <summary>Returns the index (1..MaxPlayers) of the first disconnected, non-ghost slot, or 0 if all slots are full.</summary>
-    public int FindOpenSlot()
+    /// <summary>Returns the index of the first disconnected, non-ghost slot, or 0 if none is available.
+    ///
+    /// <para><paramref name="keepFree"/> slots are held back: the search still returns the lowest free
+    /// slot, but only while MORE than that many are free. This is how a server keeps room for its
+    /// moderators — staff pass 0 and get any free slot, everyone else passes the reserved count. Counting
+    /// and finding in one pass, because both walk the same array.</para></summary>
+    public int FindOpenSlot(int keepFree = 0)
     {
+        int free = 0, first = 0;
         for (int i = 1; i <= Slots; i++)
-            if (!_players[i].IsConnected && !_players[i].IsGhost) return i;
-        return 0;
+        {
+            if (_players[i].IsConnected || _players[i].IsGhost) continue;
+            if (first == 0) first = i;
+            free++;
+        }
+        return free > keepFree ? first : 0;
     }
 
     /// <summary>
@@ -104,27 +161,26 @@ public sealed class PlayerManager
         return 0;
     }
 
+    // The three below only ever cared about connected slots, so they walk the online set for the same
+    // reason the broadcasts do. FindOpenSlot and FindGhostByLogin cannot: one looks for the ABSENT and the
+    // other for slots whose connection has already gone.
+
     public bool IsMultiAccount(string login, int excludeIndex)
     {
-        for (int i = 1; i <= Slots; i++)
+        foreach (int i in Online)
         {
             if (i == excludeIndex) continue;
-            if (_players[i].IsConnected &&
-                string.Equals(_players[i].Login, login, StringComparison.OrdinalIgnoreCase))
-            {
+            if (string.Equals(_players[i].Login, login, StringComparison.OrdinalIgnoreCase))
                 return true;
-            }
         }
         return false;
     }
 
     public bool IsMultiIp(string ip, int excludeIndex)
     {
-        for (int i = 1; i <= Slots; i++)
+        foreach (int i in Online)
         {
-            if (i == excludeIndex) continue;
-            if (_players[i].IsConnected && _players[i].RemoteIp == ip)
-                return true;
+            if (i != excludeIndex && _players[i].RemoteIp == ip) return true;
         }
         return false;
     }
@@ -134,8 +190,8 @@ public sealed class PlayerManager
         get
         {
             int count = 0;
-            for (int i = 1; i <= Slots; i++)
-                if (_players[i].IsConnected && _players[i].InGame) count++;
+            foreach (int i in Online)
+                if (_players[i].InGame) count++;
             return count;
         }
     }

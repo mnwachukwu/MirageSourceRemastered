@@ -5,16 +5,23 @@ namespace Mirage.Server.Core.World;
 
 public sealed class GameWorld
 {
+    /// <summary>How many of each record family this world has room for, from the operator's config.
+    ///
+    /// <para>Every bounds check on a record number reads THIS rather than a constant, and every array
+    /// below is cut from it, so a check can never disagree with the allocation it is guarding.</para></summary>
+    public RecordLimits Limits { get; }
+
     // World data IDs stay 1-based: indices 0..Max, with 0 as an unused dummy.
-    // Changing these would break all saved data, migration, and the wire protocol.
-    public MapRecord[] Maps { get; } = new MapRecord[Constants.MaxMaps + 1];
-    public TempTileState[] TempTiles { get; } = new TempTileState[Constants.MaxMaps + 1];
-    public ItemRecord[] Items { get; } = new ItemRecord[Constants.MaxItems + 1];
-    public NpcRecord[] Npcs { get; } = new NpcRecord[Constants.MaxNpcs + 1];
-    public ShopRecord[] Shops { get; } = new ShopRecord[Constants.MaxShops + 1];
-    public SpellRecord[] Spells { get; } = new SpellRecord[Constants.MaxSpells + 1];
-    public QuestRecord[] Quests { get; } = new QuestRecord[Constants.MaxQuests + 1];
-    public ConversationRecord[] Conversations { get; } = new ConversationRecord[Constants.MaxConversations + 1];
+    // Changing the 1-based model would break all saved data, migration, and the wire protocol; the
+    // LENGTHS are the operator's to set (see Limits).
+    public MapRecord[] Maps { get; }
+    public TempTileState[] TempTiles { get; }
+    public ItemRecord[] Items { get; }
+    public NpcRecord[] Npcs { get; }
+    public ShopRecord[] Shops { get; }
+    public SpellRecord[] Spells { get; }
+    public QuestRecord[] Quests { get; }
+    public ConversationRecord[] Conversations { get; }
 
     public ClassRecord[] Classes { get; } = new ClassRecord[Constants.MaxClasses + 1];
 
@@ -67,7 +74,7 @@ public sealed class GameWorld
     public int ShopAssignedToNpc(int npcNum)
     {
         if (npcNum <= 0) return 0;
-        for (int s = 1; s <= Constants.MaxShops; s++)
+        for (int s = 1; s <= Limits.Shops; s++)
             if (Shops[s].Keeper == npcNum) return s;
         return 0;
     }
@@ -88,7 +95,7 @@ public sealed class GameWorld
     public int ConversationForNpc(int npcNum)
     {
         if (npcNum <= 0) return 0;
-        for (int c = 1; c <= Constants.MaxConversations; c++)
+        for (int c = 1; c <= Limits.Conversations; c++)
             if (Conversations[c].SpeakerNpc == npcNum && Conversations[c].TrimmedName.Length > 0) return c;
         return 0;
     }
@@ -102,7 +109,7 @@ public sealed class GameWorld
     public bool IsNpcInInteractRange(int index, PlayerRecord pc, int mapNum, int npcSlot, out int npcNum)
     {
         npcNum = 0;
-        if (mapNum < 1 || mapNum > Constants.MaxMaps) return false;
+        if (mapNum < 1 || mapNum > Limits.Maps) return false;
         if (npcSlot < 1 || npcSlot > Constants.MaxMapNpcs) return false;
         if (!IsObserving(index, mapNum)) return false;
         var mn = MapNpcs[mapNum, npcSlot];
@@ -138,8 +145,8 @@ public sealed class GameWorld
     /// pile and deny it. Reaching from r=5 removes the problem at its source instead.</para></summary>
     public bool IsMapItemInReach(int index, PlayerRecord pc, int mapNum, MapItemRecord mi)
     {
-        if (mapNum < 1 || mapNum > Constants.MaxMaps) return false;
-        if (mi.Num <= 0 || mi.Num > Constants.MaxItems) return false;
+        if (mapNum < 1 || mapNum > Limits.Maps) return false;
+        if (mi.Num <= 0 || mi.Num > Limits.Items) return false;
         if (!IsObserving(index, mapNum)) return false;
 
         var (myWX, myWY) = WorldCoordHelper.ToWorld(1, 1, pc.X, pc.Y);
@@ -185,16 +192,15 @@ public sealed class GameWorld
     // enforced in ItemSystem.PlayerMapDropItem against PlayerDropped count only, so death drops and
     // NPC drops can pile on without limit).  Each record carries its own stable Slot id assigned by
     // AllocateMapItemSlot, which is what packets reference instead of a list index.
-    public List<MapItemRecord>[] MapItems { get; } = new List<MapItemRecord>[Constants.MaxMaps + 1];
+    public List<MapItemRecord>[] MapItems { get; }
 
     // Monotonic per-map slot-id counter.  Reset on ClearMapItems / HandleMapRespawn and also whenever
     // the map's item list drains to empty (see ItemSystem.RemoveMapItem) — so slot ids stay small and
     // human-readable in logs on every map type, not just Safe maps with active janitors.
-    private readonly int[] _nextItemSlotId = new int[Constants.MaxMaps + 1];
+    private readonly int[] _nextItemSlotId;
 
     // Map NPC slots stay fixed-size and 1-based: index 0 unused, 1..MaxMapNpcs in use.
-    public MapNpcRecord[,] MapNpcs { get; } =
-        new MapNpcRecord[Constants.MaxMaps + 1, Constants.MaxMapNpcs + 1];
+    public MapNpcRecord[,] MapNpcs { get; }
 
     /// <summary>Reserve a fresh, stable per-map slot id for a new map item.</summary>
     public int AllocateMapItemSlot(int mapNum) => ++_nextItemSlotId[mapNum];
@@ -205,7 +211,7 @@ public sealed class GameWorld
     /// <summary>Lookup a map item by stable slot id; returns null if no such slot is live.</summary>
     public MapItemRecord? MapItemBySlot(int mapNum, int slotId)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps || slotId <= 0) return null;
+        if (mapNum <= 0 || mapNum > Limits.Maps || slotId <= 0) return null;
         var list = MapItems[mapNum];
         for (int i = 0; i < list.Count; i++)
             if (list[i].Slot == slotId) return list[i];
@@ -214,8 +220,7 @@ public sealed class GameWorld
 
     // Seamless chase: per-map list of visiting (chasing) NPCs that crossed in from a neighbor.
     // Unlimited size, in-memory only; each is keyed by its permanent (SpawnMapNum, SpawnSlot).
-    public List<TraversalNpcRecord>[] MapTraversalNpcs { get; } =
-        new List<TraversalNpcRecord>[Constants.MaxMaps + 1];
+    public List<TraversalNpcRecord>[] MapTraversalNpcs { get; }
 
     // Blood pools: sparse per-map field (float sim grid + a Dirty flag grid), driven by BloodSystem.
     // Created on the first deposit for a map and removed when the map fully dries — so only maps that
@@ -266,12 +271,12 @@ public sealed class GameWorld
     }
 
     // PlayersOnMap[mapNum] — true when at least one player is on the map (skip NPC AI for empty maps)
-    public bool[] PlayersOnMap { get; } = new bool[Constants.MaxMaps + 1];
+    public bool[] PlayersOnMap { get; }
 
     // Seamless scrolling: MapObservers[mapNum] = player indices that can SEE the map (i.e. are
     // standing on it or on one of its 8 neighbors).  Entity broadcasts and NPC AI are driven off
     // this set so neighbor maps stay live and synced.  Maintained by Add/Remove ObserverMaps.
-    public HashSet<int>[] MapObservers { get; } = new HashSet<int>[Constants.MaxMaps + 1];
+    public HashSet<int>[] MapObservers { get; }
 
     /// <summary>Whether player <paramref name="index"/> can currently SEE <paramref name="mapNum"/> —
     /// they are standing on it or on one of its eight neighbors. The membership counterpart to the
@@ -286,29 +291,45 @@ public sealed class GameWorld
 
     public GameWorld(Configuration.ServerConfig? config = null)
     {
-        _playerSlots = (config ?? Configuration.ServerConfig.Default).MaxPlayers;
-        for (int i = 0; i <= Constants.MaxMaps; i++) MapObservers[i] = new HashSet<int>();
-        for (int i = 0; i <= Constants.MaxMaps; i++) MapTraversalNpcs[i] = new List<TraversalNpcRecord>();
-        for (int i = 0; i <= Constants.MaxMaps; i++) MapItems[i] = new List<MapItemRecord>();
-        for (int i = 0; i <= Constants.MaxMaps; i++)
-        {
-            Maps[i] = new MapRecord();
-            TempTiles[i] = new TempTileState();
-        }
-        for (int i = 0; i <= Constants.MaxItems; i++) Items[i] = new ItemRecord();
-        for (int i = 0; i <= Constants.MaxNpcs; i++) Npcs[i] = new NpcRecord();
-        for (int i = 0; i <= Constants.MaxShops; i++) Shops[i] = new ShopRecord();
-        for (int i = 0; i <= Constants.MaxSpells; i++) Spells[i] = new SpellRecord();
-        for (int i = 0; i <= Constants.MaxQuests; i++) Quests[i] = new QuestRecord();
-        for (int i = 0; i <= Constants.MaxConversations; i++) Conversations[i] = new ConversationRecord();
+        var settings = config ?? Configuration.ServerConfig.Default;
+        _playerSlots = settings.MaxPlayers;
+        Limits = settings.Records;
+
+        // Every array is cut from Limits, and every bounds check downstream reads the same object, so a
+        // check can never disagree with the allocation it is guarding.
+        Maps = Fill<MapRecord>(Limits.Maps);
+        TempTiles = Fill<TempTileState>(Limits.Maps);
+        Items = Fill<ItemRecord>(Limits.Items);
+        Npcs = Fill<NpcRecord>(Limits.Npcs);
+        Shops = Fill<ShopRecord>(Limits.Shops);
+        Spells = Fill<SpellRecord>(Limits.Spells);
+        Quests = Fill<QuestRecord>(Limits.Quests);
+        Conversations = Fill<ConversationRecord>(Limits.Conversations);
+
+        MapItems = Fill<List<MapItemRecord>>(Limits.Maps);
+        MapTraversalNpcs = Fill<List<TraversalNpcRecord>>(Limits.Maps);
+        MapObservers = Fill<HashSet<int>>(Limits.Maps);
+        PlayersOnMap = new bool[Limits.Maps + 1];
+        _nextItemSlotId = new int[Limits.Maps + 1];
+
         for (int i = 0; i <= Constants.MaxClasses; i++) Classes[i] = new ClassRecord();
 
         // NPC slot dimension is 1-based: index 0 left as null (never accessed), 1..MaxMapNpcs initialized.
-        for (int m = 0; m <= Constants.MaxMaps; m++)
+        MapNpcs = new MapNpcRecord[Limits.Maps + 1, Constants.MaxMapNpcs + 1];
+        for (int m = 0; m <= Limits.Maps; m++)
         {
             for (int s = 1; s <= Constants.MaxMapNpcs; s++)
                 MapNpcs[m, s] = new MapNpcRecord(_playerSlots);
         }
+    }
+
+    /// <summary>A 1-based slot array of <paramref name="count"/> usable entries, every one constructed —
+    /// index 0 included, as the unused dummy every read site relies on being non-null.</summary>
+    private static T[] Fill<T>(int count) where T : new()
+    {
+        var arr = new T[count + 1];
+        for (int i = 0; i <= count; i++) arr[i] = new T();
+        return arr;
     }
 
     // ── Observer-set maintenance ──────────────────────────────────────────────
@@ -328,7 +349,7 @@ public sealed class GameWorld
             for (int r = 0; r < 3; r++)
             {
                 int m = grid[c, r];
-                if (m <= 0 || m > Constants.MaxMaps) continue;
+                if (m <= 0 || m > Limits.Maps) continue;
                 bool dup = false;
                 for (int k = 0; k < n; k++)
                 {
@@ -363,7 +384,7 @@ public sealed class GameWorld
     /// <summary>Full sweep used on logout so a leaving player can never leak into an observer set.</summary>
     public void RemoveObserverFromAll(int index)
     {
-        for (int m = 0; m <= Constants.MaxMaps; m++) MapObservers[m].Remove(index);
+        for (int m = 0; m <= Limits.Maps; m++) MapObservers[m].Remove(index);
     }
 
     /// <summary>

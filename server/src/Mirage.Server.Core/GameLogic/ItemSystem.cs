@@ -56,7 +56,7 @@ public sealed partial class ItemSystem : GameSystem
     /// </summary>
     public static int FindOpenInvSlot(PlayerRecord p, ItemRecord[] items, int itemNum)
     {
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return 0;
+        if (itemNum <= 0 || itemNum >= items.Length) return 0;
 
         // Currency: stack onto existing slot if present
         if (items[itemNum].Type == ItemType.Currency)
@@ -74,7 +74,7 @@ public sealed partial class ItemSystem : GameSystem
 
     public static long HasItem(PlayerRecord p, ItemRecord[] items, int itemNum)
     {
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return 0;
+        if (itemNum <= 0 || itemNum >= items.Length) return 0;
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             if (p.Inv[i].Num != itemNum) continue;
@@ -93,7 +93,7 @@ public sealed partial class ItemSystem : GameSystem
         var currencyPlaced = new HashSet<int>();  // currency itemNums that now have a home (existing or batch-placed)
         foreach (var a in stacks)
         {
-            if (a.Claimed || a.ItemNum <= 0 || a.ItemNum > Constants.MaxItems) continue;
+            if (a.Claimed || a.ItemNum <= 0 || a.ItemNum >= items.Length) continue;
             bool currency = items[a.ItemNum].Type == ItemType.Currency;
             if (currency)
             {
@@ -141,7 +141,7 @@ public sealed partial class ItemSystem : GameSystem
     /// wear across delivery instead of resetting equipment to full.</summary>
     public bool TryGiveItem(int index, int itemNum, int value, int dur = 0)
     {
-        if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > Constants.MaxItems) return false;
+        if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > _world.Limits.Items) return false;
 
         var p = _pm[index].Char;
         int slot = FindOpenInvSlot(p, _world.Items, itemNum);
@@ -172,7 +172,7 @@ public sealed partial class ItemSystem : GameSystem
         if (!_pm[index].IsPlaying || invSlot < 1 || invSlot > Constants.MaxInv) return (0, 0, 0);
         var p = _pm[index].Char;
         var inv = p.Inv[invSlot];
-        if (inv.Num <= 0 || inv.Num > Constants.MaxItems) return (0, 0, 0);
+        if (inv.Num <= 0 || inv.Num > _world.Limits.Items) return (0, 0, 0);
 
         var item = _world.Items[inv.Num];
         if (item.Type == ItemType.Currency)
@@ -227,7 +227,7 @@ public sealed partial class ItemSystem : GameSystem
 
     public void TakeItem(int index, int itemNum, int value)
     {
-        if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > _world.Limits.Items) return;
         var p = _pm[index].Char;
         var item = _world.Items[itemNum];
         for (int i = 1; i <= Constants.MaxInv; i++)
@@ -364,7 +364,7 @@ public sealed partial class ItemSystem : GameSystem
         int invSlot = EquippedSlotForType(p, type);
         if (invSlot == 0) return false;
         int itemNum = p.Inv[invSlot].Num;
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return false;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return false;
         var item = _world.Items[itemNum];
         bool isWeapon = type == ItemType.Weapon;
         int playerStat = isWeapon ? p.Str : p.Def;

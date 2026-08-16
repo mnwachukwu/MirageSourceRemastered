@@ -26,7 +26,7 @@ public sealed partial class PacketHandler
         if (!sp.IsConnected || sp.Login == "") return;
 
         int mapNum = sp.Char.Map;
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
 
         _dispatcher.SendTo(index, PacketBuilder.SendMap(mapNum, _world.Maps[mapNum]));
         _joinLeave.SendJoinData(index);
@@ -47,7 +47,7 @@ public sealed partial class PacketHandler
     {
         var sp = _pm[index];
         if (!sp.IsConnected || sp.Login == "") return;
-        if (p.MapNum <= 0 || p.MapNum > Constants.MaxMaps) return;
+        if (p.MapNum <= 0 || p.MapNum > _world.Limits.Maps) return;
         if (p.Col is < 0 or > 2 || p.Row is < 0 or > 2) return;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, sp.Char.Map);
         if (grid[p.Col, p.Row] != p.MapNum) return;

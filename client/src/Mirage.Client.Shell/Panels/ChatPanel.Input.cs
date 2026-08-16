@@ -589,7 +589,7 @@ public sealed partial class ChatPanel
                 break;
             case "warpto":
                 if (state.Me.Access < AdminLevel.Mapper) goto default;
-                if (parts.Length > 1 && short.TryParse(parts[1], out short map) && map > 0 && map <= Constants.MaxMaps)
+                if (parts.Length > 1 && short.TryParse(parts[1], out short map) && map > 0 && map <= state.Limits.Maps)
                     sender.SendWarpTo(map);
                 else
                     AddLine(ClientStrings.Get(ClientStrings.ChatPanel_InvalidMapNumber), GameColor.Warning);

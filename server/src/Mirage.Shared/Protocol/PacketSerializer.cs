@@ -368,6 +368,8 @@ public static class PacketSerializer
 
                 // S→C (client side deserializes these)
                 PacketNames.AlertMsg => JsonSerializer.Deserialize<AlertMsgPacket>(line, Options),
+                PacketNames.ServerHello => JsonSerializer.Deserialize<ServerHelloPacket>(line, Options),
+                PacketNames.QueueUpdate => JsonSerializer.Deserialize<QueueUpdatePacket>(line, Options),
                 PacketNames.SendClasses => JsonSerializer.Deserialize<SendClassesPacket>(line, Options),
                 PacketNames.NewCharClasses => JsonSerializer.Deserialize<NewCharClassesPacket>(line, Options),
                 PacketNames.SendChars => JsonSerializer.Deserialize<SendCharsPacket>(line, Options),

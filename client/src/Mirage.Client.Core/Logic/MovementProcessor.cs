@@ -28,7 +28,7 @@ public static class MovementProcessor
             : MovementFormulas.BaseRunMsPerTile;
 
         // Players
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= state.PlayerSlots; i++)
         {
             var p = state.Players[i];
             if (p.Name.Length == 0) continue;

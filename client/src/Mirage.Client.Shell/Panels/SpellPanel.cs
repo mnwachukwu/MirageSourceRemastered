@@ -214,7 +214,7 @@ public sealed class SpellPanel : IGamePanel
         for (int i = 1; i <= Constants.MaxPlayerSpells; i++)
         {
             int spellId = me?.Spell?[i] ?? 0;
-            if (spellId > 0 && spellId <= Constants.MaxSpells)
+            if (spellId > 0 && spellId <= state.Limits.Spells)
             {
                 var spell = state.SpellDefs[spellId];
                 string name = spell?.Name.TrimEnd() ?? $"Spell {spellId}";
@@ -302,7 +302,7 @@ public sealed class SpellPanel : IGamePanel
         if (hovered < 0) return;
         int slot = hovered + 1;
         int spellId = state.Me?.Spell?[slot] ?? 0;
-        if (spellId <= 0 || spellId > Constants.MaxSpells) return;
+        if (spellId <= 0 || spellId > state.Limits.Spells) return;
         var spell = state.SpellDefs[spellId];
         if (spell is null) return;
         var key = (TooltipScope, slot, spellId);
@@ -312,7 +312,7 @@ public sealed class SpellPanel : IGamePanel
     private void DrawForgetConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c)
     {
         int spellId = state.Me?.Spell?[_forgetSlot] ?? 0;
-        string spellName = (spellId > 0 && spellId <= Constants.MaxSpells)
+        string spellName = (spellId > 0 && spellId <= state.Limits.Spells)
             ? (state.SpellDefs[spellId]?.Name.TrimEnd() ?? $"Spell {spellId}")
             : "(unknown)";
 

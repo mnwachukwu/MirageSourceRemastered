@@ -125,7 +125,7 @@ public sealed class QuestSystem : GameSystem
 
         foreach (var r in rewardItems)   // gold is just item #1 here; currency stacks, so it never mails
         {
-            if (r.ItemNum <= 0 || r.ItemNum > Constants.MaxItems || r.Quantity <= 0) continue;
+            if (r.ItemNum <= 0 || r.ItemNum > _world.Limits.Items || r.Quantity <= 0) continue;
             if (!_items.TryGiveItem(index, r.ItemNum, r.Quantity, 0))   // bag full (a non-currency item) -> mail it, never lost
             {
                 _mail.Deliver(_pm[index].Login, QuestSender,
@@ -297,7 +297,7 @@ public sealed class QuestSystem : GameSystem
     // ── Helpers ─────────────────────────────────────────────────────────────────
 
     private bool QuestExists(int questNum) =>
-        SlotValidation.IsValidQuestNum(questNum) && _world.Quests[questNum].TrimmedName.Length > 0;
+        SlotValidation.IsValidQuestNum(questNum, _world.Limits.Quests) && _world.Quests[questNum].TrimmedName.Length > 0;
 
     private PlayerQuest? Find(int index, int questNum)
     {
@@ -323,7 +323,7 @@ public sealed class QuestSystem : GameSystem
     public bool HasActionableQuestAt(int index, int npcNum)
     {
         if (npcNum <= 0 || !_pm[index].IsPlaying) return false;
-        for (int q = 1; q <= Constants.MaxQuests; q++)
+        for (int q = 1; q <= _world.Limits.Quests; q++)
         {
             if (!QuestExists(q)) continue;
             var quest = _world.Quests[q];
@@ -341,7 +341,7 @@ public sealed class QuestSystem : GameSystem
     public bool HasVisibleQuestAt(int index, int npcNum)
     {
         if (npcNum <= 0 || !_pm[index].IsPlaying) return false;
-        for (int q = 1; q <= Constants.MaxQuests; q++)
+        for (int q = 1; q <= _world.Limits.Quests; q++)
         {
             if (!QuestExists(q)) continue;
             var quest = _world.Quests[q];
@@ -404,7 +404,7 @@ public sealed class QuestSystem : GameSystem
         var eligible = new List<int>();
         // Cooldown rides along so the quest panel can say WHY an offer it can still see is grayed out.
         var cooldown = new List<int>();
-        for (int q = 1; q <= Constants.MaxQuests; q++)
+        for (int q = 1; q <= _world.Limits.Quests; q++)
         {
             if (IsEligible(index, q)) eligible.Add(q);
             else if (IsOnRepeatCooldown(index, q)) cooldown.Add(q);

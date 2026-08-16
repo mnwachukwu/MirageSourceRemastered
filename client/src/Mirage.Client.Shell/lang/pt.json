@@ -751,6 +751,8 @@
   "CreditsScreen_CloseButton": "Fechar",
 
   "LoadingScreen_DefaultMessage": "Carregando...",
+  "LoadingScreen_QueuePosition": "O servidor está cheio. Você é o {Position} de {Total} na fila.",
+  "LoadingScreen_QueueHint": "Você entrará automaticamente. Pressione Escape para abrir mão do seu lugar.",
 
   "GameplayScreen_DebugOverlayOn":  "Painel de depuração ativado.",
   "GameplayScreen_DebugOverlayOff": "Painel de depuração desativado.",

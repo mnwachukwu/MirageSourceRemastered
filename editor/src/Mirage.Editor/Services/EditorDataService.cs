@@ -196,13 +196,13 @@ public sealed class EditorDataService
     public async Task LoadOfflineAsync()
     {
         var dataPath = EditorPaths.Data;
-        OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", Constants.MaxItems);
-        OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", Constants.MaxNpcs);
-        OfflineShops = await LoadAllFromDirAsync<ShopRecord>(Path.Combine(dataPath, "shops"), "shop", Constants.MaxShops);
-        OfflineSpells = await LoadAllFromDirAsync<SpellRecord>(Path.Combine(dataPath, "spells"), "spell", Constants.MaxSpells);
+        OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", RecordLimits.Default.Items);
+        OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", RecordLimits.Default.Npcs);
+        OfflineShops = await LoadAllFromDirAsync<ShopRecord>(Path.Combine(dataPath, "shops"), "shop", RecordLimits.Default.Shops);
+        OfflineSpells = await LoadAllFromDirAsync<SpellRecord>(Path.Combine(dataPath, "spells"), "spell", RecordLimits.Default.Spells);
         OfflineClasses = await LoadAllFromDirAsync<ClassRecord>(Path.Combine(dataPath, "classes"), "class", Constants.MaxClasses);
-        OfflineQuests = await LoadAllFromDirAsync<QuestRecord>(Path.Combine(dataPath, "quests"), "quest", Constants.MaxQuests);
-        OfflineConversations = await LoadAllFromDirAsync<ConversationRecord>(Path.Combine(dataPath, "conversations"), "conversation", Constants.MaxConversations);
+        OfflineQuests = await LoadAllFromDirAsync<QuestRecord>(Path.Combine(dataPath, "quests"), "quest", RecordLimits.Default.Quests);
+        OfflineConversations = await LoadAllFromDirAsync<ConversationRecord>(Path.Combine(dataPath, "conversations"), "conversation", RecordLimits.Default.Conversations);
         OfflineMaps = await LoadAllMapsAsync(dataPath);
         OfflineMapGroups = await LoadAllMapGroupsAsync(dataPath);
         ClearEntryCache();
@@ -232,14 +232,14 @@ public sealed class EditorDataService
     private static async Task<MapRecord[]> LoadAllMapsAsync(string dataPath)
     {
         var mapsDir = Path.Combine(dataPath, "maps");
-        var result = new MapRecord[Constants.MaxMaps + 1];
-        for (int i = 1; i <= Constants.MaxMaps; i++) result[i] = new MapRecord();
+        var result = new MapRecord[RecordLimits.Default.Maps + 1];
+        for (int i = 1; i <= RecordLimits.Default.Maps; i++) result[i] = new MapRecord();
 
         if (!Directory.Exists(mapsDir)) return result;
         foreach (var file in Directory.EnumerateFiles(mapsDir, "map*.json"))
         {
             var nameNoExt = Path.GetFileNameWithoutExtension(file);
-            if (int.TryParse(nameNoExt[3..], out int num) && num >= 1 && num <= Constants.MaxMaps)
+            if (int.TryParse(nameNoExt[3..], out int num) && num >= 1 && num <= RecordLimits.Default.Maps)
             {
                 var map = await LoadJsonAsync<MapRecord>(file);
                 if (map is not null) result[num] = map;
@@ -253,14 +253,14 @@ public sealed class EditorDataService
     private static async Task<MapGroupRecord[]> LoadAllMapGroupsAsync(string dataPath)
     {
         var dir = Path.Combine(dataPath, "mapgroups");
-        var result = new MapGroupRecord[Constants.MaxMapGroups + 1];
-        for (int i = 1; i <= Constants.MaxMapGroups; i++) result[i] = new MapGroupRecord { Index = i };
+        var result = new MapGroupRecord[RecordLimits.Default.MapGroups + 1];
+        for (int i = 1; i <= RecordLimits.Default.MapGroups; i++) result[i] = new MapGroupRecord { Index = i };
 
         if (!Directory.Exists(dir)) return result;
         foreach (var file in Directory.EnumerateFiles(dir, "mapgroup*.json"))
         {
             var nameNoExt = Path.GetFileNameWithoutExtension(file);   // "mapgroup12"
-            if (int.TryParse(nameNoExt["mapgroup".Length..], out int num) && num >= 1 && num <= Constants.MaxMapGroups)
+            if (int.TryParse(nameNoExt["mapgroup".Length..], out int num) && num >= 1 && num <= RecordLimits.Default.MapGroups)
             {
                 var g = await LoadJsonAsync<MapGroupRecord>(file);
                 if (g is not null) result[num] = g;

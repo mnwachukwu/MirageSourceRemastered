@@ -38,8 +38,15 @@ public static partial class ServerStrings
     public const string Net_NewConnection = nameof(Net_NewConnection);
     public const string Net_PlayerDisconnected = nameof(Net_PlayerDisconnected);
     public const string Net_EditorDisconnected = nameof(Net_EditorDisconnected);
+    public const string Net_PlayerQueued = nameof(Net_PlayerQueued);
     public const string Net_PlayerRefusedFull = nameof(Net_PlayerRefusedFull);
     public const string Net_EditorRefusedFull = nameof(Net_EditorRefusedFull);
+
+    // Said to the PLAYER, in the player's language — the two above go to the operator's log, in the
+    // operator's. The locale comes off the packet the connection opened with, because there is no session
+    // to read one from yet.
+    public const string Net_ServerFullAlert = nameof(Net_ServerFullAlert);
+    public const string Net_EditorFullAlert = nameof(Net_EditorFullAlert);
 
     // ── Remote management ─────────────────────────────────────────────────────
     public const string Management_Listening = nameof(Management_Listening);

@@ -95,6 +95,30 @@ dotnet run --project editor/src/Mirage.Editor
 
 ---
 
+## Known limitation: the client has no name until a server gives it one
+
+The client ships branded **Mirage Source Remastered** — the engine's name. It has no game identity of its
+own, because one client is meant to reach every server. On connect, before you log in, the server tells it
+the game's name, and the window title, the menu and the HUD show that from then on.
+
+So launching "Mirage Source Remastered" and arriving in "Brightwater" is expected. It is a handshake, not
+a rebrand and not a bait and switch: the engine cannot know what to call itself until a server says.
+
+Two things deliberately do **not** follow the server's name:
+
+- **Your settings folder.** It stays under the engine name, so joining a differently-named game never
+  moves your configuration or loses your options.
+- **The executables.** Server and client filenames are fixed, which is what lets the management window
+  find the server it ships beside.
+
+Operators set their game's name in the server window under **Configuration → This server → Game name**,
+or as `gameName` in `serverconfig.json`. Leaving it empty keeps the engine's name.
+
+If you want a client that carries your own name and icon from the moment it launches, that is a rebuild
+rather than a setting — see [Icons and shipping your own client](docs/branding.md).
+
+---
+
 ## Documentation
 
 This file covers what the project is and how to get it running. Everything else lives in

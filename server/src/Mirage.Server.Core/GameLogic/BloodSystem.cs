@@ -50,7 +50,7 @@ public sealed class BloodSystem : GameSystem
     /// Game thread only.</summary>
     public void Deposit(int mapNum, int x, int y, float intensity, int size = 1, WorldLayer layer = WorldLayer.Ground)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         if ((uint)x >= W || (uint)y >= H) return;   // anchor tile must be on this map's grid
         if (intensity <= 0f) return;
         size = Math.Clamp(size, 1, Constants.MaxNpcSize);

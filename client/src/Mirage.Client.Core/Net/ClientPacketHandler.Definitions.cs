@@ -19,7 +19,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     {
         foreach (var item in p.Items)
         {
-            if (!SlotValidation.IsValidItemNum(item.Num)) continue;
+            if (!SlotValidation.IsValidItemNum(item.Num, _state.Limits.Items)) continue;
             _state.Items[item.Num] = new ItemRecord
             {
                 Name = item.Name,
@@ -44,7 +44,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     {
         foreach (var n in p.Npcs)
         {
-            if (!SlotValidation.IsValidNpcNum(n.Num)) continue;
+            if (!SlotValidation.IsValidNpcNum(n.Num, _state.Limits.Npcs)) continue;
             _state.NpcDefs[n.Num] = new NpcRecord
             {
                 Name = n.Name,
@@ -77,7 +77,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         var defs = new List<(int, QuestRecord)>(p.Quests.Count);
         foreach (var q in p.Quests)
         {
-            if (!SlotValidation.IsValidQuestNum(q.Num)) continue;
+            if (!SlotValidation.IsValidQuestNum(q.Num, _state.Limits.Quests)) continue;
             defs.Add((q.Num, ToQuestRecord(q)));
         }
         _state.SetQuestDefs(defs);
@@ -100,7 +100,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         var quests = new List<PlayerQuest>(p.Quests.Count);
         foreach (var e in p.Quests)
         {
-            if (!SlotValidation.IsValidQuestNum(e.QuestNum)) continue;
+            if (!SlotValidation.IsValidQuestNum(e.QuestNum, _state.Limits.Quests)) continue;
             quests.Add(new PlayerQuest { QuestNum = e.QuestNum, Status = e.Status, Progress = new List<int>(e.Progress) });
         }
         _state.SetQuests(quests, p.EligibleQuests, p.CooldownQuests);
@@ -109,7 +109,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     // Live editor edit of one quest DEF (broadcast on an editor save) — refresh the cached def + the ?/! glyphs.
     private void HandleUpdateQuest(UpdateQuestPacket p)
     {
-        if (!SlotValidation.IsValidQuestNum(p.QuestNum)) return;
+        if (!SlotValidation.IsValidQuestNum(p.QuestNum, _state.Limits.Quests)) return;
         _state.SetQuestDef(p.QuestNum, ToQuestRecord(p));
     }
 
@@ -134,7 +134,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         var defs = new List<(int, ConversationRecord)>(p.Conversations.Count);
         foreach (var c in p.Conversations)
         {
-            if (!SlotValidation.IsValidConversationNum(c.Num)) continue;
+            if (!SlotValidation.IsValidConversationNum(c.Num, _state.Limits.Conversations)) continue;
             defs.Add((c.Num, ToConversationRecord(c.Name, c.SpeakerNpc, c.RootNodeId, c.Nodes)));
         }
         _state.SetConvDefs(defs);
@@ -154,7 +154,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     // Live editor edit of one conversation DEF (broadcast on an editor save) — refresh the cached def + "..." glyphs.
     private void HandleUpdateConversation(UpdateConversationPacket p)
     {
-        if (!SlotValidation.IsValidConversationNum(p.ConvNum)) return;
+        if (!SlotValidation.IsValidConversationNum(p.ConvNum, _state.Limits.Conversations)) return;
         _state.SetConvDef(p.ConvNum, ToConversationRecord(p.Name, p.SpeakerNpc, p.RootNodeId, p.Nodes));
     }
 
@@ -162,7 +162,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     {
         foreach (var s in p.Shops)
         {
-            if (!SlotValidation.IsValidShopNum(s.Num)) continue;
+            if (!SlotValidation.IsValidShopNum(s.Num, _state.Limits.Shops)) continue;
             _state.ShopDefs[s.Num] = new ShopRecord
             {
                 Name = s.Name,
@@ -177,7 +177,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     {
         foreach (var s in p.Spells)
         {
-            if (!SlotValidation.IsValidSpellNum(s.Num)) continue;
+            if (!SlotValidation.IsValidSpellNum(s.Num, _state.Limits.Spells)) continue;
             _state.SpellDefs[s.Num] = new SpellRecord
             {
                 Name = s.Name,
@@ -197,7 +197,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleUpdateItem(UpdateItemPacket p)
     {
-        if (!SlotValidation.IsValidItemNum(p.ItemNum)) return;
+        if (!SlotValidation.IsValidItemNum(p.ItemNum, _state.Limits.Items)) return;
         _state.Items[p.ItemNum] = new ItemRecord
         {
             Name = p.Name,
@@ -219,7 +219,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleUpdateNpc(UpdateNpcPacket p)
     {
-        if (!SlotValidation.IsValidNpcNum(p.NpcNum)) return;
+        if (!SlotValidation.IsValidNpcNum(p.NpcNum, _state.Limits.Npcs)) return;
         _state.NpcDefs[p.NpcNum] = new NpcRecord
         {
             Name = p.Name,
@@ -240,7 +240,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleUpdateShop(UpdateShopPacket p)
     {
-        if (!SlotValidation.IsValidShopNum(p.ShopNum)) return;
+        if (!SlotValidation.IsValidShopNum(p.ShopNum, _state.Limits.Shops)) return;
         _state.ShopDefs[p.ShopNum] = new ShopRecord
         {
             Name = p.Name,
@@ -260,7 +260,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleUpdateSpell(UpdateSpellPacket p)
     {
-        if (!SlotValidation.IsValidSpellNum(p.SpellNum)) return;
+        if (!SlotValidation.IsValidSpellNum(p.SpellNum, _state.Limits.Spells)) return;
         _state.SpellDefs[p.SpellNum] = new SpellRecord
         {
             Name = p.Name,
@@ -309,7 +309,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         Array.Clear(_state.MapGroups);
         foreach (var g in p.Groups)
         {
-            if (!SlotValidation.IsValidMapGroupNum(g.Num)) continue;
+            if (!SlotValidation.IsValidMapGroupNum(g.Num, _state.Limits.MapGroups)) continue;
             _state.MapGroups[g.Num] = new MapGroupRecord
             {
                 Index = g.Num, DisplayName = g.DisplayName, Moral = g.Moral, Music = g.Music,
@@ -320,7 +320,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleUpdateMapGroup(UpdateMapGroupPacket p)
     {
-        if (!SlotValidation.IsValidMapGroupNum(p.GroupNum)) return;
+        if (!SlotValidation.IsValidMapGroupNum(p.GroupNum, _state.Limits.MapGroups)) return;
         _state.MapGroups[p.GroupNum] = new MapGroupRecord
         {
             Index = p.GroupNum, DisplayName = p.DisplayName, Moral = p.Moral, Music = p.Music,

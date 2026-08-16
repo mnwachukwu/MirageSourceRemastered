@@ -198,7 +198,7 @@ public sealed class MovementSystem : GameSystem
                            bool suppressShopGreeting = false,
                            WorldLayer destLayer = WorldLayer.Ground)
     {
-        if (!_pm[index].IsPlaying || mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (!_pm[index].IsPlaying || mapNum <= 0 || mapNum > _world.Limits.Maps) return;
 
         var p = _pm[index].Char;
         var sp = _pm[index];
@@ -354,7 +354,7 @@ public sealed class MovementSystem : GameSystem
     /// </summary>
     public bool CanNpcMoveFrom(int mapNum, MapNpcRecord npc, Direction dir)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return false;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return false;
 
         var npcRec = _world.Npcs[npc.Num];
         int size = npcRec.EffectiveSize;
@@ -414,7 +414,7 @@ public sealed class MovementSystem : GameSystem
     /// </summary>
     private bool IsNpcTileFree(int mapNum, int x, int y, WorldLayer layer, bool ignoreNpcAvoid, MapNpcRecord? exclude)
     {
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return false;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return false;
         if (x < 0 || x > Constants.MaxMapX || y < 0 || y > Constants.MaxMapY) return false;
         // Walkable type at the mover's layer: a fringe surface / ramp is walkable up top, a fringe wall is not.
         var type = LayerLogic.AttrFor(_world.Maps[mapNum].Tile[x, y], layer).Type;
@@ -446,7 +446,7 @@ public sealed class MovementSystem : GameSystem
         // cross be judged against the ground beneath the deck.
         var layer = layerOverride ?? mover.Layer;
         if (size <= 1) return IsNpcTileFree(destMap, x, y, layer, ignoreNpcAvoid, mover);
-        if (destMap <= 0 || destMap > Constants.MaxMaps) return false;
+        if (destMap <= 0 || destMap > _world.Limits.Maps) return false;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, destMap);
         var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, x, y);
         for (int j = 0; j < size; j++)

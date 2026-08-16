@@ -751,6 +751,8 @@
   "CreditsScreen_CloseButton": "Close",
 
   "LoadingScreen_DefaultMessage": "Loading...",
+  "LoadingScreen_QueuePosition": "The server is full. You are {Position} of {Total} in line.",
+  "LoadingScreen_QueueHint": "You will be let in automatically. Press Escape to give up your place.",
 
   "GameplayScreen_DebugOverlayOn":  "Debug overlay on.",
   "GameplayScreen_DebugOverlayOff": "Debug overlay off.",

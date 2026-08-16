@@ -31,7 +31,8 @@ public sealed partial class MirageGame : Game
         ClientStrings.Load(_langDir, _language);
         var languages = ClientStrings.GetAvailableLanguages(_langDir);
         _optionsPanel.SetLanguages(languages, _language);
-        Window.Title = Constants.GameName;
+        // The ENGINE's name at startup — no server has named a world yet. See ClientState.GameName.
+        Window.Title = _state.GameName;
         Window.AllowUserResizing = true;
         Window.TextInput += (_, e) => _input.Accumulate(e.Character);
         Window.ClientSizeChanged += OnClientSizeChanged;

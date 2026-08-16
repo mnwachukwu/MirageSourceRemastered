@@ -309,7 +309,11 @@ public sealed partial class MirageGame : Game
     private void WireGameEvents()
     {
         _handler.PlayersOnlineChanged += count =>
-            Window.Title = $"{Constants.GameName} - Players Online: {count}";
+            Window.Title = $"{_state.GameName} - Players Online: {count}";
+
+        // A server just told us what its world is called; the title bar is the one place that shows it
+        // and cannot read it for itself.
+        _handler.GameNameChanged += name => Window.Title = name;
 
         _handler.ChatMessage += pkt =>
         {

@@ -107,7 +107,7 @@ public class NpcFootprintEditorTests
         var m3 = new MapRecord { Name = "NoPins" };
         var m4 = new MapRecord { Name = "TwoUnpinned" }; m4.Npcs.Add(new MapNpcEntry(2, null, null));
 
-        var sizes = new int[Constants.MaxNpcs + 1];
+        var sizes = new int[RecordLimits.Default.Npcs + 1];
         sizes[2] = 1;
         sizes[3] = 1;
         var (vm, data) = Build([new MapRecord { Name = "(none)" }, m1, m2, m3, m4], Npcs2x2(), sizes);

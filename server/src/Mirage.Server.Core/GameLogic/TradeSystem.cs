@@ -166,7 +166,7 @@ public sealed class TradeSystem : GameSystem
         }
         if (!SlotValidation.IsValidInvSlot(invSlot)) return;
         var slot = me.Char.Inv[invSlot];
-        if (slot.Num <= 0 || slot.Num > Constants.MaxItems) return;
+        if (slot.Num <= 0 || slot.Num > _world.Limits.Items) return;
         // Server backstop for the client's non-tradeable filter — a hacked client can't stage a blocked item.
         if (_world.Items[slot.Num].NonTradeable)
         {

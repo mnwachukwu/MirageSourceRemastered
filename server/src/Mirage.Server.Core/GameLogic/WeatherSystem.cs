@@ -183,7 +183,7 @@ public sealed class WeatherSystem : GameSystem
         double spRatio = SnowFactor(isSnow, Constants.WeatherSnowMaxSpMultiplier) / SnowFactor(wasSnow, Constants.WeatherSnowMaxSpMultiplier);
 
         // NPCs: native slots + traversal guests on every map; re-sync each observed map's snapshot.
-        for (int m = 1; m <= Constants.MaxMaps; m++)
+        for (int m = 1; m <= _world.Limits.Maps; m++)
         {
             bool anyNative = false;
             for (int s = 1; s <= Constants.MaxMapNpcs; s++)

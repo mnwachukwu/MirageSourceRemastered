@@ -53,7 +53,7 @@ public sealed class BankSystem : GameSystem
         var p = sp.Char;
         var bank = sp.Bank;
         var inv = p.Inv[invSlot];
-        if (inv.Num <= 0 || inv.Num > Constants.MaxItems) return;
+        if (inv.Num <= 0 || inv.Num > _world.Limits.Items) return;
 
         var item = _world.Items[inv.Num];
         int bankSlot;
@@ -130,7 +130,7 @@ public sealed class BankSystem : GameSystem
         var sp = _pm[index];
         var p = sp.Char;
         var bank = sp.Bank[bankSlot];
-        if (bank.Num <= 0 || bank.Num > Constants.MaxItems) return;
+        if (bank.Num <= 0 || bank.Num > _world.Limits.Items) return;
 
         var item = _world.Items[bank.Num];
         int invSlot = ItemSystem.FindOpenInvSlot(p, _world.Items, bank.Num);
@@ -181,7 +181,7 @@ public sealed class BankSystem : GameSystem
     public void DepositBulk(int index, int itemNum, int amount)
     {
         if (!_pm[index].IsPlaying) return;
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return;
         if (amount < 0) return;
         if (!IsAtBankingInn(index))
         {
@@ -235,7 +235,7 @@ public sealed class BankSystem : GameSystem
     public void WithdrawBulk(int index, int itemNum, int amount)
     {
         if (!_pm[index].IsPlaying) return;
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return;
         if (amount < 0) return;
         if (!IsAtBankingInn(index))
         {

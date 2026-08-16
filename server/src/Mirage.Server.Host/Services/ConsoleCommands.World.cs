@@ -100,7 +100,7 @@ public sealed partial class ConsoleCommands
 
     private void CmdRespawn(string args)
     {
-        if (!TryParseMap(args, ServerStrings.Console_RespawnUsage, out int mapNum)) return;
+        if (!TryParseMap(args, ServerStrings.Console_RespawnUsage, _world.Limits.Maps, out int mapNum)) return;
         _items.ClearMapItems(mapNum);
         _items.SpawnMapItems(mapNum);
         for (int i = 1; i <= Constants.MaxMapNpcs; i++) _spawn.SpawnNpc(i, mapNum);
@@ -113,9 +113,9 @@ public sealed partial class ConsoleCommands
         // The free-map ranges, same as the in-game report: a map with no name has never been authored.
         var sb = new System.Text.StringBuilder();
         int runStart = 0;
-        for (int i = 1; i <= Constants.MaxMaps + 1; i++)
+        for (int i = 1; i <= _world.Limits.Maps + 1; i++)
         {
-            bool free = i <= Constants.MaxMaps && string.IsNullOrWhiteSpace(_world.Maps[i].Name);
+            bool free = i <= _world.Limits.Maps && string.IsNullOrWhiteSpace(_world.Maps[i].Name);
             if (free && runStart == 0) runStart = i;
             else if (!free && runStart != 0)
             {
@@ -184,10 +184,10 @@ public sealed partial class ConsoleCommands
         return false;
     }
 
-    private static bool TryParseMap(string args, string usageKey, out int mapNum)
+    private static bool TryParseMap(string args, string usageKey, int maxMaps, out int mapNum)
     {
-        if (int.TryParse(args.Trim(), out mapNum) && mapNum >= 1 && mapNum <= Constants.MaxMaps) return true;
-        System.Console.WriteLine(ServerStrings.Format(usageKey, ("Max", Constants.MaxMaps)));
+        if (int.TryParse(args.Trim(), out mapNum) && mapNum >= 1 && mapNum <= maxMaps) return true;
+        System.Console.WriteLine(ServerStrings.Format(usageKey, ("Max", maxMaps)));
         mapNum = 0;
         return false;
     }

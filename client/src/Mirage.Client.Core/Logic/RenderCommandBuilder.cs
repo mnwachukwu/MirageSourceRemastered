@@ -473,7 +473,7 @@ public static class RenderCommandBuilder
     {
         foreach (var mi in mapItems.Values)
         {
-            if (mi.Num == 0 || mi.Num > Constants.MaxItems) continue;
+            if (mi.Num == 0 || mi.Num > state.Limits.Items) continue;
             var itemDef = state.Items[mi.Num];
             if (itemDef is null || itemDef.Pic <= 0) continue;
 
@@ -529,7 +529,7 @@ public static class RenderCommandBuilder
         for (int i = 1; i <= Constants.MaxMapNpcs; i++)
         {
             var n = mapNpcs[i];
-            if (n.Num == 0 || n.Num > Constants.MaxNpcs)
+            if (n.Num == 0 || n.Num > state.Limits.Npcs)
             {
                 // Dead slot may still hold "last words" drifters (see HandleNpcDead). Emit them at
                 // the NPC's preserved last tile so they keep floating away instead of vanishing.
@@ -582,7 +582,7 @@ public static class RenderCommandBuilder
         int offX, int offY, int lightId, long tickNow, bool alwaysShowBars,
         bool hoveredHere, bool targetHere, bool showNames, float nameLineH)
     {
-        if (n.Num == 0 || n.Num > Constants.MaxNpcs) return;
+        if (n.Num == 0 || n.Num > state.Limits.Npcs) return;
         var def = state.NpcDefs[n.Num];
         if (def is null || def.Sprite < 0) return;
         int size = def.EffectiveSize;
@@ -777,7 +777,7 @@ public static class RenderCommandBuilder
         // static buffer (cleared here) instead of allocating a dictionary every frame on this render hot path.
         _corpseStack.Clear();
         var corpseStack = _corpseStack;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= state.PlayerSlots; i++)
         {
             if (i == meSlot) continue;
             EmitOnePlayer(state, frame, camera, i, tickNow, alwaysShowBars, hovered, target,

@@ -19,7 +19,7 @@ public sealed partial class CombatSystem : GameSystem
     public bool CanAttackNpc(int attacker, int mapNum, int npcSlot)
     {
         if (!SlotValidation.IsValidNpcSlot(npcSlot)) return false;
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return false;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return false;
         return CanAttackNpc(attacker, mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, out _);
     }
 
@@ -30,7 +30,7 @@ public sealed partial class CombatSystem : GameSystem
     {
         rebuffed = false;
         if (!_pm[attacker].IsPlaying) return false;
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return false;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return false;
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
         long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
         if (Environment.TickCount64 <= _pm[attacker].AttackTimer + Constants.PlayerAttackCooldownMs * windMult) return false;
@@ -112,7 +112,7 @@ public sealed partial class CombatSystem : GameSystem
     public void ApplyNpcDamage(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, bool isCrit = false)
     {
         if (!_pm[attacker].IsPlaying || dmg < 0) return;
-        if (mapNum <= 0 || mapNum > Constants.MaxMaps) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return;
         bool isGuard = _world.Npcs[mapNpc.Num].Behavior == NpcBehavior.Guard;
         BreakGraceForCombat(attacker, involvesPlayerOrGuard: isGuard);
@@ -417,7 +417,7 @@ public sealed partial class CombatSystem : GameSystem
         var landed = new List<(int ItemNum, int Value, bool IsCurrency, bool Doubled)>();
         foreach (var entry in dropTable)
         {
-            if (!entry.IsLive || entry.ItemNum > Constants.MaxItems) continue;
+            if (!entry.IsLive || entry.ItemNum > _world.Limits.Items) continue;
             int chance = entry.Chance;
             if (dropRateperk) chance += chance * Constants.GuildPerkDropRateBonusPercent / 100;
             if (CombatFormulas.RollPercent() >= chance) continue;
@@ -670,7 +670,7 @@ public sealed partial class CombatSystem : GameSystem
             }
         }
         // Guests are few — cheap game-wide sweep.
-        for (int m = 1; m <= Constants.MaxMaps; m++)
+        for (int m = 1; m <= _world.Limits.Maps; m++)
         {
             var guests = _world.MapTraversalNpcs[m];
             for (int g = 0; g < guests.Count; g++)

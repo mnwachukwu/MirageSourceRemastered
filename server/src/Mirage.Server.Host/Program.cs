@@ -109,7 +109,8 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IPersistenceService>(sp =>
             new JsonPersistenceService(dataDir,
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<JsonPersistenceService>>(),
-                sp.GetRequiredService<IChatLog>()));
+                sp.GetRequiredService<IChatLog>(),
+                serverConfig.Records));
         // Off-thread player saves (game thread snapshots, this writes the file).
         services.AddSingleton<PlayerSaver>();
         // Tracks fire-and-forget persistence tasks: logs faults, drains on shutdown.

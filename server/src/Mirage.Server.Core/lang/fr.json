@@ -662,8 +662,11 @@
   "Net_NewConnection":            "Nouvelle connexion depuis {Ip}.",
   "Net_PlayerDisconnected":       "Emplacement joueur {Slot} ({Ip}) déconnecté.",
   "Net_EditorDisconnected":       "Emplacement éditeur {Slot} déconnecté.",
+  "Net_PlayerQueued":             "Serveur plein ; {Ip} patiente dans la file d'attente.",
   "Net_PlayerRefusedFull":        "Connexion joueur refusée depuis {Ip} : serveur plein.",
   "Net_EditorRefusedFull":        "Connexion éditeur refusée : aucun emplacement libre.",
+  "Net_ServerFullAlert":          "Le serveur est plein. Réessayez dans un instant.",
+  "Net_EditorFullAlert":          "L'éditeur est plein. Réessayez dans un instant.",
 
   "Management_Listening":         "Gestion distante à l'écoute sur le port {Port}.",
   "Management_TokenMissing":      "La gestion distante n'est pas active : un port est défini mais aucune clé. Définissez-en une dans serverconfig.json, ou mettez le port à 0 pour désactiver la gestion distante.",

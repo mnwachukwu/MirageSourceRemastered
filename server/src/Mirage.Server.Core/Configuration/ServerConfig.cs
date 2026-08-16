@@ -16,6 +16,21 @@ public sealed record ServerConfig
     /// share, because the whole graph is immutable.</summary>
     public static readonly ServerConfig Default = new();
 
+    /// <summary>What this game is called.
+    ///
+    /// <para>Defaults to the ENGINE's name, which is what an operator who has not renamed anything gets.
+    /// A client has no game identity of its own: it is branded with the engine name until a server tells
+    /// it this, in the pre-login hello, and shows this from then on.</para>
+    ///
+    /// <para><b>Never use it for a file path.</b> The executable names, the shell's settings folder and a
+    /// player's own settings folder all stay on <c>Constants.GameName</c> — a rename must not move
+    /// anybody's files, or relocate the server binary the shell launches.</para></summary>
+    public string GameName
+    {
+        get;
+        init => field = value.Trim() is { Length: > 0 } named ? named : Mirage.Shared.Constants.GameName;
+    } = Mirage.Shared.Constants.GameName;
+
     /// <summary>The TCP port the game listens on.</summary>
     public int Port { get; init; } = Mirage.Shared.Constants.GamePort;
 
@@ -48,6 +63,34 @@ public sealed record ServerConfig
         init => field = Math.Clamp(value, 1, Mirage.Shared.Constants.MaxPlayers);
     } = 20;
 
+    /// <summary>Slots held back from the general public for Moderators and above, so a full server can
+    /// still be moderated. Read <see cref="EffectiveReservedSlots"/>, never this — the two settings are
+    /// independent fields on one record.</summary>
+    public int ReservedSlots
+    {
+        get;
+        init => field = Math.Max(0, value);
+    } = 2;
+
+    /// <summary>What is actually held back. Clamped against <see cref="MaxPlayers"/> HERE rather than in
+    /// the setter because JSON promises no property order: a file listing <c>reservedSlots</c> first would
+    /// clamp against a limit that had not been read yet. Never reaches <see cref="MaxPlayers"/>, or every
+    /// regular player is locked out permanently.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public int EffectiveReservedSlots => Math.Clamp(ReservedSlots, 0, MaxPlayers - 1);
+
+    /// <summary>What happens to players who arrive at a full server.</summary>
+    public QueueConfig Queue { get; init; } = new();
+
+    /// <summary>How many of each record family this world has room for. Read
+    /// <see cref="Records"/> — the setter clamps, so nothing downstream has to.</summary>
+    public Mirage.Shared.RecordLimits Records
+    {
+        get;
+        init => field = (value ?? Mirage.Shared.RecordLimits.Default)
+            .Clamped(Mirage.Shared.RecordLimits.Ceiling);
+    } = Mirage.Shared.RecordLimits.Default;
+
     /// <summary>Where a character starts, and where one respawns without a purchased spawn point.</summary>
     public SpawnConfig Spawn { get; init; } = new();
 
@@ -70,6 +113,37 @@ public sealed record SpawnConfig
     public int Map { get; init; } = 1;
     public int X { get; init; } = (Mirage.Shared.Constants.MaxMapX + 1) / 2;
     public int Y { get; init; } = (Mirage.Shared.Constants.MaxMapY + 1) / 2;
+}
+
+/// <summary>
+/// The line at a full server.
+///
+/// <para>A waiting connection is a socket, a TLS session and a place in a list — it holds NO player slot.
+/// That is what keeps a queue cheap enough to be worth having: nothing about a waiting player reaches the
+/// game thread until the moment they are let in.</para>
+/// </summary>
+public sealed record QueueConfig
+{
+    /// <summary>How many may wait. <b>0 turns queueing off</b> and restores the old behaviour, a refusal
+    /// at the door. Capped rather than open because queued sockets cost memory and file handles, and an
+    /// unbounded line is a denial of service with extra steps.</summary>
+    public int MaxDepth
+    {
+        get;
+        init => field = Math.Max(0, value);
+    } = 100;
+
+    /// <summary>How long a dropped connection keeps its place. Covers a network blip without punishing it,
+    /// and covers a held slot too: if someone's turn arrives while they are away, the slot waits this long
+    /// before going to the next in line.</summary>
+    public int GraceSeconds
+    {
+        get;
+        init => field = Math.Max(0, value);
+    } = 90;
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsEnabled => MaxDepth > 0;
 }
 
 /// <summary>

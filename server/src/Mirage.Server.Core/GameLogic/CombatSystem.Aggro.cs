@@ -533,12 +533,12 @@ public sealed partial class CombatSystem : GameSystem
     /// Game-wide scan is cheap — typical guest count is in the low single digits.</summary>
     public (int CurrentMap, int CurrentSlot, MapNpcRecord Record)? ResolveNpcByIdentity(int spawnMap, int spawnSlot)
     {
-        if (spawnMap <= 0 || spawnSlot <= 0 || spawnMap > Constants.MaxMaps || spawnSlot > Constants.MaxMapNpcs) return null;
+        if (spawnMap <= 0 || spawnSlot <= 0 || spawnMap > _world.Limits.Maps || spawnSlot > Constants.MaxMapNpcs) return null;
         var native = _world.MapNpcs[spawnMap, spawnSlot];
         if (native.Num > 0 && !native.IsReservedSlot) return (spawnMap, spawnSlot, native);
         if (native.IsReservedSlot)
         {
-            for (int m = 1; m <= Constants.MaxMaps; m++)
+            for (int m = 1; m <= _world.Limits.Maps; m++)
             {
                 var guests = _world.MapTraversalNpcs[m];
                 for (int g = 0; g < guests.Count; g++)
@@ -584,7 +584,7 @@ public sealed partial class CombatSystem : GameSystem
         }
         // Guests are few (only active chasers), so a game-wide sweep is cheap and guarantees none keeps
         // a stale lock regardless of which map it wandered onto.
-        for (int m = 1; m <= Constants.MaxMaps; m++)
+        for (int m = 1; m <= _world.Limits.Maps; m++)
         {
             var guests = _world.MapTraversalNpcs[m];
             for (int g = 0; g < guests.Count; g++)

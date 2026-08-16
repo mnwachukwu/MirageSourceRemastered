@@ -751,6 +751,8 @@
   "CreditsScreen_CloseButton": "Fermer",
 
   "LoadingScreen_DefaultMessage": "Chargement...",
+  "LoadingScreen_QueuePosition": "Le serveur est plein. Vous êtes {Position} sur {Total} dans la file.",
+  "LoadingScreen_QueueHint": "Vous entrerez automatiquement. Appuyez sur Échap pour renoncer à votre place.",
 
   "GameplayScreen_DebugOverlayOn":  "Débogage activé.",
   "GameplayScreen_DebugOverlayOff": "Débogage désactivé.",

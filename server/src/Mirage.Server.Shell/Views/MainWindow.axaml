@@ -359,7 +359,11 @@
             <TextBlock Classes="heading" Text="{Binding HostingHeading}"/>
             <TextBlock Classes="hint" Text="{Binding HostingBlurb}"/>
 
-            <Grid ColumnDefinitions="Auto,Auto" Margin="0,8,0,0">
+            <TextBlock Text="{Binding GameNameLabel}" Margin="0,8,0,0"/>
+            <TextBox Text="{Binding GameName}" Margin="0,4,0,0" MaxWidth="320" HorizontalAlignment="Left"/>
+            <TextBlock Classes="hint" Text="{Binding GameNameHint}"/>
+
+            <Grid ColumnDefinitions="Auto,Auto" Margin="0,10,0,0">
               <TextBlock Grid.Column="0" Text="{Binding HostingPortLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
               <NumericUpDown Grid.Column="1" Value="{Binding GamePort}" Minimum="1" Maximum="65535"
                              FormatString="0" Increment="1" ParsingNumberStyle="Integer" MinWidth="120"/>
@@ -382,6 +386,77 @@
                       Command="{Binding UseDefaultDataDirCommand}" Margin="8,0,0,0"/>
             </Grid>
             <TextBlock Classes="hint" Text="{Binding DataDirHint}"/>
+          </StackPanel>
+
+          <!-- Record slots. Per-server now rather than compiled into the client: the server states these
+               in its pre-login hello and a client sizes its own tables to match. -->
+          <StackPanel Classes="section" IsEnabled="{Binding CanEditServerFile}">
+            <TextBlock Classes="heading" Text="{Binding RecordsHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding RecordsBlurb}"/>
+            <Grid ColumnDefinitions="Auto,120,24,Auto,120" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,8,0,0">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding RecordItemsLabel}" VerticalAlignment="Center" MinWidth="130"/>
+              <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding RecordItems}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+              <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding RecordNpcsLabel}" VerticalAlignment="Center" MinWidth="130"/>
+              <NumericUpDown Grid.Row="0" Grid.Column="4" Value="{Binding RecordNpcs}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding RecordShopsLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+              <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding RecordShops}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer" Margin="0,6,0,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="3" Text="{Binding RecordSpellsLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+              <NumericUpDown Grid.Row="1" Grid.Column="4" Value="{Binding RecordSpells}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer" Margin="0,6,0,0"/>
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding RecordQuestsLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+              <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding RecordQuests}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer" Margin="0,6,0,0"/>
+              <TextBlock Grid.Row="2" Grid.Column="3" Text="{Binding RecordConversationsLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+              <NumericUpDown Grid.Row="2" Grid.Column="4" Value="{Binding RecordConversations}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer" Margin="0,6,0,0"/>
+
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding RecordMapsLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+              <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding RecordMaps}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer" Margin="0,6,0,0"/>
+              <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding RecordMapGroupsLabel}" VerticalAlignment="Center" Margin="0,6,0,0"/>
+              <NumericUpDown Grid.Row="3" Grid.Column="4" Value="{Binding RecordMapGroups}" Minimum="1" Maximum="{Binding RecordCeiling}"
+                             FormatString="0" Increment="100" ParsingNumberStyle="Integer" Margin="0,6,0,0"/>
+            </Grid>
+          </StackPanel>
+
+          <!-- What happens at the limit. Its own section rather than more rows under the player count:
+               these three decide whether hitting the limit is a closed door or a short wait, which is a
+               different question from how many fit. -->
+          <StackPanel Classes="section" IsEnabled="{Binding CanEditServerFile}">
+            <TextBlock Classes="heading" Text="{Binding CapacityHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding CapacityBlurb}"/>
+
+            <Grid ColumnDefinitions="Auto,Auto" Margin="0,8,0,0">
+              <TextBlock Grid.Column="0" Text="{Binding ReservedLabel}" VerticalAlignment="Center"
+                         MinWidth="150" Margin="0,0,8,0"/>
+              <!-- Ceiling follows the player limit: reserving every slot would lock out everyone who is
+                   not staff, so the spinner cannot reach it. -->
+              <NumericUpDown Grid.Column="1" Value="{Binding ReservedSlots}" Minimum="0"
+                             Maximum="{Binding ReservedCeiling}" FormatString="0" Increment="1"
+                             ParsingNumberStyle="Integer" MinWidth="120"/>
+            </Grid>
+            <TextBlock Classes="hint" Text="{Binding ReservedHint}"/>
+
+            <Grid ColumnDefinitions="Auto,Auto" Margin="0,10,0,0">
+              <TextBlock Grid.Column="0" Text="{Binding QueueDepthLabel}" VerticalAlignment="Center"
+                         MinWidth="150" Margin="0,0,8,0"/>
+              <NumericUpDown Grid.Column="1" Value="{Binding QueueDepth}" Minimum="0" Maximum="1000"
+                             FormatString="0" Increment="10" ParsingNumberStyle="Integer" MinWidth="120"/>
+            </Grid>
+            <TextBlock Classes="hint" Text="{Binding QueueDepthHint}"/>
+
+            <Grid ColumnDefinitions="Auto,Auto" Margin="0,10,0,0">
+              <TextBlock Grid.Column="0" Text="{Binding QueueGraceLabel}" VerticalAlignment="Center"
+                         MinWidth="150" Margin="0,0,8,0"/>
+              <NumericUpDown Grid.Column="1" Value="{Binding QueueGraceSeconds}" Minimum="0" Maximum="600"
+                             FormatString="0" Increment="15" ParsingNumberStyle="Integer" MinWidth="120"/>
+            </Grid>
+            <TextBlock Classes="hint" Text="{Binding QueueGraceHint}"/>
           </StackPanel>
 
           <StackPanel Classes="section" IsEnabled="{Binding CanEditServerFile}">

@@ -662,8 +662,11 @@
   "Net_NewConnection":            "Nueva conexión desde {Ip}.",
   "Net_PlayerDisconnected":       "Espacio de jugador {Slot} ({Ip}) desconectado.",
   "Net_EditorDisconnected":       "Espacio de editor {Slot} desconectado.",
+  "Net_PlayerQueued":             "Servidor lleno; {Ip} espera en la cola de acceso.",
   "Net_PlayerRefusedFull":        "Conexión de jugador rechazada desde {Ip}: servidor lleno.",
   "Net_EditorRefusedFull":        "Conexión de editor rechazada: no hay espacios libres.",
+  "Net_ServerFullAlert":          "El servidor está lleno. Inténtalo de nuevo en un momento.",
+  "Net_EditorFullAlert":          "El editor está lleno. Inténtalo de nuevo en un momento.",
 
   "Management_Listening":         "Gestión remota escuchando en el puerto {Port}.",
   "Management_TokenMissing":      "La gestión remota no está activa: hay un puerto definido pero no una clave. Define una en serverconfig.json, o pon el puerto a 0 para desactivar la gestión remota.",

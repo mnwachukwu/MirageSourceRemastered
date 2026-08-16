@@ -139,7 +139,7 @@ public sealed class ShopPanel : IGamePanel
             {
                 int slot = _fixSlotNums[_fixSlotList.SelectedIndex];
                 var inv = state.Me?.Inv?[slot];
-                if (inv is not null && inv.Num > 0 && inv.Num <= Constants.MaxItems)
+                if (inv is not null && inv.Num > 0 && inv.Num <= state.Limits.Items)
                 {
                     _pendingFixSlot = slot;
                     _viewState = ViewState.ConfirmingRepair;
@@ -351,7 +351,7 @@ public sealed class ShopPanel : IGamePanel
         _salesList.Items.Clear();
         foreach (int num in state.ActiveSales)
         {
-            var item = num > 0 && num <= Constants.MaxItems ? state.Items[num] : null;
+            var item = num > 0 && num <= state.Limits.Items ? state.Items[num] : null;
             string name = item?.Name?.Trim() ?? "?";
             _salesList.Items.Add(item is null
                 ? name
@@ -370,13 +370,13 @@ public sealed class ShopPanel : IGamePanel
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             var slot = me?.Inv?[i];
-            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+            if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) continue;
             var item = state.Items[slot.Num];
             if (item is null || item.NonJunkable) continue;
             if (me is not null && (me.WeaponSlot == i || me.ArmorSlot == i || me.HelmetSlot == i || me.ShieldSlot == i))
                 continue;
 
-            var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= Constants.MaxSpells
+            var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= state.Limits.Spells
                 ? state.SpellDefs[item.SpellNum] : null;
             int offer = EconomyFormulas.ItemSellValue(item, slot.Dur, spell);
             if (item.Type == ItemType.Currency) offer *= Math.Max(slot.Quantity, 1);
@@ -403,7 +403,7 @@ public sealed class ShopPanel : IGamePanel
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             var slot = state.Me?.Inv?[i];
-            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+            if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) continue;
             var item = state.Items[slot.Num];
             if (item is null) continue;
             if (item.Type is not (ItemType.Weapon or ItemType.Armor or ItemType.Helmet or ItemType.Shield))
@@ -567,7 +567,7 @@ public sealed class ShopPanel : IGamePanel
         if (hovered < 0 || hovered >= _fixSlotNums.Count) return;
         int slotIdx = _fixSlotNums[hovered];
         var slot = state.Me?.Inv?[slotIdx];
-        if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) return;
+        if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) return;
         var item = state.Items[slot.Num];
         if (item is null) return;
         // Key on (panel, slotIdx, itemNum) so the tooltip re-pins position when the user moves
@@ -579,7 +579,7 @@ public sealed class ShopPanel : IGamePanel
     private void DrawRepairConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
     {
         var inv = state.Me.Inv[_pendingFixSlot];
-        var item = inv.Num > 0 && inv.Num <= Constants.MaxItems ? state.Items[inv.Num] : null;
+        var item = inv.Num > 0 && inv.Num <= state.Limits.Items ? state.Items[inv.Num] : null;
         string name = item?.Name?.Trim() ?? $"Item {inv.Num}";
 
         var bgRect = new Rectangle(c.X + 2, c.Y + 2, c.Width - 4, c.Height - 4);
@@ -644,8 +644,8 @@ public sealed class ShopPanel : IGamePanel
     private void DrawTradeConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c,
         Texture2D? itemsTex, SendTradePacket.TradeRow trade, Button confirmBtn, Button cancelBtn)
     {
-        var get = trade.GetItem > 0 && trade.GetItem <= Constants.MaxItems ? state.Items[trade.GetItem] : null;
-        var give = trade.GiveItem > 0 && trade.GiveItem <= Constants.MaxItems ? state.Items[trade.GiveItem] : null;
+        var get = trade.GetItem > 0 && trade.GetItem <= state.Limits.Items ? state.Items[trade.GetItem] : null;
+        var give = trade.GiveItem > 0 && trade.GiveItem <= state.Limits.Items ? state.Items[trade.GiveItem] : null;
         var me = state.Me;
 
         var bgRect = new Rectangle(c.X + 2, c.Y + 2, c.Width - 4, c.Height - 4);
@@ -657,7 +657,7 @@ public sealed class ShopPanel : IGamePanel
 
         bool isEquip = get is not null && ItemRecord.IsEquipment(get.Type);
         bool isSpell = get?.Type == ItemType.Spell;
-        var spell = isSpell && get!.SpellNum > 0 && get.SpellNum <= Constants.MaxSpells
+        var spell = isSpell && get!.SpellNum > 0 && get.SpellNum <= state.Limits.Spells
             ? state.SpellDefs[get.SpellNum] : null;
         string? potionEffect = get?.Type switch
         {
@@ -824,7 +824,7 @@ public sealed class ShopPanel : IGamePanel
     {
         int itemNum = _pendingBuySlot >= 1 && _pendingBuySlot <= state.ActiveSales.Length
             ? state.ActiveSales[_pendingBuySlot - 1] : 0;
-        var item = itemNum > 0 && itemNum <= Constants.MaxItems ? state.Items[itemNum] : null;
+        var item = itemNum > 0 && itemNum <= state.Limits.Items ? state.Items[itemNum] : null;
         var row = new SendTradePacket.TradeRow(Constants.GoldItemIndex, item?.Price ?? 0, itemNum, 1);
         DrawTradeConfirm(sb, font, state, c, itemsTex, row, _buyConfirmBtn, _buyCancelBtn);
     }
@@ -835,7 +835,7 @@ public sealed class ShopPanel : IGamePanel
     private void DrawSellConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
     {
         var inv = state.Me?.Inv?[_pendingSellSlot];
-        var item = inv is not null && inv.Num > 0 && inv.Num <= Constants.MaxItems ? state.Items[inv.Num] : null;
+        var item = inv is not null && inv.Num > 0 && inv.Num <= state.Limits.Items ? state.Items[inv.Num] : null;
 
         var bgRect = new Rectangle(c.X + 2, c.Y + 2, c.Width - 4, c.Height - 4);
         UiHelper.DrawFilledRect(sb, bgRect, UiHelper.ConfirmOverlayBg);
@@ -857,7 +857,7 @@ public sealed class ShopPanel : IGamePanel
             textY += 18;
         }
 
-        var spell = item?.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= Constants.MaxSpells
+        var spell = item?.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= state.Limits.Spells
             ? state.SpellDefs[item.SpellNum] : null;
         int offer = item is not null ? EconomyFormulas.ItemSellValue(item, inv!.Dur, spell) * quantity : 0;
 

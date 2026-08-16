@@ -161,7 +161,7 @@ public sealed class InnPanel : IGamePanel
         for (int i = 1; i < state.Me.Inv.Length; i++)
         {
             var slot = state.Me.Inv[i];
-            if (slot is null || slot.Num <= 0 || slot.Num > Constants.MaxItems) continue;
+            if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) continue;
             if (state.Items[slot.Num]?.Type == ItemType.Currency)
                 total += slot.Quantity;
         }

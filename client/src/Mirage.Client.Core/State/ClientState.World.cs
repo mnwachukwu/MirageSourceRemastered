@@ -74,6 +74,14 @@ public sealed partial class ClientState
     public int PlayersOnline { get; set; }
     public string LoadingMessage { get; set; } = "";
 
+    /// <summary>Place in the line at a full server, or 0 when we are not waiting for one. Set from the
+    /// server's push and read by the loading screen, which writes the sentence itself — the numbers cross
+    /// the wire, the words do not, so a player waits in the language their menus are in.</summary>
+    public int QueuePosition { get; set; }
+
+    /// <summary>How many are waiting in total, so a position can be shown as "3rd of 40".</summary>
+    public int QueueTotal { get; set; }
+
     /// <summary>
     /// Non-empty when the server sent an alert and immediately disconnected
     /// (e.g. bad password, name taken).  Cleared by LoadingScreen on enter/exit.
@@ -94,7 +102,7 @@ public sealed partial class ClientState
     /// <summary>Clear all map entities when warping to a new map.</summary>
     public void ClearMapState()
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= PlayerSlots; i++)
         {
             if (i == MyIndex) continue;
             Players[i] = new PlayerRecord();

@@ -27,7 +27,7 @@ public sealed partial class ItemSystem : GameSystem
         var sp = _pm[index];
         var p = sp.Char;
         int itemNum = p.Inv[invSlot].Num;
-        if (itemNum <= 0 || itemNum > Constants.MaxItems) return;
+        if (itemNum <= 0 || itemNum > _world.Limits.Items) return;
 
         var item = _world.Items[itemNum];
 
@@ -149,7 +149,7 @@ public sealed partial class ItemSystem : GameSystem
                     break;
                 }
                 int spellNum = item.SpellNum;
-                if (spellNum <= 0 || spellNum > Constants.MaxSpells)
+                if (spellNum <= 0 || spellNum > _world.Limits.Spells)
                 {
                     SendMsg(index, ServerStrings.ItemSystem_ScrollNoSpell, GameColor.White);
                     break;
@@ -202,7 +202,7 @@ public sealed partial class ItemSystem : GameSystem
                 int wx = WorldCoordHelper.MapTilesX + p.X + dx;
                 int wy = WorldCoordHelper.MapTilesY + p.Y + dy;
                 var (mapNum, tx, ty) = WorldCoordHelper.ResolveWorldTile(grid, wx, wy);
-                if (mapNum <= 0 || mapNum > Constants.MaxMaps) break;
+                if (mapNum <= 0 || mapNum > _world.Limits.Maps) break;
                 var map = _world.Maps[mapNum];
                 if (map is null) break; // cardinal link to a non-existent map
                 var tile = map.Tile[tx, ty];

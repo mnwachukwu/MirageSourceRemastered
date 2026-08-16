@@ -81,7 +81,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ── Chrome ────────────────────────────────────────────────────────────────
 
-    public string Title => ShellStrings.Format(ShellStrings.Window_Title, ("GameName", Constants.GameName));
+    /// <summary>Named after the GAME this server runs, not the engine — an operator running Brightwater
+    /// wants a window that says Brightwater. The executable and this window's settings folder stay on the
+    /// engine name; see <see cref="ServerConfig.GameName"/>.</summary>
+    public string Title => ShellStrings.Format(ShellStrings.Window_Title, ("GameName", GameName));
     public string ConsoleTabHeader => ShellStrings.Get(ShellStrings.Tab_Console);
     public string ConfigurationTabHeader => ShellStrings.Get(ShellStrings.Tab_Configuration);
     public string CommandsTabHeader => ShellStrings.Get(ShellStrings.Tab_Commands);
@@ -522,7 +525,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     CommandParameter.Paragraph("text")),
                 // Maps are numeric ids, so the box is one — bounded to what the server would accept.
                 new ShellCommand("/respawn", ShellStrings.Get(ShellStrings.Commands_Respawn), Send,
-                    CommandParameter.Number("map", 1, Constants.MaxMaps, 1)),
+                    CommandParameter.Number("map", 1, RecordLimits.Default.Maps, 1)),
                 new ShellCommand("/mapreport", ShellStrings.Get(ShellStrings.Commands_MapReport), Send),
             ]),
             new CommandGroup(ShellStrings.Get(ShellStrings.Commands_Guilds),
@@ -731,6 +734,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string DataDirPlaceholder => ShellStrings.Get(ShellStrings.Hosting_DataDirDefault);
     public string BrowseLabel => ShellStrings.Get(ShellStrings.Hosting_Browse);
     public string UseDefaultLabel => ShellStrings.Get(ShellStrings.Hosting_UseDefault);
+    public string GameNameLabel => ShellStrings.Get(ShellStrings.Hosting_GameName);
+    public string GameNameHint => ShellStrings.Get(ShellStrings.Hosting_GameNameHint);
+
+    /// <summary>What players will see this world called. Blank falls back to the engine's name, which is
+    /// what the setter on <see cref="ServerConfig.GameName"/> does with it on save.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Title))]
+    public partial string GameName { get; set; } = Constants.GameName;
+
     public string MaxPlayersLabel => ShellStrings.Get(ShellStrings.Hosting_MaxPlayers);
     public string MaxPlayersHint => ShellStrings.Get(ShellStrings.Hosting_MaxPlayersHint);
 
@@ -739,9 +751,65 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// ceiling is the protocol's — above it the server would issue slot numbers a shipped client cannot
     /// index.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReservedCeiling))]
     public partial decimal MaxPlayers { get; set; } = ServerConfig.Default.MaxPlayers;
 
     public decimal MaxPlayersCeiling => Constants.MaxPlayers;
+
+    // ── Record slots ──────────────────────────────────────────────────────────
+    // Per-server now rather than compiled in, and stated to every client in the pre-login hello — see
+    // RecordLimits. A client sizes its own tables from what it was told.
+
+    public string RecordsHeading => ShellStrings.Get(ShellStrings.Records_Heading);
+    public string RecordsBlurb => ShellStrings.Get(ShellStrings.Records_Blurb);
+    public string RecordItemsLabel => ShellStrings.Get(ShellStrings.Records_Items);
+    public string RecordNpcsLabel => ShellStrings.Get(ShellStrings.Records_Npcs);
+    public string RecordShopsLabel => ShellStrings.Get(ShellStrings.Records_Shops);
+    public string RecordSpellsLabel => ShellStrings.Get(ShellStrings.Records_Spells);
+    public string RecordQuestsLabel => ShellStrings.Get(ShellStrings.Records_Quests);
+    public string RecordConversationsLabel => ShellStrings.Get(ShellStrings.Records_Conversations);
+    public string RecordMapsLabel => ShellStrings.Get(ShellStrings.Records_Maps);
+    public string RecordMapGroupsLabel => ShellStrings.Get(ShellStrings.Records_MapGroups);
+
+    /// <summary>The largest any one family may be set to — a backstop against a typo costing gigabytes,
+    /// since both ends allocate an array of this length.</summary>
+    public decimal RecordCeiling => RecordLimits.Ceiling;
+
+    [ObservableProperty] public partial decimal RecordItems { get; set; } = RecordLimits.Default.Items;
+    [ObservableProperty] public partial decimal RecordNpcs { get; set; } = RecordLimits.Default.Npcs;
+    [ObservableProperty] public partial decimal RecordShops { get; set; } = RecordLimits.Default.Shops;
+    [ObservableProperty] public partial decimal RecordSpells { get; set; } = RecordLimits.Default.Spells;
+    [ObservableProperty] public partial decimal RecordQuests { get; set; } = RecordLimits.Default.Quests;
+    [ObservableProperty] public partial decimal RecordConversations { get; set; } = RecordLimits.Default.Conversations;
+    [ObservableProperty] public partial decimal RecordMaps { get; set; } = RecordLimits.Default.Maps;
+    [ObservableProperty] public partial decimal RecordMapGroups { get; set; } = RecordLimits.Default.MapGroups;
+
+    // ── What happens at the limit ─────────────────────────────────────────────
+
+    public string CapacityHeading => ShellStrings.Get(ShellStrings.Capacity_Heading);
+    public string CapacityBlurb => ShellStrings.Get(ShellStrings.Capacity_Blurb);
+    public string ReservedLabel => ShellStrings.Get(ShellStrings.Capacity_Reserved);
+    public string ReservedHint => ShellStrings.Get(ShellStrings.Capacity_ReservedHint);
+    public string QueueDepthLabel => ShellStrings.Get(ShellStrings.Capacity_QueueDepth);
+    public string QueueDepthHint => ShellStrings.Get(ShellStrings.Capacity_QueueDepthHint);
+    public string QueueGraceLabel => ShellStrings.Get(ShellStrings.Capacity_Grace);
+    public string QueueGraceHint => ShellStrings.Get(ShellStrings.Capacity_GraceHint);
+
+    [ObservableProperty]
+    public partial decimal ReservedSlots { get; set; } = ServerConfig.Default.ReservedSlots;
+
+    /// <summary>One below the player limit, and it MOVES with it. Reserving every slot would lock out
+    /// everyone who is not staff — the server clamps this on load, and the spinner refuses to get there in
+    /// the first place.</summary>
+    public decimal ReservedCeiling => Math.Max(0, MaxPlayers - 1);
+
+    /// <summary>0 turns the queue off, and the server goes back to refusing at the door. Said in the hint
+    /// rather than hidden behind a checkbox, because it is one number either way.</summary>
+    [ObservableProperty]
+    public partial decimal QueueDepth { get; set; } = ServerConfig.Default.Queue.MaxDepth;
+
+    [ObservableProperty]
+    public partial decimal QueueGraceSeconds { get; set; } = ServerConfig.Default.Queue.GraceSeconds;
 
     /// <summary>The game port. Same rule as the management section: this describes the server whose
     /// serverconfig.json sits beside this shell, so it is unavailable while attached to a remote one.</summary>
@@ -871,10 +939,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         var (existing, _) = ServerConfigStore.Load(_configPath);
         var config = existing with
         {
+            GameName = GameName,
             Port = (int)GamePort,
             // Trimmed, because a path with a stray space is a world folder that silently does not exist.
             DataDir = DataDir.Trim(),
             MaxPlayers = (int)MaxPlayers,
+            ReservedSlots = (int)ReservedSlots,
+            Records = new RecordLimits
+            {
+                Items = (int)RecordItems,
+                Npcs = (int)RecordNpcs,
+                Shops = (int)RecordShops,
+                Spells = (int)RecordSpells,
+                Quests = (int)RecordQuests,
+                Conversations = (int)RecordConversations,
+                Maps = (int)RecordMaps,
+                MapGroups = (int)RecordMapGroups,
+            },
+            Queue = new QueueConfig { MaxDepth = (int)QueueDepth, GraceSeconds = (int)QueueGraceSeconds },
             Spawn = new SpawnConfig { Map = (int)SpawnMap, X = (int)SpawnX, Y = (int)SpawnY },
             Schedule = new ScheduleConfig { WarNightDay = WarNightDay, WarNightHour = (int)WarNightHour },
             DeathPenalty = new DeathPenaltyConfig
@@ -972,9 +1054,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private void LoadConfig()
     {
         var (config, error) = ServerConfigStore.Load(_configPath);
+        GameName = config.GameName;
         GamePort = config.Port;
         DataDir = config.DataDir;
         MaxPlayers = config.MaxPlayers;
+        ReservedSlots = config.EffectiveReservedSlots;
+        RecordItems = config.Records.Items;
+        RecordNpcs = config.Records.Npcs;
+        RecordShops = config.Records.Shops;
+        RecordSpells = config.Records.Spells;
+        RecordQuests = config.Records.Quests;
+        RecordConversations = config.Records.Conversations;
+        RecordMaps = config.Records.Maps;
+        RecordMapGroups = config.Records.MapGroups;
+        QueueDepth = config.Queue.MaxDepth;
+        QueueGraceSeconds = config.Queue.GraceSeconds;
         SpawnMap = config.Spawn.Map;
         SpawnX = config.Spawn.X;
         SpawnY = config.Spawn.Y;

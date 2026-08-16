@@ -100,12 +100,12 @@ public sealed partial class PacketHandler
             case HotkeyKind.Item:
                 // Bound whether or not the bag currently holds one — an empty slot draws grayed rather than
                 // unbinding itself, so drinking your last potion doesn't silently clear the key.
-                if (p.Num < 1 || p.Num > Constants.MaxItems || string.IsNullOrWhiteSpace(_world.Items[p.Num]?.Name)) return;
+                if (p.Num < 1 || p.Num > _world.Limits.Items || string.IsNullOrWhiteSpace(_world.Items[p.Num]?.Name)) return;
                 bound = new PlayerHotkey(HotkeyKind.Item, p.Num);
                 break;
 
             case HotkeyKind.Spell:
-                if (p.Num < 1 || p.Num > Constants.MaxSpells || _world.Spells[p.Num] is not { } sp
+                if (p.Num < 1 || p.Num > _world.Limits.Spells || _world.Spells[p.Num] is not { } sp
                     || string.IsNullOrWhiteSpace(sp.Name)) return;
                 // SubHp belongs to Q and the prepared slot, not to the bar — it is the caster's weapon,
                 // swung on the attack beat, and giving it both homes would make "which key casts this"

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
@@ -51,6 +52,7 @@ public sealed partial class ConsoleCommands : IHostedService
     private readonly IBackgroundPersistence _bg;
     private readonly PlayerSaver _saver;
     private readonly ILogger<ConsoleCommands> _logger;
+    private readonly ServerConfig _config;
     // The systems the world-level commands act through (see ConsoleCommands.World.cs). Taken as
     // dependencies rather than reached through the packet handler, because a console command has no
     // packet and no sender — it is the same action, arrived at from the other side.
@@ -80,8 +82,10 @@ public sealed partial class ConsoleCommands : IHostedService
         WeatherSystem weather,
         GuildScheduleSystem guildSchedule,
         GuildTerritorySystem territory,
+        ServerConfig config,
         ILogger<ConsoleCommands> logger)
     {
+        _config = config;
         _lifetime = lifetime;
         _pm = pm;
         _dispatcher = dispatcher;
@@ -120,7 +124,7 @@ public sealed partial class ConsoleCommands : IHostedService
 
     private async Task InputLoopAsync(CancellationToken ct)
     {
-        System.Console.WriteLine(ServerStrings.Format(ServerStrings.Console_Prompt, ("GameName", Constants.GameName)));
+        System.Console.WriteLine(ServerStrings.Format(ServerStrings.Console_Prompt, ("GameName", _config.GameName)));
 
         while (!ct.IsCancellationRequested)
         {
@@ -322,7 +326,7 @@ public sealed partial class ConsoleCommands : IHostedService
 
         _dispatcher.SendToAll(PacketBuilder.ChatMsg(
             ServerStrings.Format(ServerStrings.AdminCommand_KickBroadcast,
-                ("Target", charName), ("GameName", Constants.GameName), ("Admin", ConsoleOperatorName), ("Minutes", minutes)),
+                ("Target", charName), ("GameName", _config.GameName), ("Admin", ConsoleOperatorName), ("Minutes", minutes)),
             12, ChatChannel.Notice));
         _dispatcher.SendTo(slot, PacketBuilder.Alert(ServerStrings.Format(
             ServerStrings.AdminCommand_Kicked, ("Admin", ConsoleOperatorName), ("Minutes", minutes))));
@@ -353,10 +357,10 @@ public sealed partial class ConsoleCommands : IHostedService
 
         _dispatcher.SendToAll(PacketBuilder.ChatMsg(
             ServerStrings.Format(ServerStrings.AdminCommand_BanBroadcast,
-                ("Target", charName), ("GameName", Constants.GameName), ("Admin", ConsoleOperatorName)),
+                ("Target", charName), ("GameName", _config.GameName), ("Admin", ConsoleOperatorName)),
             12, ChatChannel.Notice));
         _dispatcher.SendTo(slot, PacketBuilder.Alert(ServerStrings.Format(
-            ServerStrings.Auth_Banned, ("GameName", Constants.GameName))));
+            ServerStrings.Auth_Banned, ("GameName", _config.GameName))));
         _dispatcher.GracefulDisconnect(slot);
 
         System.Console.WriteLine(ServerStrings.Format(ServerStrings.Console_Banned,
