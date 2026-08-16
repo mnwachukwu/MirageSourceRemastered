@@ -426,7 +426,7 @@ public sealed partial class PacketHandler
         // Access is per-account: persist to the account, then update every online character on it so the
         // change is account-wide and its overhead name recolors immediately.
         _saver.MutateAccountInBackground(login, a => a.Access = p.Level);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || !string.Equals(_pm[i].Login, login, StringComparison.OrdinalIgnoreCase)) continue;
             _pm[i].Char.Access = p.Level;

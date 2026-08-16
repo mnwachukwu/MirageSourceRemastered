@@ -48,8 +48,8 @@ public sealed class QuestSystem : GameSystem
         _objectives = objectives;
         _combat = combat;
         _guildSchedule = guildSchedule;
-        _tracked = new Dictionary<int, List<ObjectiveSystem.Handle>>[Constants.MaxPlayers + 1];
-        for (int i = 0; i <= Constants.MaxPlayers; i++) _tracked[i] = new();
+        _tracked = new Dictionary<int, List<ObjectiveSystem.Handle>>[_pm.Slots + 1];
+        for (int i = 0; i <= _pm.Slots; i++) _tracked[i] = new();
     }
 
     // ── Accept ──────────────────────────────────────────────────────────────────
@@ -388,7 +388,7 @@ public sealed class QuestSystem : GameSystem
     private string WeekKey()
     {
         var today = DateOnly.FromDateTime(Clock.LocalNow);
-        int back = ((int)today.DayOfWeek - (int)Constants.TerritoryWeekResetDay + 7) % 7;
+        int back = ((int)today.DayOfWeek - (int)Config.Schedule.WeekResetDay + 7) % 7;
         return today.AddDays(-back).ToString("yyyy-MM-dd");
     }
 

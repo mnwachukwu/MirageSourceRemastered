@@ -2,7 +2,7 @@
   "LanguageName": "Español",
 
   "Window_Title": "Servidor de {GameName}",
-  "Tab_Server": "Servidor",
+  "Tab_Server": "Estado",
   "Tab_Console": "Consola",
 
   "Server_Blurb": "Lo que el servidor está haciendo ahora mismo. Todo lo que aparece aquí y se puede cambiar, se cambia aquí.",
@@ -83,6 +83,7 @@
   "Config_WindowGroupHint": "Se aplica en cuanto lo cambias.",
   "Config_ServerGroup": "Este servidor",
   "Config_ServerGroupHint": "Se guardan juntos y se aplican la próxima vez que arranque el servidor.",
+  "Config_SaveScope": "Guarda solo «{Group}». Todo lo de arriba se aplica al cambiarlo. Los cambios surten efecto la próxima vez que arranque el servidor.",
 
   "Connection_Heading": "Conexión",
   "Connection_Blurb": "A qué servidor apunta esta ventana. Este ajuste pertenece a la ventana, no a ningún servidor.",
@@ -108,6 +109,28 @@
   "Config_LanguageBlurb": "El idioma que usan esta ventana, la consola del servidor y los archivos de registro. Los jugadores no se ven afectados: cada uno ve el juego en el idioma que eligió.",
   "Config_LanguageServerNote": "Esta ventana cambia de inmediato. La consola del servidor lo hará la próxima vez que arranque.",
 
+  "Hosting_Heading": "Puerto y carpeta del mundo",
+  "Hosting_Blurb": "Dónde se conectan los jugadores y dónde guarda este servidor su mundo.",
+  "Hosting_GamePort": "Puerto del juego",
+  "Hosting_GamePortHint": "El puerto que los jugadores escriben en su cliente. Ábrelo en tu router solo si están fuera de tu red.",
+  "Hosting_DataDir": "Carpeta del mundo",
+  "Hosting_DataDirHint": "Déjalo vacío para usar la carpeta data junto al servidor. Indica otra ruta para guardar un mundo en otro disco, o en una carpeta de la que hagas copia de seguridad.",
+  "Hosting_DataDirDefault": "carpeta data junto al servidor",
+  "Hosting_Browse": "Examinar…",
+  "Hosting_UseDefault": "Usar predeterminada",
+
+  "World_SpawnHeading": "Dónde empiezan los jugadores",
+  "World_SpawnBlurb": "La casilla donde aparece un personaje nuevo, y donde vuelve quien no haya comprado un punto de reaparición.",
+  "World_SpawnMap": "Mapa",
+  "World_SpawnX": "X",
+  "World_SpawnY": "Y",
+
+  "Schedule_Heading": "Noche de guerra",
+  "Schedule_Blurb": "El combate semanal por territorios, en la hora local de esta máquina.",
+  "Schedule_WarNightDay": "Día",
+  "Schedule_WarNightHour": "Hora",
+  "Schedule_WeekResetNote": "La semana de hermandad cambia al día siguiente, el {Day}. Los ingresos por territorio, las semanas de temporada y las misiones semanales siguen ese límite.",
+
   "Logging_Heading": "Registro",
   "Logging_Blurb": "Lo que el servidor anota y cuánto tiempo lo guarda. Los registros van a la carpeta logs junto al servidor.",
   "Logging_Level": "Detalle",
@@ -127,6 +150,8 @@
   "Management_Port": "Puerto",
   "Management_Token": "Clave",
   "Management_TokenHint": "Dásela a quien vaya a conectarse. Generar crea una nueva; quien siga usando la anterior queda fuera.",
+  "Management_Copy": "Copiar",
+  "Management_TokenCopied": "Clave copiada al portapapeles.",
   "Management_LocalOnly": "Estos ajustes pertenecen al servidor instalado aquí. Conecta en local para cambiarlos.",
   "Config_RestartRequired": "Los cambios se aplican la próxima vez que arranque el servidor.",
   "Config_Saved": "Guardado en {Path}",

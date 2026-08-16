@@ -28,8 +28,8 @@ public sealed class ShopRecord
     // this shop, and the NPC shows the $ overhead glyph. Kept on the shop record (not NpcRecord) by design.
     public int Keeper { get; set; }
 
-    // Trades this shop offers — a dense, 0-based list of real trades (author-defined count, capped at
-    // Constants.MaxTrades). The purchase/display slot number on the wire stays 1-based (slot N =
+    // Trades this shop offers — a dense, 0-based list of real trades, as many as the author writes and with
+    // no ceiling (the same rule as SalesItem). The purchase/display slot number on the wire stays 1-based (slot N =
     // TradeItem[N-1]) so the client and trade-request protocol are unchanged. Legacy shop JSON stored a
     // fixed 1-based array (a leading null at index 0 + slots 1..8); it deserializes into this list and is
     // compacted on load (drop null/empty) — see JsonPersistenceService and ShopRowViewModel.

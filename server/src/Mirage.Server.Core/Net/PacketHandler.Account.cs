@@ -372,9 +372,9 @@ public sealed partial class PacketHandler
         chr.Def = cls.Def;
         chr.Spd = cls.Spd;
         chr.Int = cls.Int;
-        chr.Map = Constants.StartMap;
-        chr.X = Constants.StartX;
-        chr.Y = Constants.StartY;
+        chr.Map = (short)_config.Spawn.Map;
+        chr.X = (byte)_config.Spawn.X;
+        chr.Y = (byte)_config.Spawn.Y;
         chr.Hp = StatFormulas.GetPlayerMaxHp(chr, cls);
         chr.Mp = StatFormulas.GetPlayerMaxMp(chr, cls);
         chr.Sp = StatFormulas.GetPlayerMaxSp(chr, cls);

@@ -346,7 +346,10 @@ public sealed partial class PacketHandler
     private void HandleTradeRequest(int index, TradeRequestPacket p)
     {
         if (!_pm[index].IsPlaying) return;
-        if (p.Slot < 1 || p.Slot > Constants.MaxTrades)
+        // Only a malformed slot is a hacking signal here. The real bound is the shop's own trade count,
+        // which ShopSystem.Trade checks once it has resolved the shop — a fixed ceiling could only ever
+        // be looser than that.
+        if (p.Slot < 1)
         {
             HackingAttempt(index, "Trade Request Modification");
             return;

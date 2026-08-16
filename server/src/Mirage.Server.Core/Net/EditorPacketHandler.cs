@@ -668,13 +668,12 @@ public sealed class EditorPacketHandler
         shop.Keeper = p.Keeper;
 
         // Rebuild the trade list from the packet: drop empty rows (so persisted data stays dense with no
-        // gaps), cap at the MaxTrades safety ceiling, and normalize each side's quantity so a bad state never
-        // persists (mirrors the NPC-drop rule above): no item -> 0, non-currency -> exactly 1 (never stacks),
-        // currency -> at least 1. This keeps the give-side HasItem(>=) check well-formed and stops a zero
-        // quantity from minting free items.
+        // gaps) and normalize each side's quantity so a bad state never persists (mirrors the NPC-drop rule
+        // above): no item -> 0, non-currency -> exactly 1 (never stacks), currency -> at least 1. This keeps
+        // the give-side HasItem(>=) check well-formed and stops a zero quantity from minting free items.
+        // No row ceiling, matching the sales table.
         shop.TradeItem = p.Trades
             .Where(t => t.GiveItem > 0 || t.GetItem > 0)
-            .Take(Constants.MaxTrades)
             .Select(t => new TradeItemRecord
             {
                 GiveItem = t.GiveItem,
@@ -771,7 +770,7 @@ public sealed class EditorPacketHandler
         // can also change who's eligible (requirements) or where the glyph sits (giver/turn-in), so re-push every
         // online player's quest log + eligible set too — mirrors the shop-keeper live-refresh.
         _dispatcher.SendToAll(BuildUpdateQuest(n));
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
             if (_pm[i].IsPlaying) _quests.RefreshEligibility(i);
         _logger.LogInformation("Editor saved quest #{Num}.", n);
     }
@@ -1016,7 +1015,9 @@ public sealed class EditorPacketHandler
         for (int i = 1; i <= Constants.MaxMapNpcs; i++)
         {
             if (_world.MapNpcs[mapNum, i].IsReservedSlot) continue;
-            _world.MapNpcs[mapNum, i] = new MapNpcRecord();
+            // Sized like every other record in this world — a default-ceiling one here would be a lone
+            // oversized outlier, and CopyCombatLedgerTo would then be copying between mismatched widths.
+            _world.MapNpcs[mapNum, i] = new MapNpcRecord(_pm.Slots);
             _spawn.SpawnNpc(i, mapNum);
         }
 

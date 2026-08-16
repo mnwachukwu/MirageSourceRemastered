@@ -240,7 +240,7 @@ public sealed class JoinLeaveSystem : GameSystem
         long now = Environment.TickCount64;
         int joinerMsSinceCombat = PacketBuilder.MsSinceCombat(_pm[index].CombatExpiresAt, now, CombatSystem.CombatDurationMs);
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (i == index) continue;
             if (!_pm[i].IsPlaying) continue;
@@ -500,7 +500,7 @@ public sealed class JoinLeaveSystem : GameSystem
     // LeaveMap it receives; this makes it server-authoritative, matching the NPC target-drop treatment.
     private void DropOthersTargetsOnPlayer(int leavingIndex)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (i == leavingIndex) continue;
             var sp = _pm[i];
@@ -661,7 +661,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
     public void SendWhosOnline(int index)
     {
-        string[] names = Enumerable.Range(1, Constants.MaxPlayers)
+        string[] names = Enumerable.Range(1, _pm.Slots)
             .Where(i => i != index && _pm[i].IsPlaying)
             .Select(i => _pm[i].Char.Name.Trim())
             .ToArray();

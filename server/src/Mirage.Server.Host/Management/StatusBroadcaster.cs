@@ -99,7 +99,7 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
     private ServerStatus Snapshot()
     {
         var players = new List<PlayerSummary>();
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -125,8 +125,43 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
             Port = _port,
             Operators = OperatorCount,
             Players = players,
+            Load = SampleLoad(),
         };
     }
+
+    /// <summary>Reads the machine cost since the previous snapshot. Both counters are windowed and reset
+    /// on read, so a snapshot describes the interval it closes rather than an average over all of history
+    /// — which is what a ramping load test needs, since an average hides the step that broke.</summary>
+    private LoadSummary SampleLoad()
+    {
+        var loop = _gameLoop.Metrics.Sample();
+
+        var process = System.Diagnostics.Process.GetCurrentProcess();
+        TimeSpan cpu = process.TotalProcessorTime;
+        long now = Environment.TickCount64;
+        double windowMs = now - _lastCpuStampMs;
+        double cpuMs = (cpu - _lastCpuTotal).TotalMilliseconds;
+        _lastCpuTotal = cpu;
+        _lastCpuStampMs = now;
+
+        // Divided by core count, so this is a share of the WHOLE machine. Left undivided it would exceed
+        // 1 on any parallel work and read as nonsense beside the game thread's 0-1.
+        int cores = Math.Max(1, Environment.ProcessorCount);
+        double processCpu = windowMs <= 0 ? 0 : Math.Clamp(cpuMs / (windowMs * cores), 0, 1);
+
+        return new LoadSummary
+        {
+            GameThread = loop.Utilisation,
+            ProcessCpu = processCpu,
+            WorkingSetBytes = process.WorkingSet64,
+            Overruns = loop.Overruns,
+            QueuedPerSecond = loop.WindowSeconds <= 0 ? 0 : loop.QueuedActions / loop.WindowSeconds,
+            ProcessorCount = cores,
+        };
+    }
+
+    private TimeSpan _lastCpuTotal;
+    private long _lastCpuStampMs = Environment.TickCount64;
 
     private string ClassName(int index) =>
         index >= 0 && index < _world.Classes.Length ? _world.Classes[index].Name.Trim() : "";

@@ -60,6 +60,27 @@
     <Setter Property="Spacing" Value="4"/>
   </Style>
 
+  <!-- ── Section panel ─────────────────────────────────────────────────────── -->
+  <!-- A whole section of a page, on its own ground. Three steps of elevation, and the order is the point:
+       page background -> panel -> card. A run of cards inside a panel therefore still reads as raised,
+       which a panel painted at the card's own value would have flattened. -->
+
+  <Style Selector="Border.panel">
+    <Setter Property="Background" Value="{DynamicResource MirageSurfaceBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="8"/>
+    <Setter Property="Padding" Value="16,14,16,18"/>
+  </Style>
+
+  <!-- The panel's own title. A section title, NOT another sub-heading: at the same 16px as the headings
+       inside it, the two halves of a settings page read as peers of their own contents. -->
+  <Style Selector="TextBlock.panelTitle">
+    <Setter Property="FontSize" Value="20"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+
   <!-- ── Settings card ─────────────────────────────────────────────────────── -->
   <!-- The Windows 11 Settings shape: a bordered row carrying its own explanation, with the control on
        the right. Replaces a bare checkbox plus a loose paragraph underneath it. -->

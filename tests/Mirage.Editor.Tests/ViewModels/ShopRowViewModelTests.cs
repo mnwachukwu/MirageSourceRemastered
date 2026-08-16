@@ -105,16 +105,18 @@ public class ShopRowViewModelTests
         Assert.That(s.Trades, Is.Empty, "remove deletes the row");
     }
 
+    /// <summary>There is no row ceiling — the same rule the sales table already had. An author adds as many
+    /// trades as the shop needs, and the wire is JSON, so nothing downstream constrains the count.</summary>
     [Test]
-    public void AddTrade_IsDisabledAtTheCeiling()
+    public void AddTrade_HasNoCeiling()
     {
         var s = Shop();
-        for (int i = 0; i < Constants.MaxTrades; i++) s.AddTradeCommand.Execute(null);
+        for (int i = 0; i < 300; i++) s.AddTradeCommand.Execute(null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(s.Trades, Has.Count.EqualTo(Constants.MaxTrades));
-            Assert.That(s.AddTradeCommand.CanExecute(null), Is.False, "no more rows past the ceiling");
+            Assert.That(s.Trades, Has.Count.EqualTo(300));
+            Assert.That(s.AddTradeCommand.CanExecute(null), Is.True, "still addable past the old 255 ceiling");
         });
     }
 

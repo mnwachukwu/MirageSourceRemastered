@@ -2,7 +2,7 @@
   "LanguageName": "Français",
 
   "Window_Title": "Serveur {GameName}",
-  "Tab_Server": "Serveur",
+  "Tab_Server": "État",
   "Tab_Console": "Console",
 
   "Server_Blurb": "Ce que fait le serveur en ce moment. Tout ce qui s'affiche ici et peut être changé, se change ici.",
@@ -83,6 +83,7 @@
   "Config_WindowGroupHint": "S'applique dès que vous le changez.",
   "Config_ServerGroup": "Ce serveur",
   "Config_ServerGroupHint": "Enregistrés ensemble, et appliqués au prochain démarrage du serveur.",
+  "Config_SaveScope": "N'enregistre que « {Group} ». Tout ce qui est au-dessus s'applique dès que vous le modifiez. Les changements prennent effet au prochain démarrage du serveur.",
 
   "Connection_Heading": "Connexion",
   "Connection_Blurb": "Le serveur que pilote cette fenêtre. Ce réglage appartient à la fenêtre, pas à un serveur.",
@@ -108,6 +109,28 @@
   "Config_LanguageBlurb": "La langue de cette fenêtre, de la console du serveur et des fichiers journaux. Les joueurs ne sont pas concernés : chacun voit le jeu dans la langue qu'il a choisie.",
   "Config_LanguageServerNote": "Cette fenêtre change immédiatement. La console du serveur suivra à son prochain démarrage.",
 
+  "Hosting_Heading": "Port et dossier du monde",
+  "Hosting_Blurb": "Où les joueurs se connectent, et où ce serveur conserve son monde.",
+  "Hosting_GamePort": "Port du jeu",
+  "Hosting_GamePortHint": "Le port que les joueurs saisissent dans leur client. Ne l'ouvrez sur votre routeur que s'ils sont hors de votre réseau.",
+  "Hosting_DataDir": "Dossier du monde",
+  "Hosting_DataDirHint": "Laissez vide pour utiliser le dossier data situé à côté du serveur. Indiquez un autre chemin pour garder un monde sur un autre disque, ou dans un dossier que vous sauvegardez.",
+  "Hosting_DataDirDefault": "dossier data à côté du serveur",
+  "Hosting_Browse": "Parcourir…",
+  "Hosting_UseDefault": "Par défaut",
+
+  "World_SpawnHeading": "Où les joueurs commencent",
+  "World_SpawnBlurb": "La case où apparaît un nouveau personnage, et où revient quiconque n'a pas acheté de point de réapparition.",
+  "World_SpawnMap": "Carte",
+  "World_SpawnX": "X",
+  "World_SpawnY": "Y",
+
+  "Schedule_Heading": "Nuit de guerre",
+  "Schedule_Blurb": "Le combat hebdomadaire pour les territoires, à l'heure locale de cette machine.",
+  "Schedule_WarNightDay": "Jour",
+  "Schedule_WarNightHour": "Heure",
+  "Schedule_WeekResetNote": "La semaine de guilde bascule le lendemain, le {Day}. Les revenus de territoire, les semaines de saison et les quêtes hebdomadaires suivent cette limite.",
+
   "Logging_Heading": "Journalisation",
   "Logging_Blurb": "Ce que le serveur consigne, et combien de temps il le garde. Les journaux vont dans le dossier logs à côté du serveur.",
   "Logging_Level": "Détail",
@@ -127,6 +150,8 @@
   "Management_Port": "Port",
   "Management_Token": "Clé",
   "Management_TokenHint": "Donnez-la à qui se connectera. Générer en crée une nouvelle ; ceux qui utilisent encore l'ancienne sont coupés.",
+  "Management_Copy": "Copier",
+  "Management_TokenCopied": "Clé copiée dans le presse-papiers.",
   "Management_LocalOnly": "Ces réglages appartiennent au serveur installé ici. Connectez-vous en local pour les changer.",
   "Config_RestartRequired": "Les changements prennent effet au prochain démarrage du serveur.",
   "Config_Saved": "Enregistré dans {Path}",

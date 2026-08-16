@@ -2,7 +2,7 @@
   "LanguageName": "English",
 
   "Window_Title": "{GameName} Server",
-  "Tab_Server": "Server",
+  "Tab_Server": "State",
   "Tab_Console": "Console",
 
   "Server_Blurb": "What the server is doing right now. Anything shown here that can be changed, can be changed here.",
@@ -83,6 +83,7 @@
   "Config_WindowGroupHint": "Applies as soon as you change it.",
   "Config_ServerGroup": "This server",
   "Config_ServerGroupHint": "Saved together, and applied the next time the server starts.",
+  "Config_SaveScope": "Saves “{Group}” only. Everything above it applies as you change it. Changes take effect the next time the server starts.",
 
   "Connection_Heading": "Connection",
   "Connection_Blurb": "Which server this window drives. This setting belongs to this window, not to any server.",
@@ -108,6 +109,28 @@
   "Config_LanguageBlurb": "The language this window, the server console and the log files use. Players are not affected: each one sees the game in the language they chose.",
   "Config_LanguageServerNote": "This window changes straight away. The server console follows the next time it starts.",
 
+  "Hosting_Heading": "Port and world folder",
+  "Hosting_Blurb": "Where players connect, and where this server keeps its world.",
+  "Hosting_GamePort": "Game port",
+  "Hosting_GamePortHint": "The port players type into their client. Only forward it on your router if they are outside your network.",
+  "Hosting_DataDir": "World folder",
+  "Hosting_DataDirHint": "Leave this empty to use the data folder beside the server. Point it somewhere else to keep a world on another drive, or in a folder you back up.",
+  "Hosting_DataDirDefault": "data folder beside the server",
+  "Hosting_Browse": "Browse…",
+  "Hosting_UseDefault": "Use default",
+
+  "World_SpawnHeading": "Where players start",
+  "World_SpawnBlurb": "The tile a new character is placed on, and where anyone without a purchased spawn point comes back after dying.",
+  "World_SpawnMap": "Map",
+  "World_SpawnX": "X",
+  "World_SpawnY": "Y",
+
+  "Schedule_Heading": "War night",
+  "Schedule_Blurb": "The weekly territory contest, in this machine's own time.",
+  "Schedule_WarNightDay": "Day",
+  "Schedule_WarNightHour": "Hour",
+  "Schedule_WeekResetNote": "The guild week rolls over the day after, on {Day}. Territory income, season weeks and weekly quests all follow that boundary.",
+
   "Logging_Heading": "Logging",
   "Logging_Blurb": "What the server writes down, and how long it keeps it. Logs go to the logs folder beside the server.",
   "Logging_Level": "Detail",
@@ -127,6 +150,8 @@
   "Management_Port": "Port",
   "Management_Token": "Token",
   "Management_TokenHint": "Give this to whoever attaches. Generate makes a fresh one; anyone still using the old token is cut off.",
+  "Management_Copy": "Copy",
+  "Management_TokenCopied": "Token copied to the clipboard.",
   "Management_LocalOnly": "These settings belong to the server installed here. Attach locally to change them.",
   "Config_RestartRequired": "Changes apply the next time the server starts.",
   "Config_Saved": "Saved to {Path}",

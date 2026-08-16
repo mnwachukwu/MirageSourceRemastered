@@ -104,6 +104,12 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string ExpLossLabel => ShellStrings.Get(ShellStrings.Config_ExpLoss);
     public string ExpLossHint => ShellStrings.Get(ShellStrings.Config_ExpLossHint);
     public string RestartRequiredNotice => ShellStrings.Get(ShellStrings.Config_RestartRequired);
+
+    /// <summary>What the pinned buttons cover. Says the SCOPE as well as the timing, because a pinned
+    /// footer sits under whichever panel is scrolled into view and would otherwise look like it saves
+    /// that one.</summary>
+    public string SaveScopeNotice => ShellStrings.Format(ShellStrings.Config_SaveScope,
+        ("Group", ShellStrings.Get(ShellStrings.Config_ServerGroup)));
     public string LanguageHeading => ShellStrings.Get(ShellStrings.Config_LanguageHeading);
     public string LanguageBlurb => ShellStrings.Get(ShellStrings.Config_LanguageBlurb);
     public string LanguageServerNote => ShellStrings.Get(ShellStrings.Config_LanguageServerNote);
@@ -601,7 +607,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(IsLocal));
         OnPropertyChanged(nameof(StartLabel));
         OnPropertyChanged(nameof(StopLabel));
-        OnPropertyChanged(nameof(CanEditManagement));
+        OnPropertyChanged(nameof(CanEditServerFile));
         OnStateChanged();
     }
 
@@ -693,6 +699,99 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(LoggingIncomplete));
     }
 
+    // ── Port and world folder ─────────────────────────────────────────────────
+    // Both were left in their files when the rest of the config moved into this window, which meant the
+    // one page that claims to own the server's settings quietly did not.
+
+    public string HostingHeading => ShellStrings.Get(ShellStrings.Hosting_Heading);
+    public string HostingBlurb => ShellStrings.Get(ShellStrings.Hosting_Blurb);
+    public string HostingPortLabel => ShellStrings.Get(ShellStrings.Hosting_GamePort);
+    public string HostingPortHint => ShellStrings.Get(ShellStrings.Hosting_GamePortHint);
+    public string DataDirLabel => ShellStrings.Get(ShellStrings.Hosting_DataDir);
+    public string DataDirHint => ShellStrings.Get(ShellStrings.Hosting_DataDirHint);
+    public string DataDirPlaceholder => ShellStrings.Get(ShellStrings.Hosting_DataDirDefault);
+    public string BrowseLabel => ShellStrings.Get(ShellStrings.Hosting_Browse);
+    public string UseDefaultLabel => ShellStrings.Get(ShellStrings.Hosting_UseDefault);
+
+    /// <summary>The game port. Same rule as the management section: this describes the server whose
+    /// serverconfig.json sits beside this shell, so it is unavailable while attached to a remote one.</summary>
+    [ObservableProperty]
+    public partial decimal GamePort { get; set; } = Constants.GamePort;
+
+    /// <summary>Empty means <c>data/</c> beside the server, which is what the placeholder says. Stored as
+    /// typed rather than resolved to an absolute path, so a relative world folder stays relative.</summary>
+    [ObservableProperty]
+    public partial string DataDir { get; set; } = "";
+
+    [RelayCommand]
+    private void UseDefaultDataDir() => DataDir = "";
+
+    // ── Spawn point ───────────────────────────────────────────────────────────
+
+    public string SpawnHeading => ShellStrings.Get(ShellStrings.World_SpawnHeading);
+    public string SpawnBlurb => ShellStrings.Get(ShellStrings.World_SpawnBlurb);
+    public string SpawnMapLabel => ShellStrings.Get(ShellStrings.World_SpawnMap);
+    public string SpawnXLabel => ShellStrings.Get(ShellStrings.World_SpawnX);
+    public string SpawnYLabel => ShellStrings.Get(ShellStrings.World_SpawnY);
+
+    [ObservableProperty] public partial decimal SpawnMap { get; set; } = 1;
+    [ObservableProperty] public partial decimal SpawnX { get; set; }
+    [ObservableProperty] public partial decimal SpawnY { get; set; }
+
+    // ── War night ─────────────────────────────────────────────────────────────
+
+    public string ScheduleHeading => ShellStrings.Get(ShellStrings.Schedule_Heading);
+    public string ScheduleBlurb => ShellStrings.Get(ShellStrings.Schedule_Blurb);
+    public string WarNightDayLabel => ShellStrings.Get(ShellStrings.Schedule_WarNightDay);
+    public string WarNightHourLabel => ShellStrings.Get(ShellStrings.Schedule_WarNightHour);
+
+    /// <summary>Spelled out rather than left implicit: the weekly boundary is DERIVED from the chosen day,
+    /// and an operator moving war night is also moving territory income, season weeks and weekly quests.</summary>
+    public string WeekResetNote => ShellStrings.Format(ShellStrings.Schedule_WeekResetNote,
+        ("Day", DayName((DayOfWeek)(((int)WarNightDay + 1) % 7))));
+
+    /// <summary>Day names come from the SHELL's chosen locale, not the machine's — the two are separate
+    /// settings, and a French operator on an English box picked French for a reason.</summary>
+    public IReadOnlyList<DayChoice> AvailableDays { get; private set; } = BuildDays("en");
+
+    private static DayChoice[] BuildDays(string locale) =>
+        [.. Enum.GetValues<DayOfWeek>().Select(d => new DayChoice(d, DayName(d, locale)))];
+
+    private static string DayName(DayOfWeek day, string? locale = null)
+    {
+        try
+        {
+            return System.Globalization.CultureInfo.GetCultureInfo(locale ?? ShellStrings.CurrentLocale)
+                .DateTimeFormat.GetDayName(day);
+        }
+        catch (System.Globalization.CultureNotFoundException)
+        {
+            return day.ToString();
+        }
+    }
+
+    [ObservableProperty] public partial DayOfWeek WarNightDay { get; set; } = DayOfWeek.Saturday;
+    [ObservableProperty] public partial decimal WarNightHour { get; set; } = 20;
+
+    partial void OnWarNightDayChanged(DayOfWeek value)
+    {
+        OnPropertyChanged(nameof(SelectedDay));
+        OnPropertyChanged(nameof(WeekResetNote));
+    }
+
+    /// <summary>The picker binds here rather than to <see cref="WarNightDay"/> so the stored value stays a
+    /// plain <see cref="DayOfWeek"/> — rebuilding the list on a language change then cannot orphan the
+    /// selection against a stale instance.</summary>
+    public DayChoice? SelectedDay
+    {
+        get => AvailableDays.FirstOrDefault(d => d.Value == WarNightDay);
+        set { if (value is not null) WarNightDay = value.Value; }
+    }
+
+    /// <summary>One row in the day picker. A named type, for the same reason as
+    /// <see cref="LanguageChoice"/>: compiled bindings cannot bind a tuple.</summary>
+    public sealed record DayChoice(DayOfWeek Value, string DisplayName);
+
     // ── Remote management, as the server's own setting ────────────────────────
 
     public string ManagementHeading => ShellStrings.Get(ShellStrings.Management_Heading);
@@ -704,10 +803,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string ManagementTokenHint => ShellStrings.Get(ShellStrings.Management_TokenHint);
     public string ManagementLocalOnlyNotice => ShellStrings.Get(ShellStrings.Management_LocalOnly);
 
-    /// <summary>These describe the server whose serverconfig.json is beside this shell. Attached to a
-    /// remote server, that file is not the one being run, so the section reads as unavailable rather than
-    /// quietly editing the wrong machine's settings.</summary>
-    public bool CanEditManagement => !IsRemote;
+    /// <summary>Everything written to the serverconfig.json BESIDE THIS SHELL — the port, the world folder,
+    /// the rules, remote access. Attached to a remote server that file is not the one being run, so those
+    /// sections read as unavailable rather than quietly editing the wrong machine's settings.</summary>
+    public bool CanEditServerFile => !IsRemote;
 
     [ObservableProperty]
     public partial bool ManagementEnabled { get; set; }
@@ -715,14 +814,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial decimal ManagementPort { get; set; } = DefaultManagementPort;
 
+    public string CopyLabel => ShellStrings.Get(ShellStrings.Management_Copy);
+
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasManagementToken))]
     public partial string ManagementToken { get; set; } = "";
+
+    /// <summary>Nothing to copy before one is minted.</summary>
+    public bool HasManagementToken => ManagementToken.Length > 0;
 
     /// <summary>Mints a token. 32 random bytes in URL-safe base64: long enough that the failure limit on
     /// the listener is belt-and-braces, and short enough to paste into a chat window.</summary>
     [RelayCommand]
     private void GenerateToken() =>
         ManagementToken = System.Security.Cryptography.RandomNumberGenerator.GetHexString(48, lowercase: true);
+
+    /// <summary>Said in the status line rather than a toast: it is the one place on this tab that already
+    /// reports what just happened, and a copy with no acknowledgement reads as a dead button.</summary>
+    public void ReportTokenCopied() => ConfigStatus = ShellStrings.Get(ShellStrings.Management_TokenCopied);
 
     [RelayCommand]
     private void SaveConfig()
@@ -732,6 +841,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         var (existing, _) = ServerConfigStore.Load(_configPath);
         var config = existing with
         {
+            Port = (int)GamePort,
+            // Trimmed, because a path with a stray space is a world folder that silently does not exist.
+            DataDir = DataDir.Trim(),
+            Spawn = new SpawnConfig { Map = (int)SpawnMap, X = (int)SpawnX, Y = (int)SpawnY },
+            Schedule = new ScheduleConfig { WarNightDay = WarNightDay, WarNightHour = (int)WarNightHour },
             DeathPenalty = new DeathPenaltyConfig
             {
                 DurabilityLoss = DurabilityLoss,
@@ -807,6 +921,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         ShellStrings.Load(ShellLangDir, locale);
         BuildCommands();
+        // Rebuilt, not re-sorted: the day names come from the new locale. SelectedDay resolves off
+        // WarNightDay rather than holding an instance, so the selection survives the swap.
+        AvailableDays = BuildDays(locale);
         // Null name = everything changed, which a language swap is. Listing the properties instead would
         // go stale the next time a string is added.
         OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs(null));
@@ -824,6 +941,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private void LoadConfig()
     {
         var (config, error) = ServerConfigStore.Load(_configPath);
+        GamePort = config.Port;
+        DataDir = config.DataDir;
+        SpawnMap = config.Spawn.Map;
+        SpawnX = config.Spawn.X;
+        SpawnY = config.Spawn.Y;
+        WarNightDay = config.Schedule.WarNightDay;
+        WarNightHour = config.Schedule.WarNightHour;
         DurabilityLoss = config.DeathPenalty.DurabilityLoss;
         ItemDrop = config.DeathPenalty.ItemDrop;
         ExpLoss = config.DeathPenalty.ExpLoss;

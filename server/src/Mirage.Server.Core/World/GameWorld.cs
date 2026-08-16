@@ -279,8 +279,14 @@ public sealed class GameWorld
     /// accept this interaction), not to pick a broadcast audience.</summary>
     public bool IsObserving(int index, int mapNum) => MapObservers[mapNum].Contains(index);
 
-    public GameWorld()
+    /// <summary>The player-slot width every per-player array in this world is cut to. Held so the map-NPC
+    /// records allocated below size their damage ledgers to the server's real limit rather than the
+    /// protocol ceiling — 21,000 records × two arrays makes that difference tens of megabytes.</summary>
+    private readonly int _playerSlots;
+
+    public GameWorld(Configuration.ServerConfig? config = null)
     {
+        _playerSlots = (config ?? Configuration.ServerConfig.Default).MaxPlayers;
         for (int i = 0; i <= Constants.MaxMaps; i++) MapObservers[i] = new HashSet<int>();
         for (int i = 0; i <= Constants.MaxMaps; i++) MapTraversalNpcs[i] = new List<TraversalNpcRecord>();
         for (int i = 0; i <= Constants.MaxMaps; i++) MapItems[i] = new List<MapItemRecord>();
@@ -301,7 +307,7 @@ public sealed class GameWorld
         for (int m = 0; m <= Constants.MaxMaps; m++)
         {
             for (int s = 1; s <= Constants.MaxMapNpcs; s++)
-                MapNpcs[m, s] = new MapNpcRecord();
+                MapNpcs[m, s] = new MapNpcRecord(_playerSlots);
         }
     }
 

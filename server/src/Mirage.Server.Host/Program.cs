@@ -85,8 +85,12 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<EditorSessionManager>();
 
         // ── Persistence ───────────────────────────────────────────────────────
-        // Data directory defaults to "data/" relative to the executable.
-        string dataDir = ctx.Configuration["DataDir"] ?? Path.Combine(AppContext.BaseDirectory, "data");
+        // serverconfig.json wins, because that is where an operator sets it from the shell. The
+        // appsettings.json key is where this lived before the config split and is still honored, so an
+        // install that predates the move keeps finding its world. Default: data/ beside the executable.
+        string dataDir = serverConfig.DataDir is { Length: > 0 } configured
+            ? configured
+            : ctx.Configuration["DataDir"] ?? Path.Combine(AppContext.BaseDirectory, "data");
         string logsDir = ctx.Configuration["LogsDir"] ?? Path.Combine(AppContext.BaseDirectory, "logs");
 
         Serilog.ILogger chatSerilogLogger = new Serilog.LoggerConfiguration()

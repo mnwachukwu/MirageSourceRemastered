@@ -40,9 +40,9 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         _world = world;
         _logger = logger;
 
-        _players = new ConnectionSlot[Constants.MaxPlayers + 1];
+        _players = new ConnectionSlot[_pm.Slots + 1];
         _editors = new ConnectionSlot[Constants.MaxEditorSessions + 1];
-        for (int i = 0; i <= Constants.MaxPlayers; i++) _players[i] = new ConnectionSlot();
+        for (int i = 0; i <= _pm.Slots; i++) _players[i] = new ConnectionSlot();
         for (int i = 0; i <= Constants.MaxEditorSessions; i++) _editors[i] = new ConnectionSlot();
     }
 
@@ -109,7 +109,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
 
     public void SendTo(int index, IPacket packet)
     {
-        if (!SlotValidation.IsValidPlayerSlot(index)) return;
+        if (!_pm.IsValidSlot(index)) return;
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX player {Index}] {Line}", index, json);
         Enqueue(_players[index], json);
@@ -119,7 +119,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX all] {Line}", json);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[i].IsConnected) Enqueue(_players[i], json);
         }
@@ -129,7 +129,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX allBut {Exclude}] {Line}", exclude, json);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (i != exclude && _pm[i].IsConnected) Enqueue(_players[i], json);
         }
@@ -140,7 +140,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         if (observers.Count == 0) return;
         string json = PacketSerializer.Serialize(packet);
         foreach (int i in observers)
-            if (i >= 1 && i <= Constants.MaxPlayers && _pm[i].IsPlaying) Enqueue(_players[i], json);
+            if (i >= 1 && i <= _pm.Slots && _pm[i].IsPlaying) Enqueue(_players[i], json);
     }
 
     public void SendToObserversBut(IReadOnlyCollection<int> observers, int exclude, IPacket packet)
@@ -148,12 +148,12 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         if (observers.Count == 0) return;
         string json = PacketSerializer.Serialize(packet);
         foreach (int i in observers)
-            if (i != exclude && i >= 1 && i <= Constants.MaxPlayers && _pm[i].IsPlaying) Enqueue(_players[i], json);
+            if (i != exclude && i >= 1 && i <= _pm.Slots && _pm[i].IsPlaying) Enqueue(_players[i], json);
     }
 
     public void SendToViewport(int speakerIndex, IPacket packet)
     {
-        if (!SlotValidation.IsValidPlayerSlot(speakerIndex)) return;
+        if (!_pm.IsValidSlot(speakerIndex)) return;
         var sp = _pm[speakerIndex];
         if (!sp.IsPlaying) return;
         var spc = sp.Char;
@@ -172,7 +172,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         string json = PacketSerializer.Serialize(packet);
         foreach (int i in _world.MapObservers[mapNum])
         {
-            if (!SlotValidation.IsValidPlayerSlot(i) || !_pm[i].IsPlaying) continue;
+            if (!_pm.IsValidSlot(i) || !_pm[i].IsPlaying) continue;
             var lc = _pm[i].Char;
             var lw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, lc.Map, lc.X, lc.Y);
             if (lw is null) continue;
@@ -183,7 +183,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
 
     public void SendChatBubble(int speakerIndex, IPacket packet, string senderLogin, bool wholeRegion)
     {
-        if (!SlotValidation.IsValidPlayerSlot(speakerIndex)) return;
+        if (!_pm.IsValidSlot(speakerIndex)) return;
         var sp = _pm[speakerIndex];
         if (!sp.IsPlaying) return;
         var spc = sp.Char;
@@ -197,7 +197,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
             // Yell-range: every observer of the speaker's map who doesn't ignore them (Monitor+ bypass).
             foreach (int i in _world.MapObservers[spc.Map])
             {
-                if (SlotValidation.IsValidPlayerSlot(i) && _pm[i].IsPlaying && !IgnoreSuppresses(i, senderLogin, spc.Access))
+                if (_pm.IsValidSlot(i) && _pm[i].IsPlaying && !IgnoreSuppresses(i, senderLogin, spc.Access))
                     Enqueue(_players[i], json);
             }
 
@@ -209,7 +209,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         int spWY = WorldCoordHelper.MapTilesY + spc.Y;
         foreach (int i in _world.MapObservers[spc.Map])
         {
-            if (!SlotValidation.IsValidPlayerSlot(i) || !_pm[i].IsPlaying || IgnoreSuppresses(i, senderLogin, spc.Access)) continue;
+            if (!_pm.IsValidSlot(i) || !_pm[i].IsPlaying || IgnoreSuppresses(i, senderLogin, spc.Access)) continue;
             var lc = _pm[i].Char;
             var lw = WorldCoordHelper.ToWorldRelative(_world.Maps, spc.Map, lc.Map, lc.X, lc.Y);
             if (lw is null) continue;
@@ -222,7 +222,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         string json = PacketSerializer.Serialize(packet);
         _logger.LogDebug("[TX admins] {Line}", json);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[i].IsPlaying && _pm[i].Char.Access > AdminLevel.Player)
                 Enqueue(_players[i], json);
@@ -233,7 +233,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         if (guildId < 1) return;
         string json = PacketSerializer.Serialize(packet);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[i].IsPlaying && _pm[i].Guild == guildId)
                 Enqueue(_players[i], json);
@@ -244,7 +244,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     {
         if (guildId < 1) return;
         string json = PacketSerializer.Serialize(packet);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (i != exclude && _pm[i].IsPlaying && _pm[i].Guild == guildId)
                 Enqueue(_players[i], json);
@@ -271,7 +271,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatTo(int index, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        if (!SlotValidation.IsValidPlayerSlot(index)) return;
+        if (!_pm.IsValidSlot(index)) return;
         if (IgnoreSuppresses(index, meta)) return;
         var text = ServerStrings.ForPlayer(index, key, args);
         var packet = BuildChatPacket(text, meta);
@@ -281,7 +281,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToAll(string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsConnected || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
@@ -292,7 +292,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToAllBut(int exclude, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (i == exclude || !_pm[i].IsConnected || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
@@ -306,7 +306,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         if (observers.Count == 0) return;
         foreach (int i in observers)
         {
-            if (i < 1 || i > Constants.MaxPlayers || !_pm[i].IsPlaying || IgnoreSuppresses(i, meta)) continue;
+            if (i < 1 || i > _pm.Slots || !_pm[i].IsPlaying || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
             Enqueue(_players[i], PacketSerializer.Serialize(BuildChatPacket(text, meta)));
         }
@@ -318,7 +318,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         if (observers.Count == 0) return;
         foreach (int i in observers)
         {
-            if (i == exclude || i < 1 || i > Constants.MaxPlayers || !_pm[i].IsPlaying || IgnoreSuppresses(i, meta)) continue;
+            if (i == exclude || i < 1 || i > _pm.Slots || !_pm[i].IsPlaying || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
             Enqueue(_players[i], PacketSerializer.Serialize(BuildChatPacket(text, meta)));
         }
@@ -327,7 +327,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToViewport(int speakerIndex, string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        if (!SlotValidation.IsValidPlayerSlot(speakerIndex)) return;
+        if (!_pm.IsValidSlot(speakerIndex)) return;
         var sp = _pm[speakerIndex];
         if (!sp.IsPlaying) return;
         var spc = sp.Char;
@@ -343,7 +343,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
 
         foreach (int i in _world.MapObservers[mapNum])
         {
-            if (!SlotValidation.IsValidPlayerSlot(i) || !_pm[i].IsPlaying || IgnoreSuppresses(i, meta)) continue;
+            if (!_pm.IsValidSlot(i) || !_pm[i].IsPlaying || IgnoreSuppresses(i, meta)) continue;
             var lc = _pm[i].Char;
             var lw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, lc.Map, lc.X, lc.Y);
             if (lw is null) continue;
@@ -356,7 +356,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendLocalizedChatToAdmins(string key, ChatMetadata meta,
         params (string Key, object? Value)[] args)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || _pm[i].Char.Access <= AdminLevel.Player || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
@@ -368,7 +368,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         params (string Key, object? Value)[] args)
     {
         if (guildId < 1) return;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || _pm[i].Guild != guildId || IgnoreSuppresses(i, meta)) continue;
             var text = ServerStrings.ForPlayer(i, key, args);
@@ -380,7 +380,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         params (string Key, object? Value)[] args)
     {
         if (guildId < 1) return;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || _pm[i].Guild != guildId || _pm[i].GuildRank < GuildRank.Officer
                 || IgnoreSuppresses(i, meta))
@@ -413,7 +413,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     /// </summary>
     public void Disconnect(int index)
     {
-        if (!SlotValidation.IsValidPlayerSlot(index)) return;
+        if (!_pm.IsValidSlot(index)) return;
         try { _players[index].Client?.Close(); } catch { /* already closed */ }
     }
 
@@ -429,7 +429,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     /// </summary>
     public void GracefulDisconnect(int index)
     {
-        if (!SlotValidation.IsValidPlayerSlot(index)) return;
+        if (!_pm.IsValidSlot(index)) return;
         var slot = _players[index];
         slot.PendingClose = true;
         slot.Channel?.Writer.TryComplete();   // drain task exits loop then closes socket
@@ -492,7 +492,7 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
 
     public void Dispose()
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++) _players[i].Cts?.Cancel();
+        for (int i = 1; i <= _pm.Slots; i++) _players[i].Cts?.Cancel();
         for (int i = 1; i <= Constants.MaxEditorSessions; i++) _editors[i].Cts?.Cancel();
     }
 

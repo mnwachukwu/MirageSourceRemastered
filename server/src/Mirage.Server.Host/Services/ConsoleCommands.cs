@@ -246,7 +246,7 @@ public sealed partial class ConsoleCommands : IHostedService
     private void CmdWho()
     {
         int count = 0;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying) continue;
             var c = _pm[i].Char;

@@ -152,17 +152,14 @@ public sealed partial class ShopRowViewModel : ObservableObject
         }
 
         OnPropertyChanged(nameof(HasNoTrades));
-        AddTradeCommand.NotifyCanExecuteChanged();   // re-enable + when a remove drops below the ceiling
         if (_loading) return;
         _structuralDirty = true;
         OnPropertyChanged(nameof(IsDirty));
     }
 
-    [RelayCommand(CanExecute = nameof(CanAddTrade))]
+    [RelayCommand]
     private void AddTrade() =>
         Trades.Add(new TradeRowViewModel(Trades.Count + 1, new TradeItemRecord(), _entriesProvider, _isCurrency));
-
-    private bool CanAddTrade() => Trades.Count < Constants.MaxTrades;
 
     [RelayCommand]
     private void RemoveTrade(TradeRowViewModel row) => Trades.Remove(row);

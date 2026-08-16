@@ -299,7 +299,7 @@ public sealed class MarketSystem : GameSystem
     // set is small and listing changes are infrequent.
     private void SyncViewers()
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[i].IsPlaying && _pm[i].ViewingMarket)
                 SyncTo(i, open: false);

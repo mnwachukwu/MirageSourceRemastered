@@ -22,7 +22,18 @@ public static class Constants
     public static readonly int ClientMinor = _appVer.Minor;
     public static readonly int ClientRevision = _appVer.Build;
 
-    public const int MaxPlayers = 70;
+    /// <summary>The PROTOCOL ceiling on concurrent players — the largest slot number that can ever appear
+    /// on the wire, and the size a client allocates its player table for.
+    ///
+    /// <para>This is NOT a server's limit. That is <c>ServerConfig.MaxPlayers</c>, defaults to 20, and is
+    /// what sizes the server's own arrays — so a small world never pays for this number. An operator
+    /// raises it against a measured figure from the window's load benchmark rather than a guess.</para>
+    ///
+    /// <para>It lives here as a <c>const</c> because it is inlined into every shipped client, so a server
+    /// configured ABOVE it would hand out slot numbers the client cannot index. Config is validated
+    /// against it for exactly that reason. Raising it is a client-side cost — see the loops in
+    /// MovementProcessor and RenderCommandBuilder, which walk the ACTIVE set rather than this number.</para></summary>
+    public const int MaxPlayers = 500;
 
     // ── Record-family ceilings ────────────────────────────────────────────────
     // All 1000, matching MaxMaps. These were 255 — the VB6 array bound — and the spell grid hit it
@@ -122,7 +133,6 @@ public static class Constants
     public const long TradeInviteTimeoutMs = 30_000;
     public const int MaxMapNpcs = 20;   // per-map NPC spawn slots, 1-based (1..MaxMapNpcs)
     public const int MaxPlayerSpells = 20;
-    public const int MaxTrades = 255;   // safety ceiling on trades per shop (editor authors as many as needed)
     public const int MaxChars = 3;
     public const int NameLength = 30;
     public const int MinFieldLength = 3;
@@ -218,10 +228,8 @@ public static class Constants
     public const int NormalDropChancePercent = 20;  // each non-equipped slot on normal death
     public const int PkEqDropChancePercent = 25;  // each equipped slot on PK death
 
-    // Default spawn location — the center of map 1.
-    public const short StartMap = 1;
-    public const byte StartX = (MaxMapX + 1) / 2;   // 8
-    public const byte StartY = (MaxMapY + 1) / 2;   // 6
+    // The spawn point is a server SETTING, not a constant — see ServerConfig.Spawn. It defaults to the
+    // middle of map 1, which is what it was when it lived here.
 
     // ── Combat timing ────────────────────────────────────────────────────────
     // The three ACTION cooldowns share the same 1-second beat: player attack, NPC attack, spell cast.
@@ -555,15 +563,10 @@ public static class Constants
     public const int TerritoryWeeksHeldCap = 4;
     // Per-territory per-day accrual cap (anti-snowball); resets when the day's income is credited.
     public const long TerritoryIncomeDailyCap = 17_500;
-    // The weekly boundary at which each territory's IncomeThisWeek is snapshotted into PreviousWeekIncome
-    // (the day after war night). WeeksHeld itself ticks at war-night retention.
-    public const DayOfWeek TerritoryWeekResetDay = DayOfWeek.Sunday;
-
     // ── Territory war night ──────────────────────────────────────────────────
-    // The single weekly territory-contest slot (Server Time). Saturday 8pm; the season week resets the day
-    // after (Sunday, TerritoryWeekResetDay).
-    public const DayOfWeek WarNightSlotDay = DayOfWeek.Saturday;
-    public const int WarNightSlotHour = 20;   // 24h server-local
+    // The weekly contest slot and the weekly boundary that follows it are server SETTINGS — see
+    // ServerConfig.Schedule. They default to Saturday 8pm and the Sunday after, which is what they were
+    // when they lived here. WeeksHeld itself ticks at war-night retention, not at the boundary.
     // Up to this many challengers per territory; with the defender that's TerritoryMaxChallengers + 1 guilds.
     public const int TerritoryMaxChallengers = 4;
     // Flat cost to challenge an UNCLAIMED territory (a non-refundable sink). An OWNED territory costs the base

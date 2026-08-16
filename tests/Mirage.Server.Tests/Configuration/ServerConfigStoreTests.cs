@@ -28,6 +28,43 @@ public class ServerConfigStoreTests
 
     string Path_(string name) => Path.Combine(_dir, name);
 
+    /// <summary>The weekly boundary is DERIVED, never stored — it was a second constant documented as "the
+    /// day after war night", and two settings could drift apart. Wrapping Saturday to Sunday is the case
+    /// the modulo exists for, and it is also the shipped default.</summary>
+    [TestCase(DayOfWeek.Saturday, DayOfWeek.Sunday)]
+    [TestCase(DayOfWeek.Sunday, DayOfWeek.Monday)]
+    [TestCase(DayOfWeek.Wednesday, DayOfWeek.Thursday)]
+    public void WeekResetDay_IsAlwaysTheDayAfterWarNight(DayOfWeek warNight, DayOfWeek expected)
+    {
+        var schedule = new ScheduleConfig { WarNightDay = warNight };
+
+        Assert.That(schedule.WeekResetDay, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void TheStockScheduleIsSaturdayEightPm()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(ServerConfig.Default.Schedule.WarNightDay, Is.EqualTo(DayOfWeek.Saturday));
+            Assert.That(ServerConfig.Default.Schedule.WarNightHour, Is.EqualTo(20));
+            Assert.That(ServerConfig.Default.Schedule.WeekResetDay, Is.EqualTo(DayOfWeek.Sunday));
+        });
+    }
+
+    /// <summary>The spawn defaults have to equal what the old computed constants produced, or an existing
+    /// world silently moves its front door the first time it boots on this build.</summary>
+    [Test]
+    public void TheStockSpawnIsTheMiddleOfMapOne()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(ServerConfig.Default.Spawn.Map, Is.EqualTo(1));
+            Assert.That(ServerConfig.Default.Spawn.X, Is.EqualTo((Mirage.Shared.Constants.MaxMapX + 1) / 2));
+            Assert.That(ServerConfig.Default.Spawn.Y, Is.EqualTo((Mirage.Shared.Constants.MaxMapY + 1) / 2));
+        });
+    }
+
     [Test]
     public void NoFileAtAll_IsStockRulesAndNotAComplaint()
     {

@@ -222,7 +222,7 @@ public sealed partial class CombatSystem : GameSystem
 
         var contributors = new HashSet<int>();
         var contributorBaseExp = new Dictionary<int, long>();
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (mapNpc.DamageByPlayer[i] == 0) continue;
             // Cross-map aware: a damage-dealer who can observe the NPC's map earns credit,
@@ -237,7 +237,7 @@ public sealed partial class CombatSystem : GameSystem
             contributorBaseExp[i] = (long)Math.Round(solo * share * expMult, MidpointRounding.AwayFromZero);
         }
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
             var p = _pm[i].Char;
@@ -355,7 +355,7 @@ public sealed partial class CombatSystem : GameSystem
     {
         var npcRec = _world.Npcs[mapNpc.Num];
         int maxDmg = 0;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
             if (mapNpc.DamageByPlayer[i] > maxDmg) maxDmg = mapNpc.DamageByPlayer[i];
 
         int topNpcDmg = 0;
@@ -387,7 +387,7 @@ public sealed partial class CombatSystem : GameSystem
             // Clamp to 1 so 0-damage players never qualify: at maxDmg=1 the raw 95% truncates
             // to 0 and would let everyone on the map roll.
             int threshold = Math.Max(1, (int)(maxDmg * Constants.LootDamageContributionThreshold));
-            for (int i = 1; i <= Constants.MaxPlayers; i++)
+            for (int i = 1; i <= _pm.Slots; i++)
             {
                 if (mapNpc.DamageByPlayer[i] < threshold) continue;
                 if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
@@ -709,12 +709,12 @@ public sealed partial class CombatSystem : GameSystem
     {
         if (healed <= 0) return;
         long sumDmg = 0;
-        for (int i = 1; i <= Constants.MaxPlayers; i++) sumDmg += mapNpc.DamageByPlayer[i];
+        for (int i = 1; i <= _pm.Slots; i++) sumDmg += mapNpc.DamageByPlayer[i];
         if (sumDmg <= 0) return;
         // Clamp: if the heal exceeds tracked credit (e.g. a contributor died and their
         // entry was cleared), there's nothing left to cancel out for — zero it all out.
         long reduce = Math.Min(healed, sumDmg);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             int dmg = mapNpc.DamageByPlayer[i];
             if (dmg <= 0) continue;

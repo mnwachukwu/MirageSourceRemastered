@@ -1,3 +1,4 @@
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Shared;
 using Mirage.Shared.Records;
@@ -252,7 +253,7 @@ public class GuildScheduleTests
     public void SettleGuild_WeeklyReset_ZeroesTotalsThenAccruesTodaysIncome()
     {
         var sunday = new DateOnly(2026, 7, 19);
-        Assume.That(sunday.DayOfWeek, Is.EqualTo(Constants.TerritoryWeekResetDay), "test date must be the weekly reset day");
+        Assume.That(sunday.DayOfWeek, Is.EqualTo(ServerConfig.Default.Schedule.WeekResetDay), "test date must be the weekly reset day");
         var g = Guild(level: 0, vault: 0, founding: DayOfWeek.Monday);   // L0 = no tax; not the founding day anyway
         g.WeeklyIncome = 100;
         g.WeeklyDonations = 50;
@@ -275,7 +276,7 @@ public class GuildScheduleTests
     public void SettleGuild_NonResetDay_AddsIncomeWithoutZeroing()
     {
         var friday = new DateOnly(2026, 7, 17);
-        Assume.That(friday.DayOfWeek, Is.Not.EqualTo(Constants.TerritoryWeekResetDay));
+        Assume.That(friday.DayOfWeek, Is.Not.EqualTo(ServerConfig.Default.Schedule.WeekResetDay));
         var g = Guild(level: 0, vault: 0, founding: DayOfWeek.Monday);
         g.WeeklyIncome = 100;
         g.PendingVaultGold = 5;
@@ -374,7 +375,7 @@ public class GuildScheduleTests
     public void ResetWeeklyTotalsIfDue_OncePerDate_ThenIdempotent()
     {
         var sunday = new DateOnly(2026, 7, 19);
-        Assume.That(sunday.DayOfWeek, Is.EqualTo(Constants.TerritoryWeekResetDay));
+        Assume.That(sunday.DayOfWeek, Is.EqualTo(ServerConfig.Default.Schedule.WeekResetDay));
         var g = Guild(level: 0, vault: 0, founding: DayOfWeek.Monday);
         g.WeeklyIncome = 100;
         g.WeeklyDonations = 50;

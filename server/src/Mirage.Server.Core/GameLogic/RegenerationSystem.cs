@@ -73,7 +73,7 @@ public sealed class RegenerationSystem : GameSystem
 
         long nowUtc = NowUtc;
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || _pm[i].Char.Dead) continue;   // a corpse neither regenerates nor expires flags
             var p = _pm[i].Char;

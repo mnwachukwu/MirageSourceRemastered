@@ -105,7 +105,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
 
     private void Reschedule()
     {
-        var slot = TerritoryFormulas.NextWarNight(Clock.LocalNow, Constants.WarNightSlotDay, Constants.WarNightSlotHour);
+        var slot = TerritoryFormulas.NextWarNight(Clock.LocalNow, Config.Schedule.WarNightDay, Config.Schedule.WarNightHour);
         _nextWarNightUtc = ((DateTimeOffset)slot).ToUnixTimeSeconds();
     }
 

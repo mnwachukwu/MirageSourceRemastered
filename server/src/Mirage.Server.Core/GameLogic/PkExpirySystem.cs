@@ -33,7 +33,7 @@ public sealed class PkExpirySystem : GameSystem
         if (nowUtc - _lastCheckUtc < 60) return;
         _lastCheckUtc = nowUtc;
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;

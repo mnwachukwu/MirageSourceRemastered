@@ -63,6 +63,11 @@ public sealed class GameLoop : IDisposable
     private Thread? _thread;
     private volatile bool _running;
 
+    /// <summary>How hard this thread is working. Always recorded — the counters are two interlocked adds
+    /// per pass, which is nothing against a pass that ran packet handlers — so a load report never needs
+    /// the server started in a special mode to be measurable.</summary>
+    public GameLoopMetrics Metrics { get; } = new();
+
     public GameLoop(GameWorld world, PlayerManager pm, NpcAiSystem npcAi,
                     RegenerationSystem regen, PkExpirySystem pkExpiry, PartySystem party,
                     ItemSystem items, PlayerSaver saver, TimeOfDaySystem tod, WeatherSystem weather,
@@ -140,6 +145,8 @@ public sealed class GameLoop : IDisposable
         long nextSave = now + SaveIntervalMs;
         long nextMailSweep = now + MailSweepIntervalMs;
 
+        long iterationStart = System.Diagnostics.Stopwatch.GetTimestamp();
+
         while (_running)
         {
             now = Environment.TickCount64;
@@ -148,10 +155,20 @@ public sealed class GameLoop : IDisposable
 
             // Wake on the next queued action OR the next tick deadline, then drain everything pending so
             // a burst of packets is processed before the next tick rather than one-per-wakeup.
+            int drained = 0;
+            // Busy time starts AFTER the queue wait: parked on an empty queue is idle, and counting it as
+            // work would report a quiet server as fully loaded.
+            long busyStart;
             if (TryTake(wait, out var action))
             {
+                busyStart = System.Diagnostics.Stopwatch.GetTimestamp();
                 RunQueued(action);
-                while (TryTake(0, out var more)) RunQueued(more);
+                drained++;
+                while (TryTake(0, out var more)) { RunQueued(more); drained++; }
+            }
+            else
+            {
+                busyStart = System.Diagnostics.Stopwatch.GetTimestamp();
             }
 
             now = Environment.TickCount64;
@@ -190,6 +207,14 @@ public sealed class GameLoop : IDisposable
             // events (drop/pickup/break/death/level-up/sort) so a hard-disconnect can't roll it back
             // before the 60 s autosave. Cheap when nothing is dirty.
             RunTick(FlushDirtyPlayers, "flush");
+
+            long iterationEnd = System.Diagnostics.Stopwatch.GetTimestamp();
+            // Overrun = the work alone outlasted the SHORTEST tick interval, so the next pass is already
+            // late before it starts. That is the first symptom of a loop losing the race, well before
+            // anything visible goes wrong in game.
+            bool overran = (iterationEnd - busyStart) > NpcMoveIntervalMs * (System.Diagnostics.Stopwatch.Frequency / 1000);
+            Metrics.Record(iterationEnd - busyStart, iterationEnd - iterationStart, drained, overran);
+            iterationStart = iterationEnd;
         }
     }
 
@@ -263,7 +288,7 @@ public sealed class GameLoop : IDisposable
         // file I/O never stalls the game loop.  Clone because the player keeps being mutated while the
         // background write runs.
         long nowUtc = _clock.UtcNowUnix;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -292,7 +317,7 @@ public sealed class GameLoop : IDisposable
     /// a no-op scan when nothing is dirty.</summary>
     private void FlushDirtyPlayers()
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.SaveDirty) continue;

@@ -23,11 +23,75 @@ public sealed record ServerConfig
     /// their messages resolve through each session's own locale.</summary>
     public string Language { get; init; } = "en";
 
+    /// <summary>Where the world lives. Empty means <c>data/</c> beside the executable, which is what a
+    /// stock install runs; an absolute path puts it on another drive or somewhere that gets backed up.
+    ///
+    /// <para>Here rather than in appsettings.json because it configures the SERVER, which is the line the
+    /// two files are split on. <c>Program.cs</c> still honors the old <c>DataDir</c> key in appsettings.json
+    /// when this is empty, so an install predating the move keeps working.</para></summary>
+    public string DataDir { get; init; } = "";
+
     /// <summary>What a player loses when they die.</summary>
     public DeathPenaltyConfig DeathPenalty { get; init; } = new();
 
+    /// <summary>How many players this server accepts at once, and the size of every per-player array it
+    /// allocates. Deliberately SMALL by default: the right number depends on the machine, and the server
+    /// window's load benchmark measures it rather than asking an operator to guess.
+    ///
+    /// <para>Clamped to <c>Constants.MaxPlayers</c>, the protocol ceiling. Above that the server would
+    /// issue slot numbers a shipped client cannot index.</para></summary>
+    /// <para>Every server-side scan walks <c>PlayerManager.Slots</c> — this value — rather than the
+    /// constant, so a small world does no work and holds no array for slots it will never use.</para>
+    public int MaxPlayers
+    {
+        get;
+        init => field = Math.Clamp(value, 1, Mirage.Shared.Constants.MaxPlayers);
+    } = 20;
+
+    /// <summary>Where a character starts, and where one respawns without a purchased spawn point.</summary>
+    public SpawnConfig Spawn { get; init; } = new();
+
+    /// <summary>When the weekly territory contest runs.</summary>
+    public ScheduleConfig Schedule { get; init; } = new();
+
     /// <summary>Remote operator access. Off unless configured.</summary>
     public ManagementConfig Management { get; init; } = new();
+}
+
+/// <summary>
+/// The world's front door: where a new character is placed, and where anyone without a purchased spawn
+/// point comes back.
+///
+/// <para>The defaults are the middle of map 1, which is what these were as computed constants. Nothing on
+/// the client reads them, so they are a plain server setting.</para>
+/// </summary>
+public sealed record SpawnConfig
+{
+    public int Map { get; init; } = 1;
+    public int X { get; init; } = (Mirage.Shared.Constants.MaxMapX + 1) / 2;
+    public int Y { get; init; } = (Mirage.Shared.Constants.MaxMapY + 1) / 2;
+}
+
+/// <summary>
+/// The weekly territory contest. Server-local, so a world keeps the evening its players actually play on
+/// rather than one derived from UTC.
+///
+/// <para>The DAILY guild settlement is deliberately not here: it runs at midnight on the host box and
+/// <c>GuildScheduleSystem</c> walks whole calendar days, which is what makes a slot missed during downtime
+/// replay correctly on the next boot.</para>
+/// </summary>
+public sealed record ScheduleConfig
+{
+    public DayOfWeek WarNightDay { get; init; } = DayOfWeek.Saturday;
+
+    /// <summary>0-23, server-local.</summary>
+    public int WarNightHour { get; init; } = 20;
+
+    /// <summary>The weekly boundary — territory income snapshots, season weeks and the weekly quest reset.
+    /// DERIVED as the day after war night, never configured separately: the two were a pair of constants
+    /// documented as "the day after", and two settings could be moved out of step with each other.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public DayOfWeek WeekResetDay => (DayOfWeek)(((int)WarNightDay + 1) % 7);
 }
 
 /// <summary>

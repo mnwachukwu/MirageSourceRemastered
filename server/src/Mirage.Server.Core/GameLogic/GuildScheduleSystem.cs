@@ -188,7 +188,7 @@ public sealed class GuildScheduleSystem : GameSystem
     {
         // NORMAL 00:00 settlement (per caught-up day): derive which weekly/season steps are due from the date,
         // run them, then advance the season cursor. All steps are marker-guarded (idempotent).
-        bool resetDay = date.DayOfWeek == Constants.TerritoryWeekResetDay;
+        bool resetDay = date.DayOfWeek == Config.Schedule.WeekResetDay;
         bool seasonKnown = _seasonStart != default;
         int week = seasonKnown ? SeasonFormulas.WeeksElapsed(_seasonStart, date) : -1;
         bool doScoring = resetDay && seasonKnown && week >= Constants.TerritorySeasonScoringStartWeek && week < Constants.TerritorySeasonWeeks;
@@ -218,7 +218,8 @@ public sealed class GuildScheduleSystem : GameSystem
         // Snapshot: severing a dropped war mutates the opponent guild's Wars list (not the dictionary).
         foreach (var guild in _world.Guilds.Values.ToList())
         {
-            var result = SettleGuild(guild, date, nowUtc, forceWeekly: doWeeklyReset);
+            var result = SettleGuild(guild, date, nowUtc, forceWeekly: doWeeklyReset,
+                                     weekResetDay: Config.Schedule.WeekResetDay);
             foreach (int opponentIndex in result.Dropped)
                 DropWarMirrorAndAnnounce(guild, opponentIndex);
             if (!result.Changed) continue;
@@ -271,7 +272,7 @@ public sealed class GuildScheduleSystem : GameSystem
     // adopt the season on first run, roll it after 13 weeks.
     private void AdvanceSeasonCursor(DateOnly date)
     {
-        if (date.DayOfWeek != Constants.TerritoryWeekResetDay) return;
+        if (date.DayOfWeek != Config.Schedule.WeekResetDay) return;
         if (_seasonStart == default)   // first boot: adopt this week as season 1, no retroactive scoring
         {
             _seasonStart = date;
@@ -486,12 +487,13 @@ public sealed class GuildScheduleSystem : GameSystem
     /// cover a same-day debt, and the weekly tax is taken before war upkeep. Mutates the guild and returns
     /// what happened, including any wars dropped for non-payment (the caller severs the opponent mirror +
     /// announces). <paramref name="nowUtc"/> gates a war's "is it live yet" check. Exposed for tests.</summary>
-    public static SettlementResult SettleGuild(GuildRecord guild, DateOnly date, long nowUtc, bool forceWeekly = false)
+    public static SettlementResult SettleGuild(GuildRecord guild, DateOnly date, long nowUtc, bool forceWeekly = false,
+                                               DayOfWeek weekResetDay = DayOfWeek.Sunday)
     {
         // Weekly financial-health reset (start of a new week): zero the running totals BEFORE this day's flows,
         // so today's tax/war-spend/income count toward the fresh week. Guarded per date so a re-run/force can't
         // double-zero (idempotent — see ResetWeeklyTotalsIfDue).
-        bool weeklyReset = ResetWeeklyTotalsIfDue(guild, date, forceWeekly);
+        bool weeklyReset = ResetWeeklyTotalsIfDue(guild, date, forceWeekly, weekResetDay);
 
         // ── DEBITS (before credits) — each skipped if already applied for this date, so a manual /guildreset
         //    re-run never double-charges (the CREDITS below are naturally idempotent: accrue-and-zero). ──
@@ -518,9 +520,10 @@ public sealed class GuildScheduleSystem : GameSystem
     /// <paramref name="force"/> (a manual /guildreset week/season). Guarded per date via
     /// <see cref="GuildRecord.LastWeeklyResetDate"/> so it runs once per week (idempotent). Returns whether it
     /// actually zeroed anything.</summary>
-    public static bool ResetWeeklyTotalsIfDue(GuildRecord guild, DateOnly date, bool force)
+    public static bool ResetWeeklyTotalsIfDue(GuildRecord guild, DateOnly date, bool force,
+                                              DayOfWeek weekResetDay = DayOfWeek.Sunday)
     {
-        if (!force && date.DayOfWeek != Constants.TerritoryWeekResetDay) return false;
+        if (!force && date.DayOfWeek != weekResetDay) return false;
         if (guild.LastWeeklyResetDate == date) return false;   // already reset for this date
         guild.LastWeeklyResetDate = date;
         if (guild.WeeklyIncome == 0 && guild.WeeklyDonations == 0 && guild.WeeklyWarCosts == 0) return false;

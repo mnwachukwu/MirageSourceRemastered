@@ -384,7 +384,7 @@ public sealed class TradeSystem : GameSystem
     public void Tick()
     {
         long now = Environment.TickCount64;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (sp.InTrade && sp.TradePartner > 0)

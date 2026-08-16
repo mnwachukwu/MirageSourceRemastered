@@ -154,7 +154,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private int MajorityGuildInRadius(ContestPoint pt, HashSet<int> participants)
     {
         var counts = new Dictionary<int, int>();
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;

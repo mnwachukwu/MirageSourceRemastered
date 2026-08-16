@@ -203,7 +203,7 @@ public sealed class WeatherSystem : GameSystem
         }
 
         // Players: recompute the weather-adjusted max, scale current to the new max, re-sync bars.
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying) continue;
             var p = _pm[i].Char;

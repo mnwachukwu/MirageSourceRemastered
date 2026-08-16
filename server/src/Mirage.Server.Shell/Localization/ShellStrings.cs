@@ -103,6 +103,7 @@ public static class ShellStrings
     public const string Config_WindowGroupHint = nameof(Config_WindowGroupHint);
     public const string Config_ServerGroup = nameof(Config_ServerGroup);
     public const string Config_ServerGroupHint = nameof(Config_ServerGroupHint);
+    public const string Config_SaveScope = nameof(Config_SaveScope);       // "{Group}"
 
     // ── Connection ────────────────────────────────────────────────────────────
     public const string Connection_Heading = nameof(Connection_Heading);
@@ -116,6 +117,29 @@ public static class ShellStrings
     public const string Connection_Token = nameof(Connection_Token);
     public const string Connection_TokenHint = nameof(Connection_TokenHint);
     public const string Connection_Reveal = nameof(Connection_Reveal);
+
+    // ── Where the server listens and where its world lives ────────────────────
+    public const string Hosting_Heading = nameof(Hosting_Heading);
+    public const string Hosting_Blurb = nameof(Hosting_Blurb);
+    public const string Hosting_GamePort = nameof(Hosting_GamePort);
+    public const string Hosting_GamePortHint = nameof(Hosting_GamePortHint);
+    public const string Hosting_DataDir = nameof(Hosting_DataDir);
+    public const string Hosting_DataDirHint = nameof(Hosting_DataDirHint);
+    public const string Hosting_DataDirDefault = nameof(Hosting_DataDirDefault);
+    public const string Hosting_Browse = nameof(Hosting_Browse);
+    public const string Hosting_UseDefault = nameof(Hosting_UseDefault);
+
+    // ── Where players start, and when the weekly contest runs ─────────────────
+    public const string World_SpawnHeading = nameof(World_SpawnHeading);
+    public const string World_SpawnBlurb = nameof(World_SpawnBlurb);
+    public const string World_SpawnMap = nameof(World_SpawnMap);
+    public const string World_SpawnX = nameof(World_SpawnX);
+    public const string World_SpawnY = nameof(World_SpawnY);
+    public const string Schedule_Heading = nameof(Schedule_Heading);
+    public const string Schedule_Blurb = nameof(Schedule_Blurb);
+    public const string Schedule_WarNightDay = nameof(Schedule_WarNightDay);
+    public const string Schedule_WarNightHour = nameof(Schedule_WarNightHour);
+    public const string Schedule_WeekResetNote = nameof(Schedule_WeekResetNote);   // "{Day}"
 
     // ── Logging ───────────────────────────────────────────────────────────────
     public const string Logging_Heading = nameof(Logging_Heading);
@@ -138,6 +162,8 @@ public static class ShellStrings
     public const string Management_Port = nameof(Management_Port);
     public const string Management_Token = nameof(Management_Token);
     public const string Management_TokenHint = nameof(Management_TokenHint);
+    public const string Management_Copy = nameof(Management_Copy);
+    public const string Management_TokenCopied = nameof(Management_TokenCopied);
     public const string Management_LocalOnly = nameof(Management_LocalOnly);
 
     public const string Config_DeathPenaltyHeading = nameof(Config_DeathPenaltyHeading);
@@ -182,12 +208,18 @@ public static class ShellStrings
         return result;
     }
 
+    /// <summary>The locale the loaded table came from. Anything formatted by the framework rather than
+    /// looked up here — day names, dates — resolves against THIS, not the machine's culture, because the
+    /// shell's language is its own setting and an operator picked it deliberately.</summary>
+    public static string CurrentLocale { get; private set; } = "en";
+
     /// <summary>Loads <paramref name="langCode"/> from <paramref name="langDir"/>, validating the
     /// translation against en.json. Mismatches throw in DEBUG (a missing key is a bug worth stopping
     /// for while it is cheap to fix) and merge over English in Release (an operator should never be
     /// shown a crash because one label was not translated).</summary>
     public static void Load(string langDir, string langCode = "en")
     {
+        CurrentLocale = langCode;
         var english = StringLoader.Load(Path.Combine(langDir, "en.json"));
         if (langCode == "en") { _current = english; return; }
 

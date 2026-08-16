@@ -2,7 +2,7 @@
   "LanguageName": "Português",
 
   "Window_Title": "Servidor de {GameName}",
-  "Tab_Server": "Servidor",
+  "Tab_Server": "Estado",
   "Tab_Console": "Consola",
 
   "Server_Blurb": "O que o servidor está a fazer neste momento. Tudo o que aparece aqui e pode ser mudado, muda-se aqui.",
@@ -83,6 +83,7 @@
   "Config_WindowGroupHint": "Aplica-se assim que o mudar.",
   "Config_ServerGroup": "Este servidor",
   "Config_ServerGroupHint": "Guardados em conjunto e aplicados no próximo arranque do servidor.",
+  "Config_SaveScope": "Guarda apenas «{Group}». Tudo o que está acima aplica-se assim que o altera. As alterações têm efeito no próximo arranque do servidor.",
 
   "Connection_Heading": "Ligação",
   "Connection_Blurb": "Que servidor esta janela comanda. Esta definição pertence à janela, não a nenhum servidor.",
@@ -108,6 +109,28 @@
   "Config_LanguageBlurb": "O idioma que esta janela, a consola do servidor e os ficheiros de registo usam. Os jogadores não são afetados: cada um vê o jogo no idioma que escolheu.",
   "Config_LanguageServerNote": "Esta janela muda de imediato. A consola do servidor muda no próximo arranque.",
 
+  "Hosting_Heading": "Porta e pasta do mundo",
+  "Hosting_Blurb": "Onde os jogadores se ligam, e onde este servidor guarda o seu mundo.",
+  "Hosting_GamePort": "Porta do jogo",
+  "Hosting_GamePortHint": "A porta que os jogadores escrevem no cliente. Só a encaminhe no router se estiverem fora da sua rede.",
+  "Hosting_DataDir": "Pasta do mundo",
+  "Hosting_DataDirHint": "Deixe vazio para usar a pasta data junto ao servidor. Indique outro caminho para guardar um mundo noutro disco, ou numa pasta de que faça cópia de segurança.",
+  "Hosting_DataDirDefault": "pasta data junto ao servidor",
+  "Hosting_Browse": "Procurar…",
+  "Hosting_UseDefault": "Usar predefinição",
+
+  "World_SpawnHeading": "Onde os jogadores começam",
+  "World_SpawnBlurb": "O quadrado onde uma personagem nova aparece, e para onde volta quem não tenha comprado um ponto de reaparecimento.",
+  "World_SpawnMap": "Mapa",
+  "World_SpawnX": "X",
+  "World_SpawnY": "Y",
+
+  "Schedule_Heading": "Noite de guerra",
+  "Schedule_Blurb": "O confronto semanal por territórios, na hora local desta máquina.",
+  "Schedule_WarNightDay": "Dia",
+  "Schedule_WarNightHour": "Hora",
+  "Schedule_WeekResetNote": "A semana de guilda muda no dia seguinte, {Day}. Os rendimentos de território, as semanas de época e as missões semanais seguem esse limite.",
+
   "Logging_Heading": "Registo",
   "Logging_Blurb": "O que o servidor anota e durante quanto tempo o guarda. Os registos vão para a pasta logs ao lado do servidor.",
   "Logging_Level": "Detalhe",
@@ -127,6 +150,8 @@
   "Management_Port": "Porta",
   "Management_Token": "Chave",
   "Management_TokenHint": "Dê-a a quem se ligar. Gerar cria uma nova; quem continuar a usar a anterior fica de fora.",
+  "Management_Copy": "Copiar",
+  "Management_TokenCopied": "Chave copiada para a área de transferência.",
   "Management_LocalOnly": "Estas definições pertencem ao servidor instalado aqui. Ligue-se localmente para as mudar.",
   "Config_RestartRequired": "As alterações aplicam-se no próximo arranque do servidor.",
   "Config_Saved": "Guardado em {Path}",

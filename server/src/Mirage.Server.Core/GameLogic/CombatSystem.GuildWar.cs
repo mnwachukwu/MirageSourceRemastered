@@ -21,7 +21,7 @@ public sealed partial class CombatSystem : GameSystem
     {
         int best = 0, bestDmg = 0;
         var dmg = _pm[victim].DamageByPlayer;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (dmg[i] > bestDmg)
             {
@@ -136,7 +136,7 @@ public sealed partial class CombatSystem : GameSystem
         var killerGuild = GuildOf(creditedKiller);
         if (killerGuild is null) return;
         var dmg = _pm[victim].DamageByPlayer;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (dmg[i] <= 0 || !_pm[i].IsPlaying) continue;
             if (GuildOf(i)?.Index != killerGuild.Index) continue;
@@ -159,7 +159,7 @@ public sealed partial class CombatSystem : GameSystem
         var killerGuild = GuildOf(creditedKiller);
         if (killerGuild is null) return;
         var dmg = _pm[victim].DamageByPlayer;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (dmg[i] <= 0 || !_pm[i].IsPlaying) continue;
             if (GuildOf(i)?.Index != killerGuild.Index) continue;   // only the killer's war side earns
@@ -337,7 +337,7 @@ public sealed partial class CombatSystem : GameSystem
     private void DistributePvpKillExp(int victim, long expPool, int mapNum)
     {
         int totalDmg = 0;
-        for (int i = 1; i <= Constants.MaxPlayers; i++) totalDmg += _pm[victim].DamageByPlayer[i];
+        for (int i = 1; i <= _pm.Slots; i++) totalDmg += _pm[victim].DamageByPlayer[i];
         if (totalDmg == 0) return;
         string victimName = _pm[victim].Char.TrimmedName;
         // Two-pass distribution (see ExecuteNpcDamage for the rationale): pass 1 collects base
@@ -346,7 +346,7 @@ public sealed partial class CombatSystem : GameSystem
         // bonus to active and passive partners alike.
         var contributors = new HashSet<int>();
         var contributorBaseExp = new Dictionary<int, long>();
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[victim].DamageByPlayer[i] == 0) continue;
             // Cross-map aware: a contributor who can observe the victim's map earns credit even from
@@ -356,7 +356,7 @@ public sealed partial class CombatSystem : GameSystem
             long baseExp = Math.Max((long)((double)_pm[victim].DamageByPlayer[i] / totalDmg * expPool), 1L);
             contributorBaseExp[i] = baseExp;
         }
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || !_world.IsObserving(i, mapNum)) continue;
             var p = _pm[i].Char;

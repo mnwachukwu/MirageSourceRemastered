@@ -121,7 +121,7 @@ public sealed class SpellSystem : GameSystem
         if (spell.Type == SpellType.SubHp)
         {
             bool pvpArenaFree = !forceSelf
-                && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= Constants.MaxPlayers && _pm[sp.Target].IsPlaying
+                && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= _pm.Slots && _pm[sp.Target].IsPlaying
                 && (_world.MoralOf(p.Map) == MapMoral.Arena || _world.MoralOf(_pm[sp.Target].Char.Map) == MapMoral.Arena);
             reagentCost = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.VitalAmount);
             if (ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentCost)
@@ -165,7 +165,7 @@ public sealed class SpellSystem : GameSystem
                 SendMsg(index, ServerStrings.SpellSystem_CannotCastOnNpc, GameColor.BrightRed, ChatChannel.System);
                 return;
             }
-            int targetIdx = (!forceSelf && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= Constants.MaxPlayers
+            int targetIdx = (!forceSelf && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= _pm.Slots
                              && _pm[sp.Target].IsPlaying)
                             ? sp.Target
                             : index;
@@ -289,7 +289,7 @@ public sealed class SpellSystem : GameSystem
         else if (sp.TargetType == 0)
         {
             // ── Player target ───────────────────────────────────────────────
-            if (n >= 1 && n <= Constants.MaxPlayers && _pm[n].IsPlaying)
+            if (n >= 1 && n <= _pm.Slots && _pm[n].IsPlaying)
             {
                 var tp = _pm[n].Char;
                 int tMap = tp.Map;

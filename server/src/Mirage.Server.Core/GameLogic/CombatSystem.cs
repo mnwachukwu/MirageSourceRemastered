@@ -201,9 +201,9 @@ public sealed partial class CombatSystem : GameSystem
         }
         else
         {
-            respawnMap = vp.SpawnMap > 0 ? vp.SpawnMap : Constants.StartMap;
-            respawnX = vp.SpawnMap > 0 ? vp.SpawnX : Constants.StartX;
-            respawnY = vp.SpawnMap > 0 ? vp.SpawnY : Constants.StartY;
+            respawnMap = vp.SpawnMap > 0 ? vp.SpawnMap : (short)Config.Spawn.Map;
+            respawnX = vp.SpawnMap > 0 ? vp.SpawnX : (byte)Config.Spawn.X;
+            respawnY = vp.SpawnMap > 0 ? vp.SpawnY : (byte)Config.Spawn.Y;
         }
         vp.Dead = false;
         vp.DiedInWar = false;

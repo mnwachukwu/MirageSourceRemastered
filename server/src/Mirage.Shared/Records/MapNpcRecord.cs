@@ -94,13 +94,28 @@ public class MapNpcRecord
     // consult it — see NpcAiSystem.NpcWantsChaseRun.
     public bool ChaseSprinting { get; set; }
 
+    /// <summary>Sized by the CREATOR, not by <see cref="Constants.MaxPlayers"/>.
+    ///
+    /// <para>One of these records exists per map NPC slot, and the world allocates every slot on every map
+    /// up front — 21,000 of them. Two arrays each at the protocol ceiling would be ~84 MB of mostly-zero
+    /// ints for a server that will never see more than a handful of players. <c>GameWorld</c> passes its
+    /// configured player limit instead, which is the largest index any of these can ever take.</para>
+    ///
+    /// <para>Defaults to the ceiling so a test or a one-off construction still gets a correct record
+    /// without knowing about configuration.</para></summary>
+    public MapNpcRecord(int playerSlots = Constants.MaxPlayers)
+    {
+        DamageByPlayer = new int[playerSlots + 1];
+        WarnHitsByPlayer = new int[playerSlots + 1];
+    }
+
     // Damage contribution tracking — 1-based by player index; cleared when NPC leaves combat or respawns
-    public int[] DamageByPlayer { get; } = new int[Constants.MaxPlayers + 1];
+    public int[] DamageByPlayer { get; }
 
     // Guard grace-warning tally — 1-based by player index; counts "Watch it!" warnings already
     // issued to that attacker in the current combat window.  Cleared alongside DamageByPlayer via
     // ClearDamageCredit so the existing combat-exit / respawn cleanup grants a fresh grace window.
-    public int[] WarnHitsByPlayer { get; } = new int[Constants.MaxPlayers + 1];
+    public int[] WarnHitsByPlayer { get; }
 
     // Parallel NPC contributor ledger — lazy-allocated, null in the common no-NPC-source case.
     // At most a handful of entries per fight (one or two guards, maybe a different-kind AoS mob),
@@ -128,8 +143,12 @@ public class MapNpcRecord
     /// (heap list); a hand-off caller nulls its own afterward so the two records don't share it.</summary>
     public void CopyCombatLedgerTo(MapNpcRecord dest)
     {
-        Array.Copy(DamageByPlayer, dest.DamageByPlayer, DamageByPlayer.Length);
-        Array.Copy(WarnHitsByPlayer, dest.WarnHitsByPlayer, WarnHitsByPlayer.Length);
+        // Bounded by the SHORTER of the two. Every record in one world is sized alike, so this is the same
+        // length in practice — it is here so a record built with the default ceiling (a test, a one-off)
+        // cannot overrun a world-sized one.
+        int n = Math.Min(DamageByPlayer.Length, dest.DamageByPlayer.Length);
+        Array.Copy(DamageByPlayer, dest.DamageByPlayer, n);
+        Array.Copy(WarnHitsByPlayer, dest.WarnHitsByPlayer, n);
         dest.DamageByNpc = DamageByNpc;
     }
 

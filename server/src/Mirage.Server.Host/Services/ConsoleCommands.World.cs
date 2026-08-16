@@ -85,7 +85,7 @@ public sealed partial class ConsoleCommands
 
         // Access is per-account, so every online character on it updates too.
         _saver.MutateAccountInBackground(login, a => a.Access = level);
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (!_pm[i].IsPlaying || !string.Equals(_pm[i].Login, login, StringComparison.OrdinalIgnoreCase)) continue;
             _pm[i].Char.Access = level;

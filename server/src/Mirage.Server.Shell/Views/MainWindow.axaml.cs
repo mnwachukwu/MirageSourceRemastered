@@ -1,6 +1,10 @@
 using System.ComponentModel;
 using Avalonia.Controls;
+// SetTextAsync is an EXTENSION here, not a member: Avalonia 12 moved IClipboard to a data-transfer model
+// and left the text convenience in ClipboardExtensions.
+using Avalonia.Input.Platform;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using FluentAvalonia.UI.Windowing;
 using Mirage.Server.Shell.ViewModels;
@@ -39,6 +43,27 @@ public sealed partial class MainWindow : FAAppWindow
         // Queued: the new text is on the control but has not been measured yet, so moving the caret now
         // would land one line short every time.
         Dispatcher.UIThread.Post(() => box.CaretIndex = box.Text?.Length ?? 0, DispatcherPriority.Background);
+    }
+
+    /// <summary>Code-behind rather than a command, because the folder picker hangs off the TopLevel: a
+    /// view-model that reached for it would be holding a window.</summary>
+    private async void BrowseForDataDir(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        var picked = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = vm.DataDirLabel,
+            AllowMultiple = false,
+        });
+        if (picked.Count > 0 && picked[0].TryGetLocalPath() is { } path) vm.DataDir = path;
+    }
+
+    /// <summary>Code-behind for the same reason as the folder picker: the clipboard hangs off the TopLevel.</summary>
+    private async void CopyManagementToken(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || Clipboard is null) return;
+        await Clipboard.SetTextAsync(vm.ManagementToken);
+        vm.ReportTokenCopied();
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);

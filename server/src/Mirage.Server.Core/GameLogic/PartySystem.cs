@@ -233,7 +233,7 @@ public sealed class PartySystem : GameSystem
     /// </summary>
     public void Tick(long now)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (sp.InParty) NotifyPartner(i);

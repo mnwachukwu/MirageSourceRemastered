@@ -64,7 +64,9 @@ public sealed partial class PacketHandler
         {
             case 0: // Player
             {
-                if (!SlotValidation.IsValidPlayerSlot(p.ProposedId) || p.ProposedId == index)
+                // _pm.IsValidSlot, not the protocol check: ProposedId is client-supplied and indexes a
+                // player two lines down, so it has to be bounded by THIS server's array.
+                if (!_pm.IsValidSlot(p.ProposedId) || p.ProposedId == index)
                 {
                     targetFailed = true;
                     break;

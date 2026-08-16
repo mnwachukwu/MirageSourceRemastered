@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Persistence;
@@ -58,6 +59,7 @@ public sealed partial class PacketHandler
     // the real implementations, keeping every existing construction site behavior-identical.
     private readonly IClock _clock;
     private readonly IRandomSource _rng;
+    private readonly ServerConfig _config;
 
     /// <summary>Now as a Unix second, off the injected clock — used by the ban/mute expiry, playtime
     /// and mail-maturity handlers.</summary>
@@ -91,7 +93,7 @@ public sealed partial class PacketHandler
         ItemSystem items, SpellSystem spells, ShopSystem shop, BankSystem bank, PlayerSpawnSystem playerSpawn,
         PartySystem party, GuildSystem guilds, GuildWarSystem guildWar, GuildTerritorySystem territory, GuildScheduleSystem guildSchedule, MailSystem mail, MarketSystem market, TradeSystem trade, QuestSystem quests, ConversationSystem conversations, SocialSystem social, SpawnSystem spawn, TimeOfDaySystem tod, WeatherSystem weather, GameLoop gameLoop,
         ILogger<PacketHandler> logger,
-        IClock? clock = null, IRandomSource? rng = null)
+        IClock? clock = null, IRandomSource? rng = null, ServerConfig? config = null)
     {
         _world = world;
         _pm = pm;
@@ -125,6 +127,7 @@ public sealed partial class PacketHandler
         _logger = logger;
         _clock = clock ?? SystemClock.Instance;
         _rng = rng ?? SharedRandom.Instance;
+        _config = config ?? ServerConfig.Default;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

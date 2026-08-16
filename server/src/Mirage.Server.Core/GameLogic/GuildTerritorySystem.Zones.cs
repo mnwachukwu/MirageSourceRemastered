@@ -37,7 +37,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     // may stay). Runs once at setup start; the radius walls then keep them out.
     private void PushNonDefendersOutOfRadii(TerritoryContest c, int defenderId)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -104,7 +104,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     // The System channel (not War) so a non-participant with the War channel muted still sees it.
     private void WarnNonParticipantsPresent(TerritoryContest c)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying || c.Participants.Contains(sp.Guild)) continue;

@@ -90,8 +90,10 @@ ships the Linux native as `libSDL2-2.0.so.0`, which the default probing does not
 be shipped tested on Windows only. It has been left undone deliberately rather than overlooked; if
 distributing pre-built rebranded clients becomes a real workflow, that is the thing to build.
 
-The site's favicon and its Open Graph card carry the same mark and the same accent, both by hand.
-Changing the palette means changing them too.
+The site's favicon and its Open Graph card carry the same mark and the same accent, both by hand — but
+deliberately not the same ground. These icons sit on the desktop applications' violet neutrals so that
+an icon and the window it opens agree; the site's mark sits on the site's own background. The accent is
+the shared part, and changing *that* means changing all of them.
 
 ## Shipping your own client
 

@@ -21,7 +21,7 @@ public sealed partial class CombatSystem : GameSystem
         var ap = _pm[index].Char;
         long now = Environment.TickCount64;
 
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (i == index) continue;
             if (!CanAttackPlayer(index, i)) continue;

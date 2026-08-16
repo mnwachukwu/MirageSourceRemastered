@@ -35,7 +35,7 @@ public sealed partial class GuildSystem : GameSystem
     // Re-broadcast guild state for every online member (e.g. after the open-for-membership flag changes).
     private void BroadcastGuildMembers(int guildId)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[i].IsPlaying && _pm[i].Guild == guildId)
                 BroadcastPlayerGuild(i);
@@ -195,7 +195,7 @@ public sealed partial class GuildSystem : GameSystem
     /// open panel reflects it immediately.</summary>
     public void BroadcastGuildInfo(int guildId)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             if (_pm[i].IsPlaying && _pm[i].Guild == guildId)
                 SendGuildInfo(i);

@@ -200,7 +200,7 @@ public sealed class MirageServerService : IHostedService
     private void SaveAllOnline()
     {
         int saved = 0;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;   // covers connected players AND combat ghosts still in-world

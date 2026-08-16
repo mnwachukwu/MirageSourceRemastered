@@ -287,7 +287,7 @@ public sealed class MailSystem : GameSystem
         long prev = _lastSweepUtc;
         if (nowUtc <= prev) return;
         _lastSweepUtc = nowUtc;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -312,7 +312,7 @@ public sealed class MailSystem : GameSystem
     public void TickExpiry()
     {
         long nowUtc = NowUtc;
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;

@@ -23,7 +23,7 @@ public sealed partial class CombatSystem : GameSystem
     /// so the player keeps tracking the same monster as it becomes a traversal guest.</summary>
     public void TransferTargetsToTraversal(int fromMap, int npcSlot, int toMap)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -41,7 +41,7 @@ public sealed partial class CombatSystem : GameSystem
     /// <summary>Clears every player's lock on a native NPC slot (the NPC died or left the slot).</summary>
     public void DropPlayerTargetsOnNpcSlot(int mapNum, int npcSlot)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -57,7 +57,7 @@ public sealed partial class CombatSystem : GameSystem
     /// <summary>Clears every player's lock on a traversal guest identity (it died or returned home).</summary>
     public void DropPlayerTargetsOnTraversal(int spawnMap, int spawnSlot)
     {
-        for (int i = 1; i <= Constants.MaxPlayers; i++)
+        for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
             if (!sp.IsPlaying) continue;
@@ -413,7 +413,7 @@ public sealed partial class CombatSystem : GameSystem
             bool hasPk = false;
             if (guardMode)
             {
-                for (int i = 1; i <= Constants.MaxPlayers; i++)
+                for (int i = 1; i <= _pm.Slots; i++)
                 {
                     if (mn.DamageByPlayer[i] > 0 && _pm[i].IsPlaying
                         && WorldCoordHelper.GridPosition(grid, _pm[i].Char.Map) is not null && _pm[i].Char.IsPk(nowUtc))
@@ -424,7 +424,7 @@ public sealed partial class CombatSystem : GameSystem
                 }
             }
 
-            for (int i = 1; i <= Constants.MaxPlayers; i++)
+            for (int i = 1; i <= _pm.Slots; i++)
             {
                 if (mn.DamageByPlayer[i] == 0) continue;
                 if (!_pm[i].IsPlaying || WorldCoordHelper.GridPosition(grid, _pm[i].Char.Map) is null) continue;
