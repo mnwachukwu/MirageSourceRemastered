@@ -2,11 +2,20 @@ using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using FluentAvalonia.UI.Windowing;
 using Mirage.Server.Shell.ViewModels;
 
 namespace Mirage.Server.Shell.Views;
 
-public sealed partial class MainWindow : Window
+/// <summary>
+/// The operator's window.
+///
+/// <para><see cref="FAAppWindow"/> rather than <see cref="Window"/>: on Windows it draws its own title
+/// bar, which is what lets the frame carry the app's palette instead of the system's grey. It does that
+/// ONLY under <c>OperatingSystem.IsWindows()</c> — elsewhere the window keeps native decorations and
+/// every bit of native window behaviour with them.</para>
+/// </summary>
+public sealed partial class MainWindow : FAAppWindow
 {
     public MainWindow()
     {

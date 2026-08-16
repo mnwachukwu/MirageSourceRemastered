@@ -160,6 +160,17 @@ var host = Host.CreateDefaultBuilder(args)
         // Off unless serverconfig.json carries both a port and a token.
         services.AddSingleton(consoleTee);
 
+        // Status snapshots for an operator dashboard. Silent unless something asked: --status-events is
+        // how the shell tells a child it spawned to write them to stdout, which in that mode only the
+        // shell reads. A human in a terminal passes no flag and sees nothing.
+        services.AddSingleton(sp =>
+        {
+            var broadcaster = ActivatorUtilities.CreateInstance<StatusBroadcaster>(sp);
+            broadcaster.WriteToStdout = args.Contains("--status-events");
+            return broadcaster;
+        });
+        services.AddHostedService(sp => sp.GetRequiredService<StatusBroadcaster>());
+
         // ── Hosted services ───────────────────────────────────────────────────
         // MirageServerService starts the world, game loop, and TCP acceptor.
         services.AddHostedService<MirageServerService>();

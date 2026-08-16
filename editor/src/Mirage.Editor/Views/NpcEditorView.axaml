@@ -39,7 +39,7 @@
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding FilterStatus}"
                  IsVisible="{Binding IsFilterActive}"
-                 FontSize="11" Foreground="#888"
+                 FontSize="11" Foreground="#8B84AE"
                  Margin="4,2" HorizontalAlignment="Right"/>
       <ListBox ItemsSource="{Binding FilteredItems}"
                SelectedItem="{Binding SelectedNpc}"
@@ -57,14 +57,14 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
     <Grid Grid.Column="2">
       <TextBlock x:Name="_selectPromptText"
                  IsVisible="{Binding SelectedNpc, Converter={x:Static ObjectConverters.IsNull}}"
-                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
       <ScrollViewer IsVisible="{Binding SelectedNpc, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
@@ -191,7 +191,7 @@
          rows sitting in a column of plain single-value fields, and unboxed it read as though the
          drop rows were more stat fields — the eye had nothing telling it where the mob's own
          properties stopped and its loot began. -->
-    <Border BorderBrush="#333" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0">
+    <Border BorderBrush="#302A55" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0">
       <StackPanel Spacing="4">
 
           <Grid ColumnDefinitions="130,*">
@@ -203,8 +203,8 @@
           <!-- Column headers: three unlabeled number boxes in a row is a guessing game, and quantity
                only applies to currency, which is impossible to infer from a disabled spinner alone. -->
           <Grid ColumnDefinitions="*,70,70,28">
-            <TextBlock x:Name="_dropItemHeader"     Grid.Column="1" FontSize="10" Foreground="#888" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="_dropChanceHeader"   Grid.Column="2" FontSize="10" Foreground="#888" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="_dropItemHeader"     Grid.Column="1" FontSize="10" Foreground="#8B84AE" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="_dropChanceHeader"   Grid.Column="2" FontSize="10" Foreground="#8B84AE" HorizontalAlignment="Center"/>
           </Grid>
 
           <ItemsControl ItemsSource="{Binding SelectedNpc.Drops}" Margin="0,2,0,0">
@@ -279,15 +279,15 @@
                            Value="{Binding SelectedNpc.ExtraHp}"
                            Minimum="0" Maximum="1000000" Increment="10" FormatString="0"/>
           </Grid>
-          <TextBlock x:Name="_extraHpNote" Foreground="#888" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
+          <TextBlock x:Name="_extraHpNote" Foreground="#8B84AE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 
-          <Separator Margin="0,4,0,2" Background="#333"/>
+          <Separator Margin="0,4,0,2" Background="#302A55"/>
 
           <!-- Stat-budget preview — raw total + Total Level (all stats incl SPD) and Combat Level (Str+Def+Int
                only) so designers can size the whole NPC AND its combat toughness against the player curve. -->
           <Grid ColumnDefinitions="130,*">
             <TextBlock x:Name="_totalStatsLabel" Grid.Column="0" VerticalAlignment="Center"
-                       Foreground="#888" FontStyle="Italic"/>
+                       Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedNpc.StatTotal}"
                        VerticalAlignment="Center"
@@ -296,16 +296,16 @@
 
           <Grid ColumnDefinitions="130,*">
             <TextBlock x:Name="_equivLevelLabel" Grid.Column="0" VerticalAlignment="Center"
-                       Foreground="#888" FontStyle="Italic"/>
+                       Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedNpc.Level}"
                        VerticalAlignment="Center"
                        Foreground="#CCCCFF" FontWeight="SemiBold"/>
           </Grid>
 
-          <TextBlock x:Name="_levelNote" Foreground="#888" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
+          <TextBlock x:Name="_levelNote" Foreground="#8B84AE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 
-          <Separator Margin="0,4,0,2" Background="#333"/>
+          <Separator Margin="0,4,0,2" Background="#302A55"/>
 
           <!-- Calculated values grouped into columns: Vitals / Regen / Effectiveness / Chance /
                Rewards.  Chance sits beside Effectiveness so all fight-focused calcs read as one
@@ -314,100 +314,100 @@
           <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6" Margin="0,2,0,0">
 
             <!-- Vitals -->
-            <Border Grid.Column="0" Background="#15151F" BorderBrush="#2B2B3B" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="0" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_vitalsHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_maxHpLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_maxHpLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.MaxHp}" Foreground="#88AAFF" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_maxMpLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_maxMpLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.MaxMp}" Foreground="#88AAFF" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_maxSpLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_maxSpLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.MaxSp}" Foreground="#88AAFF" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
             </StackPanel>
             </Border>
 
             <!-- Regen -->
-            <Border Grid.Column="1" Background="#15151F" BorderBrush="#2B2B3B" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="1" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_regenHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_hpRegenLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_hpRegenLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.HpRegen}" Foreground="#88AAFF" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_mpRegenLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_mpRegenLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.MpRegen}" Foreground="#88AAFF" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_spRegenLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_spRegenLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.SpRegen}" Foreground="#88AAFF" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
             </StackPanel>
             </Border>
 
             <!-- Effectiveness — damage and mitigation the NPC actually rolls in a fight. -->
-            <Border Grid.Column="2" Background="#15151F" BorderBrush="#2B2B3B" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="2" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_effHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_pdmgLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_pdmgLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.PhysDamage}" Foreground="#FFCC66" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_mdmgLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_mdmgLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.MagicDamage}" Foreground="#FFCC66" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_mitLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_mitLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.Mit}" Foreground="#FFCC66" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
             </StackPanel>
             </Border>
 
             <!-- Chance -->
-            <Border Grid.Column="3" Background="#15151F" BorderBrush="#2B2B3B" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="3" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_chanceHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_critLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_critLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.CritChancePct}" Foreground="#FFAA44" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_spellCritLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_spellCritLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.SpellCritChancePct}" Foreground="#FFAA44" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_blockLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_blockLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.BlockChancePct}" Foreground="#FFAA44" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_dodgeLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_dodgeLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.DodgeChancePct}" Foreground="#FFAA44" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
             </StackPanel>
             </Border>
 
             <!-- Rewards -->
-            <Border Grid.Column="4" Background="#15151F" BorderBrush="#2B2B3B" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="4" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_rewardsHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_expLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_expLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.ExpDrop}" Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_previewLevelLabel" Grid.Column="0" VerticalAlignment="Center" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_previewLevelLabel" Grid.Column="0" VerticalAlignment="Center" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <NumericUpDown Grid.Column="1" Value="{Binding SelectedNpc.PreviewLevel}" Minimum="1" Maximum="255"
                                FormatString="0" FontSize="11" Width="140"/>
               </Grid>
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_dropPctLabel" Grid.Column="0" Foreground="#888" FontStyle="Italic" FontSize="11"/>
+                <TextBlock x:Name="_dropPctLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.DropChancePct}" Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
             </StackPanel>
@@ -416,64 +416,64 @@
           </Grid>
 
           <!-- Formula notes panel -->
-          <Border Background="#1A1A2A" BorderBrush="#334" BorderThickness="1"
+          <Border Background="#1A1A2A" BorderBrush="#302A55" BorderThickness="1"
                   CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
             <StackPanel Spacing="6">
               <TextBlock x:Name="_formulaNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
 
               <TextBlock x:Name="_fmtVitalsHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtVitalsBaseHp"   TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsFavorPct" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsMaxHp"    TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsMaxMp"    TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsMaxSp"    TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsBaseHp"   TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsFavorPct" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsMaxHp"    TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsMaxMp"    TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsMaxSp"    TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
-              <TextBlock x:Name="_fmtVitalsNote" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+              <TextBlock x:Name="_fmtVitalsNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
 
               <TextBlock x:Name="_fmtRegenHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtRegenHp" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtRegenMp" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtRegenSp" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtRegenHp" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtRegenMp" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtRegenSp" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
-              <TextBlock x:Name="_fmtRegenNote" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+              <TextBlock x:Name="_fmtRegenNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
 
               <TextBlock x:Name="_fmtCombatHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtCombatPDmg" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtCombatMDmg" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtCombatMit" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtCombatPDmg" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtCombatMDmg" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtCombatMit" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                 <!-- The floor is Boss-dependent, so an author ticking that box needs to know what it changes. -->
-                <TextBlock x:Name="_fmtCombatFloor" TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
+                <TextBlock x:Name="_fmtCombatFloor" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
               </StackPanel>
-              <TextBlock x:Name="_fmtCombatNote" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+              <TextBlock x:Name="_fmtCombatNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
 
               <TextBlock x:Name="_fmtExpHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtExpLine1" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtExpLine2" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtExpLine1" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtExpLine2" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
-              <TextBlock x:Name="_fmtExpNote" TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
+              <TextBlock x:Name="_fmtExpNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
 
               <TextBlock x:Name="_fmtDropChanceHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtDropChance1" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance2" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance3" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance4" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance5" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance1" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance2" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance3" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance4" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance5" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
-              <TextBlock x:Name="_fmtDropChanceNote" TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
+              <TextBlock x:Name="_fmtDropChanceNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
 
               <TextBlock x:Name="_fmtChancesHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtChancesCrit"      TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtChancesSpellCrit" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtChancesBlock"     TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtChancesDodge"     TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesCrit"      TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesSpellCrit" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesBlock"     TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesDodge"     TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
-              <TextBlock x:Name="_fmtChancesNote" TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"/>
+              <TextBlock x:Name="_fmtChancesNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
             </StackPanel>
           </Border>
 
@@ -486,7 +486,7 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#444" BorderThickness="0,1,0,0">
+            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"

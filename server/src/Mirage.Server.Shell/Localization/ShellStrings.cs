@@ -20,7 +20,33 @@ public static class ShellStrings
     public const string LanguageName = nameof(LanguageName);
 
     public const string Window_Title = nameof(Window_Title);                     // "{GameName} Server"
+    public const string Tab_Server = nameof(Tab_Server);
     public const string Tab_Console = nameof(Tab_Console);
+
+    // ── The server dashboard ──────────────────────────────────────────────────
+    public const string Server_Blurb = nameof(Server_Blurb);
+    public const string Server_Offline = nameof(Server_Offline);
+    public const string Server_World = nameof(Server_World);
+    public const string Server_TimeOfDay = nameof(Server_TimeOfDay);
+    public const string Server_Weather = nameof(Server_Weather);
+    public const string Server_Motd = nameof(Server_Motd);
+    public const string Server_MotdHint = nameof(Server_MotdHint);
+    public const string Server_Apply = nameof(Server_Apply);
+    public const string Server_Uptime = nameof(Server_Uptime);
+    public const string Server_Port = nameof(Server_Port);
+    public const string Server_Operators = nameof(Server_Operators);
+    public const string Server_Players = nameof(Server_Players);
+    public const string Server_PlayersEmpty = nameof(Server_PlayersEmpty);
+    public const string Server_ColName = nameof(Server_ColName);
+    public const string Server_ColAccount = nameof(Server_ColAccount);
+    public const string Server_ColLevel = nameof(Server_ColLevel);
+    public const string Server_ColClass = nameof(Server_ColClass);
+    public const string Server_ColMap = nameof(Server_ColMap);
+    public const string Server_ColAccess = nameof(Server_ColAccess);
+    public const string Server_Kick = nameof(Server_Kick);
+    public const string Server_Mute = nameof(Server_Mute);
+    public const string Server_Ban = nameof(Server_Ban);
+    public const string Server_Minutes = nameof(Server_Minutes);
     public const string Tab_Configuration = nameof(Tab_Configuration);
     public const string Tab_Commands = nameof(Tab_Commands);
 

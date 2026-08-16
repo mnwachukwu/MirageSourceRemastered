@@ -3,21 +3,35 @@
              xmlns:vm="using:Mirage.Editor.ViewModels"
              xmlns:views="using:Mirage.Editor.Views"
              xmlns:loc="using:Mirage.Editor.Localization"
+             xmlns:sty="using:FluentAvalonia.Styling"
              x:Class="Mirage.Editor.App"
              RequestedThemeVariant="Dark">
 
   <Application.Resources>
-    <!-- Layer/attribute/tool pickers display their member through EditorVocabulary rather than
-         ToString(). Applied as a ComboBox's ItemTemplate, which covers both the open list and the
-         closed selection box. -->
-    <loc:VocabularyConverter x:Key="Vocabulary"/>
-    <DataTemplate x:Key="VocabularyItem">
-      <TextBlock Text="{Binding Converter={StaticResource Vocabulary}}"/>
-    </DataTemplate>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Mirage.Ui/Theme/Colors.axaml"/>
+        <ResourceInclude Source="avares://Mirage.Ui/Theme/Controls.axaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <!-- Layer/attribute/tool pickers display their member through EditorVocabulary rather than
+           ToString(). Applied as a ComboBox's ItemTemplate, which covers both the open list and the
+           closed selection box. -->
+      <loc:VocabularyConverter x:Key="Vocabulary"/>
+      <DataTemplate x:Key="VocabularyItem">
+        <TextBlock Text="{Binding Converter={StaticResource Vocabulary}}"/>
+      </DataTemplate>
+      <loc:SectionIconConverter x:Key="SectionIcon"/>
+    </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
-    <FluentTheme />
+    <!-- Same theme and the same accent as the server shell: the two are siblings, told apart by their
+         shape rather than by their colour, exactly as their icons are. -->
+    <sty:FluentAvaloniaTheme PreferSystemTheme="False"
+                             PreferUserAccentColor="False"
+                             CustomAccentColor="#9AA8F5"/>
+    <StyleInclude Source="avares://Mirage.Ui/Theme/Styles.axaml"/>
     <!-- ColorPicker control themes (used by the map-editor light dialog + NPC light block). -->
     <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml"/>
     <Style Selector="NumericUpDown">
@@ -32,18 +46,18 @@
       <Setter Property="MinWidth" Value="0"/>
       <Setter Property="MinHeight" Value="0"/>
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Foreground" Value="#888"/>
+      <Setter Property="Foreground" Value="#8B84AE"/>
       <Setter Property="VerticalAlignment" Value="Stretch"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
       <Setter Property="Cursor" Value="Hand"/>
     </Style>
     <Style Selector="Button.clearFilter:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="#E0E0E0"/>
+      <Setter Property="Foreground" Value="#EDEAF8"/>
     </Style>
     <Style Selector="Button.clearFilter:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="#B0B0B0"/>
+      <Setter Property="Foreground" Value="#A9A2C9"/>
     </Style>
     <!-- Small single-glyph row buttons shared by every entity editor's list UIs: add (+), remove (-), and the
          map editor's NPC place (@). Symmetric padding + centered content so the glyph sits dead-center with room

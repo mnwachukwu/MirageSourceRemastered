@@ -39,7 +39,7 @@
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding FilterStatus}"
                  IsVisible="{Binding IsFilterActive}"
-                 FontSize="11" Foreground="#888"
+                 FontSize="11" Foreground="#8B84AE"
                  Margin="4,2" HorizontalAlignment="Right"/>
       <ListBox ItemsSource="{Binding FilteredItems}"
                SelectedItem="{Binding SelectedItem}"
@@ -57,14 +57,14 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
     <Grid Grid.Column="2">
       <TextBlock x:Name="_selectPrompt"
                  IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNull}}"
-                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
       <ScrollViewer IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
@@ -188,10 +188,10 @@
                            Minimum="0" Maximum="2000000000" Increment="1" FormatString="0"/>
           </Grid>
 
-          <Separator Margin="0,4,0,2" Background="#333"/>
+          <Separator Margin="0,4,0,2" Background="#302A55"/>
 
           <!-- Item type notes panel -->
-          <Border Background="#1A1A2A" BorderBrush="#334" BorderThickness="1"
+          <Border Background="#1A1A2A" BorderBrush="#302A55" BorderThickness="1"
                   CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
             <StackPanel Spacing="6">
               <TextBlock x:Name="_fieldNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
@@ -200,44 +200,44 @@
               <TextBlock x:Name="_notesEquipmentHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesEquipmentDurability" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
-                <TextBlock x:Name="_notesEquipmentPower"  TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesEquipmentDurability" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
+                <TextBlock x:Name="_notesEquipmentPower"  TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
                 <StackPanel Margin="12,0,0,0" Spacing="2">
-                  <TextBlock x:Name="_notesEquipmentWeapon" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                  <TextBlock x:Name="_notesEquipmentArmor"  TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                  <TextBlock x:Name="_notesEquipmentHelmet" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                  <TextBlock x:Name="_notesEquipmentShield" TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentWeapon" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentArmor"  TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentHelmet" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentShield" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                 </StackPanel>
-                <TextBlock x:Name="_notesEquipmentClassReq"   TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
-                <TextBlock x:Name="_notesEquipmentShieldSide" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesEquipmentClassReq"   TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
+                <TextBlock x:Name="_notesEquipmentShieldSide" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
               </StackPanel>
 
               <!-- Potions -->
               <TextBlock x:Name="_notesPotionsHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesPotionsAmount" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesPotionsAmount" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
               </StackPanel>
 
               <!-- Spell scrolls -->
               <TextBlock x:Name="_notesSpellScrollHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesSpellScrollSpell" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesSpellScrollSpell" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
               </StackPanel>
 
               <!-- Key -->
               <TextBlock x:Name="_notesKeyHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesKeyId" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesKeyId" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
               </StackPanel>
 
               <!-- Currency -->
               <TextBlock x:Name="_notesCurrencyHeader"
                          FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_notesCurrencyDesc" TextWrapping="Wrap" Foreground="#888" FontSize="11"/>
+                <TextBlock x:Name="_notesCurrencyDesc" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
               </StackPanel>
 
             </StackPanel>
@@ -252,7 +252,7 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#444" BorderThickness="0,1,0,0">
+            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"

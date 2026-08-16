@@ -31,6 +31,10 @@ public sealed class ManagementSession
     /// <summary>The address this session connected from, for the audit line each command writes.</summary>
     public string RemoteAddress { get; }
 
+    /// <summary>Whether this operator asked for status snapshots. Off until they say so, so a plain
+    /// console client is never handed machine lines it would have to filter.</summary>
+    public bool WantsStatus { get; set; }
+
     /// <summary>Queues a line. Non-blocking; returns immediately whether or not the line was kept.</summary>
     public void Enqueue(string line)
     {

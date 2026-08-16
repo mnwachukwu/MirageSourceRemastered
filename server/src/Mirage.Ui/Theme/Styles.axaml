@@ -1,0 +1,191 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- The type ramp and the handful of shared control shapes. Windows 11's own ramp, because
+       FluentAvaloniaTheme.UseSystemFontOnWindows already puts Segoe UI Variable underneath it — the
+       sizes are what turn one font into a hierarchy.
+
+       Everything here is opt-in by class. Nothing restyles a control globally except where the stock
+       shape is actively wrong for the job. -->
+
+  <!-- ── Type ramp ─────────────────────────────────────────────────────────── -->
+
+  <Style Selector="TextBlock.title">
+    <Setter Property="FontSize" Value="28"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+
+  <Style Selector="TextBlock.subtitle">
+    <Setter Property="FontSize" Value="20"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+
+  <!-- The section header inside a page. Named "heading" because both apps already use that class. -->
+  <Style Selector="TextBlock.heading">
+    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+
+  <Style Selector="TextBlock.strong">
+    <Setter Property="FontSize" Value="14"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+
+  <!-- The quieter line under a label. -->
+  <Style Selector="TextBlock.hint">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageMutedBrush}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+
+  <!-- A group label above a run of cards: small, spaced, and quiet enough to not compete. -->
+  <Style Selector="TextBlock.group">
+    <Setter Property="FontSize" Value="11"/>
+    <Setter Property="FontWeight" Value="Bold"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageFaintBrush}"/>
+    <Setter Property="Margin" Value="0,16,0,6"/>
+  </Style>
+
+  <!-- ── One spacing scale ─────────────────────────────────────────────────── -->
+  <!-- A page's outer StackPanel sets a single Spacing and NOTHING adds its own top margin on top of it;
+       mixing the two is what produced gutters of 14, 18, 20 and 24 on the same page. A section header
+       block carries this class to buy the one deliberate extra gap that separates sections. -->
+
+  <Style Selector="StackPanel.section">
+    <Setter Property="Margin" Value="0,8,0,0"/>
+    <Setter Property="Spacing" Value="4"/>
+  </Style>
+
+  <!-- ── Settings card ─────────────────────────────────────────────────────── -->
+  <!-- The Windows 11 Settings shape: a bordered row carrying its own explanation, with the control on
+       the right. Replaces a bare checkbox plus a loose paragraph underneath it. -->
+
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource MirageSurfaceHiBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Padding" Value="14,11"/>
+    <Setter Property="Margin" Value="0,0,0,4"/>
+  </Style>
+
+  <!-- A card whose control could not be resolved. Dimmed rather than hidden: an operator needs to see
+       that the setting exists and why it is not editable. -->
+  <Style Selector="Border.card:disabled">
+    <Setter Property="Opacity" Value="0.45"/>
+  </Style>
+
+  <!-- The title line and the explanation inside a card. Scoped so they do not need a class each. -->
+  <Style Selector="Border.card TextBlock.t1">
+    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="FontWeight" Value="SemiBold"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+  </Style>
+  <Style Selector="Border.card TextBlock.t2">
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageMutedBrush}"/>
+    <Setter Property="TextWrapping" Value="Wrap"/>
+    <Setter Property="Margin" Value="0,2,0,0"/>
+  </Style>
+
+  <!-- ── Reading surfaces ──────────────────────────────────────────────────── -->
+  <!-- A log pane is a reading surface that happens to be a TextBox. All four states are pinned to the
+       same chrome so clicking in to copy a line does not repaint the panel. -->
+
+  <Style Selector="TextBox.log">
+    <Setter Property="FontFamily" Value="Cascadia Mono,Consolas,Menlo,DejaVu Sans Mono,monospace"/>
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="IsReadOnly" Value="True"/>
+    <Setter Property="AcceptsReturn" Value="True"/>
+    <Setter Property="CornerRadius" Value="6"/>
+    <Setter Property="Foreground" Value="#FFC7C1E4"/>
+  </Style>
+
+  <Style Selector="TextBox.log /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource MirageConsoleBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="TextBox.log:pointerover /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource MirageConsoleBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="TextBox.log:focus /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource MirageConsoleBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+  <Style Selector="TextBox.log:focus-within /template/ Border#PART_BorderElement">
+    <Setter Property="Background" Value="{DynamicResource MirageConsoleBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="BorderThickness" Value="1"/>
+  </Style>
+
+  <!-- ── Tabs ──────────────────────────────────────────────────────────────── -->
+  <!-- Real tab SHAPES joined to the pane below them, not underlined words floating over it. The
+       selected tab shares the content pane's fill and squares off its bottom corners, so the two read
+       as one surface with a notch cut for the label — which is what makes a tab strip look like a tab
+       strip rather than a row of links. -->
+
+  <Style Selector="TabControl">
+    <Setter Property="Padding" Value="0"/>
+  </Style>
+
+  <!-- The pane the selected tab attaches to. -->
+  <Style Selector="TabControl /template/ ContentPresenter#PART_SelectedContentHost">
+    <Setter Property="Background" Value="{DynamicResource MirageSurfaceBrush}"/>
+    <Setter Property="CornerRadius" Value="0,7,7,7"/>
+  </Style>
+
+  <!-- TabItem itself is a whole ControlTheme in Theme/Controls.axaml — see the note there for why. -->
+
+  <!-- ── Navigation rail ───────────────────────────────────────────────────── -->
+  <!-- A ListBox wearing the shape a nav rail actually has. The selected row keeps an accent bar down
+       its left edge as well as a fill, because on a dark ground a fill alone is a weak signal. -->
+
+  <Style Selector="ListBox.rail > ListBoxItem">
+    <Setter Property="Padding" Value="12,7"/>
+    <Setter Property="Margin" Value="0,1"/>
+    <Setter Property="CornerRadius" Value="5"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageMutedBrush}"/>
+  </Style>
+
+  <Style Selector="ListBox.rail > ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="CornerRadius" Value="5"/>
+  </Style>
+
+  <Style Selector="ListBox.rail > ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MirageSurfaceBrush}"/>
+  </Style>
+
+  <Style Selector="ListBox.rail > ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MirageSurfaceHiBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageAccentBrush}"/>
+    <Setter Property="BorderThickness" Value="3,0,0,0"/>
+  </Style>
+
+  <Style Selector="ListBox.rail > ListBoxItem:selected">
+    <Setter Property="Foreground" Value="{DynamicResource MirageTextBrush}"/>
+  </Style>
+
+  <Style Selector="ListBox.rail > ListBoxItem:selected PathIcon">
+    <Setter Property="Foreground" Value="{DynamicResource MirageAccentBrush}"/>
+  </Style>
+
+  <!-- ── Status pill ───────────────────────────────────────────────────────── -->
+  <!-- State as a shape, not just coloured text: it survives a screenshot and a colourblind reader,
+       where a hue on its own does not. -->
+
+  <Style Selector="Border.pill">
+    <Setter Property="CornerRadius" Value="999"/>
+    <Setter Property="Padding" Value="10,3"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+</Styles>

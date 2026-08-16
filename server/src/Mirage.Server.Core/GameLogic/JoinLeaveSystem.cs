@@ -65,6 +65,7 @@ public sealed class JoinLeaveSystem : GameSystem
     {
         var sp = _pm[index];
         sp.InGame = true;
+        _pm.NotifyRosterChanged();
         long joinUtc = NowUtc;
         sp.PlayTimeAnchorUtc = joinUtc;   // start banking this session's playtime
         sp.SessionStartUtc = joinUtc;     // session length -> guild active-member accrual at logout
@@ -423,6 +424,7 @@ public sealed class JoinLeaveSystem : GameSystem
     public void LeftGame(int index)
     {
         var sp = _pm[index];
+        _pm.NotifyRosterChanged();
         if (!sp.InGame)
         {
             ClearPlayer(index);

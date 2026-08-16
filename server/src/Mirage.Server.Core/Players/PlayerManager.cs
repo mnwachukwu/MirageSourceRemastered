@@ -16,6 +16,13 @@ public sealed class PlayerManager
 
     public ServerPlayer this[int index] => _players[index];
 
+    /// <summary>Someone joined or left. Raised ON THE GAME THREAD by <see cref="GameLogic.JoinLeaveSystem"/>
+    /// so an operator's roster does not have to wait for a poll. Nothing in the game subscribes; this
+    /// exists for the host's status broadcaster, which is why it is an event rather than a dependency.</summary>
+    public event Action? RosterChanged;
+
+    internal void NotifyRosterChanged() => RosterChanged?.Invoke();
+
     /// <summary>Flag a player so <see cref="GameLogic.GameLoop"/> persists it at the end of the current
     /// game tick. Call on any state change a player could otherwise undo by hard-disconnecting before
     /// the 60 s autosave — item drop/pickup, durability break, death, level-up, inventory sort. Cheap

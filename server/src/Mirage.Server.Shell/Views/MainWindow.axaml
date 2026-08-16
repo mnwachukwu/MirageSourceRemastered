@@ -1,12 +1,18 @@
-<Window xmlns="https://github.com/avaloniaui"
+<ui:FAAppWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:FluentAvalonia.UI.Windowing"
         xmlns:vm="using:Mirage.Server.Shell.ViewModels"
+        xmlns:proto="using:Mirage.Shared.Protocol"
         x:Class="Mirage.Server.Shell.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
         Width="920" Height="620"
-        MinWidth="640" MinHeight="420">
+        MinWidth="640" MinHeight="420"
+        Background="{DynamicResource MirageBgBrush}">
 
+  <!-- The tabs stay BELOW the title bar. Putting them in it is the fashionable choice and was tried;
+       it reads as a browser rather than as a tool, and the title bar only exists on Windows, so the two
+       platforms would have diverged on layout and not just on the frame. -->
   <TabControl Margin="8">
 
     <!-- ── Console ──────────────────────────────────────────────────────────
@@ -19,8 +25,16 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
           <Button Content="{Binding StartLabel}" Command="{Binding StartCommand}" IsEnabled="{Binding CanStart}" MinWidth="88"/>
           <Button Content="{Binding StopLabel}" Command="{Binding StopCommand}" IsEnabled="{Binding CanStop}" MinWidth="88"/>
-          <TextBlock Text="{Binding StateLabel}" Foreground="{Binding StateBrush}"
-                     VerticalAlignment="Center" Margin="8,0,0,0" FontWeight="SemiBold"/>
+          <!-- State as a SHAPE as well as a colour: a pill with a dot survives a screenshot and a
+               colourblind reader, where a hue on its own does not. -->
+          <Border Classes="pill" Background="{Binding StateFillBrush}" BorderBrush="{Binding StateBrush}"
+                  Margin="6,0,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Ellipse Width="7" Height="7" Fill="{Binding StateBrush}" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding StateLabel}" Foreground="{Binding StateBrush}"
+                         FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Border>
         </StackPanel>
 
         <!-- A read-only TextBox, not a list of TextBlocks: selection has to sweep ACROSS lines, because
@@ -32,8 +46,7 @@
              it is drawn, so a copied stack trace still comes out with its original line breaks. -->
         <TextBox Grid.Row="1" Name="ConsoleOutput" Classes="log"
                  Text="{Binding ConsoleText, Mode=OneWay}"
-                 TextWrapping="Wrap"
-                 Background="#11151C" BorderBrush="#2A3240" BorderThickness="1" Padding="8"
+                 TextWrapping="Wrap" Padding="8"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                  VerticalContentAlignment="Top"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -53,28 +66,139 @@
       </Grid>
     </TabItem>
 
+    <!-- ── Server ───────────────────────────────────────────────────────────
+         What the server IS, from the status snapshot rather than scraped out of console text. Every
+         readout here that has a command behind it carries that command, so nobody reads the weather in
+         one place and changes it in another. -->
+    <TabItem Header="{Binding ServerTabHeader}">
+      <ScrollViewer>
+        <StackPanel Margin="16,14,16,20" Spacing="0" MaxWidth="820" HorizontalAlignment="Left">
+          <TextBlock Classes="hint" Text="{Binding ServerBlurb}"/>
+          <TextBlock Classes="hint" Text="{Binding ServerOffline}" Margin="0,10,0,0"
+                     IsVisible="{Binding !HasStatus}"/>
+
+          <StackPanel IsVisible="{Binding HasStatus}">
+            <TextBlock Classes="group" Text="{Binding WorldHeading}"/>
+
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Classes="t1" Text="{Binding TimeOfDayLabel}" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Phases}" SelectedItem="{Binding SelectedPhase}"
+                          MinWidth="150"/>
+              </Grid>
+            </Border>
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Classes="t1" Text="{Binding WeatherLabel}" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Weathers}" SelectedItem="{Binding SelectedWeather}"
+                          MinWidth="150"/>
+              </Grid>
+            </Border>
+            <Border Classes="card">
+              <StackPanel>
+                <TextBlock Classes="t1" Text="{Binding MotdLabel}"/>
+                <TextBlock Classes="t2" Text="{Binding MotdHint}"/>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                  <TextBox Grid.Column="0" Text="{Binding MotdText}" AcceptsReturn="True"
+                           TextWrapping="Wrap" MinHeight="52" MaxHeight="110"
+                           VerticalContentAlignment="Top" Margin="0,0,8,0"/>
+                  <Button Grid.Column="1" Content="{Binding ApplyLabel}" Command="{Binding ApplyMotdCommand}"
+                          IsEnabled="{Binding MotdEdited}" MinWidth="84" VerticalAlignment="Top"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <!-- No command exists for these, so they are the only read-only rows on the page. -->
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,Auto,*,Auto,*,Auto">
+                <TextBlock Grid.Column="0" Classes="t2" Text="{Binding UptimeLabel}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Classes="t1" Text="{Binding UptimeText}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <TextBlock Grid.Column="2" Classes="t2" Text="{Binding GamePortLabel}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3" Classes="t1" Text="{Binding PortText}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                <TextBlock Grid.Column="4" Classes="t2" Text="{Binding OperatorsLabel}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="5" Classes="t1" Text="{Binding OperatorsText}" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+
+            <!-- ── Players ──────────────────────────────────────────────── -->
+            <TextBlock Classes="group" Text="{Binding PlayersHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding PlayersEmpty}" IsVisible="{Binding !HasPlayers}"/>
+
+            <StackPanel IsVisible="{Binding HasPlayers}">
+              <Grid ColumnDefinitions="150,140,44,110,60,90,*" Margin="14,0,14,4">
+                <TextBlock Grid.Column="0" Classes="hint" Text="{Binding ColName}"/>
+                <TextBlock Grid.Column="1" Classes="hint" Text="{Binding ColAccount}"/>
+                <TextBlock Grid.Column="2" Classes="hint" Text="{Binding ColLevel}"/>
+                <TextBlock Grid.Column="3" Classes="hint" Text="{Binding ColClass}"/>
+                <TextBlock Grid.Column="4" Classes="hint" Text="{Binding ColMap}"/>
+                <TextBlock Grid.Column="5" Classes="hint" Text="{Binding ColAccess}"/>
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding Players}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="proto:PlayerSummary">
+                    <Border Classes="card">
+                      <Grid ColumnDefinitions="150,140,44,110,60,90,*">
+                        <TextBlock Grid.Column="0" Classes="t1" Text="{Binding Name}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Classes="t2" Text="{Binding Login}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Classes="t2" Text="{Binding Level}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Classes="t2" Text="{Binding Class}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="4" Classes="t2" Text="{Binding Map}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="5" Classes="t2" Text="{Binding Access}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="5" HorizontalAlignment="Right">
+                          <Button Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).KickLabel}"
+                                  Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).KickPlayerCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <Button Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).MuteLabel}"
+                                  Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).MutePlayerCommand}"
+                                  CommandParameter="{Binding}"/>
+                          <!-- Ban asks twice: permanent, and a row button is easier to mis-hit than a form. -->
+                          <Button Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).BanLabel}"
+                                  Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).BanPlayerCommand}"
+                                  CommandParameter="{Binding}"/>
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="14,6,0,0">
+                <TextBlock Classes="hint" Text="{Binding MinutesLabel}" VerticalAlignment="Center"/>
+                <NumericUpDown Value="{Binding PenaltyMinutes}" Minimum="1" Maximum="1440"
+                               FormatString="0" Increment="5" ParsingNumberStyle="Integer" MinWidth="120"/>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ── Commands ─────────────────────────────────────────────────────────
          Forms rather than a syntax to memorise. Every one composes the same text the console box would
          take and sends it down the same pipe, so the CLI stays the single source of truth. -->
     <TabItem Header="{Binding CommandsTabHeader}">
       <ScrollViewer>
-        <StackPanel Margin="12" Spacing="16" MaxWidth="760" HorizontalAlignment="Left">
-          <TextBlock Classes="hint" Text="{Binding CommandsBlurb}"/>
+        <StackPanel Margin="16,14,16,20" Spacing="0" MaxWidth="780" HorizontalAlignment="Left">
+          <TextBlock Classes="hint" Text="{Binding CommandsBlurb}" Margin="0,0,0,4"/>
           <ItemsControl ItemsSource="{Binding CommandGroups}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:CommandGroup">
-                <StackPanel Spacing="6" Margin="0,0,0,14">
-                  <TextBlock Classes="heading" Text="{Binding Title}"/>
+                <StackPanel Spacing="0">
+                  <TextBlock Classes="group" Text="{Binding Title}"/>
                   <ItemsControl ItemsSource="{Binding Commands}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="vm:ShellCommand">
-                        <Border BorderBrush="#2A3240" BorderThickness="0,0,0,1" Padding="0,8">
-                          <Grid ColumnDefinitions="150,*,Auto" RowDefinitions="Auto,Auto">
+                        <!-- One card per command, same shape as the settings cards: the verb and its
+                             inputs on the action line, the explanation underneath. -->
+                        <Border Classes="card">
+                          <Grid ColumnDefinitions="128,*,Auto" RowDefinitions="Auto,Auto">
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Verb}"
                                        FontFamily="Cascadia Mono,Consolas,monospace" FontSize="13"
-                                       VerticalAlignment="Center"/>
+                                       Foreground="{DynamicResource MirageAccentBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
                             <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                                       Classes="hint" Text="{Binding Description}" Margin="0,4,12,0"/>
+                                       Classes="t2" Text="{Binding Description}" Margin="0,6,12,0"/>
                             <!-- One row of inputs; each parameter picks its own control. -->
                             <ItemsControl Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Parameters}"
                                           IsVisible="{Binding HasParameters}">
@@ -149,7 +273,7 @@
                This window's own setting, saved per user rather than into serverconfig.json: a shell
                points at one server at a time and can be repointed, while each server has one config.
                Locked while attached, so a session cannot be swapped out from under itself. -->
-          <StackPanel Spacing="4">
+          <StackPanel Classes="section">
             <TextBlock Classes="heading" Text="{Binding ConnectionHeading}"/>
             <TextBlock Classes="hint" Text="{Binding ConnectionBlurb}"/>
           </StackPanel>
@@ -187,7 +311,7 @@
 
           <!-- Language applies on selection, like everything else in this group: a display preference
                that needed confirming would read as broken. See the note on SelectedLanguage. -->
-          <StackPanel Spacing="4" Margin="0,6,0,0">
+          <StackPanel Classes="section">
             <TextBlock Classes="heading" Text="{Binding LanguageHeading}"/>
             <TextBlock Classes="hint" Text="{Binding LanguageBlurb}"/>
             <ComboBox ItemsSource="{Binding AvailableLanguages}"
@@ -205,38 +329,58 @@
           <!-- ── This server ────────────────────────────────────────────────
                From here down, nothing takes effect until Save at the foot of the tab, and then not
                until the server restarts. -->
-          <Border BorderBrush="#2A3240" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,14,0,0">
-            <StackPanel Spacing="4">
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,14,0,0">
+            <StackPanel Classes="section">
               <TextBlock Classes="heading" Text="{Binding ServerGroupHeading}"/>
               <TextBlock Classes="hint" Text="{Binding ServerGroupHint}"/>
             </StackPanel>
           </Border>
 
-          <StackPanel Spacing="4" Margin="0,4,0,0">
+          <StackPanel Classes="section">
             <TextBlock Classes="heading" Text="{Binding DeathPenaltyHeading}"/>
             <TextBlock Classes="hint" Text="{Binding DeathPenaltyBlurb}"/>
           </StackPanel>
 
-          <StackPanel Spacing="2">
-            <CheckBox IsChecked="{Binding DurabilityLoss}" Content="{Binding DurabilityLossLabel}"/>
-            <TextBlock Classes="hint" Text="{Binding DurabilityLossHint}" Margin="28,0,0,0"/>
-          </StackPanel>
-
-          <StackPanel Spacing="2">
-            <CheckBox IsChecked="{Binding ItemDrop}" Content="{Binding ItemDropLabel}"/>
-            <TextBlock Classes="hint" Text="{Binding ItemDropHint}" Margin="28,0,0,0"/>
-          </StackPanel>
-
-          <StackPanel Spacing="2">
-            <CheckBox IsChecked="{Binding ExpLoss}" Content="{Binding ExpLossLabel}"/>
-            <TextBlock Classes="hint" Text="{Binding ExpLossHint}" Margin="28,0,0,0"/>
+          <!-- Settings cards: the explanation rides WITH the control instead of floating under it as a
+               loose paragraph, so a switch and the sentence describing it cannot drift apart. -->
+          <StackPanel Spacing="0">
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                  <TextBlock Classes="t1" Text="{Binding DurabilityLossLabel}"/>
+                  <TextBlock Classes="t2" Text="{Binding DurabilityLossHint}"/>
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding DurabilityLoss}"
+                              OnContent="" OffContent="" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                  <TextBlock Classes="t1" Text="{Binding ItemDropLabel}"/>
+                  <TextBlock Classes="t2" Text="{Binding ItemDropHint}"/>
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ItemDrop}"
+                              OnContent="" OffContent="" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Border Classes="card">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                  <TextBlock Classes="t1" Text="{Binding ExpLossLabel}"/>
+                  <TextBlock Classes="t2" Text="{Binding ExpLossHint}"/>
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ExpLoss}"
+                              OnContent="" OffContent="" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
           </StackPanel>
 
           <!-- ── Logging ────────────────────────────────────────────────────
                The only part of appsettings.json this window touches. Everything else in that file is
                structure, and a control that cannot find its value greys out rather than overwriting
                something it did not understand. -->
-          <StackPanel Spacing="4" Margin="0,10,0,0">
+          <StackPanel Classes="section">
             <TextBlock Classes="heading" Text="{Binding LoggingHeading}"/>
             <TextBlock Classes="hint" Text="{Binding LoggingBlurb}"/>
             <TextBlock Classes="hint" Text="{Binding LoggingUnavailableNotice}"
@@ -251,12 +395,25 @@
             <TextBlock Classes="hint" Text="{Binding LogLevelHint}" Margin="88,2,0,0"/>
           </StackPanel>
 
-          <StackPanel Spacing="2">
-            <CheckBox IsChecked="{Binding LogOutgoingPackets}" Content="{Binding OutgoingPacketsLabel}"
-                      IsEnabled="{Binding CanEditOutgoingPackets}"/>
-            <CheckBox IsChecked="{Binding LogIncomingPackets}" Content="{Binding IncomingPacketsLabel}"
-                      IsEnabled="{Binding CanEditIncomingPackets}"/>
-            <TextBlock Classes="hint" Text="{Binding PacketsHint}" Margin="28,2,0,0"/>
+          <StackPanel Spacing="0">
+            <Border Classes="card" IsEnabled="{Binding CanEditOutgoingPackets}">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                  <TextBlock Classes="t1" Text="{Binding OutgoingPacketsLabel}"/>
+                  <TextBlock Classes="t2" Text="{Binding PacketsHint}"/>
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding LogOutgoingPackets}"
+                              OnContent="" OffContent="" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
+            <Border Classes="card" IsEnabled="{Binding CanEditIncomingPackets}">
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Classes="t1" Text="{Binding IncomingPacketsLabel}"
+                           VerticalAlignment="Center" Margin="0,0,16,0"/>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding LogIncomingPackets}"
+                              OnContent="" OffContent="" VerticalAlignment="Center"/>
+              </Grid>
+            </Border>
           </StackPanel>
 
           <StackPanel Spacing="2">
@@ -279,7 +436,7 @@
                The other end of the Connection section above: this is what a server has to be told
                before another shell can attach to it. Saved with the rules, because it belongs to the
                server rather than to this window. -->
-          <StackPanel Spacing="4" Margin="0,10,0,0">
+          <StackPanel Classes="section">
             <TextBlock Classes="heading" Text="{Binding ManagementHeading}"/>
             <TextBlock Classes="hint" Text="{Binding ManagementBlurb}"/>
             <TextBlock Classes="hint" Text="{Binding ManagementLocalOnlyNotice}"
@@ -310,14 +467,14 @@
 
       <!-- Pinned, and OUTSIDE the scroll area: these save every "This server" setting above, so they
            must not read as belonging to whichever section happens to be on screen. -->
-      <Border Grid.Row="1" BorderBrush="#2A3240" BorderThickness="0,1,0,0" Padding="12,10">
+      <Border Grid.Row="1" BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0" Padding="12,10">
         <StackPanel Spacing="6">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <Button Content="{Binding SaveLabel}" Command="{Binding SaveConfigCommand}" MinWidth="88"/>
             <Button Content="{Binding RevertLabel}" Command="{Binding RevertConfigCommand}" MinWidth="88"/>
             <TextBlock Classes="hint" Text="{Binding RestartRequiredNotice}" VerticalAlignment="Center"/>
           </StackPanel>
-          <TextBlock Classes="hint" Text="{Binding ConfigStatus}" Foreground="#C6D0E0"
+          <TextBlock Classes="hint" Text="{Binding ConfigStatus}" Foreground="#A9A2C9"
                      IsVisible="{Binding ConfigStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         </StackPanel>
       </Border>
@@ -325,4 +482,4 @@
     </TabItem>
 
   </TabControl>
-</Window>
+</ui:FAAppWindow>

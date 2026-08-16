@@ -28,12 +28,15 @@ public sealed class ServerProcess : IServerConnection
     /// <summary>True: this shell owns the process, so it can start and stop it.</summary>
     public bool CanSupervise => true;
 
-    /// <summary>The server executable, beside this one. They ship in the same package, so the shell
-    /// never has to be told where the server is. Built from <see cref="Constants.GameName"/> rather than
-    /// hardcoded, because that is the same single value the build derives the assembly name from.</summary>
+    /// <summary>The headless server beside this one. They ship in the same package, so the shell never
+    /// has to be told where it is. Built from <see cref="Constants.GameName"/> rather than hardcoded,
+    /// because that is the same single value the build derives assembly names from.
+    ///
+    /// <para><b>"-Server-Console", not "-Server".</b> The plain name belongs to THIS window — it is what
+    /// the installer's shortcut points at. Spawning "-Server" would have the shell launch itself.</para></summary>
     public static string DefaultExecutablePath =>
         Path.Combine(AppContext.BaseDirectory,
-            Constants.GameName.Replace(' ', '-') + "-Server" + (OperatingSystem.IsWindows() ? ".exe" : ""));
+            Constants.GameName.Replace(' ', '-') + "-Server-Console" + (OperatingSystem.IsWindows() ? ".exe" : ""));
 
     public string ExecutablePath { get; set; } = DefaultExecutablePath;
 
@@ -48,6 +51,10 @@ public sealed class ServerProcess : IServerConnection
 
             var info = new ProcessStartInfo(ExecutablePath)
             {
+                // Asks the child for status snapshots on its stdout. Safe to put there because in this
+                // mode nothing but this shell reads that pipe; a server started from a terminal gets no
+                // flag and prints no sentinels.
+                Arguments = "--status-events",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,

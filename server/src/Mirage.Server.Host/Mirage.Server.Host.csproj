@@ -5,7 +5,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>$(GameNameSlug)-Server</AssemblyName>
+    <!-- The CLI is the "-Console" exe; the plain "-Server" name belongs to the WINDOW, because that is
+         what an operator double-clicks and what the installer's shortcut points at. -->
+    <AssemblyName>$(GameNameSlug)-Server-Console</AssemblyName>
     <ApplicationIcon>$(ServerIcon)</ApplicationIcon>
   </PropertyGroup>
 

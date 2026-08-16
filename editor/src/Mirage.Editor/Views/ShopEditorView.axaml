@@ -27,7 +27,7 @@
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding FilterStatus}"
                  IsVisible="{Binding IsFilterActive}"
-                 FontSize="11" Foreground="#888"
+                 FontSize="11" Foreground="#8B84AE"
                  Margin="4,2" HorizontalAlignment="Right"/>
       <ListBox ItemsSource="{Binding FilteredItems}"
                SelectedItem="{Binding SelectedShop}"
@@ -45,14 +45,14 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
     <Grid Grid.Column="2">
       <TextBlock x:Name="_selectPrompt"
                  IsVisible="{Binding SelectedShop, Converter={x:Static ObjectConverters.IsNull}}"
-                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
       <ScrollViewer IsVisible="{Binding SelectedShop, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
@@ -99,7 +99,7 @@
           <!-- Trade table — visible for Store-type shops only -->
           <TextBlock x:Name="_tradesHeader" Margin="0,8,0,2"
                      IsVisible="{Binding SelectedShop.IsStore}"/>
-          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4"
+          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4"
                   IsVisible="{Binding SelectedShop.IsStore}">
             <StackPanel>
               <!-- Header row: 2* for item pickers, 1* for qty, fixed col for the per-row remove button -->
@@ -110,7 +110,7 @@
                 <TextBlock x:Name="_colGetQty"   Grid.Column="3" Padding="6,4" FontWeight="SemiBold"/>
               </Grid>
               <!-- Empty-state hint shown when the shop has no trades yet -->
-              <TextBlock x:Name="_noTradesHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+              <TextBlock x:Name="_noTradesHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
                          IsVisible="{Binding SelectedShop.HasNoTrades}"/>
               <!-- Trade rows bound to observable collection; bounded scroll region keeps long lists usable -->
               <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
@@ -163,9 +163,9 @@
             <TextBlock Grid.Column="1" Text="{Binding SelectedShop.SalesSummary}"
                        Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
           </Grid>
-          <TextBlock x:Name="_salesHint" Margin="0,0,0,4" Foreground="#888" FontSize="11"
+          <TextBlock x:Name="_salesHint" Margin="0,0,0,4" Foreground="#8B84AE" FontSize="11"
                      TextWrapping="Wrap" IsVisible="{Binding SelectedShop.IsStore}"/>
-          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4"
+          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4"
                   IsVisible="{Binding SelectedShop.IsStore}">
             <StackPanel>
               <!-- Order | item picker | price | reorder + remove -->
@@ -175,7 +175,7 @@
                 <TextBlock x:Name="_colSalesPrice" Grid.Column="2" Padding="6,4" FontWeight="SemiBold"
                            HorizontalAlignment="Right"/>
               </Grid>
-              <TextBlock x:Name="_noSalesHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+              <TextBlock x:Name="_noSalesHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
                          IsVisible="{Binding SelectedShop.HasNoSales}"/>
               <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding SelectedShop.Sales}">
@@ -183,7 +183,7 @@
                     <DataTemplate>
                       <Grid ColumnDefinitions="44,*,90,86" HorizontalAlignment="Stretch">
                         <TextBlock Grid.Column="0" Text="{Binding SlotIndex}" Padding="6,0"
-                                   VerticalAlignment="Center" Foreground="#888"/>
+                                   VerticalAlignment="Center" Foreground="#8B84AE"/>
                         <controls:DropdownAutoCompleteBox Grid.Column="1"
                                          ItemsSource="{Binding ItemEntries}"
                                          SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
@@ -236,7 +236,7 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#444" BorderThickness="0,1,0,0">
+            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"

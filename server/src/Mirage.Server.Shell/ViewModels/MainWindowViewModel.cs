@@ -63,8 +63,20 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private void AttachConnection(IServerConnection connection)
     {
         _server = connection;
-        _server.OutputReceived += line => Dispatcher.UIThread.Post(() => AppendLine(line));
+        _server.OutputReceived += line => Dispatcher.UIThread.Post(() => Receive(line));
         _server.StateChanged += _ => Dispatcher.UIThread.Post(OnStateChanged);
+    }
+
+    /// <summary>One line off the server. Status snapshots are machine traffic on the same stream and are
+    /// taken out here — the console shows what a person would have seen at a terminal.</summary>
+    private void Receive(string line)
+    {
+        if (line.StartsWith(ServerStatus.LinePrefix, StringComparison.Ordinal))
+        {
+            ApplyStatus(line[ServerStatus.LinePrefix.Length..]);
+            return;
+        }
+        AppendLine(line);
     }
 
     // ── Chrome ────────────────────────────────────────────────────────────────
@@ -112,6 +124,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial IImmutableSolidColorBrush StateBrush { get; private set; } = StoppedBrush;
+
+    // The pill's ground: the same hue at low alpha, so the badge reads as one object rather than as a
+    // coloured word sitting on a coloured chip.
+    private static readonly IImmutableSolidColorBrush RunningFill = new ImmutableSolidColorBrush(Color.FromArgb(0x24, 0x4A, 0xDE, 0x80));
+    private static readonly IImmutableSolidColorBrush StoppingFill = new ImmutableSolidColorBrush(Color.FromArgb(0x24, 0xFB, 0xBF, 0x24));
+    private static readonly IImmutableSolidColorBrush StoppedFill = new ImmutableSolidColorBrush(Color.FromArgb(0x24, 0xF8, 0x71, 0x71));
+
+    [ObservableProperty]
+    public partial IImmutableSolidColorBrush StateFillBrush { get; private set; } = StoppedFill;
 
     [ObservableProperty]
     public partial string CommandText { get; set; } = "";
@@ -210,6 +231,23 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ServerState.Stopping => StoppingBrush,
             _ => StoppedBrush,
         };
+        StateFillBrush = _server.State switch
+        {
+            ServerState.Running => RunningFill,
+            ServerState.Stopping => StoppingFill,
+            _ => StoppedFill,
+        };
+        // A stopped or detached server has no roster to show. Leaving one up would be a list of people
+        // who may not be there, on a server nobody is talking to.
+        if (_server.State == ServerState.Stopped)
+        {
+            Status = null;
+            Players.Clear();
+            PendingBan = "";
+            OnPropertyChanged(nameof(HasStatus));
+            OnPropertyChanged(nameof(HasPlayers));
+        }
+
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(CanStop));
         OnPropertyChanged(nameof(CanEditConnection));
@@ -233,6 +271,195 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         OnPropertyChanged(nameof(ConsoleText));
     }
+
+    // ── Server status ─────────────────────────────────────────────────────────
+    // The dashboard's data. Arrives as its own message rather than being read out of console text,
+    // which is localized and free to be reworded.
+
+    [ObservableProperty]
+    public partial ServerStatus? Status { get; private set; }
+
+    private static readonly System.Text.Json.JsonSerializerOptions StatusJson = new()
+    {
+        PropertyNameCaseInsensitive = true,
+    };
+
+    private void ApplyStatus(string json)
+    {
+        ServerStatus? next;
+        try
+        {
+            next = System.Text.Json.JsonSerializer.Deserialize<ServerStatus>(json, StatusJson);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // A snapshot this build cannot read is not worth interrupting an operator over; the next
+            // one is along shortly.
+            return;
+        }
+        if (next is null) return;
+
+        Status = next;
+        Players.Clear();
+        foreach (var p in next.Players) Players.Add(p);
+
+        // The pickers show what the server SAYS it is, but only while the operator is not mid-choice —
+        // otherwise a snapshot landing between click and commit would snatch the selection back.
+        if (!_worldPickerBusy)
+        {
+            _selectedPhase = next.TimePhase;
+            _selectedWeather = next.Weather;
+            OnPropertyChanged(nameof(SelectedPhase));
+            OnPropertyChanged(nameof(SelectedWeather));
+        }
+        if (!MotdEdited) _motdText = next.Motd;
+        OnPropertyChanged(nameof(MotdText));
+
+        OnPropertyChanged(nameof(HasStatus));
+        OnPropertyChanged(nameof(UptimeText));
+        OnPropertyChanged(nameof(PortText));
+        OnPropertyChanged(nameof(OperatorsText));
+        OnPropertyChanged(nameof(HasPlayers));
+    }
+
+    // ── The dashboard ─────────────────────────────────────────────────────────
+
+    public string ServerTabHeader => ShellStrings.Get(ShellStrings.Tab_Server);
+    public string ServerBlurb => ShellStrings.Get(ShellStrings.Server_Blurb);
+    public string ServerOffline => ShellStrings.Get(ShellStrings.Server_Offline);
+    public string WorldHeading => ShellStrings.Get(ShellStrings.Server_World);
+    public string TimeOfDayLabel => ShellStrings.Get(ShellStrings.Server_TimeOfDay);
+    public string WeatherLabel => ShellStrings.Get(ShellStrings.Server_Weather);
+    public string MotdLabel => ShellStrings.Get(ShellStrings.Server_Motd);
+    public string MotdHint => ShellStrings.Get(ShellStrings.Server_MotdHint);
+    public string ApplyLabel => ShellStrings.Get(ShellStrings.Server_Apply);
+    public string UptimeLabel => ShellStrings.Get(ShellStrings.Server_Uptime);
+    // Not PortLabel: the Connection section already owns that name for the remote-target box.
+    public string GamePortLabel => ShellStrings.Get(ShellStrings.Server_Port);
+    public string OperatorsLabel => ShellStrings.Get(ShellStrings.Server_Operators);
+    public string PlayersHeading => ShellStrings.Get(ShellStrings.Server_Players);
+    public string PlayersEmpty => ShellStrings.Get(ShellStrings.Server_PlayersEmpty);
+    public string ColName => ShellStrings.Get(ShellStrings.Server_ColName);
+    public string ColAccount => ShellStrings.Get(ShellStrings.Server_ColAccount);
+    public string ColLevel => ShellStrings.Get(ShellStrings.Server_ColLevel);
+    public string ColClass => ShellStrings.Get(ShellStrings.Server_ColClass);
+    public string ColMap => ShellStrings.Get(ShellStrings.Server_ColMap);
+    public string ColAccess => ShellStrings.Get(ShellStrings.Server_ColAccess);
+    public string KickLabel => ShellStrings.Get(ShellStrings.Server_Kick);
+    public string MuteLabel => ShellStrings.Get(ShellStrings.Server_Mute);
+    public string BanLabel => ShellStrings.Get(ShellStrings.Server_Ban);
+    public string MinutesLabel => ShellStrings.Get(ShellStrings.Server_Minutes);
+
+    /// <summary>Nothing has been heard from a server yet, so the page has nothing true to show.</summary>
+    public bool HasStatus => Status is not null;
+    public bool HasPlayers => Players.Count > 0;
+
+    public System.Collections.ObjectModel.ObservableCollection<PlayerSummary> Players { get; } = [];
+
+    // The same formatter the game uses for playtime, so an operator reading "2h 14m" here reads it the
+    // same way everywhere else.
+    public string UptimeText => Status is null ? "" : PlaytimeFormat.HoursMinutes(Status.UptimeSeconds);
+    public string PortText => Status?.Port.ToString() ?? "";
+    public string OperatorsText => Status?.Operators.ToString() ?? "";
+
+    public IReadOnlyList<string> Phases { get; } = Enum.GetNames<TimePhase>();
+    public IReadOnlyList<string> Weathers { get; } = Enum.GetNames<WeatherType>();
+
+    // Held while a picker is being used so an arriving snapshot cannot pull the choice back out from
+    // under the operator between selecting a value and the server confirming it.
+    private bool _worldPickerBusy;
+    private string _selectedPhase = "";
+    private string _selectedWeather = "";
+
+    public string SelectedPhase
+    {
+        get => _selectedPhase;
+        set
+        {
+            if (value == _selectedPhase || string.IsNullOrEmpty(value)) return;
+            _selectedPhase = value;
+            OnPropertyChanged();
+            _worldPickerBusy = true;
+            Send($"/tod {value}");
+            _worldPickerBusy = false;
+        }
+    }
+
+    public string SelectedWeather
+    {
+        get => _selectedWeather;
+        set
+        {
+            if (value == _selectedWeather || string.IsNullOrEmpty(value)) return;
+            _selectedWeather = value;
+            OnPropertyChanged();
+            _worldPickerBusy = true;
+            Send($"/weather {value}");
+            _worldPickerBusy = false;
+        }
+    }
+
+    private string _motdText = "";
+
+    /// <summary>The MOTD box. Once touched it stops following the server, so a snapshot cannot wipe
+    /// half-typed text; Apply hands it over and lets it follow again.</summary>
+    public string MotdText
+    {
+        get => _motdText;
+        set
+        {
+            if (value == _motdText) return;
+            _motdText = value;
+            MotdEdited = true;
+            OnPropertyChanged();
+        }
+    }
+
+    [ObservableProperty]
+    public partial bool MotdEdited { get; private set; }
+
+    [RelayCommand]
+    private void ApplyMotd()
+    {
+        // Newlines fold to spaces for the same two reasons the command form does it: stdin is
+        // line-oriented, and the client's sprite font cannot draw U+000A.
+        string text = string.Join(' ', MotdText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (text.Length == 0) return;
+        Send($"/motd {text}");
+        MotdEdited = false;
+    }
+
+    /// <summary>Per-row penalties. Composed as the SAME text the Commands tab builds and sent down the
+    /// same pipe, so there is one spelling of each command however an operator reached it.</summary>
+    [RelayCommand]
+    private void KickPlayer(PlayerSummary? p)
+    {
+        if (p is not null) Send($"/kick {p.Name} {(int)PenaltyMinutes}");
+    }
+
+    [RelayCommand]
+    private void MutePlayer(PlayerSummary? p)
+    {
+        if (p is not null) Send($"/mute {p.Name} {(int)PenaltyMinutes}");
+    }
+
+    /// <summary>Banning asks twice, exactly as the command form does — it is permanent, and a row action
+    /// is easier to hit by accident than a form is.</summary>
+    [RelayCommand]
+    private void BanPlayer(PlayerSummary? p)
+    {
+        if (p is null) return;
+        if (PendingBan != p.Name) { PendingBan = p.Name; return; }
+        Send($"/ban {p.Name}");
+        PendingBan = "";
+    }
+
+    [ObservableProperty]
+    public partial string PendingBan { get; set; } = "";
+
+    /// <summary>Minutes a kick or mute lasts, shared by every row. The console's own bounds.</summary>
+    [ObservableProperty]
+    public partial decimal PenaltyMinutes { get; set; } = 60;
 
     // ── Commands ──────────────────────────────────────────────────────────────
 

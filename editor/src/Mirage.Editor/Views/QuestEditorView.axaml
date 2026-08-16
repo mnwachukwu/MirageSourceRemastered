@@ -27,7 +27,7 @@
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding FilterStatus}"
                  IsVisible="{Binding IsFilterActive}"
-                 FontSize="11" Foreground="#888"
+                 FontSize="11" Foreground="#8B84AE"
                  Margin="4,2" HorizontalAlignment="Right"/>
       <ListBox ItemsSource="{Binding FilteredItems}"
                SelectedItem="{Binding SelectedQuest}"
@@ -45,14 +45,14 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
     <Grid Grid.Column="2">
       <TextBlock x:Name="_selectPrompt"
                  IsVisible="{Binding SelectedQuest, Converter={x:Static ObjectConverters.IsNull}}"
-                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
       <ScrollViewer IsVisible="{Binding SelectedQuest, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
@@ -134,14 +134,14 @@
 
           <!-- ── Objectives ── -->
           <TextBlock x:Name="_objectivesHeader" Margin="0,8,0,2" FontWeight="SemiBold"/>
-          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4">
+          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Grid ColumnDefinitions="*,2*,*,34" Background="#2A2A2A">
                 <TextBlock x:Name="_objColKind"   Grid.Column="0" Padding="6,4" FontWeight="SemiBold"/>
                 <TextBlock x:Name="_objColTarget" Grid.Column="1" Padding="6,4" FontWeight="SemiBold"/>
                 <TextBlock x:Name="_objColCount"  Grid.Column="2" Padding="6,4" FontWeight="SemiBold"/>
               </Grid>
-              <TextBlock x:Name="_noObjectivesHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+              <TextBlock x:Name="_noObjectivesHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
                          IsVisible="{Binding SelectedQuest.HasNoObjectives}"/>
               <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding SelectedQuest.Objectives}">
@@ -181,13 +181,13 @@
             <TextBlock x:Name="_rewardExpLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedQuest.RewardExp}" Minimum="0" Maximum="1000000000" FormatString="0"/>
           </Grid>
-          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4">
+          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Grid ColumnDefinitions="2*,*,34" Background="#2A2A2A">
                 <TextBlock x:Name="_rewardColItem" Grid.Column="0" Padding="6,4" FontWeight="SemiBold"/>
                 <TextBlock x:Name="_rewardColQty"  Grid.Column="1" Padding="6,4" FontWeight="SemiBold"/>
               </Grid>
-              <TextBlock x:Name="_noRewardsHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+              <TextBlock x:Name="_noRewardsHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
                          IsVisible="{Binding SelectedQuest.HasNoRewards}"/>
               <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding SelectedQuest.RewardItems}">
@@ -227,10 +227,10 @@
             <TextBlock x:Name="_repeatRewardExpLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedQuest.RepeatRewardExp}" Minimum="0" Maximum="1000000000" FormatString="0"/>
           </Grid>
-          <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4"
+          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4"
                   IsVisible="{Binding SelectedQuest.Repeatable}">
             <StackPanel>
-              <TextBlock x:Name="_noRepeatRewardsHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+              <TextBlock x:Name="_noRepeatRewardsHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
                          IsVisible="{Binding SelectedQuest.HasNoRepeatRewards}"/>
               <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding SelectedQuest.RepeatRewardItems}">
@@ -272,7 +272,7 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#444" BorderThickness="0,1,0,0">
+            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"

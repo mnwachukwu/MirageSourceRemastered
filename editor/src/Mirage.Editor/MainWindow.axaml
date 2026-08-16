@@ -10,10 +10,10 @@
 
     <!-- ── Toolbar ── -->
     <Border DockPanel.Dock="Top"
-            Background="#1E1E1E"
-            BorderBrush="#444"
+            Background="{DynamicResource MirageSurfaceBrush}"
+            BorderBrush="{DynamicResource MirageLineSoftBrush}"
             BorderThickness="0,0,0,1"
-            Padding="8,6">
+            Padding="10,7">
       <DockPanel>
         <Menu DockPanel.Dock="Right" VerticalAlignment="Center" Background="Transparent">
           <MenuItem x:Name="_exportMenu">
@@ -42,32 +42,45 @@
           <Separator />
           <TextBlock Text="{Binding ConnectionStatus}"
                      VerticalAlignment="Center"
-                     Foreground="#888" />
+                     Foreground="{DynamicResource MirageMutedBrush}" />
           <TextBlock Text="{Binding LoadingStatus}"
                      VerticalAlignment="Center"
-                     Foreground="#FFAA44"
+                     Foreground="{DynamicResource MirageWarnBrush}"
                      IsVisible="{Binding LoadingStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </DockPanel>
     </Border>
 
-    <!-- ── Navigation sidebar ── -->
+    <!-- ── Navigation rail ──
+         The selection model was already here; what it lacked was presentation. Each row is an icon, a
+         label, and an accent pill down its left edge when selected — the shape every modern authoring
+         tool uses, and the reason nine sections read as a tool rather than as a list box. -->
     <Border DockPanel.Dock="Left"
-            Width="160"
-            Background="#1A1A1A"
-            BorderBrush="#444"
+            Width="188"
+            Background="{DynamicResource MirageBgAltBrush}"
+            BorderBrush="{DynamicResource MirageLineSoftBrush}"
             BorderThickness="0,0,1,0">
       <ListBox ItemsSource="{Binding Sections}"
                SelectedItem="{Binding SelectedSection}"
-               Background="Transparent">
+               Classes="rail"
+               Background="Transparent"
+               Padding="6,8">
         <ListBox.ItemTemplate>
           <DataTemplate>
-            <StackPanel Orientation="Horizontal" Spacing="4" Margin="4,4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+            <Grid ColumnDefinitions="Auto,*,Auto" Height="24">
+              <PathIcon Grid.Column="0"
+                        Data="{Binding Name, Converter={StaticResource SectionIcon}}"
+                        Width="15" Height="15" Margin="0,0,11,0"
+                        VerticalAlignment="Center"/>
+              <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
+                         VerticalAlignment="Center" FontSize="13"/>
+              <!-- Unsaved work on that section. Amber rather than the accent, so "needs attention" never
+                   reads as "selected". -->
+              <Ellipse Grid.Column="2" Width="6" Height="6"
+                       Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding HasDirty}"/>
-              <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
-            </StackPanel>
+            </Grid>
           </DataTemplate>
         </ListBox.ItemTemplate>
       </ListBox>
@@ -86,10 +99,11 @@
 
          The Border needs a non-null Background to swallow pointer input — a transparent one would
          dim the UI and let every click straight through, which is the worst of both. -->
-    <Border IsVisible="{Binding IsLoading}" Background="#E61A1A1A">
+    <Border IsVisible="{Binding IsLoading}" Background="#E616122A">
       <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14">
         <TextBlock Text="{Binding LoadingStatus}"
-                   HorizontalAlignment="Center" FontSize="13" Foreground="#DDD"/>
+                   HorizontalAlignment="Center" FontSize="13"
+                   Foreground="{DynamicResource MirageTextBrush}"/>
         <ProgressBar IsIndeterminate="True" Width="240" Height="4"/>
       </StackPanel>
     </Border>

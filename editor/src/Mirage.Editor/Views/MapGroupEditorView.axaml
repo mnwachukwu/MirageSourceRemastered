@@ -27,7 +27,7 @@
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding FilterStatus}"
                  IsVisible="{Binding IsFilterActive}"
-                 FontSize="11" Foreground="#888"
+                 FontSize="11" Foreground="#8B84AE"
                  Margin="4,2" HorizontalAlignment="Right"/>
       <ListBox ItemsSource="{Binding FilteredItems}"
                SelectedItem="{Binding SelectedMapGroup}"
@@ -45,14 +45,14 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
     <Grid Grid.Column="2">
       <TextBlock x:Name="_selectPrompt"
                  IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNull}}"
-                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
       <ScrollViewer IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
@@ -140,12 +140,12 @@
                        IsChecked="{Binding SelectedMapGroup.AlwaysDark}"/>
           </Grid>
 
-          <TextBlock x:Name="_triStateHint" FontSize="11" Foreground="#888" FontStyle="Italic"
+          <TextBlock x:Name="_triStateHint" FontSize="11" Foreground="#8B84AE" FontStyle="Italic"
                      TextWrapping="Wrap"/>
 
           <Grid ColumnDefinitions="130,*" Margin="0,8,0,0">
             <TextBlock x:Name="_controllingGuildLabel" Grid.Column="0" VerticalAlignment="Center"/>
-            <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#AAA"
+            <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="#A9A2C9"
                        Text="{Binding SelectedMapGroup.ControllingGuildText}"/>
           </Grid>
 
@@ -158,7 +158,7 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#444" BorderThickness="0,1,0,0">
+            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"

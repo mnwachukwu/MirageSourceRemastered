@@ -57,7 +57,7 @@
       <TextBlock DockPanel.Dock="Bottom"
                  Text="{Binding FilterStatus}"
                  IsVisible="{Binding IsFilterActive}"
-                 FontSize="11" Foreground="#888"
+                 FontSize="11" Foreground="#8B84AE"
                  Margin="4,2" HorizontalAlignment="Right"/>
       <ListBox ItemsSource="{Binding FilteredItems}"
                SelectedItem="{Binding SelectedSpell}"
@@ -75,14 +75,14 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#333"
+    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
     <Grid Grid.Column="2">
       <TextBlock x:Name="_selectPrompt"
                  IsVisible="{Binding SelectedSpell, Converter={x:Static ObjectConverters.IsNull}}"
-                 Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
       <ScrollViewer IsVisible="{Binding SelectedSpell, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
@@ -154,12 +154,12 @@
                            Minimum="0" Maximum="255" FormatString="0"/>
           </Grid>
 
-          <Separator Margin="0,4,0,2" Background="#333"/>
+          <Separator Margin="0,4,0,2" Background="#302A55"/>
 
           <!-- Calculated MP cost preview -->
           <Grid ColumnDefinitions="165,*">
             <TextBlock x:Name="_maxMpCostLabel" Grid.Column="0" VerticalAlignment="Center"
-                       Foreground="#888" FontStyle="Italic"/>
+                       Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedSpell.MpCostDisplay}"
                        VerticalAlignment="Center"
@@ -168,83 +168,83 @@
           <!-- Reagent-per-cast preview (SubHp only) -->
           <Grid ColumnDefinitions="165,*" IsVisible="{Binding SelectedSpell.ShowReagentCost}">
             <TextBlock x:Name="_reagentCostLabel" Grid.Column="0" VerticalAlignment="Center"
-                       Foreground="#888" FontStyle="Italic"/>
+                       Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedSpell.ReagentCost}"
                        VerticalAlignment="Center"
                        Foreground="#88AAFF" FontWeight="SemiBold"/>
           </Grid>
           <TextBlock x:Name="_mpCostNote"
-                     FontSize="11" Foreground="#666" Margin="165,0,0,8"/>
+                     FontSize="11" Foreground="#6B6491" Margin="165,0,0,8"/>
 
           <!-- Formula notes panel -->
-          <Border Background="#1A1A2A" BorderBrush="#334" BorderThickness="1"
+          <Border Background="#1A1A2A" BorderBrush="#302A55" BorderThickness="1"
                   CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
             <StackPanel Spacing="6">
               <TextBlock x:Name="_formulaNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
 
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"
                          x:Name="_fmtMagnitudeIntro"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                            x:Name="_fmtMagnitudeBullet1"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                            x:Name="_fmtMagnitudeBullet2"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                            x:Name="_fmtMagnitudeBullet3"/>
               </StackPanel>
 
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"
                          x:Name="_fmtClassIntNote"/>
 
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"
                          x:Name="_fmtPlayerIntNote"/>
 
               <TextBlock x:Name="_fmtMagnitudeHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtMagnitudeRaw"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtMagnitudeContribution"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtMagnitudeActualHit"/>
               </StackPanel>
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                          x:Name="_fmtMagnitudeMitNote"/>
 
               <TextBlock x:Name="_fmtMpCostHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtMpCostFormula"/>
               </StackPanel>
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"
                          x:Name="_fmtMpCostNote"/>
 
               <TextBlock TextWrapping="Wrap" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0" FontWeight="SemiBold"
                          x:Name="_fmtGiveItemHeader"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                            x:Name="_fmtGiveItemBullet1"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                            x:Name="_fmtGiveItemBullet2"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11"
+                <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
                            x:Name="_fmtGiveItemBullet3"/>
               </StackPanel>
 
               <TextBlock x:Name="_fmtMaxMpHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtMaxMpFormula"/>
               </StackPanel>
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"
                          x:Name="_fmtMaxMpNote"/>
 
               <TextBlock x:Name="_fmtRangeHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#777" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtRangeFormula"/>
               </StackPanel>
-              <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="11" Margin="0,4,0,0"
+              <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"
                          x:Name="_fmtRangeNote"/>
             </StackPanel>
           </Border>
@@ -258,7 +258,7 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#444" BorderThickness="0,1,0,0">
+            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"

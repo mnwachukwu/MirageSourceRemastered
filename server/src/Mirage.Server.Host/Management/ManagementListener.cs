@@ -39,17 +39,26 @@ public sealed class ManagementListener : IHostedService, IDisposable
     private X509Certificate2? _cert;
     private CancellationTokenSource? _cts;
 
+    private readonly StatusBroadcaster _status;
+
     public ManagementListener(
         ServerConfig config,
         ConsoleCommands commands,
         ConsoleTee tee,
+        StatusBroadcaster status,
         ILogger<ManagementListener> logger)
     {
         _config = config.Management;
         _commands = commands;
         _tee = tee;
+        _status = status;
         _logger = logger;
     }
+
+    /// <summary>The line a client sends after the token to ask for status snapshots. Opt-in, because
+    /// this socket is otherwise a plain console and a client that did not ask should not have to filter
+    /// machine lines out of it.</summary>
+    public const string RequestStatus = "MIRAGE-WANT-STATUS";
 
     /// <summary>How many operators are attached right now.</summary>
     public int SessionCount => _sessions.Count;
@@ -73,6 +82,9 @@ public sealed class ManagementListener : IHostedService, IDisposable
         _listener = new TcpListener(IPAddress.Any, _config.Port);
         _listener.Start(backlog: 4);
         _tee.LineWritten += Broadcast;
+        // Status rides the socket DIRECTLY, not the console tee: it must reach only the operators who
+        // asked, and must never land in the local console the tee feeds.
+        _status.SnapshotReady += BroadcastStatus;
 
         LocalizedLog.Info(_logger, ServerStrings.Management_Listening, ("Port", _config.Port));
         _ = AcceptLoopAsync(_cts.Token);
@@ -82,6 +94,7 @@ public sealed class ManagementListener : IHostedService, IDisposable
     public Task StopAsync(CancellationToken ct)
     {
         _tee.LineWritten -= Broadcast;
+        _status.SnapshotReady -= BroadcastStatus;
         _cts?.Cancel();
         try { _listener?.Stop(); } catch (SocketException) { }
         foreach (var session in _sessions.Keys) session.Complete();
@@ -100,6 +113,16 @@ public sealed class ManagementListener : IHostedService, IDisposable
     {
         foreach (var session in _sessions.Keys) session.Enqueue(line);
     }
+
+    // Only to operators who asked. Same non-blocking queue as console output.
+    private void BroadcastStatus(string line)
+    {
+        foreach (var session in _sessions.Keys)
+            if (session.WantsStatus) session.Enqueue(line);
+    }
+
+    // Kept on the broadcaster so the snapshot has one assembly point rather than reaching back in here.
+    private void SyncOperatorCount() => _status.OperatorCount = _sessions.Count;
 
     // ── Accept loop ───────────────────────────────────────────────────────────
 
@@ -151,6 +174,7 @@ public sealed class ManagementListener : IHostedService, IDisposable
 
         var session = new ManagementSession(address);
         _sessions[session] = 0;
+        SyncOperatorCount();
         LocalizedLog.Info(_logger, ServerStrings.Management_OperatorAttached, ("Ip", address));
 
         // Two directions at once: queued console lines out, command lines in. Whichever finishes first
@@ -169,6 +193,7 @@ public sealed class ManagementListener : IHostedService, IDisposable
             // finish. BOTH are awaited before the writer goes out of scope — leaving the drain running
             // against a disposed stream would fault a task nobody is watching.
             _sessions.TryRemove(session, out _);
+            SyncOperatorCount();
             session.Complete();
             await sessionCts.CancelAsync().ConfigureAwait(false);
             try { await Task.WhenAll(pump, intake).ConfigureAwait(false); }
@@ -232,6 +257,15 @@ public sealed class ManagementListener : IHostedService, IDisposable
             if (line is null) break;
             line = line.Trim();
             if (line.Length == 0) continue;
+
+            // Not a command — a capability request. Handled before the audit line so it never appears as
+            // something an operator "ran".
+            if (line == RequestStatus)
+            {
+                session.WantsStatus = true;
+                _status.Publish();
+                continue;
+            }
 
             // Logged, not printed: the audit belongs in the log file with a timestamp. It reaches every
             // attached operator and the local console anyway, because the log pipeline writes to the

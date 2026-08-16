@@ -6,7 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Mirage.Server.Shell</RootNamespace>
-    <AssemblyName>$(GameNameSlug)-Server-Shell</AssemblyName>
+    <!-- The plain name: this is the face of the server package. The headless CLI beside it is
+         "-Server-Console". -->
+    <AssemblyName>$(GameNameSlug)-Server</AssemblyName>
     <!-- The server's own icon, not a new one: this is the same application wearing a window. -->
     <ApplicationIcon>$(ServerIcon)</ApplicationIcon>
     <!-- ON, unlike the editor, where bindings resolve by reflection and fail SILENTLY. Here a binding to
@@ -28,6 +30,9 @@
     <!-- For ServerConfig + ServerConfigStore. The shell edits the same file the server reads, through
          the same type, so a field can never mean one thing here and another there. -->
     <ProjectReference Include="..\Mirage.Server.Core\Mirage.Server.Core.csproj" />
+    <!-- The palette, the type ramp, and FluentAvalonia transitively. Shared with the editor so the two
+         cannot drift into separate looks. -->
+    <ProjectReference Include="..\Mirage.Ui\Mirage.Ui.csproj" />
   </ItemGroup>
 
   <!-- NESTED under lang/shell/, not lang/. The shell and the server ship into ONE directory and both

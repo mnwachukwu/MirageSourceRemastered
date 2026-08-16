@@ -17,15 +17,15 @@
       </Grid.ColumnDefinitions>
 
       <!-- ── Splitter: left / center ── -->
-      <GridSplitter Grid.Column="1" Width="5" Background="#333"
+      <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
                     ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
       <!-- ── Splitter: center / right ── -->
-      <GridSplitter Grid.Column="3" Width="5" Background="#333"
+      <GridSplitter Grid.Column="3" Width="5" Background="#302A55"
                     ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
       <!-- ── Left: maps list ── -->
-      <DockPanel x:Name="LeftPanel" Grid.Column="0" Background="#1A1A1A">
+      <DockPanel x:Name="LeftPanel" Grid.Column="0" Background="#1B1634">
         <TextBox x:Name="_mapsFilterBox" DockPanel.Dock="Top"
                  Text="{Binding FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                  Margin="4,4,4,2"
@@ -39,7 +39,7 @@
         <TextBlock DockPanel.Dock="Bottom"
                    Text="{Binding FilterStatus}"
                    IsVisible="{Binding IsFilterActive}"
-                   FontSize="11" Foreground="#888"
+                   FontSize="11" Foreground="#8B84AE"
                    Margin="4,2" HorizontalAlignment="Right"/>
         <ListBox ItemsSource="{Binding FilteredMaps}"
                  SelectedItem="{Binding SelectedMap}"
@@ -59,8 +59,8 @@
 
       <!-- ── Center: Tile Grid + toolbar ── -->
       <Grid Grid.Column="2" RowDefinitions="Auto,*">
-        <Border Grid.Row="0" Background="#1E1E1E" Padding="6,3"
-                BorderBrush="#333" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="#211B3D" Padding="6,3"
+                BorderBrush="#302A55" BorderThickness="0,0,0,1">
           <StackPanel Orientation="Horizontal" Spacing="8">
             <ToggleButton x:Name="_animPreviewToggle"
                           Content="{Binding AnimPreviewLabel}"
@@ -74,13 +74,13 @@
                           Content="{Binding NightPreviewLabel}"
                           IsChecked="{Binding IsNightPreview}"
                           Padding="6,2" FontSize="11"/>
-            <Separator Width="1" Background="#444"/>
+            <Separator Width="1" Background="#3B3266"/>
             <Button x:Name="_btnZoomOut" Command="{Binding ZoomOutCommand}"
                     Width="26" Padding="0" FontSize="13"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             <TextBlock Text="{Binding MapZoom, StringFormat={}{0:P0}}"
                        VerticalAlignment="Center" MinWidth="42" TextAlignment="Center"
-                       FontSize="11" Foreground="#AAA"/>
+                       FontSize="11" Foreground="#A9A2C9"/>
             <Button x:Name="_btnZoomIn" Command="{Binding ZoomInCommand}"
                     Width="26" Padding="0" FontSize="13"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
@@ -124,7 +124,7 @@
       </Grid>
 
       <!-- ── Right: Tools (top) + Properties (bottom), split vertically ── -->
-      <Grid x:Name="RightPanel" Grid.Column="4" Background="#1A1A1A">
+      <Grid x:Name="RightPanel" Grid.Column="4" Background="#1B1634">
         <Grid.RowDefinitions>
           <RowDefinition Height="*"   MinHeight="100"/>
           <RowDefinition Height="5"/>
@@ -132,12 +132,12 @@
         </Grid.RowDefinitions>
 
         <!-- ── Tools sub-panel (no label) ── -->
-        <DockPanel Grid.Row="0" Background="#1A1A1A" LastChildFill="True">
+        <DockPanel Grid.Row="0" Background="#1B1634" LastChildFill="True">
           <StackPanel DockPanel.Dock="Top" Margin="6,6" Spacing="6">
 
             <!-- Mode toggle -->
             <TextBlock x:Name="_modeHeader" FontWeight="SemiBold"/>
-            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="4">
+            <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4" Padding="4">
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <RadioButton x:Name="_modeTile"
                              GroupName="MapEditorMode"
@@ -153,7 +153,7 @@
 
             <!-- Action toggle -->
             <TextBlock x:Name="_actionHeader" FontWeight="SemiBold" Margin="0,4,0,0"/>
-            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="4">
+            <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4" Padding="4">
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
                 <RadioButton x:Name="_actionPlace"
                              GroupName="MapEditorAction"
@@ -217,13 +217,13 @@
             <!-- Bridge Ramp ground-side direction — LayerRamp tool only (two-layer world) -->
             <StackPanel Orientation="Vertical" Spacing="2" Margin="0,4,0,0"
                         IsVisible="{Binding IsLayerRampTool}">
-              <TextBlock Text="{Binding LayerRampDirLabel}" FontSize="11" Foreground="#888"/>
+              <TextBlock Text="{Binding LayerRampDirLabel}" FontSize="11" Foreground="#8B84AE"/>
               <ComboBox ItemsSource="{Binding Directions}" ItemTemplate="{StaticResource VocabularyItem}"
                         SelectedItem="{Binding LayerRampDirection, Mode=TwoWay}"
                         HorizontalAlignment="Stretch"/>
             </StackPanel>
             <TextBlock x:Name="_altClickHint"
-                       FontSize="10" Foreground="#666" TextWrapping="Wrap" Margin="0,2,0,0"
+                       FontSize="10" Foreground="#6B6491" TextWrapping="Wrap" Margin="0,2,0,0"
                        IsVisible="{Binding IsAttributeMode}"/>
             <!-- Brush size — Attribute mode, and the Delete action in any mode (its erase brush) -->
             <TextBlock x:Name="_brushSizeHeader" FontWeight="SemiBold" FontSize="11" Margin="0,4,0,0"
@@ -231,11 +231,11 @@
             <Grid ColumnDefinitions="Auto,*,Auto,*" Margin="0,2,0,0"
                   IsVisible="{Binding BrushSizeVisible}">
               <TextBlock x:Name="_brushWLabel" Grid.Column="0" VerticalAlignment="Center"
-                         Foreground="#888" Margin="0,0,4,0"/>
+                         Foreground="#8B84AE" Margin="0,0,4,0"/>
               <NumericUpDown Grid.Column="1" Value="{Binding AttributeBrushSizeX, Mode=TwoWay}"
                              Minimum="1" Maximum="9"/>
               <TextBlock x:Name="_brushHLabel" Grid.Column="2" VerticalAlignment="Center"
-                         Foreground="#888" Margin="8,0,4,0"/>
+                         Foreground="#8B84AE" Margin="8,0,4,0"/>
               <NumericUpDown Grid.Column="3" Value="{Binding AttributeBrushSizeY, Mode=TwoWay}"
                              Minimum="1" Maximum="9"/>
             </Grid>
@@ -244,7 +244,7 @@
             <TextBlock x:Name="_lightHeader" FontWeight="SemiBold" Margin="0,4,0,0"
                        IsVisible="{Binding IsLightMode}"/>
             <TextBlock x:Name="_lightModeHint"
-                       FontSize="10" Foreground="#888" TextWrapping="Wrap" Margin="0,2,0,0"
+                       FontSize="10" Foreground="#8B84AE" TextWrapping="Wrap" Margin="0,2,0,0"
                        IsVisible="{Binding IsLightMode}"/>
             <StackPanel Orientation="Horizontal" Spacing="6"
                         IsVisible="{Binding IsLightMode}">
@@ -284,26 +284,26 @@
                           VerticalScrollBarVisibility="Auto"
                           Padding="6,4,6,0">
               <TextBlock Text="{Binding SelectedAttributeDescription}"
-                         TextWrapping="Wrap" FontSize="11" Foreground="#AAA"
+                         TextWrapping="Wrap" FontSize="11" Foreground="#A9A2C9"
                          LineHeight="18"/>
             </ScrollViewer>
           </Grid>
         </DockPanel>
 
         <!-- ── Horizontal splitter ── -->
-        <GridSplitter Grid.Row="1" Height="5" Background="#333"
+        <GridSplitter Grid.Row="1" Height="5" Background="#302A55"
                       ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
                       HorizontalAlignment="Stretch"/>
 
         <!-- ── Properties sub-panel ── -->
-        <DockPanel Grid.Row="2" Background="#1A1A1A">
-          <Border DockPanel.Dock="Top" Background="#222" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
+        <DockPanel Grid.Row="2" Background="#1B1634">
+          <Border DockPanel.Dock="Top" Background="#241E42" BorderBrush="#302A55" BorderThickness="0,0,0,1" Padding="6,4">
             <TextBlock x:Name="_propertiesHeader" FontWeight="SemiBold" FontSize="11"/>
           </Border>
           <Grid>
             <TextBlock x:Name="_selectMapPrompt"
                        IsVisible="{Binding SelectedMap, Converter={x:Static ObjectConverters.IsNull}}"
-                       Foreground="#666" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                        FontStyle="Italic"/>
             <ScrollViewer x:Name="PropertiesScrollViewer"
                           IsVisible="{Binding SelectedMap, Converter={x:Static ObjectConverters.IsNotNull}}">
@@ -437,14 +437,14 @@
                              IsChecked="{Binding MapAlwaysDark}"/>
                 </Grid>
 
-                <TextBlock x:Name="_inheritHint" FontSize="11" Foreground="#888" FontStyle="Italic"
+                <TextBlock x:Name="_inheritHint" FontSize="11" Foreground="#8B84AE" FontStyle="Italic"
                            TextWrapping="Wrap"/>
 
                 <TextBlock x:Name="_npcSlotsLabel" Margin="0,8,0,2"/>
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4">
+                <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4">
                   <StackPanel>
                     <!-- Empty-state hint when the map has no NPC rows yet -->
-                    <TextBlock x:Name="_noNpcsHint" Margin="8,6" Foreground="#888" FontStyle="Italic"
+                    <TextBlock x:Name="_noNpcsHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
                                IsVisible="{Binding HasNoNpcRows}"/>
                     <!-- Dynamic NPC rows: post #, NPC-type picker, "@ x,y" pin read-out, per-row remove button -->
                     <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
@@ -454,7 +454,7 @@
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto,34" Margin="0,2">
                               <TextBlock Grid.Column="0" Text="{Binding SlotLabel}" Width="22"
                                          TextAlignment="Right" VerticalAlignment="Center"
-                                         Margin="0,0,6,0" Foreground="#888"/>
+                                         Margin="0,0,6,0" Foreground="#8B84AE"/>
                               <controls:DropdownAutoCompleteBox Grid.Column="1"
                                          ItemsSource="{Binding NpcEntries}"
                                          SelectedItem="{Binding SelectedNpc, Mode=TwoWay}"
@@ -504,7 +504,7 @@
     </Grid>
 
     <!-- ── Action footer (Undo / Redo / Save / Discard — always visible) ── -->
-    <Border Grid.Row="1" Background="#181818" Padding="6,4" BorderBrush="#333" BorderThickness="0,1,0,0">
+    <Border Grid.Row="1" Background="#181818" Padding="6,4" BorderBrush="#302A55" BorderThickness="0,1,0,0">
       <DockPanel>
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="4">
           <Button x:Name="_btnUndo" Command="{Binding UndoCommand}"
@@ -539,16 +539,16 @@
     </Border>
 
     <!-- ── Status bar ── -->
-    <Border Grid.Row="2" Background="#111" Padding="8,3" BorderBrush="#333" BorderThickness="0,1,0,0">
+    <Border Grid.Row="2" Background="#16122A" Padding="8,3" BorderBrush="#302A55" BorderThickness="0,1,0,0">
       <DockPanel>
         <TextBlock DockPanel.Dock="Right" Text="{Binding MapRevisionText}"
-                   Foreground="#888" VerticalAlignment="Center"/>
+                   Foreground="#8B84AE" VerticalAlignment="Center"/>
         <StackPanel Orientation="Horizontal" Spacing="16">
           <TextBlock Text="{Binding StatusMessage}" Foreground="#88FF88"/>
-          <TextBlock Text="{Binding HoveredText}" Foreground="#888" MinWidth="80"/>
-          <TextBlock Text="{Binding StatusModeText}" Foreground="#888"/>
-          <TextBlock Text="{Binding StatusLayerText}" Foreground="#888" IsVisible="{Binding IsTileMode}"/>
-          <TextBlock Text="{Binding StatusActionText}" Foreground="#888"/>
+          <TextBlock Text="{Binding HoveredText}" Foreground="#8B84AE" MinWidth="80"/>
+          <TextBlock Text="{Binding StatusModeText}" Foreground="#8B84AE"/>
+          <TextBlock Text="{Binding StatusLayerText}" Foreground="#8B84AE" IsVisible="{Binding IsTileMode}"/>
+          <TextBlock Text="{Binding StatusActionText}" Foreground="#8B84AE"/>
         </StackPanel>
       </DockPanel>
     </Border>
@@ -558,22 +558,22 @@
       <Border x:Name="HoverPanel"
               IsVisible="False"
               Background="#E4111111"
-              BorderBrush="#555"
+              BorderBrush="#5A5480"
               BorderThickness="1"
               CornerRadius="4"
               Padding="8">
         <StackPanel Spacing="3" MinWidth="150">
-          <TextBlock x:Name="_tilePreviewHeader" FontSize="10" FontWeight="SemiBold" Foreground="#888"/>
+          <TextBlock x:Name="_tilePreviewHeader" FontSize="10" FontWeight="SemiBold" Foreground="#8B84AE"/>
           <StackPanel Orientation="Horizontal" Spacing="12">
             <StackPanel Spacing="2">
-              <TextBlock x:Name="_groundColumnHeader" FontSize="10" FontWeight="SemiBold" Foreground="#777"/>
+              <TextBlock x:Name="_groundColumnHeader" FontSize="10" FontWeight="SemiBold" Foreground="#7A739F"/>
               <ItemsControl ItemsSource="{Binding HoveredGroundLayers}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1">
-                      <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="#777" VerticalAlignment="Center"/>
+                      <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="#7A739F" VerticalAlignment="Center"/>
                       <controls:SingleTileControl TileBitmap="{Binding Bitmap}" TileIndex="{Binding TileIndex}"/>
-                      <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#666" VerticalAlignment="Center" TextAlignment="Center"
+                      <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#6B6491" VerticalAlignment="Center" TextAlignment="Center"
                                  ToolTip.Tip="{Binding SheetText}"/>
                     </StackPanel>
                   </DataTemplate>
@@ -581,14 +581,14 @@
               </ItemsControl>
             </StackPanel>
             <StackPanel Spacing="2">
-              <TextBlock x:Name="_fringeColumnHeader" FontSize="10" FontWeight="SemiBold" Foreground="#777"/>
+              <TextBlock x:Name="_fringeColumnHeader" FontSize="10" FontWeight="SemiBold" Foreground="#7A739F"/>
               <ItemsControl ItemsSource="{Binding HoveredFringeLayers}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1">
-                      <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="#777" VerticalAlignment="Center"/>
+                      <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="#7A739F" VerticalAlignment="Center"/>
                       <controls:SingleTileControl TileBitmap="{Binding Bitmap}" TileIndex="{Binding TileIndex}"/>
-                      <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#666" VerticalAlignment="Center" TextAlignment="Center"
+                      <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#6B6491" VerticalAlignment="Center" TextAlignment="Center"
                                  ToolTip.Tip="{Binding SheetText}"/>
                     </StackPanel>
                   </DataTemplate>
@@ -596,14 +596,14 @@
               </ItemsControl>
             </StackPanel>
             <StackPanel Spacing="2">
-              <TextBlock x:Name="_canopyColumnHeader" FontSize="10" FontWeight="SemiBold" Foreground="#777"/>
+              <TextBlock x:Name="_canopyColumnHeader" FontSize="10" FontWeight="SemiBold" Foreground="#7A739F"/>
               <ItemsControl ItemsSource="{Binding HoveredCanopyLayers}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1">
-                      <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="#777" VerticalAlignment="Center"/>
+                      <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="#7A739F" VerticalAlignment="Center"/>
                       <controls:SingleTileControl TileBitmap="{Binding Bitmap}" TileIndex="{Binding TileIndex}"/>
-                      <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#666" VerticalAlignment="Center" TextAlignment="Center"
+                      <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#6B6491" VerticalAlignment="Center" TextAlignment="Center"
                                  ToolTip.Tip="{Binding SheetText}"/>
                     </StackPanel>
                   </DataTemplate>
@@ -611,19 +611,19 @@
               </ItemsControl>
             </StackPanel>
           </StackPanel>
-          <Rectangle Height="1" Fill="#444" Margin="0,2"/>
+          <Rectangle Height="1" Fill="#3B3266" Margin="0,2"/>
           <TextBlock Text="{Binding HoveredGroundAttributeText}"
-                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CCC"/>
+                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CFC9E4"/>
           <TextBlock Text="{Binding HoveredFringeAttributeText}"
-                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CCC"/>
+                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CFC9E4"/>
           <TextBlock Text="{Binding HoveredNpcSpawnText}" IsVisible="{Binding HoveredHasNpcSpawn}"
-                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CCC"/>
+                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CFC9E4"/>
           <StackPanel Orientation="Horizontal" Spacing="4">
-            <Border Width="12" Height="12" CornerRadius="2" BorderBrush="#888" BorderThickness="1"
+            <Border Width="12" Height="12" CornerRadius="2" BorderBrush="#8B84AE" BorderThickness="1"
                     Background="{Binding HoveredLightBrush}" IsVisible="{Binding HoveredHasLight}"
                     VerticalAlignment="Center"/>
             <TextBlock Text="{Binding HoveredLightText}"
-                       FontSize="10" TextWrapping="Wrap" MaxWidth="204" Foreground="#CCC" VerticalAlignment="Center"/>
+                       FontSize="10" TextWrapping="Wrap" MaxWidth="204" Foreground="#CFC9E4" VerticalAlignment="Center"/>
           </StackPanel>
         </StackPanel>
       </Border>
@@ -803,7 +803,7 @@
             Padding="20" CornerRadius="8">
       <StackPanel Spacing="10" Width="260">
         <TextBlock x:Name="_keyTitle" FontSize="14" FontWeight="Bold"/>
-        <TextBlock x:Name="_keyDesc" FontSize="11" Foreground="#888" TextWrapping="Wrap"/>
+        <TextBlock x:Name="_keyDesc" FontSize="11" Foreground="#8B84AE" TextWrapping="Wrap"/>
         <StackPanel Spacing="8">
           <Grid ColumnDefinitions="100,*">
             <TextBlock x:Name="_keyItemLabel" Grid.Column="0" VerticalAlignment="Center"/>
@@ -835,7 +835,7 @@
             Padding="20" CornerRadius="8">
       <StackPanel Spacing="10" Width="280">
         <TextBlock x:Name="_keyOpenTitle" FontSize="14" FontWeight="Bold"/>
-        <TextBlock x:Name="_keyOpenDesc" FontSize="11" Foreground="#888" TextWrapping="Wrap"/>
+        <TextBlock x:Name="_keyOpenDesc" FontSize="11" Foreground="#8B84AE" TextWrapping="Wrap"/>
         <StackPanel Spacing="8">
           <Grid ColumnDefinitions="100,*">
             <TextBlock x:Name="_keyOpenXLabel" Grid.Column="0" VerticalAlignment="Center"/>
@@ -876,9 +876,9 @@
         <TextBlock x:Name="_animTitle" FontSize="14" FontWeight="Bold"/>
         <Grid ColumnDefinitions="Auto,*,Auto">
           <TextBlock x:Name="_animLayerColHeader" Grid.Column="1" Margin="8,0,0,0"
-                     FontWeight="SemiBold" FontSize="11" Foreground="#AAA"/>
+                     FontWeight="SemiBold" FontSize="11" Foreground="#A9A2C9"/>
           <TextBlock x:Name="_animAnimColHeader" Grid.Column="2"
-                     FontWeight="SemiBold" FontSize="11" Foreground="#AAA"/>
+                     FontWeight="SemiBold" FontSize="11" Foreground="#A9A2C9"/>
         </Grid>
         <ItemsControl ItemsSource="{Binding AnimLayers}">
           <ItemsControl.ItemTemplate>
