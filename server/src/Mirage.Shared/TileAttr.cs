@@ -8,12 +8,9 @@ namespace Mirage.Shared;
 /// tile's own inline attribute, which carry the same values but are STORAGE with their own persistence
 /// contracts. All three share this field set exactly; a value read here means what it means there.</para>
 ///
-/// <para>These were three positional slots (<c>Data1/2/3</c>) whose meaning was decoded per
-/// <see cref="TileType"/>: a Warp's Data2 was a destination X, a Key's was a consume flag, a ramp's
-/// Data1 was a <see cref="Direction"/> cast to a short. Naming them also let two encodings go: the
-/// layer of a warp/door target used to be bit-packed into the Y slot (there was a whole
-/// <c>WorldTarget</c> helper for it), and a key's "is it consumed" was <c>Data2 == 1</c>. Both are now
-/// their own typed field, so no call site does bit math or magic-number comparison.</para>
+/// <para>Every slot is a named, typed field rather than a positional <c>Data1/2/3</c> decoded per
+/// <see cref="TileType"/>, so no call site does bit math or compares against a magic number to work out
+/// what a value means.</para>
 /// </summary>
 public readonly record struct TileAttr
 {

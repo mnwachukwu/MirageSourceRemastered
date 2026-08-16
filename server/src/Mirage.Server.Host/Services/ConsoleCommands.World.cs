@@ -59,7 +59,8 @@ public sealed partial class ConsoleCommands
     {
         var parts = args.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         // Enum.TryParse takes the NAME or the number, so "Creator" and "4" both work — names to match
-        // /tod and /weather, numbers because that is what this used to accept.
+        // /tod and /weather, and numbers because an operator with the level to hand should not have to
+        // look up its name.
         if (parts.Length != 2 ||
             !Enum.TryParse(parts[0], ignoreCase: true, out AdminLevel level) || !Enum.IsDefined(level))
         {

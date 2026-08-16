@@ -344,19 +344,19 @@ public sealed partial class NpcAiSystem : GameSystem
            && mn.LastReachedTargetMs > 0
            && now - mn.LastReachedTargetMs > NpcAosUnreachableGiveUpMs;
 
-    /// <summary>Safe-zone aggro rule for AoS: when an AoS NPC that is chasing a PLAYER stands on a
-    /// safe map AND has a Guard in viewport, drop the player target and lock onto the nearest visible
-    /// guard.  A mob whose aggro is purely NPC-driven (fighting another mob) is left alone — the rule
-    /// protects players, not NPCs, so an NPC-vs-NPC brawl that spills into a guarded safe zone plays
-    /// out normally (and <see cref="FindGuardNpcTarget"/> agrees: a guard only engages a hostile that
-    /// is itself chasing a player).  Without a guard in viewport the NPC behaves normally and the
-    /// player has to escape or lure it toward a guarded area.  AWA is deliberately excluded: it
-    /// retaliates against its attacker even in safe zones, and guard-assisted safe-zone
-    /// kills deny the player EXP/loot instead (see <see cref="CombatSystem.ExecuteNpcDamage"/>) to
-    /// block farming.  Called per-tick from the AoS AI loop (native and guest).  Paired with
-    /// <see cref="CombatSystem.SelectAggroTargetEx"/> which applies the same player-only gate so
-    /// damage-driven aggro flips don't re-pick the player, yet still let NPC contributors drive
-    /// NPC-vs-NPC aggro in a safe zone.</summary>
+    /// <summary>Safe-zone aggro rule for AoS: an AoS NPC chasing a PLAYER on a safe map with a Guard in
+    /// viewport drops the player and locks onto the nearest visible guard. Without a guard in viewport it
+    /// behaves normally, and the player has to escape or lure it toward a guarded area.
+    ///
+    /// <para>THE RULE PROTECTS PLAYERS, NOT NPCS. A mob whose aggro is purely NPC-driven is left alone, so
+    /// a brawl spilling into a guarded safe zone plays out normally —
+    /// <see cref="FindGuardNpcTarget"/> agrees, engaging only a hostile that is itself chasing a player.
+    /// AWA is excluded too: it retaliates even in safe zones, and farming is blocked instead by
+    /// guard-assisted kills denying EXP and loot (see <see cref="CombatSystem.ExecuteNpcDamage"/>).</para>
+    ///
+    /// <para>Called per-tick from the AoS AI loop, native and guest. Paired with
+    /// <see cref="CombatSystem.SelectAggroTargetEx"/>, which applies the same player-only gate so
+    /// damage-driven aggro flips cannot re-pick the player.</para></summary>
     private void EnforceSafeZoneAggroRule(MapNpcRecord mn, int currentMapNum, int slot, long now)
     {
         var npc = _world.Npcs[mn.Num];

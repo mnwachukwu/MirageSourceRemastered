@@ -153,9 +153,8 @@ public static class HotkeyBarPanel
         sb.Draw(itemsTex, box, Rendering.ItemAtlas.GetSourceRect((short)pic), tint);
     }
 
-    /// <summary>A spell has no art of its own, so every spell slot shows the same book and relies on the
-    /// hover tooltip to say which one — Matt's call, and it keeps the bar readable at 32px where a wall of
-    /// tiny distinct glyphs would not be.</summary>
+    /// <summary>A spell has no art of its own, so every spell slot shows the same book and the hover
+    /// tooltip says which one. Keeps the bar readable at 32px, where distinct glyphs would not be.</summary>
     private static void DrawBookIcon(SpriteBatch sb, Rectangle box, Color tint)
     {
         int pad = 5;
@@ -189,10 +188,9 @@ public static class HotkeyBarPanel
             Color.White);
     }
 
-    /// <summary>Slot to face button: 1→X, 2→Y, 3→B, 4→A.
-    /// <para>Not an arbitrary order — it is the OLD potion layout preserved. X used to drink the HP potion,
-    /// Y the mana one and B stamina, so a player who already had that in their hands keeps it, and the
-    /// fourth slot takes A (which was plain pickup, and still is without the trigger held).</para></summary>
+    /// <summary>Slot to face button: 1→X, 2→Y, 3→B, 4→A. Not arbitrary — X/Y/B are the legacy HP/MP/SP
+    /// potion buttons, so existing muscle memory carries over, and the fourth slot takes A (still plain
+    /// pickup without the trigger held).</summary>
     public static string GamepadFace(int slot) => slot switch { 1 => "X", 2 => "Y", 3 => "B", _ => "A" };
 
     /// <summary>The same four physical positions in Sony's vocabulary: X→Square, Y→Triangle, B→Circle,

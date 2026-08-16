@@ -6,8 +6,9 @@ public enum AnimStyle { Cycle = 0, Pendulum = 1 }
 
 /// <summary>
 /// Packs a single map-tile layer cell — the tile graphic, which tileset it came from, and whether
-/// it animates — into one 32-bit <see cref="int"/> for compact storage in memory, on disk (the JSON
-/// map files), and on the wire (the SendMap packet).
+/// it animates — into one 32-bit <see cref="int"/>, for memory, the JSON map files and the SendMap
+/// packet alike. A tile carries up to 10 layers, so an object per layer would cost the render hot path,
+/// the files and the wire at once.
 ///
 /// <para>Bit layout (least-significant bit first):</para>
 /// <code>
@@ -23,18 +24,9 @@ public enum AnimStyle { Cycle = 0, Pendulum = 1 }
 ///   bits 27..31  unused (reserved 0).
 /// </code>
 ///
-/// <para>A value of 0 means "empty, sheet 0, not animated" — i.e. an unused layer — so a freshly
-/// zeroed <c>int[]</c> is already all-empty with no extra initialization.</para>
-///
-/// <para>Why packed: a tile now carries up to <see cref="Constants.MaxGroundLayers"/> +
-/// <see cref="Constants.MaxFringeLayers"/> = 10 layers.  Storing each layer as a single int (rather
-/// than an object/struct per layer) keeps the render hot path, the map files, and the SendMap packet
-/// small — the explicit goal of the multi-tileset/multi-layer work.  Every call site goes through the
-/// named helpers below, so no code touches the raw bits directly.</para>
-///
-/// <para>Legacy maps (single sheet, fixed Ground/Mask/Anim/Fringe scalars) are upgraded on load by
-/// <c>TileRecordConverter</c>: old Ground→Ground[0], Mask→Ground[1], Anim→Ground[2] (with the Anim
-/// flag set), Fringe→Fringe[0], all on sheet 0 — which reproduces the original rendering exactly.</para>
+/// <para>0 means "empty, sheet 0, not animated", so a freshly zeroed <c>int[]</c> is already all-empty.
+/// Every call site goes through the named helpers below; nothing touches the raw bits. Legacy
+/// single-sheet maps are widened into this shape on load by <c>TileRecordConverter</c>.</para>
 /// </summary>
 public static class LayerCell
 {

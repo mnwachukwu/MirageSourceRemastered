@@ -60,8 +60,8 @@ public sealed class ServerPlayer
     // advanced by the periodic save + on logout. 0 = not yet in-game. Transient; the persisted per-character
     // total lives on PlayerRecord.PlayTimeSeconds.
     public long PlayTimeAnchorUtc { get; set; }
-    // UTC-seconds this session began (set once at JoinGame, never re-anchored) — the session length used to
-    // accrue the guild active-member rolling total at logout.
+    // UTC-seconds this session began (set once at JoinGame, never re-anchored). The session length it
+    // yields is what accrues into the guild active-member rolling total at logout.
     public long SessionStartUtc { get; set; }
 
     // Per-target guild-war diminishing returns: how farmed this player is as a war-kill target.

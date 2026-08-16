@@ -136,11 +136,13 @@ public sealed partial class ConsoleCommands : IHostedService
             line = line.Trim();
             if (line.Length == 0) continue;
 
-            ExecuteCommand(line);
+            Execute(line);
         }
     }
 
-    private void ExecuteCommand(string input)
+    /// <summary>Runs one command line, whatever typed it. stdin and the management socket both land here,
+    /// so there is one command set rather than two that drift.</summary>
+    public void Execute(string input)
     {
         string cmd = input;
         string args = "";

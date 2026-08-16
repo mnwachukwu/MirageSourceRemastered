@@ -7,20 +7,17 @@ namespace Mirage.Shared;
 /// starting loadout.
 ///
 /// <para>Shared because two callers have to agree exactly: character creation, which grants the
-/// loadout, and the character-create screen, which shows it before you commit. A preview derived
-/// independently would be a second copy of these gates, free to drift — and the way a drift shows up
-/// is a player being promised a sword they then do not get.</para>
+/// loadout, and the character-create screen, which previews it. A preview derived independently would
+/// be a second copy of these gates, free to drift, and a drift shows up as a player being promised a
+/// sword they do not get.</para>
 ///
 /// <para>NOBODY STARTS WITH SOMETHING THEY CANNOT USE. An authored line whose gates the class fails is
-/// SKIPPED, not granted-and-carried: a piece sitting unusable in a new player's bag is a puzzle they
-/// did not ask for, and the class editor's warning column is what should have caught it. Equipment
-/// that passes arrives WORN, so nothing requires opening the bag.</para>
+/// SKIPPED, not granted-and-carried; the class editor's warning column is what should have caught it.
+/// Equipment that passes arrives WORN, so nothing requires opening the bag.</para>
 ///
-/// <para>Every gate reads the class's BASE stats, which is exactly what the character has at this
-/// moment — character creation copies Str/Def/Spd/Int straight off the class and sets level 1. So
-/// there is no character to pass in: for as long as this question is being asked, the class IS the
-/// character. <see cref="CombatFormulas.GearStatRequirement"/> already folds in the class-affinity
-/// head-start, so this asks precisely the question the equip path would ask a second later.</para>
+/// <para>Every gate reads the class's BASE stats, because that is exactly what the character has at
+/// this moment — creation copies Str/Def/Spd/Int off the class and sets level 1. There is no character
+/// to pass in: while this question is being asked, the class IS the character.</para>
 /// </summary>
 public static class StartingLoadout
 {

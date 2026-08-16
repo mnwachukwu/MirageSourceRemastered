@@ -665,6 +665,15 @@
   "Net_PlayerRefusedFull":        "Conexão de jogador recusada de {Ip}: servidor cheio.",
   "Net_EditorRefusedFull":        "Conexão de editor recusada: nenhum espaço livre.",
 
+  "Management_Listening":         "Gestão remota a escutar na porta {Port}.",
+  "Management_TokenMissing":      "A gestão remota não está ativa: há uma porta definida mas não uma chave. Defina uma em serverconfig.json, ou ponha a porta a 0 para desligar a gestão remota.",
+  "Management_OperatorAttached":  "Operador ligado a partir de {Ip}.",
+  "Management_OperatorDetached":  "Operador desligado a partir de {Ip}.",
+  "Management_AuthFailed":        "Ligação de gestão recusada a partir de {Ip}: chave errada.",
+  "Management_AuthLockedOut":     "Ligações de gestão bloqueadas a partir de {Ip} após falhas repetidas.",
+  "Management_RemoteCommand":     "[{Ip}] {Command}",
+  "Management_LinesDropped":      "... {Count} linha(s) perdida(s); esta ligação não estava a acompanhar.",
+
   "Console_Prompt":               "Console do servidor {GameName} - digite /help para ver os comandos.",
   "Console_Help":                 "Jogadores: /who  /kick <nome> [minutos]  /ban <nome>  /mute <nome> [minutos]  /refreshbanlist  /setaccess <nível> <nome>\nMundo: /tod <fase>  /weather <tipo>  /motd <texto>  /respawn <mapa>  /mapreport\nGuildas: /startwar  /advancewar  /endwar  /guildreset [day|week|season]\nServidor: /shutdown  /help",
   "Console_Shutdown":             "Encerramento solicitado.",

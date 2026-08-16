@@ -14,9 +14,9 @@ public class GuildScheduleTests
         new() { Index = 1, Level = level, VaultGold = vault, FoundingWeekday = founding, PerksActive = perks };
 
     // Vault seeds below are quoted in WEEKS OF TAX rather than in literal gold. The guild gold family is
-    // rescaled as a unit (x35 on 2026-08-14 — see Constants), and every one of these tests is about the
-    // state machine — pay, suspend, restore, charge once — not about what a week costs. Literal vaults
-    // made a pure rescale look like twelve broken tests.
+    // rescaled as a unit (see Constants), and every one of these tests is about the state machine — pay,
+    // suspend, restore, charge once — not about what a week costs. Literal vaults make a pure rescale
+    // look like a dozen broken tests.
     private static long Tax(int level) => level * (long)Constants.GuildTaxPerLevel;
 
     /// <summary>Gold that <paramref name="valor"/> buys off a tax bill, in whole increments — the same

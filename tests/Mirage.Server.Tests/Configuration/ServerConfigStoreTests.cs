@@ -128,9 +128,9 @@ public class ServerConfigStoreTests
     [Test]
     public void CommentsAndTrailingCommas_AreAccepted()
     {
-        // appsettings.json next door is commented, so an operator hand-editing this one has every reason
-        // to expect the same. Losing the comments on a later save from the shell is the documented cost;
-        // having the file silently ignored would not be.
+        // Nothing the shell writes puts a comment here, but a hand-edited file may carry one, and a
+        // config silently ignored is the failure this whole type exists to avoid. Comments do not survive
+        // the shell's next save, which is the documented cost of the file being machine-owned.
         string path = Path_("annotated.json");
         File.WriteAllText(path, """
             {
@@ -203,6 +203,93 @@ public class ServerConfigStoreTests
         {
             Assert.That(error, Is.Null);
             Assert.That(read.DeathPenalty.ItemDrop, Is.False);
+        });
+    }
+
+    // ── Remote management ─────────────────────────────────────────────────────
+
+    [Test]
+    public void RemoteManagement_IsOffUntilItIsConfigured()
+    {
+        // A server must never be remotely reachable because nobody said otherwise.
+        var (config, _) = ServerConfigStore.Load(Path_("absent.json"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(config.Management.Port, Is.Zero);
+            Assert.That(config.Management.Token, Is.Empty);
+            Assert.That(config.Management.IsEnabled, Is.False);
+        });
+    }
+
+    [TestCase(0, "", false, TestName = "Neither")]
+    [TestCase(4001, "", false, TestName = "PortWithNoToken")]
+    [TestCase(0, "secret", false, TestName = "TokenWithNoPort")]
+    [TestCase(4001, "secret", true, TestName = "Both")]
+    public void RemoteManagement_NeedsBothAPortAndAToken(int port, string token, bool expected)
+    {
+        // Half-configured is a misconfiguration, not a half-open server: a port with no token would be an
+        // unauthenticated console, and the listener refuses rather than opening one.
+        var management = new ManagementConfig { Port = port, Token = token };
+
+        Assert.That(management.IsEnabled, Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void RemoteManagement_RoundTripsThroughTheFile()
+    {
+        string path = Path_("management.json");
+        var written = new ServerConfig
+        {
+            Management = new ManagementConfig { Port = 4001, Token = "abc123" },
+        };
+
+        ServerConfigStore.Save(path, written);
+        var (read, error) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(error, Is.Null);
+            Assert.That(read.Management.Port, Is.EqualTo(4001));
+            Assert.That(read.Management.Token, Is.EqualTo("abc123"));
+        });
+    }
+
+    [Test]
+    public void IsEnabled_IsDerived_AndStaysOutOfTheFile()
+    {
+        // Serialized, it would be a second place the answer is written down, and the two could disagree.
+        string path = Path_("derived.json");
+        ServerConfigStore.Save(path, new ServerConfig
+        {
+            Management = new ManagementConfig { Port = 4001, Token = "abc123" },
+        });
+
+        Assert.That(File.ReadAllText(path), Does.Not.Contain("isEnabled"));
+    }
+
+    [Test]
+    public void TurningManagementOff_KeepsTheToken()
+    {
+        // The shell writes port 0 rather than clearing the token, so switching remote access back on does
+        // not mean redistributing a new secret to everyone who had the old one.
+        string path = Path_("toggled.json");
+        ServerConfigStore.Save(path, new ServerConfig
+        {
+            Management = new ManagementConfig { Port = 4001, Token = "abc123" },
+        });
+
+        var (loaded, _) = ServerConfigStore.Load(path);
+        ServerConfigStore.Save(path, loaded with
+        {
+            Management = loaded.Management with { Port = 0 },
+        });
+        var (after, _) = ServerConfigStore.Load(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(after.Management.IsEnabled, Is.False);
+            Assert.That(after.Management.Token, Is.EqualTo("abc123"));
         });
     }
 

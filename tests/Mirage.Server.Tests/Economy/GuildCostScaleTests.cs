@@ -5,15 +5,13 @@ namespace Mirage.Server.Tests;
 
 /// <summary>The guild gold family is a CLOSED SUB-ECONOMY and must be retuned as a unit.
 ///
-/// <para>Every gold figure below came from one internally consistent set built around a 1,000-gold guild.
-/// Nothing about those ratios was wrong; the SCALE was — 1,000 is 3.7% of what a player earns crossing a
-/// single level by the time they would found a guild, so "a guild is a real commitment" stopped being true
-/// almost immediately. On 2026-08-14 the whole family was multiplied by 35 around a 35,000-gold guild.</para>
+/// <para>Every gold figure below is one internally consistent set, anchored on a 35,000-gold guild. The
+/// ratios are deliberate, so the family is rescaled as a unit or not at all.</para>
 ///
-/// <para>The failure mode this fixture exists for is a member being LEFT BEHIND. The rescale nearly missed
-/// one: the L5 vault-trickle perk was a bare literal <c>1</c> inside <c>CombatSystem.PlayerVsNpc</c> rather
-/// than a constant, and a guild constant sitting at a thirty-fifth of everything around it produces no
-/// error, no failing test and no visible symptom — just a mechanic that quietly does nothing.</para>
+/// <para>The failure mode this fixture exists for is a member being LEFT BEHIND by such a rescale. A guild
+/// constant sitting at a fraction of everything around it produces no error, no failing test and no
+/// visible symptom — just a mechanic that quietly does nothing. A bare literal at a call site rather than
+/// a constant is how one gets missed.</para>
 ///
 /// <para>These ratios are DELIBERATE, not incidental. A failure here is not automatically a bug; it means
 /// somebody moved one member of the family. If that was intended, update the table and say why.</para></summary>
@@ -93,8 +91,8 @@ public class GuildCostScaleTests
     public void NoGuildCostIsTriviallySmallAgainstRealIncome()
     {
         // The blunt version of the same guard, and the one that survives a deliberate retune: whatever the
-        // ratios become, a guild-scale sink may never decay back into pocket change. A constant left at the
-        // pre-2026-08-14 scale of 1,000 lands at 2.8% here and fails.
+        // ratios become, a guild-scale sink may never decay back into pocket change. A constant left a
+        // whole rescale behind lands around 2.8% here and fails.
         long incomeAtAnchor = EconomyFormulas.ExpectedGoldPerLevel(AnchorLevel);
         (string Name, long Value)[] sinks =
         [

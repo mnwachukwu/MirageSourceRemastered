@@ -624,11 +624,10 @@ public class SeedIntegrityTests
 
     // ── The content chain closes ──────────────────────────────────────────────
 
-    /// <summary>The last link. Conversations RESERVED npc numbers 125+ before those NPCs existed, and
-    /// shops and quests were then authored against them — so until the friendly-NPC generator ran, every
-    /// one of those references pointed at nothing. None of it errors at runtime: an unresolvable
-    /// SpeakerNpc simply means "no conversation", a missing keeper means "no shop". Silence all the way
-    /// down, which is exactly why it is checked here.</summary>
+    /// <summary>The last link. Conversations reserve npc numbers 125+, and shops and quests are authored
+    /// against them, so a generator that has not run leaves every one of those references pointing at
+    /// nothing. None of it errors at runtime — an unresolvable SpeakerNpc means "no conversation", a
+    /// missing keeper means "no shop" — which is exactly why it is checked here.</summary>
     [Test]
     public void EveryAuthoredReference_NamesAnNpcThatExists()
     {
@@ -680,16 +679,13 @@ public class SeedIntegrityTests
         });
     }
 
-    /// <summary>A guard is meant to be an unwinnable fight, and Matt's call is that LEVEL is the wrong
-    /// lever for that — it is a derived number, and pushing it past the ceiling only makes the stat line
-    /// strange. Guards therefore sit AT the player ceiling and are made unwinnable by
-    /// <see cref="NpcRecord.ExtraHp"/>, which the record documents as exactly this: "the intended way to
-    /// restore an old-style extreme-DEF wall".
+    /// <summary>A guard is an unwinnable fight, but LEVEL is the wrong lever for that: it is a derived
+    /// number, and pushing it past the ceiling only makes the stat line strange. Guards sit AT the player
+    /// ceiling and are made unwinnable by <see cref="NpcRecord.ExtraHp"/>.
     ///
-    /// <para>They also come in two shapes. A melee guard runs INT 0 so it never casts; a caster guard runs
-    /// STR 0, so <c>P(cast) = Int/(Int+Str)</c> makes it cast every beat. Dropping the unused stat is what
-    /// lets the other three read high at 255 rather than four mediocre numbers — so a guard with all four
-    /// stats populated is a guard that has quietly lost its teeth.</para></summary>
+    /// <para>Two shapes. A melee guard runs INT 0 so it never casts; a caster guard runs STR 0, so
+    /// <c>P(cast) = Int/(Int+Str)</c> makes it cast every beat. Dropping the unused stat is what lets the
+    /// other three read high at 255, so a guard with all four populated has lost its teeth.</para></summary>
     [Test]
     public void EveryGuard_IsAMaxedWallThatDropsNothing()
     {

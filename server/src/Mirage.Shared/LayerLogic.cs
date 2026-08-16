@@ -9,19 +9,20 @@ namespace Mirage.Shared;
 /// <see cref="IWorldTileView"/>, so a footprint that spans a seamless-map seam is handled uniformly (the
 /// server backs the view with a MapGrid + ResolveWorldTile, the client with its NeighborMaps).
 ///
-/// <para>Model: TWO FULL, UNIFORM logical planes — Ground and Fringe.  Each is walkable by default and shaped
-/// the same way (place a Blocked attribute on that layer for a wall/railing).  An entity's layer is STICKY;
-/// it flips ONLY across a <see cref="TileType.LayerRamp"/> tile — the sole connector between planes.  A ramp's
-/// <c>FringeAttr.Data1</c> is its ground-side <see cref="Direction"/> (the side you mount from).  A ramp is:
-/// (a) a mount-axis corridor — you enter/leave only along {groundSide, Opposite(groundSide)}; a perpendicular
-/// step crossing a ramp's side edge (the "gap") is blocked on BOTH layers; and (b) depth-gated — your whole
-/// SxS footprint must fit inside the contiguous ramp block, so a shallow ramp admits only small bodies.  While
-/// on a ramp you are on the Fringe layer (occlusion); interaction across a ramp is 3-D adjacency, resolved by
-/// the caller (combat), not here.</para>
+/// <para>TWO FULL, UNIFORM planes — Ground and Fringe. Each is walkable by default and shaped the same
+/// way (a Blocked attribute on that layer is a wall or railing). An entity's layer is STICKY and flips
+/// ONLY across a <see cref="TileType.LayerRamp"/>, the sole connector between planes.</para>
 ///
-/// <para>Walkability of the destination TILE (walls, closed doors, NpcAvoid, occupancy) stays with the
-/// caller's existing checks, which read the correct layer's attribute via <see cref="AttrFor"/>.  LayerLogic
-/// owns only the layer choice and the ramp corridor + fit geometry.</para>
+/// <para>A ramp's <c>FringeAttr.Data1</c> is its ground-side <see cref="Direction"/>, the side you mount
+/// from, and it is two things at once: a mount-axis CORRIDOR (enter and leave only along {groundSide,
+/// Opposite(groundSide)}; a perpendicular step across a ramp's side edge is blocked on BOTH layers) and
+/// DEPTH-GATED (the whole SxS footprint must fit inside the contiguous ramp block, so a shallow ramp
+/// admits only small bodies). While on a ramp you are on Fringe, for occlusion. Interaction ACROSS a ramp
+/// is 3-D adjacency and belongs to the caller.</para>
+///
+/// <para>Destination-tile walkability — walls, closed doors, NpcAvoid, occupancy — stays with the
+/// caller's own checks, reading the right layer through <see cref="AttrFor"/>. This owns only the layer
+/// choice and the ramp corridor and fit geometry.</para>
 /// </summary>
 public static class LayerLogic
 {
@@ -55,18 +56,19 @@ public static class LayerLogic
     }
 
     /// <summary>The layer a mover ends on after stepping (top-left anchor) to world (aWX,aWY) from
-    /// <paramref name="srcLayer"/> moving <paramref name="dir"/>.  Transitions happen only at the BOUNDARY of a
-    /// contiguous ramp block (never tile-to-tile inside it), so a ramp any number of tiles deep behaves the same
-    /// climbing up as coming down and you stay on one surface across the whole span:
-    ///  * ASCEND (→ Fringe) when stepping from a NON-ramp tile onto a ramp, moving up-ramp (toward the fringe,
-    ///    i.e. Opposite its ground side);
-    ///  * DESCEND (→ Ground) when stepping OFF a ramp onto a NON-ramp tile, moving toward the ramp's ground side.
-    /// Interior ramp→ramp steps (and plain non-ramp steps) keep the source layer — so once you have ascended you
-    /// ride the ramp surface on Fringe until you step off its ground side, and a mover that entered a ramp tile
-    /// from its high side on the Ground layer stays UNDER it on Ground.  Because a contiguous block resolves to a
-    /// single surface with ground-connections only at its ground-side edges, mixed-direction blocks (humps,
-    /// corners, multi-mount staircases) resolve coherently.  The corridor + fit gates live in
-    /// <see cref="CanEnter"/>; interaction across a ramp is 3-D adjacency, resolved by the caller.</summary>
+    /// <paramref name="srcLayer"/> moving <paramref name="dir"/>.
+    ///
+    /// <para>Transitions happen ONLY at the BOUNDARY of a contiguous ramp block, never tile-to-tile inside
+    /// it, so a ramp of any depth behaves the same climbing up as coming down:</para>
+    ///  * ASCEND (→ Fringe) stepping from a NON-ramp tile onto a ramp, moving up-ramp (Opposite its ground
+    ///    side);
+    ///  * DESCEND (→ Ground) stepping OFF a ramp onto a NON-ramp tile, moving toward its ground side.
+    ///
+    /// <para>Interior ramp→ramp steps and plain steps keep the source layer, so once ascended you ride the
+    /// surface on Fringe until you step off the ground side, and a mover that entered from the high side
+    /// on Ground stays UNDER it. A contiguous block therefore resolves to one surface connected to the
+    /// ground only at its ground-side edges, which is what makes humps, corners and multi-mount staircases
+    /// coherent. Corridor and fit gates live in <see cref="CanEnter"/>.</para></summary>
     public static WorldLayer ResolveLayer(IWorldTileView view, int aWX, int aWY, int size, WorldLayer srcLayer, Direction dir)
     {
         var (dx, dy) = WorldCoordHelper.DirDelta(dir);
@@ -205,8 +207,3 @@ public static class LayerLogic
         _ => Direction.Left,
     };
 }
-
-// WorldTarget used to live here: a Pack/Y/Layer helper that squeezed a target's layer into bit 8 of its
-// Y coordinate, because Warp and KeyOpen each had a layer to record and only three data slots to record
-// it in. WarpLayer and DoorLayer are their own WorldLayer fields now, so there is nothing left to pack —
-// the helper, and every call site's bit math, is gone.

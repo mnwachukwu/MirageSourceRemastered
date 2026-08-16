@@ -41,6 +41,16 @@ public static partial class ServerStrings
     public const string Net_PlayerRefusedFull = nameof(Net_PlayerRefusedFull);
     public const string Net_EditorRefusedFull = nameof(Net_EditorRefusedFull);
 
+    // ── Remote management ─────────────────────────────────────────────────────
+    public const string Management_Listening = nameof(Management_Listening);
+    public const string Management_TokenMissing = nameof(Management_TokenMissing);
+    public const string Management_OperatorAttached = nameof(Management_OperatorAttached);
+    public const string Management_OperatorDetached = nameof(Management_OperatorDetached);
+    public const string Management_AuthFailed = nameof(Management_AuthFailed);
+    public const string Management_AuthLockedOut = nameof(Management_AuthLockedOut);
+    public const string Management_RemoteCommand = nameof(Management_RemoteCommand);
+    public const string Management_LinesDropped = nameof(Management_LinesDropped);
+
     // ── Console commands ──────────────────────────────────────────────────────
     public const string Console_Prompt = nameof(Console_Prompt);
     public const string Console_Help = nameof(Console_Help);

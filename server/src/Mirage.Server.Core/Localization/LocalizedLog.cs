@@ -23,4 +23,11 @@ public static class LocalizedLog
         var (template, values) = ServerStrings.GetTemplate(key, args);
         logger.LogWarning(template, values);
     }
+
+    public static void Error(ILogger logger, string key,
+        params (string Key, object? Value)[] args)
+    {
+        var (template, values) = ServerStrings.GetTemplate(key, args);
+        logger.LogError(template, values);
+    }
 }

@@ -202,16 +202,17 @@ public static class WorldCoordHelper
     }
 
     /// <summary>
-    /// Spell-cast range: pure Pythagorean circle of radius 5 centered on the caster — same reach
-    /// cardinally and diagonally, no rectangle riding alongside.  A wider-than-tall rectangle
-    /// would let mages hit farther on the X axis than the Y axis, which creates ugly meta where
-    /// mages try to keep prey on the long axis and melee try to close on the short axis; the pure
-    /// circle removes the directional advantage entirely.  R=5 is the largest symmetric circle
-    /// that fits inside the 16×12 rendered viewport (limited by the short half-extent of 5 in Y);
-    /// going larger would either re-introduce reach beyond the rendered viewport or asymmetry.
-    /// The four corner wings of the viewport stay visible — you can SEE entities out there but
-    /// can't cast on them; visibility/earshot still use <see cref="IsWithinViewport"/>'s plain
-    /// asymmetric rectangle, so what you see and hear is unchanged.
+    /// Spell-cast range: a pure Pythagorean circle of radius 5 around the caster, with the same reach
+    /// cardinally and diagonally.
+    ///
+    /// <para>A wider-than-tall rectangle would let mages hit farther on X than on Y, and the meta that
+    /// falls out of that is mages keeping prey on the long axis while melee closes on the short one. The
+    /// circle removes the directional advantage entirely. R=5 is the largest symmetric circle fitting the
+    /// 16×12 viewport, limited by the short half-extent of 5 in Y; larger means reach beyond what is
+    /// rendered, or asymmetry.</para>
+    ///
+    /// <para>The viewport's four corner wings stay visible: you can SEE entities out there and not cast on
+    /// them. Visibility and earshot still use <see cref="IsWithinViewport"/>'s asymmetric rectangle.</para>
     ///
     /// Inherently two-way: if A is within B's circle, B is within A's circle (distance is
     /// symmetric in (dx,dy)), so no separate "mutual range" check is needed for PvP fairness.

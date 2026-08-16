@@ -11,6 +11,7 @@ using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Server.Host.Logging;
+using Mirage.Server.Host.Management;
 using Mirage.Server.Host.Net;
 using Mirage.Server.Host.Services;
 using Mirage.Shared;
@@ -39,6 +40,13 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 var (serverConfig, configError) = ServerConfigStore.Load(ServerConfigStore.DefaultPath);
 string langDir = Path.Combine(AppContext.BaseDirectory, "lang");
 ServerStrings.Load(langDir, serverConfig.Language);
+
+// ── Console capture, for remote operators ─────────────────────────────────────
+// Installed BEFORE any logger exists, so it catches the whole pipeline as well as the console commands'
+// own writes. Serilog's console sink resolves Console.Out; whether it does so once or per line, by this
+// point Console.Out is already the tee.
+var consoleTee = new ConsoleTee(Console.Out);
+Console.SetOut(consoleTee);
 
 // ── Bootstrap logger (used during startup before appsettings.json is loaded) ──
 Log.Logger = new LoggerConfiguration()
@@ -148,11 +156,18 @@ var host = Host.CreateDefaultBuilder(args)
         // ── Connection acceptor ───────────────────────────────────────────────
         services.AddSingleton<TcpConnectionAcceptor>();
 
+        // ── Remote management ─────────────────────────────────────────────────
+        // Off unless serverconfig.json carries both a port and a token.
+        services.AddSingleton(consoleTee);
+
         // ── Hosted services ───────────────────────────────────────────────────
         // MirageServerService starts the world, game loop, and TCP acceptor.
         services.AddHostedService<MirageServerService>();
-        // ConsoleCommands reads admin commands from stdin.
-        services.AddHostedService<ConsoleCommands>();
+        // ConsoleCommands reads admin commands from stdin. Registered as itself as well as a hosted
+        // service, because the management listener runs commands through the same instance.
+        services.AddSingleton<ConsoleCommands>();
+        services.AddHostedService(sp => sp.GetRequiredService<ConsoleCommands>());
+        services.AddHostedService<ManagementListener>();
     })
     .Build();
 

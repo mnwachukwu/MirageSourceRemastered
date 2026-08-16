@@ -104,10 +104,9 @@ public class NpcDropTableTests
         Assert.That(npc.Drops, Is.Null);
     }
 
-    // The table used to be capped at 8 lines. That cap is GONE, and this test is its inverse: a long table
-    // must survive Normalize intact. Because quantity does not stack off a Currency item, repeated lines
-    // are the only way to author a multi-item payout — so truncating here would silently delete loot, and
-    // did: seven boss hoards sat exactly on the old cap.
+    // THERE IS NO LENGTH CAP on a drop table, and a long one must survive Normalize intact. Quantity does
+    // not stack off anything but a Currency item, so repeated lines are the only way to author a
+    // multi-item payout — a cap here would silently delete a boss hoard's loot.
     [Test]
     public void Normalize_KeepsALongTable_ThereIsNoLengthCap()
     {

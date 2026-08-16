@@ -348,18 +348,18 @@ public sealed partial class CombatSystem : GameSystem
         return true;
     }
 
-    /// <summary>Broadcast an NPC's AttackSay bubble to every player observing the speaker's map (so
-    /// any viewport-visible observer sees it now, and a player who later walks into viewport during
-    /// the bubble's client-side lifetime sees it via the client's existing per-NPC bubble cache).
-    /// Deduped via <see cref="MapNpcRecord.LastAttackSayNpcTarget"/> on a PER-COMBAT-SESSION basis —
-    /// the field is reset to 0 only on combat exit / cross-border / death / spawn, so once any
-    /// AttackSay fires this session the speaker stays silent even if aggro flips between multiple
-    /// NPC targets (a ping-pong A→B→A cannot leak a re-fire on the third emit, because the dedup
-    /// does not match only the most recent encoded target).  The encoded value is effectively a
-    /// "did we say it this session" flag; we still store it for diagnostics / consistency with the
-    /// player-target dedup.  Native speakers address by (mapNum, npcSlot); traversal guests carry
-    /// the speaker's permanent (SpawnMap, SpawnSlot) identity instead so the client looks them up
-    /// in TraversalNpcs.  No-op only for empty AttackSay strings.</summary>
+    /// <summary>Broadcast an NPC's AttackSay bubble to every player observing the speaker's map, so a
+    /// viewport-visible observer sees it now and one who walks in later picks it up from the client's
+    /// per-NPC bubble cache. No-op for an empty AttackSay.
+    ///
+    /// <para>Deduped PER COMBAT SESSION via <see cref="MapNpcRecord.LastAttackSayNpcTarget"/>, which
+    /// resets only on combat exit, cross-border, death or spawn. Once any AttackSay fires this session the
+    /// speaker stays silent even if aggro flips between NPC targets, so a ping-pong A→B→A cannot leak a
+    /// re-fire on the third emit. The stored value is effectively a "said it this session" flag, kept for
+    /// consistency with the player-target dedup.</para>
+    ///
+    /// <para>Native speakers address by (mapNum, npcSlot); traversal guests carry their permanent
+    /// (SpawnMap, SpawnSlot) identity so the client can find them in TraversalNpcs.</para></summary>
     public void EmitNpcAttackSayBubbleToObservers(int mapNum, int npcSlot, MapNpcRecord mn, int victimSpawnMap, int victimSpawnSlot)
     {
         var npcRec = _world.Npcs[mn.Num];

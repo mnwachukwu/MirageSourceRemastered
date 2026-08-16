@@ -82,21 +82,19 @@ public readonly record struct MapLightCmd(float ScreenX, float ScreenY);
 public readonly record struct GlowCmd(float ScreenX, float ScreenY, uint Rgb, float Radius);
 
 /// <summary>
-/// Draw a text string centered horizontally on ScreenX.
-/// When AlignBottom is false, ScreenY is the top of the text (standard).
-/// When AlignBottom is true, ScreenY is the bottom of the text; the renderer subtracts the measured font height.
-/// <see cref="RgbOverride"/> is a packed 0xRRGGBB color that supersedes <see cref="ColorIndex"/> when >= 0
-/// (used for the guild overhead name, whose color is a free RGB, not a palette index).
-/// <see cref="LineOffset"/> shifts the text up by that many name-line-heights, applied with the real font
-/// metrics at draw time — lets a caller stack a line (e.g. the guild name above the player name) without
-/// knowing the font here in the logic layer.
-/// <see cref="GuildRankWord"/> (0 = none, else a <c>GuildRank</c> value) APPENDS the member's localized
-/// guild-rank word (Officer/Leader) after <see cref="Text"/> — e.g. "&lt;Guild&gt; Officer".
-/// <see cref="GuildStanding"/> (0 = none, else the 1-based seasonal standing) further appends " (N)".
-/// Both are assembled + localized in the Shell layer, which owns the string table (the logic layer doesn't),
-/// so only the numbers travel on the command.
-/// <see cref="AtWar"/> draws an improvised crossed-swords marker to the left of this line — flagging the
-/// overhead guild name of a guild the viewer's guild is at war with.
+/// Draw a text string centered horizontally on ScreenX. <see cref="AlignBottom"/> switches ScreenY from
+/// the top of the text to its bottom, with the renderer subtracting the measured font height.
+///
+/// <para><see cref="RgbOverride"/> is a packed 0xRRGGBB color superseding <see cref="ColorIndex"/> when
+/// >= 0, for the guild overhead name, whose color is a free RGB rather than a palette index.
+/// <see cref="LineOffset"/> shifts the text up by that many name-line-heights using the real font metrics
+/// at draw time, so a caller can stack a line without knowing the font from the logic layer.</para>
+///
+/// <para><see cref="GuildRankWord"/> (0 = none, else a <c>GuildRank</c>) appends the localized rank word,
+/// and <see cref="GuildStanding"/> (0 = none, else the 1-based seasonal standing) appends " (N)". Both
+/// are assembled and localized in the Shell layer, which owns the string table — only the numbers travel
+/// on the command. <see cref="AtWar"/> draws a crossed-swords marker to the left, flagging a guild the
+/// viewer's guild is at war with.</para>
 /// </summary>
 public readonly record struct TextDrawCmd(float ScreenX, float ScreenY, string Text, int ColorIndex,
     bool AlignBottom = false, int RgbOverride = -1, int LineOffset = 0, int GuildRankWord = 0, bool AtWar = false,

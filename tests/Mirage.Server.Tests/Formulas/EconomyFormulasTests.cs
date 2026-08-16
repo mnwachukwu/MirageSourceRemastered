@@ -156,9 +156,9 @@ public class EconomyFormulasTests
         // Gold per point is the Power rate. Checked well up the ladder, where prices are large enough that
         // the replacement-cost cap never engages and the raw rate is what you pay.
         //
-        // Quoted against RepairGoldPerPoint rather than a literal: the divisor is a tuning knob (10 -> 40
-        // on 2026-08-14) and this test is about the SHAPE — linear in points, floored, clamped at a full
-        // repair. Pinning the literal only proved the knob had not moved.
+        // Quoted against RepairGoldPerPoint rather than a literal: the divisor is a tuning knob, and this
+        // test is about the SHAPE — linear in points, floored, clamped at a full repair. Pinning the
+        // literal would only prove the knob had not moved.
         var item = Gear(ItemType.Weapon, power: 200, levelReq: 120, durability: 100);
         int full = (int)Math.Round(100 * EconomyFormulas.RepairGoldPerPoint(200), MidpointRounding.AwayFromZero);
         Assert.That(EconomyFormulas.RepairCost(100, item), Is.EqualTo(full), "100 points at the Power rate");
@@ -210,11 +210,11 @@ public class EconomyFormulasTests
         // is why RepairCost caps against the price. Swept across durabilities because the cap binds on the
         // RATIO of durability to price, not on tier alone.
         //
-        // The sweep runs to 2,000 because that is what the armory now ships: durability went from a flat
-        // 100 to sqrt(level) x bulk on 2026-08-14, so a tier-255 Tower Shield carries 2,000. Raising
-        // durability raises the RAW cost of a full repair in direct proportion (more points to buy) while
-        // the price stays put, so it drives items INTO the cap — this invariant is exactly the one a
-        // durability change can break, and the old sweep stopped at 200.
+        // The sweep runs to 2,000 because that is what the armory ships: durability is sqrt(level) x bulk,
+        // so a tier-255 Tower Shield carries 2,000. Raising durability raises the RAW cost of a full
+        // repair in direct proportion (more points to buy) while the price stays put, so it drives items
+        // INTO the cap — this invariant is exactly the one a durability change can break, so the sweep has
+        // to reach what the armory actually ships.
         foreach (short tier in new short[] { 1, 5, 10, 15, 20, 100, 120, 235, 255 })
             foreach (short dur in new short[] { 20, 50, 100, 200, 500, 1_000, 2_000 })
             {
@@ -282,10 +282,9 @@ public class EconomyFormulasTests
     [Test]
     public void CasterAndWarriorUpkeepStayInStep()
     {
-        // The parity that silently broke once: CombatFormulas priced reagents off a COPY of the repair rule
-        // (Power/10), which stopped being the repair rule and left casters paying ~1/87th of a warrior's
-        // upkeep at max level. Reagents are 1 gold each, so a cast's reagent count must equal the gold a
-        // warrior burns per swing — derived from the live rule, not restated beside it.
+        // Reagents are 1 gold each, so a cast's reagent count must equal the gold a warrior burns per
+        // swing. The parity has to be DERIVED from the live repair rule: priced off a copy of it, the two
+        // drift to ~87x apart at max level in the caster's favor and nothing fails.
         foreach (int level in new[] { 20, 100, 120, 235, 255 })
         {
             double warriorPerSwing = EconomyFormulas.RepairGoldPerDurabilityPoint(level) * 0.48;   // avg chip per hit

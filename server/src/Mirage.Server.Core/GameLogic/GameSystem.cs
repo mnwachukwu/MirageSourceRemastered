@@ -9,23 +9,13 @@ namespace Mirage.Server.Core.GameLogic;
 /// Base for a game system that talks to players: it owns the packet dispatcher and the
 /// localized-chat vocabulary every system needs.
 ///
-/// <para>Before this existed, sixteen systems each declared their own private
-/// <c>SendMsg</c>/<c>Msg</c>/<c>Notify</c>/<c>NotifyOk</c> pair — around thirty near-identical
-/// two-line forwards whose only shared logic was constructing a <see cref="ChatMetadata"/>. They had
-/// not drifted, but the shape was restated in every file, so any change to
-/// <see cref="ChatMetadata"/> meant editing all of them. Hoisting the vocabulary here deletes the
-/// copies outright while leaving every call site reading exactly as it did, because
-/// <c>SendMsg(...)</c> now resolves to the inherited member.</para>
+/// <para><b>The default channel is per system.</b> Most speak on <see cref="ChatChannel.System"/>;
+/// combat-facing ones default to <see cref="ChatChannel.Combat"/> so their damage and heal lines land
+/// in the combat tab. It is a constructor argument rather than an override, so the choice is visible at
+/// the point of construction.</para>
 ///
-/// <para><b>The default channel is per system.</b> Most systems speak on
-/// <see cref="ChatChannel.System"/>; combat-facing ones (CombatSystem, SpellSystem) default to
-/// <see cref="ChatChannel.Combat"/> so their damage/heal lines land in the combat tab. That choice is
-/// the one thing subclasses configure, and it is passed to the constructor rather than overridden so
-/// it is visible at the point of construction.</para>
-///
-/// <para>Guild-scoped broadcast helpers (announcements to a whole guild, war notices) deliberately
-/// stay on the guild systems that own them — they are a different audience concern, not this
-/// per-player vocabulary.</para>
+/// <para>Guild-scoped broadcasts stay on the guild systems that own them: a different audience, not
+/// this per-player vocabulary.</para>
 /// </summary>
 public abstract class GameSystem
 {

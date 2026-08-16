@@ -430,9 +430,9 @@ public class ItemSystemStateTests
     [Test]
     public void UseItem_SubPotion_SmallPoolIntoLargeOnes_IsWorthProportionallyTheSame()
     {
-        // The other direction, which used to be worthless: draining the tiny SP pool paid a raw half of a
-        // tiny number into two huge pools — under 1% of an HP bar at max level. Proportionally it should
-        // be exactly as good a trade as the reverse.
+        // The direction a raw-amount exchange gets wrong: draining the tiny SP pool into two huge ones.
+        // Converting through pool fractions makes it proportionally exactly as good a trade as the
+        // reverse; paying a raw share instead lands under 1% of an HP bar at max level.
         var (world, _, items, p) = Setup();
         const int SubSpPotion = 20;
         world.Items[SubSpPotion].Type = ItemType.PotionSubSp;

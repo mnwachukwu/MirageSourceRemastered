@@ -20,8 +20,8 @@ public class GuildWarFormulasTests
     }
 
     // The three below are quoted against the constants, not literals. The guild gold family is rescaled
-    // as a unit (x35 on 2026-08-14) and what these protect is the DIRECTION and SIZE of the level tilt,
-    // which a rescale leaves alone. Literals here only proved nobody had retuned the guild economy.
+    // as a unit, and what these protect is the DIRECTION and SIZE of the level tilt, which a rescale
+    // leaves alone. Literals here would only prove nobody had retuned the guild economy.
     [Test]
     public void DeclareCost_PunchingUp_CostsLess()   // L1 -> L5 = base - 4*step
     {

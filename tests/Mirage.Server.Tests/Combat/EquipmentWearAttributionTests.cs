@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace Mirage.Server.Tests;
 
 /// <summary>How gear wears: WHICH slots a combat event touches, and HOW the sliding chip scale behaves.
-/// Both are load-bearing for the repair economy and neither was pinned before 2026-08-14.
+/// Both are load-bearing for the repair economy.
 ///
 /// <para><b>Slots.</b> <see cref="EconomyFormulas"/> quotes a full kit's upkeep as (wear events per kill) x
 /// (kills per level) x (gold per point). The first term depends entirely on how many slots each event

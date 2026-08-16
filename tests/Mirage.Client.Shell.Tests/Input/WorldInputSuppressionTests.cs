@@ -7,9 +7,8 @@ namespace Mirage.Client.Shell.Tests;
 
 /// <summary>Regression net for "typing into a panel text box leaks gameplay hotkeys". GameplayScreen
 /// gates its menu/potion hotkeys, pickup, and movement on <see cref="WorldInputGate.IsSuppressed"/>;
-/// a panel's number-prompt text box raises the capture signal that feeds it. These two pieces used to
-/// be disconnected — the number prompt captured the keystroke while the 1/2/3 and I/P/T/... hotkeys
-/// still fired underneath.</summary>
+/// a panel's number-prompt text box raises the capture signal that feeds it. Disconnect those two and
+/// the prompt captures the keystroke while the hotkeys still fire underneath.</summary>
 [TestFixture]
 public class WorldInputSuppressionTests
 {

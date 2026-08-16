@@ -274,7 +274,7 @@ public sealed partial class GameplayScreen : IGameScreen
             AddChatLine(ClientStrings.Format(ClientStrings.HotkeyBar_SpellGone, ("Spell", name)), GameColor.BrightRed);
             return false;
         }
-        // Ctrl casts on yourself, matching what Q used to do — the bar took over Q's job, not its habits.
+        // Ctrl casts on yourself, matching the legacy self-cast modifier.
         bool self = _lastInput.IsKeyDown(Keys.LeftControl) || _lastInput.IsKeyDown(Keys.RightControl);
         _ctx.Sender.SendCast(book, self);
         return true;

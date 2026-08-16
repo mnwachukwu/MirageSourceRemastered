@@ -28,9 +28,9 @@ public class TerritoryFormulasTests
     {
         Assert.Multiple(() =>
         {
-            // Quoted against the constants: the guild gold family is rescaled as a unit (x35 on
-            // 2026-08-14), and what this test protects is the owner/non-owner gap and the weeks-held
-            // multiplier, neither of which a rescale touches.
+            // Quoted against the constants: the guild gold family is rescaled as a unit, and what this
+            // test protects is the owner/non-owner gap and the weeks-held multiplier, neither of which a
+            // rescale touches.
             int nonOwner = Constants.TerritoryIncomeNonOwnerGold, owner = Constants.TerritoryIncomeOwnerGold;
             Assert.That(TerritoryFormulas.IncomeForKill(false, 0), Is.EqualTo(nonOwner));    // fresh, non-owner: x1
             Assert.That(TerritoryFormulas.IncomeForKill(true, 0), Is.EqualTo(owner));        // fresh, owner: x1

@@ -87,20 +87,19 @@ public static class Constants
     // from DeliverAt like the normal retention) - far shorter than the 30-day normal retention, so locked items
     // don't sit forever. The sender may set a CoD price up to MarketMaxPrice (the marketplace price ceiling).
     public const int CodLifetimeSeconds = 3 * 24 * 60 * 60;   // 3 days
-    // Cost to send mail (a gold sink): a base fee plus a per-attachment surcharge (EconomyFormulas.
-    // MailSendCost). A multi-recipient send (attachments disallowed) costs the base fee per recipient.
-    // Client previews the total; server charges it.
-    // FLAT ON PURPOSE. Briefly scaled to the sender's level, which is unenforceable: hand the parcel to a
-    // level-1 mule and the fee drops to the floor. Anything payable on someone else's behalf cannot be
-    // priced by who pays it.
-    // The two flat parts stay SMALL and unchanged: mail is available from level 1, and any flat fee large
-    // enough to matter at level 255 would be unaffordable at level 5. Scale comes from the third part.
+    // Cost to send mail (a gold sink): a base fee, a per-attachment surcharge, and a percent of the
+    // parcel's gold value (EconomyFormulas.MailSendCost). A multi-recipient send (attachments
+    // disallowed) costs the base fee per recipient. Client previews the total; server charges it.
+    //
+    // FLAT ON PURPOSE. A fee scaled to the sender's level is unenforceable: hand the parcel to a level-1
+    // mule and it drops to the floor. Anything payable on someone else's behalf cannot be priced by who
+    // pays it. The flat parts stay SMALL because mail is available from level 1 and any flat fee big
+    // enough to matter at 255 would be unaffordable at 5; scale comes from the percent below.
     public const int MailBaseSendCost = 10;
     public const int MailAttachmentSendCost = 50;
-    // Percent of the parcel's gold value, added on top (2026-08-14). Keyed on the SHIPMENT, not the
-    // sender, so the mule that defeats a level-scaled fee is irrelevant here — the parcel is worth what it
-    // is worth whoever posts it. Deliberately under the 5% MarketSaleTaxPercent that the marketplace and
-    // CoD both charge: those buy escrow, plain mail does not, and the gap is the price of trust.
+    // Keyed on the SHIPMENT rather than the sender, so the mule that defeats a level-scaled fee is
+    // irrelevant. Deliberately under the 5% MarketSaleTaxPercent the marketplace and CoD charge: those
+    // buy escrow, plain mail does not, and the gap is the price of trust.
     public const int MailAttachedValuePercent = 2;
     // Share of the DRAINED FRACTION a Sub* potion pays into each of the other two vitals — see
     // StatFormulas.SubPotionGain. Spending a quarter of one bar buys an eighth of each of the others,
@@ -185,10 +184,10 @@ public static class Constants
     // modifier).  Four is a UI limit as much as a design one: the bar sits in the sidebar strip above the
     // links, and four icons is what fits there at the strip's width without crowding them.
     public const int MaxHotkeys = 4;
-    // Every authored class starts at this total stat allotment (Str+Def+Int+Spd). With PointsPerLevel it inverts
-    // a stat spread back into a character level — used to give an NPC a player-faithful "virtual level" (level =
-    // (statSum - PlayerBaseStatTotal)/PointsPerLevel + 1), which drives its vitals, mitigation, EXP, and the
-    // on-target strength readout exactly as a real level drives a player's.
+    // Every authored class starts at this total stat allotment (Str+Def+Int+Spd). With PointsPerLevel it
+    // inverts a stat spread back into a character level, which is how an NPC gets a player-faithful
+    // "virtual level" (level = (statSum - PlayerBaseStatTotal)/PointsPerLevel + 1) driving its vitals,
+    // mitigation, EXP and strength readout exactly as a real level drives a player's.
     public const int PlayerBaseStatTotal = 20;
 
     // PvP — level gap that fully protects the lower-level player (no EXP/gear/item loss);
@@ -358,26 +357,18 @@ public static class Constants
     public const int ValorItemIndex = 3;
 
     // ── Inn: set-spawn cost ──────────────────────────────────────────────────
-    // The cost itself is EconomyFormulas.InnSpawnCost — a share of one level's earnings. It was
-    // ceil(level^1.25 x 5) until 2026-08-13, which is the same trap every other sink fell into: an
-    // exponent of 1.25 against income growing at L^2.675 meant 5,095 gold at level 255 out of 7.25M
-    // earned crossing that level. This is only the floor now, for the levels where the curve is still
-    // paying single digits.
+    // The cost itself is EconomyFormulas.InnSpawnCost, a share of one level's earnings. This is only the
+    // floor, for the low levels where that share is still single digits.
     public const int SpawnCostMinimum = 5;
 
     // ── Guild ────────────────────────────────────────────────────────────────
-    // THE WHOLE GUILD GOLD FAMILY WAS MULTIPLIED BY 35 ON 2026-08-14, and it is meant to stay a family.
-    // Every gold figure below (and in guild quests, wars, and territory) came from one internally
-    // consistent set built around a 1,000-gold guild. Nothing about those RATIOS was wrong — the scale
-    // was. A 1,000-gold guild is 3.7% of what a level-27 player earns crossing a single level and half a
-    // percent of everything they have ever earned, so "founding a guild is a commitment" stopped being
-    // true almost immediately. Multiplying the closed system by one factor fixes the scale and preserves
-    // every deliberate relationship inside it; retuning the members individually would not.
+    // EVERY GOLD FIGURE IN THE GUILD FAMILY IS ONE SET — these, and the ones in guild quests, wars and
+    // territory. The ratios between them are deliberate, so they move together by a single factor or not
+    // at all; retuning one on its own silently changes a relationship somebody chose.
     //
-    // The anchor is 35,000 to found a guild (Matt's call), which is one level's income at level 30 —
-    // about 30 hours of at-level grinding by .Tools/Simulations/FightSim. It is NOT a level gate; there
-    // is no level requirement on founding a guild. It is the level the number was SIZED against, so that
-    // a flat cost still has a defensible player behind it.
+    // The anchor is 35,000 to found a guild: one level's income at level 30, around 30 hours of at-level
+    // play by simulation. NOT a level gate — nothing requires a level to found a guild. It is the level
+    // the number was SIZED against, so that a flat cost has a defensible player behind it.
     //
     // FLAT, all of it: a guild is funded collectively from a vault, so pricing anything here by whichever
     // member clicks the button is both arbitrary and trivially minimized by using the lowest-level one.
@@ -392,8 +383,7 @@ public static class Constants
     // Valor auto-offsets the weekly tax at settlement (consumed before gold): every
     // GuildValorPerTaxDiscount valor in the vault removes GuildGoldPerTaxDiscount gold from the tax, in whole
     // increments, capped at GuildValorTaxOffsetCapPercent% of the tax (at L5: 250 valor -> 87,500 off of
-    // 175,000). Scaled with the tax it offsets — leaving it behind would have quietly cut valor's relief
-    // from half the bill to a seventieth of it, which is a nerf nobody would have written down.
+    // 175,000). Scales with the tax it offsets, so valor's relief stays a fixed share of the bill.
     public const int GuildValorPerTaxDiscount = 10;
     public const int GuildGoldPerTaxDiscount = 3_500;
     public const int GuildValorTaxOffsetCapPercent = 50;
@@ -437,9 +427,8 @@ public static class Constants
     public const int GuildPerkDoubleDropChancePercent = 5;
     public const int GuildPerkLevelVaultGold = 5;
     public const int GuildPerkVaultGoldChancePercent = 25;
-    // Gold the L5 perk trickles into the vault on a qualifying KO. Was a literal 1 inside
-    // CombatSystem.PlayerVsNpc — the only member of the guild gold family that wasn't a constant, which is
-    // exactly why it would have been the one left behind by the 2026-08-14 rescale.
+    // Gold the L5 perk trickles into the vault on a qualifying KO. A constant rather than a literal at
+    // its call site because it belongs to the guild gold family above and has to move with it.
     public const int GuildPerkVaultGold = 35;
     // Recent vault-log entries kept for the Vault tab's Donations + Spending views (newest-first, capped). Display-only.
     public const int GuildRecentVaultLogMax = 15;

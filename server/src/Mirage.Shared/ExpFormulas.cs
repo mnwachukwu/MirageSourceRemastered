@@ -23,11 +23,9 @@ public static class ExpFormulas
     // right knob for wall-clock — and mob stats are NOT, because they also feed ExpForKill and
     // expected TTK and would move three things while you were aiming at one.
     //
-    // 950 → 500, 2026-08-13.  Level-matching the bestiary (mobs had been running 2.4–3.85× over
-    // their label) cut each kill's reward harder than it cut the kill's duration, so the road to
-    // 255 nearly doubled — 3,713h → 7,106h of pure killing — without any fight getting longer.
-    // 500 restores the settled wall-clock (3,741h, within 1%) and keeps the shorter fights.
-    // Re-measure with .Tools/Simulations/ExpCurve/exp-curve.cs, which takes --matched and --tnl=N.
+    // The constant is sized for wall-clock: 500 puts the road to 255 at about 3,741h of pure killing
+    // against the level-matched bestiary.  Re-measure with .Tools/Simulations/ExpCurve/exp-curve.cs,
+    // which takes --matched and --tnl=N.
     public static long TnlForLevel(int level) =>
         (long)Math.Round(Math.Pow(level, TnlExponent) * TnlConstant, MidpointRounding.AwayFromZero);
 

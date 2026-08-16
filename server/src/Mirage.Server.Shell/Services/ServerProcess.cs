@@ -3,22 +3,15 @@ using Mirage.Shared;
 
 namespace Mirage.Server.Shell.Services;
 
-/// <summary>"Running" means the process is alive, NOT that the world has finished loading — the shell
-/// has no way to know that until the management protocol exists.</summary>
-public enum ServerState { Stopped, Running, Stopping }
-
 /// <summary>
-/// Supervises the server as a child process: starts it, relays its console output, forwards commands to
-/// its stdin, and shuts it down.
+/// A server running as a child process: started here, relayed through stdin and stdout, and shut down
+/// on request.
 ///
 /// <para>Stopping is a request, not a kill. The server drains four write queues on the way out, and
 /// killing it mid-drain loses whatever had not landed — so Stop writes <c>/shutdown</c> and waits, and
 /// kills only as a backstop.</para>
-///
-/// <para>State and output arrive as EVENTS rather than being read off the process, so a remote
-/// connection can drop in behind the same interface (#75).</para>
 /// </summary>
-public sealed class ServerProcess : IDisposable
+public sealed class ServerProcess : IServerConnection
 {
     /// <summary>How long a graceful shutdown is given before the process is killed. Generous on
     /// purpose — the alternative to waiting is losing writes.</summary>
@@ -27,14 +20,13 @@ public sealed class ServerProcess : IDisposable
     private readonly object _lock = new();
     private Process? _process;
 
-    /// <summary>One line of server console output. Raised from a background thread — a UI subscriber
-    /// has to marshal.</summary>
     public event Action<string>? OutputReceived;
-
-    /// <summary>Raised on every state transition, from whichever thread caused it.</summary>
     public event Action<ServerState>? StateChanged;
 
     public ServerState State { get; private set; } = ServerState.Stopped;
+
+    /// <summary>True: this shell owns the process, so it can start and stop it.</summary>
+    public bool CanSupervise => true;
 
     /// <summary>The server executable, beside this one. They ship in the same package, so the shell
     /// never has to be told where the server is. Built from <see cref="Constants.GameName"/> rather than
@@ -45,14 +37,14 @@ public sealed class ServerProcess : IDisposable
 
     public string ExecutablePath { get; set; } = DefaultExecutablePath;
 
-    /// <summary>Launches the server. Returns null on success, or a message explaining why not —
-    /// a missing executable is by far the likeliest, and it is worth naming the path it looked at.</summary>
-    public string? Start()
+    /// <summary>Launches the server. Returns null on success, or the path it looked at when nothing was
+    /// there — by far the likeliest failure, and worth naming.</summary>
+    public Task<string?> StartAsync()
     {
         lock (_lock)
         {
-            if (State != ServerState.Stopped) return null;
-            if (!File.Exists(ExecutablePath)) return ExecutablePath;
+            if (State != ServerState.Stopped) return Task.FromResult<string?>(null);
+            if (!File.Exists(ExecutablePath)) return Task.FromResult<string?>(ExecutablePath);
 
             var info = new ProcessStartInfo(ExecutablePath)
             {
@@ -78,12 +70,12 @@ public sealed class ServerProcess : IDisposable
             _process = process;
         }
         SetState(ServerState.Running);
-        return null;
+        return Task.FromResult<string?>(null);
     }
 
-    /// <summary>Types a line at the server's console. Everything <c>ConsoleCommands</c> understands —
-    /// /who, /kick, /ban, /mute, /refreshbanlist, /help — arrives this way, so the shell inherits the
-    /// whole command set without reimplementing any of it.</summary>
+    /// <summary>Types a line at the server's console. Everything <c>ConsoleCommands</c> understands
+    /// arrives this way, so the shell inherits the whole command set without reimplementing any of
+    /// it.</summary>
     public void SendCommand(string line)
     {
         lock (_lock)

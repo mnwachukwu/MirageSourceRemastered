@@ -195,17 +195,19 @@ public sealed partial class CombatSystem : GameSystem
         return false;
     }
 
-    /// <summary>Two-pass EXP distribution to all contributors and their on-map party partners.  Pass 1
-    /// collects each contributor's BASE contribution EXP (damage-share × tier, pre-bonus) WITHOUT
-    /// awarding anything — stored even for max-level contributors so their partner still earns the
-    /// partner kill bonus.  Pass 2 walks every on-map non-max-level party-eligible player and pays
-    /// them ownBase × PartyExpBonus (when partnered in band) + PartnerKillBonus from partner's base
-    /// — applied to active co-fighters AND a passive partner who dealt no damage, so two co-fighters
-    /// each cut the other's base symmetrically with no incentive to underperform for a bonus cut.
-    /// Net party payout in band = mob_xp × (1.2 + 0.25) = 1.45× regardless of damage split.  Shared
-    /// by player-killed and NPC-killed paths — denominator is NPC max HP, not summed player damage,
-    /// so a guard who whittled half the bar proportionally reduces every player's EXP share (matches
-    /// "you earn what you dealt").</summary>
+    /// <summary>Two-pass EXP distribution to every contributor and their on-map party partners.
+    ///
+    /// <para>Pass 1 collects each contributor's BASE contribution EXP (damage-share × tier, pre-bonus)
+    /// and awards nothing — stored even for max-level contributors, so their partner still earns the
+    /// partner kill bonus. Pass 2 walks every on-map, non-max-level, party-eligible player and pays
+    /// ownBase × PartyExpBonus (when partnered in band) plus PartnerKillBonus off the partner's base.
+    /// That applies to active co-fighters AND a passive partner who dealt no damage, so two co-fighters
+    /// cut each other's base symmetrically and nobody gains by underperforming. Net party payout in band
+    /// is mob_xp × 1.45 regardless of the damage split.</para>
+    ///
+    /// <para>Shared by the player-killed and NPC-killed paths. The denominator is NPC MAX HP, not summed
+    /// player damage, so a guard who whittled half the bar proportionally reduces every player's share —
+    /// you earn what you dealt.</para></summary>
     private void AwardExpForKill(int mapNum, MapNpcRecord mapNpc)
     {
         var npcRec = _world.Npcs[mapNpc.Num];

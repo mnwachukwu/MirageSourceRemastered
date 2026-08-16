@@ -25,13 +25,18 @@
 
         <!-- A read-only TextBox, not a list of TextBlocks: selection has to sweep ACROSS lines, because
              the thing anyone copies out of a server console is a stack trace, and a per-line control can
-             only ever select within one line. Read-only still allows select, Ctrl+A and Ctrl+C. -->
+             only ever select within one line. Read-only still allows select, Ctrl+A and Ctrl+C.
+
+             Wrapped, with the horizontal scrollbar off: a line that runs past the edge is a line the
+             operator cannot read without scrolling away from everything else. Wrapping only affects how
+             it is drawn, so a copied stack trace still comes out with its original line breaks. -->
         <TextBox Grid.Row="1" Name="ConsoleOutput" Classes="log"
                  Text="{Binding ConsoleText, Mode=OneWay}"
+                 TextWrapping="Wrap"
                  Background="#11151C" BorderBrush="#2A3240" BorderThickness="1" Padding="8"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                  VerticalContentAlignment="Top"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
@@ -128,10 +133,86 @@
          Explicit Save / Revert rather than write-on-toggle: these change what dying costs every player
          on the server, and the restart notice below is the honest account of when they take effect. -->
     <TabItem Header="{Binding ConfigurationTabHeader}">
-      <ScrollViewer>
+      <Grid RowDefinitions="*,Auto">
+      <ScrollViewer Grid.Row="0">
         <StackPanel Margin="12" Spacing="14" MaxWidth="620" HorizontalAlignment="Left">
 
+          <!-- ── This window ────────────────────────────────────────────────
+               Everything above the second heading applies on the spot; everything below it is the
+               SERVER's configuration and rides the Save button pinned at the foot of the tab. The two
+               behave differently because they are different things, so the page says which is which
+               rather than leaving an operator to find out. -->
+          <TextBlock Classes="heading" Text="{Binding WindowGroupHeading}"/>
+          <TextBlock Classes="hint" Text="{Binding WindowGroupHint}" Margin="0,-8,0,0"/>
+
+          <!-- ── Connection ─────────────────────────────────────────────────
+               This window's own setting, saved per user rather than into serverconfig.json: a shell
+               points at one server at a time and can be repointed, while each server has one config.
+               Locked while attached, so a session cannot be swapped out from under itself. -->
           <StackPanel Spacing="4">
+            <TextBlock Classes="heading" Text="{Binding ConnectionHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding ConnectionBlurb}"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2">
+            <RadioButton GroupName="Target" IsChecked="{Binding IsLocal}" Content="{Binding LocalLabel}"
+                         IsEnabled="{Binding CanEditConnection}"/>
+            <TextBlock Classes="hint" Text="{Binding LocalHint}" Margin="28,0,0,0"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2">
+            <RadioButton GroupName="Target" IsChecked="{Binding IsRemote}" Content="{Binding RemoteLabel}"
+                         IsEnabled="{Binding CanEditConnection}"/>
+            <TextBlock Classes="hint" Text="{Binding RemoteHint}" Margin="28,0,0,0"/>
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="28,6,0,0" IsVisible="{Binding IsRemote}">
+              <TextBlock Grid.Column="0" Text="{Binding HostLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <TextBox Grid.Column="1" Text="{Binding RemoteHost}" IsEnabled="{Binding CanEditConnection}"
+                       MinWidth="180"/>
+              <TextBlock Grid.Column="2" Text="{Binding PortLabel}" VerticalAlignment="Center" Margin="12,0,8,0"/>
+              <NumericUpDown Grid.Column="3" Value="{Binding RemotePort}" Minimum="1" Maximum="65535"
+                             FormatString="0" Increment="1" ParsingNumberStyle="Integer"
+                             IsEnabled="{Binding CanEditConnection}" MinWidth="120"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="28,6,0,0" IsVisible="{Binding IsRemote}">
+              <TextBlock Grid.Column="0" Text="{Binding TokenLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <!-- Masked until asked: a server console is the sort of thing that gets screen-shared. -->
+              <TextBox Grid.Column="1" Text="{Binding RemoteToken}" PasswordChar="•"
+                       RevealPassword="{Binding RevealTokens}" IsEnabled="{Binding CanEditConnection}"/>
+              <CheckBox Grid.Column="2" IsChecked="{Binding RevealTokens}" Content="{Binding RevealLabel}"
+                        Margin="8,0,0,0"/>
+            </Grid>
+            <TextBlock Classes="hint" Text="{Binding RemoteTokenHint}" Margin="28,2,0,0"
+                       IsVisible="{Binding IsRemote}"/>
+          </StackPanel>
+
+          <!-- Language applies on selection, like everything else in this group: a display preference
+               that needed confirming would read as broken. See the note on SelectedLanguage. -->
+          <StackPanel Spacing="4" Margin="0,6,0,0">
+            <TextBlock Classes="heading" Text="{Binding LanguageHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding LanguageBlurb}"/>
+            <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      MinWidth="200" HorizontalAlignment="Left" Margin="0,6,0,0">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:MainWindowViewModel+LanguageChoice">
+                  <TextBlock Text="{Binding DisplayName}"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Classes="hint" Text="{Binding LanguageServerNote}"/>
+          </StackPanel>
+
+          <!-- ── This server ────────────────────────────────────────────────
+               From here down, nothing takes effect until Save at the foot of the tab, and then not
+               until the server restarts. -->
+          <Border BorderBrush="#2A3240" BorderThickness="0,1,0,0" Margin="0,14,0,0" Padding="0,14,0,0">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="heading" Text="{Binding ServerGroupHeading}"/>
+              <TextBlock Classes="hint" Text="{Binding ServerGroupHint}"/>
+            </StackPanel>
+          </Border>
+
+          <StackPanel Spacing="4" Margin="0,4,0,0">
             <TextBlock Classes="heading" Text="{Binding DeathPenaltyHeading}"/>
             <TextBlock Classes="hint" Text="{Binding DeathPenaltyBlurb}"/>
           </StackPanel>
@@ -151,34 +232,96 @@
             <TextBlock Classes="hint" Text="{Binding ExpLossHint}" Margin="28,0,0,0"/>
           </StackPanel>
 
-          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-            <Button Content="{Binding SaveLabel}" Command="{Binding SaveConfigCommand}" MinWidth="88"/>
-            <Button Content="{Binding RevertLabel}" Command="{Binding RevertConfigCommand}" MinWidth="88"/>
+          <!-- ── Logging ────────────────────────────────────────────────────
+               The only part of appsettings.json this window touches. Everything else in that file is
+               structure, and a control that cannot find its value greys out rather than overwriting
+               something it did not understand. -->
+          <StackPanel Spacing="4" Margin="0,10,0,0">
+            <TextBlock Classes="heading" Text="{Binding LoggingHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding LoggingBlurb}"/>
+            <TextBlock Classes="hint" Text="{Binding LoggingUnavailableNotice}"
+                       IsVisible="{Binding LoggingIncomplete}"/>
           </StackPanel>
 
-          <TextBlock Classes="hint" Text="{Binding RestartRequiredNotice}"/>
-          <TextBlock Classes="hint" Text="{Binding ConfigStatus}" Foreground="#C6D0E0"/>
+          <StackPanel Spacing="2">
+            <StackPanel Orientation="Horizontal" Spacing="8" IsEnabled="{Binding CanEditLogLevel}">
+              <TextBlock Text="{Binding LogLevelLabel}" VerticalAlignment="Center" MinWidth="80"/>
+              <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding LogLevel}" MinWidth="160"/>
+            </StackPanel>
+            <TextBlock Classes="hint" Text="{Binding LogLevelHint}" Margin="88,2,0,0"/>
+          </StackPanel>
 
-          <!-- Language applies on selection, not on Save: it belongs to a different file with a
-               different lifetime, and a display preference that needed confirming would read as
-               broken. See the note on SelectedLanguage. -->
+          <StackPanel Spacing="2">
+            <CheckBox IsChecked="{Binding LogOutgoingPackets}" Content="{Binding OutgoingPacketsLabel}"
+                      IsEnabled="{Binding CanEditOutgoingPackets}"/>
+            <CheckBox IsChecked="{Binding LogIncomingPackets}" Content="{Binding IncomingPacketsLabel}"
+                      IsEnabled="{Binding CanEditIncomingPackets}"/>
+            <TextBlock Classes="hint" Text="{Binding PacketsHint}" Margin="28,2,0,0"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2">
+            <Grid ColumnDefinitions="Auto,Auto" IsEnabled="{Binding CanEditServerRetention}">
+              <TextBlock Grid.Column="0" Text="{Binding ServerRetentionLabel}" VerticalAlignment="Center"
+                         MinWidth="170" Margin="0,0,8,0"/>
+              <NumericUpDown Grid.Column="1" Value="{Binding ServerRetentionDays}" Minimum="1" Maximum="365"
+                             FormatString="0" Increment="1" ParsingNumberStyle="Integer" MinWidth="120"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,Auto" IsEnabled="{Binding CanEditNetworkRetention}" Margin="0,4,0,0">
+              <TextBlock Grid.Column="0" Text="{Binding NetworkRetentionLabel}" VerticalAlignment="Center"
+                         MinWidth="170" Margin="0,0,8,0"/>
+              <NumericUpDown Grid.Column="1" Value="{Binding NetworkRetentionDays}" Minimum="1" Maximum="365"
+                             FormatString="0" Increment="1" ParsingNumberStyle="Integer" MinWidth="120"/>
+            </Grid>
+            <TextBlock Classes="hint" Text="{Binding RetentionHint}" Margin="0,4,0,0"/>
+          </StackPanel>
+
+          <!-- ── Remote management ──────────────────────────────────────────
+               The other end of the Connection section above: this is what a server has to be told
+               before another shell can attach to it. Saved with the rules, because it belongs to the
+               server rather than to this window. -->
           <StackPanel Spacing="4" Margin="0,10,0,0">
-            <TextBlock Classes="heading" Text="{Binding LanguageHeading}"/>
-            <TextBlock Classes="hint" Text="{Binding LanguageBlurb}"/>
-            <ComboBox ItemsSource="{Binding AvailableLanguages}"
-                      SelectedItem="{Binding SelectedLanguage}"
-                      MinWidth="200" HorizontalAlignment="Left" Margin="0,6,0,0">
-              <ComboBox.ItemTemplate>
-                <DataTemplate x:DataType="vm:MainWindowViewModel+LanguageChoice">
-                  <TextBlock Text="{Binding DisplayName}"/>
-                </DataTemplate>
-              </ComboBox.ItemTemplate>
-            </ComboBox>
-            <TextBlock Classes="hint" Text="{Binding LanguageServerNote}"/>
+            <TextBlock Classes="heading" Text="{Binding ManagementHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding ManagementBlurb}"/>
+            <TextBlock Classes="hint" Text="{Binding ManagementLocalOnlyNotice}"
+                       IsVisible="{Binding !CanEditManagement}"/>
+          </StackPanel>
+
+          <StackPanel Spacing="2" IsEnabled="{Binding CanEditManagement}">
+            <CheckBox IsChecked="{Binding ManagementEnabled}" Content="{Binding ManagementEnableLabel}"/>
+            <TextBlock Classes="hint" Text="{Binding ManagementEnableHint}" Margin="28,0,0,0"/>
+            <Grid ColumnDefinitions="Auto,Auto" Margin="28,6,0,0" IsVisible="{Binding ManagementEnabled}">
+              <TextBlock Grid.Column="0" Text="{Binding ManagementPortLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <NumericUpDown Grid.Column="1" Value="{Binding ManagementPort}" Minimum="1" Maximum="65535"
+                             FormatString="0" Increment="1" ParsingNumberStyle="Integer" MinWidth="120"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="28,6,0,0" IsVisible="{Binding ManagementEnabled}">
+              <TextBlock Grid.Column="0" Text="{Binding ManagementTokenLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <TextBox Grid.Column="1" Text="{Binding ManagementToken}" PasswordChar="•"
+                       RevealPassword="{Binding RevealTokens}"/>
+              <Button Grid.Column="2" Content="{Binding GenerateLabel}" Command="{Binding GenerateTokenCommand}"
+                      Margin="8,0,0,0" MinWidth="88"/>
+            </Grid>
+            <TextBlock Classes="hint" Text="{Binding ManagementTokenHint}" Margin="28,2,0,0"
+                       IsVisible="{Binding ManagementEnabled}"/>
           </StackPanel>
 
         </StackPanel>
       </ScrollViewer>
+
+      <!-- Pinned, and OUTSIDE the scroll area: these save every "This server" setting above, so they
+           must not read as belonging to whichever section happens to be on screen. -->
+      <Border Grid.Row="1" BorderBrush="#2A3240" BorderThickness="0,1,0,0" Padding="12,10">
+        <StackPanel Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{Binding SaveLabel}" Command="{Binding SaveConfigCommand}" MinWidth="88"/>
+            <Button Content="{Binding RevertLabel}" Command="{Binding RevertConfigCommand}" MinWidth="88"/>
+            <TextBlock Classes="hint" Text="{Binding RestartRequiredNotice}" VerticalAlignment="Center"/>
+          </StackPanel>
+          <TextBlock Classes="hint" Text="{Binding ConfigStatus}" Foreground="#C6D0E0"
+                     IsVisible="{Binding ConfigStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+      </Border>
+      </Grid>
     </TabItem>
 
   </TabControl>

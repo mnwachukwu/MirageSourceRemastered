@@ -113,12 +113,11 @@ public static class StatFormulas
     }
 
     // ── Sub-potion vital exchange ─────────────────────────────────────────────
-    // A Sub* potion drains one vital and pays into the other two. It used to pay a flat HALF OF THE
-    // DRAINED AMOUNT into each, which is only coherent while every pool is the same size — and they are
-    // not. HP and MP genuinely mirror each other, but SP is LINEAR and far smaller, so at max level a
-    // SubHp draining ~3,169 HP paid 1,584 into a 901-point stamina bar (two thirds of it evaporating on
-    // the clamp) while a SubSp draining 225 SP paid 112 into a 12,675-point HP bar — under 1% of it.
-    // The exchange ran one way and was worthless the other.
+    // A Sub* potion drains one vital and pays into the other two. Paying a flat share of the DRAINED
+    // AMOUNT into each is only coherent while every pool is the same size, and they are not: HP and MP
+    // mirror each other, but SP is LINEAR and far smaller. At max level that makes the exchange run one
+    // way and be worthless the other — a SubHp overflows a 901-point stamina bar while a SubSp pays under
+    // 1% of a 12,675-point HP bar.
     //
     // Converting through POOL FRACTIONS instead makes it symmetric and pool-size agnostic: spending a
     // quarter of one bar buys an eighth of each of the others, whatever their absolute sizes, at every

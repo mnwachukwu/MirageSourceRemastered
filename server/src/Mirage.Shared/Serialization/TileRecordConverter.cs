@@ -50,7 +50,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "warpy": tile.WarpY = reader.GetInt16(); break;
                 case "warplayer": tile.WarpLayer = ReadLayer(ref reader); break;
                 case "itemnum": tile.ItemNum = reader.GetInt16(); break;
-                // "itemvalue" is the pre-2026-08-13 spelling, kept so an existing map still loads.
+                // "itemvalue" is the older spelling, still accepted so an existing map loads.
                 case "itemquantity" or "itemvalue": tile.ItemQuantity = reader.GetInt16(); break;
                 case "itemrespawnsecs": tile.ItemRespawnSecs = reader.GetInt16(); break;
                 case "keyitemnum": tile.KeyItemNum = reader.GetInt16(); break;
@@ -180,8 +180,8 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
     // tile writes nothing at all no matter what happens to be sitting in its unused fields. The old
     // format could not tell those apart, because a zero and an absent slot looked the same.
     //
-    // Enums go out as names. "warpLayer": "Fringe" survives a reader who has never seen the enum, where
-    // the 257 that used to encode it did not.
+    // Enums go out as NAMES: "warpLayer": "Fringe" still means something to a reader that has never seen
+    // the enum, where a bare number does not.
     private static void WriteAttrFields(
         Utf8JsonWriter writer, TileType type,
         short warpMap, short warpX, short warpY, WorldLayer warpLayer,
@@ -200,8 +200,8 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         if (TileAttrRules.UsesItem(type))
         {
             writer.WriteNumber("itemNum", itemNum);
-            // Written as "itemQuantity" since 2026-08-13; the readers still accept the old "itemValue"
-            // spelling so a map authored before the rename loads untouched. See the read switches above.
+            // Always written as "itemQuantity"; the readers above still accept the older "itemValue"
+            // spelling, so a map authored before the rename loads untouched.
             writer.WriteNumber("itemQuantity", itemQuantity);
             if (itemRespawnSecs != 0) writer.WriteNumber("itemRespawnSecs", itemRespawnSecs);
         }

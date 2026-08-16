@@ -595,11 +595,9 @@ public sealed class ShopPanel : IGamePanel
 
         int maxDur = item?.Durability ?? 0;
         int durNeeded = maxDur - inv.Dur;
-        // Quote through the SHIPPED formula, not a local approximation. This used to read
-        // `Power / 5` and halve it — a rule that predates #63's RepairPowerDivisor going 10 -> 40,
-        // so the panel was quoting roughly four times the real price and the player was charged
-        // something else entirely at the counter. EconomyFormulas is in Mirage.Shared precisely so
-        // both ends can agree without a round-trip.
+        // Quote through the SHIPPED formula, never a local approximation: a copy goes stale the next
+        // time repair is retuned, and the symptom is a panel quoting one price while the counter charges
+        // another. EconomyFormulas is in Mirage.Shared precisely so both ends agree without a round-trip.
         int goldNeeded = item is not null ? EconomyFormulas.RepairCost(durNeeded, item) : 0;
         long playerGold = state.PlayerGold();
 

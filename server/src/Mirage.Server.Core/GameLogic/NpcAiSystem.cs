@@ -407,18 +407,22 @@ public sealed partial class NpcAiSystem : GameSystem
         return true;
     }
 
-    /// <summary>Run-vs-walk decision for a CHASE step (SP gating is separate, in <see cref="NpcCanRun"/>).
-    /// OPENING approach (before first contact): non-AoS always runs to close; an AoS mob strolls in ONLY while it's
-    /// stalking a target within <see cref="Constants.NpcApproachWalkMaxGap"/> tiles and it didn't win the per-
-    /// engagement "charge" roll (<see cref="MapNpcRecord.RushCommitted"/>) — a target spotted farther, or one that
-    /// opens the gap past that stroll ceiling, is RUSHED (the <see cref="MapNpcRecord.ChaseSprinting"/> latch holds
-    /// the charge to melee, where the adjacency early-return clears it into the re-close hysteresis below).
-    /// RE-CLOSE (after <see cref="MapNpcRecord.HasMadeContact"/>): a run/walk HYSTERESIS — the mob walks while
-    /// close and only sprints once the target opens <see cref="Constants.NpcChaseSprintGapTiles"/>, sprinting
-    /// (the <see cref="MapNpcRecord.ChaseSprinting"/> latch) until it regains melee, so it bursts stamina instead
-    /// of gluing and a running player can slip past.  EXCEPT: guards stay sticky (always-run, a deterrent), and a
-    /// spell-primary caster (Int &gt; Str, with mana) keeps closing to spell range where it holds/kites.  Kiting
-    /// itself does NOT consult this — a caster opening distance is not closing a gap.</summary>
+    /// <summary>Run-vs-walk decision for a CHASE step. SP gating is separate, in
+    /// <see cref="NpcCanRun"/>, and kiting does not consult this at all — a caster opening distance is not
+    /// closing a gap.
+    ///
+    /// <para>OPENING approach, before first contact: non-AoS always runs. An AoS mob strolls ONLY while
+    /// stalking within <see cref="Constants.NpcApproachWalkMaxGap"/> tiles having lost the per-engagement
+    /// charge roll (<see cref="MapNpcRecord.RushCommitted"/>); spotted farther, or opening past that
+    /// ceiling, it RUSHES — the <see cref="MapNpcRecord.ChaseSprinting"/> latch holds the charge to melee,
+    /// where the adjacency early-return clears it into the hysteresis below.</para>
+    ///
+    /// <para>RE-CLOSE, after <see cref="MapNpcRecord.HasMadeContact"/>: a run/walk HYSTERESIS. The mob
+    /// walks while close and sprints only once the target opens
+    /// <see cref="Constants.NpcChaseSprintGapTiles"/>, holding the sprint until it regains melee — so it
+    /// bursts stamina instead of gluing, and a running player can slip past. EXCEPT guards, which stay
+    /// sticky as a deterrent, and a spell-primary caster (Int &gt; Str, with mana), which closes to spell
+    /// range and holds there.</para></summary>
     private static bool NpcWantsChaseRun(MapNpcRecord mn, NpcRecord npc, int gap)
     {
         // Opening approach (before first contact): non-AoS runs in (provoked).  An AoS mob strolls in ONLY while
@@ -472,17 +476,18 @@ public sealed partial class NpcAiSystem : GameSystem
         return Rng.NextDouble() < pCast;
     }
 
-    /// <summary>Legs-pass gate: true when a magic-capable NPC is ALREADY positioned to cast at its target
-    /// (in spell range, clear LoS, enough mana) and so must NOT take a chase step — the 500ms brain will
-    /// cast or hold-at-range on its next tick.  Without this, the fast movement pass sprints a caster toward
-    /// its target in the window between a reactive target acquisition (an AWA mob's aggro flip sets Target
-    /// mid-combat, before the next brain tick) and the brain's first cast — visibly "closing a gap it doesn't
-    /// need to close" when it could already cast from where it stands.  Mirrors the in-range hold in
-    /// <see cref="TryNpcMagicActionCore"/> (same range + LoS + mana test, plus the per-beat weave decision) so
-    /// legs and brain agree; a caster out of mana / out of range / LoS-blocked / meleeing this weave beat
-    /// returns false and falls through to the chase, so it can still close to melee (0 MP) or reposition to
-    /// regain range/LoS.  Same-map only: callers invoke this after their own off-map early-return, so the
-    /// target coords are on <paramref name="mapNum"/> (center cell).</summary>
+    /// <summary>Legs-pass gate: true when a magic-capable NPC is ALREADY positioned to cast (in spell
+    /// range, clear LoS, enough mana) and so must NOT take a chase step — the 500ms brain will cast or
+    /// hold at range on its next tick.
+    ///
+    /// <para>Without it the fast movement pass sprints a caster forward in the window between a reactive
+    /// target acquisition and the brain's first cast, visibly closing a gap it does not need to close.</para>
+    ///
+    /// <para>Mirrors the in-range hold in <see cref="TryNpcMagicActionCore"/> — same range, LoS and mana
+    /// test plus the per-beat weave decision — so legs and brain agree. Out of mana, out of range,
+    /// LoS-blocked or meleeing this beat returns false and falls through to the chase, so the NPC can
+    /// still close to melee at 0 MP or reposition to regain range. Same-map only: callers invoke this
+    /// after their own off-map early-return.</para></summary>
     private bool CasterHoldsAtCastRange(int mapNum, MapNpcRecord mn, int targetX, int targetY, WorldLayer targetLayer, int targetSize = 1)
     {
         var npc = _world.Npcs[mn.Num];

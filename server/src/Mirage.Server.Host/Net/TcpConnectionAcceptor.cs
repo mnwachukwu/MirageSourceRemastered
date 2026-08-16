@@ -9,7 +9,6 @@ using Mirage.Shared.Protocol;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Mirage.Server.Host.Net;
@@ -67,7 +66,7 @@ public sealed class TcpConnectionAcceptor : IDisposable
         _port = config.Port;
 
         _listener = new System.Net.Sockets.TcpListener(IPAddress.Any, _port);
-        _cert = CreateSelfSignedCert();
+        _cert = SelfSignedCertificate.Create();
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -304,14 +303,5 @@ public sealed class TcpConnectionAcceptor : IDisposable
         for (int i = 1; i <= Constants.MaxChars; i++)
             sp.Chars[i] = new Mirage.Shared.Records.PlayerRecord();
         sp.Bank = Mirage.Shared.Records.AccountRecord.NewBank();   // drop the previous account's shared vault
-    }
-
-    private static X509Certificate2 CreateSelfSignedCert()
-    {
-        using var rsa = RSA.Create(2048);
-        var req = new CertificateRequest("CN=mirage-server", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        using var temp = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(10));
-        // Export+re-import as ephemeral so Schannel (Windows) can access the private key via SslStream
-        return X509CertificateLoader.LoadPkcs12(temp.Export(X509ContentType.Pfx), password: null);
     }
 }

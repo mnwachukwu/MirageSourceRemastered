@@ -1,16 +1,15 @@
 namespace Mirage.Shared.Protocol;
 
-/// <summary>Classification for every server-to-client chat line. The client uses this to route
-/// the line to the tabs whose per-tab filter accepts the channel; the server tags every send
-/// site explicitly so the audit is compile-error-driven.
+/// <summary>Classification for every server-to-client chat line, routing it to the tabs whose filter
+/// accepts the channel. Every send site tags itself explicitly, so adding a channel is a compile error
+/// at each one rather than a silent default.
 ///
-/// `Always` is the only un-mutable bucket — its messages bypass all tab filters and are never
-/// rendered as toggles in the options panel. It carries the four welcome-batch lines (welcome,
-/// `/help` hint, MOTD, players-online).
+/// <para><c>Always</c> is the one un-mutable bucket: it bypasses every tab filter and is never drawn as
+/// a toggle. It carries the welcome batch.</para>
 ///
-/// Layout matters: the options panel iterates ranges of this enum to draw the Chat / System /
-/// Combat section grids. Keep groups contiguous and don't insert into the middle without
-/// updating the section iteration.</summary>
+/// <para>LAYOUT MATTERS. The options panel iterates ranges of this enum to draw the Chat / System /
+/// Combat grids, so groups must stay contiguous and nothing may be inserted mid-group without updating
+/// that iteration.</para></summary>
 public enum ChatChannel : byte
 {
     Always = 0,

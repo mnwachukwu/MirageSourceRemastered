@@ -98,17 +98,18 @@ public sealed partial class MapNpcRowViewModel : ObservableObject
 public sealed record NpcSpawnChoice(int RowIndex, string Display);
 
 /// <summary>The Attribute-mode palette. An entry belongs here for one of two reasons:
-///  * it is a REAL serialized tile attribute -> it ALSO has a matching TileType value and SelectedAttribute
-///    maps tool->TileType (Blocked/Warp/Item/NpcAvoid/Key/KeyOpen, and LayerRamp). Placing it writes the tile's
-///    inline attribute OR its FringeAttr, chosen by the active WorldLayer (SelectedAttributeLayer) — the uniform
-///    two-plane world authors both planes the same way. It round-trips through map data + the TileType switches.
-///  * OR it is an EDITOR-ONLY gesture that writes something other than a tile attribute -> it is kept OFF
-///    the shared TileType enum so it can never leak into tile serialization or a TileType switch. NpcSpawn
-///    is the only one today (writes a MapRecord.Npcs entry's fixed-spawn pin, not tile.Type).
-/// That second case is why this palette is a hand-authored enum, not Enum.GetValues&lt;TileType&gt;().
-/// LayerRamp is special: the sole connector between the two planes.  It is stored on FringeAttr.Type = LayerRamp
-/// (Data1 = ground-side Direction) but LOGICALLY OCCUPIES BOTH planes — no other attribute may share its tile
-/// (either layer), and it can only be placed on a fully-clear tile.  See LayerLogic.</summary>
+///  * a REAL serialized tile attribute, which also has a matching TileType and round-trips through map
+///    data. Placing it writes the tile's inline attribute OR its FringeAttr, chosen by the active
+///    WorldLayer — the uniform two-plane world authors both planes the same way.
+///  * an EDITOR-ONLY gesture writing something other than a tile attribute, kept OFF the shared TileType
+///    enum so it can never leak into tile serialization. NpcSpawn is the only one today.
+///
+/// <para>That second case is why this is a hand-authored enum rather than
+/// <c>Enum.GetValues&lt;TileType&gt;()</c>.</para>
+///
+/// <para>LayerRamp is the sole connector between the two planes. Stored on
+/// <c>FringeAttr.Type = LayerRamp</c>, but it LOGICALLY OCCUPIES BOTH: no other attribute may share its
+/// tile on either layer, and it can only be placed on a fully-clear tile. See LayerLogic.</para></summary>
 public enum AttributeTool { Blocked, Warp, Item, NpcAvoid, Key, KeyOpen, NpcSpawn, LayerRamp }
 
 public enum EditorMode { Tile, Attribute, Light }

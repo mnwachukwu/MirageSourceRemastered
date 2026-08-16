@@ -37,8 +37,7 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
     /// <summary>Whether the quantity spinner means anything for this row — only currency stacks.</summary>
     public bool ValueApplies => ItemNum > 0 && _isCurrency(ItemNum);
 
-    /// <summary>The chance as display text ("never" / "always" / "N%"), matching the readout the single
-    /// drop field used to have.</summary>
+    /// <summary>The chance as display text: "never" / "always" / "N%".</summary>
     public string ChanceText => Chance <= 0 ? EditorStrings.Get(EditorStrings.NpcEditor_DropChanceNever)
                              : Chance >= 100 ? EditorStrings.Get(EditorStrings.NpcEditor_DropChanceAlways)
                              : $"{Chance}%";

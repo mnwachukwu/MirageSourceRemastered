@@ -3,16 +3,15 @@ using Mirage.Shared.Records;
 namespace Mirage.Shared;
 
 /// <summary>
-/// Combat math shared by server and client: damage, mitigation, block/dodge/crit chance, spell
-/// costs, and durability wear.
-/// Each chance helper returns an integer chance value bounded by its cap so callers own the
-/// RNG roll via <see cref="RollPerMille"/> and any prerequisite gates (SP > 0, slot equipped).
-/// At the current <see cref="Constants.ChanceScaleFactor"/> = 1 the value IS the percent
-/// (cap 35 → 35% block/crit, cap 15 → 15% player dodge, cap 10 → 10% NPC dodge); raising the dial
-/// to 10 reinterprets the same numbers as per-mille (35 → 3.5%, 15 → 1.5%, 10 → 1.0%) and
-/// widens the roll space accordingly, so caps in the single-percent range and tenths-of-a-percent
-/// mid-range values stay representable as integers. Vary and CritDamage roll RNG internally —
-/// the random distribution IS the formula.
+/// Combat math shared by server and client: damage, mitigation, block/dodge/crit chance, spell costs,
+/// and durability wear.
+///
+/// <para>Each chance helper returns an integer bounded by its cap and leaves the roll to the caller
+/// (<see cref="RollPerMille"/>), along with any prerequisite gate. At
+/// <see cref="Constants.ChanceScaleFactor"/> = 1 that integer IS the percent; at 10 the same numbers
+/// read as per-mille, which keeps single-percent caps and tenth-of-a-percent mid-range values
+/// representable as integers. Vary and CritDamage are the exception and roll internally, because there
+/// the distribution IS the formula.</para>
 /// </summary>
 public static class CombatFormulas
 {
@@ -392,8 +391,8 @@ public static class CombatFormulas
     private const double SpellMpCostDivisor = 6.0;
     // AddSp pays an "undo premium": restoring a vital costs slightly more mana than the SubSp drain that
     // took it.  AddHp is excluded — its counterpart SubHp is the caster's reagent-gated trivial-MP weapon,
-    // so there is no full-mana damage cost for a heal to be priced slightly above.  AddMp used to pay this
-    // premium too and no longer does; it prices off a different basis entirely, immediately below.
+    // so there is no full-mana damage cost for a heal to be priced slightly above.  AddMp is excluded too;
+    // it prices off a different basis entirely, immediately below.
     private const double AddSpellCostMultiplier = 1.10;
     private const int SpellMpCostShift = 15;
 
@@ -457,11 +456,10 @@ public static class CombatFormulas
     /// (<see cref="AvgDurabilityDegradePerHit"/>, ~0.48) — a caster is no more bound to "1 cast = 1
     /// durability" than a warrior is to "1 hit = 1 durability".</para>
     ///
-    /// <para>The gold-per-point half comes from <see cref="EconomyFormulas.RepairGoldPerDurabilityPoint"/>,
-    /// which reads the LIVE repair rule. It used to be restated here as <c>Power/10</c>, a copy of the repair
-    /// formula as it stood at the time; when repair became a share of the item's value the copy silently went
-    /// stale and casters ended up paying 1/87th of a warrior's upkeep at max level. Deriving it means a
-    /// change to repair moves both sides at once, which is the only way this parity survives a retune.</para>
+    /// <para>The gold-per-point half is DERIVED from <see cref="EconomyFormulas.RepairGoldPerDurabilityPoint"/>
+    /// rather than restated here, so a change to the repair rule moves both sides at once. A copy of that
+    /// formula goes stale silently, and the failure is invisible: nothing throws, casters simply stop
+    /// paying their share.</para>
     ///
     /// <para>Takes the spell's LEVEL, not its magnitude: the warrior it is matched against is defined by
     /// tier, and VitalAmount is the spell's power WITHIN a tier — the analogue of a weapon's bulk, not of

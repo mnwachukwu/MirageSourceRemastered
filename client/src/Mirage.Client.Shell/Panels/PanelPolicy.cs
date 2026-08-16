@@ -56,12 +56,10 @@ public readonly record struct PanelPolicy(
 /// <summary>
 /// The per-panel policy table, indexed by <see cref="PanelSlots"/>.
 ///
-/// <para>Before this existed, these five facts were spread across twelve separate switches and boolean
-/// chains in GameplayScreen, each of which had to be edited in lockstep when a panel was added — and
-/// missing one failed silently rather than at build time. Two such omissions were found by collecting
-/// them here: the quest log absent from the open/close dispatch, and Controls absent from the Escape
-/// check. Both are fixed. Adding a panel now means adding one row, and PanelPolicyTests asserts the
-/// table's shape so a missing or default row fails the build instead of the game.</para>
+/// <para>Five facts in ONE row per panel. Spread across separate switches in GameplayScreen they have to
+/// be edited in lockstep whenever a panel is added, and missing one fails silently at runtime rather
+/// than at build time. PanelPolicyTests asserts the table's shape, so a missing or default row fails the
+/// build instead of the game.</para>
 /// </summary>
 public static class PanelPolicies
 {

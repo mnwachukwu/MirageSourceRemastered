@@ -441,7 +441,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (SelectedMap is null) return;
         // Writes the ACTIVE plane (Ground inline vs FringeAttr) so a warp can be authored on a bridge deck.
-        // WarpLayer is its own field now, so the destination plane no longer rides packed inside the Y.
         SetActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Warp, WarpMap = WarpMapNum, WarpX = WarpX, WarpY = WarpY, WarpLayer = WarpDestLayer });
         SelectedMap.UpdateRecord(SelectedMap.Record);
         InvalidateTileGrid?.Invoke(x, y);

@@ -9,14 +9,12 @@ namespace Mirage.Client.Shell.Tests;
 /// <summary>
 /// Guards the Options panel's two reset buttons.
 ///
-/// <para>Restore Defaults used to write the defaults into the checkboxes and the config file without
-/// pushing all of them into the live game state, so an option would read as restored, persist as
-/// restored, and still behave the old way until the next relog. The cause was three separate copies of
-/// "what the default is" — the checkbox constructors, <see cref="AccountConfig.CharacterConfig"/>, and a
-/// hand-written reset branch — that were free to disagree, and did: AlwaysShowBars was false in two of
-/// them and true in the other. The reset branch is gone (both restore paths now apply a fresh
-/// CharacterConfig through the same method world entry uses), which leaves the checkbox defaults as the
-/// one copy still able to drift. That is what these pin.</para>
+/// <para>The failure these exist for: a reset that writes the defaults into the checkboxes and the config
+/// file WITHOUT pushing them into live game state, so an option reads as restored, persists as restored,
+/// and still behaves the old way until the next relog. Both restore paths apply a fresh
+/// <see cref="AccountConfig.CharacterConfig"/> through the same method world entry uses, which leaves the
+/// checkbox defaults as the one copy of "what the default is" still able to drift. That is what these
+/// pin.</para>
 ///
 /// <para>The wiring itself — GameplayScreen and MirageGame — needs a GraphicsDevice and stays a manual
 /// playtest.</para>

@@ -150,9 +150,8 @@ public sealed class ItemRecord
     /// are different claims, and conflating them would silently zero any item whose worth is AUTHORED
     /// rather than derived — which is exactly what a treasure item is. TREASURE IS TYPED None: it has no
     /// stats, no level gate and no use, so every other <c>Uses*</c> rule already answers false for it and
-    /// <see cref="Normalize"/> keeps it clean without a special case. This admission is the one thing it
-    /// needs, and the reason it was worth checking rather than assuming: None was previously excluded
-    /// here precisely because it meant "blank record".</para></summary>
+    /// <see cref="Normalize"/> keeps it clean without a special case. Admitting None here is the one thing
+    /// it needs.</para></summary>
     public static bool UsesPrice(ItemType type) => type is not ItemType.Currency;
 
     /// <summary>Everything a character equips or consumes can carry a level gate — the wearables, the

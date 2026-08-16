@@ -85,10 +85,10 @@ public static class GuildQuests
     /// <summary>Vault gold a quest awards on completion — scaled the same way as the XP: a <paramref name="isBoss"/>
     /// quest pays <see cref="Constants.GuildQuestBossRewardPercent"/>%, and at MAX guild level it gets a
     /// <see cref="Constants.GuildQuestMaxLevelGoldBonusPercent"/>% bump (standing in for the eschewed XP). Always
-    /// at least the acquire cost plus a base margin so completing a quest is a net vault gain (never a loss).</summary>
-    /// <para>Keyed on GUILD level only, like the acquire cost it has to beat. Both were briefly scaled by
-    /// the acquiring member's character level, which set a vault-funded price by whoever happened to click
-    /// — see the note in <see cref="GuildWarFormulas"/>.</para>
+    /// at least the acquire cost plus a base margin so completing a quest is a net vault gain (never a loss).
+    ///
+    /// <para>Keyed on GUILD level only, like the acquire cost it has to beat: anything paid from a vault
+    /// must not be priced by whichever member happened to click — see <see cref="GuildWarFormulas"/>.</para></summary>
     public static long RewardGold(int difficulty, int guildLevel, double roll01, bool isBoss)
     {
         double baseGold = Constants.GuildQuestBaseGold * (guildLevel + 1) + (long)Math.Max(0, difficulty) * Constants.GuildQuestGoldPerDifficulty;

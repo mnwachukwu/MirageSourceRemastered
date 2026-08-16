@@ -26,9 +26,8 @@ namespace Mirage.Server.Tests;
 /// is the property that makes this worth having. <see cref="EditorLoginPacket"/> is the deliberate
 /// exception: it is how a session authenticates, so it must be let through.</para>
 ///
-/// <para>Only reachable at this cost because the editor dispatch became its own type: constructing it
-/// needs eleven collaborators, four of which the unauthenticated path never touches. Against the old
-/// 30-dependency PacketHandler this test would have meant passing <c>null!</c> nineteen times.</para>
+/// <para>Cheap to construct only because editor dispatch is its own type: eleven collaborators, four of
+/// which the unauthenticated path never touches.</para>
 /// </summary>
 [TestFixture]
 public class EditorAuthGateTests

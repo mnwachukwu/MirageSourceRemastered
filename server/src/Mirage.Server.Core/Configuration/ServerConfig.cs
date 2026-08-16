@@ -1,9 +1,9 @@
 namespace Mirage.Server.Core.Configuration;
 
 /// <summary>
-/// Everything an operator configures about their server: port, operator language, and the game rules
-/// that used to be compile-time constants. appsettings.json configures the APPLICATION (Serilog) and is
-/// hand-authored; this is machine-owned and rewritten by the shell.
+/// Everything an operator configures about their server: port, operator language, remote access, and the
+/// switchable game rules. appsettings.json configures the APPLICATION (Serilog) and is hand-authored;
+/// this is machine-owned and rewritten by the shell.
 ///
 /// <para>Only values NO CLIENT READS may live here. <c>Constants</c> is in <c>Mirage.Shared</c> and its
 /// values are <c>const</c>, so anything the client compiles against is inlined into it — moving one here
@@ -25,6 +25,30 @@ public sealed record ServerConfig
 
     /// <summary>What a player loses when they die.</summary>
     public DeathPenaltyConfig DeathPenalty { get; init; } = new();
+
+    /// <summary>Remote operator access. Off unless configured.</summary>
+    public ManagementConfig Management { get; init; } = new();
+}
+
+/// <summary>
+/// The remote management channel: the same console the local shell drives, reachable over a socket.
+///
+/// <para>Both fields must be set for the listener to start. Either one alone is a misconfiguration, not a
+/// half-enabled server — an open port with no token would be an unauthenticated console.</para>
+/// </summary>
+public sealed record ManagementConfig
+{
+    /// <summary>Listening port, or 0 for off. Separate from the game port so remote administration can be
+    /// firewalled without touching the port players connect to.</summary>
+    public int Port { get; init; }
+
+    /// <summary>The shared secret an attaching shell must present. Empty refuses the listener.</summary>
+    public string Token { get; init; } = "";
+
+    /// <summary>True when this server should accept remote operators. Derived, so it is kept out of the
+    /// file — a serialized copy would be a second place the answer could be written down.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool IsEnabled => Port > 0 && Token.Length > 0;
 }
 
 /// <summary>

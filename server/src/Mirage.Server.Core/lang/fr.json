@@ -665,6 +665,15 @@
   "Net_PlayerRefusedFull":        "Connexion joueur refusée depuis {Ip} : serveur plein.",
   "Net_EditorRefusedFull":        "Connexion éditeur refusée : aucun emplacement libre.",
 
+  "Management_Listening":         "Gestion distante à l'écoute sur le port {Port}.",
+  "Management_TokenMissing":      "La gestion distante n'est pas active : un port est défini mais aucune clé. Définissez-en une dans serverconfig.json, ou mettez le port à 0 pour désactiver la gestion distante.",
+  "Management_OperatorAttached":  "Opérateur connecté depuis {Ip}.",
+  "Management_OperatorDetached":  "Opérateur déconnecté depuis {Ip}.",
+  "Management_AuthFailed":        "Connexion de gestion refusée depuis {Ip} : mauvaise clé.",
+  "Management_AuthLockedOut":     "Connexions de gestion bloquées depuis {Ip} après plusieurs échecs.",
+  "Management_RemoteCommand":     "[{Ip}] {Command}",
+  "Management_LinesDropped":      "... {Count} ligne(s) perdue(s) ; cette connexion ne suivait pas.",
+
   "Console_Prompt":               "Console du serveur {GameName} - tapez /help pour les commandes.",
   "Console_Help":                 "Joueurs : /who  /kick <nom> [minutes]  /ban <nom>  /mute <nom> [minutes]  /refreshbanlist  /setaccess <niveau> <nom>\nMonde : /tod <phase>  /weather <type>  /motd <texte>  /respawn <carte>  /mapreport\nGuildes : /startwar  /advancewar  /endwar  /guildreset [day|week|season]\nServeur : /shutdown  /help",
   "Console_Shutdown":             "Arrêt demandé.",

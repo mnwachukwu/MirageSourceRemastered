@@ -163,31 +163,22 @@ public static class EconomyFormulas
         Math.Max((int)Math.Round(maxDur * percentOfMax / PercentDenominator, MidpointRounding.AwayFromZero), EquipmentDamageFloor);
 
     // ── The repair rate, and why it is keyed on Power ────────────────────────
-    // Gold per durability point is Power / RepairPowerDivisor. It was briefly a share of the item's VALUE,
-    // which is wrong by an EXPONENT rather than by a constant, so no choice of percentage could have fixed
-    // it: value grows as L^2.675 (it is a share of a rung's income) while the gold a fight actually earns
-    // grows as about L^1.3. Priced off value, a full set repair ran from 22% of a level's income at tier 20
-    // to 5,433% at tier 235. Power grows about linearly in level, which is the right neighborhood.
-    //
-    // The mistake underneath it is worth remembering: repair per POINT was compared against income per
-    // LEVEL, and that looked like Power falling hopelessly behind. But durability lost per level scales
-    // with kills per level, and so does income — those cancel. Any future comparison has to be like for
-    // like, which is what .Tools/Simulations/FightSim measures.
+    // Gold per durability point is Power / RepairPowerDivisor. Keyed on POWER, not the item's value:
+    // value grows as L^2.675 (it is a share of a rung's income) while the gold a fight earns grows as
+    // about L^1.3, so a value-priced repair is wrong by an exponent — 22% of a level's income at tier 20
+    // against 5,433% at tier 235, which no choice of percentage fixes. Power grows about linearly in
+    // level. At 40 a full kit costs 36-51% of a level's income in the mid and max bands and 19-26% in
+    // the low band, so upkeep climbs as the game gets harder and always leaves at least half the take.
     //
     // TUNING: raise the divisor to make repair cheaper. Re-measure with .Tools/Simulations/FightSim, whose
     // last section prices a full kit against income at a sweep of candidate divisors.
     //
-    // 10 -> 40, 2026-08-14. At 10 a full kit cost 144-205% of a level's income across the mid and max
-    // bands — the player earned less than it took to keep their gear alive. 40 lands it at 36-51% there
-    // and 19-26% in the low band, so upkeep climbs as the game gets harder and always leaves at least half
-    // the take.
-    //
-    // The 17-95% this comment used to quote was measured wrong, and the error is instructive: it counted
-    // wear as (swings + hits taken) x the chip chance, as though the player wore ONE item. The server
-    // wears three. GetPlayerProtection calls DegradeArmor once per equipped defensive slot every time it
-    // prices an incoming blow, so armor, helmet and shield all chip on the same event, and a successful
-    // block wears the shield again on top. Counting the slots the server actually wears roughly doubled
-    // the answer. Any future re-measure has to enumerate slots, not events.
+    // TWO TRAPS when re-measuring, both of which have already produced a wrong answer:
+    //   Compare like for like. Repair per POINT against income per LEVEL makes Power look hopelessly
+    //   behind, but durability lost per level and income both scale with kills per level and cancel.
+    //   Enumerate SLOTS, not events. GetPlayerProtection calls DegradeArmor once per equipped defensive
+    //   slot on every incoming blow, so armor, helmet and shield all chip on the same event and a
+    //   successful block wears the shield again on top.
     private const double RepairPowerDivisor = 40.0;
 
     /// <summary>A full repair may never cost more than this percent of a new piece.  Repairing something
@@ -307,8 +298,7 @@ public static class EconomyFormulas
     //
     // Sits deliberately below the 5% that MarketSystem.SaleTax and MailSystem.CodTax both charge: those
     // two buy escrow (and, for the market, discovery), and plain mail buys neither. The 3-point spread is
-    // what a guaranteed payment is worth, rather than the old "5% versus 10 gold flat" that made trusted
-    // trades effectively untaxed.
+    // what a guaranteed payment is worth.
 
     /// <summary>Gold value of one attached stack, for postage: gold rides as a currency attachment so its
     /// worth is simply the amount, and everything else is its stored unit price times the stack size.
@@ -331,11 +321,9 @@ public static class EconomyFormulas
     // the same to play, reagents-per-cast has to equal the gold a warrior burns per swing — and that is a
     // number only this class knows, since it falls out of RepairCost.
     //
-    // CombatFormulas used to compute it itself, as Power/10, carrying the comment "= ShopSystem
-    // ratePerPoint (Power/5), halved for full repair". That was true of the OLD repair rule and silently
-    // stopped being true when repair became a share of the item's value: the two drifted from 1.3x apart at
-    // tier 20 to 87x apart at 255, all of it in the caster's favor, with nothing failing. Parity has to be
-    // DERIVED from the repair rule, not restated alongside it, or the next retune breaks it again.
+    // Parity has to be DERIVED from the repair rule here, never restated next to it. A restated copy goes
+    // stale the moment repair is retuned, and it fails silently — the two sides can drift from 1.3x apart
+    // at tier 20 to 87x apart at 255, all in the caster's favor, with nothing throwing.
 
     /// <summary>Gold a warrior burns repairing one point of durability on on-level gear at
     /// <paramref name="level"/> — the reference a caster's per-cast reagent bill is matched to.
