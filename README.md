@@ -63,7 +63,7 @@ by hand and was wrong about all of it within a few months.
 **Prerequisite:** [.NET 10 SDK](https://dotnet.microsoft.com/download) (10.x or later)
 
 ```sh
-git clone <repo-url>
+git clone https://github.com/mnwachukwu/MirageSourceRemastered.git
 cd MirageSourceRemastered
 dotnet tool restore
 dotnet tool restore --tool-manifest client/.config/dotnet-tools.json
