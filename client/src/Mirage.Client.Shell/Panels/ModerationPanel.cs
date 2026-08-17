@@ -38,7 +38,8 @@ public sealed class ModerationPanel : IGamePanel
 
     private const int TabBans = 0;
     private const int TabPenalties = 1;
-    private const int TabCount = 2;
+    private const int TabMachines = 2;
+    private const int TabCount = 3;
     private int _activeTab;
 
     private const int TabStripH = 24;
@@ -56,7 +57,11 @@ public sealed class ModerationPanel : IGamePanel
     private int _builtVersion = -1;
     private int _builtTab = -1;
 
-    private readonly record struct Row(string Login, string Detail, bool IsBan);
+    private readonly record struct Row(string Login, string Detail, RowKind Kind);
+
+    /// <summary>Which lift a row's button sends. Carried on the row rather than inferred from the active
+    /// tab, so the three lists cannot drift apart from the three commands.</summary>
+    private enum RowKind { Ban, Penalty, Machine }
 
     /// <summary>Opens the panel and asks the server for a fresh report. Both, always: an empty panel that
     /// waits to be told to refresh is a panel that looks broken the first time it is opened.</summary>
@@ -118,7 +123,8 @@ public sealed class ModerationPanel : IGamePanel
         {
             var row = _rows[_list.SelectedIndex];
             // One command per kind, matching the console — nothing here guesses what a row is.
-            if (row.IsBan) sender.SendUnban(row.Login);
+            if (row.Kind == RowKind.Ban) sender.SendUnban(row.Login);
+            else if (row.Kind == RowKind.Machine) sender.SendHwUnban(row.Login);
             else if (row.Detail.StartsWith(KickPrefix, StringComparison.Ordinal)) sender.SendUnkick(row.Login);
             else sender.SendUnmute(row.Login);
             // The row goes when the server's re-push lands, not now: until it does, nothing here knows
@@ -141,7 +147,12 @@ public sealed class ModerationPanel : IGamePanel
         if (_activeTab == TabBans)
         {
             foreach (var b in state.Bans)
-                _rows.Add(new Row(b.Login, b.Reason, IsBan: true));
+                _rows.Add(new Row(b.Login, b.Reason, RowKind.Ban));
+        }
+        else if (_activeTab == TabMachines)
+        {
+            foreach (var h in state.HardwareBans)
+                _rows.Add(new Row(h.Login, h.Reason, RowKind.Machine));
         }
         else
         {
@@ -151,7 +162,7 @@ public sealed class ModerationPanel : IGamePanel
                     ("Kind", p.Kind), ("Minutes", MinutesLeft(p.ExpiresUtc)));
                 if (p.IsOnline && p.CharName.Length > 0)
                     detail += ClientStrings.Format(ClientStrings.ModerationPanel_PlayingAs, ("Name", p.CharName));
-                _rows.Add(new Row(p.Login, detail, IsBan: false));
+                _rows.Add(new Row(p.Login, detail, RowKind.Penalty));
             }
         }
 
@@ -203,17 +214,34 @@ public sealed class ModerationPanel : IGamePanel
         {
             string msg = !state.HasModeration
                 ? ClientStrings.Get(ClientStrings.ModerationPanel_NotLoaded)
-                : ClientStrings.Get(_activeTab == TabBans
-                    ? ClientStrings.ModerationPanel_NoBans
-                    : ClientStrings.ModerationPanel_NoPenalties);
+                : ClientStrings.Get(_activeTab switch
+                {
+                    TabBans => ClientStrings.ModerationPanel_NoBans,
+                    TabMachines => ClientStrings.ModerationPanel_NoMachines,
+                    _ => ClientStrings.ModerationPanel_NoPenalties,
+                });
             UiHelper.DrawLabel(sb, font, msg, new Vector2(list.X + 6, list.Y + 6),
                 new Color(160, 160, 180), list.Width - 12);
+        }
+
+        // The mode replaces the swept-accounts count on the machine tab. It is the one fact a Creator
+        // cannot infer from the rows: under Signal these people are being watched, not kept out, and a
+        // list that looks identical either way would let somebody believe the wrong one.
+        if (_activeTab == TabMachines && state.HardwareBanMode.Length > 0)
+        {
+            string mode = ClientStrings.Format(ClientStrings.ModerationPanel_MachineMode,
+                ("Mode", ClientStrings.Get(state.HardwareBanMode == "Block"
+                    ? ClientStrings.ModerationPanel_MachineModeBlock
+                    : ClientStrings.ModerationPanel_MachineModeSignal)));
+            UiHelper.DrawLabel(sb, font, mode,
+                new Vector2(c.X + Pad * 2 + BtnW * 2, c.Bottom - FooterH + Pad + 5),
+                new Color(150, 150, 170), c.Right - Pad - BtnW - (c.X + Pad * 2 + BtnW * 2) - 6);
         }
 
         _refreshBtn.Draw(sb, font, _input);
         _liftBtn.Draw(sb, font, _input);
 
-        if (state.HasModeration)
+        if (state.HasModeration && _activeTab != TabMachines)
         {
             string swept = ClientStrings.Format(ClientStrings.ModerationPanel_Scanned, ("Count", state.ModerationScanned));
             var footer = new Vector2(c.X + Pad * 2 + BtnW * 2, c.Bottom - FooterH + Pad + 5);
@@ -226,9 +254,12 @@ public sealed class ModerationPanel : IGamePanel
 
     private const int BtnW = 78;
 
-    private static string TabLabel(int i) => ClientStrings.Get(i == TabBans
-        ? ClientStrings.ModerationPanel_TabBans
-        : ClientStrings.ModerationPanel_TabPenalties);
+    private static string TabLabel(int i) => ClientStrings.Get(i switch
+    {
+        TabBans => ClientStrings.ModerationPanel_TabBans,
+        TabMachines => ClientStrings.ModerationPanel_TabMachines,
+        _ => ClientStrings.ModerationPanel_TabPenalties,
+    });
 
     private static Rectangle TabRect(Rectangle c, int i)
     {

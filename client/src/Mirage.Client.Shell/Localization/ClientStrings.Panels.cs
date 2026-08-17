@@ -142,6 +142,11 @@ public static partial class ClientStrings
     public const string ModerationPanel_Title = nameof(ModerationPanel_Title);
     public const string ModerationPanel_TabBans = nameof(ModerationPanel_TabBans);
     public const string ModerationPanel_TabPenalties = nameof(ModerationPanel_TabPenalties);
+    public const string ModerationPanel_TabMachines = nameof(ModerationPanel_TabMachines);
+    public const string ModerationPanel_NoMachines = nameof(ModerationPanel_NoMachines);
+    public const string ModerationPanel_MachineMode = nameof(ModerationPanel_MachineMode);
+    public const string ModerationPanel_MachineModeSignal = nameof(ModerationPanel_MachineModeSignal);
+    public const string ModerationPanel_MachineModeBlock = nameof(ModerationPanel_MachineModeBlock);
     public const string ModerationPanel_Refresh = nameof(ModerationPanel_Refresh);
     public const string ModerationPanel_Lift = nameof(ModerationPanel_Lift);
     public const string ModerationPanel_NoBans = nameof(ModerationPanel_NoBans);

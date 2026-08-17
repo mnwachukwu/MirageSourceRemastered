@@ -44,6 +44,8 @@ public static partial class ClientStrings
     public const string HelpText_Cmd_AdminHelp = nameof(HelpText_Cmd_AdminHelp);
     public const string HelpText_Cmd_Kick = nameof(HelpText_Cmd_Kick);
     public const string HelpText_Cmd_Ban = nameof(HelpText_Cmd_Ban);
+    public const string HelpText_Cmd_HwBan = nameof(HelpText_Cmd_HwBan);
+    public const string HelpText_Cmd_HwUnban = nameof(HelpText_Cmd_HwUnban);
     public const string HelpText_Cmd_Mute = nameof(HelpText_Cmd_Mute);
     public const string HelpText_Cmd_Loc = nameof(HelpText_Cmd_Loc);
     public const string HelpText_Cmd_Debug = nameof(HelpText_Cmd_Debug);

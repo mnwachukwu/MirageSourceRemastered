@@ -160,7 +160,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     private void HandleSocialList(SocialListPacket p) => _state.SetSocialLists(p.Friends, p.Ignore);
 
     private void HandleModerationList(ModerationListPacket p) =>
-        _state.SetModeration(p.Bans, p.Penalties, p.AccountsScanned);
+        _state.SetModeration(p.Bans, p.Penalties, p.HardwareBans, p.HardwareBanMode, p.AccountsScanned);
 
     private void HandleGuildBrowse(GuildBrowsePacket p) => _state.SetGuildBrowse(p.Guilds);
 

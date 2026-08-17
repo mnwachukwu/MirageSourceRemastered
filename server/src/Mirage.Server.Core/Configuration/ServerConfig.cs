@@ -99,6 +99,47 @@ public sealed record ServerConfig
 
     /// <summary>Remote operator access. Off unless configured.</summary>
     public ManagementConfig Management { get; init; } = new();
+
+    /// <summary>What a machine ban does when it matches.</summary>
+    public HardwareBanConfig HardwareBans { get; init; } = new();
+}
+
+/// <summary>
+/// What happens when a login arrives from a machine an operator has banned.
+///
+/// <para>Nothing is banned until an operator runs <c>/hwban</c>, so an empty ban list makes the mode moot
+/// on a stock server. It only starts mattering once somebody has decided a person should be gone, which
+/// is why the default is the one that acts on that decision.</para>
+/// </summary>
+public sealed record HardwareBanConfig
+{
+    /// <summary>Refuse or report. See <see cref="HardwareBanMode"/>.</summary>
+    public HardwareBanMode Mode { get; init; } = HardwareBanMode.Block;
+}
+
+/// <summary>How a machine-ban match is enforced.
+/// <para><see cref="Block"/> is FIRST so it is also the enum's zero value, and therefore what a config
+/// missing this setting lands on however it got there — the default is expressed once, not twice.</para>
+/// </summary>
+public enum HardwareBanMode
+{
+    /// <summary>Refuse the login outright, exactly as an account ban does — and refuse a registration
+    /// too, which is the hole the feature exists to close.
+    ///
+    /// <para>The default. <c>/hwban</c> is a last resort an operator reaches for deliberately, and a ban
+    /// that lets the person straight back in is not what they asked for. Two costs come with it and are
+    /// worth knowing rather than discovering: machines cloned from one disk image share an identifier, so
+    /// a whole computer lab can go down with one ban; and a refusal cannot be explained to the person
+    /// refused without saying how the scheme works. <see cref="Signal"/> exists for operators who would
+    /// rather look first.</para></summary>
+    Block,
+
+    /// <summary>Let them in, and tell the operators. The login succeeds, a warning is logged, and every
+    /// Monitor and above online is told which account just signed in from a banned machine.
+    ///
+    /// <para>Turns the feature into something an account ban cannot do at all — it names the alt — at the
+    /// price of not actually stopping anybody.</para></summary>
+    Signal,
 }
 
 /// <summary>

@@ -57,13 +57,17 @@ public sealed partial class PacketHandler
             return;
         }
 
-        RunAsync(HandleNewAccountAsync(index, name, pass), nameof(HandleNewAccountAsync));
+        RunAsync(HandleNewAccountAsync(index, name, pass, p.MachineKey), nameof(HandleNewAccountAsync));
     }
 
-    private async Task HandleNewAccountAsync(int index, string name, string pass)
+    private async Task HandleNewAccountAsync(int index, string name, string pass, string machineKey)
     {
         try
         {
+            // Before the name is even checked: registering again is the hole a machine ban exists to
+            // close, so a banned machine must not be able to learn which names are free either.
+            if (!await ApplyMachineKeyAsync(index, machineKey, name)) return;
+
             if (await _persistence.AccountNameTakenAsync(name))
             {
                 AlertAndDisconnect(index, ServerStrings.Auth_AccountTaken);
@@ -271,6 +275,10 @@ public sealed partial class PacketHandler
             AlertAndDisconnect(index, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
             return;
         }
+
+        // AFTER the account ban, so somebody banned both ways is refused for the reason that actually
+        // needs no explaining, and the machine check only ever speaks about people the account list missed.
+        if (!await ApplyMachineKeyAsync(index, p.MachineKey, name)) return;
 
         long nowUtc = NowUtc;
         if (account.KickedUntilUtc > nowUtc)

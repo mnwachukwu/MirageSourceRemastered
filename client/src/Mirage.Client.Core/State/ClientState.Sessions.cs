@@ -199,6 +199,11 @@ public sealed partial class ClientState
 
     public List<BanSummary> Bans { get; private set; } = new();
     public List<PenaltySummary> Penalties { get; private set; } = new();
+    public List<HardwareBanSummary> HardwareBans { get; private set; } = new();
+
+    /// <summary>"Signal" or "Block" — what this server does when a banned machine arrives. Shown beside
+    /// the list, because the same rows mean "watched" under one and "refused" under the other.</summary>
+    public string HardwareBanMode { get; private set; } = "";
 
     /// <summary>How many accounts the server swept, so the panel can tell "nothing is in force" apart
     /// from "nothing has been gathered yet".</summary>
@@ -212,10 +217,13 @@ public sealed partial class ClientState
     /// frame — the same trigger the social lists use.</summary>
     public int ModerationVersion { get; private set; }
 
-    public void SetModeration(List<BanSummary> bans, List<PenaltySummary> penalties, int scanned)
+    public void SetModeration(List<BanSummary> bans, List<PenaltySummary> penalties,
+                              List<HardwareBanSummary> hardwareBans, string hardwareBanMode, int scanned)
     {
         Bans = bans;
         Penalties = penalties;
+        HardwareBans = hardwareBans;
+        HardwareBanMode = hardwareBanMode;
         ModerationScanned = scanned;
         HasModeration = true;
         ModerationVersion++;

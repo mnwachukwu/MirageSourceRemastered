@@ -56,6 +56,12 @@ public static class ShellStrings
     public const string Mod_Refresh = nameof(Mod_Refresh);
     public const string Mod_Bans = nameof(Mod_Bans);
     public const string Mod_BansEmpty = nameof(Mod_BansEmpty);
+    public const string Mod_HardwareBans = nameof(Mod_HardwareBans);
+    public const string Mod_HardwareBansEmpty = nameof(Mod_HardwareBansEmpty);
+    // What a match DOES. Two sentences rather than the config's bare enum name, because the rows look
+    // the same under both and only this says whether those people are being refused or watched.
+    public const string Mod_HardwareBanModeSignal = nameof(Mod_HardwareBanModeSignal);
+    public const string Mod_HardwareBanModeBlock = nameof(Mod_HardwareBanModeBlock);
     public const string Mod_Penalties = nameof(Mod_Penalties);
     public const string Mod_PenaltiesEmpty = nameof(Mod_PenaltiesEmpty);
     public const string Mod_ColAccount = nameof(Mod_ColAccount);

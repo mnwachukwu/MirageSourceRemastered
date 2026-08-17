@@ -119,6 +119,29 @@ public interface IPersistenceService
     Task<IReadOnlyList<BanEntry>> LoadBanListAsync();
     Task RefreshBanListAsync();
 
+    // ── Hardware banlist ──────────────────────────────────────────────────────
+    // A ban on the MACHINE rather than the account, for the case an account ban cannot reach: somebody
+    // who simply registers again. Last resort, and separate from the account list in every respect —
+    // its own file, its own lift, and a switch that decides whether a match refuses a login or merely
+    // reports one. See ServerConfig.HardwareBans.
+
+    /// <summary>Turns the key a client sent into the value this server stores, by salting it with a
+    /// per-server secret. Empty in, empty out — a client that could not compute a key is not a match for
+    /// anything, and must never collide with another that also could not.</summary>
+    Task<string> HashMachineKeyAsync(string clientKey);
+
+    /// <summary>The ban on a hashed key, or null. Takes the output of
+    /// <see cref="HashMachineKeyAsync"/>, never a raw client value.</summary>
+    Task<HardwareBanEntry?> FindHardwareBanAsync(string hashedKey);
+
+    /// <summary>Records a machine ban. False when that machine was already banned, or the key is empty.</summary>
+    Task<bool> HardwareBanAsync(string hashedKey, string login, string reason);
+
+    /// <summary>Lifts every machine ban recorded against <paramref name="login"/>, returning the count.</summary>
+    Task<int> HardwareUnbanAsync(string login);
+
+    Task<IReadOnlyList<HardwareBanEntry>> LoadHardwareBanListAsync();
+
     /// <summary>Sweeps every account file for a kick or mute that has not yet run out, returning the
     /// matches and how many files were read.
     ///

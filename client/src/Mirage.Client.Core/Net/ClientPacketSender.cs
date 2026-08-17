@@ -15,6 +15,9 @@ public sealed class ClientPacketSender
     // reflected on the next Login/NewAccount/etc. without having to thread the locale through
     // every call site.
     private Func<string>? _localeProvider;
+    // Same shape as the locale getter. Unset means an empty key, which every server treats as "no machine
+    // key" rather than as a value.
+    private Func<string>? _machineKeyProvider;
 
     public ClientPacketSender(IClientTransport transport) => _transport = transport;
 
@@ -23,7 +26,13 @@ public sealed class ClientPacketSender
     /// from the Shell layer with <c>() =&gt; _language</c>.</summary>
     public void SetLocaleProvider(Func<string> provider) => _localeProvider = provider;
 
+    /// <summary>Wires the machine-key getter — see <see cref="Mirage.Shared.MachineKey"/>. Read at send
+    /// time, on the two packets that can be refused for it.</summary>
+    public void SetMachineKeyProvider(Func<string> provider) => _machineKeyProvider = provider;
+
     private string CurrentLocale => _localeProvider?.Invoke() ?? "en";
+
+    private string CurrentMachineKey => _machineKeyProvider?.Invoke() ?? "";
 
     // ── Account / pre-login ───────────────────────────────────────────────────
 
@@ -31,7 +40,13 @@ public sealed class ClientPacketSender
         => _transport.Send(new GetClassesPacket());
 
     public void SendNewAccount(string username, string password)
-        => _transport.Send(new NewAccountPacket { Username = username, Password = password, Locale = CurrentLocale });
+        => _transport.Send(new NewAccountPacket
+        {
+            Username = username,
+            Password = password,
+            Locale = CurrentLocale,
+            MachineKey = CurrentMachineKey,
+        });
 
     public void SendDelAccount(string username, string password)
         => _transport.Send(new DelAccountPacket { Username = username, Password = password, Locale = CurrentLocale });
@@ -48,6 +63,7 @@ public sealed class ClientPacketSender
             Minor = Constants.ClientMinor,
             Revision = Constants.ClientRevision,
             Locale = CurrentLocale,
+            MachineKey = CurrentMachineKey,
         });
 
     public void SendSetLanguage(string locale)
@@ -507,10 +523,18 @@ public sealed class ClientPacketSender
     public void SendRefreshBanList()
         => _transport.Send(new RefreshBanListPacket());
 
+    /// <summary>Bans the account and the machine behind it. Takes a CHARACTER name, unlike the lifts:
+    /// the target has to be online for their machine key to exist at all.</summary>
+    public void SendHwBan(string target)
+        => _transport.Send(new HwBanPlayerPacket { Target = target });
+
     // Lifting a punishment. The target is an ACCOUNT, not a character — the three above take a name off
     // the screen, and nobody kicked or banned is on the screen to be named.
     public void SendUnban(string target)
         => _transport.Send(new UnbanPlayerPacket { Target = target });
+
+    public void SendHwUnban(string target)
+        => _transport.Send(new HwUnbanPlayerPacket { Target = target });
 
     public void SendUnkick(string target)
         => _transport.Send(new UnkickPlayerPacket { Target = target });

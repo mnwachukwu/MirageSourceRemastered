@@ -74,6 +74,8 @@ public sealed class HelpPanel : IGamePanel
         new("/tod day|dusk|night|dawn",   ClientStrings.HelpText_Cmd_Tod,           AdminLevel.Developer),
         new("/weather clear|rain|snow|heatwave|heavywind", ClientStrings.HelpText_Cmd_Weather, AdminLevel.Developer),
         new("/setaccess level name",       ClientStrings.HelpText_Cmd_SetAccess,     AdminLevel.Creator),
+        new("/hwban name",                 ClientStrings.HelpText_Cmd_HwBan,         AdminLevel.Creator),
+        new("/hwunban login",              ClientStrings.HelpText_Cmd_HwUnban,       AdminLevel.Creator),
         new("/startwar",                   ClientStrings.HelpText_Cmd_StartWar,      AdminLevel.Creator),
         new("/advancewar",                 ClientStrings.HelpText_Cmd_AdvanceWar,    AdminLevel.Creator),
         new("/endwar",                     ClientStrings.HelpText_Cmd_EndWar,        AdminLevel.Creator),

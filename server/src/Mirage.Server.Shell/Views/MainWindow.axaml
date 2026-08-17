@@ -244,6 +244,41 @@
               </ItemsControl>
             </StackPanel>
 
+            <!-- ── Machine bans ─────────────────────────────────────────────
+                 The MODE rides in the heading rather than sitting somewhere else on the page: under
+                 Signal these people are being watched and let in, under Block they are refused, and the
+                 rows look identical either way. -->
+            <TextBlock Classes="group" Text="{Binding HardwareBansHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding HardwareBanModeText}" TextWrapping="Wrap"/>
+            <TextBlock Classes="hint" Text="{Binding HardwareBansEmpty}" IsVisible="{Binding !HasHardwareBans}"/>
+
+            <StackPanel IsVisible="{Binding HasHardwareBans}">
+              <Grid ColumnDefinitions="160,*,130,Auto" Margin="14,0,14,4">
+                <TextBlock Grid.Column="0" Classes="hint" Text="{Binding ModColAccount}"/>
+                <TextBlock Grid.Column="1" Classes="hint" Text="{Binding ModColReason}"/>
+                <TextBlock Grid.Column="2" Classes="hint" Text="{Binding ModColApplied}"/>
+              </Grid>
+              <ItemsControl ItemsSource="{Binding HardwareBans}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="proto:HardwareBanSummary">
+                    <Border Classes="card">
+                      <Grid ColumnDefinitions="160,*,130,Auto">
+                        <TextBlock Grid.Column="0" Classes="t1" Text="{Binding Login}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Classes="t2" Text="{Binding Reason}" VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Grid.Column="2" Classes="t2" VerticalAlignment="Center"
+                                   Text="{Binding BannedAtUtc, Converter={StaticResource UnixDate}}"/>
+                        <Button Grid.Column="3" HorizontalAlignment="Right"
+                                Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).LiftLabel}"
+                                Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).HardwareUnbanCommand}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
             <!-- ── Kicks and mutes ──────────────────────────────────────── -->
             <TextBlock Classes="group" Text="{Binding PenaltiesHeading}"/>
             <TextBlock Classes="hint" Text="{Binding PenaltiesEmpty}" IsVisible="{Binding !HasPenalties}"/>

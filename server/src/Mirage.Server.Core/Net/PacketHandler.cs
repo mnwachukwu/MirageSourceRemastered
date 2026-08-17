@@ -128,7 +128,7 @@ public sealed partial class PacketHandler
         _gameLoop = gameLoop;
         // Built here rather than injected: it is stateless over three services this already holds, and a
         // new required constructor argument would land on every harness that builds a PacketHandler.
-        _moderation = new ModerationSystem(persistence, pm, saver);
+        _moderation = new ModerationSystem(persistence, pm, saver, config);
         _logger = logger;
         _clock = clock ?? SystemClock.Instance;
         _rng = rng ?? SharedRandom.Instance;
@@ -611,8 +611,14 @@ public sealed partial class PacketHandler
                 case RefreshBanListPacket:
                     HandleRefreshBanList(index);
                     break;
+                case HwBanPlayerPacket p:
+                    HandleHwBanPlayer(index, p);
+                    break;
                 case UnbanPlayerPacket p:
                     HandleUnbanPlayer(index, p);
+                    break;
+                case HwUnbanPlayerPacket p:
+                    HandleHwUnbanPlayer(index, p);
                     break;
                 case UnkickPlayerPacket p:
                     HandleUnkickPlayer(index, p);

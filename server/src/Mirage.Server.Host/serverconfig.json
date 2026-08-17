@@ -9,5 +9,8 @@
     "durabilityLoss": true,
     "itemDrop": true,
     "expLoss": true
+  },
+  "hardwareBans": {
+    "mode": "Block"
   }
 }

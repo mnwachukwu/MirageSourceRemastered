@@ -25,9 +25,33 @@ public sealed record ModerationReport
     /// punishment any more, and listing it would make lifting look like it did nothing.</summary>
     public IReadOnlyList<PenaltySummary> Penalties { get; init; } = [];
 
+    /// <summary>Machines refused entry, or reported on arrival, depending on the server's mode.</summary>
+    public IReadOnlyList<HardwareBanSummary> HardwareBans { get; init; } = [];
+
+    /// <summary>What a machine-ban match does here — "Signal" or "Block". Carried because the list above
+    /// means two different things under the two modes, and a page showing rows without saying which would
+    /// let an operator believe they are refusing people they are only watching.</summary>
+    public string HardwareBanMode { get; init; } = "";
+
     /// <summary>How many account files were swept to produce <see cref="Penalties"/>. Shown so an
     /// operator can tell an empty list apart from a list that was never gathered.</summary>
     public int AccountsScanned { get; init; }
+}
+
+/// <summary>
+/// A banned machine, as an operator sees it.
+///
+/// <para>The key itself is deliberately absent. It is 64 hex characters that identify a person's computer,
+/// it cannot be typed back in usefully, and every lift is by account — so sending it would be handing a
+/// dashboard an identifier it has no use for. <see cref="Login"/> is who was signed in when the ban
+/// landed, which is the handle the lift takes.</para>
+/// </summary>
+public sealed record HardwareBanSummary
+{
+    public string Login { get; init; } = "";
+    public string Reason { get; init; } = "";
+    /// <summary>Unix seconds when the machine was banned.</summary>
+    public long BannedAtUtc { get; init; }
 }
 
 /// <summary>A banned account. There is no expiry — a ban runs until somebody lifts it.</summary>

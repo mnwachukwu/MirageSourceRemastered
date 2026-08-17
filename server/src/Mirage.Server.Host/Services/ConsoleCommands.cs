@@ -29,6 +29,8 @@ namespace Mirage.Server.Host.Services;
 ///   /unban  login               — lift a ban
 ///   /unkick name|login          — lift a kick
 ///   /unmute name|login          — lift a mute, on the account AND on the live player
+///   /hwban  name                — ban the account AND the machine; ONLINE targets only
+///   /hwunban login              — lift every machine ban on an account
 /// World:
 ///   /tod phase                  — jump the time of day
 ///   /weather type               — set the weather
@@ -219,6 +221,14 @@ public sealed partial class ConsoleCommands : IHostedService
 
             case "/unban":
                 _ = RunAsync(CmdUnbanAsync(args));
+                break;
+
+            case "/hwban":
+                _ = RunAsync(CmdHwBanAsync(args));
+                break;
+
+            case "/hwunban":
+                _ = RunAsync(CmdHwUnbanAsync(args));
                 break;
 
             case "/unmute":

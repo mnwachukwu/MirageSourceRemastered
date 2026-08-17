@@ -23,12 +23,17 @@ public sealed class ModerationSystem
     private readonly IPersistenceService _persistence;
     private readonly PlayerManager _pm;
     private readonly PlayerSaver _saver;
+    private readonly Configuration.ServerConfig _config;
 
-    public ModerationSystem(IPersistenceService persistence, PlayerManager pm, PlayerSaver saver)
+    public ModerationSystem(IPersistenceService persistence, PlayerManager pm, PlayerSaver saver,
+                            Configuration.ServerConfig? config = null)
     {
         _persistence = persistence;
         _pm = pm;
         _saver = saver;
+        // Optional and defaulted, like the clock and the RNG: only the machine-ban MODE is read from it,
+        // and every harness that builds this system predates the setting.
+        _config = config ?? Configuration.ServerConfig.Default;
     }
 
     // ── Game thread ONLY ──────────────────────────────────────────────────────
@@ -84,11 +89,43 @@ public sealed class ModerationSystem
         return await _persistence.AccountExistsAsync(name) ? name : null;
     }
 
+    /// <summary>The machine key held on an online session — empty when that login is not online or its
+    /// client sent none.
+    /// <para>🔴 Game thread only — it reads live session state, which is the whole constraint on
+    /// <c>/hwban</c>: the key exists nowhere else, so there is nothing to ban about somebody offline.</para></summary>
+    public string OnlineMachineKey(string login)
+    {
+        foreach (int slot in _pm.Online)
+        {
+            if (!string.Equals(_pm[slot].Login, login, StringComparison.OrdinalIgnoreCase)) continue;
+            return _pm[slot].MachineKey;
+        }
+        return "";
+    }
+
     /// <summary>Lifts a ban. Takes the login straight, without checking the account exists: a ban entry
     /// can name an account whose file was since deleted, and refusing those would leave a row nobody can
     /// ever clear.</summary>
     public async Task<LiftOutcome> UnbanAsync(string login) =>
         await _persistence.UnbanAsync(login) ? LiftOutcome.Lifted : LiftOutcome.NothingToLift;
+
+    /// <summary>Bans the machine behind an ALREADY-CAPTURED key, and the account with it.
+    ///
+    /// <para>Both, because an operator reaching for this has decided the person should be gone, and
+    /// banning only the machine would leave the account free to log in from anywhere else. The account
+    /// half is the one that always works; the machine half is the one that survives re-registration.</para></summary>
+    public async Task<LiftOutcome> HardwareBanAsync(string login, string machineKey, string reason)
+    {
+        await _persistence.BanAsync(login, reason);
+        return await _persistence.HardwareBanAsync(machineKey, login, reason)
+            ? LiftOutcome.Lifted
+            : LiftOutcome.NothingToLift;
+    }
+
+    /// <summary>Lifts every machine ban recorded against a login. Leaves the ACCOUNT ban alone —
+    /// <see cref="UnbanAsync"/> is its own command, and an operator may want only one of the two gone.</summary>
+    public async Task<LiftOutcome> HardwareUnbanAsync(string login) =>
+        await _persistence.HardwareUnbanAsync(login) > 0 ? LiftOutcome.Lifted : LiftOutcome.NothingToLift;
 
     public async Task<LiftOutcome> UnkickAsync(string login)
     {
@@ -119,10 +156,19 @@ public sealed class ModerationSystem
     public async Task<ModerationReport> BuildReportAsync(IReadOnlyDictionary<string, string> online)
     {
         var bans = await _persistence.LoadBanListAsync();
+        var hwBans = await _persistence.LoadHardwareBanListAsync();
         var (penalties, scanned) = await _persistence.LoadActivePenaltiesAsync(NowUtc);
 
         return new ModerationReport
         {
+            // Keys are deliberately not projected — see HardwareBanSummary.
+            HardwareBans = [.. hwBans.Select(b => new HardwareBanSummary
+            {
+                Login = b.Login,
+                Reason = b.Reason,
+                BannedAtUtc = b.BannedAtUtc,
+            })],
+            HardwareBanMode = _config.HardwareBans.Mode.ToString(),
             Bans = [.. bans.Select(b => new BanSummary
             {
                 Login = b.Login,

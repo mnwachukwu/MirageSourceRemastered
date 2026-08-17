@@ -287,6 +287,65 @@ public sealed partial class PacketHandler
         AlertAndDisconnect(n, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
     }
 
+    /// <summary>
+    /// <c>/hwban</c> — ban the account and the machine it is signed in from. CREATOR only, unlike the
+    /// plain ban: this is the last resort, and it is the one punishment that can reach somebody who has
+    /// done nothing yet under a name nobody has seen.
+    ///
+    /// <para>🔴 Requires the target to be ONLINE, and says so rather than silently doing half the job. The
+    /// machine key lives on the live session and is never written to an account file, so there is nothing
+    /// to record for somebody who is not here — that case is what <c>/ban</c> is for.</para>
+    /// </summary>
+    private void HandleHwBanPlayer(int index, HwBanPlayerPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Access < AdminLevel.Creator)
+        {
+            HackingAttempt(index, "Admin Cloning");
+            return;
+        }
+
+        int n = _pm.FindPlayerByName(p.Target);
+        if (n == index)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.AdminCommand_CannotBanSelf, new ChatMetadata(GameColor.White, ChatChannel.Notice));
+            return;
+        }
+        if (n == 0)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_PlayerNotOnline, new ChatMetadata(GameColor.White, ChatChannel.System));
+            return;
+        }
+        if (TargetIsAdmin(index, n)) return;
+
+        string adminName = _pm[index].Char.Name.Trim();
+        string targetName = _pm[n].Char.Name.Trim();
+        string banLogin = _pm[n].Login;
+        string machineKey = _pm[n].MachineKey;
+
+        // No key means their client never sent one — an older build, or a machine that would not identify
+        // itself. The ACCOUNT ban still lands; the operator is told the machine half did not, because a
+        // silent downgrade here is how somebody believes a machine is blocked when it is not.
+        if (machineKey.Length == 0)
+        {
+            _bg.Run(_persistence.BanAsync(banLogin, $"Banned by {adminName}"), nameof(IPersistenceService.BanAsync));
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.AdminCommand_HwBanNoKey,
+                new ChatMetadata(GameColor.Yellow, ChatChannel.Notice), ("Target", targetName));
+            _logger.LogWarning("{Admin} hardware-banned {Target}, but the session carried no machine key; the account ban was applied alone.",
+                adminName, targetName);
+            AlertAndDisconnect(n, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
+            return;
+        }
+
+        _bg.Run(_moderation.HardwareBanAsync(banLogin, machineKey, $"Hardware banned by {adminName}"),
+                nameof(ModerationSystem.HardwareBanAsync));
+        _logger.LogInformation("{Admin} has hardware-banned {Target}.", adminName, targetName);
+        _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_BanBroadcast,
+            new ChatMetadata(GameColor.White, ChatChannel.Notice),
+            ("Target", targetName), ("GameName", _config.GameName), ("Admin", adminName));
+        AlertAndDisconnect(n, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
+    }
+
     private void HandleMutePlayer(int index, MutePlayerPacket p)
     {
         if (!_pm[index].IsPlaying) return;
@@ -358,6 +417,11 @@ public sealed partial class PacketHandler
         LiftAsync(index, p.Target, resolveAccount: true, async login =>
             (await _moderation.UnkickAsync(login),
              ServerStrings.AdminCommand_Unkicked, ServerStrings.AdminCommand_NotKicked));
+
+    private void HandleHwUnbanPlayer(int index, HwUnbanPlayerPacket p) =>
+        LiftAsync(index, p.Target, resolveAccount: false, async login =>
+            (await _moderation.HardwareUnbanAsync(login),
+             ServerStrings.AdminCommand_HwUnbanned, ServerStrings.AdminCommand_NotHwBanned));
 
     private void HandleUnmutePlayer(int index, UnmutePlayerPacket p) =>
         // The live mirror is cleared HERE, on the game thread, before the continuation leaves it.
@@ -440,6 +504,8 @@ public sealed partial class PacketHandler
             {
                 Bans = [.. report.Bans],
                 Penalties = [.. report.Penalties],
+                HardwareBans = [.. report.HardwareBans],
+                HardwareBanMode = report.HardwareBanMode,
                 AccountsScanned = report.AccountsScanned,
             });
         });

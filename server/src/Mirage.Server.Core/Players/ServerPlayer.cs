@@ -63,6 +63,15 @@ public sealed class ServerPlayer
     public bool InGame { get; set; }
     public string RemoteIp { get; set; } = "";
 
+    /// <summary>The salted machine key this session arrived with — empty when the client sent none.
+    ///
+    /// <para>🔴 TRANSIENT ON PURPOSE, and the reason <c>/hwban</c> only reaches somebody online. A machine
+    /// identifier is regulated personal data; keeping one on every account file would mean storing it for
+    /// every player forever and owing an answer about retention. Held for the length of a session and
+    /// written down only if that session gets banned, the only identifiers on disk belong to people an
+    /// operator deliberately banned.</para></summary>
+    public string MachineKey { get; set; } = "";
+
     // Set by PlayerManager.MarkDirty on any change a player could otherwise roll back by
     // hard-disconnecting before the 60 s autosave (item drop/pickup, durability break, death,
     // level-up, inventory sort). GameLoop.FlushDirtyPlayers writes the player at end of tick and

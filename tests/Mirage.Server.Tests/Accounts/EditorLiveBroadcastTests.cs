@@ -435,6 +435,12 @@ public class EditorLiveBroadcastTests
         public Task<(IReadOnlyList<AccountPenalty> penalties, int scanned)> LoadActivePenaltiesAsync(long nowUtc) =>
             Task.FromResult<(IReadOnlyList<AccountPenalty>, int)>(([], 0));
         public Task RefreshBanListAsync() => Task.CompletedTask;
+        public Task<string> HashMachineKeyAsync(string clientKey) => Task.FromResult(clientKey);
+        public Task<HardwareBanEntry?> FindHardwareBanAsync(string hashedKey) => Task.FromResult<HardwareBanEntry?>(null);
+        public Task<bool> HardwareBanAsync(string hashedKey, string login, string reason) => Task.FromResult(false);
+        public Task<int> HardwareUnbanAsync(string login) => Task.FromResult(0);
+        public Task<IReadOnlyList<HardwareBanEntry>> LoadHardwareBanListAsync() =>
+            Task.FromResult<IReadOnlyList<HardwareBanEntry>>([]);
         public Task<DroppedItemSaveData[]> LoadDroppedItemsAsync(int mapNum) => Task.FromResult(Array.Empty<DroppedItemSaveData>());
         public Task SaveDroppedItemsAsync(int mapNum, DroppedItemSaveData[] items) => Task.CompletedTask;
         public Task<string> LoadMotdAsync() => Task.FromResult("");

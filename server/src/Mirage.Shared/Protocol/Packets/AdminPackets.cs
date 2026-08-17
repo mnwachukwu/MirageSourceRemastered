@@ -58,6 +58,17 @@ public sealed record RefreshBanListPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.RefreshBanList;
 }
 
+/// <summary>
+/// C-&gt;S: ban the account AND the machine the target is signed in from. Creator only, and only against
+/// somebody ONLINE — the key lives on the live session and nowhere else, so there is nothing to record
+/// for a player who is not here. An offline account is what the ordinary ban is for.
+/// </summary>
+public sealed record HwBanPlayerPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.HwBanPlayer;
+    [JsonPropertyName("target")] public string Target { get; init; } = "";
+}
+
 // ── Lifting a punishment ─────────────────────────────────────────────────────
 // Target is an ACCOUNT here, unlike the three above: a kicked or banned person cannot be online to be
 // named by their character. The server accepts an online character's name as a convenience and resolves
@@ -78,6 +89,15 @@ public sealed record UnkickPlayerPacket : IPacket
 public sealed record UnmutePlayerPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.UnmutePlayer;
+    [JsonPropertyName("target")] public string Target { get; init; } = "";
+}
+
+/// <summary>C-&gt;S: lift every machine ban recorded against an account. The account's own ban is a
+/// separate lift — <see cref="UnbanPlayerPacket"/> — because the two were applied for different reasons
+/// and an operator may well want only one of them gone.</summary>
+public sealed record HwUnbanPlayerPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.HwUnbanPlayer;
     [JsonPropertyName("target")] public string Target { get; init; } = "";
 }
 
@@ -102,6 +122,10 @@ public sealed record ModerationListPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ModerationList;
     [JsonPropertyName("bans")] public List<BanSummary> Bans { get; init; } = new();
     [JsonPropertyName("penalties")] public List<PenaltySummary> Penalties { get; init; } = new();
+    [JsonPropertyName("hwbans")] public List<HardwareBanSummary> HardwareBans { get; init; } = new();
+    /// <summary>"Signal" or "Block" — what a machine-ban match does on this server. The panel says so
+    /// out loud, because the same list of rows means two different things under the two modes.</summary>
+    [JsonPropertyName("hwmode")] public string HardwareBanMode { get; init; } = "";
     /// <summary>How many accounts were swept, so an empty list is distinguishable from one never gathered.</summary>
     [JsonPropertyName("scanned")] public int AccountsScanned { get; init; }
 }

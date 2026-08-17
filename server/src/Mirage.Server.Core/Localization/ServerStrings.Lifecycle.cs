@@ -87,6 +87,17 @@ public static partial class ServerStrings
     public const string Console_ModerationPenaltyLine = nameof(Console_ModerationPenaltyLine);
     public const string Console_ModerationNone = nameof(Console_ModerationNone);
     public const string Console_ModerationScanned = nameof(Console_ModerationScanned);
+    // Machine bans, from the console. HwBanOffline and HwBanNoKey are both refusals to half-do the job:
+    // the key lives on a live session, so an offline target has nothing to ban.
+    public const string Console_HwBanUsage = nameof(Console_HwBanUsage);
+    public const string Console_HwBanned = nameof(Console_HwBanned);
+    public const string Console_HwBanOffline = nameof(Console_HwBanOffline);
+    public const string Console_HwBanNoKey = nameof(Console_HwBanNoKey);
+    public const string Console_HwUnbanned = nameof(Console_HwUnbanned);
+    public const string Console_NotHwBanned = nameof(Console_NotHwBanned);
+    public const string Console_ModerationHwBans = nameof(Console_ModerationHwBans);
+    public const string Console_ModerationHwBanLine = nameof(Console_ModerationHwBanLine);
+    public const string Console_ModerationHwMode = nameof(Console_ModerationHwMode);
     // World-level admin commands. Every usage line lists its valid values from the enum itself, so the
     // console can never advertise a phase or weather the server would then refuse.
     public const string Console_TodUsage = nameof(Console_TodUsage);

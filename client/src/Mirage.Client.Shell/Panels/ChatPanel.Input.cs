@@ -565,6 +565,12 @@ public sealed partial class ChatPanel
                 if (state.Me.Access <= AdminLevel.Player) goto default;
                 if (parts.Length > 1) sender.SendBan(parts[1]);
                 break;
+            // A rung above /ban, and against an ONLINE character only: it bans the machine as well as the
+            // account, and the machine key exists only on a live session.
+            case "hwban":
+                if (state.Me.Access < AdminLevel.Creator) goto default;
+                if (parts.Length > 1) sender.SendHwBan(parts[1]);
+                break;
             case "mute":
                 if (state.Me.Access < AdminLevel.Monitor) goto default;
                 if (parts.Length > 1)
@@ -584,6 +590,10 @@ public sealed partial class ChatPanel
             case "unban":
                 if (state.Me.Access < AdminLevel.Creator) goto default;
                 if (parts.Length > 1) sender.SendUnban(parts[1]);
+                break;
+            case "hwunban":
+                if (state.Me.Access < AdminLevel.Creator) goto default;
+                if (parts.Length > 1) sender.SendHwUnban(parts[1]);
                 break;
             case "unkick":
                 if (state.Me.Access < AdminLevel.Creator) goto default;

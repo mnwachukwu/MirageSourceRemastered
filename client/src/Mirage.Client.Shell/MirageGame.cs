@@ -267,6 +267,9 @@ public sealed partial class MirageGame : Game
         // Lazy locale getter — read at packet-send time so a pre-session language change on the
         // login screen is reflected on the next outgoing Login/NewAccount/etc.
         _sender.SetLocaleProvider(() => _language);
+        // Cached inside MachineKey after the first call, so the OS is read (and on macOS ioreg spawned)
+        // once, on the first login attempt, rather than during startup.
+        _sender.SetMachineKeyProvider(MachineKey.Compute);
         _handler = new ClientPacketHandler(_state, _sender, new DiskMapCache(AppPaths.Cache("maps")));
         _menu = new MenuLogic(_handler);
         _music = new OggMusicPlayer();

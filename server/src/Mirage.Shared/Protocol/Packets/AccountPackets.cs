@@ -10,13 +10,19 @@ public sealed record GetClassesPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.GetClasses;
 }
 
-/// <summary>C-&gt;S: create an account. <c>Locale</c> tells the server which language to reply in, since no session exists yet.</summary>
+/// <summary>C-&gt;S: create an account. <c>Locale</c> tells the server which language to reply in, since no session exists yet.
+///
+/// <para>Carries the machine key for the same reason <see cref="LoginPacket"/> does, and with more at
+/// stake: registering again is precisely what an account ban cannot stop, so this is the packet a machine
+/// ban exists to reach.</para></summary>
 public sealed record NewAccountPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.NewAccount;
     [JsonPropertyName("user")] public string Username { get; init; } = "";
     [JsonPropertyName("pass")] public string Password { get; init; } = "";
     [JsonPropertyName("locale")] public string Locale { get; init; } = "en";
+    /// <summary>See <see cref="LoginPacket.MachineKey"/>.</summary>
+    [JsonPropertyName("mkey")] public string MachineKey { get; init; } = "";
 }
 
 /// <summary>C-&gt;S: delete an account and every character on it, re-authenticating first.</summary>
@@ -48,6 +54,15 @@ public sealed record LoginPacket : IPacket
     [JsonPropertyName("min")] public int Minor { get; init; }
     [JsonPropertyName("rev")] public int Revision { get; init; }
     [JsonPropertyName("locale")] public string Locale { get; init; } = "en";
+
+    /// <summary>An opaque hash identifying the machine this client runs on — see
+    /// <see cref="MachineKey"/>. It rides here rather than in a packet of its own because it must be
+    /// known before the login is decided, and this one is already the first thing a client sends.
+    ///
+    /// <para>Empty is normal and always allowed: a client that could not compute one, or an older build
+    /// that does not send one, logs in as though no machine ban existed. Treating a blank as a match
+    /// would group every such machine into one identity and ban them together.</para></summary>
+    [JsonPropertyName("mkey")] public string MachineKey { get; init; } = "";
 }
 
 /// <summary>C-&gt;S: switch the language for this session, so later server text arrives localized.</summary>

@@ -3,6 +3,8 @@ using Mirage.Server.Core.Logging;
 using Mirage.Shared;
 using Mirage.Shared.Records;
 using Mirage.Shared.Security;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace Mirage.Server.Core.Persistence;
@@ -16,6 +18,8 @@ public sealed class JsonPersistenceService : IPersistenceService
     private readonly SemaphoreSlim _accountLock = new(1, 1);
     private readonly SemaphoreSlim _banLock = new(1, 1);
     private List<BanEntry>? _bansCache;
+    private readonly SemaphoreSlim _hwBanLock = new(1, 1);
+    private HardwareBanList? _hwBansCache;
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -833,6 +837,136 @@ public sealed class JsonPersistenceService : IPersistenceService
                 : [];
         }
         finally { _banLock.Release(); }
+    }
+
+    // ── Hardware banlist ──────────────────────────────────────────────────────
+    // Its own file and its own lock, deliberately separate from the account banlist above: the two are
+    // lifted independently (/unban vs /hwunban), and this one carries a salt the other has no use for.
+
+    private string HardwareBanFile => Path.Combine(_dataPath, "hwbanlist.json");
+
+    private async Task<HardwareBanList> LoadHardwareBansAsync()
+    {
+        if (_hwBansCache is not null) return _hwBansCache;
+        await _hwBanLock.WaitAsync();
+        try { return _hwBansCache = await ReadHardwareBansUnlockedAsync(); }
+        finally { _hwBanLock.Release(); }
+    }
+
+    // Caller holds _hwBanLock. A missing or unreadable file yields an EMPTY list rather than throwing:
+    // this is read on the login path, and a corrupt ban file must not lock every player out of the game.
+    private async Task<HardwareBanList> ReadHardwareBansUnlockedAsync()
+    {
+        if (_hwBansCache is not null) return _hwBansCache;
+        if (!File.Exists(HardwareBanFile)) return new HardwareBanList();
+        try
+        {
+            string json = await File.ReadAllTextAsync(HardwareBanFile);
+            return JsonSerializer.Deserialize<HardwareBanList>(json, Options) ?? new HardwareBanList();
+        }
+        catch (Exception ex) when (ex is JsonException or IOException)
+        {
+            _logger.LogError(ex, "Failed to read {File}; treating it as empty", HardwareBanFile);
+            return new HardwareBanList();
+        }
+    }
+
+    /// <summary>Salts a client key into the value this server stores. The salt is minted on first use and
+    /// never rotated — rotating it would invalidate every ban already recorded, since the stored hashes
+    /// could no longer be reproduced from any incoming key.</summary>
+    public async Task<string> HashMachineKeyAsync(string clientKey)
+    {
+        if (clientKey.Length == 0) return "";
+        string salt = await SaltAsync();
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(salt + "\n" + clientKey)));
+    }
+
+    // Reads the per-server salt, minting and persisting one the first time it is needed. Re-reads under
+    // the lock before writing: two logins can arrive at an empty salt at once, and the second must adopt
+    // the first's rather than replacing it — a replaced salt orphans every ban recorded under the old one.
+    private async Task<string> SaltAsync()
+    {
+        var list = await LoadHardwareBansAsync();
+        if (list.Salt.Length > 0) return list.Salt;
+
+        await _hwBanLock.WaitAsync();
+        try
+        {
+            list = await ReadHardwareBansUnlockedAsync();
+            if (list.Salt.Length > 0) return list.Salt;
+            list = list with { Salt = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)) };
+            await WriteHardwareBansUnlockedAsync(list);
+            return list.Salt;
+        }
+        finally { _hwBanLock.Release(); }
+    }
+
+    public async Task<HardwareBanEntry?> FindHardwareBanAsync(string hashedKey)
+    {
+        if (hashedKey.Length == 0) return null;
+        var list = await LoadHardwareBansAsync();
+        return list.Entries.FirstOrDefault(e => string.Equals(e.Key, hashedKey, StringComparison.Ordinal));
+    }
+
+    public async Task<bool> HardwareBanAsync(string hashedKey, string login, string reason)
+    {
+        if (hashedKey.Length == 0) return false;
+        await _hwBanLock.WaitAsync();
+        try
+        {
+            var list = await ReadHardwareBansUnlockedAsync();
+            if (list.Entries.Any(e => string.Equals(e.Key, hashedKey, StringComparison.Ordinal)))
+            {
+                _hwBansCache = list;
+                return false;
+            }
+            list.Entries.Add(new HardwareBanEntry
+            {
+                Key = hashedKey,
+                Login = login,
+                Reason = reason,
+                BannedAtUtc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            });
+            await WriteHardwareBansUnlockedAsync(list);
+            return true;
+        }
+        finally { _hwBanLock.Release(); }
+    }
+
+    /// <summary>Lifts every machine banned under <paramref name="login"/>, returning how many went. By
+    /// login rather than by key because the key is 64 hex characters an operator has no way to read off a
+    /// screen and retype, and one person banned twice from two machines should be freed by one command.</summary>
+    public async Task<int> HardwareUnbanAsync(string login)
+    {
+        await _hwBanLock.WaitAsync();
+        try
+        {
+            var list = await ReadHardwareBansUnlockedAsync();
+            int removed = list.Entries.RemoveAll(
+                e => string.Equals(e.Login, login, StringComparison.OrdinalIgnoreCase));
+            // Cached either way: the file was read to get here, and a stale cache behind a no-op lift is
+            // how a lifted ban comes back.
+            _hwBansCache = list;
+            if (removed > 0) await WriteHardwareBansUnlockedAsync(list);
+            return removed;
+        }
+        finally { _hwBanLock.Release(); }
+    }
+
+    public async Task<IReadOnlyList<HardwareBanEntry>> LoadHardwareBanListAsync()
+    {
+        var list = await LoadHardwareBansAsync();
+        return list.Entries.ToList();
+    }
+
+    // Caller holds _hwBanLock. Writes through a temp file: this is the only record of who is banned, and
+    // an interrupted write would leave the list truncated rather than merely stale.
+    private async Task WriteHardwareBansUnlockedAsync(HardwareBanList list)
+    {
+        string temp = HardwareBanFile + ".tmp";
+        await File.WriteAllTextAsync(temp, JsonSerializer.Serialize(list, Options));
+        File.Move(temp, HardwareBanFile, overwrite: true);
+        _hwBansCache = list;
     }
 
     // ── MOTD ──────────────────────────────────────────────────────────────────

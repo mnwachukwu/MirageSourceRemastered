@@ -503,6 +503,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public System.Collections.ObjectModel.ObservableCollection<BanSummary> Bans { get; } = [];
     public System.Collections.ObjectModel.ObservableCollection<PenaltySummary> Penalties { get; } = [];
+    public System.Collections.ObjectModel.ObservableCollection<HardwareBanSummary> HardwareBans { get; } = [];
 
     [ObservableProperty]
     public partial ModerationReport? Moderation { get; private set; }
@@ -510,6 +511,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public bool HasModeration => Moderation is not null;
     public bool HasBans => Bans.Count > 0;
     public bool HasPenalties => Penalties.Count > 0;
+    public bool HasHardwareBans => HardwareBans.Count > 0;
 
     private void ApplyModeration(string json)
     {
@@ -529,10 +531,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         foreach (var b in next.Bans) Bans.Add(b);
         Penalties.Clear();
         foreach (var p in next.Penalties) Penalties.Add(p);
+        HardwareBans.Clear();
+        foreach (var h in next.HardwareBans) HardwareBans.Add(h);
 
         OnPropertyChanged(nameof(HasModeration));
         OnPropertyChanged(nameof(HasBans));
         OnPropertyChanged(nameof(HasPenalties));
+        OnPropertyChanged(nameof(HasHardwareBans));
+        OnPropertyChanged(nameof(HardwareBanModeText));
         OnPropertyChanged(nameof(ScannedText));
     }
 
@@ -545,6 +551,14 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private void Unban(BanSummary? b)
     {
         if (b is not null) Send($"/unban {b.Login}");
+    }
+
+    /// <summary>Lifts every machine ban on an account. Leaves the ACCOUNT ban in place — the two are
+    /// separate rows here for the same reason they are separate commands.</summary>
+    [RelayCommand]
+    private void HardwareUnban(HardwareBanSummary? b)
+    {
+        if (b is not null) Send($"/hwunban {b.Login}");
     }
 
     [RelayCommand]
@@ -562,6 +576,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string ModerationRefreshLabel => ShellStrings.Get(ShellStrings.Mod_Refresh);
     public string BansHeading => ShellStrings.Get(ShellStrings.Mod_Bans);
     public string BansEmpty => ShellStrings.Get(ShellStrings.Mod_BansEmpty);
+    public string HardwareBansHeading => ShellStrings.Get(ShellStrings.Mod_HardwareBans);
+    public string HardwareBansEmpty => ShellStrings.Get(ShellStrings.Mod_HardwareBansEmpty);
     public string PenaltiesHeading => ShellStrings.Get(ShellStrings.Mod_Penalties);
     public string PenaltiesEmpty => ShellStrings.Get(ShellStrings.Mod_PenaltiesEmpty);
     public string ModColAccount => ShellStrings.Get(ShellStrings.Mod_ColAccount);
@@ -578,6 +594,15 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string ScannedText => Moderation is null
         ? ""
         : ShellStrings.Format(ShellStrings.Mod_Scanned, ("Count", Moderation.AccountsScanned));
+
+    /// <summary>What a machine-ban match actually does on this server, in a sentence. Never a bare
+    /// "Signal"/"Block" — those are the config's words, and an operator reading a list of banned machines
+    /// needs to know whether those people are being kept out or merely watched.</summary>
+    public string HardwareBanModeText => Moderation is null
+        ? ""
+        : ShellStrings.Get(string.Equals(Moderation.HardwareBanMode, "Block", StringComparison.OrdinalIgnoreCase)
+            ? ShellStrings.Mod_HardwareBanModeBlock
+            : ShellStrings.Mod_HardwareBanModeSignal);
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
