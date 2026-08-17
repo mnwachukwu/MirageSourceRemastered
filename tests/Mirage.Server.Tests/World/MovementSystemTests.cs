@@ -4,6 +4,7 @@ using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
@@ -18,11 +19,12 @@ public class MovementSystemTests
 {
     const int Map = 1, Idx = 1;
 
-    static (GameWorld world, PlayerManager pm, MovementSystem move, PlayerRecord p) Setup(int x, int y)
+    static (GameWorld world, PlayerManager pm, MovementSystem move, PlayerRecord p) Setup(int x, int y,
+        IPacketDispatcher? dispatcher = null)
     {
         var world = new GameWorld();
         var pm = new PlayerManager();
-        var dispatcher = new NoOpDispatcher();
+        dispatcher ??= new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
         var move = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
         var sp = pm[Idx];
@@ -288,6 +290,139 @@ public class MovementSystemTests
         }
     }
 
+    // ── The pace gate ────────────────────────────────────────────────────────────
+    // PlayerMove validates WHERE a step lands; these cover WHEN it is allowed to. The property that
+    // matters is the SUSTAINED one — a client cannot average more than the ms-per-tile its SPD and
+    // movement type earn it — with a bounded bank on top so ordinary network bunching is absorbed
+    // rather than rubber-banded.
+
+    // How many steps a full bank pays for at a given per-tile cost: the bank starts one window behind
+    // "now", and each step pushes it forward by one tile, so the step that carries it PAST now is the
+    // last one allowed.
+    static int BurstSteps(float msPerTile) =>
+        (int)(MovementSystem.MoveCreditWindowMs / (long)msPerTile) + 1;
+
+    // Steps allowed out of `count` attempts made every `cadenceMs`, starting from a full bank.
+    static int AllowedAtCadence(int count, long cadenceMs, MovementType movement, int spd)
+    {
+        var sp = new ServerPlayer();
+        long now = 1_000_000;   // well past the window, so the fresh 0 clamps to a full bank
+        int allowed = 0;
+        for (int i = 0; i < count; i++, now += cadenceMs)
+            if (MovementSystem.TryConsumeMoveCredit(sp, movement, spd, now)) allowed++;
+        return allowed;
+    }
+
+    [Test]
+    public void MoveCredit_AFreshSlotStartsWithAFullBank_ThenRefuses()
+    {
+        int burst = BurstSteps(MovementFormulas.BaseWalkMsPerTile);
+        // Every attempt at the same instant, so only the bank can pay for them.
+        Assert.That(AllowedAtCadence(burst + 5, 0, MovementType.Walking, spd: 0), Is.EqualTo(burst),
+            "a slot that has never moved starts with exactly one window of credit and no more");
+    }
+
+    [Test]
+    public void MoveCredit_NeverBanksMoreThanOneWindow_HoweverLongThePause()
+    {
+        var sp = new ServerPlayer();
+        Assert.That(MovementSystem.TryConsumeMoveCredit(sp, MovementType.Walking, 0, 1_000_000), Is.True);
+
+        // An hour parked. The bank must refill to one window, not to an hour's worth of steps.
+        long later = 1_000_000 + 3_600_000;
+        int allowed = 0;
+        for (int i = 0; i < 200; i++)
+            if (MovementSystem.TryConsumeMoveCredit(sp, MovementType.Walking, 0, later)) allowed++;
+
+        Assert.That(allowed, Is.EqualTo(BurstSteps(MovementFormulas.BaseWalkMsPerTile)));
+    }
+
+    [Test]
+    public void MoveCredit_RefillsInRealTime_OneTilePerPace()
+    {
+        var sp = new ServerPlayer();
+        long now = 1_000_000;
+        while (MovementSystem.TryConsumeMoveCredit(sp, MovementType.Walking, 0, now)) { }   // spend the bank
+
+        // One tile's worth of elapsed time buys exactly one step back, and no second one.
+        now += (long)MovementFormulas.BaseWalkMsPerTile;
+        Assert.Multiple(() =>
+        {
+            Assert.That(MovementSystem.TryConsumeMoveCredit(sp, MovementType.Walking, 0, now), Is.True);
+            Assert.That(MovementSystem.TryConsumeMoveCredit(sp, MovementType.Walking, 0, now), Is.False);
+        });
+    }
+
+    // 🔴 The one that has to hold for the gate to be shippable: a client walking at exactly the pace the
+    // formulas set is NEVER refused, however long it walks. A gate that rubber-bands honest players would
+    // be worse than the hole it closes.
+    [Test]
+    public void MoveCredit_TheHonestClientPaceIsNeverRefused()
+    {
+        Assert.That(AllowedAtCadence(500, (long)MovementFormulas.BaseWalkMsPerTile, MovementType.Walking, spd: 0),
+            Is.EqualTo(500), "walking");
+        Assert.That(AllowedAtCadence(500, (long)MovementFormulas.RunMsPerTile(150), MovementType.Running, spd: 150),
+            Is.EqualTo(500), "running at the SPD cap");
+    }
+
+    [Test]
+    public void MoveCredit_SustainedSpeedIsCappedAtThePace_NotAtTheBank()
+    {
+        // Twice the walking cadence over a long run: the bank pays for the opening burst, then every
+        // second step is refused, so the average converges on the honest rate rather than on the burst.
+        const int Attempts = 1000;
+        int allowed = AllowedAtCadence(Attempts, (long)(MovementFormulas.BaseWalkMsPerTile / 2), MovementType.Walking, spd: 0);
+        int burst = BurstSteps(MovementFormulas.BaseWalkMsPerTile);
+
+        Assert.That(allowed, Is.EqualTo(Attempts / 2 + burst).Within(1),
+            "half the attempts plus the one-time bank — a 2x client travels at 1x once the bank is gone");
+    }
+
+    [Test]
+    public void MoveCredit_ChargesTheRunPaceEarnedBySpd()
+    {
+        // Same cadence, same movement type: the SPD-capped build is charged less per tile, so more of
+        // its steps are affordable. This is the gate reading MovementFormulas rather than a flat rate.
+        long cadence = (long)MovementFormulas.RunMsPerTile(150);
+        Assert.That(AllowedAtCadence(200, cadence, MovementType.Running, spd: 150),
+            Is.GreaterThan(AllowedAtCadence(200, cadence, MovementType.Running, spd: 0)));
+    }
+
+    [Test]
+    public void MoveCredit_RunningIsBilledAtTheWalkPaceWhenTheServerDowngradedIt()
+    {
+        var (_, pm, move, p) = Setup(5, 0);
+        p.Spd = 150;
+        p.Sp = 0;   // no stamina — PlayerMove forces walking, so the run pace must not be what is charged
+
+        for (int i = 0; i < 20; i++)
+            move.PlayerMove(Idx, Direction.Down, MovementType.Running);
+
+        Assert.That(p.Y, Is.EqualTo(BurstSteps(MovementFormulas.BaseWalkMsPerTile)),
+            "claiming Running on an empty SP bar must not buy the cheaper run rate");
+        Assert.That(pm[Idx].Char.Sp, Is.Zero);
+    }
+
+    [Test]
+    public void PlayerMove_RefusesTheStepPastTheBank_AndCorrectsTheClient()
+    {
+        var capture = new CapturingDispatcher();
+        var (_, _, move, p) = Setup(5, 0, capture);
+
+        int burst = BurstSteps(MovementFormulas.BaseWalkMsPerTile);
+        for (int i = 0; i < burst + 3; i++)
+            move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Y, Is.EqualTo(burst), "the steps past the bank never happened");
+            // A refusal has to CORRECT rather than just drop: the client predicted the step locally, so a
+            // silent discard is exactly the desync a tampered client would live in.
+            var corrections = capture.SelfMoves.Where(m => m.X == 5 && m.Y == burst).ToList();
+            Assert.That(corrections, Has.Count.EqualTo(3), "one correction per refused step");
+        });
+    }
+
     // ── NPC tile validity ────────────────────────────────────────────────────────
 
     [Test]
@@ -436,9 +571,21 @@ public class MovementSystemTests
 
     // ── Harness ──────────────────────────────────────────────────────────────────
 
-    sealed class NoOpDispatcher : IPacketDispatcher
+    sealed class CapturingDispatcher : NoOpDispatcher
     {
-        public void SendTo(int index, IPacket packet) { }
+        /// <summary>Every position packet sent to a single player — which for a mover is only ever a
+        /// correction, since their own successful steps broadcast to the map EXCLUDING them.</summary>
+        public List<SendPlayerMovePacket> SelfMoves { get; } = new();
+
+        public override void SendTo(int index, IPacket packet)
+        {
+            if (packet is SendPlayerMovePacket m) SelfMoves.Add(m);
+        }
+    }
+
+    class NoOpDispatcher : IPacketDispatcher
+    {
+        public virtual void SendTo(int index, IPacket packet) { }
         public void SendToAll(IPacket packet) { }
         public void SendToAllBut(int exclude, IPacket packet) { }
         public void SendToObservers(IReadOnlyCollection<int> observers, IPacket packet) { }

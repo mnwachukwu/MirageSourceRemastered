@@ -590,6 +590,7 @@ public sealed class JoinLeaveSystem : GameSystem
         sp.CombatExpiresAt = 0;
         sp.WasInCombat = false;
         sp.AttackTimer = 0;
+        sp.MoveAllowedAt = 0;
         sp.Target = 0;
         sp.TargetType = 0;
         sp.ClearDamageCredit();

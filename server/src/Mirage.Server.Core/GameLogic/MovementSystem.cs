@@ -26,6 +26,34 @@ public sealed class MovementSystem : GameSystem
         _blood = blood;
     }
 
+    // ── The pace gate ─────────────────────────────────────────────────────────
+
+    /// <summary>How much banked movement a player may hold, in milliseconds. A step costs its own
+    /// ms-per-tile and the budget accrues in real time, so the SUSTAINED rate any client can reach is
+    /// exactly the pace <see cref="MovementFormulas"/> intends. This window is the slack on top of it: a
+    /// network stall that bunches a second's worth of steps into one arrival is paid out of the bank
+    /// rather than refused, which is what keeps an honest player off the rubber band.</summary>
+    public const long MoveCreditWindowMs = 1500;
+
+    /// <summary>Charges one step against <paramref name="sp"/>'s movement budget. False means the step
+    /// arrived too early to pay for, and the caller must refuse it.
+    ///
+    /// <para>The budget is a single deadline (<see cref="ServerPlayer.MoveAllowedAt"/>) rather than a
+    /// counter: it may sit up to <see cref="MoveCreditWindowMs"/> BEHIND <paramref name="now"/>, and that
+    /// gap is the bank. Clamping it forward on every call is what refills it, which is also why an idle
+    /// player is restored to exactly one window and never more.</para></summary>
+    public static bool TryConsumeMoveCredit(ServerPlayer sp, MovementType movement, int spd, long now)
+    {
+        long floor = now - MoveCreditWindowMs;
+        if (sp.MoveAllowedAt < floor) sp.MoveAllowedAt = floor;
+        if (now < sp.MoveAllowedAt) return false;
+
+        sp.MoveAllowedAt += (long)(movement == MovementType.Running
+            ? MovementFormulas.RunMsPerTile(spd)
+            : MovementFormulas.BaseWalkMsPerTile);
+        return true;
+    }
+
     public void PlayerMove(int index, Direction dir, MovementType movement)
     {
         if (!_pm[index].IsPlaying) return;
@@ -40,6 +68,20 @@ public sealed class MovementSystem : GameSystem
         // Heavy Wind blocks running entirely.
         if (movement == MovementType.Running && _world.WeatherOn(p.Map) == WeatherType.HeavyWind)
             movement = MovementType.Walking;
+
+        // WHEN, not only where. Everything below decides whether the destination is legal; this decides
+        // whether it is legal YET. Charged AFTER both downgrades above, so a client that keeps claiming
+        // Running on an empty SP bar is billed the walking pace the server is actually moving it at.
+        //
+        // A step refused further down for a WALL still costs its credit, which is deliberate: charging on
+        // attempt keeps the budget one atomic operation, and an honest client cannot spend that way — it
+        // predicts with the same collision rules and simply does not send a move it expects to fail.
+        if (!TryConsumeMoveCredit(_pm[index], movement, p.Spd, Environment.TickCount64))
+        {
+            // The same correction a wall refusal sends below — the client predicted this step locally.
+            _dispatcher.SendTo(index, PacketBuilder.PlayerMove(index, p.X, p.Y, p.Dir, MovementType.Walking, p.Layer));
+            return;
+        }
 
         bool moved = false;
         bool stepped = false;   // true only for normal tile steps (not edge-of-map warps)

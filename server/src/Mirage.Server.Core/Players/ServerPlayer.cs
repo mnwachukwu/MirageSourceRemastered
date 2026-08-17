@@ -87,6 +87,16 @@ public sealed class ServerPlayer
     public int CharNum { get; set; }
 
     public long AttackTimer { get; set; }
+
+    /// <summary>The tick at which this player's next step becomes legal — the movement pace gate's
+    /// virtual clock, charged one tile's worth per step by
+    /// <see cref="GameLogic.MovementSystem.TryConsumeMoveCredit"/>.
+    ///
+    /// <para>It is allowed to run BEHIND the current tick, and that gap is the banked burst. The gate
+    /// clamps how far behind it may fall, so a pause restores exactly one window's worth however long
+    /// it lasted — and a slot that has never moved (0) starts full without being initialized.</para></summary>
+    public long MoveAllowedAt { get; set; }
+
     public long CombatExpiresAt { get; set; }
     public bool WasInCombat { get; set; }
     public long PvpAttackerUntil { get; set; }

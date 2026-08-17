@@ -32,7 +32,7 @@ I don't know why I did this.
 
 `Mirage.Shared` is referenced by all three solutions, replacing VB6's duplicated `modTypes.bas` definitions and the server/client divergence they caused.
 
-On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all eighteen projects together.
+On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all twenty-one projects together.
 
 Some things people expect to find here live **outside** this repository, because they write into it
 rather than build with it: the content generators that produced the seed, the scripts that draw the

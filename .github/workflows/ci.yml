@@ -75,6 +75,12 @@ jobs:
       - name: Check the README's seed counts match data/
         run: node .github/checks/check-seed-counts.mjs
 
+      # The same rot, applied to what the README says about the CODEBASE rather than the world. It
+      # was already claiming eighteen projects against a solution holding twenty-one — nobody adding
+      # a test project rereads Project Structure.
+      - name: Check the README's claims about the repository
+        run: node .github/checks/check-readme-facts.mjs
+
   # ---- Does it work off Windows? ---------------------------------------------------------------
   #
   # The build job below compiles for all three platforms from one Windows runner, which proves they
