@@ -58,6 +58,54 @@ public sealed record RefreshBanListPacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.RefreshBanList;
 }
 
+// ── Lifting a punishment ─────────────────────────────────────────────────────
+// Target is an ACCOUNT here, unlike the three above: a kicked or banned person cannot be online to be
+// named by their character. The server accepts an online character's name as a convenience and resolves
+// it, but the account is what is acted on.
+
+public sealed record UnbanPlayerPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.UnbanPlayer;
+    [JsonPropertyName("target")] public string Target { get; init; } = "";
+}
+
+public sealed record UnkickPlayerPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.UnkickPlayer;
+    [JsonPropertyName("target")] public string Target { get; init; } = "";
+}
+
+public sealed record UnmutePlayerPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.UnmutePlayer;
+    [JsonPropertyName("target")] public string Target { get; init; } = "";
+}
+
+/// <summary>C-&gt;S: asks for everything currently in force. Answered with <see cref="ModerationListPacket"/>.</summary>
+public sealed record RequestModerationPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.RequestModeration;
+}
+
+/// <summary>
+/// S-&gt;C: every ban and every running kick or mute, for the Creator's moderation panel. Replaced
+/// wholesale, and pushed again after any lift so the panel never shows a row that is already gone.
+///
+/// <para>Carries the same summaries the server window's report does — a punishment is a punishment
+/// whichever surface is looking at it, and two shapes would be two things to keep in step.</para>
+///
+/// <para>🔴 Nothing here is a password or an account record. It is the login, what was done to it, and
+/// when it runs out; a panel that wanted more would be a reason to send less, not more.</para>
+/// </summary>
+public sealed record ModerationListPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ModerationList;
+    [JsonPropertyName("bans")] public List<BanSummary> Bans { get; init; } = new();
+    [JsonPropertyName("penalties")] public List<PenaltySummary> Penalties { get; init; } = new();
+    /// <summary>How many accounts were swept, so an empty list is distinguishable from one never gathered.</summary>
+    [JsonPropertyName("scanned")] public int AccountsScanned { get; init; }
+}
+
 public sealed record MapRespawnPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MapRespawn;

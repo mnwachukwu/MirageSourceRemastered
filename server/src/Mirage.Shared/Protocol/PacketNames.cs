@@ -179,6 +179,11 @@ public static class PacketNames
     public const string BanPlayer = "banplayer";
     public const string MutePlayer = "muteplayer";
     public const string RefreshBanList = "refreshbanlist";
+    public const string UnbanPlayer = "unbanplayer";
+    public const string UnkickPlayer = "unkickplayer";
+    public const string UnmutePlayer = "unmuteplayer";
+    public const string RequestModeration = "requestmoderation";
+    public const string ModerationList = "moderationlist";
     public const string SetAccess = "setaccess";
     public const string SetMotd = "setmotd";
 

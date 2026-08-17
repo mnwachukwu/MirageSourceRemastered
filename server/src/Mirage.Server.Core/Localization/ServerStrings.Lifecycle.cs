@@ -71,6 +71,22 @@ public static partial class ServerStrings
     public const string Console_Kicked = nameof(Console_Kicked);
     public const string Console_Banned = nameof(Console_Banned);
     public const string Console_Muted = nameof(Console_Muted);
+    // Lifting a punishment. These target an ACCOUNT rather than an online character, because the point
+    // of a lift is that the person is locked out — so each has its own not-found line.
+    public const string Console_LiftUsage = nameof(Console_LiftUsage);
+    public const string Console_AccountNotFound = nameof(Console_AccountNotFound);
+    public const string Console_Unbanned = nameof(Console_Unbanned);
+    public const string Console_NotBanned = nameof(Console_NotBanned);
+    public const string Console_Unkicked = nameof(Console_Unkicked);
+    public const string Console_NotKicked = nameof(Console_NotKicked);
+    public const string Console_Unmuted = nameof(Console_Unmuted);
+    public const string Console_NotMuted = nameof(Console_NotMuted);
+    public const string Console_ModerationBans = nameof(Console_ModerationBans);
+    public const string Console_ModerationBanLine = nameof(Console_ModerationBanLine);
+    public const string Console_ModerationPenalties = nameof(Console_ModerationPenalties);
+    public const string Console_ModerationPenaltyLine = nameof(Console_ModerationPenaltyLine);
+    public const string Console_ModerationNone = nameof(Console_ModerationNone);
+    public const string Console_ModerationScanned = nameof(Console_ModerationScanned);
     // World-level admin commands. Every usage line lists its valid values from the enum itself, so the
     // console can never advertise a phase or weather the server would then refuse.
     public const string Console_TodUsage = nameof(Console_TodUsage);

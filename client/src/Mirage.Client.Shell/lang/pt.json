@@ -192,6 +192,18 @@
   "StatsPanel_TotalExpFormat":  "{Total:N0} no total",
   "StatsPanel_MaxVitalFormat":  "{Vital} máx.: {Max}",
 
+  "ModerationPanel_Title": "Moderação",
+  "ModerationPanel_TabBans": "Banimentos",
+  "ModerationPanel_TabPenalties": "Expulsões e silenciamentos",
+  "ModerationPanel_Refresh": "Atualizar",
+  "ModerationPanel_Lift": "Levantar",
+  "ModerationPanel_NoBans": "Não há ninguém banido.",
+  "ModerationPanel_NoPenalties": "Não há nenhuma expulsão nem silenciamento em curso.",
+  "ModerationPanel_NotLoaded": "A consultar o servidor...",
+  "ModerationPanel_Scanned": "{Count} conta(s) percorrida(s)",
+  "ModerationPanel_PenaltyDetail": "{Kind}, faltam {Minutes} min",
+  "ModerationPanel_PlayingAs": " - joga como {Name}",
+
   "TrainingPanel_Title":       "Treinamento",
   "TrainingPanel_StrFormat":   "FOR:  {Value}",
   "TrainingPanel_DefFormat":   "DEF:  {Value}",

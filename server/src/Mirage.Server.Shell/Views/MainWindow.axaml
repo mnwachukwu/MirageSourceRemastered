@@ -3,6 +3,7 @@
         xmlns:ui="using:FluentAvalonia.UI.Windowing"
         xmlns:vm="using:Mirage.Server.Shell.ViewModels"
         xmlns:proto="using:Mirage.Shared.Protocol"
+        xmlns:loc="using:Mirage.Server.Shell.Localization"
         x:Class="Mirage.Server.Shell.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
@@ -178,6 +179,104 @@
                 <NumericUpDown Value="{Binding PenaltyMinutes}" Minimum="1" Maximum="1440"
                                FormatString="0" Increment="5" ParsingNumberStyle="Integer" MinWidth="120"/>
               </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- ── Moderation ───────────────────────────────────────────────────────
+         Every punishment currently in force, with its lift beside it. Separate from the dashboard on
+         purpose: that page is who is online RIGHT NOW, and everybody listed here is, by definition, not.
+
+         Gathered on request rather than pushed — the server reads its ban file and sweeps every account
+         to build it, which is a cost worth paying when an operator opens the page and not one to pay
+         every time somebody logs in. It refreshes itself after any change the server makes. -->
+    <TabItem Header="{Binding ModerationTabHeader}">
+      <TabItem.Resources>
+        <loc:UnixDateConverter x:Key="UnixDate"/>
+        <loc:MinutesLeftConverter x:Key="MinutesLeft"/>
+      </TabItem.Resources>
+      <ScrollViewer>
+        <StackPanel Margin="16,14,16,20" Spacing="0" MaxWidth="820" HorizontalAlignment="Left">
+          <TextBlock Classes="hint" Text="{Binding ModerationBlurb}" TextWrapping="Wrap"/>
+
+          <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,12,0,2">
+            <Button Content="{Binding ModerationRefreshLabel}" Command="{Binding RefreshModerationCommand}"
+                    IsEnabled="{Binding CanStop}" MinWidth="150"/>
+            <TextBlock Classes="hint" Text="{Binding ScannedText}" VerticalAlignment="Center"/>
+          </StackPanel>
+
+          <!-- Never gathered yet reads differently from gathered and empty, so it says so. -->
+          <TextBlock Classes="hint" Text="{Binding ModerationNotLoaded}" Margin="0,10,0,0"
+                     TextWrapping="Wrap" IsVisible="{Binding !HasModeration}"/>
+
+          <StackPanel IsVisible="{Binding HasModeration}">
+
+            <!-- ── Bans ─────────────────────────────────────────────────── -->
+            <TextBlock Classes="group" Text="{Binding BansHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding BansEmpty}" IsVisible="{Binding !HasBans}"/>
+
+            <StackPanel IsVisible="{Binding HasBans}">
+              <Grid ColumnDefinitions="160,*,130,Auto" Margin="14,0,14,4">
+                <TextBlock Grid.Column="0" Classes="hint" Text="{Binding ModColAccount}"/>
+                <TextBlock Grid.Column="1" Classes="hint" Text="{Binding ModColReason}"/>
+                <TextBlock Grid.Column="2" Classes="hint" Text="{Binding ModColApplied}"/>
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Bans}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="proto:BanSummary">
+                    <Border Classes="card">
+                      <Grid ColumnDefinitions="160,*,130,Auto">
+                        <TextBlock Grid.Column="0" Classes="t1" Text="{Binding Login}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Classes="t2" Text="{Binding Reason}" VerticalAlignment="Center"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Grid.Column="2" Classes="t2" VerticalAlignment="Center"
+                                   Text="{Binding BannedAtUtc, Converter={StaticResource UnixDate}}"/>
+                        <Button Grid.Column="3" HorizontalAlignment="Right"
+                                Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).LiftLabel}"
+                                Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).UnbanCommand}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- ── Kicks and mutes ──────────────────────────────────────── -->
+            <TextBlock Classes="group" Text="{Binding PenaltiesHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding PenaltiesEmpty}" IsVisible="{Binding !HasPenalties}"/>
+
+            <StackPanel IsVisible="{Binding HasPenalties}">
+              <Grid ColumnDefinitions="160,90,120,*,Auto" Margin="14,0,14,4">
+                <TextBlock Grid.Column="0" Classes="hint" Text="{Binding ModColAccount}"/>
+                <TextBlock Grid.Column="1" Classes="hint" Text="{Binding ModColKind}"/>
+                <TextBlock Grid.Column="2" Classes="hint" Text="{Binding ModColRemaining}"/>
+                <TextBlock Grid.Column="3" Classes="hint" Text="{Binding ModColWhere}"/>
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Penalties}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="proto:PenaltySummary">
+                    <Border Classes="card">
+                      <Grid ColumnDefinitions="160,90,120,*,Auto">
+                        <TextBlock Grid.Column="0" Classes="t1" Text="{Binding Login}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Classes="t2" Text="{Binding Kind}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Classes="t2" VerticalAlignment="Center"
+                                   Text="{Binding ExpiresUtc, Converter={StaticResource MinutesLeft}}"/>
+                        <!-- Which character they are on, when they are on one. It matters for a MUTE:
+                             the live player holds its own copy of the expiry, so an online row is the
+                             one where lifting has to reach two places. -->
+                        <TextBlock Grid.Column="3" Classes="t2" Text="{Binding CharName}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="4" HorizontalAlignment="Right"
+                                Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).LiftLabel}"
+                                Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).LiftPenaltyCommand}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
             </StackPanel>
           </StackPanel>
         </StackPanel>

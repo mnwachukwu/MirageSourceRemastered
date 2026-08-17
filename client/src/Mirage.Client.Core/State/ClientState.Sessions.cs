@@ -1,4 +1,5 @@
 using Mirage.Shared;
+using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 
@@ -189,6 +190,35 @@ public sealed partial class ClientState
         Friends = friends;
         Ignore = ignore;
         SocialVersion++;
+    }
+
+    // ── Moderation (Creator only) ─────────────────────────────────────────────
+    // What is currently in force, pushed on request and again after every lift. Replaced wholesale, like
+    // the social lists — a partial update would leave a lifted row on screen beside a button that no
+    // longer does anything.
+
+    public List<BanSummary> Bans { get; private set; } = new();
+    public List<PenaltySummary> Penalties { get; private set; } = new();
+
+    /// <summary>How many accounts the server swept, so the panel can tell "nothing is in force" apart
+    /// from "nothing has been gathered yet".</summary>
+    public int ModerationScanned { get; private set; }
+
+    /// <summary>Whether a report has EVER arrived this session. The two empty states read differently
+    /// and a count of zero cannot distinguish them.</summary>
+    public bool HasModeration { get; private set; }
+
+    /// <summary>Bumped on each push so the panel rebuilds its rows on a real change rather than every
+    /// frame — the same trigger the social lists use.</summary>
+    public int ModerationVersion { get; private set; }
+
+    public void SetModeration(List<BanSummary> bans, List<PenaltySummary> penalties, int scanned)
+    {
+        Bans = bans;
+        Penalties = penalties;
+        ModerationScanned = scanned;
+        HasModeration = true;
+        ModerationVersion++;
     }
 
     /// <summary>Open-for-membership guilds a guildless player can apply to (the discovery browser),

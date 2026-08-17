@@ -147,6 +147,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton(p => new Lazy<CombatSystem>(() => p.GetRequiredService<CombatSystem>()));
         services.AddSingleton<SocialSystem>();
         services.AddSingleton<SpawnSystem>();
+        services.AddSingleton<ModerationSystem>();
         services.AddSingleton<JoinLeaveSystem>();
         services.AddSingleton<NpcAiSystem>();
         services.AddSingleton<RegenerationSystem>();

@@ -192,6 +192,18 @@
   "StatsPanel_TotalExpFormat":  "{Total:N0} au total",
   "StatsPanel_MaxVitalFormat":  "{Vital} max : {Max}",
 
+  "ModerationPanel_Title": "Modération",
+  "ModerationPanel_TabBans": "Bannissements",
+  "ModerationPanel_TabPenalties": "Exclusions et silences",
+  "ModerationPanel_Refresh": "Actualiser",
+  "ModerationPanel_Lift": "Lever",
+  "ModerationPanel_NoBans": "Personne n'est banni.",
+  "ModerationPanel_NoPenalties": "Aucune exclusion ni aucun silence en cours.",
+  "ModerationPanel_NotLoaded": "Interrogation du serveur...",
+  "ModerationPanel_Scanned": "{Count} compte(s) parcouru(s)",
+  "ModerationPanel_PenaltyDetail": "{Kind}, {Minutes} min restantes",
+  "ModerationPanel_PlayingAs": " - joue en tant que {Name}",
+
   "TrainingPanel_Title":       "Entraînement",
   "TrainingPanel_StrFormat":   "FOR :  {Value}",
   "TrainingPanel_DefFormat":   "DÉF :  {Value}",

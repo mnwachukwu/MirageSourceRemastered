@@ -135,9 +135,11 @@ public class PanelPolicyTests
     {
         Assert.Multiple(() =>
         {
+            // Moderation is here for the same reason as the rest: a Creator reading a list of who is
+            // punished should still be able to walk away from whatever is happening around them.
             foreach (int slot in new[] { PanelSlots.Inventory, PanelSlots.Spells, PanelSlots.Stats,
                                          PanelSlots.Help, PanelSlots.Controls, PanelSlots.Social,
-                                         PanelSlots.Options })
+                                         PanelSlots.Options, PanelSlots.Moderation })
             {
                 Assert.That(P(slot).BlocksMovement, Is.False, $"slot {slot} must not freeze the player");
             }
@@ -240,7 +242,7 @@ public class PanelPolicyTests
             PanelSlots.Options, PanelSlots.Stats, PanelSlots.Help, PanelSlots.Controls,
             PanelSlots.Bank, PanelSlots.Inn, PanelSlots.Mail, PanelSlots.Social,
             PanelSlots.Market, PanelSlots.Trade, PanelSlots.QuestLog, PanelSlots.QuestDialog,
-            PanelSlots.Conversation,
+            PanelSlots.Conversation, PanelSlots.Moderation,
         ];
 
         Assert.Multiple(() =>

@@ -40,6 +40,19 @@ public static partial class ServerStrings
     public const string AdminCommand_Kicked = nameof(AdminCommand_Kicked);
     public const string AdminCommand_BanBroadcast = nameof(AdminCommand_BanBroadcast);
     public const string AdminCommand_BanListRefreshed = nameof(AdminCommand_BanListRefreshed);
+    // Lifting a punishment in game (Creator only). Each names the ACCOUNT, because that is what the
+    // punishment is on and what the Creator has to be sure they lifted.
+    public const string AdminCommand_AccountNotFound = nameof(AdminCommand_AccountNotFound);
+    public const string AdminCommand_Unbanned = nameof(AdminCommand_Unbanned);
+    public const string AdminCommand_NotBanned = nameof(AdminCommand_NotBanned);
+    public const string AdminCommand_Unkicked = nameof(AdminCommand_Unkicked);
+    public const string AdminCommand_NotKicked = nameof(AdminCommand_NotKicked);
+    public const string AdminCommand_Unmuted = nameof(AdminCommand_Unmuted);
+    public const string AdminCommand_NotMuted = nameof(AdminCommand_NotMuted);
+    public const string AdminCommand_ModerationBans = nameof(AdminCommand_ModerationBans);
+    public const string AdminCommand_ModerationBanLine = nameof(AdminCommand_ModerationBanLine);
+    public const string AdminCommand_ModerationPenalties = nameof(AdminCommand_ModerationPenalties);
+    public const string AdminCommand_ModerationPenaltyLine = nameof(AdminCommand_ModerationPenaltyLine);
     public const string AdminCommand_MuteBroadcast = nameof(AdminCommand_MuteBroadcast);
     public const string AdminCommand_YouAreMuted = nameof(AdminCommand_YouAreMuted);
     public const string AdminCommand_CannotModifyAccess = nameof(AdminCommand_CannotModifyAccess);

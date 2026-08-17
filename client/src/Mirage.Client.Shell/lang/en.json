@@ -192,6 +192,18 @@
   "StatsPanel_TotalExpFormat":  "{Total:N0} Total",
   "StatsPanel_MaxVitalFormat":  "Max {Vital}: {Max}",
 
+  "ModerationPanel_Title": "Moderation",
+  "ModerationPanel_TabBans": "Bans",
+  "ModerationPanel_TabPenalties": "Kicks & mutes",
+  "ModerationPanel_Refresh": "Refresh",
+  "ModerationPanel_Lift": "Lift",
+  "ModerationPanel_NoBans": "Nobody is banned.",
+  "ModerationPanel_NoPenalties": "No kick or mute is running.",
+  "ModerationPanel_NotLoaded": "Asking the server...",
+  "ModerationPanel_Scanned": "{Count} account(s) swept",
+  "ModerationPanel_PenaltyDetail": "{Kind}, {Minutes} min left",
+  "ModerationPanel_PlayingAs": " - playing as {Name}",
+
   "TrainingPanel_Title":       "Training",
   "TrainingPanel_StrFormat":   "STR:  {Value}",
   "TrainingPanel_DefFormat":   "DEF:  {Value}",

@@ -336,6 +336,139 @@ public sealed partial class PacketHandler
             new ChatMetadata(GameColor.White, ChatChannel.Notice));
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  Lifting a punishment — CREATOR only
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Gated a rung above the commands that APPLY these. Deciding a punishment was wrong is a different
+    // call from issuing one, and the person best placed to make it is whoever answers for the server.
+    //
+    // The work is ModerationSystem, shared with the server console — see there for why a lift is written
+    // once. What is here is the packet's own shape: the access check, and the hop off the game thread.
+    //
+    // 🔴 These read account FILES, so they cannot run on the loop. Each starts an async continuation and
+    // posts the reply back, exactly as the class comment on PacketHandler describes. That also means the
+    // handler returns before anything has happened, and the Creator learns the outcome from chat.
+
+    private void HandleUnbanPlayer(int index, UnbanPlayerPacket p) =>
+        LiftAsync(index, p.Target, resolveAccount: false, async login =>
+            (await _moderation.UnbanAsync(login),
+             ServerStrings.AdminCommand_Unbanned, ServerStrings.AdminCommand_NotBanned));
+
+    private void HandleUnkickPlayer(int index, UnkickPlayerPacket p) =>
+        LiftAsync(index, p.Target, resolveAccount: true, async login =>
+            (await _moderation.UnkickAsync(login),
+             ServerStrings.AdminCommand_Unkicked, ServerStrings.AdminCommand_NotKicked));
+
+    private void HandleUnmutePlayer(int index, UnmutePlayerPacket p) =>
+        // The live mirror is cleared HERE, on the game thread, before the continuation leaves it.
+        LiftAsync(index, p.Target, resolveAccount: true, async login =>
+        {
+            bool clearedLive = await OnGameThread(() => _moderation.ClearLiveMute(login));
+            return (await _moderation.UnmuteAsync(login, clearedLive),
+                    ServerStrings.AdminCommand_Unmuted, ServerStrings.AdminCommand_NotMuted);
+        });
+
+    /// <summary>The shape every lift shares: check access, resolve the target to an account, run the
+    /// lift off the loop, and report the outcome back on it.</summary>
+    private void LiftAsync(int index, string target, bool resolveAccount,
+                           Func<string, Task<(LiftOutcome Outcome, string Lifted, string Nothing)>> lift)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Access < AdminLevel.Creator)
+        {
+            HackingAttempt(index, "Admin Cloning");
+            return;
+        }
+
+        string arg = target.Trim();
+        if (arg.Length == 0) return;
+        var online = _moderation.OnlineLogins();       // captured on the loop, used off it
+        string adminName = _pm[index].Char.Name.Trim();
+
+        _bg.Run(Task.Run(async () =>
+        {
+            // A ban entry can name an account whose file was deleted, so /unban never demands one.
+            string? login = resolveAccount ? await _moderation.ResolveLoginAsync(arg, online) : arg;
+            if (login is null)
+            {
+                Reply(index, ServerStrings.AdminCommand_AccountNotFound, GameColor.BrightRed, ("Name", arg));
+                return;
+            }
+
+            var (outcome, lifted, nothing) = await lift(login);
+            if (outcome is LiftOutcome.Lifted)
+            {
+                Reply(index, lifted, GameColor.BrightGreen, ("Login", login));
+                _logger.LogInformation("{Admin} lifted a punishment on {Login}.", adminName, login);
+                // Re-push so the panel drops the row it just acted on rather than showing a lift that
+                // already happened beside a button that would now do nothing.
+                await SendModerationListAsync(index);
+            }
+            else
+            {
+                Reply(index, nothing, GameColor.White, ("Login", login));
+            }
+        }), "moderation lift");
+    }
+
+    private void HandleRequestModeration(int index, RequestModerationPacket p)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Access < AdminLevel.Creator)
+        {
+            HackingAttempt(index, "Admin Cloning");
+            return;
+        }
+        _bg.Run(SendModerationListAsync(index), "moderation report");
+    }
+
+    /// <summary>Gathers the report off the loop and sends it to one Creator. Reading the ban file and
+    /// sweeping every account cannot happen on the game thread, so the roster snapshot is taken first.</summary>
+    private async Task SendModerationListAsync(int index)
+    {
+        var online = await OnGameThread(_moderation.OnlineLogins);
+        var report = await _moderation.BuildReportAsync(online);
+        string login = _pm[index].Login;
+
+        _gameLoop.Post(() =>
+        {
+            // The slot may have been handed to somebody else while the sweep ran, and this payload is
+            // for Creators only.
+            if (!_pm[index].IsPlaying || !string.Equals(_pm[index].Login, login, StringComparison.OrdinalIgnoreCase)) return;
+            if (_pm[index].Char.Access < AdminLevel.Creator) return;
+            _dispatcher.SendTo(index, new ModerationListPacket
+            {
+                Bans = [.. report.Bans],
+                Penalties = [.. report.Penalties],
+                AccountsScanned = report.AccountsScanned,
+            });
+        });
+    }
+
+    /// <summary>Sends a line back to the requesting Creator from off the loop, hopping onto it first and
+    /// re-checking they are still the same session — an async reply can land after they disconnected and
+    /// the slot was handed to somebody else.</summary>
+    private void Reply(int index, string key, int color, params (string Key, object? Value)[] args)
+    {
+        string login = _pm[index].Login;
+        _gameLoop.Post(() =>
+        {
+            if (!_pm[index].IsPlaying || !string.Equals(_pm[index].Login, login, StringComparison.OrdinalIgnoreCase)) return;
+            _dispatcher.SendLocalizedChatTo(index, key, new ChatMetadata(color, ChatChannel.Notice), args);
+        });
+    }
+
+    private Task<T> OnGameThread<T>(Func<T> read)
+    {
+        var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _gameLoop.Post(() =>
+        {
+            try { tcs.TrySetResult(read()); }
+            catch (Exception ex) { tcs.TrySetException(ex); }
+        });
+        return tcs.Task;
+    }
+
     // Kick/mute persist the penalty timer through PlayerSaver's per-login chain (the single
     // serialized account writer) so an admin action can't race a concurrent character save.
     // Fire-and-forget — the broadcast + disconnect happen on the caller's tick, staying responsive.

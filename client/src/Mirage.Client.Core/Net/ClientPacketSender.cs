@@ -507,6 +507,20 @@ public sealed class ClientPacketSender
     public void SendRefreshBanList()
         => _transport.Send(new RefreshBanListPacket());
 
+    // Lifting a punishment. The target is an ACCOUNT, not a character — the three above take a name off
+    // the screen, and nobody kicked or banned is on the screen to be named.
+    public void SendUnban(string target)
+        => _transport.Send(new UnbanPlayerPacket { Target = target });
+
+    public void SendUnkick(string target)
+        => _transport.Send(new UnkickPlayerPacket { Target = target });
+
+    public void SendUnmute(string target)
+        => _transport.Send(new UnmutePlayerPacket { Target = target });
+
+    public void SendRequestModeration()
+        => _transport.Send(new RequestModerationPacket());
+
     public void SendSetAccess(string target, AdminLevel level)
         => _transport.Send(new SetAccessPacket { Target = target, Level = level });
 

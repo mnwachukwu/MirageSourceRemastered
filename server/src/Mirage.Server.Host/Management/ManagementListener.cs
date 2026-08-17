@@ -84,7 +84,7 @@ public sealed class ManagementListener : IHostedService, IDisposable
         _tee.LineWritten += Broadcast;
         // Status rides the socket DIRECTLY, not the console tee: it must reach only the operators who
         // asked, and must never land in the local console the tee feeds.
-        _status.SnapshotReady += BroadcastStatus;
+        _status.MachineLineReady += BroadcastStatus;
 
         LocalizedLog.Info(_logger, ServerStrings.Management_Listening, ("Port", _config.Port));
         _ = AcceptLoopAsync(_cts.Token);
@@ -94,7 +94,7 @@ public sealed class ManagementListener : IHostedService, IDisposable
     public Task StopAsync(CancellationToken ct)
     {
         _tee.LineWritten -= Broadcast;
-        _status.SnapshotReady -= BroadcastStatus;
+        _status.MachineLineReady -= BroadcastStatus;
         _cts?.Cancel();
         try { _listener?.Stop(); } catch (SocketException) { }
         foreach (var session in _sessions.Keys) session.Complete();

@@ -138,6 +138,19 @@ public static partial class ClientStrings
     public const string TrainingPanel_PointsFormat = nameof(TrainingPanel_PointsFormat);
     public const string TrainingPanel_ResetButton = nameof(TrainingPanel_ResetButton);
 
+    // ── ModerationPanel (Creator only) ────────────────────────────────────────
+    public const string ModerationPanel_Title = nameof(ModerationPanel_Title);
+    public const string ModerationPanel_TabBans = nameof(ModerationPanel_TabBans);
+    public const string ModerationPanel_TabPenalties = nameof(ModerationPanel_TabPenalties);
+    public const string ModerationPanel_Refresh = nameof(ModerationPanel_Refresh);
+    public const string ModerationPanel_Lift = nameof(ModerationPanel_Lift);
+    public const string ModerationPanel_NoBans = nameof(ModerationPanel_NoBans);
+    public const string ModerationPanel_NoPenalties = nameof(ModerationPanel_NoPenalties);
+    public const string ModerationPanel_NotLoaded = nameof(ModerationPanel_NotLoaded);
+    public const string ModerationPanel_Scanned = nameof(ModerationPanel_Scanned);
+    public const string ModerationPanel_PenaltyDetail = nameof(ModerationPanel_PenaltyDetail);
+    public const string ModerationPanel_PlayingAs = nameof(ModerationPanel_PlayingAs);
+
     // ── HudPanel ──────────────────────────────────────────────────────────────
     public const string HudPanel_InventoryButton = nameof(HudPanel_InventoryButton);
     public const string HudPanel_SpellsButton = nameof(HudPanel_SpellsButton);

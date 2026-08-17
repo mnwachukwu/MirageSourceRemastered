@@ -159,6 +159,9 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleSocialList(SocialListPacket p) => _state.SetSocialLists(p.Friends, p.Ignore);
 
+    private void HandleModerationList(ModerationListPacket p) =>
+        _state.SetModeration(p.Bans, p.Penalties, p.AccountsScanned);
+
     private void HandleGuildBrowse(GuildBrowsePacket p) => _state.SetGuildBrowse(p.Guilds);
 
     // Live war-attrition push (per death): update the matching war row's meters in place + record the

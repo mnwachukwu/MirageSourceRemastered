@@ -48,6 +48,29 @@ public static class ShellStrings
     public const string Server_Ban = nameof(Server_Ban);
     public const string Server_Minutes = nameof(Server_Minutes);
 
+    // ── Moderation ────────────────────────────────────────────────────────────
+    // Its own tab rather than a strip on the dashboard: the dashboard is who is online NOW, and every
+    // row here is about somebody who is not.
+    public const string Tab_Moderation = nameof(Tab_Moderation);
+    public const string Mod_Blurb = nameof(Mod_Blurb);
+    public const string Mod_Refresh = nameof(Mod_Refresh);
+    public const string Mod_Bans = nameof(Mod_Bans);
+    public const string Mod_BansEmpty = nameof(Mod_BansEmpty);
+    public const string Mod_Penalties = nameof(Mod_Penalties);
+    public const string Mod_PenaltiesEmpty = nameof(Mod_PenaltiesEmpty);
+    public const string Mod_ColAccount = nameof(Mod_ColAccount);
+    public const string Mod_ColReason = nameof(Mod_ColReason);
+    public const string Mod_ColApplied = nameof(Mod_ColApplied);
+    public const string Mod_ColKind = nameof(Mod_ColKind);
+    public const string Mod_ColRemaining = nameof(Mod_ColRemaining);
+    public const string Mod_ColWhere = nameof(Mod_ColWhere);
+    public const string Mod_Lift = nameof(Mod_Lift);
+    public const string Mod_MinutesLeft = nameof(Mod_MinutesLeft);
+    public const string Mod_Unknown = nameof(Mod_Unknown);
+    public const string Mod_Offline = nameof(Mod_Offline);
+    public const string Mod_Scanned = nameof(Mod_Scanned);
+    public const string Mod_NotLoaded = nameof(Mod_NotLoaded);
+
     // ── The load benchmark ────────────────────────────────────────────────────
     // Opened from the dashboard rather than given a tab of its own: it is a measurement an operator takes
     // once, not a place they work.

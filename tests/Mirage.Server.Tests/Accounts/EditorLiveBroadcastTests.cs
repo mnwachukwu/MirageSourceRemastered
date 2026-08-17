@@ -369,8 +369,12 @@ public class EditorLiveBroadcastTests
         public Task<List<TradeJournal>> LoadAllTradeJournalsAsync() => Task.FromResult(new List<TradeJournal>());
         public void SaveTradeJournal(TradeJournal journal) { }
         public Task DeleteTradeJournalAsync(int id) => Task.CompletedTask;
-        public Task<bool> IsBannedAsync(string login, string ip) => Task.FromResult(false);
+        public Task<bool> IsBannedAsync(string login) => Task.FromResult(false);
         public Task BanAsync(string login, string reason) => Task.CompletedTask;
+        public Task<bool> UnbanAsync(string login) => Task.FromResult(false);
+        public Task<IReadOnlyList<BanEntry>> LoadBanListAsync() => Task.FromResult<IReadOnlyList<BanEntry>>([]);
+        public Task<(IReadOnlyList<AccountPenalty> penalties, int scanned)> LoadActivePenaltiesAsync(long nowUtc) =>
+            Task.FromResult<(IReadOnlyList<AccountPenalty>, int)>(([], 0));
         public Task RefreshBanListAsync() => Task.CompletedTask;
         public Task<DroppedItemSaveData[]> LoadDroppedItemsAsync(int mapNum) => Task.FromResult(Array.Empty<DroppedItemSaveData>());
         public Task SaveDroppedItemsAsync(int mapNum, DroppedItemSaveData[] items) => Task.CompletedTask;

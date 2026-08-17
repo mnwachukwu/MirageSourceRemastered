@@ -80,9 +80,30 @@ public interface IPersistenceService
     Task DeleteTradeJournalAsync(int id);
 
     // ── Banlist ───────────────────────────────────────────────────────────────
-    Task<bool> IsBannedAsync(string login, string ip);
+    /// <summary>Whether an ACCOUNT is banned. A ban is stored against the login, never against a
+    /// character — an operator types a character name because that is the handle they have, and the
+    /// server resolves it to the account behind it.
+    ///
+    /// <para>This took an <c>ip</c> argument that was never read, above a comment claiming the check
+    /// covered both. It did not, and could not: nothing records an IP when a ban is applied. An IP ban
+    /// is a separate feature with its own storage, not something this signature can imply.</para></summary>
+    Task<bool> IsBannedAsync(string login);
     Task BanAsync(string login, string reason);
+    /// <summary>Removes a login's ban. False when there was nothing to remove, so an operator is told
+    /// "not banned" rather than a lie about having lifted something.</summary>
+    Task<bool> UnbanAsync(string login);
+    /// <summary>The whole ban list, for an operator deciding what to lift. A copy — mutating the result
+    /// must not reach the cache.</summary>
+    Task<IReadOnlyList<BanEntry>> LoadBanListAsync();
     Task RefreshBanListAsync();
+
+    /// <summary>Sweeps every account file for a kick or mute that has not yet run out, returning the
+    /// matches and how many files were read.
+    ///
+    /// <para>O(accounts), and deliberately so: the penalty timers live on the account records that
+    /// ENFORCE them, and a second index would be a copy of the truth that can disagree with it. Only ever
+    /// called when an operator asks — never on a tick, never on a login.</para></summary>
+    Task<(IReadOnlyList<AccountPenalty> penalties, int scanned)> LoadActivePenaltiesAsync(long nowUtc);
 
     // ── Dropped map items ─────────────────────────────────────────────────────
     Task<DroppedItemSaveData[]> LoadDroppedItemsAsync(int mapNum);

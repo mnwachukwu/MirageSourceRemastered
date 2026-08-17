@@ -41,6 +41,7 @@ public class GamePanelBehaviorTests
         yield return new QuestLogPanel();
         yield return new QuestDialogPanel();
         yield return new ConversationPanel();
+        yield return new ModerationPanel();
     }
 
     static string Name(IGamePanel p) => p.GetType().Name;

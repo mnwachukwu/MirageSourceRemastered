@@ -52,6 +52,8 @@ public sealed partial class PacketHandler
     private readonly TimeOfDaySystem _tod;
     private readonly WeatherSystem _weather;
     private readonly GameLoop _gameLoop;
+    // Lifting a punishment, shared with the server console so it is written once.
+    private readonly ModerationSystem _moderation;
     private readonly ILogger<PacketHandler> _logger;
 
     // The same seams the game systems get from GameSystem. PacketHandler is not a GameSystem (it
@@ -124,6 +126,9 @@ public sealed partial class PacketHandler
         _tod = tod;
         _weather = weather;
         _gameLoop = gameLoop;
+        // Built here rather than injected: it is stateless over three services this already holds, and a
+        // new required constructor argument would land on every harness that builds a PacketHandler.
+        _moderation = new ModerationSystem(persistence, pm, saver);
         _logger = logger;
         _clock = clock ?? SystemClock.Instance;
         _rng = rng ?? SharedRandom.Instance;
@@ -605,6 +610,18 @@ public sealed partial class PacketHandler
                     break;
                 case RefreshBanListPacket:
                     HandleRefreshBanList(index);
+                    break;
+                case UnbanPlayerPacket p:
+                    HandleUnbanPlayer(index, p);
+                    break;
+                case UnkickPlayerPacket p:
+                    HandleUnkickPlayer(index, p);
+                    break;
+                case UnmutePlayerPacket p:
+                    HandleUnmutePlayer(index, p);
+                    break;
+                case RequestModerationPacket p:
+                    HandleRequestModeration(index, p);
                     break;
                 case SetAccessPacket p:
                     HandleSetAccess(index, p);

@@ -579,6 +579,26 @@ public sealed partial class ChatPanel
                 if (state.Me.Access < AdminLevel.Monitor) goto default;
                 sender.SendRefreshBanList();
                 break;
+            // Lifting a punishment is CREATOR only — a rung above issuing one. These take an account
+            // rather than a character: whoever is being un-punished is not on screen to be pointed at.
+            case "unban":
+                if (state.Me.Access < AdminLevel.Creator) goto default;
+                if (parts.Length > 1) sender.SendUnban(parts[1]);
+                break;
+            case "unkick":
+                if (state.Me.Access < AdminLevel.Creator) goto default;
+                if (parts.Length > 1) sender.SendUnkick(parts[1]);
+                break;
+            case "unmute":
+                if (state.Me.Access < AdminLevel.Creator) goto default;
+                if (parts.Length > 1) sender.SendUnmute(parts[1]);
+                break;
+            // Opens the panel, which asks for the report itself. The three commands above stay for
+            // lifting somebody by name without opening anything.
+            case "moderation":
+                if (state.Me.Access < AdminLevel.Creator) goto default;
+                OnToggleModeration?.Invoke();
+                break;
             case "warpmeto":
                 if (state.Me.Access < AdminLevel.Developer) goto default;
                 if (parts.Length > 1) sender.SendWarpMeTo(parts[1]);

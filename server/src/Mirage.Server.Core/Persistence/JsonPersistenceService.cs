@@ -672,7 +672,7 @@ public sealed class JsonPersistenceService : IPersistenceService
         finally { _banLock.Release(); }
     }
 
-    public async Task<bool> IsBannedAsync(string login, string ip)
+    public async Task<bool> IsBannedAsync(string login)
     {
         var bans = await LoadBansAsync();
         return bans.Any(b => string.Equals(b.Login, login, StringComparison.OrdinalIgnoreCase));
@@ -683,19 +683,83 @@ public sealed class JsonPersistenceService : IPersistenceService
         await _banLock.WaitAsync();
         try
         {
-            var bans = _bansCache;
-            if (bans is null)
-            {
-                bans = File.Exists(BanFile)
-                    ? JsonSerializer.Deserialize<List<BanEntry>>(await File.ReadAllTextAsync(BanFile), Options) ?? []
-                    : [];
-            }
+            var bans = await ReadBansUnlockedAsync();
             if (!bans.Any(b => string.Equals(b.Login, login, StringComparison.OrdinalIgnoreCase)))
-                bans.Add(new BanEntry(login, reason));
+            {
+                bans.Add(new BanEntry
+                {
+                    Login = login,
+                    Reason = reason,
+                    BannedAtUtc = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                });
+            }
             await File.WriteAllTextAsync(BanFile, JsonSerializer.Serialize(bans, Options));
             _bansCache = bans;
         }
         finally { _banLock.Release(); }
+    }
+
+    public async Task<bool> UnbanAsync(string login)
+    {
+        await _banLock.WaitAsync();
+        try
+        {
+            var bans = await ReadBansUnlockedAsync();
+            int removed = bans.RemoveAll(b => string.Equals(b.Login, login, StringComparison.OrdinalIgnoreCase));
+            // The cache is refreshed either way: reaching here means the file was read, and leaving a
+            // stale cache behind a no-op lift is how a lifted ban comes back.
+            _bansCache = bans;
+            if (removed == 0) return false;
+            await File.WriteAllTextAsync(BanFile, JsonSerializer.Serialize(bans, Options));
+            return true;
+        }
+        finally { _banLock.Release(); }
+    }
+
+    public async Task<IReadOnlyList<BanEntry>> LoadBanListAsync()
+    {
+        var bans = await LoadBansAsync();
+        // A copy: the cache is the list every login check reads, and handing it out would let a caller
+        // edit the ban list by accident.
+        return bans.ToList();
+    }
+
+    // Callers already hold _banLock. Prefers the cache and falls back to the file, which is the shape
+    // BanAsync had inline before UnbanAsync needed the same thing.
+    private async Task<List<BanEntry>> ReadBansUnlockedAsync()
+    {
+        if (_bansCache is not null) return _bansCache;
+        return File.Exists(BanFile)
+            ? JsonSerializer.Deserialize<List<BanEntry>>(await File.ReadAllTextAsync(BanFile), Options) ?? []
+            : [];
+    }
+
+    public async Task<(IReadOnlyList<AccountPenalty> penalties, int scanned)> LoadActivePenaltiesAsync(long nowUtc)
+    {
+        var found = new List<AccountPenalty>();
+        int scanned = 0;
+        foreach (string file in Directory.EnumerateFiles(AccountsPath, "*.json"))
+        {
+            scanned++;
+            AccountRecord? account;
+            try
+            {
+                account = JsonSerializer.Deserialize<AccountRecord>(await File.ReadAllTextAsync(file), Options);
+            }
+            catch (Exception ex)
+            {
+                // One unreadable account must not hide every other punishment.
+                _logger.LogError(ex, "Failed to read {File} while sweeping for penalties", file);
+                continue;
+            }
+            if (account is null) continue;
+
+            if (account.KickedUntilUtc > nowUtc)
+                found.Add(new AccountPenalty(account.Login, PenaltyKind.Kick, account.KickedUntilUtc));
+            if (account.MutedUntilUtc > nowUtc)
+                found.Add(new AccountPenalty(account.Login, PenaltyKind.Mute, account.MutedUntilUtc));
+        }
+        return (found, scanned);
     }
 
     public async Task RefreshBanListAsync()
@@ -750,7 +814,4 @@ public sealed class JsonPersistenceService : IPersistenceService
         return Task.CompletedTask;
     }
 
-    // ── Private types ─────────────────────────────────────────────────────────
-
-    private sealed record BanEntry(string Login, string Reason);
 }

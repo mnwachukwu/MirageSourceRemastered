@@ -116,7 +116,7 @@ public sealed partial class PacketHandler
             return;
         }
 
-        if (await _persistence.IsBannedAsync(name, ""))
+        if (await _persistence.IsBannedAsync(name))
         {
             AlertAndDisconnect(index, ServerStrings.Auth_BannedCannotDelete);
             return;
@@ -242,9 +242,10 @@ public sealed partial class PacketHandler
             return;
         }
 
-        // Ban check covers both login name and IP.
-        string ip = _pm[index].RemoteIp;
-        if (await _persistence.IsBannedAsync(name, ip))
+        // Bans are keyed by ACCOUNT, so this catches every character on it. It does NOT stop the same
+        // person registering again — that is what an account-key block is, and pretending otherwise is
+        // how the old "covers both login name and IP" comment survived here without an IP ever being read.
+        if (await _persistence.IsBannedAsync(name))
         {
             AlertAndDisconnect(index, ServerStrings.Auth_Banned, ("GameName", _config.GameName));
             return;

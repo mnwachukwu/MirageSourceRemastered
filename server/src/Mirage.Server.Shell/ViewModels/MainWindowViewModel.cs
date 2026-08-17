@@ -76,6 +76,11 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             ApplyStatus(line[ServerStatus.LinePrefix.Length..]);
             return;
         }
+        if (line.StartsWith(ModerationReport.LinePrefix, StringComparison.Ordinal))
+        {
+            ApplyModeration(line[ModerationReport.LinePrefix.Length..]);
+            return;
+        }
         AppendLine(line);
     }
 
@@ -487,6 +492,92 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>Minutes a kick or mute lasts, shared by every row. The console's own bounds.</summary>
     [ObservableProperty]
     public partial decimal PenaltyMinutes { get; set; } = 60;
+
+    // ── Moderation ────────────────────────────────────────────────────────────
+    // Who is punished, and the lift beside each one. Its own tab because the dashboard above is who is
+    // online NOW, and a banned or kicked person is by definition not.
+    //
+    // The report is gathered ON REQUEST — the server has to read its ban file and sweep every account —
+    // so nothing here is pushed on a timer. It arrives when this asks, and again after every change the
+    // server makes, which is what keeps a lifted row from lingering.
+
+    public System.Collections.ObjectModel.ObservableCollection<BanSummary> Bans { get; } = [];
+    public System.Collections.ObjectModel.ObservableCollection<PenaltySummary> Penalties { get; } = [];
+
+    [ObservableProperty]
+    public partial ModerationReport? Moderation { get; private set; }
+
+    public bool HasModeration => Moderation is not null;
+    public bool HasBans => Bans.Count > 0;
+    public bool HasPenalties => Penalties.Count > 0;
+
+    private void ApplyModeration(string json)
+    {
+        ModerationReport? next;
+        try
+        {
+            next = System.Text.Json.JsonSerializer.Deserialize<ModerationReport>(json, StatusJson);
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return;
+        }
+        if (next is null) return;
+
+        Moderation = next;
+        Bans.Clear();
+        foreach (var b in next.Bans) Bans.Add(b);
+        Penalties.Clear();
+        foreach (var p in next.Penalties) Penalties.Add(p);
+
+        OnPropertyChanged(nameof(HasModeration));
+        OnPropertyChanged(nameof(HasBans));
+        OnPropertyChanged(nameof(HasPenalties));
+        OnPropertyChanged(nameof(ScannedText));
+    }
+
+    [RelayCommand]
+    private void RefreshModeration() => Send("/moderation");
+
+    /// <summary>Lifting a ban targets the LOGIN, never a character name — the account is what the ban is
+    /// stored against, and nobody banned is online to be named.</summary>
+    [RelayCommand]
+    private void Unban(BanSummary? b)
+    {
+        if (b is not null) Send($"/unban {b.Login}");
+    }
+
+    [RelayCommand]
+    private void LiftPenalty(PenaltySummary? p)
+    {
+        if (p is null) return;
+        // The console has a command per kind rather than one that guesses, so the shell picks here.
+        Send(string.Equals(p.Kind, "Kick", StringComparison.OrdinalIgnoreCase)
+            ? $"/unkick {p.Login}"
+            : $"/unmute {p.Login}");
+    }
+
+    public string ModerationTabHeader => ShellStrings.Get(ShellStrings.Tab_Moderation);
+    public string ModerationBlurb => ShellStrings.Get(ShellStrings.Mod_Blurb);
+    public string ModerationRefreshLabel => ShellStrings.Get(ShellStrings.Mod_Refresh);
+    public string BansHeading => ShellStrings.Get(ShellStrings.Mod_Bans);
+    public string BansEmpty => ShellStrings.Get(ShellStrings.Mod_BansEmpty);
+    public string PenaltiesHeading => ShellStrings.Get(ShellStrings.Mod_Penalties);
+    public string PenaltiesEmpty => ShellStrings.Get(ShellStrings.Mod_PenaltiesEmpty);
+    public string ModColAccount => ShellStrings.Get(ShellStrings.Mod_ColAccount);
+    public string ModColReason => ShellStrings.Get(ShellStrings.Mod_ColReason);
+    public string ModColApplied => ShellStrings.Get(ShellStrings.Mod_ColApplied);
+    public string ModColKind => ShellStrings.Get(ShellStrings.Mod_ColKind);
+    public string ModColRemaining => ShellStrings.Get(ShellStrings.Mod_ColRemaining);
+    public string ModColWhere => ShellStrings.Get(ShellStrings.Mod_ColWhere);
+    public string LiftLabel => ShellStrings.Get(ShellStrings.Mod_Lift);
+    public string ModerationNotLoaded => ShellStrings.Get(ShellStrings.Mod_NotLoaded);
+
+    /// <summary>How many accounts the last sweep read. Shown so an empty list is distinguishable from a
+    /// list that was never gathered.</summary>
+    public string ScannedText => Moderation is null
+        ? ""
+        : ShellStrings.Format(ShellStrings.Mod_Scanned, ("Count", Moderation.AccountsScanned));
 
     // ── Commands ──────────────────────────────────────────────────────────────
 

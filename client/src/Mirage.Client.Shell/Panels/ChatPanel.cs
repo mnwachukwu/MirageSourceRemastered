@@ -90,6 +90,7 @@ public sealed partial class ChatPanel
     public Action? OnToggleHelp { get; set; }
     public Action? OnToggleAdminHelp { get; set; }
     public Action? OnToggleDebug { get; set; }
+    public Action? OnToggleModeration { get; set; }
     /// <summary>Fired when the user right-clicks a player name span in the chat log.
     /// GameplayScreen wires this to open the right-click context menu.</summary>
     public Action<string, Point>? OnPlayerRightClicked { get; set; }

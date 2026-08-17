@@ -396,6 +396,9 @@ public sealed partial class ClientPacketHandler : IClientEvents
             case SocialListPacket p:
                 HandleSocialList(p);
                 break;
+            case ModerationListPacket p:
+                HandleModerationList(p);
+                break;
             case GuildBrowsePacket p:
                 HandleGuildBrowse(p);
                 break;

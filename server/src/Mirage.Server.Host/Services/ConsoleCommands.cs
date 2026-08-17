@@ -23,6 +23,12 @@ namespace Mirage.Server.Host.Services;
 ///   /mute name [minutes]        — mute a player (default 60 min, range 1-1440)
 ///   /refreshbanlist             — reload banlist.json from disk
 ///   /setaccess level name       — set an ACCOUNT's admin level
+/// Moderation (ConsoleCommands.Moderation.cs) — these take an ACCOUNT, since the point of a lift is
+/// that the person is locked out and cannot be found on the roster:
+///   /moderation                 — list every ban and every running kick or mute
+///   /unban  login               — lift a ban
+///   /unkick name|login          — lift a kick
+///   /unmute name|login          — lift a mute, on the account AND on the live player
 /// World:
 ///   /tod phase                  — jump the time of day
 ///   /weather type               — set the weather
@@ -63,6 +69,11 @@ public sealed partial class ConsoleCommands : IHostedService
     private readonly WeatherSystem _weather;
     private readonly GuildScheduleSystem _guildSchedule;
     private readonly GuildTerritorySystem _territory;
+    // The moderation report goes out on the same machine-line stream the dashboard already reads, so the
+    // page updates itself after a lift instead of waiting to be asked again.
+    private readonly Management.StatusBroadcaster _status;
+    // Shared with the in-game Creator commands — see ModerationSystem for why a lift is written once.
+    private readonly ModerationSystem _moderation;
 
     private Task? _loopTask;
     private CancellationTokenSource? _cts;
@@ -82,9 +93,13 @@ public sealed partial class ConsoleCommands : IHostedService
         WeatherSystem weather,
         GuildScheduleSystem guildSchedule,
         GuildTerritorySystem territory,
+        Management.StatusBroadcaster status,
+        ModerationSystem moderation,
         ServerConfig config,
         ILogger<ConsoleCommands> logger)
     {
+        _status = status;
+        _moderation = moderation;
         _config = config;
         _lifetime = lifetime;
         _pm = pm;
@@ -148,6 +163,11 @@ public sealed partial class ConsoleCommands : IHostedService
     /// so there is one command set rather than two that drift.</summary>
     public void Execute(string input)
     {
+        // A byte-order mark is invisible, and a line that starts with one matches no case below — the
+        // command is refused for a reason nobody can see in the text they typed. Anything can be on the
+        // other end of this: a shell, a management socket, a script piping stdin.
+        input = input.TrimStart('﻿', '​').Trim();
+
         string cmd = input;
         string args = "";
 
@@ -187,6 +207,26 @@ public sealed partial class ConsoleCommands : IHostedService
 
             case "/refreshbanlist":
                 CmdRefreshBanList();
+                break;
+
+            // ── Lifting a punishment (ConsoleCommands.Moderation.cs) ──────────
+            // NOT posted to the game thread: each one reads account files, and the sweep behind
+            // /moderation reads every one of them. They hop onto the loop themselves, once, for the
+            // parts that touch player state.
+            case "/unkick":
+                _ = RunAsync(CmdUnkickAsync(args));
+                break;
+
+            case "/unban":
+                _ = RunAsync(CmdUnbanAsync(args));
+                break;
+
+            case "/unmute":
+                _ = RunAsync(CmdUnmuteAsync(args));
+                break;
+
+            case "/moderation":
+                _ = RunAsync(CmdModerationAsync());
                 break;
 
             // ── World-level admin commands (ConsoleCommands.World.cs) ─────────
@@ -243,6 +283,14 @@ public sealed partial class ConsoleCommands : IHostedService
                 System.Console.WriteLine(ServerStrings.Format(ServerStrings.Console_UnknownCommand, ("Cmd", cmd)));
                 break;
         }
+    }
+
+    /// <summary>Runs an async command without letting a fault take the process down. A console command
+    /// that throws must report and leave the prompt usable, exactly as a synchronous one does.</summary>
+    private async Task RunAsync(Task command)
+    {
+        try { await command.ConfigureAwait(false); }
+        catch (Exception ex) { _logger.LogError(ex, "Console command failed."); }
     }
 
     // ── /who ─────────────────────────────────────────────────────────────────

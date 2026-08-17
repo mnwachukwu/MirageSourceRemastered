@@ -62,12 +62,25 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
     /// is the only reader of that stdout, so a sentinel there is private to it.</summary>
     public bool WriteToStdout { get; set; }
 
-    /// <summary>Raised with a serialized snapshot for consumers that are not stdout — the management
+    /// <summary>Raised with a serialized machine line for consumers that are not stdout — the management
     /// sessions that asked for status. Empty when nobody has.</summary>
-    public event Action<string>? SnapshotReady;
+    public event Action<string>? MachineLineReady;
 
     /// <summary>True when anything at all is listening. Nothing is assembled when nothing is.</summary>
-    public bool HasConsumers => WriteToStdout || SnapshotReady is not null;
+    public bool HasConsumers => WriteToStdout || MachineLineReady is not null;
+
+    /// <summary>Serializes <paramref name="payload"/> behind its prefix and hands it to every consumer.
+    ///
+    /// <para>Public so the report kinds that are gathered ELSEWHERE — the moderation sweep, which reads
+    /// files and cannot run on the game thread — reach the same stream through the same options. What is
+    /// shared here is the transport, not the assembly.</para></summary>
+    public void Emit<T>(string prefix, T payload)
+    {
+        if (!HasConsumers) return;
+        string line = prefix + JsonSerializer.Serialize(payload, Json);
+        if (WriteToStdout) System.Console.WriteLine(line);
+        MachineLineReady?.Invoke(line);
+    }
 
     public Task StartAsync(CancellationToken ct)
     {
@@ -92,12 +105,7 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
     public void Publish()
     {
         if (!HasConsumers || _cts is null || _cts.IsCancellationRequested) return;
-        _gameLoop.Post(() =>
-        {
-            string line = ServerStatus.LinePrefix + JsonSerializer.Serialize(Snapshot(), Json);
-            if (WriteToStdout) System.Console.WriteLine(line);
-            SnapshotReady?.Invoke(line);
-        });
+        _gameLoop.Post(() => Emit(ServerStatus.LinePrefix, Snapshot()));
     }
 
     // Runs ON the game thread. Reads only; nothing here may mutate world state.

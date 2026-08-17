@@ -56,6 +56,13 @@ public sealed class PlayerSaver
     public void MutateAccountInBackground(string login, Action<AccountRecord> mutate) =>
         Chain(login, mutate);   // discards the task; fire-and-forget
 
+    /// <summary>The same chained write, awaited.
+    ///
+    /// <para>For a caller that has to READ THE ACCOUNT BACK afterwards. The fire-and-forget form only
+    /// enqueues, so anything that re-reads the file immediately sees the value it just changed — which is
+    /// how lifting a kick reported success while the moderation page went on showing it as live.</para></summary>
+    public Task MutateAccountAsync(string login, Action<AccountRecord> mutate) => Chain(login, mutate);
+
     /// <summary>Await every pending per-login write. Call at shutdown — after the game loop has
     /// stopped, so nothing new is enqueued — to guarantee all account writes hit disk before exit.</summary>
     public Task DrainAsync()

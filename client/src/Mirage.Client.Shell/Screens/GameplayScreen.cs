@@ -100,6 +100,7 @@ public sealed partial class GameplayScreen : IGameScreen
     private readonly QuestDialogPanel _questDialog = new();
     private readonly ConversationPanel _conversation = new();
     private readonly DeathPanel _death = new();   // uncloseable death overlay
+    private readonly ModerationPanel _moderation = new();   // Creator only; gated in the panel and again on the server
     private bool _wasDead;                          // alive->dead edge, to close open panels once on death
     // Action bar: ONE cooldown for all four slots, on the same 1s beat as attacking and casting, so the
     // bar can't outpace the rest of combat. Held here rather than per-slot because the cooldown is global.
@@ -127,6 +128,7 @@ public sealed partial class GameplayScreen : IGameScreen
     private const int PanelQuestLog = PanelSlots.QuestLog;
     private const int PanelQuestDialog = PanelSlots.QuestDialog;
     private const int PanelConversation = PanelSlots.Conversation;
+    private const int PanelModeration = PanelSlots.Moderation;
 
     // ── Panel registry ────────────────────────────────────────────────────────
     //
@@ -252,6 +254,13 @@ public sealed partial class GameplayScreen : IGameScreen
             (input, _) => _conversation.Update(input, _ctx.State, _ctx.Sender),
             (sb, font, _, active, _) => _conversation.Draw(sb, font, _ctx.State, active),
             () => _conversation.Close());
+
+        // Toggling asks the server for a fresh report as it opens, so the panel is never up with nothing
+        // in it — see ModerationPanel.Open.
+        _panels[PanelModeration] = new(PanelModeration, _moderation,
+            (input, _) => _moderation.Update(input, _ctx.State, _ctx.Sender),
+            (sb, font, _, active, _) => _moderation.Draw(sb, font, _ctx.State, active),
+            () => _moderation.Close(), () => _moderation.Toggle(_ctx.Sender));
     }
 
     // Reusable "is slot N open?" predicate for the PanelPolicies queries. Allocated ONCE alongside the
@@ -424,6 +433,7 @@ public sealed partial class GameplayScreen : IGameScreen
             _debugOverlay = !_debugOverlay;
             _chat.AddLine(_debugOverlay ? ClientStrings.Get(ClientStrings.GameplayScreen_DebugOverlayOn) : ClientStrings.Get(ClientStrings.GameplayScreen_DebugOverlayOff), GameColor.Pink);
         };
+        _chat.OnToggleModeration = () => ActivatePanel(PanelModeration);
         _chat.OnPlayerRightClicked = (name, at) => OpenPlayerContextMenu(name, at);
         _chat.OnTabRightClicked = (tabIndex, _) =>
             _chatOptions.Open(_chat, tabIndex, _ctx.State.Me.Access > AdminLevel.Player, _ctx.State.GuildInfo?.InGuild ?? false);

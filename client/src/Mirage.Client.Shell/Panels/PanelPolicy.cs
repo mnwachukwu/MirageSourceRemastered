@@ -22,9 +22,10 @@ public static class PanelSlots
     public const int QuestLog = 14;
     public const int QuestDialog = 15;
     public const int Conversation = 16;
+    public const int Moderation = 17;
 
     /// <summary>Number of slots — the registry and the policy table are both this long.</summary>
-    public const int Count = Conversation + 1;
+    public const int Count = Moderation + 1;
 }
 
 /// <summary>
@@ -85,6 +86,12 @@ public static class PanelPolicies
         // CloseTopPanel already knew how to close it. Its sibling Help was present, which is what
         // marked the omission as an oversight rather than a decision.
         t[PanelSlots.Controls] = new("Controls", PlayerToggleable: true, BlocksMovement: false, ClosesOnLeave: true, CountsAsOpenForEscape: true);
+
+        // Moderation is Creator-only, but its POLICY is ordinary: an admin reading a list should still be
+        // able to walk away from a fight while it is up, and Escape should close it like anything else.
+        // The access check lives in the panel and again on the server, not here — this table is about
+        // what a panel IS, and gating it here would put the rule in a third place.
+        t[PanelSlots.Moderation] = new("Moderation", PlayerToggleable: true, BlocksMovement: false, ClosesOnLeave: true, CountsAsOpenForEscape: true);
 
         // ── Movement-locking counters and modals ──────────────────────────────
         t[PanelSlots.Training] = new("Training", PlayerToggleable: true, BlocksMovement: true, ClosesOnLeave: true, CountsAsOpenForEscape: true);
