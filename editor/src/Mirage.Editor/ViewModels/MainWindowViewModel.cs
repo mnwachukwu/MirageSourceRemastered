@@ -39,6 +39,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public ClassEditorViewModel ClassEditor { get; }
     public QuestEditorViewModel QuestEditor { get; }
     public ConversationEditorViewModel ConversationEditor { get; }
+    /// <summary>Creator-only, and the only section that is online-only — accounts are the server's.</summary>
+    public AccountEditorViewModel AccountEditor { get; }
 
     /// <summary>The child editor view-model the content pane is bound to; null for an unknown section.</summary>
     [ObservableProperty] private object? _currentEditor;
@@ -106,7 +108,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     // Stable section ids — used for switching and lookup. Display labels are localized separately
     // via SectionLabelKey, so these strings never reach the UI.
-    private static readonly string[] AllSectionNames = ["Maps", "MapGroups", "Items", "NPCs", "Shops", "Spells", "Classes", "Quests", "Conversations"];
+    private static readonly string[] AllSectionNames = ["Maps", "MapGroups", "Items", "NPCs", "Shops", "Spells", "Classes", "Quests", "Conversations", "Accounts"];
     private readonly Dictionary<string, SectionViewModel> _sectionMap;
     /// <summary>The nav sections currently visible, narrowed by the connected account's access level.</summary>
     public ObservableCollection<SectionViewModel> Sections { get; }
@@ -132,6 +134,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ClassEditor = new ClassEditorViewModel(data, conn);
         QuestEditor = new QuestEditorViewModel(data, conn);
         ConversationEditor = new ConversationEditorViewModel(data, conn);
+        AccountEditor = new AccountEditorViewModel(conn);
         _editorLoaders =
         [
             (MapEditor.LoadOnline,   MapEditor.LoadOffline),
@@ -143,6 +146,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             (ClassEditor.LoadOnline, ClassEditor.LoadOffline),
             (QuestEditor.LoadOnline, QuestEditor.LoadOffline),
             (ConversationEditor.LoadOnline, ConversationEditor.LoadOffline),
+            (AccountEditor.LoadOnline, AccountEditor.LoadOffline),
         ];
         // Hand each section its label KEY, not the resolved text — the nav list outlives a language
         // switch, so a resolved string would freeze it in the startup language.
@@ -263,6 +267,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             "Classes" => ClassEditor,
             "Quests" => QuestEditor,
             "Conversations" => ConversationEditor,
+            "Accounts" => AccountEditor,
             _ => null,
         };
     }
@@ -289,6 +294,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         "Classes" => EditorStrings.MainWindow_Section_Classes,
         "Quests" => EditorStrings.MainWindow_Section_Quests,
         "Conversations" => EditorStrings.MainWindow_Section_Conversations,
+        "Accounts" => EditorStrings.MainWindow_Section_Accounts,
         _ => EditorStrings.MainWindow_Section_Maps,
     };
 
@@ -321,7 +327,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _data.LoadOnline(pkt);
         RefreshEditors(online: true);
         IsOnline = true;
-        ConnectionEndpoint = CurrentEndpoint();
+        ConnectionEndpoint = _conn.Endpoint;
         ApplySectionRestrictions(access);
         SelectedSection = Sections[0];
         _ = StartEagerLoadAsync();
@@ -334,7 +340,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var dirty = GetAllDirty().ToList();
         _data.LoadOnline(pkt);
         IsOnline = true;
-        ConnectionEndpoint = CurrentEndpoint();
+        ConnectionEndpoint = _conn.Endpoint;
         ApplySectionRestrictions(access);
         if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
         {
@@ -420,16 +426,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ConnectionEndpoint = "";
     }
 
-    // Host and port are not translatable copy, so they are formatted here rather than kept as a
-    // one-placeholder entry in every language file.
-    private static string CurrentEndpoint() =>
-        $"{AppSettings.Current.DefaultServerHost}:{AppSettings.Current.DefaultServerPort}";
 
-    // Developer and above get every section; Mapper gets the map and map-group editors only. Offline
-    // editing is unrestricted — this narrowing applies to a live server session.
+    // Three tiers now: a Creator gets everything, Developer gets the content sections, and a Mapper gets
+    // the map and map-group editors only. Offline editing is unrestricted — this narrowing applies to a
+    // live server session, and the SERVER re-checks every one of these; see EditorPacketHandler's
+    // RequireAccess. Hiding a section here is a courtesy, not the gate.
     private void ApplySectionRestrictions(AdminLevel access)
     {
-        var visibleNames = access >= AdminLevel.Developer ? AllSectionNames : new[] { "Maps", "MapGroups" };
+        var visibleNames = access switch
+        {
+            >= AdminLevel.Creator => AllSectionNames,
+            >= AdminLevel.Developer => AllSectionNames.Where(n => n != "Accounts").ToArray(),
+            _ => ["Maps", "MapGroups"],
+        };
         Sections.Clear();
         foreach (var name in visibleNames) Sections.Add(_sectionMap[name]);
         if (SelectedSection is null || !Sections.Contains(SelectedSection))

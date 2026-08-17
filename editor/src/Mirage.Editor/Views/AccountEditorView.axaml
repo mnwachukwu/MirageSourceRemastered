@@ -1,0 +1,192 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:proto="using:Mirage.Shared.Protocol.Packets"
+             xmlns:vm="using:Mirage.Editor.ViewModels"
+             x:Class="Mirage.Editor.Views.AccountEditorView">
+
+  <!-- The only ONLINE-ONLY section. Accounts live on the server, so there is nothing to show against a
+       world folder — the offline notice says that rather than presenting an empty list, which would read
+       as "this server has no accounts". -->
+  <Grid RowDefinitions="Auto,*">
+
+    <TextBlock Grid.Row="0" x:Name="_offlineNotice" Margin="16"
+               Foreground="{DynamicResource MirageMutedBrush}" TextWrapping="Wrap"
+               IsVisible="{Binding IsOffline}"/>
+
+    <Grid Grid.Row="1" ColumnDefinitions="300,*" IsVisible="{Binding !IsOffline}">
+
+      <!-- ── Browser ── -->
+      <DockPanel Grid.Column="0" Background="{DynamicResource MirageBgAltBrush}">
+        <TextBox x:Name="_searchBox" DockPanel.Dock="Top" Margin="6,6,6,2" FontSize="11"
+                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <!-- Access filter. A picker rather than a live-typed field because it costs the server a full
+             scan: the level is inside each record, not in its file name. -->
+        <!-- Options carry their own caption rather than being raw enum values with a null in the list:
+             the "any level" entry then needs no TargetNullValue (which cannot take a binding) and no
+             sentinel enum member that could be mistaken for a real access level. -->
+        <ComboBox DockPanel.Dock="Top" Margin="6,0,6,4" HorizontalAlignment="Stretch" FontSize="11"
+                  ItemsSource="{Binding AccessFilters}" SelectedItem="{Binding SelectedAccessFilter}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate DataType="vm:AccessFilterOption">
+              <TextBlock Text="{Binding Label}"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <!-- Pager. The count is stated in full because a Creator looking for one person needs to know
+             whether the name they want is simply on another page. -->
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto" Margin="6,2,6,6">
+          <Button Grid.Column="0" x:Name="_prevBtn" Command="{Binding PrevPageCommand}"
+                  IsEnabled="{Binding CanPrev}" Padding="8,2" FontSize="11"/>
+          <TextBlock Grid.Column="1" Text="{Binding PageText}" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" FontSize="11"
+                     Foreground="{DynamicResource MirageMutedBrush}"/>
+          <Button Grid.Column="2" x:Name="_nextBtn" Command="{Binding NextPageCommand}"
+                  IsEnabled="{Binding CanNext}" Padding="8,2" FontSize="11"/>
+        </Grid>
+
+        <ListBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}"
+                 Background="Transparent">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="proto:EditorAccountRow">
+              <Grid ColumnDefinitions="*,Auto" Height="30">
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Login}" FontSize="12"/>
+                  <TextBlock Text="{Binding Access}" FontSize="10"
+                             Foreground="{DynamicResource MirageFaintBrush}"/>
+                </StackPanel>
+                <!-- Online is live state, so it is only as fresh as the last fetch. Shown as a dot plus
+                     the character name, the same shape the server window's badge uses. -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5"
+                            VerticalAlignment="Center" IsVisible="{Binding IsOnline}">
+                  <Ellipse Width="6" Height="6" Fill="{DynamicResource MirageOkBrush}"
+                           VerticalAlignment="Center"/>
+                  <TextBlock Text="{Binding PlayingAs}" FontSize="10"
+                             Foreground="{DynamicResource MirageOkBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <!-- ── Detail ── -->
+      <Grid Grid.Column="1" RowDefinitions="*,Auto">
+        <TextBlock Grid.Row="0" x:Name="_pickHint" Margin="16"
+                   Foreground="{DynamicResource MirageFaintBrush}" FontStyle="Italic"
+                   IsVisible="{Binding !HasSelection}"/>
+
+        <ScrollViewer Grid.Row="0" IsVisible="{Binding HasSelection}">
+          <StackPanel Margin="16,14" Spacing="10" MaxWidth="720" HorizontalAlignment="Left">
+
+            <TextBlock Text="{Binding Login}" FontSize="18" FontWeight="SemiBold"/>
+
+            <Grid ColumnDefinitions="120,220,Auto" RowDefinitions="Auto,Auto">
+              <TextBlock Grid.Row="0" Grid.Column="0" x:Name="_accessLabel" VerticalAlignment="Center"/>
+              <!-- Disabled on your OWN account: the server refuses a self-change, and a live-looking
+                   control that silently does nothing is worse than one plainly greyed out. -->
+              <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding AccessLevels}"
+                        SelectedItem="{Binding Access}" HorizontalAlignment="Stretch"
+                        IsEnabled="{Binding CanEditAccess}"/>
+              <TextBlock Grid.Row="0" Grid.Column="2" x:Name="_selfHint" VerticalAlignment="Center"
+                         Margin="10,0,0,0" FontSize="11" FontStyle="Italic"
+                         Foreground="{DynamicResource MirageFaintBrush}"
+                         IsVisible="{Binding IsSelf}"/>
+
+              <!-- Read-only on purpose: the guild's roster cache is kept in step by the guild system, so
+                   writing the account's copy from here would leave the two disagreeing. -->
+              <TextBlock Grid.Row="1" Grid.Column="0" x:Name="_guildLabel" VerticalAlignment="Center"
+                         Margin="0,8,0,0"/>
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding GuildText}" VerticalAlignment="Center"
+                         Margin="0,8,0,0" Foreground="{DynamicResource MirageMutedBrush}"/>
+            </Grid>
+
+            <TextBlock x:Name="_charsHeader" FontWeight="SemiBold" Margin="0,6,0,0"/>
+            <TextBlock x:Name="_noCharsHint" Foreground="{DynamicResource MirageFaintBrush}"
+                       FontStyle="Italic" IsVisible="{Binding !Chars.Count}"/>
+
+            <ItemsControl ItemsSource="{Binding Chars}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:AccountCharRowViewModel">
+                  <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1"
+                          CornerRadius="4" Padding="10,8" Margin="0,0,0,6">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                      <!-- 🔴 EVERY field states its Maximum. Avalonia's NumericUpDown defaults Maximum to
+                           100, so a field without one silently clamps — which for Exp, Points, Map and
+                           the stats would have quietly rewritten a character on save.
+
+                           Exp gets its own wide row: it reaches six and seven digits on a 255-level
+                           curve, and a column sized for a stat would hide most of it behind the spinner
+                           buttons. The rest are three or four digits and share the narrower columns. -->
+                      <Grid ColumnDefinitions="56,148,56,148,56,148" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Level" VerticalAlignment="Center" FontSize="11"/>
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding Level}" Minimum="1"
+                                       Maximum="255" FormatString="0" ParsingNumberStyle="Integer" Margin="0,0,10,0"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Points" VerticalAlignment="Center" FontSize="11"/>
+                        <NumericUpDown Grid.Row="0" Grid.Column="3" Value="{Binding Points}" Minimum="0"
+                                       Maximum="999999" FormatString="0" ParsingNumberStyle="Integer" Margin="0,0,10,0"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Exp" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="5" Value="{Binding Exp}"
+                                       Minimum="0" Maximum="9999999999" FormatString="0"
+                                       ParsingNumberStyle="Integer" Margin="0,8,0,0"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Map" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding Map}" Minimum="1"
+                                       Maximum="100000" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,10,0"/>
+                        <TextBlock Grid.Row="2" Grid.Column="2" Text="X" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="3" Value="{Binding X}" Minimum="0"
+                                       Maximum="15" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,10,0"/>
+                        <TextBlock Grid.Row="2" Grid.Column="4" Text="Y" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="5" Value="{Binding Y}" Minimum="0"
+                                       Maximum="11" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,0,0"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="STR" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Str}" Minimum="0"
+                                       Maximum="999999" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,10,0"/>
+                        <TextBlock Grid.Row="3" Grid.Column="2" Text="DEF" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="3" Grid.Column="3" Value="{Binding Def}" Minimum="0"
+                                       Maximum="999999" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,10,0"/>
+                        <TextBlock Grid.Row="3" Grid.Column="4" Text="SPD" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="3" Grid.Column="5" Value="{Binding Spd}" Minimum="0"
+                                       Maximum="999999" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,0,0"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="INT" VerticalAlignment="Center"
+                                   Margin="0,8,0,0" FontSize="11"/>
+                        <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Int}" Minimum="0"
+                                       Maximum="999999" FormatString="0" ParsingNumberStyle="Integer" Margin="0,8,10,0"/>
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource MirageOkBrush}"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- ── Footer ── -->
+        <Border Grid.Row="1" Background="{DynamicResource MirageSurfaceBrush}" Padding="8,6"
+                BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="0,1,0,0">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+            <Button x:Name="_reloadBtn" Command="{Binding ReloadCommand}"
+                    IsEnabled="{Binding HasSelection}"/>
+            <Button x:Name="_saveBtn" Classes="primary" Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding HasSelection}"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

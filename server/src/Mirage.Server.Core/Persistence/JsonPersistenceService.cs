@@ -136,6 +136,58 @@ public sealed class JsonPersistenceService : IPersistenceService
         }
     }
 
+    public async Task<(IReadOnlyList<AccountSummary> page, int total)> ListAccountsAsync(
+        string search, AdminLevel? access, int skip, int take)
+    {
+        // Names first: the file name IS the login, so a name search and its total run without opening a
+        // single record. Ordered so paging is stable — an unordered directory walk can hand back the same
+        // account on two different pages.
+        var logins = Directory.EnumerateFiles(AccountsPath, "*.json")
+            .Select(Path.GetFileNameWithoutExtension)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Select(n => n!)
+            .Where(n => search.Length == 0 || n.Contains(search, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        skip = Math.Max(0, skip);
+        take = Math.Max(0, take);
+
+        // 🔴 An access filter forces every candidate open, because the level is inside the record and not
+        // in its name. Only then can the total and the page be honest about how many matched.
+        if (access is { } wanted)
+        {
+            var matched = new List<AccountSummary>();
+            foreach (string login in logins)
+            {
+                var a = await LoadAccountAsync(login);
+                if (a is null || a.Access != wanted) continue;
+                matched.Add(new AccountSummary(a.Login, a.Access, NamedChars(a)));
+            }
+            return (matched.Skip(skip).Take(take).ToList(), matched.Count);
+        }
+
+        var page = new List<AccountSummary>();
+        foreach (string login in logins.Skip(skip).Take(take))
+        {
+            var account = await LoadAccountAsync(login);
+            if (account is null) continue;   // unreadable file: logged by LoadAccountAsync, skipped here
+            page.Add(new AccountSummary(account.Login, account.Access, NamedChars(account)));
+        }
+        return (page, logins.Count);
+    }
+
+    private static List<string> NamedChars(AccountRecord account)
+    {
+        var names = new List<string>();
+        for (int i = 1; i < account.Chars.Length; i++)
+        {
+            string name = account.Chars[i].Name.Trim();
+            if (name.Length > 0) names.Add(name);
+        }
+        return names;
+    }
+
     public async Task SaveAccountAsync(AccountRecord account)
     {
         string path = AccountFile(account.Login);
@@ -183,11 +235,20 @@ public sealed class JsonPersistenceService : IPersistenceService
         File.Move(tmp, path, overwrite: true);
     }
 
-    public async Task CreateAccountAsync(string login, string password)
+    public async Task CreateAccountAsync(string login, string password, AdminLevel access = AdminLevel.Player)
     {
-        var account = new AccountRecord { Login = login, Password = PasswordHasher.Hash(password) };
+        var account = new AccountRecord
+        {
+            Login = login,
+            Password = PasswordHasher.Hash(password),
+            Access = access,
+        };
         await SaveAccountAsync(account);
     }
+
+    /// <summary>Whether no account exists yet. Counts FILES, so it costs a directory read rather than a
+    /// parse — and it only decides the very first account's access level.</summary>
+    public bool HasNoAccounts() => !Directory.EnumerateFiles(AccountsPath, "*.json").Any();
 
     public async Task ChangePasswordAsync(string login, string newPassword)
     {

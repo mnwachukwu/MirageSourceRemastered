@@ -70,8 +70,23 @@ public sealed partial class PacketHandler
                 return;
             }
 
-            await _persistence.CreateAccountAsync(name, pass);
-            _logger.LogInformation("Account {Name} has been created.", name);
+            // The FIRST account on a fresh server, created from this machine, becomes a Creator. Setting
+            // up a world otherwise means shutting the server down and hand-editing a JSON file to reach
+            // your own admin tools — a step every operator hits once and nobody should have to.
+            //
+            // 🔴 Gated on LOOPBACK, not merely on being first. On a server that is already reachable, the
+            // first stranger to find it would otherwise own it.
+            bool bootstrap = IsLoopback(_pm[index].RemoteIp) && _persistence.HasNoAccounts();
+            await _persistence.CreateAccountAsync(name, pass, bootstrap ? AdminLevel.Creator : AdminLevel.Player);
+            if (bootstrap)
+            {
+                _logger.LogInformation(
+                    "Account {Name} is the first on this server and was created locally — granted Creator.", name);
+            }
+            else
+            {
+                _logger.LogInformation("Account {Name} has been created.", name);
+            }
             AlertAndDisconnect(index, ServerStrings.Auth_AccountCreated, AlertCode.AccountCreated);
         }
         catch (Exception ex)
@@ -80,6 +95,12 @@ public sealed partial class PacketHandler
             AlertAndDisconnect(index, ServerStrings.Auth_AccountCreateFailed);
         }
     }
+
+    /// <summary>Whether a connection came from this machine. Parsed rather than string-compared: "::1",
+    /// "127.0.0.1" and any other 127.x address all mean the same thing, and an unparseable value is
+    /// treated as remote.</summary>
+    private static bool IsLoopback(string ip) =>
+        System.Net.IPAddress.TryParse(ip, out var parsed) && System.Net.IPAddress.IsLoopback(parsed);
 
     private void HandleDelAccount(int index, DelAccountPacket p)
     {

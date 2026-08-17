@@ -39,9 +39,21 @@ public sealed class EditorConnection : IDisposable
         public static AuthResult Failed(string message) => new(false, message, null, AdminLevel.Player);
     }
 
+    /// <summary>Where this session is actually attached — what the connect dialog was given, not what the
+    /// saved defaults happen to say. The two differ whenever an operator types a host or port without
+    /// saving it, which is exactly when knowing which server you are editing matters most.</summary>
+    public string Endpoint { get; private set; } = "";
+
+    /// <summary>The account this editor session authenticated as. Read by the account browser, which must
+    /// not offer to change your OWN access — the server refuses it, and a control that looks live but
+    /// silently does nothing is worse than one that is plainly disabled.</summary>
+    public string Login { get; private set; } = "";
+
     public async Task<AuthResult> ConnectAndAuthAsync(string host, int port, string username, string password,
                                                      CancellationToken ct = default)
     {
+        Endpoint = $"{host}:{port}";
+        Login = username;
         _client = new TcpClient();
         await _client.ConnectAsync(host, port, ct);
 
@@ -117,6 +129,24 @@ public sealed class EditorConnection : IDisposable
 
     public Task<EditorAllMapGroupsPacket?> RequestAllMapGroupsAsync(CancellationToken ct = default)
         => RequestBulkAsync<EditorAllMapGroupsPacket>(PacketNames.EditorAllMapGroups, new EditorRequestAllMapGroupsPacket(), ct);
+
+    // ── Accounts (Creator only) ───────────────────────────────────────────────
+    // These reuse the bulk channel because each is a single request answered by a single reply, keyed by
+    // the reply's command name. A page and a record never overlap: the browser asks for one at a time.
+
+    public Task<EditorAccountListPacket?> RequestAccountsAsync(string search, AdminLevel? access, int page,
+                                                               int pageSize, CancellationToken ct = default)
+        => RequestBulkAsync<EditorAccountListPacket>(PacketNames.EditorAccountList,
+            new EditorRequestAccountsPacket { Search = search, Access = access, Page = page, PageSize = pageSize }, ct);
+
+    public Task<EditorAccountPacket?> RequestAccountAsync(string login, CancellationToken ct = default)
+        => RequestBulkAsync<EditorAccountPacket>(PacketNames.EditorAccount,
+            new EditorRequestAccountPacket { Login = login }, ct);
+
+    /// <summary>Saves an account and waits for the server's re-read, so the form shows what actually
+    /// landed rather than what was typed — the server clamps levels and refuses an unknown map.</summary>
+    public Task<EditorAccountPacket?> SaveAccountAsync(EditorSaveAccountPacket save, CancellationToken ct = default)
+        => RequestBulkAsync<EditorAccountPacket>(PacketNames.EditorAccount, save, ct);
 
     private async Task<T?> RequestBulkAsync<T>(string responseCmd, IPacket request,
                                                 CancellationToken ct) where T : class, IPacket
@@ -286,6 +316,8 @@ public sealed class EditorConnection : IDisposable
             EditorAllSpellsPacket => PacketNames.EditorAllSpells,
             EditorAllClassesPacket => PacketNames.EditorAllClasses,
             EditorAllMapGroupsPacket => PacketNames.EditorAllMapGroups,
+            EditorAccountListPacket => PacketNames.EditorAccountList,
+            EditorAccountPacket => PacketNames.EditorAccount,
             _ => "",
         };
         if (bulkCmd != "")

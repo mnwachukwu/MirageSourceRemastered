@@ -1,3 +1,4 @@
+using Mirage.Shared;
 using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.Persistence;
@@ -14,8 +15,29 @@ public interface IPersistenceService
     Task<bool> AccountNameTakenAsync(string name);
     Task<bool> PasswordOkAsync(string login, string password);
     Task<AccountRecord?> LoadAccountAsync(string login);
+
+    /// <summary>True while no account exists at all. Only the first-account bootstrap asks.</summary>
+    bool HasNoAccounts();
+
+    /// <summary>One page of accounts for the editor's account browser, plus how many matched in total.
+    ///
+    /// <para>The name search runs on the FILE NAMES, which are the logins — so it narrows the set without
+    /// opening anything, and only the page's own records are read.</para>
+    ///
+    /// <para>🔴 An <paramref name="access"/> filter cannot work that way: the level lives INSIDE the
+    /// record, so every candidate has to be opened to know whether it matches. That is a full scan, and
+    /// it is why the two filters have very different costs. Acceptable because it happens when an
+    /// operator picks a level, not on every keystroke — and a name search still narrows the candidates
+    /// first.</para></summary>
+    /// <param name="search">Substring match on the login; empty matches everything.</param>
+    /// <param name="access">Exact access level to keep, or null for every level.</param>
+    Task<(IReadOnlyList<AccountSummary> page, int total)> ListAccountsAsync(
+        string search, AdminLevel? access, int skip, int take);
     Task SaveAccountAsync(AccountRecord account);
-    Task CreateAccountAsync(string login, string password);
+    /// <summary>Creates an account. <paramref name="access"/> exists for the very first account on a
+    /// fresh server, which is made a Creator so an operator is not locked out of their own world; every
+    /// other creation takes the default.</summary>
+    Task CreateAccountAsync(string login, string password, AdminLevel access = AdminLevel.Player);
     Task ChangePasswordAsync(string login, string newPassword);
     Task DeleteAccountAsync(string login);
 

@@ -37,6 +37,12 @@ public sealed class SectionIconConverter : IValueConverter
 
     private const string Bubble = "M2,2.6h12v7.8H8.6l-3.4,3.2v-3.2H2z";
 
+    // A key, for accounts. Deliberately not another person glyph: NPCs already own that shape, and at
+    // rail size two figures would be one silhouette. What this section is really about is access.
+    private const string Key =
+        "M9.8,1.6a4.6,4.6 0 1 1-3.1,8L5.4,10.9H3.6v1.8H1.8v1.8H0v-2.6l6-6a4.6,4.6 0 0 1 3.8-4.3z " +
+        "M10.6,4a1.3,1.3 0 1 0 0,2.6a1.3,1.3 0 0 0 0-2.6z";
+
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         string path = (value as string) switch
@@ -50,6 +56,7 @@ public sealed class SectionIconConverter : IValueConverter
             "Classes" => Shield,
             "Quests" => List,
             "Conversations" => Bubble,
+            "Accounts" => Key,
             _ => Quads,
         };
         return Geometry.Parse(path);

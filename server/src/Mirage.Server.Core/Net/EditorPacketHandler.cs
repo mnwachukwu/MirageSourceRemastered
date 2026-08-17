@@ -27,7 +27,7 @@ namespace Mirage.Server.Core.Net;
 /// the content saves the editor client only shows to Developer and above. There is no flood limit here
 /// (unlike the game dispatch) because editor sessions are Mapper+ by definition.</para>
 /// </summary>
-public sealed class EditorPacketHandler
+public sealed partial class EditorPacketHandler
 {
     private readonly GameWorld _world;
     private readonly PlayerManager _pm;
@@ -39,14 +39,21 @@ public sealed class EditorPacketHandler
     private readonly JoinLeaveSystem _joinLeave;
     private readonly QuestSystem _quests;
     private readonly SpawnSystem _spawn;
+    // The account browser's two: every account write goes through the one per-login chain, and reading
+    // the roster or touching a live player has to hop onto the loop. See the .Accounts partial.
+    private readonly PlayerSaver _saver;
+    private readonly GameLoop _gameLoop;
     private readonly ILogger<EditorPacketHandler> _logger;
 
     public EditorPacketHandler(
         GameWorld world, PlayerManager pm, EditorSessionManager editors, IPacketDispatcher dispatcher,
         IPersistenceService persistence, IBackgroundPersistence bg, ItemSystem items,
         JoinLeaveSystem joinLeave, QuestSystem quests, SpawnSystem spawn,
+        PlayerSaver saver, GameLoop gameLoop,
         ILogger<EditorPacketHandler> logger)
     {
+        _saver = saver;
+        _gameLoop = gameLoop;
         _world = world;
         _pm = pm;
         _editors = editors;
@@ -152,6 +159,16 @@ public sealed class EditorPacketHandler
                     break;
                 case EditorSaveMapPacket p:
                     HandleEditorSaveMap(editorIndex, p);
+                    break;
+                // Accounts — Creator only; see the .Accounts partial.
+                case EditorRequestAccountsPacket p:
+                    HandleEditorRequestAccounts(editorIndex, p);
+                    break;
+                case EditorRequestAccountPacket p:
+                    HandleEditorRequestAccount(editorIndex, p);
+                    break;
+                case EditorSaveAccountPacket p:
+                    HandleEditorSaveAccount(editorIndex, p);
                     break;
             }
         }

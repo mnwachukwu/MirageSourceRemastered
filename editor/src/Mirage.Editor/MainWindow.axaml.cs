@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using FluentAvalonia.UI.Windowing;
 using Mirage.Editor.Localization;
 using Mirage.Editor.ViewModels;
 using Mirage.Editor.Views;
@@ -15,8 +16,14 @@ namespace Mirage.Editor;
 /// localized menu chrome, persisted window geometry, and dialog ownership.
 /// <para><see cref="OnDataContextChanged"/> supplies the view-model's <c>Show…Async</c> delegates,
 /// which is how <see cref="MainWindowViewModel"/> opens dialogs without referencing a View type.</para>
+///
+/// <para><see cref="FAAppWindow"/> rather than <see cref="Window"/>, matching the server window: on
+/// Windows it draws its own title bar, so the frame carries the app's palette instead of the system's
+/// grey. It does that ONLY under <c>OperatingSystem.IsWindows()</c> — elsewhere the window keeps native
+/// decorations and every bit of native window behaviour with them. The editor was left on a plain
+/// Window when the shell was converted, which is why the two apps disagreed about their own chrome.</para>
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : FAAppWindow
 {
     // Set once the unsaved-changes prompt has been answered, so the second Close() call that
     // actually shuts the window down doesn't re-run the guard and prompt again.

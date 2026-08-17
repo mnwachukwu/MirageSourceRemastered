@@ -230,6 +230,12 @@ public static class PacketNames
     public const string EditorSaveMapGroup = "editorsavemapgroup";
     public const string EditorRequestMapGroup = "editorreqmapgroup";
     public const string EditorRequestAllMapGroups = "editorreqallmapgroups";
+    // Accounts — CREATOR only, and the only editor family that touches a person rather than content.
+    public const string EditorRequestAccounts = "editorreqaccounts";
+    public const string EditorAccountList = "editoraccountlist";
+    public const string EditorRequestAccount = "editorreqaccount";
+    public const string EditorAccount = "editoraccount";
+    public const string EditorSaveAccount = "editorsaveaccount";
 
     // ── S→C: bank ───────────────────────────────────────────────────────────
     public const string SendBank = "sendbank";

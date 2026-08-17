@@ -47,6 +47,26 @@ public static partial class EditorStrings
     public const string MainWindow_Section_Classes = nameof(MainWindow_Section_Classes);
     public const string MainWindow_Section_Quests = nameof(MainWindow_Section_Quests);
     public const string MainWindow_Section_Conversations = nameof(MainWindow_Section_Conversations);
+    public const string MainWindow_Section_Accounts = nameof(MainWindow_Section_Accounts);
+
+    // ── AccountEditor (Creator only, online only) ─────────────────────────────
+    public const string AccountEditor_SearchPlaceholder = nameof(AccountEditor_SearchPlaceholder);
+    public const string AccountEditor_OfflineNotice = nameof(AccountEditor_OfflineNotice);
+    public const string AccountEditor_SelectPrompt = nameof(AccountEditor_SelectPrompt);
+    public const string AccountEditor_AccessLabel = nameof(AccountEditor_AccessLabel);
+    public const string AccountEditor_GuildLabel = nameof(AccountEditor_GuildLabel);
+    public const string AccountEditor_GuildFormat = nameof(AccountEditor_GuildFormat);
+    public const string AccountEditor_NoGuild = nameof(AccountEditor_NoGuild);
+    public const string AccountEditor_CharactersHeader = nameof(AccountEditor_CharactersHeader);
+    public const string AccountEditor_NoCharacters = nameof(AccountEditor_NoCharacters);
+    public const string AccountEditor_PageOf = nameof(AccountEditor_PageOf);
+    public const string AccountEditor_PrevPage = nameof(AccountEditor_PrevPage);
+    public const string AccountEditor_NextPage = nameof(AccountEditor_NextPage);
+    public const string AccountEditor_Reload = nameof(AccountEditor_Reload);
+    public const string AccountEditor_Save = nameof(AccountEditor_Save);
+    public const string AccountEditor_Saved = nameof(AccountEditor_Saved);
+    public const string AccountEditor_SelfAccessHint = nameof(AccountEditor_SelfAccessHint);
+    public const string AccountEditor_AnyAccess = nameof(AccountEditor_AnyAccess);
     public const string MainWindow_StatusOffline = nameof(MainWindow_StatusOffline);
     public const string MainWindow_StatusOnline = nameof(MainWindow_StatusOnline);
     public const string MainWindow_RailCollapse = nameof(MainWindow_RailCollapse);

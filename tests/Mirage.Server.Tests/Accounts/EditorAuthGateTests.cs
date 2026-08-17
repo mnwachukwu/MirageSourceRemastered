@@ -139,6 +139,7 @@ public class EditorAuthGateTests
             _handler = new EditorPacketHandler(
                 World, Pm, Editors, Dispatcher, persistence: null!, bg: new NoOpBackground(),
                 items: null!, joinLeave: null!, quests: null!, spawn: null!,
+                saver: null!, gameLoop: null!,
                 NullLogger<EditorPacketHandler>.Instance);
 
         // Authenticating means BOTH flags now: a session with no access level is a Player, and the

@@ -281,6 +281,7 @@ public class EditorLiveBroadcastTests
             _handler = new EditorPacketHandler(
                 World, Pm, Editors, Dispatcher, Persistence, new NoOpBackground(),
                 items: null!, joinLeave: null!, quests: null!, spawn: null!,
+                saver: null!, gameLoop: null!,
                 NullLogger<EditorPacketHandler>.Instance);
         }
 
@@ -391,8 +392,12 @@ public class EditorLiveBroadcastTests
         public Task<bool> AccountNameTakenAsync(string name) => Task.FromResult(false);
         public Task<bool> PasswordOkAsync(string login, string password) => Task.FromResult(false);
         public Task<AccountRecord?> LoadAccountAsync(string login) => Task.FromResult<AccountRecord?>(null);
+        public Task<(IReadOnlyList<AccountSummary> page, int total)> ListAccountsAsync(
+            string search, AdminLevel? access, int skip, int take) =>
+            Task.FromResult<(IReadOnlyList<AccountSummary>, int)>(([], 0));
         public Task SaveAccountAsync(AccountRecord account) => Task.CompletedTask;
-        public Task CreateAccountAsync(string login, string password) => Task.CompletedTask;
+        public Task CreateAccountAsync(string login, string password, AdminLevel access = AdminLevel.Player) => Task.CompletedTask;
+        public bool HasNoAccounts() => false;
         public Task ChangePasswordAsync(string login, string newPassword) => Task.CompletedTask;
         public Task DeleteAccountAsync(string login) => Task.CompletedTask;
         public Task<bool> CharExistsAsync(string name) => Task.FromResult(false);
