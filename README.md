@@ -34,26 +34,16 @@ I don't know why I did this.
 
 On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all eighteen projects together.
 
-Two things people expect to find here live **outside** this repository, in a sibling `MirageSourceRemastered.Tools` folder:
+Some things people expect to find here live **outside** this repository, because they write into it
+rather than build with it: the content generators that produced the seed, the scripts that draw the
+app icons and control-scheme images, and the converter that imports an old VB6 world. Those are
+published separately — see [Authoring tools](#authoring-tools) below.
 
-| What | Why not here |
-|---|---|
-| Standalone balance simulators — they answer "what would this feel like" against the shipped formulas | No dependency on the engine; nothing here builds or ships them |
-| The content generators that produced the seed — the armory, bestiary, spellbook, classes, conversations, quests and shops each have one | They write `data/` and are never referenced by it; the world is the artifact, not the script |
-| The VB6 → JSON migration tool | Referenced only when importing an old world; it reaches back to `Mirage.Shared` by a relative path, so the two folders must stay siblings |
+The standalone balance simulators are not published. They answer "what would this feel like" against
+the shipped formulas, nothing here builds or ships them, and their output is a judgment call that
+already lives in the numbers.
 
-> ### ⚠️ That repository is **not currently published**
->
-> It is a private authoring toolchain. Everything it produces — the world in `data/`, the app icons,
-> the control-scheme images — is committed **here**, so nothing in this repository depends on having
-> it, and nothing you can do with this repository requires it. But the paths above are not links, and
-> a `../MirageSourceRemastered.Tools` in an instruction anywhere in these docs is describing how
-> something was made, not telling you to go and run it.
->
-> It may open up later. Until it does, the honest summary is: **you get the artifacts, not the
-> factory.**
-
-Deliberately described rather than enumerated: the previous version of this table named three simulators
+Deliberately described rather than enumerated: a previous version of this section named three simulators
 by hand and was wrong about all of it within a few months.
 
 ---
@@ -81,7 +71,7 @@ dotnet run --project client/src/Mirage.Client.Shell
 dotnet run --project editor/src/Mirage.Editor
 ```
 
-> **Importing VB6 world data:** a converter exists that turns an original VB6 server directory into this JSON format in one pass — all binary `.dat` maps and INI data files, with account passwords hashed on the way through and the source files never modified. It lives in the **unpublished** tools repository described above, so it is not something you can currently run. Writing your own is tractable — the target format is plain JSON, `server/src/Mirage.Shared/Records/` defines every record with its fields documented, and `server/src/Mirage.Server.Host/data/` is 1,122 worked examples. If you have a VB6 world you want migrated, open an issue.
+> **Importing VB6 world data:** [MirageSourceRemasteredConverter](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public) turns an original VB6 server directory into this JSON format in one pass — all binary `.dat` maps and INI data files, with account passwords hashed on the way through and the source files never modified, so a run costs nothing if the result is not what you wanted. See [Authoring tools](#authoring-tools).
 
 > **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 174 NPCs, 35 conversations, 54 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
 >
@@ -91,7 +81,41 @@ dotnet run --project editor/src/Mirage.Editor
 >
 > **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
 >
-> It is included as a courtesy — enough to start a server and see the systems work, and a worked example of what the record formats look like — but it is not a playable game and was never intended as one. Building an actual world means authoring your own content in the editor. It is regular enough to look machine-written because it is, but the generators that wrote it are part of the unpublished toolchain above, so the editor is the path.
+> It is included as a courtesy — enough to start a server and see the systems work, and a worked example of what the record formats look like — but it is not a playable game and was never intended as one. It is regular enough to look machine-written because it is: the generators that wrote it are published, so the seed can be regenerated, retuned, or replaced wholesale rather than treated as fixed. See [Authoring tools](#authoring-tools). Placing any of it on a map is still the editor's job.
+
+---
+
+## Authoring tools
+
+The seed world in `data/` was not hand-authored. It was generated, and the generators that wrote it are
+published: **[MirageSourceRemastered.Tools.Public](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public)**.
+
+They are there because a seed you cannot regenerate is a seed you can only edit. With them you can retune
+the whole economy, rescale the bestiary, or throw the shipped content away and generate your own to the
+same shape.
+
+| | |
+|---|---|
+| **`ContentGenerators/`** | The ten that wrote the seed — spellbook, armory, bestiary, classes, conversations, quests, shops. `run-all.cs` runs them in the order they depend on each other and stops at the first failure. |
+| **`ArtGenerators/`** | The app icons and the in-game control-scheme reference images, drawn as geometry rather than exported from a design file. |
+| **`MirageSourceRemasteredConverter/`** | Imports an original VB6 Mirage Online server directory into this JSON format — binary `.dat` maps and INI data alike, with account passwords hashed on the way through. The source directory is only ever read. |
+
+Two things worth knowing before running any of them:
+
+- **They compute with this engine's own formulas.** Each one takes a project reference on
+  `Mirage.Shared`, so item prices come from `EconomyFormulas`, NPC health from the same
+  `GetNpcMaxHp` the server uses, and experience from `ExpFormulas`. A generator cannot drift from the
+  engine, because it has no second copy of the rule to drift from. That is also why the tools repository
+  expects to sit beside this one — the reference is a relative path.
+- **They own their collections outright.** A generator clears its collection before writing, so hand
+  edits to `data/items/` are lost the next time the armory generator runs. Author in the editor, or
+  author in the generator — not both.
+
+The pipeline reproduces the committed seed byte-identically, which makes `git status` on `data/` after a
+run a real check that nothing has drifted.
+
+Not published: the standalone balance simulators. They exist to answer design questions, their output is
+already baked into the numbers the generators use, and nothing here builds them.
 
 ---
 
