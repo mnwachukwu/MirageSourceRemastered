@@ -15,11 +15,14 @@ namespace Mirage.Server.Tests;
 /// The editor dispatch's authentication gate, checked across EVERY editor packet rather than a sample.
 ///
 /// <para>An editor session is a plain TCP connection until it logs in, and it reaches content-mutating
-/// handlers — save a map, rewrite an NPC, redefine a shop's stock — with no player record and no admin
-/// level behind it. The only thing standing in front of those is a per-handler
-/// <c>IsEditorAuthenticated</c> check, repeated 26 times. A new handler added without one is a hole
-/// that nothing else would catch: it would pass every functional test, because functional tests
-/// authenticate first.</para>
+/// handlers — save a map, rewrite an NPC, redefine a shop's stock — with no player record behind it. The
+/// only thing standing in front of those is a per-handler <c>RequireAccess</c> check, repeated 26 times.
+/// A new handler added without one is a hole that nothing else would catch: it would pass every
+/// functional test, because functional tests authenticate first.</para>
+///
+/// <para>That guard used to test authentication ALONE, which is how a Mapper could save every content
+/// type the editor client only shows to Developer and above. It now carries a tier as well; the tier
+/// BOUNDARY is asserted in <c>EditorLiveBroadcastTests</c>, which can hand the handlers real payloads.</para>
 ///
 /// <para>So this enumerates the editor packet types by REFLECTION and asserts each is refused while
 /// unauthenticated. A new editor packet is covered the moment it exists — no list to maintain, which
@@ -138,7 +141,16 @@ public class EditorAuthGateTests
                 items: null!, joinLeave: null!, quests: null!, spawn: null!,
                 NullLogger<EditorPacketHandler>.Instance);
 
-        public void Authenticate() => Editors.GetSession(Editor)!.IsAuthenticated = true;
+        // Authenticating means BOTH flags now: a session with no access level is a Player, and the
+        // handlers refuse those. The tier boundary itself is asserted in EditorLiveBroadcastTests, where
+        // the packets carry real payloads — here a refused packet and an invalid one look identical,
+        // because the access check runs before the validation and both simply send nothing.
+        public void Authenticate(AdminLevel access = AdminLevel.Creator)
+        {
+            var s = Editors.GetSession(Editor)!;
+            s.IsAuthenticated = true;
+            s.AdminLevel = access;
+        }
 
         public void Dispatch<T>(T packet) where T : IPacket
             => _handler.HandleEditorPacket(Editor, PacketSerializer.Serialize(packet));

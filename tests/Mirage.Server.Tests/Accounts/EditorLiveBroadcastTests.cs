@@ -202,6 +202,56 @@ public class EditorLiveBroadcastTests
         });
     }
 
+    // ── Access gate: authenticated is not the same as ALLOWED ─────────────────────
+    //
+    // 🔴 The handlers used to check authentication alone. session.AdminLevel was set at login and never
+    // read again, so a MAPPER — the lowest tier the editor admits — could save items, NPCs, shops,
+    // spells, classes, quests and conversations. The editor client hides those sections below Developer,
+    // but that is presentation, and this engine ships its client's source.
+    //
+    // The compiler cannot help here: the old guard and the new one both return bool, so a handler left on
+    // the wrong tier looks identical. These assert the boundary from the outside instead.
+
+    [Test]
+    public void MapperCannotSaveContent()
+    {
+        var h = new Harness(AdminLevel.Mapper);
+
+        h.Save(new EditorSaveClassPacket { ClassNum = 2, Name = "Warrior", SpriteMale = 7 });
+        h.Save(new EditorSaveItemPacket { ItemNum = 3, Name = "Short Sword" });
+        h.Save(new EditorSaveSpellPacket { SpellNum = 5, Name = "Fireball" });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(h.World.Classes[2].Name, Is.Empty, "a Mapper must not be able to rewrite a class");
+            Assert.That(h.World.Items[3].Name, Is.Empty, "a Mapper must not be able to rewrite an item");
+            Assert.That(h.World.Spells[5].Name, Is.Empty, "a Mapper must not be able to rewrite a spell");
+            Assert.That(h.Dispatcher.Broadcasts, Is.Empty, "a refused save must not reach players either");
+        });
+    }
+
+    // The other half of the gate: a Mapper is admitted to the editor precisely to author maps, so tiering
+    // must not lock them out of the tool they use every day.
+    [Test]
+    public void MapperCanStillSaveAMapGroup()
+    {
+        var h = new Harness(AdminLevel.Mapper);
+
+        h.Save(new EditorSaveMapGroupPacket { GroupNum = 3, Name = "Catacombs", Music = 9 });
+
+        Assert.That(h.World.MapGroups[3].Music, Is.EqualTo(9), "map work is what a Mapper is for");
+    }
+
+    [Test]
+    public void DeveloperCanSaveContent()
+    {
+        var h = new Harness(AdminLevel.Developer);
+
+        h.Save(new EditorSaveItemPacket { ItemNum = 3, Name = "Short Sword" });
+
+        Assert.That(h.World.Items[3].Name, Is.EqualTo("Short Sword"));
+    }
+
     // ── Harness ────────────────────────────────────────────────────────────────────
 
     // Builds an EditorPacketHandler wired with just the deps the editor-save paths actually touch (world, editor
@@ -221,9 +271,13 @@ public class EditorLiveBroadcastTests
         public readonly RecordingPersistence Persistence = new();
         private readonly EditorPacketHandler _handler;
 
-        public Harness()
+        // Access defaults to Creator because these tests are about BROADCASTS, not permissions — the
+        // handler now refuses a content save below Developer, and a session left at the enum's default
+        // (Player) would fail every test here for a reason that has nothing to do with what they assert.
+        public Harness(AdminLevel access = AdminLevel.Creator)
         {
             Editors.GetSession(Editor)!.IsAuthenticated = true;
+            Editors.GetSession(Editor)!.AdminLevel = access;
             _handler = new EditorPacketHandler(
                 World, Pm, Editors, Dispatcher, Persistence, new NoOpBackground(),
                 items: null!, joinLeave: null!, quests: null!, spawn: null!,

@@ -22,9 +22,10 @@ namespace Mirage.Server.Core.Net;
 /// social, or the game loop. Separating them means an editor test can build a real handler instead
 /// of passing <c>null!</c> for two thirds of a constructor it does not use.</para>
 ///
-/// <para>Authentication is re-checked by every handler through <see cref="IsEditorAuthenticated"/>,
-/// so an unauthenticated session can send only <see cref="EditorLoginPacket"/>. There is no flood
-/// limit here (unlike the game dispatch) because editor sessions are Mapper+ by definition.</para>
+/// <para>Every handler re-checks BOTH authentication and access through <see cref="RequireAccess"/>, so
+/// an unauthenticated session can send only <see cref="EditorLoginPacket"/>, and a Mapper cannot reach
+/// the content saves the editor client only shows to Developer and above. There is no flood limit here
+/// (unlike the game dispatch) because editor sessions are Mapper+ by definition.</para>
 /// </summary>
 public sealed class EditorPacketHandler
 {
@@ -60,8 +61,8 @@ public sealed class EditorPacketHandler
     }
 
     /// <summary>Dispatch one JSON line from a dedicated editor session. Every handler re-checks
-    /// authentication (<see cref="IsEditorAuthenticated"/>), so an unauthenticated session can send only
-    /// <see cref="EditorLoginPacket"/>. No flood limit — editor sessions are Mapper+ by definition.</summary>
+    /// authentication and access (<see cref="RequireAccess"/>), so an unauthenticated session can send
+    /// only <see cref="EditorLoginPacket"/>. No flood limit — editor sessions are Mapper+ by definition.</summary>
     public void HandleEditorPacket(int editorIndex, string jsonLine)
     {
         IPacket? packet = PacketSerializer.TryDeserialize(jsonLine);
@@ -283,7 +284,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestItem(int editorIndex, EditorRequestItemPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.ItemNum;
         if (!SlotValidation.IsValidItemNum(n, _world.Limits.Items)) return;
         _dispatcher.SendToEditor(editorIndex, PacketBuilder.UpdateItem(n, _world.Items[n]));
@@ -291,7 +292,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestNpc(int editorIndex, EditorRequestNpcPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.NpcNum;
         if (!SlotValidation.IsValidNpcNum(n, _world.Limits.Npcs)) return;
         var npc = _world.Npcs[n];
@@ -320,7 +321,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestShop(int editorIndex, EditorRequestShopPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.ShopNum;
         if (!SlotValidation.IsValidShopNum(n, _world.Limits.Shops)) return;
         var shop = _world.Shops[n];
@@ -342,7 +343,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestSpell(int editorIndex, EditorRequestSpellPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.SpellNum;
         if (!SlotValidation.IsValidSpellNum(n, _world.Limits.Spells)) return;
         var spell = _world.Spells[n];
@@ -361,7 +362,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestMap(int editorIndex, EditorRequestMapPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.MapNum;
         if (!SlotValidation.IsValidMapNum(n, _world.Limits.Maps)) return;
         _dispatcher.SendToEditor(editorIndex, PacketBuilder.SendMap(n, _world.Maps[n], forEditor: true));
@@ -369,7 +370,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestClass(int editorIndex, EditorRequestClassPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.ClassNum;
         if (!SlotValidation.IsValidClassNum(n)) return;
         var cls = _world.Classes[n];
@@ -391,7 +392,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestAllItems(int editorIndex, EditorRequestAllItemsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllItemsPacket
         {
             Items = Enumerable.Range(1, _world.Limits.Items)
@@ -402,7 +403,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestAllNpcs(int editorIndex, EditorRequestAllNpcsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllNpcsPacket
         {
             Npcs = Enumerable.Range(1, _world.Limits.Npcs).Select(n =>
@@ -426,7 +427,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestAllShops(int editorIndex, EditorRequestAllShopsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllShopsPacket
         {
             Shops = Enumerable.Range(1, _world.Limits.Shops).Select(n =>
@@ -448,7 +449,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestAllSpells(int editorIndex, EditorRequestAllSpellsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllSpellsPacket
         {
             Spells = Enumerable.Range(1, _world.Limits.Spells).Select(n =>
@@ -468,7 +469,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestAllClasses(int editorIndex, EditorRequestAllClassesPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllClassesPacket
         {
             Classes = Enumerable.Range(1, Constants.MaxClasses).Select(n =>
@@ -488,7 +489,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveClass(int editorIndex, EditorSaveClassPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
         int n = p.ClassNum;
         if (!SlotValidation.IsValidClassNum(n)) return;
 
@@ -537,7 +538,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveItem(int editorIndex, EditorSaveItemPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
 
         int n = p.ItemNum;
         if (!SlotValidation.IsValidItemNum(n, _world.Limits.Items)) return;
@@ -570,7 +571,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveNpc(int editorIndex, EditorSaveNpcPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
 
         int n = p.NpcNum;
         if (!SlotValidation.IsValidNpcNum(n, _world.Limits.Npcs)) return;
@@ -651,7 +652,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveShop(int editorIndex, EditorSaveShopPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
 
         int n = p.ShopNum;
         if (!SlotValidation.IsValidShopNum(n, _world.Limits.Shops)) return;
@@ -721,14 +722,14 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestQuest(int editorIndex, EditorRequestQuestPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         if (!SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
         _dispatcher.SendToEditor(editorIndex, BuildUpdateQuest(p.QuestNum));
     }
 
     private void HandleEditorRequestAllQuests(int editorIndex, EditorRequestAllQuestsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllQuestsPacket
         {
             Quests = Enumerable.Range(1, _world.Limits.Quests).Select(BuildUpdateQuest).ToArray(),
@@ -737,7 +738,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveQuest(int editorIndex, EditorSaveQuestPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
         int n = p.QuestNum;
         if (!SlotValidation.IsValidQuestNum(n, _world.Limits.Quests)) return;
 
@@ -825,14 +826,14 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestConversation(int editorIndex, EditorRequestConversationPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         if (!SlotValidation.IsValidConversationNum(p.ConvNum, _world.Limits.Conversations)) return;
         _dispatcher.SendToEditor(editorIndex, BuildUpdateConversation(p.ConvNum));
     }
 
     private void HandleEditorRequestAllConversations(int editorIndex, EditorRequestAllConversationsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllConversationsPacket
         {
             Conversations = Enumerable.Range(1, _world.Limits.Conversations).Select(BuildUpdateConversation).ToArray(),
@@ -841,7 +842,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveConversation(int editorIndex, EditorSaveConversationPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
         int n = p.ConvNum;
         if (!SlotValidation.IsValidConversationNum(n, _world.Limits.Conversations)) return;
 
@@ -905,7 +906,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveSpell(int editorIndex, EditorSaveSpellPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
 
         int n = p.SpellNum;
         if (!SlotValidation.IsValidSpellNum(n, _world.Limits.Spells)) return;
@@ -940,7 +941,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveMap(int editorIndex, EditorSaveMapPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
 
         int mapNum = p.MapNum;
         if (!SlotValidation.IsValidMapNum(mapNum, _world.Limits.Maps)) return;
@@ -1053,7 +1054,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestMapGroup(int editorIndex, EditorRequestMapGroupPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.GroupNum;
         if (!SlotValidation.IsValidMapGroupNum(n, _world.Limits.MapGroups)) return;
         var group = _world.MapGroups.GetValueOrDefault(n) ?? new MapGroupRecord { Index = n };
@@ -1062,7 +1063,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorRequestAllMapGroups(int editorIndex, EditorRequestAllMapGroupsPacket _)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllMapGroupsPacket
         {
             MapGroups = Enumerable.Range(1, _world.Limits.MapGroups)
@@ -1073,7 +1074,7 @@ public sealed class EditorPacketHandler
 
     private void HandleEditorSaveMapGroup(int editorIndex, EditorSaveMapGroupPacket p)
     {
-        if (!IsEditorAuthenticated(editorIndex)) return;
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
 
         int n = p.GroupNum;
         if (!SlotValidation.IsValidMapGroupNum(n, _world.Limits.MapGroups)) return;
@@ -1124,9 +1125,27 @@ public sealed class EditorPacketHandler
             TaskContinuationOptions.OnlyOnFaulted);
     }
 
-    private bool IsEditorAuthenticated(int editorIndex)
+    /// <summary>
+    /// Whether this session is authenticated AND cleared to <paramref name="required"/>.
+    ///
+    /// <para>🔴 <b>The access half did not exist.</b> Every handler used to check authentication alone,
+    /// and <c>session.AdminLevel</c> was assigned at login and never read again — so a Mapper, the lowest
+    /// tier the editor admits, could save items, NPCs, shops, spells, classes, quests and conversations.
+    /// The editor client hides those sections below Developer, but that is presentation: the server took
+    /// the packet from anyone who had logged in, and this engine ships its client's source.</para>
+    ///
+    /// <para>A refusal is LOGGED rather than silently dropped, mirroring the in-game handlers' hacking
+    /// notice — an operator should be able to see somebody reaching past their tier.</para>
+    /// </summary>
+    private bool RequireAccess(int editorIndex, AdminLevel required)
     {
         var session = _editors.GetSession(editorIndex);
-        return session is not null && session.IsAuthenticated;
+        if (session is null || !session.IsAuthenticated) return false;
+        if (session.AdminLevel >= required) return true;
+
+        _logger.LogWarning(
+            "Editor session {Login} ({Access}) attempted an action requiring {Required}.",
+            session.Login, session.AdminLevel, required);
+        return false;
     }
 }
