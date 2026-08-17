@@ -35,7 +35,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
               <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
@@ -45,7 +45,7 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
+    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
@@ -99,7 +99,7 @@
           <!-- Trade table — visible for Store-type shops only -->
           <TextBlock x:Name="_tradesHeader" Margin="0,8,0,2"
                      IsVisible="{Binding SelectedShop.IsStore}"/>
-          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4"
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4"
                   IsVisible="{Binding SelectedShop.IsStore}">
             <StackPanel>
               <!-- Header row: 2* for item pickers, 1* for qty, fixed col for the per-row remove button -->
@@ -165,7 +165,7 @@
           </Grid>
           <TextBlock x:Name="_salesHint" Margin="0,0,0,4" Foreground="#8B84AE" FontSize="11"
                      TextWrapping="Wrap" IsVisible="{Binding SelectedShop.IsStore}"/>
-          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4"
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4"
                   IsVisible="{Binding SelectedShop.IsStore}">
             <StackPanel>
               <!-- Order | item picker | price | reorder + remove -->
@@ -228,7 +228,7 @@
                      Foreground="#E0A030" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,2"/>
 
           <TextBlock Text="{Binding StatusMessage}"
-                     Foreground="#88FF88"
+                     Foreground="{DynamicResource MirageOkBrush}"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
@@ -236,24 +236,24 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
+            BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#6B1500" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_discardAllBtn"
                 Command="{Binding DiscardAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#6B3300" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_saveBtn"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#1A5A1A" Foreground="White"/>
+                Classes="primary"/>
         <Button x:Name="_saveAllBtn"
                 Command="{Binding SaveAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#1A3A6A" Foreground="White"/>
+                Classes="primary"/>
       </StackPanel>
     </Border>
 

@@ -35,7 +35,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
               <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
@@ -45,7 +45,7 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
+    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
@@ -90,7 +90,7 @@
           <ItemsControl ItemsSource="{Binding SelectedConversation.Nodes}">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4" Margin="0,0,0,8" Padding="8">
+                <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,8" Padding="8">
                   <StackPanel Spacing="6">
                     <Grid ColumnDefinitions="*,34">
                       <TextBlock Grid.Column="0" Text="{Binding Header}" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -103,7 +103,7 @@
                     <TextBox Text="{Binding Text}" PlaceholderText="{Binding TextPlaceholder}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" VerticalContentAlignment="Top"/>
 
-                    <TextBlock Text="{Binding ChoicesLabel}" Foreground="#A9A2C9" FontSize="11" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding ChoicesLabel}" Foreground="{DynamicResource MirageMutedBrush}" FontSize="11" Margin="0,2,0,0"/>
                     <TextBlock Text="{Binding NoChoicesHint}" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"
                                IsVisible="{Binding HasNoChoices}"/>
                     <ItemsControl ItemsSource="{Binding Choices}">
@@ -141,7 +141,7 @@
                   HorizontalAlignment="Left" Padding="10,3"/>
 
           <TextBlock Text="{Binding StatusMessage}"
-                     Foreground="#88FF88"
+                     Foreground="{DynamicResource MirageOkBrush}"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
@@ -149,24 +149,24 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
+            BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#6B1500" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_discardAllBtn"
                 Command="{Binding DiscardAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#6B3300" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_saveBtn"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#1A5A1A" Foreground="White"/>
+                Classes="primary"/>
         <Button x:Name="_saveAllBtn"
                 Command="{Binding SaveAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#1A3A6A" Foreground="White"/>
+                Classes="primary"/>
       </StackPanel>
     </Border>
 

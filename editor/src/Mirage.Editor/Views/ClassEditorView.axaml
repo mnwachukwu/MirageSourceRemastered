@@ -35,7 +35,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
               <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
@@ -45,7 +45,7 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
+    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
@@ -152,7 +152,7 @@
                            Minimum="0" Maximum="255" FormatString="0"/>
           </Grid>
 
-          <Separator Margin="0,4,0,2" Background="#302A55"/>
+          <Separator Margin="0,4,0,2" Background="{DynamicResource MirageLineSoftBrush}"/>
 
           <!-- Vital previews: theoretical fresh Lv.1 character of this class (playerStat = classStat) -->
           <Grid ColumnDefinitions="130,*">
@@ -186,7 +186,7 @@
                      FontSize="11" Foreground="#6B6491" Margin="130,0,0,4"/>
 
           <!-- Regen + base combat preview (compact two-column panel) -->
-          <Border Background="#1F1F28" BorderBrush="#302A55" BorderThickness="1"
+          <Border Background="#1F1F28" BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="12,8" Margin="0,4,0,0">
             <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
 
@@ -194,15 +194,15 @@
                 <TextBlock x:Name="_regenHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
                 <Grid ColumnDefinitions="*,Auto">
                   <TextBlock x:Name="_hpRegenLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
-                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneHpRegen}" Foreground="#88FF88" FontWeight="SemiBold" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneHpRegen}" Foreground="{DynamicResource MirageOkBrush}" FontWeight="SemiBold" FontSize="11"/>
                 </Grid>
                 <Grid ColumnDefinitions="*,Auto">
                   <TextBlock x:Name="_mpRegenLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
-                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneMpRegen}" Foreground="#88FF88" FontWeight="SemiBold" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneMpRegen}" Foreground="{DynamicResource MirageOkBrush}" FontWeight="SemiBold" FontSize="11"/>
                 </Grid>
                 <Grid ColumnDefinitions="*,Auto">
                   <TextBlock x:Name="_spRegenLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
-                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneSpRegen}" Foreground="#88FF88" FontWeight="SemiBold" FontSize="11"/>
+                  <TextBlock Grid.Column="1" Text="{Binding SelectedClass.LevelOneSpRegen}" Foreground="{DynamicResource MirageOkBrush}" FontWeight="SemiBold" FontSize="11"/>
                 </Grid>
               </StackPanel>
 
@@ -225,18 +225,18 @@
           </Border>
 
           <!-- Formula notes panel -->
-          <Border Background="#1A1A2A" BorderBrush="#302A55" BorderThickness="1"
+          <Border Background="#1A1A2A" BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
             <StackPanel Spacing="6">
               <TextBlock x:Name="_formulaNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
 
               <TextBlock x:Name="_fmtVitalsHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtVitalsMaxHp"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtVitalsMaxMp"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtVitalsMaxSp"/>
               </StackPanel>
 
@@ -245,11 +245,11 @@
 
               <TextBlock x:Name="_fmtRegenHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtRegenHp"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtRegenMp"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtRegenSp"/>
               </StackPanel>
               <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
@@ -257,11 +257,11 @@
 
               <TextBlock x:Name="_fmtCombatHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtCombatPDmg"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtCombatMDmg"/>
-                <TextBlock TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
                            x:Name="_fmtCombatMit"/>
               </StackPanel>
               <TextBlock TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"
@@ -277,7 +277,7 @@
                requires the player to open a bag. The outcome column on each item row is the important
                part: character creation SKIPS a line the class cannot use, so an unusable row produces a
                missing item and no explanation in-game, and this is the only place that shows up. -->
-          <Border BorderBrush="#302A55" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0"
+          <Border BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0"
                   IsVisible="{Binding SelectedClass, Converter={x:Static ObjectConverters.IsNotNull}}">
             <StackPanel Spacing="4">
               <Grid ColumnDefinitions="*,Auto">
@@ -355,7 +355,7 @@
           </Border>
 
           <TextBlock Text="{Binding StatusMessage}"
-                     Foreground="#88FF88"
+                     Foreground="{DynamicResource MirageOkBrush}"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
@@ -363,24 +363,24 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
+            BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardButton"
                 Command="{Binding DiscardCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#6B1500" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_discardAllButton"
                 Command="{Binding DiscardAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#6B3300" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_saveClassButton"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#1A5A1A" Foreground="White"/>
+                Classes="primary"/>
         <Button x:Name="_saveAllButton"
                 Command="{Binding SaveAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#1A3A6A" Foreground="White"/>
+                Classes="primary"/>
       </StackPanel>
     </Border>
 

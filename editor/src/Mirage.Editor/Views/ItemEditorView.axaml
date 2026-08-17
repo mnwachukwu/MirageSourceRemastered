@@ -47,7 +47,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
               <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
@@ -57,7 +57,7 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
+    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
@@ -188,10 +188,10 @@
                            Minimum="0" Maximum="2000000000" Increment="1" FormatString="0"/>
           </Grid>
 
-          <Separator Margin="0,4,0,2" Background="#302A55"/>
+          <Separator Margin="0,4,0,2" Background="{DynamicResource MirageLineSoftBrush}"/>
 
           <!-- Item type notes panel -->
-          <Border Background="#1A1A2A" BorderBrush="#302A55" BorderThickness="1"
+          <Border Background="#1A1A2A" BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
             <StackPanel Spacing="6">
               <TextBlock x:Name="_fieldNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
@@ -203,10 +203,10 @@
                 <TextBlock x:Name="_notesEquipmentDurability" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
                 <TextBlock x:Name="_notesEquipmentPower"  TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
                 <StackPanel Margin="12,0,0,0" Spacing="2">
-                  <TextBlock x:Name="_notesEquipmentWeapon" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                  <TextBlock x:Name="_notesEquipmentArmor"  TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                  <TextBlock x:Name="_notesEquipmentHelmet" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                  <TextBlock x:Name="_notesEquipmentShield" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentWeapon" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentArmor"  TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentHelmet" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                  <TextBlock x:Name="_notesEquipmentShield" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                 </StackPanel>
                 <TextBlock x:Name="_notesEquipmentClassReq"   TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
                 <TextBlock x:Name="_notesEquipmentShieldSide" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
@@ -244,7 +244,7 @@
           </Border>
 
           <TextBlock Text="{Binding StatusMessage}"
-                     Foreground="#88FF88"
+                     Foreground="{DynamicResource MirageOkBrush}"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
@@ -252,24 +252,24 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
+            BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#6B1500" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_discardAllBtn"
                 Command="{Binding DiscardAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#6B3300" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_saveBtn"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#1A5A1A" Foreground="White"/>
+                Classes="primary"/>
         <Button x:Name="_saveAllBtn"
                 Command="{Binding SaveAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#1A3A6A" Foreground="White"/>
+                Classes="primary"/>
       </StackPanel>
     </Border>
 

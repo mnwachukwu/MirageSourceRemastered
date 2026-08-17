@@ -22,6 +22,9 @@ public sealed class AppSettings
     public double? WindowWidth { get; set; }
     public double? WindowHeight { get; set; }
     public bool WindowMaximized { get; set; }
+    /// <summary>Whether the section rail is showing icons only. Persisted with the rest of the window
+    /// layout, so the editor reopens in the shape it was left in.</summary>
+    public bool RailCollapsed { get; set; }
 
     // Map editor panel widths/heights
     public double MapEditorLeftWidth { get; set; } = 256;

@@ -13,10 +13,10 @@
 
       <!-- ══ Controls ══════════════════════════════════════════════════════════ -->
       <StackPanel Spacing="6">
-        <TextBlock x:Name="_controlsHeader" FontSize="13" FontWeight="SemiBold" Foreground="#A9A2C9"/>
-        <Separator Background="#302A55"/>
+        <TextBlock x:Name="_controlsHeader" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MirageMutedBrush}"/>
+        <Separator Background="{DynamicResource MirageLineSoftBrush}"/>
 
-        <Border Background="#181818" CornerRadius="4" Padding="10,8">
+        <Border Background="{DynamicResource MirageConsoleBrush}" CornerRadius="4" Padding="10,8">
           <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0">
             <TextBlock x:Name="_ctrlLeftClick"            Grid.Row="0"  Grid.Column="0" Foreground="#8B84AE" FontSize="11" MinWidth="160" Margin="0,0,0,5"/>
             <TextBlock x:Name="_ctrlLeftClickDesc"        Grid.Row="0"  Grid.Column="1" Foreground="#CFC9E4" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,5"/>
@@ -60,10 +60,10 @@
 
       <!-- ══ Selection & Clipboard ════════════════════════════════════════════ -->
       <StackPanel Spacing="6">
-        <TextBlock x:Name="_selectionHeader" FontSize="13" FontWeight="SemiBold" Foreground="#A9A2C9"/>
-        <Separator Background="#302A55"/>
+        <TextBlock x:Name="_selectionHeader" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MirageMutedBrush}"/>
+        <Separator Background="{DynamicResource MirageLineSoftBrush}"/>
 
-        <Border Background="#181818" CornerRadius="4" Padding="10,8">
+        <Border Background="{DynamicResource MirageConsoleBrush}" CornerRadius="4" Padding="10,8">
           <StackPanel Spacing="6">
             <TextBlock x:Name="_selectionIntro" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
             <Grid ColumnDefinitions="Auto,*"
@@ -94,10 +94,10 @@
 
       <!-- ══ Tile Layers ═══════════════════════════════════════════════════════ -->
       <StackPanel Spacing="6">
-        <TextBlock x:Name="_layersHeader" FontSize="13" FontWeight="SemiBold" Foreground="#A9A2C9"/>
-        <Separator Background="#302A55"/>
+        <TextBlock x:Name="_layersHeader" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MirageMutedBrush}"/>
+        <Separator Background="{DynamicResource MirageLineSoftBrush}"/>
 
-        <Border Background="#181818" CornerRadius="4" Padding="10,8">
+        <Border Background="{DynamicResource MirageConsoleBrush}" CornerRadius="4" Padding="10,8">
           <StackPanel Spacing="6">
             <TextBlock x:Name="_layersIntro" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
             <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,0">
@@ -118,13 +118,13 @@
 
       <!-- ══ Attribute Reference ═══════════════════════════════════════════════ -->
       <StackPanel Spacing="6">
-        <TextBlock x:Name="_attributeHeader" FontSize="13" FontWeight="SemiBold" Foreground="#A9A2C9"/>
-        <Separator Background="#302A55"/>
+        <TextBlock x:Name="_attributeHeader" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MirageMutedBrush}"/>
+        <Separator Background="{DynamicResource MirageLineSoftBrush}"/>
         <TextBlock x:Name="_attributesIntro" TextWrapping="Wrap" Foreground="#6B6491" FontSize="11"/>
 
         <!-- Blocked -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#FF4444"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrBlocked" FontWeight="SemiBold" Foreground="#FF8888"/>
             <TextBlock x:Name="_attrBlockedDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -133,7 +133,7 @@
 
         <!-- Warp -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#4466FF"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrWarp" FontWeight="SemiBold" Foreground="#8899FF"/>
             <TextBlock x:Name="_attrWarpDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -143,7 +143,7 @@
 
         <!-- Item -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#BBBB00"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrItem" FontWeight="SemiBold" Foreground="#DDDD44"/>
             <TextBlock x:Name="_attrItemDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -153,7 +153,7 @@
 
         <!-- NPC Avoid -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#888888"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrNpcAvoid" FontWeight="SemiBold" Foreground="#AAAAAA"/>
             <TextBlock x:Name="_attrNpcAvoidDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -161,8 +161,8 @@
         </Border>
 
         <!-- Key -->
-        <Border BorderThickness="4,0,0,0" BorderBrush="#FF8C00"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageWarnBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrKey" FontWeight="SemiBold" Foreground="#FFBB44"/>
             <TextBlock x:Name="_attrKeyDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -173,7 +173,7 @@
 
         <!-- KeyOpen -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#A020F0"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrKeyOpen" FontWeight="SemiBold" Foreground="#CC66FF"/>
             <TextBlock x:Name="_attrKeyOpenDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -183,7 +183,7 @@
 
         <!-- NpcSpawn (fixed spawn pin) -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#00B8D4"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrNpcSpawn" FontWeight="SemiBold" Foreground="#66E0F5"/>
             <TextBlock x:Name="_attrNpcSpawnDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
@@ -192,7 +192,7 @@
 
         <!-- Layer Ramp (two-plane world connector) -->
         <Border BorderThickness="4,0,0,0" BorderBrush="#33CC55"
-                Background="#1B1634" CornerRadius="0,4,4,0" Padding="10,8">
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
           <StackPanel Spacing="3">
             <TextBlock x:Name="_attrLayerRamp" FontWeight="SemiBold" Foreground="#88FF99"/>
             <TextBlock x:Name="_attrLayerRampDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>

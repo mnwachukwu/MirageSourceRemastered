@@ -13,7 +13,7 @@
     <TextBlock x:Name="_summary"
                Text="{Binding Summary}"
                Foreground="#99BBDD" FontSize="11" TextWrapping="Wrap"/>
-    <Border BorderBrush="#302A55" BorderThickness="1" CornerRadius="3" Padding="6,4">
+    <Border BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1" CornerRadius="3" Padding="6,4">
       <ScrollViewer MaxHeight="132" VerticalScrollBarVisibility="Auto">
         <ItemsControl ItemsSource="{Binding Classes}">
           <ItemsControl.ItemTemplate>
@@ -26,6 +26,6 @@
         </ItemsControl>
       </ScrollViewer>
     </Border>
-    <TextBlock x:Name="_hint" Foreground="#7A739F" FontSize="10" TextWrapping="Wrap"/>
+    <TextBlock x:Name="_hint" Foreground="{DynamicResource MirageFaintBrush}" FontSize="10" TextWrapping="Wrap"/>
   </StackPanel>
 </UserControl>

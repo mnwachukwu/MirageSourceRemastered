@@ -52,6 +52,14 @@
   <SolidColorBrush x:Key="MirageWarnBrush" Color="{StaticResource MirageWarn}"/>
   <SolidColorBrush x:Key="MirageBadBrush" Color="{StaticResource MirageBad}"/>
 
+  <!-- The semantic colours as a GROUND rather than as ink: the same hue at low alpha, so a badge or a
+       button reads as one object instead of as coloured text sitting on a coloured chip. Alpha rather
+       than a mixed solid, because these sit on three different surfaces and have to tint whichever one
+       they land on. Hi is the pointer-over step. -->
+  <SolidColorBrush x:Key="MirageOkFillBrush" Color="#244ADE80"/>
+  <SolidColorBrush x:Key="MirageBadFillBrush" Color="#24F87171"/>
+  <SolidColorBrush x:Key="MirageBadFillHiBrush" Color="#3DF87171"/>
+
   <!-- ── FluentAvalonia's own keys, repointed at the ramp ─────────────────── -->
   <!-- The WinUI names every built-in control theme reads. Overriding them is what moves the whole
        control set onto this palette; restyling controls one at a time leaves the ones nobody

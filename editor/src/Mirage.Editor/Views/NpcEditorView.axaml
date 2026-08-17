@@ -47,7 +47,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
               <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
@@ -57,7 +57,7 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
+    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
@@ -191,7 +191,7 @@
          rows sitting in a column of plain single-value fields, and unboxed it read as though the
          drop rows were more stat fields — the eye had nothing telling it where the mob's own
          properties stopped and its loot began. -->
-    <Border BorderBrush="#302A55" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0">
+    <Border BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0">
       <StackPanel Spacing="4">
 
           <Grid ColumnDefinitions="130,*">
@@ -281,7 +281,7 @@
           </Grid>
           <TextBlock x:Name="_extraHpNote" Foreground="#8B84AE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 
-          <Separator Margin="0,4,0,2" Background="#302A55"/>
+          <Separator Margin="0,4,0,2" Background="{DynamicResource MirageLineSoftBrush}"/>
 
           <!-- Stat-budget preview — raw total + Total Level (all stats incl SPD) and Combat Level (Str+Def+Int
                only) so designers can size the whole NPC AND its combat toughness against the player curve. -->
@@ -305,7 +305,7 @@
 
           <TextBlock x:Name="_levelNote" Foreground="#8B84AE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 
-          <Separator Margin="0,4,0,2" Background="#302A55"/>
+          <Separator Margin="0,4,0,2" Background="{DynamicResource MirageLineSoftBrush}"/>
 
           <!-- Calculated values grouped into columns: Vitals / Regen / Effectiveness / Chance /
                Rewards.  Chance sits beside Effectiveness so all fight-focused calcs read as one
@@ -314,7 +314,7 @@
           <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="6" Margin="0,2,0,0">
 
             <!-- Vitals -->
-            <Border Grid.Column="0" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="0" Background="{DynamicResource MirageBgBrush}" BorderBrush="{DynamicResource MirageSurfaceBrush}" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_vitalsHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
@@ -333,7 +333,7 @@
             </Border>
 
             <!-- Regen -->
-            <Border Grid.Column="1" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="1" Background="{DynamicResource MirageBgBrush}" BorderBrush="{DynamicResource MirageSurfaceBrush}" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_regenHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
@@ -352,7 +352,7 @@
             </Border>
 
             <!-- Effectiveness — damage and mitigation the NPC actually rolls in a fight. -->
-            <Border Grid.Column="2" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="2" Background="{DynamicResource MirageBgBrush}" BorderBrush="{DynamicResource MirageSurfaceBrush}" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_effHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
@@ -371,7 +371,7 @@
             </Border>
 
             <!-- Chance -->
-            <Border Grid.Column="3" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="3" Background="{DynamicResource MirageBgBrush}" BorderBrush="{DynamicResource MirageSurfaceBrush}" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_chanceHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
@@ -394,7 +394,7 @@
             </Border>
 
             <!-- Rewards -->
-            <Border Grid.Column="4" Background="#16122A" BorderBrush="#211B3D" BorderThickness="1" CornerRadius="3" Padding="7,5">
+            <Border Grid.Column="4" Background="{DynamicResource MirageBgBrush}" BorderBrush="{DynamicResource MirageSurfaceBrush}" BorderThickness="1" CornerRadius="3" Padding="7,5">
             <StackPanel Spacing="3">
               <TextBlock x:Name="_rewardsHeader" FontWeight="SemiBold" FontSize="10" Foreground="#AAAACC" Margin="0,0,0,2"/>
               <Grid ColumnDefinitions="*,Auto">
@@ -416,34 +416,34 @@
           </Grid>
 
           <!-- Formula notes panel -->
-          <Border Background="#1A1A2A" BorderBrush="#302A55" BorderThickness="1"
+          <Border Background="#1A1A2A" BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="12,10" Margin="0,4,0,0">
             <StackPanel Spacing="6">
               <TextBlock x:Name="_formulaNotesHeader" FontWeight="SemiBold" Foreground="#AAAACC" FontSize="12"/>
 
               <TextBlock x:Name="_fmtVitalsHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtVitalsBaseHp"   TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsFavorPct" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsMaxHp"    TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsMaxMp"    TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtVitalsMaxSp"    TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsBaseHp"   TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsFavorPct" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsMaxHp"    TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsMaxMp"    TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtVitalsMaxSp"    TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
               <TextBlock x:Name="_fmtVitalsNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
 
               <TextBlock x:Name="_fmtRegenHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtRegenHp" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtRegenMp" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtRegenSp" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtRegenHp" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtRegenMp" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtRegenSp" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
               <TextBlock x:Name="_fmtRegenNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11"/>
 
               <TextBlock x:Name="_fmtCombatHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtCombatPDmg" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtCombatMDmg" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtCombatMit" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtCombatPDmg" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtCombatMDmg" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtCombatMit" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
                 <!-- The floor is Boss-dependent, so an author ticking that box needs to know what it changes. -->
                 <TextBlock x:Name="_fmtCombatFloor" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
               </StackPanel>
@@ -451,34 +451,34 @@
 
               <TextBlock x:Name="_fmtExpHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtExpLine1" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtExpLine2" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtExpLine1" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtExpLine2" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
               <TextBlock x:Name="_fmtExpNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
 
               <TextBlock x:Name="_fmtDropChanceHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtDropChance1" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance2" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance3" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance4" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtDropChance5" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance1" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance2" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance3" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance4" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtDropChance5" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
               <TextBlock x:Name="_fmtDropChanceNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
 
               <TextBlock x:Name="_fmtChancesHeader" FontWeight="SemiBold" Foreground="#99BBDD" FontSize="11" Margin="0,6,0,0"/>
               <StackPanel Margin="8,0,0,0" Spacing="3">
-                <TextBlock x:Name="_fmtChancesCrit"      TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtChancesSpellCrit" TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtChancesBlock"     TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
-                <TextBlock x:Name="_fmtChancesDodge"     TextWrapping="Wrap" Foreground="#7A739F" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesCrit"      TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesSpellCrit" TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesBlock"     TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
+                <TextBlock x:Name="_fmtChancesDodge"     TextWrapping="Wrap" Foreground="{DynamicResource MirageFaintBrush}" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"/>
               </StackPanel>
               <TextBlock x:Name="_fmtChancesNote" TextWrapping="Wrap" Foreground="#8B84AE" FontSize="11" Margin="0,4,0,0"/>
             </StackPanel>
           </Border>
 
           <TextBlock Text="{Binding StatusMessage}"
-                     Foreground="#88FF88"
+                     Foreground="{DynamicResource MirageOkBrush}"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
@@ -486,24 +486,24 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
+            BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#6B1500" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_discardAllBtn"
                 Command="{Binding DiscardAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#6B3300" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_saveNpcBtn"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#1A5A1A" Foreground="White"/>
+                Classes="primary"/>
         <Button x:Name="_saveAllBtn"
                 Command="{Binding SaveAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#1A3A6A" Foreground="White"/>
+                Classes="primary"/>
       </StackPanel>
     </Border>
 

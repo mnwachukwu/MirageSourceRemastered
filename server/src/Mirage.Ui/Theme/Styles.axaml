@@ -198,6 +198,18 @@
     <Setter Property="Foreground" Value="{DynamicResource MirageAccentBrush}"/>
   </Style>
 
+  <!-- Icons only. The row's side padding goes, and what is left is centred — a rail narrowed around a
+       left-aligned icon reads as a column that failed to load rather than as a deliberate shape. The
+       selected row keeps BOTH its accent bar and its accent icon here, because with the labels gone the
+       fill alone is the only other thing saying which section you are in. -->
+  <Style Selector="ListBox.rail.collapsed > ListBoxItem">
+    <Setter Property="Padding" Value="0,7"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="ListBox.rail.collapsed > ListBoxItem Grid">
+    <Setter Property="HorizontalAlignment" Value="Center"/>
+  </Style>
+
   <!-- ── Status pill ───────────────────────────────────────────────────────── -->
   <!-- State as a shape, not just coloured text: it survives a screenshot and a colourblind reader,
        where a hue on its own does not. -->
@@ -207,6 +219,86 @@
     <Setter Property="Padding" Value="10,3"/>
     <Setter Property="BorderThickness" Value="1"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
+  </Style>
+
+  <!-- Good and bad as classes, so a view can state its condition (Classes.ok="{Binding IsOnline}") and
+       never name a colour. The dot and the word are reached by descent rather than carrying a brush each,
+       which is what keeps a pill to one binding at the call site. -->
+
+  <Style Selector="Border.pill.ok">
+    <Setter Property="Background" Value="{DynamicResource MirageOkFillBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageOkBrush}"/>
+  </Style>
+  <Style Selector="Border.pill.ok TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource MirageOkBrush}"/>
+  </Style>
+  <Style Selector="Border.pill.ok Ellipse">
+    <Setter Property="Fill" Value="{DynamicResource MirageOkBrush}"/>
+  </Style>
+
+  <Style Selector="Border.pill.bad">
+    <Setter Property="Background" Value="{DynamicResource MirageBadFillBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageBadBrush}"/>
+  </Style>
+  <Style Selector="Border.pill.bad TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource MirageBadBrush}"/>
+  </Style>
+  <Style Selector="Border.pill.bad Ellipse">
+    <Setter Property="Fill" Value="{DynamicResource MirageBadBrush}"/>
+  </Style>
+
+  <!-- ── Buttons that mean something ───────────────────────────────────────── -->
+  <!-- Colour here encodes the KIND of action, never its scope — "Save" and "Save All" are the same verb
+       and wear the same treatment, because the scope is already in the label. Two classes is the whole
+       vocabulary; a third hue would only add a distinction nobody can name.
+
+       Every state is pinned on the template part rather than on the button. Setting Background on the
+       button itself covers the resting state only, so the theme's own pointer-over and disabled fills
+       come back the moment the mouse arrives — which is how a red button turned blue on hover. -->
+
+  <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MirageAccentBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageAccentBrush}"/>
+    <!-- The accent is a LIGHT colour, so its text has to be dark. -->
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColorLight2Brush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorLight2Brush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+  </Style>
+  <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1Brush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorDark1Brush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+  </Style>
+  <Style Selector="Button.primary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDisabledBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}"/>
+  </Style>
+
+  <!-- Destructive. Outlined rather than filled: a solid red block beside a solid accent block reads as
+       two equal offers, and discarding your work is not an equal offer. -->
+  <Style Selector="Button.danger /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MirageBadFillBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageBadBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageBadBrush}"/>
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MirageBadFillHiBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageBadBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageBadBrush}"/>
+  </Style>
+  <Style Selector="Button.danger:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource MirageBadBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageBadBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+  </Style>
+  <Style Selector="Button.danger:disabled /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MirageLineBrush}"/>
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}"/>
   </Style>
 
 </Styles>

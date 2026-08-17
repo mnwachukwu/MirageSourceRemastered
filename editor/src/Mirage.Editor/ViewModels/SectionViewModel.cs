@@ -17,6 +17,15 @@ public sealed partial class SectionViewModel : ObservableObject
 
     [ObservableProperty] private bool _hasDirty;
 
+    /// <summary>False while the rail is collapsed to icons.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TooltipText))]
+    private bool _isLabelVisible = true;
+
+    /// <summary>Null while the label is on screen — a tooltip that repeats a visible label is noise.
+    /// Collapsed, the icon is the only thing naming the section, so the name has to be reachable.</summary>
+    public string? TooltipText => IsLabelVisible ? null : DisplayName;
+
     public SectionViewModel(string name, string labelKey)
     {
         Name = name;
@@ -25,5 +34,9 @@ public sealed partial class SectionViewModel : ObservableObject
 
     /// <summary>Re-read <see cref="DisplayName"/> after a language change. Raised by
     /// <see cref="MainWindowViewModel"/>, which owns the section list.</summary>
-    public void NotifyDisplayNameChanged() => OnPropertyChanged(nameof(DisplayName));
+    public void NotifyDisplayNameChanged()
+    {
+        OnPropertyChanged(nameof(DisplayName));
+        OnPropertyChanged(nameof(TooltipText));
+    }
 }

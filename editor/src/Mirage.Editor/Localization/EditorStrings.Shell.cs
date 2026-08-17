@@ -49,6 +49,8 @@ public static partial class EditorStrings
     public const string MainWindow_Section_Conversations = nameof(MainWindow_Section_Conversations);
     public const string MainWindow_StatusOffline = nameof(MainWindow_StatusOffline);
     public const string MainWindow_StatusOnline = nameof(MainWindow_StatusOnline);
+    public const string MainWindow_RailCollapse = nameof(MainWindow_RailCollapse);
+    public const string MainWindow_RailExpand = nameof(MainWindow_RailExpand);
     public const string MainWindow_LoadingSection = nameof(MainWindow_LoadingSection);
     public const string MainWindow_LoadingData = nameof(MainWindow_LoadingData);
     public const string MainWindow_LoadingAssets = nameof(MainWindow_LoadingAssets);

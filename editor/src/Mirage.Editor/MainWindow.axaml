@@ -39,10 +39,22 @@
           <Button x:Name="_disconnectBtn"
                   Command="{Binding DisconnectCommand}"
                   IsVisible="{Binding IsOnline}" />
-          <Separator />
-          <TextBlock Text="{Binding ConnectionStatus}"
+          <!-- State as a SHAPE as well as a colour, the same badge the server window wears: a dot plus a
+               word survives a screenshot and a colourblind reader, where a hue on its own does not. The
+               server it is attached to sits OUTSIDE the badge — a pill that stretches to fit a host and
+               port is no longer a badge. -->
+          <Border Classes="pill" Classes.ok="{Binding IsOnline}" Classes.bad="{Binding !IsOnline}"
+                  Margin="6,0,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Ellipse Width="7" Height="7" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding ConnectionStatus}"
+                         FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Border>
+          <TextBlock Text="{Binding ConnectionEndpoint}"
                      VerticalAlignment="Center"
-                     Foreground="{DynamicResource MirageMutedBrush}" />
+                     Foreground="{DynamicResource MirageMutedBrush}"
+                     IsVisible="{Binding IsOnline}" />
           <TextBlock Text="{Binding LoadingStatus}"
                      VerticalAlignment="Center"
                      Foreground="{DynamicResource MirageWarnBrush}"
@@ -56,34 +68,53 @@
          label, and an accent pill down its left edge when selected — the shape every modern authoring
          tool uses, and the reason nine sections read as a tool rather than as a list box. -->
     <Border DockPanel.Dock="Left"
-            Width="188"
+            Width="{Binding RailWidth}"
             Background="{DynamicResource MirageBgAltBrush}"
             BorderBrush="{DynamicResource MirageLineSoftBrush}"
             BorderThickness="0,0,1,0">
-      <ListBox ItemsSource="{Binding Sections}"
-               SelectedItem="{Binding SelectedSection}"
-               Classes="rail"
-               Background="Transparent"
-               Padding="6,8">
-        <ListBox.ItemTemplate>
-          <DataTemplate>
-            <Grid ColumnDefinitions="Auto,*,Auto" Height="24">
-              <PathIcon Grid.Column="0"
-                        Data="{Binding Name, Converter={StaticResource SectionIcon}}"
-                        Width="15" Height="15" Margin="0,0,11,0"
-                        VerticalAlignment="Center"/>
-              <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
-                         VerticalAlignment="Center" FontSize="13"/>
-              <!-- Unsaved work on that section. Amber rather than the accent, so "needs attention" never
-                   reads as "selected". -->
-              <Ellipse Grid.Column="2" Width="6" Height="6"
-                       Fill="{DynamicResource MirageWarnBrush}"
-                       VerticalAlignment="Center"
-                       IsVisible="{Binding HasDirty}"/>
-            </Grid>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
+      <DockPanel>
+        <!-- The collapse toggle sits at the FOOT of the rail, out of the way of the sections it
+             governs. Its glyph points where the rail is going, not where it is. -->
+        <Button DockPanel.Dock="Bottom"
+                Content="{Binding RailToggleGlyph}"
+                Command="{Binding ToggleRailCommand}"
+                ToolTip.Tip="{Binding RailToggleTooltip}"
+                Background="Transparent" BorderThickness="0"
+                Margin="6,4,6,8" Padding="0,4"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                Foreground="{DynamicResource MirageFaintBrush}" FontSize="13"/>
+        <ListBox ItemsSource="{Binding Sections}"
+                 SelectedItem="{Binding SelectedSection}"
+                 Classes="rail" Classes.collapsed="{Binding IsRailCollapsed}"
+                 Background="Transparent"
+                 Padding="6,8">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <!-- Collapsed, the tooltip is the only thing that names the section, so it is bound on the
+                   row rather than on the icon: the whole 64px strip is the hover target. -->
+              <Grid ColumnDefinitions="Auto,*,Auto" Height="24"
+                    Background="Transparent"
+                    ToolTip.Tip="{Binding TooltipText}">
+                <PathIcon Grid.Column="0"
+                          Data="{Binding Name, Converter={StaticResource SectionIcon}}"
+                          Width="15" Height="15"
+                          VerticalAlignment="Center"/>
+                <!-- The gap belongs to the label, not the icon — hiding the label has to take its
+                     spacing with it, or the icon sits off-centre in a 64px rail. -->
+                <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
+                           VerticalAlignment="Center" FontSize="13" Margin="11,0,0,0"
+                           IsVisible="{Binding IsLabelVisible}"/>
+                <!-- Unsaved work on that section. Amber rather than the accent, so "needs attention" never
+                     reads as "selected". Kept in both states: it is the reason to look at the rail. -->
+                <Ellipse Grid.Column="2" Width="6" Height="6"
+                         Fill="{DynamicResource MirageWarnBrush}"
+                         VerticalAlignment="Center"
+                         IsVisible="{Binding HasDirty}"/>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
     </Border>
 
     <!-- ── Content area ── -->

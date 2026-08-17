@@ -35,7 +35,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <Ellipse Width="7" Height="7" Fill="#FF8C00"
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
               <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
@@ -45,7 +45,7 @@
       </ListBox>
     </DockPanel>
 
-    <GridSplitter Grid.Column="1" Width="5" Background="#302A55"
+    <GridSplitter Grid.Column="1" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
                   ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
 
     <!-- ── Right: editor panel ── -->
@@ -134,7 +134,7 @@
 
           <!-- ── Objectives ── -->
           <TextBlock x:Name="_objectivesHeader" Margin="0,8,0,2" FontWeight="SemiBold"/>
-          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4">
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Grid ColumnDefinitions="*,2*,*,34" Background="#2A2A2A">
                 <TextBlock x:Name="_objColKind"   Grid.Column="0" Padding="6,4" FontWeight="SemiBold"/>
@@ -181,7 +181,7 @@
             <TextBlock x:Name="_rewardExpLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedQuest.RewardExp}" Minimum="0" Maximum="1000000000" FormatString="0"/>
           </Grid>
-          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4">
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Grid ColumnDefinitions="2*,*,34" Background="#2A2A2A">
                 <TextBlock x:Name="_rewardColItem" Grid.Column="0" Padding="6,4" FontWeight="SemiBold"/>
@@ -227,7 +227,7 @@
             <TextBlock x:Name="_repeatRewardExpLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedQuest.RepeatRewardExp}" Minimum="0" Maximum="1000000000" FormatString="0"/>
           </Grid>
-          <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4"
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4"
                   IsVisible="{Binding SelectedQuest.Repeatable}">
             <StackPanel>
               <TextBlock x:Name="_noRepeatRewardsHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
@@ -264,7 +264,7 @@
           </Border>
 
           <TextBlock Text="{Binding StatusMessage}"
-                     Foreground="#88FF88"
+                     Foreground="{DynamicResource MirageOkBrush}"
                      IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ScrollViewer>
@@ -272,24 +272,24 @@
 
     <!-- ── Footer: always-visible Save / Discard strip ── -->
     <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
-            BorderBrush="#3B3266" BorderThickness="0,1,0,0">
+            BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
         <Button x:Name="_discardBtn"
                 Command="{Binding DiscardCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#6B1500" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_discardAllBtn"
                 Command="{Binding DiscardAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#6B3300" Foreground="White"/>
+                Classes="danger"/>
         <Button x:Name="_saveBtn"
                 Command="{Binding SaveCommand}"
                 IsEnabled="{Binding IsSelectedDirty}"
-                Background="#1A5A1A" Foreground="White"/>
+                Classes="primary"/>
         <Button x:Name="_saveAllBtn"
                 Command="{Binding SaveAllCommand}"
                 IsEnabled="{Binding HasAnyDirty}"
-                Background="#1A3A6A" Foreground="White"/>
+                Classes="primary"/>
       </StackPanel>
     </Border>
 

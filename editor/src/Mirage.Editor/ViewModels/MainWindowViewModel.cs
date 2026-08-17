@@ -43,8 +43,53 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>The child editor view-model the content pane is bound to; null for an unknown section.</summary>
     [ObservableProperty] private object? _currentEditor;
     [ObservableProperty] private SectionViewModel? _selectedSection;
-    [ObservableProperty] private string _connectionStatus = EditorStrings.Get(EditorStrings.MainWindow_StatusOffline);
-    [ObservableProperty] private bool _isOnline;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConnectionStatus))]
+    private bool _isOnline;
+
+    /// <summary>The one word inside the toolbar badge. Derived rather than assigned at each transition:
+    /// it is a function of <see cref="IsOnline"/> and of the current language, and a stored copy went
+    /// stale on a language switch because nothing re-resolved it.</summary>
+    public string ConnectionStatus => EditorStrings.Get(IsOnline
+        ? EditorStrings.MainWindow_StatusOnline
+        : EditorStrings.MainWindow_StatusOffline);
+
+    /// <summary>Which server, shown beside the badge and never inside it; empty when offline.</summary>
+    [ObservableProperty] private string _connectionEndpoint = "";
+
+    // ── Section rail ──────────────────────────────────────────────────────────
+    // Expanded is nine labelled rows; collapsed is nine icons. The width is stated here rather than in
+    // the view so both states come from one place — 64 is the icon, the unsaved-work dot, and the row
+    // padding, and nothing more.
+    private const double RailExpandedWidth = 188;
+    private const double RailCollapsedWidth = 64;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RailWidth))]
+    [NotifyPropertyChangedFor(nameof(RailToggleGlyph))]
+    [NotifyPropertyChangedFor(nameof(RailToggleTooltip))]
+    private bool _isRailCollapsed = AppSettings.Current.RailCollapsed;
+
+    public double RailWidth => IsRailCollapsed ? RailCollapsedWidth : RailExpandedWidth;
+
+    /// <summary>Points the way the rail will move, not the way it is now.</summary>
+    public string RailToggleGlyph => IsRailCollapsed ? "»" : "«";
+
+    public string RailToggleTooltip => EditorStrings.Get(IsRailCollapsed
+        ? EditorStrings.MainWindow_RailExpand
+        : EditorStrings.MainWindow_RailCollapse);
+
+    [RelayCommand]
+    private void ToggleRail()
+    {
+        IsRailCollapsed = !IsRailCollapsed;
+        foreach (var s in _sectionMap.Values) s.IsLabelVisible = !IsRailCollapsed;
+        // Written through NOW rather than deferred to the close handler like the panel widths. Those are
+        // the tail end of a drag and would write on every pixel; this is one deliberate click, and losing
+        // it to a session that ended badly is the kind of small betrayal nobody reports.
+        AppSettings.Current.RailCollapsed = IsRailCollapsed;
+        AppSettings.Current.Save();
+    }
     /// <summary>Progress line shown while the post-connect eager load runs; empty when idle.</summary>
     [ObservableProperty] private string _loadingStatus = "";
 
@@ -103,6 +148,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // switch, so a resolved string would freeze it in the startup language.
         _sectionMap = AllSectionNames.ToDictionary(n => n, n => new SectionViewModel(n, SectionLabelKey(n)));
         Sections = new ObservableCollection<SectionViewModel>(AllSectionNames.Select(n => _sectionMap[n]));
+        // The rail reopens in the shape it was left in, so a restored collapse has to reach the rows.
+        if (IsRailCollapsed) foreach (var s in _sectionMap.Values) s.IsLabelVisible = false;
         EditorStrings.LanguageChanged += OnLanguageChanged;
         // Mirror each editor's aggregate dirty flag onto its nav section, which shows the unsaved marker.
         MapEditor.PropertyChanged += (_, e) =>
@@ -225,6 +272,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void OnLanguageChanged()
     {
         foreach (var s in Sections) s.NotifyDisplayNameChanged();
+        OnPropertyChanged(nameof(ConnectionStatus));
+        OnPropertyChanged(nameof(RailToggleTooltip));
     }
 
     // Maps the stable section id to its localized nav label key. Logic (switch/lookup) keeps using
@@ -272,8 +321,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _data.LoadOnline(pkt);
         RefreshEditors(online: true);
         IsOnline = true;
-        ConnectionStatus = EditorStrings.Format(EditorStrings.MainWindow_StatusOnline,
-            ("Host", AppSettings.Current.DefaultServerHost), ("Port", AppSettings.Current.DefaultServerPort));
+        ConnectionEndpoint = CurrentEndpoint();
         ApplySectionRestrictions(access);
         SelectedSection = Sections[0];
         _ = StartEagerLoadAsync();
@@ -286,8 +334,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var dirty = GetAllDirty().ToList();
         _data.LoadOnline(pkt);
         IsOnline = true;
-        ConnectionStatus = EditorStrings.Format(EditorStrings.MainWindow_StatusOnline,
-            ("Host", AppSettings.Current.DefaultServerHost), ("Port", AppSettings.Current.DefaultServerPort));
+        ConnectionEndpoint = CurrentEndpoint();
         ApplySectionRestrictions(access);
         if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
         {
@@ -370,8 +417,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RestoreAllSections();
         SelectedSection = _sectionMap[AllSectionNames[0]];
         IsOnline = false;
-        ConnectionStatus = EditorStrings.Get(EditorStrings.MainWindow_StatusOffline);
+        ConnectionEndpoint = "";
     }
+
+    // Host and port are not translatable copy, so they are formatted here rather than kept as a
+    // one-placeholder entry in every language file.
+    private static string CurrentEndpoint() =>
+        $"{AppSettings.Current.DefaultServerHost}:{AppSettings.Current.DefaultServerPort}";
 
     // Developer and above get every section; Mapper gets the map and map-group editors only. Offline
     // editing is unrestricted — this narrowing applies to a live server session.

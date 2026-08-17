@@ -22,15 +22,15 @@
       <Button Content="{Binding SaveButtonText}"
               Command="{Binding SaveAndProceedCommand}"
               IsEnabled="{Binding !IsBusy}"
-              Background="#1A5A1A" Foreground="White"/>
+              Classes="primary"/>
     </StackPanel>
 
     <TextBlock DockPanel.Dock="Bottom"
                Text="{Binding StatusMessage}"
-               Foreground="OrangeRed"
+               Foreground="{DynamicResource MirageBadBrush}"
                IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
-    <Border BorderBrush="#3B3266" BorderThickness="1" CornerRadius="4">
+    <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4">
       <ListBox ItemsSource="{Binding DirtyNames}" Background="Transparent">
         <ListBox.ItemTemplate>
           <DataTemplate>
