@@ -42,9 +42,9 @@ public sealed partial class SocialPanel : IGamePanel
         for (int i = 0; i < tabs.Length; i++)
         {
             var r = tabs[i];
-            bool active = i == _guildSubTab;
+            bool active = (GuildSub)i == _guildSubTab;
             bool hovered = !active && r.Contains(_lastMousePos);
-            TabStrip.DrawCenteredTab(sb, font, r, ClientStrings.Get(GuildSubTabKey(i)), active, hovered);
+            TabStrip.DrawCenteredTab(sb, font, r, ClientStrings.Get(GuildSubTabKey((GuildSub)i)), active, hovered);
         }
     }
 
@@ -55,15 +55,16 @@ public sealed partial class SocialPanel : IGamePanel
         _ => ClientStrings.SocialPanel_FriendsTab,
     };
 
-    private static string GuildSubTabKey(int tab) => tab switch
+    private static string GuildSubTabKey(GuildSub tab) => tab switch
     {
-        GuildSubRoster => ClientStrings.SocialPanel_SubTabRoster,
-        GuildSubVault => ClientStrings.SocialPanel_SubTabVault,
-        GuildSubQuests => ClientStrings.SocialPanel_SubTabQuests,
-        GuildSubWars => ClientStrings.SocialPanel_SubTabWars,
-        GuildSubTerritories => ClientStrings.SocialPanel_SubTabTerritories,
-        GuildSubStandings => ClientStrings.SocialPanel_SubTabStandings,
-        _ => ClientStrings.SocialPanel_SubTabMain,
+        GuildSub.Main => ClientStrings.SocialPanel_SubTabMain,
+        GuildSub.Roster => ClientStrings.SocialPanel_SubTabRoster,
+        GuildSub.Vault => ClientStrings.SocialPanel_SubTabVault,
+        GuildSub.Quests => ClientStrings.SocialPanel_SubTabQuests,
+        GuildSub.Wars => ClientStrings.SocialPanel_SubTabWars,
+        GuildSub.Territories => ClientStrings.SocialPanel_SubTabTerritories,
+        GuildSub.Standings => ClientStrings.SocialPanel_SubTabStandings,
+        _ => throw new ArgumentOutOfRangeException(nameof(tab)),
     };
 
     private Rectangle[] ComputeTabRects()
@@ -82,12 +83,12 @@ public sealed partial class SocialPanel : IGamePanel
     // The guild sub-tab strip's rects (5 tabs across the guild body's top).
     private Rectangle[] ComputeGuildSubTabRects(Rectangle body)
     {
-        int availW = body.Width - TabGap * (GuildSubCount + 1);
-        int tabW = Math.Max(MinSubTabW, availW / GuildSubCount);
-        int totalW = tabW * GuildSubCount + TabGap * (GuildSubCount - 1);
+        int availW = body.Width - TabGap * (AllGuildSubs.Length + 1);
+        int tabW = Math.Max(MinSubTabW, availW / AllGuildSubs.Length);
+        int totalW = tabW * AllGuildSubs.Length + TabGap * (AllGuildSubs.Length - 1);
         int startX = body.X + (body.Width - totalW) / 2;
-        var rects = new Rectangle[GuildSubCount];
-        for (int i = 0; i < GuildSubCount; i++)
+        var rects = new Rectangle[AllGuildSubs.Length];
+        for (int i = 0; i < AllGuildSubs.Length; i++)
             rects[i] = new Rectangle(startX + i * (tabW + TabGap), body.Y + 2, tabW, TabStripH - 4);
         return rects;
     }

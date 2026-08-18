@@ -543,9 +543,6 @@ public sealed partial class PacketHandler
                 case ShopBarterPacket p:
                     HandleShopBarter(index, p);
                     break;
-                case ShopBarterRequestPacket p:
-                    HandleShopBarterRequest(index, p);
-                    break;
                 case ShopBuyPacket p:
                     HandleShopBuy(index, p);
                     break;

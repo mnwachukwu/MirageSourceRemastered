@@ -46,7 +46,6 @@ public static class PacketNames
     public const string SortInventory = "sortinventory";
     public const string GetStats = "getstats";
     public const string ShopBarter = "shopbarter";                // C→S: take one row from a shop's BARTER table (item → item)
-    public const string ShopBarterRequest = "shopbarterrequest";  // C→S: preview one barter row before confirming it
     public const string ShopBuy = "shopbuy";     // C→S: buy one entry from a shop's SALES list (gold → item)
     public const string ShopSell = "shopsell";   // C→S: sell an inventory slot to the open shop (item → gold)
     public const string FixItem = "fixitem";

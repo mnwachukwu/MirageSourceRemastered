@@ -208,7 +208,6 @@ public sealed class InputState
     // MousePosition + IsMouseDown() while HasMouseCapture(this) holds. Capture auto-releases the frame
     // after the button goes up and suppresses every other widget's click/press/hover/scroll meanwhile.
     public void CaptureMouse(object owner) => _pointer.Capture(owner);
-    public void ReleaseMouseCapture(object owner) => _pointer.Release(owner);
     public bool HasMouseCapture(object owner) => _pointer.HasCapture(owner);
     public bool IsMouseCaptured => _pointer.IsMouseCaptured;
     public Point LeftPressOrigin => _pointer.LeftPressOrigin;
@@ -229,7 +228,6 @@ public sealed class InputState
     public void ConsumeRightMouseClick() => _pointer.ConsumeRightClick();
     public void ConsumeRightMouseDown() => _pointer.ConsumeRightDown();
 
-    public bool IsMouseHoverConsumed() => _pointer.IsHoverConsumed;
     public void ConsumeMouseHover() => _pointer.ConsumeHover();
     public void ResetMouseHover() => _pointer.ResetHover();
 
@@ -248,14 +246,6 @@ public sealed class InputState
 
     public bool UseGamepad { get; set; }
     public bool IsPlayStationController => _isPlayStationController;
-    public bool IsGamePadLeftTriggerPressed() =>
-        UseGamepad && _currPad.IsConnected &&
-        _currPad.Triggers.Left >= GamepadTriggerDeadzone &&
-        _prevPad.IsConnected && _prevPad.Triggers.Left < GamepadTriggerDeadzone;
-    public bool IsGamePadRightTriggerPressed() =>
-        UseGamepad && _currPad.IsConnected &&
-        _currPad.Triggers.Right >= GamepadTriggerDeadzone &&
-        _prevPad.IsConnected && _prevPad.Triggers.Right < GamepadTriggerDeadzone;
     public bool IsGamePadLeftTriggerDown() =>
         UseGamepad && _currPad.IsConnected && _currPad.Triggers.Left >= GamepadTriggerDeadzone;
     public bool IsGamePadRightTriggerDown() =>

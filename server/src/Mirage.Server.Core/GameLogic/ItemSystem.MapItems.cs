@@ -206,13 +206,6 @@ public sealed partial class ItemSystem : GameSystem
         SpawnItem(attr.ItemNum, val, mapNum, x, y, layer: layer);
     }
 
-    /// <summary>Spawn the tile-defined items of every map — the boot-time seeding pass.</summary>
-    public void SpawnAllMapsItems()
-    {
-        for (int i = 1; i <= _world.Limits.Maps; i++)
-            SpawnMapItems(i);
-    }
-
     /// <summary>Re-spawn any picked-up tile-defined item on this map whose per-(tile, layer) timer has
     /// elapsed. The delay is the tile attribute's own seconds value, or
     /// <see cref="Constants.DefaultItemRespawnSeconds"/> when it authors none.</summary>

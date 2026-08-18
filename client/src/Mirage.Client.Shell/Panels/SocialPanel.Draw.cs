@@ -48,24 +48,25 @@ public sealed partial class SocialPanel : IGamePanel
                 var gbody = GuildContentRect(body);
                 switch (_guildSubTab)
                 {
-                    case GuildSubRoster:
+                    case GuildSub.Roster:
                         DrawGuildRoster(sb, font, gbody);
                         break;
-                    case GuildSubVault:
+                    case GuildSub.Vault:
                         DrawGuildVault(sb, font, info, gbody);
                         break;
-                    case GuildSubQuests:
+                    case GuildSub.Quests:
                         DrawGuildQuests(sb, font, info, gbody);
                         break;
-                    case GuildSubWars:
+                    case GuildSub.Wars:
                         DrawWars(sb, font, state, gbody);
                         break;
-                    case GuildSubTerritories:
+                    case GuildSub.Territories:
                         DrawGuildTerritories(sb, font, gbody);
                         break;
-                    case GuildSubStandings:
+                    case GuildSub.Standings:
                         DrawGuildStandings(sb, font, state, gbody);
                         break;
+                    case GuildSub.Main:
                     default:
                         DrawGuildMain(sb, font, info, gbody);
                         break;

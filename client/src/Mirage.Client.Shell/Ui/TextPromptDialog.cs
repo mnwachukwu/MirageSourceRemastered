@@ -16,7 +16,6 @@ public sealed class TextPromptDialog
     private const int TextTop = 12;
     private const int TextX = 8;
     private const int TextInset = 16;
-    private const int PromptGap = 24;
     private const int FieldAboveBtn = 28;
     private const int FieldPad = 4;
     private const int FieldInset = 8;

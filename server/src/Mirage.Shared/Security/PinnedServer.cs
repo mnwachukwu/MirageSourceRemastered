@@ -14,9 +14,6 @@ public sealed class PinnedServer(ServerPins pins, string host, int port)
 
     public ServerTrust Trust { get; private set; } = ServerTrust.FirstContact;
 
-    /// <summary>The fingerprint the server offered, once <see cref="Validate"/> has run.</summary>
-    public string Offered => _offered;
-
     /// <summary>Callback for <see cref="SslStream"/>. A changed certificate fails the handshake,
     /// before any data moves.</summary>
     public bool Validate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors errors)

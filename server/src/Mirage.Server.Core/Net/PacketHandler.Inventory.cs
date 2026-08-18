@@ -343,22 +343,6 @@ public sealed partial class PacketHandler
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
     }
 
-    private void HandleShopBarterRequest(int index, ShopBarterRequestPacket p)
-    {
-        if (!_pm[index].IsPlaying) return;
-        // Only a malformed slot is a hacking signal here. The real bound is the shop's own trade count,
-        // which ShopSystem.Trade checks once it has resolved the shop — a fixed ceiling could only ever
-        // be looser than that.
-        if (p.Slot < 1)
-        {
-            HackingAttempt(index, "Trade Request Modification");
-            return;
-        }
-        int shopNum = _pm[index].ActiveShop(_world, index);
-        if (shopNum > 0)
-            _shop.Barter(index, shopNum, p.Slot);
-    }
-
     private void HandleShopBuy(int index, ShopBuyPacket p)
     {
         if (!_pm[index].IsPlaying) return;

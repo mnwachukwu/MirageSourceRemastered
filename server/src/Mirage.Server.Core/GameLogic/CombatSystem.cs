@@ -371,20 +371,6 @@ public sealed partial class CombatSystem : GameSystem
             PacketBuilder.AggressorRefresh(index, expiryUtc));
     }
 
-    /// <summary>Clear an active aggressor flag and broadcast SendPlayerData with aggressorUntilUtc=0
-    /// so observers stop flashing.  Used by the natural-expiry sweep and any other clean-clear path
-    /// (e.g. becoming a PKer subsumes aggressor, victim-death broadcasts).  Returns true if the
-    /// flag was active and was cleared.</summary>
-    public bool ClearAggressorAndBroadcast(int index, long now)
-    {
-        var sp = _pm[index];
-        if (!sp.IsAggressor(now)) return false;
-        sp.PvpAttackerUntil = 0;
-        SendToMap(_world, sp.Char.Map,
-            PacketBuilder.PlayerData(index, sp.Char, sp.Char.Map, sp.PkGraceUntilUtc));
-        return true;
-    }
-
     /// <summary>Per-tick natural-expiry sweep.  Detects the (non-zero, now-passed) transition that
     /// IsAggressor doesn't expose, clears it, and broadcasts PlayerData so observers' name renderer
     /// stops flashing.  Also drops a player-facing notice so the aggressor knows their window

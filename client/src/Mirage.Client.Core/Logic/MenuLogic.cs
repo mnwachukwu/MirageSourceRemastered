@@ -61,10 +61,6 @@ public sealed class MenuLogic
     public void GoToNewAccount() => Transition(MenuState.NewAccount);
     public void GoToDeleteAccount() => Transition(MenuState.DeleteAccount);
     public void GoToChangePassword() => Transition(MenuState.ChangePassword);
-    public void GoToCharSelect() => Transition(MenuState.CharSelect);
-    public void GoToNewChar() => Transition(MenuState.NewChar);
-    public void GoToCredits() => Transition(MenuState.Credits);
-
     /// <summary>
     /// Transition to the Loading state while waiting for a server response.
     /// The message is surfaced to the Shell via <see cref="LoadingMessageChanged"/>.

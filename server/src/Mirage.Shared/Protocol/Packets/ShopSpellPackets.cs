@@ -13,12 +13,6 @@ public sealed record OpenInnPacket : IPacket
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
 }
 
-public sealed record ShopBarterRequestPacket : IPacket
-{
-    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBarterRequest;
-    [JsonPropertyName("slot")] public int Slot { get; init; }
-}
-
 public sealed record ShopBarterPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBarter;

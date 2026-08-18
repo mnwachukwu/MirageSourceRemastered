@@ -11,21 +11,6 @@ public enum NpcPlacementError { None, OffMap, OnBlocked, Overlap }
 /// matching <c>SpawnSystem.IsFootprintOnWalkableGround</c> + the <see cref="WorldCoordHelper"/> footprint math.</summary>
 public static class MapNpcPlacement
 {
-    /// <summary>True if the SxS footprint anchored (top-left) at (x,y) is fully on-map and every tile Walkable on
-    /// <paramref name="layer"/> (via <see cref="LayerLogic.AttrFor"/>: the inline ground attribute on Ground — a
-    /// ramp reads Blocked — or the FringeAttr on Fringe, which is Walkable by default).</summary>
-    public static bool FootprintOnWalkable(MapRecord map, int size, int x, int y, WorldLayer layer = WorldLayer.Ground)
-    {
-        if (x < 0 || y < 0 || x + size > Constants.MaxMapX + 1 || y + size > Constants.MaxMapY + 1) return false;
-        for (int j = 0; j < size; j++)
-        {
-            for (int i = 0; i < size; i++)
-                if (LayerLogic.AttrFor(map.Tile[x + i, y + j], layer).Type != TileType.Walkable) return false;
-        }
-
-        return true;
-    }
-
     /// <summary>Validate the pin at (x,y) on <paramref name="layer"/> for the entry at <paramref name="entryIndex"/>:
     /// its NPC's footprint must be fully on-map, all Walkable on that layer, and not overlap any OTHER pinned entry
     /// ON THE SAME LAYER. Different-layer pins never conflict, so a Ground pin and a Fringe pin may stack on one

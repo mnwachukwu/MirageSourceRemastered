@@ -176,15 +176,6 @@ public sealed class PlayerManager
         return false;
     }
 
-    public bool IsMultiIp(string ip, int excludeIndex)
-    {
-        foreach (int i in Online)
-        {
-            if (i != excludeIndex && _players[i].RemoteIp == ip) return true;
-        }
-        return false;
-    }
-
     public int TotalOnline
     {
         get

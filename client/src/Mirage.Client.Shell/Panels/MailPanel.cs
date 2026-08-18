@@ -102,7 +102,7 @@ public sealed class MailPanel : IGamePanel
     private const int ReplyBtnW = 70;
     private const int PayCodBtnW = 120;   // wider — the label carries the price ("Pay CoD (1,000)")
     private const string TooltipScope = "Mail";
-    private const int MailColSender = 0, MailColDate = 1, MailColSubject = 2;
+    private const int MailColDate = 1;
     private const int TabW = 58;
     private static readonly Color InTransitRowColor = Color.Gray;   // grayed "in transit" mail row
 

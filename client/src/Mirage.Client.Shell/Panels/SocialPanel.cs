@@ -51,15 +51,9 @@ public sealed partial class SocialPanel : IGamePanel
     private int _activeTab;
 
     // Guild sub-tabs (second level, shown only in-guild).
-    private const int GuildSubMain = 0;
-    private const int GuildSubRoster = 1;
-    private const int GuildSubVault = 2;
-    private const int GuildSubQuests = 3;
-    private const int GuildSubWars = 4;
-    private const int GuildSubTerritories = 5;
-    private const int GuildSubStandings = 6;
-    private const int GuildSubCount = 7;
-    private int _guildSubTab;
+    private enum GuildSub { Main, Roster, Vault, Quests, Wars, Territories, Standings }
+    private static readonly GuildSub[] AllGuildSubs = Enum.GetValues<GuildSub>();
+    private GuildSub _guildSubTab;
 
     private const int ButtonH = 24;
     private const int HistoryBtnW = 70;   // standings "History"/"Current" toggle

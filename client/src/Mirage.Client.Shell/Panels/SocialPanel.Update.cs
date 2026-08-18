@@ -158,10 +158,11 @@ public sealed partial class SocialPanel : IGamePanel
         var subtabs = ComputeGuildSubTabRects(body);
         for (int i = 0; i < subtabs.Length; i++)
         {
-            if (!input.IsClickIn(subtabs[i]) || i == _guildSubTab) continue;
-            _guildSubTab = i;
+            var tab = (GuildSub)i;
+            if (!input.IsClickIn(subtabs[i]) || tab == _guildSubTab) continue;
+            _guildSubTab = tab;
             sender.SendGuildInfoRequest();   // refresh live data (roster online column, quest progress, wars)
-            if (i == GuildSubStandings)
+            if (tab == GuildSub.Standings)
             {
                 _viewingHistory = false;
                 sender.SendGuildLeaderboardRequest();
@@ -171,24 +172,25 @@ public sealed partial class SocialPanel : IGamePanel
         var gbody = GuildContentRect(body);
         switch (_guildSubTab)
         {
-            case GuildSubRoster:
+            case GuildSub.Roster:
                 UpdateGuildRoster(input, state, sender, gbody, info);
                 break;
-            case GuildSubVault:
+            case GuildSub.Vault:
                 UpdateGuildVault(input, sender, gbody, info);
                 break;
-            case GuildSubQuests:
+            case GuildSub.Quests:
                 UpdateGuildQuests(input, sender, gbody, info);
                 break;
-            case GuildSubWars:
+            case GuildSub.Wars:
                 UpdateWars(input, state, sender, gbody);
                 break;
-            case GuildSubTerritories:
+            case GuildSub.Territories:
                 UpdateGuildTerritories(input, sender, info, gbody);
                 break;
-            case GuildSubStandings:
+            case GuildSub.Standings:
                 UpdateGuildStandings(input, state, sender, gbody);
                 break;
+            case GuildSub.Main:
             default:
                 UpdateGuildMain(input, sender, gbody, info);
                 break;

@@ -70,11 +70,6 @@ public sealed class SimulatedPlayer : IDisposable
         _heading = (Direction)_wander.Next(4);
     }
 
-    /// <summary>True once the server has answered with <c>ingame</c> — the only honest signal that this
-    /// connection is costing what a real player costs. A socket that connected but never got in is load
-    /// on the acceptor and nothing else.</summary>
-    public bool IsInGame => _inGame;
-
     /// <summary>The connection died on its own. Under a ramp this is the symptom that matters most: the
     /// server stopped keeping up rather than refusing politely.</summary>
     public bool Dropped => _dropped;

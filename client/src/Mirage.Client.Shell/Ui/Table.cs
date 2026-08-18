@@ -241,16 +241,6 @@ public sealed class Table<T> : IColumnLayoutTable
 
     public void ClearSelection() => _selectedSource = -1;
 
-    /// <summary>If a right-click landed on a row this frame, returns that row and consumes the click; else
-    /// default(T). Mirrors <see cref="ListBox.ConsumeRightClickedRow"/>, mapped back through the sort order.</summary>
-    public T? ConsumeRightClickedItem(InputState input)
-    {
-        int oneBasedDisplay = _body.ConsumeRightClickedRow(input);
-        if (oneBasedDisplay == 0) return default;
-        int d = oneBasedDisplay - 1;
-        return d >= 0 && d < _rowOrder.Length ? _items[_rowOrder[d]] : default;
-    }
-
     /// <summary>Sort by a column programmatically (same toggle rule as clicking its header: a new column
     /// selects it ascending, the current one flips direction). Handy for a default sort — and the seam
     /// unit tests use to drive sorting without the header UI.</summary>

@@ -83,9 +83,6 @@ public sealed class ClientPacketSender
 
     // ── Map ───────────────────────────────────────────────────────────────────
 
-    public void SendRequestNewMap()
-        => _transport.Send(new RequestNewMapPacket());
-
     public void SendNeedMap(int mapNum, int revision)
         => _transport.Send(new NeedMapPacket { MapNum = mapNum, Revision = revision });
 
@@ -213,9 +210,6 @@ public sealed class ClientPacketSender
 
     // ── Shop ─────────────────────────────────────────────────────────────────
 
-    public void SendShopBarterRequest(int barterSlot)
-        => _transport.Send(new ShopBarterRequestPacket { Slot = barterSlot });
-
     public void SendShopBarter(int shopNum, int barterSlot)
         => _transport.Send(new ShopBarterPacket { ShopNum = shopNum, BarterSlot = barterSlot });
 
@@ -234,9 +228,6 @@ public sealed class ClientPacketSender
 
     public void SendTrainStats(int str, int def, int intPts, int spd)
         => _transport.Send(new TrainStatsPacket { Str = str, Def = def, Int = intPts, Spd = spd });
-
-    public void SendGetStats()
-        => _transport.Send(new GetStatsPacket());
 
     // ── Social ────────────────────────────────────────────────────────────────
 
@@ -501,9 +492,6 @@ public sealed class ClientPacketSender
 
     public void SendRequestLocation()
         => _transport.Send(new RequestLocationPacket());
-
-    public void SendSpellsRequest()
-        => _transport.Send(new SpellsRequestPacket());
 
     // ── Admin ─────────────────────────────────────────────────────────────────
 

@@ -48,8 +48,6 @@ public sealed class DraggablePanel
     /// minimum still clamps up rather than loading too small.</summary>
     public void ResetBounds() => SetBounds(_defaultBounds);
     public void SetMinH(int minH) => _minH = Math.Max(minH, 40);
-    public void SetMinW(int minW) => _minW = Math.Max(minW, 80);
-
     // Area below the title bar where panel content is drawn.
     public Rectangle ContentBounds =>
         new(_bounds.X, _bounds.Y + TitleH, _bounds.Width, _bounds.Height - TitleH);
@@ -80,17 +78,6 @@ public sealed class DraggablePanel
     /// resize handle. Pure geometry (no <see cref="InputState"/>) so the cursor rule is unit-testable; the
     /// Update path forwards <c>input.MousePosition</c> here.</summary>
     public bool WantsResizeCursor(Point mouse) => _resizable && (_resizing || ResizeHandleRect.Contains(mouse));
-
-    // Clamps child rect to ContentBounds. Returns zero-size rect if no overlap.
-    public Rectangle ClampToContent(Rectangle child)
-    {
-        var c = ContentBounds;
-        int x = Math.Max(child.X, c.X);
-        int y = Math.Max(child.Y, c.Y);
-        int w = Math.Max(0, Math.Min(child.Right, c.Right) - x);
-        int h = Math.Max(0, Math.Min(child.Bottom, c.Bottom) - y);
-        return new Rectangle(x, y, w, h);
-    }
 
     public void Update(InputState input)
     {

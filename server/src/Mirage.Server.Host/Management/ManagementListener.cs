@@ -60,9 +60,6 @@ public sealed class ManagementListener : IHostedService, IDisposable
     /// machine lines out of it.</summary>
     public const string RequestStatus = "MIRAGE-WANT-STATUS";
 
-    /// <summary>How many operators are attached right now.</summary>
-    public int SessionCount => _sessions.Count;
-
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     public Task StartAsync(CancellationToken ct)

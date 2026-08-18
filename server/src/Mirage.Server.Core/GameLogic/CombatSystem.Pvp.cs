@@ -95,8 +95,6 @@ public sealed partial class CombatSystem : GameSystem
         return FriendlyRelation.None;
     }
 
-    public bool IsFriendly(int attacker, int victim) => GetFriendlyRelation(attacker, victim) != FriendlyRelation.None;
-
     public bool CanAttackPlayer(int attacker, int victim)
     {
         if (!_pm[attacker].IsPlaying || !_pm[victim].IsPlaying) return false;

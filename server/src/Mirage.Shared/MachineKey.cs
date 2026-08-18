@@ -63,9 +63,6 @@ public static class MachineKey
             : Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{Purpose}\n{id}")));
     }
 
-    /// <summary>Clears the cache. Test seam only — a running client's machine does not change.</summary>
-    internal static void ResetCache() => _cached = null;
-
     private static string ReadOsMachineId()
     {
         try

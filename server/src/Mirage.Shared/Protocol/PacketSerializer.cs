@@ -329,7 +329,6 @@ public static class PacketSerializer
                 // Shop / trade
                 PacketNames.NpcInteract => JsonSerializer.Deserialize<NpcInteractPacket>(line, Options),
                 PacketNames.ShopBarter => JsonSerializer.Deserialize<ShopBarterPacket>(line, Options),
-                PacketNames.ShopBarterRequest => JsonSerializer.Deserialize<ShopBarterRequestPacket>(line, Options),
                 PacketNames.ShopBuy => JsonSerializer.Deserialize<ShopBuyPacket>(line, Options),
                 PacketNames.ShopSell => JsonSerializer.Deserialize<ShopSellPacket>(line, Options),
                 PacketNames.FixItem => JsonSerializer.Deserialize<FixItemPacket>(line, Options),

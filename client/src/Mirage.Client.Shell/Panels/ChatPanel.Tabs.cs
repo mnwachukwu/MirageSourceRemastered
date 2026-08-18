@@ -20,9 +20,6 @@ public sealed partial class ChatPanel
 {
     // ── Tab CRUD (used by ChatOptionsPanel + the tab-strip click handler) ──────
 
-    public IReadOnlyList<AccountConfig.ChatTabConfig> GetTabConfigs() =>
-        _tabs.Select(t => t.Config).ToList();
-
     public AccountConfig.ChatTabConfig GetTabConfig(int index) => _tabs[index].Config;
 
     public int TabCount => _tabs.Count;

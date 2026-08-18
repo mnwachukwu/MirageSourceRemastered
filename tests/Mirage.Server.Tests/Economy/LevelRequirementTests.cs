@@ -21,7 +21,7 @@ namespace Mirage.Server.Tests;
 public class LevelRequirementTests
 {
     const int Map = 1, Idx = 1;
-    const int Sword = 10, Armor = 11, Potion = 12, Scroll = 13, Coin = 14, Door = 15;
+    const int Sword = 10, Armor = 11, Potion = 12, Scroll = 13, Coin = 14;
 
     static (GameWorld world, ItemSystem items, PlayerRecord p) Setup(int level)
     {
