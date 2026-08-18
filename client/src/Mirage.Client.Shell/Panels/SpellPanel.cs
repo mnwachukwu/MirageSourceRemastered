@@ -160,9 +160,8 @@ public sealed class SpellPanel : IGamePanel
         {
             if (Environment.TickCount64 - me.AttackTimer < 1000L)
                 return;
-            // Ctrl+click casts on the caster (self), mirroring Ctrl+Q.
-            bool self = input.IsKeyDown(Keys.LeftControl) || input.IsKeyDown(Keys.RightControl);
-            AttemptCast(sender, _list.SelectedIndex + 1, self);
+            // Ctrl+click casts on the caster, mirroring Ctrl+Q.
+            AttemptCast(sender, _list.SelectedIndex + 1, input.IsSelfTargetHeld());
         }
     }
 
@@ -188,12 +187,15 @@ public sealed class SpellPanel : IGamePanel
 
     /// <summary>Cast the prepared spell via Q key. Silently does nothing if no spell is prepared.
     /// <paramref name="self"/> is set when Ctrl is held (Ctrl+Cast) to target the caster.</summary>
-    public void TryCastPrepared(ClientState state, ClientPacketSender sender, bool self)
+    /// <summary>Cast the prepared spell at the current target. NEVER at the caster: the prepared slot only
+    /// ever holds a SubHp spell — the server refuses to prepare anything else — so aiming it inward is
+    /// asking to be damaged. Self-casting belongs to the action bar and the book, which hold the rest.</summary>
+    public void TryCastPrepared(ClientState state, ClientPacketSender sender)
     {
         if (_preparedSlot <= 0) return;
         if (state.Me is not { } me) return;
         if (Environment.TickCount64 - me.AttackTimer < 1000L) return;
-        AttemptCast(sender, _preparedSlot, self);
+        AttemptCast(sender, _preparedSlot);
     }
 
     // AttackTimer is only stamped when the server confirms a cast via PlayerCastPacket, so

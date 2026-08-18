@@ -252,9 +252,12 @@ public sealed partial class GameplayScreen : IGameScreen
             // a melee swing — and the action bar takes every OTHER spell type plus items. Neither can
             // reach into the other's half: the server refuses to prepare a non-SubHp spell or to bind a
             // SubHp one, so "which key casts this" is never ambiguous.
+            // EITHER trigger opens the bar; which one decides where it points. LT aims at the target, RT at
+            // the caster, so the same four face buttons serve both without a two-trigger grip. Holding both
+            // aims at the caster — see IsSelfTargetHeld — so aim can be switched without releasing first.
             bool hotkeyModifier = padActive && (input.IsGamePadLeftTriggerDown() || input.IsGamePadRightTriggerDown());
             if ((kbActive && input.IsKeyPressed(Keys.Q)) || (padActive && input.IsGamePadButtonPressed(Buttons.Y) && !hotkeyModifier))
-                _spells.TryCastPrepared(_ctx.State, _ctx.Sender, self: ctrl);
+                _spells.TryCastPrepared(_ctx.State, _ctx.Sender);
 
             // The whole row shares ONE cooldown on the same 1-second beat as attacking and casting, so
             // the bar can't be used to sidestep the pacing the rest of combat is built on. Only a press
@@ -340,7 +343,8 @@ public sealed partial class GameplayScreen : IGameScreen
             _pickUpLatched = true;
         }
 
-        // Same latch for the attack press. A held trigger reserves X for the potion hotkeys, so it isn't an attack.
+        // Same latch for the attack press. EITHER trigger reserves X — left because it is the bar's own
+        // modifier, right because a self-aimed swing is not a thing and should do nothing rather than attack.
         if (worldActionInput &&
             ((kbActive && input.IsKeyPressed(Keys.E)) ||
              (padActive && input.IsGamePadButtonPressed(Buttons.X)

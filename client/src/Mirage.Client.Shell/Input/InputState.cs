@@ -250,6 +250,19 @@ public sealed class InputState
         UseGamepad && _currPad.IsConnected && _currPad.Triggers.Left >= GamepadTriggerDeadzone;
     public bool IsGamePadRightTriggerDown() =>
         UseGamepad && _currPad.IsConnected && _currPad.Triggers.Right >= GamepadTriggerDeadzone;
+
+    /// <summary>The self-target modifier: Ctrl on the keyboard, RIGHT TRIGGER on a gamepad. HELD rather
+    /// than pressed, because it qualifies the action that follows it the way Ctrl does.
+    ///
+    /// <para>Both triggers open the action bar and the choice of trigger aims it: LT+face fires a slot at
+    /// the target, RT+face fires the same slot at the caster. Only the bar and the spell book offer this —
+    /// the prepared slot is SubHp and has nothing to gain by pointing inward.</para>
+    ///
+    /// <para>RT WINS WHEN BOTH ARE HELD, which is why this asks about the right trigger alone and never
+    /// about the left. Switching aim mid-fight is then a matter of pressing the other trigger rather than
+    /// releasing one first, and a grip that rolls across both never fires at the wrong thing.</para></summary>
+    public bool IsSelfTargetHeld() =>
+        IsKeyDown(Keys.LeftControl) || IsKeyDown(Keys.RightControl) || IsGamePadRightTriggerDown();
     public bool IsGamePadConnected => UseGamepad && _currPad.IsConnected;
     public bool IsGamePadButtonDown(Buttons button) => UseGamepad && _currPad.IsConnected && _currPad.IsButtonDown(button);
     public bool IsGamePadButtonPressed(Buttons button) =>
