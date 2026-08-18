@@ -10,7 +10,11 @@
   "startingItems": [
     {
       "itemNum": 1,
-      "quantity": 76
+      "quantity": 66
+    },
+    {
+      "itemNum": 2,
+      "quantity": 10
     },
     {
       "itemNum": 8,
@@ -50,7 +54,7 @@
     }
   ],
   "startingSpells": [
-    10,
+    1,
     13,
     16
   ]

@@ -829,4 +829,102 @@ public class SeedIntegrityTests
                 }
         });
     }
+
+    /// <summary>Every class must be able to hurt something on the day it is created — a granted WEAPON or a
+    /// granted SubHp spell, since those are the only two things that deal damage.
+    ///
+    /// <para>Both halves are gated on the class's base stats, so a class can fall through the middle: too
+    /// little STR to lift the lightest dagger AND too little INT for the weakest attack spell. Nothing else
+    /// notices. The seed loads, the world runs, and the class is simply unplayable until it finds a weapon
+    /// it cannot yet use — which is a first hour nobody would sit through.</para>
+    ///
+    /// <para>Asked through <see cref="StartingLoadout"/> rather than by reading the authored lists, because
+    /// an authored line whose gates the class fails is SKIPPED at creation. What matters is what the
+    /// character RECEIVES, not what the class file offers.</para></summary>
+    [Test]
+    public void EveryClass_StartsAbleToDealDamage()
+    {
+        RequireSeed();
+        var items = BuildIndexedArray(_items);
+        var spells = BuildIndexedArray(_spells);
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, cls) in _classes.OrderBy(k => k.Key))
+            {
+                bool hasWeapon = StartingLoadout.ResolveItems(cls, num, items)
+                    .Any(g => g.Type == ItemType.Weapon);
+                bool hasAttackSpell = StartingLoadout.ResolveSpells(cls, num, spells)
+                    .Any(n => n < spells.Length && spells[n].Type == SpellType.SubHp);
+
+                Assert.That(hasWeapon || hasAttackSpell, Is.True,
+                    $"class{num} \"{cls.TrimmedName}\" (STR {cls.Str}, INT {cls.Int}) starts with neither a "
+                    + "weapon it can lift nor an attack spell it can cast, so it cannot fight at all");
+            }
+        });
+    }
+
+    /// <summary>One opener per class, never two. A class that clears both gates takes the weapon and leaves
+    /// the attack spell — the SubHp spell is what a class with no STR uses INSTEAD of steel, not a second
+    /// helping for a class that already swings.
+    ///
+    /// <para>Carrying both is not just surplus: the spell drags the reagent economy into a kit that has a
+    /// weapon and no use for it, so a melee-ish generalist would open owing upkeep on a resource it never
+    /// needed to spend.</para></summary>
+    [Test]
+    public void NoClass_StartsWithBothAWeaponAndAnAttackSpell()
+    {
+        RequireSeed();
+        var items = BuildIndexedArray(_items);
+        var spells = BuildIndexedArray(_spells);
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, cls) in _classes.OrderBy(k => k.Key))
+            {
+                bool hasWeapon = StartingLoadout.ResolveItems(cls, num, items)
+                    .Any(g => g.Type == ItemType.Weapon);
+                bool hasAttackSpell = StartingLoadout.ResolveSpells(cls, num, spells)
+                    .Any(n => n < spells.Length && spells[n].Type == SpellType.SubHp);
+
+                Assert.That(hasWeapon && hasAttackSpell, Is.False,
+                    $"class{num} \"{cls.TrimmedName}\" opens with a weapon AND an attack spell — one or the "
+                    + "other, and the weapon wins when a class can hold both");
+            }
+        });
+    }
+
+    /// <summary>Exactly one class opens with a heal. Restoring HP is the healer's defining trick, and a
+    /// restorative in every caster's opening book makes it the common case instead — which is a balance
+    /// decision that can be made by accident, since the starting book is DERIVED from whatever each class
+    /// happens to be able to cast.
+    ///
+    /// <para>Counts what is GRANTED, not what is authored: a line the class fails is skipped at creation,
+    /// so an authored heal on a class that cannot cast it would read as a violation that never happens.</para></summary>
+    [Test]
+    public void ExactlyOneClass_StartsWithAHeal()
+    {
+        RequireSeed();
+        var spells = BuildIndexedArray(_spells);
+
+        var healers = _classes.OrderBy(k => k.Key)
+            .Where(kv => StartingLoadout.ResolveSpells(kv.Value, kv.Key, spells)
+                .Any(n => n < spells.Length && spells[n].Type == SpellType.AddHp))
+            .Select(kv => kv.Value.TrimmedName)
+            .ToList();
+
+        Assert.That(healers, Has.Count.EqualTo(1),
+            $"classes opening with a heal: [{string.Join(", ", healers)}] — the healer's trick belongs to "
+            + "exactly one class, and nobody holding it is as wrong as everybody holding it");
+    }
+
+    /// <summary>Turns a number-keyed seed map into the 1-based array the shared gates expect, sized to the
+    /// highest key so a gap reads as a blank record rather than shifting everything after it.</summary>
+    private static T[] BuildIndexedArray<T>(Dictionary<int, T> byNumber) where T : new()
+    {
+        int max = byNumber.Count == 0 ? 0 : byNumber.Keys.Max();
+        var arr = new T[max + 1];
+        for (int i = 0; i <= max; i++) arr[i] = byNumber.TryGetValue(i, out var rec) ? rec : new T();
+        return arr;
+    }
 }

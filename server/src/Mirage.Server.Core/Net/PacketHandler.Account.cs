@@ -447,8 +447,10 @@ public sealed partial class PacketHandler
         }
 
         int spellSlot = 1;
-        foreach (int spellNum in StartingLoadout.ResolveSpells(cls, chr.Class, _world.Spells))
+        var startSpells = StartingLoadout.ResolveSpells(cls, chr.Class, _world.Spells);
+        foreach (int spellNum in startSpells)
             chr.Spell[spellSlot++] = spellNum;
+        chr.PreparedSpell = StartingLoadout.ResolvePreparedSlot(startSpells, _world.Spells);
     }
 
     private void HandleDelChar(int index, DelCharPacket p)

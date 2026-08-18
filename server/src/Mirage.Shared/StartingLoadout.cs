@@ -87,6 +87,24 @@ public static class StartingLoadout
         return granted;
     }
 
+    /// <summary>The 1-based spell slot a new character arrives with PREPARED, or 0 when its book holds
+    /// nothing preparable. Takes the spells <see cref="ResolveSpells"/> granted, so the slot numbers line
+    /// up with the book that was actually written.
+    ///
+    /// <para>Only a SubHp spell can occupy the prepared slot — it IS the caster's weapon, which is the
+    /// same rule the SetPreparedSpell handler enforces — so a class whose opening book has one arrives
+    /// armed rather than having to open the spell panel before its first fight. A melee class grants no
+    /// SubHp spell and gets 0, exactly as it would after clearing the slot by hand.</para></summary>
+    public static int ResolvePreparedSlot(IReadOnlyList<int> grantedSpells, SpellRecord[] spells)
+    {
+        for (int i = 0; i < grantedSpells.Count; i++)
+        {
+            int num = grantedSpells[i];
+            if (num >= 1 && num < spells.Length && spells[num].Type == SpellType.SubHp) return i + 1;
+        }
+        return 0;
+    }
+
     /// <summary>Which stat gates which slot: STR for a weapon, DEF for the rest. Read twice per line —
     /// once as the class base that earns the affinity head-start, once as the stat that has to clear the
     /// requirement. At creation those are the same number, and this is the one moment in the game where

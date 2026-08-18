@@ -269,4 +269,23 @@ public class StartingLoadoutTests
         // Firestorm is out of INT reach; the Guild Ward belongs to class 2.
         Assert.That(StartingLoadout.ResolveSpells(cls, classNum: 1, Spells()), Is.EqualTo(new[] { 1 }));
     }
+
+    // A caster arrives with its attack spell already prepared, so its first fight needs no trip through
+    // the spell panel. The prepared slot is the caster's WEAPON and only ever holds SubHp, which is what
+    // decides both of these — the slot is an index into the book that was actually granted.
+    [Test]
+    public void ResolvePreparedSlot_PicksTheFirstSubHpSpellInTheBook()
+    {
+        // Guild Ward (AddHp) sits ahead of Spark (SubHp), so the slot must be 2 and not 1.
+        Assert.That(StartingLoadout.ResolvePreparedSlot([3, 1], Spells()), Is.EqualTo(2));
+        Assert.That(StartingLoadout.ResolvePreparedSlot([1, 2], Spells()), Is.EqualTo(1));
+    }
+
+    [Test]
+    public void ResolvePreparedSlot_LeavesAMeleeBookUnprepared()
+    {
+        // Nothing preparable, which is every melee class: 0 is the same value clearing the slot gives.
+        Assert.That(StartingLoadout.ResolvePreparedSlot([3], Spells()), Is.EqualTo(0));
+        Assert.That(StartingLoadout.ResolvePreparedSlot([], Spells()), Is.EqualTo(0));
+    }
 }
