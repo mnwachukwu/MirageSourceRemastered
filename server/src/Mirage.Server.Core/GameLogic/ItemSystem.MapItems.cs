@@ -20,7 +20,7 @@ public sealed partial class ItemSystem : GameSystem
     /// Spawn an item on the map.  Allocates a fresh per-map slot id, appends to the map's item list,
     /// and broadcasts to observers.  No cap — voluntary-drop limits live in <see cref="PlayerMapDropItem"/>;
     /// death drops and NPC drops bypass them and call this directly.
-    /// <paramref name="durOverride"/> &gt;= 0 carries the caller's exact durability into the spawn record
+    /// <paramref name="durOverride"/> >= 0 carries the caller's exact durability into the spawn record
     /// and the initial broadcast — used by player drops to preserve the equipped copy's wear instead of
     /// re-stamping the item's max durability.  Returns the assigned slot id (>0) on success, or 0 on
     /// input validation failure.

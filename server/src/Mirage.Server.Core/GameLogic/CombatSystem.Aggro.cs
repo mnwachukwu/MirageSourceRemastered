@@ -72,7 +72,7 @@ public sealed partial class CombatSystem : GameSystem
     }
 
     /// <summary>Tagged target descriptor for guard comrade-alert propagation.  Either a player index
-    /// (<see cref="Player"/> &gt; 0) or an NPC identity (<see cref="NpcSpawnSlot"/> &gt; 0); all-zeros
+    /// (<see cref="Player"/> > 0) or an NPC identity (<see cref="NpcSpawnSlot"/> > 0); all-zeros
     /// means "clear" (used when an aggro re-eval found no surviving contributor, so woken comrades
     /// should drop too).</summary>
     public readonly record struct GuardTargetSpec(int Player, int NpcSpawnMap, int NpcSpawnSlot)
@@ -262,9 +262,9 @@ public sealed partial class CombatSystem : GameSystem
     }
 
     /// <summary>Tagged "who wins aggro" — a player index, an NPC identity, or none.
-    /// Player &gt; 0 means a player pick; NpcSpawnSlot &gt; 0 means an NPC pick; all-zeros means nothing.
+    /// Player > 0 means a player pick; NpcSpawnSlot > 0 means an NPC pick; all-zeros means nothing.
     /// At most one of the two pick fields is set; <see cref="Damage"/> is the winner's RAW (unweighted)
-    /// ledger damage — kept &gt; 0 for any live contributor so callers' pick.Damage&lt;=0 liveness gate works.</summary>
+    /// ledger damage — kept > 0 for any live contributor so callers' pick.Damage<=0 liveness gate works.</summary>
     public readonly record struct AggroPick(int Player, int NpcSpawnMap, int NpcSpawnSlot, int Damage);
 
     private int SelectAggroTarget(int mapNum, MapNpcRecord mn)

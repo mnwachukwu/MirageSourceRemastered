@@ -180,7 +180,7 @@ public enum GuildWarRequestKind : byte
 
 /// <summary>Cadence of a creator <c>/guildreset</c>: run the day's routines, or additionally the
 /// weekly ones (financial reset + hold-score accrual + income roll), or additionally the season end. Ordered
-/// so a larger scope includes the smaller (Day &lt; Week &lt; Season).</summary>
+/// so a larger scope includes the smaller (Day < Week < Season).</summary>
 public enum SettlementScope : byte
 {
     Day = 0,

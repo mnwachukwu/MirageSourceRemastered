@@ -10,7 +10,7 @@ namespace Mirage.Client.Core.Tests;
 
 /// <summary>MapGroup is an independent client-cached def: the client holds the group and resolves a
 /// map's effective inheritable values against it on demand (ClientState.*Of), the client-side mirror of the
-/// server's GameWorld.*Of. These lock (a) the override &gt; inherit &gt; default resolution + null-group safety,
+/// server's GameWorld.*Of. These lock (a) the override > inherit > default resolution + null-group safety,
 /// and (b) that a live UpdateMapGroup changes what a member map resolves to with NO map re-send — the whole
 /// point of the redesign (a group edit reaches online players without touching any map).</summary>
 [TestFixture]

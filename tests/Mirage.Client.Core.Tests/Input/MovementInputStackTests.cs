@@ -6,7 +6,7 @@ namespace Mirage.Client.Core.Tests;
 
 /// <summary>Press-order movement resolution ("input stack"): the most-recently-pressed still-held
 /// direction wins, releasing it falls back to whatever is still held, and same-tick ties resolve to
-/// the legacy fixed precedence Up &gt; Down &gt; Left &gt; Right.</summary>
+/// the legacy fixed precedence Up > Down > Left > Right.</summary>
 [TestFixture]
 public class MovementInputStackTests
 {

@@ -70,7 +70,7 @@ public static class TerritoryContestFormulas
     }
 
     /// <summary>The winning guild of a finished contest (0 = stays/becomes unclaimed). The strict top scorer
-    /// wins; any tie goes to the defender (<paramref name="defenderGuild"/> &gt; 0) or, for an unclaimed
+    /// wins; any tie goes to the defender (<paramref name="defenderGuild"/> > 0) or, for an unclaimed
     /// contest (defender 0), stays unclaimed. (The unclaimed-tie war-kills tiebreak arrives with combat
     /// integration.) An empty score set keeps the defender.</summary>
     public static int DetermineWinner(IReadOnlyDictionary<int, long> scores, int defenderGuild)

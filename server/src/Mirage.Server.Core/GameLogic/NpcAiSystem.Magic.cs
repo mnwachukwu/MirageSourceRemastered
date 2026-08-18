@@ -199,7 +199,7 @@ public sealed partial class NpcAiSystem : GameSystem
     }
 
     /// <summary>Branch to the appropriate <c>NpcCastSpell*</c> overload based on which victim
-    /// argument is set.  Exactly one of <paramref name="playerVictimIdx"/> &gt; 0 or
+    /// argument is set.  Exactly one of <paramref name="playerVictimIdx"/> > 0 or
     /// <paramref name="npcVictimMn"/> non-null is expected to hold.</summary>
     private void DispatchNpcCast(int mapNum, int slot, MapNpcRecord mn, int playerVictimIdx, int victimMap, int npcVictimSlot, MapNpcRecord? npcVictimMn)
     {

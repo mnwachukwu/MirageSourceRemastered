@@ -220,7 +220,7 @@ public sealed partial class NpcAiSystem : GameSystem
     /// <summary>Legs-pass chase-step for a native NPC with a PLAYER target.  Gated by the per-NPC step-clock
     /// (which also absorbs the magic-push, so a kiting caster is left alone).  Skips when adjacent (brain
     /// swings); otherwise steps toward the target at run/walk pace — including across a map seam when the
-    /// target is on an adjacent map.  Runs while SP &gt; 0 (draining it per tile), walks otherwise — so the
+    /// target is on an adjacent map.  Runs while SP > 0 (draining it per tile), walks otherwise — so the
     /// sprint gasses out and the player pulls away.</summary>
     private void AdvanceNativeChaseStep(int mapNum, int slot, MapNpcRecord mn, long now)
     {
@@ -389,7 +389,7 @@ public sealed partial class NpcAiSystem : GameSystem
     private int NpcRunSpDrain(int map) =>
         Constants.NpcRunSpDrainPerTile * (_world.WeatherOn(map) == WeatherType.HeatWave ? Constants.WeatherHeatWaveSpCostMultiplier : 1);
 
-    /// <summary>Whether an NPC may RUN right now: it needs stamina (SP &gt; 0) AND the map must not be under Heavy
+    /// <summary>Whether an NPC may RUN right now: it needs stamina (SP > 0) AND the map must not be under Heavy
     /// Wind, which forces everyone — players (see MovementSystem.PlayerMove) and NPCs alike — down to a walk.  Every
     /// chase/kite run-vs-walk decision routes through this so the wind restriction is applied uniformly.</summary>
     private bool NpcCanRun(int mapNum, MapNpcRecord mn)
@@ -426,7 +426,7 @@ public sealed partial class NpcAiSystem : GameSystem
     /// walks while close and sprints only once the target opens
     /// <see cref="Constants.NpcChaseSprintGapTiles"/>, holding the sprint until it regains melee — so it
     /// bursts stamina instead of gluing, and a running player can slip past. EXCEPT guards, which stay
-    /// sticky as a deterrent, and a spell-primary caster (Int &gt; Str, with mana), which closes to spell
+    /// sticky as a deterrent, and a spell-primary caster (Int > Str, with mana), which closes to spell
     /// range and holds there.</para></summary>
     private static bool NpcWantsChaseRun(MapNpcRecord mn, NpcRecord npc, int gap)
     {

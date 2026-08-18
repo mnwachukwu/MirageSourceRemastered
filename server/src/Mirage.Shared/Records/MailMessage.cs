@@ -25,7 +25,7 @@ public sealed class MailMessage
     /// <c>Constants.MailRetentionSeconds</c>). A normal message is removed by the expiry sweep; a CoD message
     /// returns to sender instead. 0 on legacy mail reads as "never expires".</summary>
     public long DeleteAt { get; set; }
-    /// <summary>Collect-on-Delivery price in gold: &gt;0 marks this a CoD whose attachments are LOCKED until the
+    /// <summary>Collect-on-Delivery price in gold: >0 marks this a CoD whose attachments are LOCKED until the
     /// recipient pays. On the recipient's (unclaimed) inbox copy this also shortens the lifetime to a 3-day
     /// RETURN clock (<c>Constants.CodLifetimeSeconds</c>) — the expiry sweep mails the items back to the sender
     /// instead of deleting. Paying clears it to 0 (the message becomes a normal claimed mail). The sender's

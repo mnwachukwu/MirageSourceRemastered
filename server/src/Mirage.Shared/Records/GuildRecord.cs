@@ -105,8 +105,8 @@ public sealed class GuildRecord
     public long Exp { get; set; }
     /// <summary>Whether the guild's level perks are currently in force. Flipped off by the daily 00:00
     /// settlement when a weekly tax goes unpaid and back on when a later week's tax is covered (no back
-    /// taxes). Default true; only meaningful once <see cref="Level"/> &gt;= 1. Perk effects gate on
-    /// <c>Level &gt;= 1 &amp;&amp; PerksActive</c>.</summary>
+    /// taxes). Default true; only meaningful once <see cref="Level"/> >= 1. Perk effects gate on
+    /// <c>Level >= 1 && PerksActive</c>.</summary>
     public bool PerksActive { get; set; } = true;
 
     // ── Quests ───────────────────────────────────────────────────────────────
@@ -228,7 +228,7 @@ public sealed class GuildWar
     /// one-sided grievance) the warmup. 0 when this guild didn't declare (a pure defender).</summary>
     public long DeclaredUtc { get; set; }
     /// <summary>UTC-seconds hostilities go live: warmup end for a one-sided grievance, or the moment of
-    /// reciprocation for a mutual war (immediate). Combat rules apply only once <c>now &gt;= GoLiveUtc</c>.</summary>
+    /// reciprocation for a mutual war (immediate). Combat rules apply only once <c>now >= GoLiveUtc</c>.</summary>
     public long GoLiveUtc { get; set; }
     /// <summary>Gold this guild paid to declare — the daily maintenance is a fraction of it
     /// (<see cref="Constants.GuildWarDailyMaintenancePercent"/>). 0 when this guild didn't declare.</summary>

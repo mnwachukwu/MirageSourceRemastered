@@ -234,7 +234,7 @@ public sealed partial class ChatPanel
         foreach (var tab in _tabs) tab.Log.AddLine(text, colorIndex);
     }
 
-    /// <summary>Focuses the chat input and prefills it with `/w &lt;name&gt; ` so the user can immediately
+    /// <summary>Focuses the chat input and prefills it with `/w <name> ` so the user can immediately
     /// type a whisper. Mirrors the `/r` reply UX. Used by the right-click "Whisper" menu item.</summary>
     public void StartWhisper(string targetName)
     {

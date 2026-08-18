@@ -139,7 +139,7 @@ public sealed record GuildWarView
     [JsonPropertyName("wagerByUs")] public long WagerProposedByUs { get; init; }
     [JsonPropertyName("wagerByThem")] public long WagerProposedByThem { get; init; }
     /// <summary>UTC-seconds the wager window closes (mutual-start + 1h); a new ante can only be agreed before
-    /// this. 0 = not mutual / no window. The client shows the ante controls only while <c>now &lt; this</c>.</summary>
+    /// this. 0 = not mutual / no window. The client shows the ante controls only while <c>now < this</c>.</summary>
     [JsonPropertyName("wagerDeadlineUtc")] public long WagerDeadlineUtc { get; init; }
 }
 

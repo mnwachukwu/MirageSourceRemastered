@@ -156,3 +156,5 @@ This file covers what the project is and how to get it running. Everything else 
 | [Technical decisions](docs/architecture.md) | Choices that are not obvious from the code, recorded with the reasoning that produced them |
 | [Game data conventions](docs/game-data.md) | Rules the authored content is expected to follow, including music loop points |
 | [Changes from the VB6 original](docs/changes-from-vb6.md) | Additions, rebalances, bug fixes carried across, and the two features excluded by design |
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/mnwachukwu/tip)

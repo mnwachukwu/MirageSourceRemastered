@@ -6,7 +6,7 @@ namespace Mirage.Shared.Protocol.Packets;
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
 /// <summary>S→C: the account's full mailbox — inbox + sent outbox — plus the server's current UTC-seconds
-/// so the client can render "in transit" (DeliverAt &gt; NowUtc) without its own clock. Sent on entering the
+/// so the client can render "in transit" (DeliverAt > NowUtc) without its own clock. Sent on entering the
 /// world and after any change (a maturity sweep re-pushes when an in-transit message matures).</summary>
 public sealed record MailboxPacket : IPacket
 {

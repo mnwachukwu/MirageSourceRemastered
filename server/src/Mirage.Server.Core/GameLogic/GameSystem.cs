@@ -95,7 +95,7 @@ public abstract class GameSystem
     /// <summary>Sends a packet to everyone observing <paramref name="mapNum"/>.
     /// <para>Replaces the <c>_dispatcher.SendToObservers(_world.MapObservers[mapNum], packet)</c>
     /// idiom that appeared 151 times across sixteen files, each site reaching through
-    /// <see cref="World.GameWorld"/> into a raw <c>HashSet&lt;int&gt;[]</c> just to name an
+    /// <see cref="World.GameWorld"/> into a raw <c>HashSet<int>[]</c> just to name an
     /// audience.</para></summary>
     protected void SendToMap(World.GameWorld world, int mapNum, IPacket packet) =>
         _dispatcher.SendToObservers(world.MapObservers[mapNum], packet);

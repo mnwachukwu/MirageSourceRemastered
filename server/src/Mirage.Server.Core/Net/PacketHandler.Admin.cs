@@ -560,7 +560,7 @@ public sealed partial class PacketHandler
 
     /// <summary>Who is speaking, for player-originated chat: the trimmed character name, their access, and
     /// their PK status frozen at send time (mirroring the renderer's
-    /// <c>IsPk(now) &amp;&amp; PkGraceUntil &lt;= now</c> rule), plus the ACCOUNT login behind them.
+    /// <c>IsPk(now) && PkGraceUntil <= now</c> rule), plus the ACCOUNT login behind them.
     ///
     /// <para><see cref="Login"/> never reaches the wire: passing it as <c>ChatMetadata.SpeakerLogin</c> is
     /// what lets the dispatch drop the message for recipients who ignore this account. Named rather than a

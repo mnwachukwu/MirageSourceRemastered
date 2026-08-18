@@ -23,7 +23,7 @@ public sealed class ClientPacketSender
 
     /// <summary>Wires the current-locale getter, called by every pre-session sender so the
     /// server can localize auth-error responses before a session exists. Typically called once
-    /// from the Shell layer with <c>() =&gt; _language</c>.</summary>
+    /// from the Shell layer with <c>() => _language</c>.</summary>
     public void SetLocaleProvider(Func<string> provider) => _localeProvider = provider;
 
     /// <summary>Wires the machine-key getter — see <see cref="Mirage.Shared.MachineKey"/>. Read at send

@@ -84,7 +84,7 @@ public interface IClientEvents
 
     /// <summary>
     /// Vital changed in a way that should produce a floating combat number.
-    /// delta &gt; 0 = heal/gain, delta &lt; 0 = damage/loss.
+    /// delta > 0 = heal/gain, delta < 0 = damage/loss.
     /// Args: entityIndex, delta, type, isNpc, isCrit, npcMap (the NPC's map for isNpc — so the number
     /// floats on a neighbor map too; 0/ignored for players, which resolve by their own record).
     /// </summary>

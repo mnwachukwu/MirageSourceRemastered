@@ -65,7 +65,7 @@ public static partial class ServerStrings
 
     /// <summary>
     /// Wires the per-player locale lookup that <see cref="ForPlayer"/> calls. Typically called once
-    /// at startup with <c>index =&gt; playerManager[index].Language</c>.
+    /// at startup with <c>index => playerManager[index].Language</c>.
     /// </summary>
     public static void SetPlayerLocaleResolver(Func<int, string> resolver) => _resolver = resolver;
 

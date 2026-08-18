@@ -45,7 +45,7 @@ public sealed class MailSystem : GameSystem
 
     /// <summary>Deliver a message to an account by login — online (mirror + push) or offline (persisted
     /// for next login). <paramref name="deliverAt"/> is the UTC-second the message matures; 0 = instant
-    /// (system mail), claimable immediately. <paramref name="codPrice"/> &gt; 0 makes it a Collect-on-Delivery
+    /// (system mail), claimable immediately. <paramref name="codPrice"/> > 0 makes it a Collect-on-Delivery
     /// message whose attachments stay locked until paid (and which returns to sender in 3 days if unpaid).</summary>
     public void Deliver(string login, string sender, string subject, string body,
         List<MailAttachment>? attachments = null, long deliverAt = 0, int codPrice = 0)

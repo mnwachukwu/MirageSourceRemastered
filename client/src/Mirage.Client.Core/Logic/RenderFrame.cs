@@ -117,7 +117,7 @@ public readonly record struct TargetArrowCmd(float CenterX, float NameY, bool Na
 /// Draw an entity's HP/MP/SP bars — plus, as the bottom row of the same group (one shared outline), the
 /// swing/cast COOLDOWN bar. CenterX is the horizontal center; TopY is the topmost (HP) bar's Y.
 /// Vital fractions are clamped 0..1; -1f means "omit that bar" (e.g. when max is 0).
-/// <see cref="CdFrac"/> is the remaining fraction of the action cooldown (1 = just acted, 0 = ready); &lt; 0
+/// <see cref="CdFrac"/> is the remaining fraction of the action cooldown (1 = just acted, 0 = ready); < 0
 /// omits the row entirely.
 /// </summary>
 public readonly record struct BarDrawCmd(

@@ -90,7 +90,7 @@ public sealed partial class NpcAiSystem : GameSystem
 
     /// <summary>Guards scan their 16×12 viewport for hostile NPCs chasing a player.  Iterates the
     /// 9-map observable area's native slots AND guest list — a wolf that pursued a player into the
-    /// guard's viewport is fair game.  Eligibility: AoS/AWA behavior AND Target &gt; 0 (currently
+    /// guard's viewport is fair game.  Eligibility: AoS/AWA behavior AND Target > 0 (currently
     /// chasing a player; an idle AWA mob does not qualify).  No LoS gate — matches PK-scan precedent
     /// (guards see hostiles through walls; BFS routes them around after acquisition).  Picks the
     /// nearest such hostile (world-tile Manhattan); returns (0, 0) when nothing eligible is in range.</summary>

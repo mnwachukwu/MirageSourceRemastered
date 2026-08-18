@@ -193,7 +193,7 @@ public static class CombatFormulas
     /// <summary>Final HP damage for a PLAYER hitting an NPC: <see cref="ResolveDamage(int,int)"/> but with the higher
     /// <see cref="PveMinDamageFloorPercent"/> so a low-offense build whose raw sits under a tanky mob's mitigation
     /// still makes real progress instead of a wall-hitting slog.  HP damage ONLY — MP/SP drains keep the standard
-    /// floor.  Pures are unaffected (raw already &gt; mit).</summary>
+    /// floor.  Pures are unaffected (raw already > mit).</summary>
     public static int ResolvePlayerVsNpcDamage(int variedRaw, int protection) =>
         ResolveDamage(variedRaw, protection, 1.0, PveMinDamageFloorPercent);
 
@@ -298,7 +298,7 @@ public static class CombatFormulas
     /// scale 1 → 0 decimals (50 → "50%"), scale 10 → 1 decimal (50 → "5.0%"), scale 100 → 2.
     /// Dividing by the scale introduces exactly log10(scale) decimal places; Ceiling handles
     /// non-powers-of-10 (scale=5 still wants 1 decimal, e.g. 12/5 = 2.4) and Max(0,…) guards a
-    /// degenerate scale &lt; 1 where log10 goes negative.</summary>
+    /// degenerate scale < 1 where log10 goes negative.</summary>
     public static int ChanceDisplayDecimals => Math.Max(0, (int)Math.Ceiling(Math.Log10(Constants.ChanceScaleFactor)));
     /// <summary>Render a raw chance value as a percent string.  Shared between server (/stats command)
     /// and client (StatsPanel, NewCharScreen) so both sides print the same format.</summary>
@@ -335,7 +335,7 @@ public static class CombatFormulas
     /// <summary>Percent chance that a single hit reduces a worn item's durability by 1, scaled by
     /// current condition (<paramref name="dur"/> as a percent of <paramref name="maxDur"/>). Fresher
     /// gear chips less often; badly worn gear chips every hit. Caller rolls via <see cref="RollPercent"/>
-    /// (degrade when the roll is below this value). <paramref name="maxDur"/> must be &gt; 0.</summary>
+    /// (degrade when the roll is below this value). <paramref name="maxDur"/> must be > 0.</summary>
     public static int DurabilityDegradeChancePercent(int dur, int maxDur)
     {
         double pct = (double)dur * 100 / maxDur;

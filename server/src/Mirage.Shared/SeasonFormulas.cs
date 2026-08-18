@@ -21,7 +21,7 @@ public static class SeasonFormulas
     }
 
     /// <summary>The season-end payout for a guild finishing at <paramref name="placing"/> (1-based rank among
-    /// the SCORING guilds): the per-active-member gold and the guild-vault gold. A non-scorer (placing &lt;= 0)
+    /// the SCORING guilds): the per-active-member gold and the guild-vault gold. A non-scorer (placing <= 0)
     /// gets nothing; 4th and below get the flat "scorer" payout.</summary>
     public static (long Member, long Vault) PlacingPayout(int placing) => placing switch
     {

@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Mirage.Client.Core.Tests;
 
-/// <summary>World-space HP/MP/SP bar animation: snap on first appearance (DispHp &lt; 0) or on an explicit
+/// <summary>World-space HP/MP/SP bar animation: snap on first appearance (DispHp < 0) or on an explicit
 /// SnapVitals (respawn), otherwise lerp the display fraction toward the true fraction.</summary>
 [TestFixture]
 public class WorldBarAnimatorTests

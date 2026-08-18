@@ -64,7 +64,7 @@ public interface IPacketDispatcher
 
     // ── Guild send-scopes ────────────────────────────────────────────────────
     /// <summary>Sends to every online player whose account belongs to guild
-    /// <paramref name="guildId"/> (1-based; a guildId &lt; 1 reaches no one). The guild-scoped
+    /// <paramref name="guildId"/> (1-based; a guildId < 1 reaches no one). The guild-scoped
     /// counterpart of <see cref="SendToAll"/>; recipients are found by a linear scan of the slots
     /// (there is no per-guild roster index).</summary>
     void SendToGuild(int guildId, IPacket packet);

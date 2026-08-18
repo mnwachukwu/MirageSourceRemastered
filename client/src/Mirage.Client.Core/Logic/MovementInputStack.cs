@@ -5,7 +5,7 @@ namespace Mirage.Client.Core.Logic;
 /// <summary>
 /// Resolves the four movement inputs into a single direction by press-order, so the
 /// most-recently-pressed key that is still held wins ("input stack") rather than a fixed
-/// Up &gt; Down &gt; Left &gt; Right priority. Holding W then D steps right; releasing D while W
+/// Up > Down > Left > Right priority. Holding W then D steps right; releasing D while W
 /// is still held falls back to up.
 ///
 /// Fed the current held-state once per movement tick (from GameplayScreen.BuildInputSnapshot):
