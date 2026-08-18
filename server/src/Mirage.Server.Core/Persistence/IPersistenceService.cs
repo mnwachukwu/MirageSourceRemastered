@@ -24,7 +24,7 @@ public interface IPersistenceService
     /// <para>The name search runs on the FILE NAMES, which are the logins — so it narrows the set without
     /// opening anything, and only the page's own records are read.</para>
     ///
-    /// <para>🔴 An <paramref name="access"/> filter cannot work that way: the level lives INSIDE the
+    /// <para> An <paramref name="access"/> filter cannot work that way: the level lives INSIDE the
     /// record, so every candidate has to be opened to know whether it matches. That is a full scan, and
     /// it is why the two filters have very different costs. Acceptable because it happens when an
     /// operator picks a level, not on every keystroke — and a name search still narrows the candidates

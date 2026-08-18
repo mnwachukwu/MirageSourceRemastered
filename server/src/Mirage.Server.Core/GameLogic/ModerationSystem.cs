@@ -39,7 +39,7 @@ public sealed class ModerationSystem
     // ── Game thread ONLY ──────────────────────────────────────────────────────
 
     /// <summary>Who is logged in, keyed by account login, valued by the character they are on.
-    /// <para>🔴 Game thread only — the roster is consistent nowhere else. The dictionary is built fresh
+    /// <para> Game thread only — the roster is consistent nowhere else. The dictionary is built fresh
     /// so nothing the loop owns escapes it.</para></summary>
     public Dictionary<string, string> OnlineLogins()
     {
@@ -54,7 +54,7 @@ public sealed class ModerationSystem
 
     /// <summary>Clears the LIVE mute mirror on every session for this account, returning whether any was
     /// found.
-    /// <para>🔴 Game thread only, and 🔴 not optional. Chat checks read
+    /// <para> Game thread only, and  not optional. Chat checks read
     /// <see cref="ServerPlayer.MutedUntilUtc"/>, not the account file, so clearing the account alone
     /// leaves somebody muted until they relog. Loops every online slot rather than the first match: one
     /// login cannot currently be online twice, and this should not be what breaks if that changes.</para></summary>
@@ -75,7 +75,7 @@ public sealed class ModerationSystem
     /// <summary>Turns an operator's argument into an account login. Prefers an online character of that
     /// name — the handle they can see — and otherwise takes the argument as the login itself. Null when
     /// it is neither.
-    /// <para>🔴 The apply commands all resolve through the ONLINE ROSTER alone, which is exactly wrong
+    /// <para> The apply commands all resolve through the ONLINE ROSTER alone, which is exactly wrong
     /// here: a kicked or banned account cannot be online to be found.</para></summary>
     public async Task<string?> ResolveLoginAsync(string arg, IReadOnlyDictionary<string, string> online)
     {
@@ -91,7 +91,7 @@ public sealed class ModerationSystem
 
     /// <summary>The machine key held on an online session — empty when that login is not online or its
     /// client sent none.
-    /// <para>🔴 Game thread only — it reads live session state, which is the whole constraint on
+    /// <para> Game thread only — it reads live session state, which is the whole constraint on
     /// <c>/hwban</c>: the key exists nowhere else, so there is nothing to ban about somebody offline.</para></summary>
     public string OnlineMachineKey(string login)
     {

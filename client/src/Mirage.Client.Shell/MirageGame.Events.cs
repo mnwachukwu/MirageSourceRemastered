@@ -312,8 +312,12 @@ public sealed partial class MirageGame : Game
             Window.Title = $"{_state.GameName} - Players Online: {count}";
 
         // A server just told us what its world is called; the title bar is the one place that shows it
-        // and cannot read it for itself.
-        _handler.GameNameChanged += name => Window.Title = name;
+        // and cannot read it for itself. It also names this address in the server list.
+        _handler.GameNameChanged += name =>
+        {
+            Window.Title = name;
+            ServerBookStore.Book.Remember(name, _serverHost, _serverPort);
+        };
 
         _handler.ChatMessage += pkt =>
         {

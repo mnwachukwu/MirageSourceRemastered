@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Mirage.Client.Core.Logic;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
+using Mirage.Client.Shell.Net;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
 
@@ -85,7 +86,7 @@ public sealed class ChangePasswordScreen : IGameScreen
             {
                 _connecting = false;
                 if (_connectTask.IsFaulted)
-                    _errorMsg = ClientStrings.Get(ClientStrings.Common_CannotConnect);
+                    _errorMsg = ConnectFailure.Describe(_connectTask);
                 else
                     DoChange();
             }

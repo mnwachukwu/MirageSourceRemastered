@@ -8,11 +8,11 @@ namespace Mirage.Server.Core.Net;
 /// <summary>
 /// The editor's account browser — CREATOR only, and the only editor surface that describes a person.
 ///
-/// <para>🔴 <b>Everything here reads account FILES,</b> so none of it may run on the game thread. Each
+/// <para> <b>Everything here reads account FILES,</b> so none of it may run on the game thread. Each
 /// handler starts its work off the loop and hops back once, for the two things only the loop knows: who
 /// is online, and applying an edit to a live player.</para>
 ///
-/// <para>🔴 <b>The password is never loaded into a packet, never sent, and never accepted back.</b> A
+/// <para> <b>The password is never loaded into a packet, never sent, and never accepted back.</b> A
 /// save re-reads the record from disk and copies only the fields a Creator may change onto it, so
 /// anything absent from the wire is preserved rather than blanked — which is also what keeps the
 /// moderation timers out of reach from here.</para>
@@ -103,7 +103,7 @@ public sealed partial class EditorPacketHandler
         var edits = p.Chars.Where(c => c.Slot >= 1 && c.Slot <= Constants.MaxChars).ToList();
         var access = p.Access;
 
-        // 🔴 Nobody edits their OWN access. A Creator who demotes themselves by mistake locks themselves
+        // Nobody edits their OWN access. A Creator who demotes themselves by mistake locks themselves
         // out of the section that could put it back, and the only repair is a hand-edited JSON file. The
         // editor greys the picker too, but this is the check that counts.
         bool self = string.Equals(byLogin, login, StringComparison.OrdinalIgnoreCase);

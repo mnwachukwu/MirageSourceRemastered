@@ -19,8 +19,8 @@ namespace Mirage.Editor.ViewModels;
 /// and refuses an unknown map, and typing something it rejects should not leave the screen claiming
 /// otherwise.</para>
 ///
-/// <para>🔴 <b>No password, ever.</b> The wire has no field for one, so there is nothing here to show or
-/// to send back. 🔴 <b>No moderation.</b> Kicks, mutes and bans are an operator's job, done from the
+/// <para> <b>No password, ever.</b> The wire has no field for one, so there is nothing here to show or
+/// to send back.  <b>No moderation.</b> Kicks, mutes and bans are an operator's job, done from the
 /// server window. Guild membership is shown but not editable — the guild's roster cache is kept in step
 /// by GuildSystem, and writing the account's copy directly would desync it.</para>
 /// </summary>

@@ -15,6 +15,11 @@ public static partial class ClientStrings
     public const string ConfigPanel_PortRangeError = nameof(ConfigPanel_PortRangeError);
     public const string ConfigPanel_TestButton = nameof(ConfigPanel_TestButton);
     public const string ConfigPanel_SaveButton = nameof(ConfigPanel_SaveButton);
+    public const string ConfigPanel_ForgetButton = nameof(ConfigPanel_ForgetButton);
+    public const string ConfigPanel_AddButton = nameof(ConfigPanel_AddButton);
+    public const string ConfigPanel_KnownServersLabel = nameof(ConfigPanel_KnownServersLabel);
+    public const string ConfigPanel_NameLabel = nameof(ConfigPanel_NameLabel);
+    public const string ConfigPanel_ServerAdded = nameof(ConfigPanel_ServerAdded);   // "{Server}"
     public const string ConfigPanel_TestingConnection = nameof(ConfigPanel_TestingConnection);
     public const string ConfigPanel_ConnectionTimedOut = nameof(ConfigPanel_ConnectionTimedOut);
     public const string ConfigPanel_ConnectionSucceeded = nameof(ConfigPanel_ConnectionSucceeded);

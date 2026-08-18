@@ -204,7 +204,7 @@ public class EditorLiveBroadcastTests
 
     // ── Access gate: authenticated is not the same as ALLOWED ─────────────────────
     //
-    // 🔴 The handlers used to check authentication alone. session.AdminLevel was set at login and never
+    // The handlers used to check authentication alone. session.AdminLevel was set at login and never
     // read again, so a MAPPER — the lowest tier the editor admits — could save items, NPCs, shops,
     // spells, classes, quests and conversations. The editor client hides those sections below Developer,
     // but that is presentation, and this engine ships its client's source.

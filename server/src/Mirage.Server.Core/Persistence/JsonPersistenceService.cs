@@ -157,7 +157,7 @@ public sealed class JsonPersistenceService : IPersistenceService
         skip = Math.Max(0, skip);
         take = Math.Max(0, take);
 
-        // 🔴 An access filter forces every candidate open, because the level is inside the record and not
+        // An access filter forces every candidate open, because the level is inside the record and not
         // in its name. Only then can the total and the page be honest about how many matched.
         if (access is { } wanted)
         {

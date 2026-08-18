@@ -353,7 +353,7 @@ public class MovementSystemTests
         });
     }
 
-    // 🔴 The one that has to hold for the gate to be shippable: a client walking at exactly the pace the
+    // The one that has to hold for the gate to be shippable: a client walking at exactly the pace the
     // formulas set is NEVER refused, however long it walks. A gate that rubber-bands honest players would
     // be worse than the hole it closes.
     [Test]

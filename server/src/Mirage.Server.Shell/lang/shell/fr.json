@@ -140,6 +140,7 @@
   "Console_Attaching": "Connexion à {Host} sur le port {Port}...",
   "Console_Rejected": "Le serveur a refusé la clé.",
   "Console_Unreachable": "Impossible de joindre {Host} sur le port {Port}.",
+  "Console_IdentityChanged": "{Host}:{Port} a présenté un certificat différent de la dernière fois. Connexion annulée.",
   "Console_ConnectionLost": "La connexion au serveur a pris fin.",
   "Console_ShutdownBlocked": "Non envoyé. Cette fenêtre ne peut pas relancer un serveur distant : utilisez la console de ce serveur s'il doit s'arrêter.",
 
@@ -156,6 +157,10 @@
   "Connection_Remote": "Un serveur sur une autre machine",
   "Connection_RemoteHint": "Se connecte à un serveur déjà en marche ailleurs. Il doit avoir la gestion distante activée, et il continue de tourner quand vous vous déconnectez.",
   "Connection_Host": "Hôte",
+  "Connection_KnownServers": "Connus",
+  "Connection_ServerName": "Nom",
+  "Connection_ForgetServer": "Oublier",
+  "Connection_AddServer": "Ajouter",
   "Connection_Port": "Port",
   "Connection_Token": "Clé",
   "Connection_TokenHint": "La clé donnée à ce serveur. Conservée dans le fichier de réglages de cette fenêtre pour ne pas la retaper.",

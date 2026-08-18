@@ -12,7 +12,7 @@
 // Everything here is read from files already in this repository, so it needs no checkout but its own
 // and costs nothing to run.
 //
-// 🔴 A claim that cannot be FOUND is a failure. If a sentence is reworded past recognition this must
+// A claim that cannot be FOUND is a failure. If a sentence is reworded past recognition this must
 // go red rather than quietly verifying nothing — a check that silently stops checking is worse than
 // no check, because it also stops anyone worrying about the thing.
 

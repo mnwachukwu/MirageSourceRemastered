@@ -23,7 +23,7 @@ public sealed class NpcDrop
     /// <summary>How many. Meaningful ONLY for a CURRENCY item, where it is the stack size, and clamped to
     /// at least 1 at roll time.
     ///
-    /// <para>⚠️ For anything else this field is DEAD — not "usually one", but never read at all.
+    /// <para> For anything else this field is DEAD — not "usually one", but never read at all.
     /// <c>ItemSystem.FindOpenInvSlot</c> merges slots for Currency alone; everything else takes a fresh
     /// slot and <c>HasItem</c> reports a flat 1 no matter what is written here. A line of
     /// <c>{sword, quantity 12}</c> yields ONE sword, silently. Author twelve lines instead.</para></summary>

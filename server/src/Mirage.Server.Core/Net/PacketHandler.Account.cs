@@ -78,7 +78,7 @@ public sealed partial class PacketHandler
             // up a world otherwise means shutting the server down and hand-editing a JSON file to reach
             // your own admin tools — a step every operator hits once and nobody should have to.
             //
-            // 🔴 Gated on LOOPBACK, not merely on being first. On a server that is already reachable, the
+            // Gated on LOOPBACK, not merely on being first. On a server that is already reachable, the
             // first stranger to find it would otherwise own it.
             bool bootstrap = IsLoopback(_pm[index].RemoteIp) && _persistence.HasNoAccounts();
             await _persistence.CreateAccountAsync(name, pass, bootstrap ? AdminLevel.Creator : AdminLevel.Player);

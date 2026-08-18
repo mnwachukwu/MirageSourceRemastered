@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Mirage.Editor.Views.ConnectDialog"
-        MinWidth="360" Height="280"
+        MinWidth="440" Height="420"
         SizeToContent="Width"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
@@ -29,6 +29,26 @@
                        Minimum="1" Maximum="65535"
                        FormatString="0" />
       </Grid>
+      <Grid ColumnDefinitions="100,*">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding ServerNameLabel}"/>
+        <TextBox   Grid.Column="1" Text="{Binding ServerName}" />
+      </Grid>
+      <Grid ColumnDefinitions="100,*">
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding KnownServersLabel}"/>
+        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding KnownServers}"
+                  SelectedItem="{Binding SelectedServer}">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Label}"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </Grid>
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+        <Button Content="{Binding AddLabel}" Command="{Binding AddServerCommand}" MinWidth="88"/>
+        <Button Content="{Binding ForgetLabel}" Command="{Binding ForgetServerCommand}" MinWidth="88"/>
+      </StackPanel>
     </StackPanel>
 
     <TextBlock Text="{Binding ErrorMessage}"

@@ -140,6 +140,7 @@
   "Console_Attaching": "A ligar a {Host} na porta {Port}...",
   "Console_Rejected": "O servidor recusou a chave.",
   "Console_Unreachable": "Não foi possível alcançar {Host} na porta {Port}.",
+  "Console_IdentityChanged": "{Host}:{Port} apresentou um certificado diferente do da última vez. Não será conectado.",
   "Console_ConnectionLost": "A ligação ao servidor terminou.",
   "Console_ShutdownBlocked": "Não enviado. Esta janela não consegue voltar a iniciar um servidor remoto; use a consola desse servidor se tiver de o desligar.",
 
@@ -156,6 +157,10 @@
   "Connection_Remote": "Um servidor noutra máquina",
   "Connection_RemoteHint": "Liga-se a um servidor que já está a correr noutro sítio. Tem de ter a gestão remota ativada, e continua a correr quando se desliga.",
   "Connection_Host": "Anfitrião",
+  "Connection_KnownServers": "Conhecidos",
+  "Connection_ServerName": "Nome",
+  "Connection_ForgetServer": "Esquecer",
+  "Connection_AddServer": "Adicionar",
   "Connection_Port": "Porta",
   "Connection_Token": "Chave",
   "Connection_TokenHint": "A chave que foi dada a esse servidor. Guardada no ficheiro de definições desta janela para não a reescrever.",

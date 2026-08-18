@@ -1145,7 +1145,7 @@ public sealed partial class EditorPacketHandler
     /// <summary>
     /// Whether this session is authenticated AND cleared to <paramref name="required"/>.
     ///
-    /// <para>🔴 <b>The access half did not exist.</b> Every handler used to check authentication alone,
+    /// <para> <b>The access half did not exist.</b> Every handler used to check authentication alone,
     /// and <c>session.AdminLevel</c> was assigned at login and never read again — so a Mapper, the lowest
     /// tier the editor admits, could save items, NPCs, shops, spells, classes, quests and conversations.
     /// The editor client hides those sections below Developer, but that is presentation: the server took

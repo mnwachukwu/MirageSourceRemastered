@@ -55,7 +55,7 @@ public sealed partial class PacketHandler
 
     /// <summary>Tells every Monitor and above online that a banned machine just came through. Silent when
     /// nobody is on to hear it — the log line above is the durable record.
-    /// <para>🔴 Walks the roster, so it belongs on the game thread with the rest of this handler.</para></summary>
+    /// <para> Walks the roster, so it belongs on the game thread with the rest of this handler.</para></summary>
     private void NotifyStaffOfMachineBanHit(string accountName, string bannedLogin)
     {
         foreach (int slot in _pm.Online)

@@ -5,7 +5,7 @@ namespace Mirage.Shared.Protocol.Packets;
 // The editor's account family — CREATOR only, and the only editor packets that describe a PERSON rather
 // than a piece of content.
 //
-// 🔴 Three things are absent on purpose and must stay absent:
+// Three things are absent on purpose and must stay absent:
 //
 //   The PASSWORD. It is never read into these shapes, never sent, and never round-tripped on save. The
 //   editor cannot show what it never receives, and a save that carried one back could overwrite a

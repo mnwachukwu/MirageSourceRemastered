@@ -140,6 +140,7 @@
   "Console_Attaching": "Attaching to {Host} port {Port}...",
   "Console_Rejected": "The server refused the token.",
   "Console_Unreachable": "Could not reach {Host} on port {Port}.",
+  "Console_IdentityChanged": "{Host}:{Port} presented a different certificate than last time. Not attaching.",
   "Console_ConnectionLost": "The connection to the server ended.",
   "Console_ShutdownBlocked": "Not sent. This window cannot start a remote server back up, so use that server's own console if it has to go down.",
 
@@ -156,6 +157,10 @@
   "Connection_Remote": "A server on another machine",
   "Connection_RemoteHint": "Attach to a server that is already running elsewhere. It has to have remote management turned on, and it keeps running when you detach.",
   "Connection_Host": "Host",
+  "Connection_KnownServers": "Known",
+  "Connection_ServerName": "Name",
+  "Connection_ForgetServer": "Forget",
+  "Connection_AddServer": "Add",
   "Connection_Port": "Port",
   "Connection_Token": "Token",
   "Connection_TokenHint": "The token that server was given. Kept in this window's own settings file so you are not retyping it.",

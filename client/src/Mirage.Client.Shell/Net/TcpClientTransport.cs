@@ -1,8 +1,10 @@
 using Mirage.Client.Core.Net;
 using Mirage.Shared.Protocol;
+using Mirage.Shared.Security;
 using System.Collections.Concurrent;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 
 namespace Mirage.Client.Shell.Net;
 
@@ -31,8 +33,18 @@ public sealed class TcpClientTransport : IClientTransport, IDisposable
         _connected = true;
 
         var stream = _client.GetStream();
-        var ssl = new SslStream(stream, leaveInnerStreamOpen: false, (_, _, _, _) => true);
-        await ssl.AuthenticateAsClientAsync("mirage-server");
+        var pinned = new PinnedServer(ServerPinStore.Store, host, port);
+        var ssl = new SslStream(stream, leaveInnerStreamOpen: false, pinned.Validate);
+        try
+        {
+            await ssl.AuthenticateAsClientAsync("mirage-server");
+        }
+        catch (AuthenticationException ex)
+        {
+            _connected = false;
+            throw pinned.Translate(ex);
+        }
+        pinned.Commit();
         _writer = new StreamWriter(ssl, System.Text.Encoding.UTF8) { AutoFlush = true };
         var reader = new StreamReader(ssl, System.Text.Encoding.UTF8);
 

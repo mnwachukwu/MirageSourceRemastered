@@ -455,6 +455,28 @@
             </Grid>
             <TextBlock Classes="hint" Text="{Binding RemoteTokenHint}" Margin="28,2,0,0"
                        IsVisible="{Binding IsRemote}"/>
+            <!-- The address book. The management port is a console socket, not a login, so it reports no
+                 game name — the operator names the entry, and attaching records it. -->
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="28,6,0,0" IsVisible="{Binding IsRemote}">
+              <TextBlock Grid.Column="0" Text="{Binding ServerNameLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <TextBox Grid.Column="1" Text="{Binding RemoteName}" IsEnabled="{Binding CanEditConnection}"/>
+              <TextBlock Grid.Column="2" Text="{Binding KnownServersLabel}" VerticalAlignment="Center" Margin="12,0,8,0"/>
+              <ComboBox Grid.Column="3" MinWidth="200"
+                        IsEnabled="{Binding CanEditConnection}"
+                        ItemsSource="{Binding KnownServers}"
+                        SelectedItem="{Binding SelectedServer}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Label}"/>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="28,6,0,0"
+                        IsVisible="{Binding IsRemote}">
+              <Button Content="{Binding AddServerLabel}" Command="{Binding AddServerCommand}" MinWidth="88"/>
+              <Button Content="{Binding ForgetServerLabel}" Command="{Binding ForgetServerCommand}" MinWidth="88"/>
+            </StackPanel>
           </StackPanel>
 
           <!-- Language applies on selection, like everything else in this group: a display preference

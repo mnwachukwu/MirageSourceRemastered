@@ -1,3 +1,4 @@
+using Mirage.Shared.Security;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -50,10 +51,19 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
             using var timeout = new CancellationTokenSource(ConnectTimeout);
             await client.ConnectAsync(Host, Port, timeout.Token).ConfigureAwait(false);
 
-            // Trust anything: the server presents a throwaway self-signed certificate, exactly as it does
-            // to the game client and the editor. This buys encryption, not identity.
-            var ssl = new SslStream(client.GetStream(), leaveInnerStreamOpen: false, (_, _, _, _) => true);
-            await ssl.AuthenticateAsClientAsync("mirage-server").ConfigureAwait(false);
+            var pinned = new PinnedServer(ServerPinStore.Store, Host, Port);
+            var ssl = new SslStream(client.GetStream(), leaveInnerStreamOpen: false, pinned.Validate);
+            try
+            {
+                await ssl.AuthenticateAsClientAsync("mirage-server").ConfigureAwait(false);
+            }
+            catch (AuthenticationException) when (pinned.Trust == ServerTrust.Changed)
+            {
+                ssl.Dispose();
+                client.Dispose();
+                return RemoteError.IdentityChanged;
+            }
+            pinned.Commit();
 
             var reader = new StreamReader(ssl, Encoding.UTF8, leaveOpen: true);
             var writer = new StreamWriter(ssl, Encoding.UTF8, leaveOpen: true) { AutoFlush = true };
@@ -95,6 +105,7 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
     {
         public const string Rejected = nameof(Rejected);
         public const string Unreachable = nameof(Unreachable);
+        public const string IdentityChanged = nameof(IdentityChanged);
     }
 
     public void SendCommand(string line)

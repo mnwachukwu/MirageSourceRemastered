@@ -78,7 +78,8 @@ public sealed class ManagementListener : IHostedService, IDisposable
         }
 
         _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        _cert = SelfSignedCertificate.Create();
+        // The same identity the game listener presents: one server, one fingerprint.
+        _cert = SelfSignedCertificate.LoadOrCreate();
         _listener = new TcpListener(IPAddress.Any, _config.Port);
         _listener.Start(backlog: 4);
         _tee.LineWritten += Broadcast;

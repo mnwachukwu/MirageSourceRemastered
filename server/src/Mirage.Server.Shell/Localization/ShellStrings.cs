@@ -167,6 +167,7 @@ public static class ShellStrings
     public const string Console_Attaching = nameof(Console_Attaching);           // "{Host}" "{Port}"
     public const string Console_Rejected = nameof(Console_Rejected);
     public const string Console_Unreachable = nameof(Console_Unreachable);       // "{Host}" "{Port}"
+    public const string Console_IdentityChanged = nameof(Console_IdentityChanged); // "{Host}" "{Port}"
     public const string Console_ConnectionLost = nameof(Console_ConnectionLost);
     public const string Console_ShutdownBlocked = nameof(Console_ShutdownBlocked);
 
@@ -185,6 +186,10 @@ public static class ShellStrings
     public const string Connection_Remote = nameof(Connection_Remote);
     public const string Connection_RemoteHint = nameof(Connection_RemoteHint);
     public const string Connection_Host = nameof(Connection_Host);
+    public const string Connection_KnownServers = nameof(Connection_KnownServers);
+    public const string Connection_ServerName = nameof(Connection_ServerName);
+    public const string Connection_ForgetServer = nameof(Connection_ForgetServer);
+    public const string Connection_AddServer = nameof(Connection_AddServer);
     public const string Connection_Port = nameof(Connection_Port);
     public const string Connection_Token = nameof(Connection_Token);
     public const string Connection_TokenHint = nameof(Connection_TokenHint);

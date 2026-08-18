@@ -80,7 +80,21 @@ public sealed class TcpConnectionAcceptor : IDisposable
             loggerFactory.CreateLogger<LoginQueue>());
 
         _listener = new System.Net.Sockets.TcpListener(IPAddress.Any, _port);
-        _cert = SelfSignedCertificate.Create();
+
+        try
+        {
+            _cert = SelfSignedCertificate.LoadOrCreate();
+        }
+        catch (IOException ex)
+        {
+            _logger.LogWarning(ex,
+                "Running with a temporary certificate: clients cannot pin this server, and anyone who has " +
+                "connected before will see it as changed.");
+            _cert = SelfSignedCertificate.Create();
+        }
+
+        _logger.LogInformation("Server certificate fingerprint (SHA-256): {Fingerprint}",
+            SelfSignedCertificate.FingerprintForDisplay(_cert));
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -210,6 +224,10 @@ public sealed class TcpConnectionAcceptor : IDisposable
         _dispatcher.RegisterEditor(editorIndex, client, writer);
         _logger.LogDebug("Editor connection assigned to slot {Slot}", editorIndex);
 
+        // Same greeting the game client gets. An editor is a client too: it needs to know what world it
+        // just reached before it acts on anything the world sends back.
+        _dispatcher.SendToEditor(editorIndex, BuildHello());
+
         try
         {
             await ReceiveLoop.RunEditorAsync(editorIndex, reader, firstLine,
@@ -224,6 +242,15 @@ public sealed class TcpConnectionAcceptor : IDisposable
             LocalizedLog.Info(_logger, ServerStrings.Net_EditorDisconnected, ("Slot", editorIndex));
         }
     }
+
+    /// <summary>What this server is, for whoever just connected. Built from the config on every send, so
+    /// the two routes cannot drift into greeting a client differently.</summary>
+    private ServerHelloPacket BuildHello() => new()
+    {
+        MaxPlayers = _pm.Slots,
+        GameName = _config.GameName,
+        Records = _config.Records,
+    };
 
     private async Task<int> ClaimEditorSlotAsync(CancellationToken ct)
     {
@@ -286,12 +313,7 @@ public sealed class TcpConnectionAcceptor : IDisposable
 
         // The first thing on the wire, before the login packet is even dispatched: a client compiles
         // against the protocol's ceilings, and this is where it finds out what THIS server's are.
-        _dispatcher.SendTo(slot, new ServerHelloPacket
-        {
-            MaxPlayers = _pm.Slots,
-            GameName = _config.GameName,
-            Records = _config.Records,
-        });
+        _dispatcher.SendTo(slot, BuildHello());
 
         try
         {

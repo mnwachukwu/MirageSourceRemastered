@@ -2,9 +2,11 @@ using Mirage.Editor.Localization;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Security;
 using System.Collections.Concurrent;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 
 namespace Mirage.Editor.Services;
 
@@ -58,8 +60,18 @@ public sealed class EditorConnection : IDisposable
         await _client.ConnectAsync(host, port, ct);
 
         var stream = _client.GetStream();
-        var ssl = new SslStream(stream, leaveInnerStreamOpen: false, (_, _, _, _) => true);
-        await ssl.AuthenticateAsClientAsync("mirage-server");
+        var pinned = new PinnedServer(ServerPinStore.Store, host, port);
+        var ssl = new SslStream(stream, leaveInnerStreamOpen: false, pinned.Validate);
+        try
+        {
+            await ssl.AuthenticateAsClientAsync("mirage-server");
+        }
+        catch (AuthenticationException ex)
+        {
+            await DisconnectAsync();
+            throw pinned.Translate(ex);
+        }
+        pinned.Commit();
         _reader = new StreamReader(ssl, leaveOpen: true);
         _writer = new StreamWriter(ssl, leaveOpen: true) { AutoFlush = true };
 
@@ -70,11 +82,9 @@ public sealed class EditorConnection : IDisposable
             Locale = AppSettings.Current.Language,
         }));
 
-        var responseLine = await _reader.ReadLineAsync(ct);
-        if (responseLine is null)
+        var (responsePacket, closed) = await ReadHandshakeAsync(ct);
+        if (closed)
             return AuthResult.Failed(EditorStrings.Get(EditorStrings.EditorConnection_ClosedUnexpectedly));
-
-        var responsePacket = PacketSerializer.TryDeserialize(responseLine);
         if (responsePacket is not EditorLoginResponsePacket response)
             return AuthResult.Failed(EditorStrings.Get(EditorStrings.EditorConnection_UnexpectedResponse));
 
@@ -84,18 +94,46 @@ public sealed class EditorConnection : IDisposable
             return AuthResult.Failed(response.Message);
         }
 
-        var dataLine = await _reader.ReadLineAsync(ct);
-        if (dataLine is null)
+        var (dataPacketRead, closedBeforeData) = await ReadHandshakeAsync(ct);
+        if (closedBeforeData)
             return AuthResult.Failed(EditorStrings.Get(EditorStrings.EditorConnection_ClosedBeforeData));
-
-        var dataPacket = PacketSerializer.TryDeserialize(dataLine) as EditorDataPacket;
-        if (dataPacket is null)
+        if (dataPacketRead is not EditorDataPacket dataPacket)
             return AuthResult.Failed(EditorStrings.Get(EditorStrings.EditorConnection_ExpectedDataPacket));
 
         _cts = new CancellationTokenSource();
         _ = ReceiveLoopAsync(_cts.Token);
 
+        ServerBookStore.Book.Remember(Hello?.GameName ?? "", host, port);
         return new AuthResult(true, response.Message, dataPacket, response.AccessLevel);
+    }
+
+    /// <summary>What the server said it is, from the greeting it opens with. Null against a server old
+    /// enough not to greet editors.</summary>
+    public ServerHelloPacket? Hello { get; private set; }
+
+    private Task<(IPacket? Packet, bool Closed)> ReadHandshakeAsync(CancellationToken ct)
+        => ReadPastGreetingAsync(_reader!, h => Hello = h, ct);
+
+    /// <summary>Reads the next handshake packet, handing off any greeting on the way. The greeting is not
+    /// one of the packets the handshake waits for, so leaving it in the stream would trip the next read.
+    /// <c>Closed</c> is true when the stream ended; <c>Packet</c> is null for a line this build does not
+    /// recognize.</summary>
+    public static async Task<(IPacket? Packet, bool Closed)> ReadPastGreetingAsync(
+        TextReader reader, Action<ServerHelloPacket> onGreeting, CancellationToken ct = default)
+    {
+        while (true)
+        {
+            string? line = await reader.ReadLineAsync(ct);
+            if (line is null) return (null, true);
+
+            var packet = PacketSerializer.TryDeserialize(line);
+            if (packet is ServerHelloPacket hello)
+            {
+                onGreeting(hello);
+                continue;
+            }
+            return (packet, false);
+        }
     }
 
     public async Task SendSaveAsync(IPacket packet)

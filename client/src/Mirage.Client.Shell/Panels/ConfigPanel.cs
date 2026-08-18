@@ -3,19 +3,22 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
+using Mirage.Client.Shell.Net;
 using Mirage.Client.Shell.Ui;
+using Mirage.Shared.Security;
 using System.Globalization;
 using System.Net.Sockets;
 
 namespace Mirage.Client.Shell.Panels;
 
 /// <summary>
-/// Pre-connect dialog for editing Server.Host / Server.Port. Test button runs a one-shot
-/// TCP probe against a throwaway TcpClient — never touches the real ShellContext.Transport.
+/// Pre-connect dialog for editing Server.Host / Server.Port, and the list of servers this
+/// installation knows about. Test button runs a one-shot TCP probe against a throwaway TcpClient —
+/// never touches the real ShellContext.Transport.
 /// </summary>
 public sealed class ConfigPanel
 {
-    private readonly DraggablePanel _panel = new(new Rectangle(20, 20, 280, 170), minH: 170, minW: 240);
+    private readonly DraggablePanel _panel = new(new Rectangle(20, 20, 320, 372), minH: 352, minW: 260);
 
     public bool IsOpen { get; private set; }
     public Rectangle Bounds => _panel.Bounds;
@@ -25,9 +28,14 @@ public sealed class ConfigPanel
 
     private readonly TextInputField _hostField = new() { MaxLength = 128 };
     private readonly TextInputField _portField = new() { MaxLength = 5 };
+    private readonly TextInputField _nameField = new() { MaxLength = 48 };
     private readonly Button _cancelBtn = new();
     private readonly Button _testBtn = new();
     private readonly Button _saveBtn = new();
+    private readonly Button _addBtn = new();
+    private readonly Button _forgetBtn = new();
+    private readonly ListBox _serverList = new();
+    private List<ServerEntry> _servers = [];
     private int _labelsGeneration = -1;
 
     private int _focusedField;
@@ -40,6 +48,10 @@ public sealed class ConfigPanel
 
     private Rectangle _hostFieldRect;
     private Rectangle _portFieldRect;
+    private Rectangle _nameFieldRect;
+    private Rectangle _listRect;
+
+    private const int FieldCount = 3;
 
     public void Open(string host, int port)
     {
@@ -48,8 +60,38 @@ public sealed class ConfigPanel
         _status = "";
         _focusedField = 0;
         _draggingField = -1;
+        RefreshServers();
         CancelTest();
         IsOpen = true;
+    }
+
+    /// <summary>Rereads the known servers and selects whichever one matches the fields.</summary>
+    private void RefreshServers()
+    {
+        ServerBookStore.Book.Reload();
+        _servers = [.. ServerBookStore.Book.All];
+        _serverList.Items.Clear();
+        _serverList.Items.AddRange(_servers.Select(Describe));
+        SyncSelectionToFields();
+    }
+
+    private TextInputField FieldAt(int index) => index switch
+    {
+        0 => _hostField,
+        1 => _portField,
+        _ => _nameField,
+    };
+
+    private static string Describe(ServerEntry e) =>
+        e.Name.Length > 0 ? $"{e.Name}  ({e.Host}:{e.Port})" : $"{e.Host}:{e.Port}";
+
+    // The name box follows the selection, so it shows what the highlighted row is called rather than
+    // whatever was last typed against a different server.
+    private void SyncSelectionToFields()
+    {
+        string key = ServerBook.KeyFor(_hostField.Text, PortValue);
+        _serverList.SelectedIndex = _servers.FindIndex(e => e.Key == key);
+        _nameField.SetText(_serverList.SelectedIndex >= 0 ? _servers[_serverList.SelectedIndex].Name : "");
     }
 
     public void Close()
@@ -77,6 +119,40 @@ public sealed class ConfigPanel
         _testBtn.Enabled = !testing;
         _saveBtn.Enabled = !testing;
 
+        // The list drives the fields, not the other way round: picking a row is how a player chooses a
+        // server without retyping it. Arrow keys would fight the text fields, so the list gets none.
+        int wasSelected = _serverList.SelectedIndex;
+        _serverList.Update(input, _listRect, keyboardActive: false);
+        if (_serverList.SelectedIndex != wasSelected && _serverList.SelectedIndex >= 0)
+        {
+            var picked = _servers[_serverList.SelectedIndex];
+            _hostField.SetText(picked.Host);
+            _portField.SetText(picked.Port.ToString(CultureInfo.InvariantCulture));
+            _nameField.SetText(picked.Name);
+            _status = "";
+            CancelTest();
+        }
+
+        _addBtn.Enabled = _hostField.Text.Length > 0 && PortValue > 0;
+        if (_addBtn.IsClicked(input))
+        {
+            input.ConsumeMouseClick();
+            AddOrRename();
+        }
+
+        _forgetBtn.Enabled = _serverList.SelectedIndex >= 0;
+        if (_forgetBtn.IsClicked(input))
+        {
+            input.ConsumeMouseClick();
+            if (_serverList.SelectedIndex >= 0)
+            {
+                var gone = _servers[_serverList.SelectedIndex];
+                ServerBookStore.Book.Forget(gone.Host, gone.Port);
+                _nameField.Clear();
+                RefreshServers();
+            }
+        }
+
         if (input.IsMouseJustPressed())
         {
             bool shift = input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift);
@@ -93,18 +169,20 @@ public sealed class ConfigPanel
                 _portField.HandleMouseClick(input.MousePosition.X, shift);
                 _draggingField = 1;
             }
+            else if (_nameFieldRect.Contains(input.MousePosition))
+            {
+                _focusedField = 2;
+                _nameField.HandleMouseClick(input.MousePosition.X, shift);
+                _draggingField = 2;
+            }
         }
         if (input.IsMouseDown() && !input.IsMouseJustPressed() && _draggingField >= 0)
-        {
-            if (_draggingField == 0) _hostField.HandleMouseClick(input.MousePosition.X, true);
-            else _portField.HandleMouseClick(input.MousePosition.X, true);
-        }
+            FieldAt(_draggingField).HandleMouseClick(input.MousePosition.X, true);
 
         long nowMs = Environment.TickCount64;
         string prevHost = _hostField.Text;
         string prevPort = _portField.Text;
-        if (_focusedField == 0) _hostField.Feed(input, nowMs);
-        else _portField.Feed(input, nowMs);
+        FieldAt(_focusedField).Feed(input, nowMs);
 
         // Digits-only filter on the port field — clamp any pasted/typed non-digit chars.
         string portText = _portField.Text;
@@ -113,7 +191,10 @@ public sealed class ConfigPanel
 
         if (input.IsKeyPressed(Keys.Tab))
         {
-            _focusedField = 1 - _focusedField;
+            bool back = input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift);
+            _focusedField = back
+                ? (_focusedField - 1 + FieldCount) % FieldCount
+                : (_focusedField + 1) % FieldCount;
             input.ConsumeKey(Keys.Tab);
         }
 
@@ -123,6 +204,7 @@ public sealed class ConfigPanel
         {
             CancelTest();
             _status = "";
+            SyncSelectionToFields();
         }
 
         if (input.IsKeyPressed(Keys.Enter) && !testing)
@@ -160,6 +242,8 @@ public sealed class ConfigPanel
             _cancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
             _testBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_TestButton);
             _saveBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_SaveButton);
+            _forgetBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_ForgetButton);
+            _addBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_AddButton);
         }
         _panel.Draw(sb, font, ClientStrings.Get(ClientStrings.ConfigPanel_Title), isActive);
         LayoutControls();
@@ -168,12 +252,20 @@ public sealed class ConfigPanel
         var c = _panel.ContentBounds;
         sb.DrawString(font, ClientStrings.Get(ClientStrings.ConfigPanel_HostLabel), new Vector2(c.X + 6, c.Y + 4), UiHelper.DlgLabelColor);
         sb.DrawString(font, ClientStrings.Get(ClientStrings.ConfigPanel_PortLabel), new Vector2(c.X + 6, c.Y + 46), UiHelper.DlgLabelColor);
+        sb.DrawString(font, ClientStrings.Get(ClientStrings.ConfigPanel_NameLabel), new Vector2(c.X + 6, c.Y + 88), UiHelper.DlgLabelColor);
 
         _hostField.Draw(sb, font, _hostFieldRect, _focusedField == 0, nowMs);
         _portField.Draw(sb, font, _portFieldRect, _focusedField == 1, nowMs);
+        _nameField.Draw(sb, font, _nameFieldRect, _focusedField == 2, nowMs);
+
+        sb.DrawString(font, ClientStrings.Get(ClientStrings.ConfigPanel_KnownServersLabel),
+            new Vector2(c.X + 6, ListHeaderY(c) + 1), UiHelper.DlgLabelColor);
+        _addBtn.Draw(sb, font, input);
+        _forgetBtn.Draw(sb, font, input);
+        _serverList.Draw(sb, font, _listRect);
 
         if (_status.Length > 0)
-            sb.DrawString(font, _status, new Vector2(c.X + 6, c.Y + 92), _statusColor);
+            sb.DrawString(font, _status, new Vector2(c.X + 6, _listRect.Bottom + 4), _statusColor);
 
         _cancelBtn.Draw(sb, font, input);
         _testBtn.Draw(sb, font, input, UiHelper.AccentButtonNormal, UiHelper.AccentButtonHover);
@@ -193,6 +285,24 @@ public sealed class ConfigPanel
         CancelTest();
         IsOpen = false;
         return (true, false);
+    }
+
+    /// <summary>Puts the typed address in the list under the typed name. Adding a server is deliberate
+    /// here; connecting to one adds it on its own.</summary>
+    private void AddOrRename()
+    {
+        if (!Validate(out string err))
+        {
+            _status = err;
+            _statusColor = Color.Red;
+            return;
+        }
+        ServerBookStore.Book.Rename(_nameField.Text, _hostField.Text, PortValue);
+        RefreshServers();
+        if (_serverList.SelectedIndex < 0) return;
+        _status = ClientStrings.Format(ClientStrings.ConfigPanel_ServerAdded,
+            ("Server", Describe(_servers[_serverList.SelectedIndex])));
+        _statusColor = Color.LightGreen;
     }
 
     private bool Validate(out string err)
@@ -288,6 +398,7 @@ public sealed class ConfigPanel
         const int fieldH = 22;
         _hostFieldRect = new Rectangle(c.X + pad, c.Y + 18, c.Width - pad * 2, fieldH);
         _portFieldRect = new Rectangle(c.X + pad, c.Y + 60, c.Width - pad * 2, fieldH);
+        _nameFieldRect = new Rectangle(c.X + pad, c.Y + 102, c.Width - pad * 2, fieldH);
 
         // Buttons split the inner width with two gaps, so they always fit no matter
         // how narrow the panel gets dragged. Right edge stays clear of the resize handle.
@@ -300,5 +411,19 @@ public sealed class ConfigPanel
         _cancelBtn.Bounds = new Rectangle(startX, btnY, btnW, btnH);
         _testBtn.Bounds = new Rectangle(startX + btnW + gap, btnY, btnW, btnH);
         _saveBtn.Bounds = new Rectangle(startX + (btnW + gap) * 2, btnY, btnW, btnH);
+
+        // Add and Forget sit on the list's header line, right-aligned, so the list keeps the full width
+        // below them.
+        const int smallW = 62, smallH = 18;
+        int headerY = ListHeaderY(c);
+        _forgetBtn.Bounds = new Rectangle(c.Right - pad - rightReserve - smallW, headerY, smallW, smallH);
+        _addBtn.Bounds = new Rectangle(_forgetBtn.Bounds.X - gap - smallW, headerY, smallW, smallH);
+
+        // Whatever is left between the header and the status line, rounded down to whole rows.
+        int listTop = headerY + smallH + 4;
+        int listH = Math.Max(ListBox.RowPixels, (btnY - 22 - listTop) / ListBox.RowPixels * ListBox.RowPixels);
+        _listRect = new Rectangle(c.X + pad, listTop, c.Width - pad * 2 - rightReserve, listH);
     }
+
+    private static int ListHeaderY(Rectangle content) => content.Y + 130;
 }

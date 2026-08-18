@@ -75,7 +75,7 @@ public sealed partial class ConsoleCommands
     }
 
     /// <summary>Alerts and drops whoever is signed in on a just-banned account.
-    /// <para>🔴 Game thread only — it walks the roster and sends. Returns a bool purely so it can ride
+    /// <para> Game thread only — it walks the roster and sends. Returns a bool purely so it can ride
     /// <see cref="OnGameThreadAsync{T}"/>, which has no void form.</para></summary>
     private bool DisconnectBannedSession(string login)
     {

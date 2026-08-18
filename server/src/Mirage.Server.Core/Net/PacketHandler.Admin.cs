@@ -292,7 +292,7 @@ public sealed partial class PacketHandler
     /// plain ban: this is the last resort, and it is the one punishment that can reach somebody who has
     /// done nothing yet under a name nobody has seen.
     ///
-    /// <para>🔴 Requires the target to be ONLINE, and says so rather than silently doing half the job. The
+    /// <para> Requires the target to be ONLINE, and says so rather than silently doing half the job. The
     /// machine key lives on the live session and is never written to an account file, so there is nothing
     /// to record for somebody who is not here — that case is what <c>/ban</c> is for.</para>
     /// </summary>
@@ -404,7 +404,7 @@ public sealed partial class PacketHandler
     // The work is ModerationSystem, shared with the server console — see there for why a lift is written
     // once. What is here is the packet's own shape: the access check, and the hop off the game thread.
     //
-    // 🔴 These read account FILES, so they cannot run on the loop. Each starts an async continuation and
+    // These read account FILES, so they cannot run on the loop. Each starts an async continuation and
     // posts the reply back, exactly as the class comment on PacketHandler describes. That also means the
     // handler returns before anything has happened, and the Creator learns the outcome from chat.
 

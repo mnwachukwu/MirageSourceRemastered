@@ -80,6 +80,11 @@ public static partial class EditorStrings
     // ── ConnectDialog (in-dialog header + error; ConnectDialog_Title is the window title, exists) ──
     public const string ConnectDialog_Header = nameof(ConnectDialog_Header);
     public const string ConnectDialog_ConnectionError = nameof(ConnectDialog_ConnectionError);
+    public const string ConnectDialog_IdentityChanged = nameof(ConnectDialog_IdentityChanged); // "{Host}" "{Port}"
+    public const string ConnectDialog_KnownServers = nameof(ConnectDialog_KnownServers);
+    public const string ConnectDialog_Forget = nameof(ConnectDialog_Forget);
+    public const string ConnectDialog_Add = nameof(ConnectDialog_Add);
+    public const string ConnectDialog_ServerName = nameof(ConnectDialog_ServerName);
 
     // ── DisconnectDialog (connection-lost body + reconnect outcomes) ──
     public const string DisconnectDialog_ConnectionLostBody = nameof(DisconnectDialog_ConnectionLostBody);

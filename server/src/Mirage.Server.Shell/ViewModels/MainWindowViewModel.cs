@@ -8,6 +8,8 @@ using Mirage.Server.Shell.Localization;
 using Mirage.Server.Shell.Services;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
+using Mirage.Shared.Security;
+using System.Collections.ObjectModel;
 
 namespace Mirage.Server.Shell.ViewModels;
 
@@ -44,6 +46,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         _remoteToken = settings.RemoteToken;
 
         AttachConnection(CreateConnection());
+        RefreshServers();
         LoadConfig();
         string current = ServerConfigStore.Load(_configPath).Config.Language;
         // Assigned to the backing field, not the property: the setter WRITES the file, and selecting
@@ -53,9 +56,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         BuildCommands();
     }
 
-    /// <summary>What the port box starts at when nothing has been configured. One above the game port, so
-    /// the two are adjacent and neither is a number anyone has to remember.</summary>
-    private const int DefaultManagementPort = Constants.GamePort + 1;
+    private const int DefaultManagementPort = ShellSettings.DefaultManagementPort;
 
     private IServerConnection CreateConnection() =>
         IsRemote ? new RemoteServerConnection(RemoteHost, _remotePort, RemoteToken) : new ServerProcess();
@@ -166,13 +167,24 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             AppendLine(ShellStrings.Format(ShellStrings.Console_Attaching,
                 ("Host", RemoteHost), ("Port", RemotePort)));
 
-        if (await _server.StartAsync() is not { } failure) return;
+        if (await _server.StartAsync() is not { } failure)
+        {
+            if (IsRemote)
+            {
+                // Rename, not Remember: this name is the operator's own, typed in the box beside it.
+                ServerBookStore.Book.Rename(RemoteName, RemoteHost, _remotePort);
+                RefreshServers();
+            }
+            return;
+        }
 
         AppendLine(failure switch
         {
             RemoteServerConnection.RemoteError.Rejected => ShellStrings.Get(ShellStrings.Console_Rejected),
             RemoteServerConnection.RemoteError.Unreachable => ShellStrings.Format(
                 ShellStrings.Console_Unreachable, ("Host", RemoteHost), ("Port", RemotePort)),
+            RemoteServerConnection.RemoteError.IdentityChanged => ShellStrings.Format(
+                ShellStrings.Console_IdentityChanged, ("Host", RemoteHost), ("Port", RemotePort)),
             // A local start reports the path it looked at, which is the message itself.
             _ => ShellStrings.Format(ShellStrings.Console_ServerNotFound, ("Path", failure)),
         });
@@ -706,7 +718,13 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string RemoteHost
     {
         get => _remoteHost;
-        set { if (SetProperty(ref _remoteHost, value)) SaveSettings(); }
+        set
+        {
+            if (!SetProperty(ref _remoteHost, value)) return;
+            SaveSettings();
+            SyncSelection();
+            AddServerCommand.NotifyCanExecuteChanged();
+        }
     }
 
     public decimal RemotePort
@@ -719,6 +737,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             _remotePort = port;
             OnPropertyChanged();
             SaveSettings();
+            SyncSelection();
         }
     }
 
@@ -726,6 +745,87 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         get => _remoteToken;
         set { if (SetProperty(ref _remoteToken, value)) SaveSettings(); }
+    }
+
+    // ── Known servers ─────────────────────────────────────────────────────────
+
+    /// <summary>One row of the known-servers picker. Carries its own caption so the address book stays
+    /// free of display text.</summary>
+    public sealed record ServerChoice(string Label, string Host, int Port);
+
+    public ObservableCollection<ServerChoice> KnownServers { get; } = [];
+
+    public string KnownServersLabel => ShellStrings.Get(ShellStrings.Connection_KnownServers);
+    public string ServerNameLabel => ShellStrings.Get(ShellStrings.Connection_ServerName);
+    public string ForgetServerLabel => ShellStrings.Get(ShellStrings.Connection_ForgetServer);
+    public string AddServerLabel => ShellStrings.Get(ShellStrings.Connection_AddServer);
+
+    /// <summary>What to call this address in the list. The management port carries no game name — it is a
+    /// console socket, not a login — so the operator supplies one.</summary>
+    public string RemoteName
+    {
+        get => _remoteName;
+        set => SetProperty(ref _remoteName, value);
+    }
+    private string _remoteName = "";
+
+    /// <summary>The picked row. Setting it fills the host, port and name fields.</summary>
+    public ServerChoice? SelectedServer
+    {
+        get => _selectedServer;
+        set
+        {
+            if (!SetProperty(ref _selectedServer, value) || value is null) return;
+            RemoteHost = value.Host;
+            RemotePort = value.Port;
+            RemoteName = value.Label.Contains('(') ? value.Label[..value.Label.IndexOf('(')].Trim() : "";
+            ForgetServerCommand.NotifyCanExecuteChanged();
+        }
+    }
+    private ServerChoice? _selectedServer;
+
+    private void RefreshServers()
+    {
+        ServerBookStore.Book.Reload();
+        KnownServers.Clear();
+        foreach (var e in ServerBookStore.Book.All)
+            KnownServers.Add(new ServerChoice(
+                e.Name.Length > 0 ? $"{e.Name}  ({e.Host}:{e.Port})" : $"{e.Host}:{e.Port}", e.Host, e.Port));
+        SyncSelection();
+    }
+
+    // Typing an address that is already known selects it and shows its name. Typing an unknown one keeps
+    // whatever name was typed, so a name entered before the address is not thrown away.
+    private void SyncSelection()
+    {
+        string key = ServerBook.KeyFor(_remoteHost, _remotePort);
+        _selectedServer = KnownServers.FirstOrDefault(c => ServerBook.KeyFor(c.Host, c.Port) == key);
+        OnPropertyChanged(nameof(SelectedServer));
+        if (_selectedServer is not null)
+            RemoteName = ServerBookStore.Book.Find(_remoteHost, _remotePort)?.Name ?? "";
+        ForgetServerCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanForgetServer() => SelectedServer is not null;
+
+    [RelayCommand(CanExecute = nameof(CanForgetServer))]
+    private void ForgetServer()
+    {
+        if (SelectedServer is not { } gone) return;
+        ServerBookStore.Book.Forget(gone.Host, gone.Port);
+        RemoteName = "";
+        RefreshServers();
+    }
+
+    private bool CanAddServer() => !string.IsNullOrWhiteSpace(_remoteHost);
+
+    /// <summary>Puts the typed address in the list under the typed name, without attaching to it.
+    /// Attaching records it too; this is for setting one up ahead of time.</summary>
+    [RelayCommand(CanExecute = nameof(CanAddServer))]
+    private void AddServer()
+    {
+        ServerBookStore.Book.Rename(RemoteName, RemoteHost, _remotePort);
+        RefreshServers();
     }
 
     /// <summary>Whether the token box shows its contents. Off by default: a server console is the sort of

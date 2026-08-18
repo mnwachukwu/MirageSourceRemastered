@@ -22,6 +22,10 @@ public enum ConnectionMode
 /// </summary>
 public sealed record ShellSettings
 {
+    /// <summary>The management port a shell reaches for when nothing has been configured. One above the
+    /// game port, so the two are adjacent and neither is a number anyone has to remember.</summary>
+    public const int DefaultManagementPort = Constants.GamePort + 1;
+
     public ConnectionMode Mode { get; init; } = ConnectionMode.Local;
     public string RemoteHost { get; init; } = "";
     public int RemotePort { get; init; }

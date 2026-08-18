@@ -86,7 +86,7 @@ public class HardwareBanTests
         }
     }
 
-    // 🔴 The one that turns every recorded ban into a no-op if it regresses: the salt has to survive a
+    // The one that turns every recorded ban into a no-op if it regresses: the salt has to survive a
     // restart, or a reloaded server can no longer reproduce the hashes it wrote.
     [Test]
     public async Task Salt_SurvivesAReload_SoExistingBansStillMatch()

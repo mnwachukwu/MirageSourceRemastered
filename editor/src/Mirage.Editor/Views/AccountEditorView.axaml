@@ -113,7 +113,7 @@
                           CornerRadius="4" Padding="10,8" Margin="0,0,0,6">
                     <StackPanel Spacing="6">
                       <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
-                      <!-- 🔴 EVERY field states its Maximum. Avalonia's NumericUpDown defaults Maximum to
+                      <!--  EVERY field states its Maximum. Avalonia's NumericUpDown defaults Maximum to
                            100, so a field without one silently clamps — which for Exp, Points, Map and
                            the stats would have quietly rewritten a character on save.
 

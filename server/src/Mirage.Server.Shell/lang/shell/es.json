@@ -140,6 +140,7 @@
   "Console_Attaching": "Conectando con {Host} en el puerto {Port}...",
   "Console_Rejected": "El servidor rechazó la clave.",
   "Console_Unreachable": "No se pudo alcanzar {Host} en el puerto {Port}.",
+  "Console_IdentityChanged": "{Host}:{Port} presentó un certificado distinto al de la última vez. No se conectará.",
   "Console_ConnectionLost": "La conexión con el servidor ha terminado.",
   "Console_ShutdownBlocked": "No enviado. Esta ventana no puede volver a iniciar un servidor remoto; usa la consola de ese servidor si tiene que apagarse.",
 
@@ -156,6 +157,10 @@
   "Connection_Remote": "Un servidor en otra máquina",
   "Connection_RemoteHint": "Conecta con un servidor que ya está en marcha en otro sitio. Tiene que tener la gestión remota activada, y sigue funcionando cuando te desconectas.",
   "Connection_Host": "Servidor",
+  "Connection_KnownServers": "Conocidos",
+  "Connection_ServerName": "Nombre",
+  "Connection_ForgetServer": "Olvidar",
+  "Connection_AddServer": "Añadir",
   "Connection_Port": "Puerto",
   "Connection_Token": "Clave",
   "Connection_TokenHint": "La clave que se dio a ese servidor. Se guarda en el archivo de ajustes de esta ventana para no tener que reescribirla.",

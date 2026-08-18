@@ -114,7 +114,7 @@ public sealed record RequestModerationPacket : IPacket
 /// <para>Carries the same summaries the server window's report does — a punishment is a punishment
 /// whichever surface is looking at it, and two shapes would be two things to keep in step.</para>
 ///
-/// <para>🔴 Nothing here is a password or an account record. It is the login, what was done to it, and
+/// <para> Nothing here is a password or an account record. It is the login, what was done to it, and
 /// when it runs out; a panel that wanted more would be a reason to send less, not more.</para>
 /// </summary>
 public sealed record ModerationListPacket : IPacket

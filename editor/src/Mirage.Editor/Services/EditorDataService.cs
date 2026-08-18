@@ -64,17 +64,20 @@ public sealed class EditorDataService
 
     // When online the server's name list takes precedence; offline JSON may have blank names
     // for entities that were never edited in this editor.
-    public NamedEntry[] LiveItemEntries => OnlineItems is not null ? BuildEntriesFromLive(OnlineItems, OfflineItems.Length) : ItemEntries;
-    public NamedEntry[] LiveNpcEntries => OnlineNpcs is not null ? BuildEntriesFromLive(OnlineNpcs, OfflineNpcs.Length) : NpcEntries;
-    public NamedEntry[] LiveMapEntries => OnlineMaps is not null ? BuildEntriesFromLive(OnlineMaps, OfflineMaps.Length) : MapEntries;
-    public NamedEntry[] LiveShopEntries => OnlineShops is not null ? BuildEntriesFromLive(OnlineShops, OfflineShops.Length) : ShopEntries;
-    public NamedEntry[] LiveSpellEntries => OnlineSpells is not null ? BuildEntriesFromLive(OnlineSpells, OfflineSpells.Length) : SpellEntries;
-    public NamedEntry[] LiveClassEntries => OnlineClasses is not null ? BuildEntriesFromLive(OnlineClasses, OfflineClasses.Length) : ClassEntries;
-    public NamedEntry[] LiveMapGroupEntries => OnlineMapGroups is not null ? BuildEntriesFromLive(OnlineMapGroups, OfflineMapGroups.Length) : MapGroupEntries;
-    public NamedEntry[] LiveQuestEntries => OnlineQuests is not null ? BuildEntriesFromLive(OnlineQuests, OfflineQuests.Length) : QuestEntries;
+    public NamedEntry[] LiveItemEntries => OnlineItems is not null ? BuildEntriesFromLive(OnlineItems) : ItemEntries;
+    public NamedEntry[] LiveNpcEntries => OnlineNpcs is not null ? BuildEntriesFromLive(OnlineNpcs) : NpcEntries;
+    public NamedEntry[] LiveMapEntries => OnlineMaps is not null ? BuildEntriesFromLive(OnlineMaps) : MapEntries;
+    public NamedEntry[] LiveShopEntries => OnlineShops is not null ? BuildEntriesFromLive(OnlineShops) : ShopEntries;
+    public NamedEntry[] LiveSpellEntries => OnlineSpells is not null ? BuildEntriesFromLive(OnlineSpells) : SpellEntries;
+    public NamedEntry[] LiveClassEntries => OnlineClasses is not null ? BuildEntriesFromLive(OnlineClasses) : ClassEntries;
+    public NamedEntry[] LiveMapGroupEntries => OnlineMapGroups is not null ? BuildEntriesFromLive(OnlineMapGroups) : MapGroupEntries;
+    public NamedEntry[] LiveQuestEntries => OnlineQuests is not null ? BuildEntriesFromLive(OnlineQuests) : QuestEntries;
 
-    private static NamedEntry[] BuildEntriesFromLive(EditorDataPacket.NameEntry[] live, int size)
+    /// <summary>Builds a picker list over the SERVER's slot range, sized from the live list. The offline
+    /// folder is a different world with its own ceiling and cannot bound this one.</summary>
+    private static NamedEntry[] BuildEntriesFromLive(EditorDataPacket.NameEntry[] live)
     {
+        int size = live.Length == 0 ? 0 : live.Max(e => e.Num) + 1;
         var result = new NamedEntry[size];
         if (size > 0) result[0] = new NamedEntry(0, "(none)");
         for (int i = 1; i < size; i++) result[i] = new NamedEntry(i, "");
@@ -181,6 +184,11 @@ public sealed class EditorDataService
 
     public bool IsOnline => OnlineItems != null;
 
+    /// <summary>How many of each record family exist. The connected server's, from its greeting; the
+    /// protocol defaults when offline or against a server too old to greet an editor. A ceiling this
+    /// editor was compiled with is a bug rather than a default — see <see cref="RecordLimits"/>.</summary>
+    public RecordLimits Limits { get; private set; } = RecordLimits.Default;
+
     /// <summary>True if item <paramref name="id"/> is a currency-type item. Uses the server-sent currency
     /// set when online; falls back to the offline records otherwise.</summary>
     public bool IsCurrencyItem(int id)
@@ -279,8 +287,9 @@ public sealed class EditorDataService
 
     // ── Online load ───────────────────────────────────────────────────────────
 
-    public void LoadOnline(EditorDataPacket pkt)
+    public void LoadOnline(EditorDataPacket pkt, RecordLimits? limits = null)
     {
+        Limits = limits ?? RecordLimits.Default;
         OnlineItems = pkt.Items;   // NameEntry[] — names only
         OnlineNpcs = pkt.Npcs;
         OnlineNpcSizes = pkt.NpcSizes;
@@ -298,6 +307,7 @@ public sealed class EditorDataService
 
     public void ClearOnline()
     {
+        Limits = RecordLimits.Default;
         OnlineItems = null;
         OnlineNpcs = null;
         OnlineNpcSizes = null;

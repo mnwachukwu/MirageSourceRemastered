@@ -324,7 +324,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void OnConnectSuccess(EditorDataPacket pkt, AdminLevel access)
     {
-        _data.LoadOnline(pkt);
+        _data.LoadOnline(pkt, _conn.Hello?.Records);
         RefreshEditors(online: true);
         IsOnline = true;
         ConnectionEndpoint = _conn.Endpoint;
@@ -338,7 +338,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private async Task OnReconnectSuccessAsync(EditorDataPacket pkt, AdminLevel access)
     {
         var dirty = GetAllDirty().ToList();
-        _data.LoadOnline(pkt);
+        _data.LoadOnline(pkt, _conn.Hello?.Records);
         IsOnline = true;
         ConnectionEndpoint = _conn.Endpoint;
         ApplySectionRestrictions(access);

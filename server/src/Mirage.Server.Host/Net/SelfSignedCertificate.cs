@@ -3,22 +3,72 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Mirage.Server.Host.Net;
 
-/// <summary>
-/// The throwaway certificate both listeners present. Every client trusts it unconditionally, so it buys
-/// encryption on the wire and not identity — which is the whole of what is wanted here, and why nothing
-/// has to be installed or renewed for a server to run.
-/// </summary>
+/// <summary>The certificate both listeners present, persisted so clients can pin its fingerprint.</summary>
 public static class SelfSignedCertificate
 {
-    /// <summary>The subject name, which is also the host name every client authenticates against.</summary>
+    /// <summary>Subject name, and the host name clients authenticate against.</summary>
     public const string SubjectName = "mirage-server";
 
-    public static X509Certificate2 Create()
+    public const string FileName = "server-identity.pfx";
+
+    public static string DefaultPath => Path.Combine(AppContext.BaseDirectory, FileName);
+
+    /// <summary>Loads the identity from <paramref name="path"/>, creating and saving one if absent.</summary>
+    /// <exception cref="InvalidOperationException">The file exists but cannot be read. It is left in
+    /// place: replacing it would change the server's identity and trip every client that pinned it.</exception>
+    /// <exception cref="IOException">The identity could not be written.</exception>
+    public static X509Certificate2 LoadOrCreate(string? path = null)
+    {
+        path ??= DefaultPath;
+
+        if (File.Exists(path))
+        {
+            try
+            {
+                return X509CertificateLoader.LoadPkcs12FromFile(path, password: null);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"The server identity at '{path}' could not be read. Delete it to issue a new one — " +
+                    "every client that has connected before will then report a changed certificate.", ex);
+            }
+        }
+
+        // From the fresh request, not a re-export: a loaded certificate holds its key non-exportable.
+        byte[] pfx = NewPfxBytes();
+        try
+        {
+            File.WriteAllBytes(path, pfx);
+        }
+        catch (Exception ex)
+        {
+            throw new IOException(
+                $"Could not write the server identity to '{path}'. The server will still run, but its " +
+                "certificate changes on every restart and clients cannot pin it.", ex);
+        }
+        return X509CertificateLoader.LoadPkcs12(pfx, password: null);
+    }
+
+    /// <summary>A fresh identity, not persisted.</summary>
+    public static X509Certificate2 Create() => X509CertificateLoader.LoadPkcs12(NewPfxBytes(), password: null);
+
+    /// <summary>SHA-256 of the certificate's raw bytes, lower-case hex.</summary>
+    public static string Fingerprint(X509Certificate2 cert) =>
+        Convert.ToHexStringLower(SHA256.HashData(cert.RawData));
+
+    /// <summary>The fingerprint in upper-case byte pairs, for reading off a screen.</summary>
+    public static string FingerprintForDisplay(X509Certificate2 cert)
+    {
+        string hex = Fingerprint(cert).ToUpperInvariant();
+        return string.Join(' ', Enumerable.Range(0, hex.Length / 2).Select(i => hex.Substring(i * 2, 2)));
+    }
+
+    private static byte[] NewPfxBytes()
     {
         using var rsa = RSA.Create(2048);
         var req = new CertificateRequest($"CN={SubjectName}", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         using var temp = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(10));
-        // Exported and re-imported as ephemeral so Schannel can reach the private key through SslStream.
-        return X509CertificateLoader.LoadPkcs12(temp.Export(X509ContentType.Pfx), password: null);
+        return temp.Export(X509ContentType.Pfx);
     }
 }

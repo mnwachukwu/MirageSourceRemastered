@@ -28,6 +28,7 @@ public static partial class ClientStrings
     public const string Common_NameLabel = nameof(Common_NameLabel);
     public const string Common_PasswordLabel = nameof(Common_PasswordLabel);
     public const string Common_CannotConnect = nameof(Common_CannotConnect);
+    public const string Common_ServerIdentityChanged = nameof(Common_ServerIdentityChanged);
     public const string Common_Disconnected = nameof(Common_Disconnected);
     public const string Common_Connecting = nameof(Common_Connecting);
     public const string Common_NameTooShort = nameof(Common_NameTooShort);
