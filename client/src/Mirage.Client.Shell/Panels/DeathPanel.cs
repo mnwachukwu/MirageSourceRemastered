@@ -59,7 +59,7 @@ public sealed class DeathPanel
         long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         long remaining = Math.Max(0, state.Me.RespawnReadyUtc - now);
         bool ready = remaining <= 0;
-        // Capture the total on a fresh death (or a relogin's remaining) so the bar can fill 0 -> full.
+        // Capture the total on a fresh death (or a relogin's remaining) so the bar can fill 0 → full.
         if (state.Me.RespawnReadyUtc != _trackedReadyUtc)
         {
             _trackedReadyUtc = state.Me.RespawnReadyUtc;

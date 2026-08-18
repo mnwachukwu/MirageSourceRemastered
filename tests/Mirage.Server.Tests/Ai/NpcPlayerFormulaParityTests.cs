@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests;
 
-// NPC <-> PLAYER FORMULA PARITY.
+// NPC ↔ PLAYER FORMULA PARITY.
 //
 // The combat redesign is a "symmetric mirror": an NPC is meant to be another actor running the SAME
 // vital / offense / defense / regen math as a player at a matched virtual level (StatFormulas.NpcLevel),
@@ -112,7 +112,7 @@ public class NpcPlayerFormulaParityTests
         {
             foreach (int i in Sweep)
             {
-                int nl = StatFormulas.NpcLevel(s, s, i, s);   // balanced-ish spread -> a definite NpcLevel
+                int nl = StatFormulas.NpcLevel(s, s, i, s);   // balanced-ish spread → a definite NpcLevel
                 Assert.That(StatFormulas.GetNpcMaxMp(s, s, i, s),
                     Is.EqualTo(StatFormulas.GetPlayerMaxMp(nl, i, 0)),
                     $"NPC MP pool must equal a classInt-free player's at level==NpcLevel (str/def/spd={s}, int={i}, NpcLevel={nl})");
@@ -120,7 +120,7 @@ public class NpcPlayerFormulaParityTests
         }
     }
 
-    // Mitigation BASE curve: strip the NPC's baked-in gear (def=0 -> the armor/helmet/shield chips are 0) and
+    // Mitigation BASE curve: strip the NPC's baked-in gear (def=0 → the armor/helmet/shield chips are 0) and
     // the NPC's protection is exactly the player's level-primary curve at level == NpcLevel.
     [Test]
     public void MitigationBase_NpcEqualsPlayer_AtNpcLevel_GearStripped()
@@ -176,7 +176,7 @@ public class NpcPlayerFormulaParityTests
     [Test]
     public void Asymmetry_NpcHpFavor_MakesNpcTankier()
     {
-        // Statless (Str=Def=0) -> favor 0 -> exactly the player base (the boundary case).
+        // Statless (Str=Def=0) → favor 0 → exactly the player base (the boundary case).
         int nl0 = StatFormulas.NpcLevel(0, 0, 0, 0);
         Assert.That(StatFormulas.GetNpcMaxHp(0, 0, 0, 0), Is.EqualTo(StatFormulas.GetPlayerMaxHp(nl0, 0, 0)),
             "with no physical investment the favor is 0, so NPC HP equals the player base");

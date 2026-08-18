@@ -32,7 +32,7 @@ public class MapGroupResolutionTests
     {
         var state = new ClientState();
         state.MapGroups[3] = new MapGroupRecord { Index = 3, Moral = MapMoral.Safe, Music = 9, Indoors = true, AlwaysDark = true };
-        var map = new MapRecord { MapGroup = 3 };   // Moral null, Music 0, bools null -> all inherit
+        var map = new MapRecord { MapGroup = 3 };   // Moral null, Music 0, bools null → all inherit
 
         Assert.Multiple(() =>
         {

@@ -71,7 +71,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     /// GameLoop.PersistEnvironmentNow) and restored via <see cref="Seed"/> on boot.</summary>
     public long NextWarNightUtc => _nextWarNightUtc;
 
-    /// <summary>Seed the scheduler from the persisted blob on boot. 0 = unscheduled -> the first tick computes
+    /// <summary>Seed the scheduler from the persisted blob on boot. 0 = unscheduled → the first tick computes
     /// the next slot (no immediate resolution).</summary>
     public void Seed(long nextWarNightUtc) => _nextWarNightUtc = nextWarNightUtc;
 
@@ -92,7 +92,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
             {
                 ResolveWarNight();
                 Reschedule();
-            }  // due (or missed) -> fire once
+            }  // due (or missed) → fire once
         }
 
         // Live contests score/advance on the 5s tick (only while any are running).
@@ -297,7 +297,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
         return _contests.Count;
     }
 
-    /// <summary>Advance every live contest one phase now (Setup->Contest->Cooldown->end) by forcing this tick's
+    /// <summary>Advance every live contest one phase now (Setup→Contest→Cooldown→end) by forcing this tick's
     /// phase timer to elapse and running the real transition. False if no contest is in progress.</summary>
     public bool DebugAdvanceWar()
     {
@@ -308,7 +308,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
         return true;
     }
 
-    /// <summary>Bring every live contest straight to its cooldown now: resolve the winner (Setup/Contest ->
+    /// <summary>Bring every live contest straight to its cooldown now: resolve the winner (Setup/Contest →
     /// finalize) and enter the real 10-min cooldown. Returns the number of contests ended. Already-cooling
     /// contests are left alone.</summary>
     public int DebugEndWar()

@@ -5,7 +5,7 @@ namespace Mirage.Shared.Protocol.Packets;
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C->S: declare war on another guild (by its index). Doubles as the "return a declaration"
+/// <summary>C→S: declare war on another guild (by its index). Doubles as the "return a declaration"
 /// action — if the target has already declared on the sender's guild, the server reciprocates it into a
 /// mutual war (free) instead of opening a new one. Leader acts directly; an Officer's attempt posts a
 /// leadership request instead. The server re-validates rank, level, limits, and vault funds.</summary>
@@ -15,7 +15,7 @@ public sealed record GuildWarDeclarePacket : IPacket
     [JsonPropertyName("target")] public int TargetGuildIndex { get; init; }
 }
 
-/// <summary>C->S: declare war on another guild BY NAME. This is the client-facing declare — a player has no
+/// <summary>C→S: declare war on another guild BY NAME. This is the client-facing declare — a player has no
 /// full guild roster to pick an index from, so the War panel prompts for the target's name and the server
 /// resolves it to a guild index, then runs the same <see cref="GuildWarDeclarePacket"/> logic (fresh
 /// declaration or, if that guild already declared on us, a free reciprocation).</summary>
@@ -25,7 +25,7 @@ public sealed record GuildWarDeclareByNamePacket : IPacket
     [JsonPropertyName("name")] public string TargetName { get; init; } = "";
 }
 
-/// <summary>C->S: retract a still one-sided declaration against <see cref="OpponentIndex"/> (allowed only
+/// <summary>C→S: retract a still one-sided declaration against <see cref="OpponentIndex"/> (allowed only
 /// after the retraction lock elapses; a mutual war can't be retracted — it ends via peace/attrition). Leader
 /// acts directly; an Officer's attempt posts a leadership request instead.</summary>
 public sealed record GuildWarRetractPacket : IPacket
@@ -34,7 +34,7 @@ public sealed record GuildWarRetractPacket : IPacket
     [JsonPropertyName("opponent")] public int OpponentIndex { get; init; }
 }
 
-/// <summary>C->S (Leader): accept or deny a pending officer war-request, addressed by its (kind, target).
+/// <summary>C→S (Leader): accept or deny a pending officer war-request, addressed by its (kind, target).
 /// Accept executes the queued action (declare/return or retract); deny discards it.</summary>
 public sealed record GuildWarReviewRequestPacket : IPacket
 {
@@ -44,7 +44,7 @@ public sealed record GuildWarReviewRequestPacket : IPacket
     [JsonPropertyName("accept")] public bool Accept { get; init; }
 }
 
-/// <summary>C->S: a peace action on a mutual war with <see cref="OpponentIndex"/>. Offer =
+/// <summary>C→S: a peace action on a mutual war with <see cref="OpponentIndex"/>. Offer =
 /// sue for peace (concede) — Leader acts, Officer's attempt queues it; Withdraw/Accept/Reject are
 /// Leader-direct (accept ends the war with the accepter as winner; reject leaves it running). With no ante
 /// locked, an Offer MUST carry an <see cref="Offering"/> (the vault gold staked as the pot); ignored otherwise.</summary>
@@ -56,7 +56,7 @@ public sealed record GuildWarPeacePacket : IPacket
     [JsonPropertyName("offering")] public long Offering { get; init; }
 }
 
-/// <summary>C->S (Leader): a consensual-wager action on a mutual war with <see cref="OpponentIndex"/>.
+/// <summary>C→S (Leader): a consensual-wager action on a mutual war with <see cref="OpponentIndex"/>.
 /// Propose stakes a matched ante (<see cref="Amount"/>, up to 50% of our vault, within the first hour
 /// of the war going mutual); Accept escrows the opponent's proposal on both sides; Withdraw/Reject clear a
 /// pending proposal. Winner-take-all; a cold draw returns each side's stake.</summary>
@@ -68,7 +68,7 @@ public sealed record GuildWarWagerPacket : IPacket
     [JsonPropertyName("amount")] public long Amount { get; init; }
 }
 
-/// <summary>C->S: register a challenge for <see cref="TerritoryIndex"/> (a MapGroup) at the next war
+/// <summary>C→S: register a challenge for <see cref="TerritoryIndex"/> (a MapGroup) at the next war
 /// night. Leader acts directly; an Officer's attempt posts a leadership request (TerritoryChallenge
 /// kind). Server re-validates: it's a territory, we don't already own it, the challenger slots aren't full,
 /// we aren't already challenging elsewhere, and we can afford the cost (a non-refundable sink).</summary>
@@ -78,7 +78,7 @@ public sealed record GuildTerritoryChallengePacket : IPacket
     [JsonPropertyName("territory")] public int TerritoryIndex { get; init; }
 }
 
-/// <summary>C->S (Leader/Officer): withdraw our pending challenge for <see cref="TerritoryIndex"/> before war
+/// <summary>C→S (Leader/Officer): withdraw our pending challenge for <see cref="TerritoryIndex"/> before war
 /// night. The challenge cost is NOT refunded, and withdrawing does NOT restore a territory this guild
 /// abandoned by challenging (that abandonment is irrevocable).</summary>
 public sealed record GuildTerritoryWithdrawPacket : IPacket
@@ -87,7 +87,7 @@ public sealed record GuildTerritoryWithdrawPacket : IPacket
     [JsonPropertyName("territory")] public int TerritoryIndex { get; init; }
 }
 
-/// <summary>C->S (Creator debug): run the daily/weekly/season guild settlement NOW, idempotently,
+/// <summary>C→S (Creator debug): run the daily/weekly/season guild settlement NOW, idempotently,
 /// across every guild — without disturbing the normal schedule.</summary>
 public sealed record AdminGuildResetPacket : IPacket
 {
@@ -95,7 +95,7 @@ public sealed record AdminGuildResetPacket : IPacket
     [JsonPropertyName("scope")] public SettlementScope Scope { get; init; }
 }
 
-/// <summary>C->S (Creator debug): drive the territory war-night lifecycle off-schedule — start it
+/// <summary>C→S (Creator debug): drive the territory war-night lifecycle off-schedule — start it
 /// (full ramp-up), advance the live contest one phase, or bring it straight to cooldown.</summary>
 public sealed record AdminTerritoryWarPacket : IPacket
 {
@@ -156,7 +156,7 @@ public sealed record GuildWarRequestView
 
 // ── S→C live meter ────────────────────────────────────────────────────────────
 
-/// <summary>S->C: a lightweight live update of one mutual war's attrition meters, pushed to both guilds'
+/// <summary>S→C: a lightweight live update of one mutual war's attrition meters, pushed to both guilds'
 /// members on each war death. The full <see cref="GuildInfoPacket"/> only carries attrition on a request or
 /// a broadcasting mutation (a war death persists it silently to avoid per-death broadcast spam), so this
 /// tiny packet animates the War panel's tug-of-war bar + trend arrow between full syncs. Values are from the
@@ -170,7 +170,7 @@ public sealed record GuildWarAttritionPacket : IPacket
     [JsonPropertyName("theirs")] public int TheirAttrition { get; init; }
 }
 
-/// <summary>S->C: the live render state of a territory contest, pushed ONLY to participant-guild members
+/// <summary>S→C: the live render state of a territory contest, pushed ONLY to participant-guild members
 /// on each contest tick + at setup start; <see cref="Active"/> = false tears it down (flags/HUD vanish)
 /// at war end. Carries the capture points (world position + controlling guild + signed meter) and the KotH
 /// scoreboard; the client colors flags/circles per-viewer (own guild = blue, enemy = red, neutral = gray) and
@@ -212,13 +212,13 @@ public sealed record ContestScoreView
     [JsonPropertyName("score")] public long Score { get; init; }
 }
 
-/// <summary>C->S: request the current seasonal leaderboard (all guilds), sent when the Standings sub-tab opens.</summary>
+/// <summary>C→S: request the current seasonal leaderboard (all guilds), sent when the Standings sub-tab opens.</summary>
 public sealed record GuildLeaderboardRequestPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.GuildLeaderboardRequest;
 }
 
-/// <summary>S->C: the seasonal leaderboard — every guild, pre-ordered best-first (season score
+/// <summary>S→C: the seasonal leaderboard — every guild, pre-ordered best-first (season score
 /// desc, then territory-war K/D, then size, then name). <see cref="Season"/> is the current season number.</summary>
 public sealed record GuildLeaderboardPacket : IPacket
 {
@@ -240,7 +240,7 @@ public sealed record LeaderboardEntry
     [JsonPropertyName("deaths")] public int Deaths { get; init; }
 }
 
-/// <summary>C->S: request an archived past season for the historical-season browser. <see cref="Season"/> = 0
+/// <summary>C→S: request an archived past season for the historical-season browser. <see cref="Season"/> = 0
 /// means "the latest archived season".</summary>
 public sealed record SeasonArchiveRequestPacket : IPacket
 {
@@ -248,7 +248,7 @@ public sealed record SeasonArchiveRequestPacket : IPacket
     [JsonPropertyName("season")] public int Season { get; init; }
 }
 
-/// <summary>S->C: one archived season's final standings for the browser, plus the ascending list of all
+/// <summary>S→C: one archived season's final standings for the browser, plus the ascending list of all
 /// archived season numbers (the selector). <see cref="Found"/> = false when nothing has been archived yet.</summary>
 public sealed record SeasonArchivePacket : IPacket
 {

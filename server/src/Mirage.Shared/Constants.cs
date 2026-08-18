@@ -193,7 +193,7 @@ public static class Constants
 
     // NPC vs player relative-strength tier: a virtual-level gap of at least this much (either
     // direction) reads as "no contest" and drives the kill-feed flavor when a mob kills a player
-    // (mob this much stronger -> "slaughtered"; this much weaker -> a careless death). Mirrors the
+    // (mob this much stronger → "slaughtered"; this much weaker → a careless death). Mirrors the
     // outer tiers of the on-target strength readout in PacketHandler (levelDiff >= 5 / <= -5).
     public const int NpcStrengthTierGap = 5;
 
@@ -236,7 +236,7 @@ public static class Constants
     public const int NpcMeleeKiteMaxAttempts = 3;
 
     // An Int NPC that WEAVES melee and magic commits to whichever modality it rolls for a random run of this many
-    // ready beats before re-rolling, instead of re-rolling every beat.  Rapid per-beat cast<->melee switching reads
+    // ready beats before re-rolling, instead of re-rolling every beat.  Rapid per-beat cast↔melee switching reads
     // as twitchy/mechanical; a short commitment gives a legible "casts for a bit, then melees for a bit" rhythm.
     // Only bites the MIXED builds (both Str>0 and Int>0): a pure caster always casts, a pure-melee mob never does.
     public const int NpcWeaveCommitMinBeats = 3;
@@ -369,6 +369,10 @@ public static class Constants
     // member clicks the button is both arbitrary and trivially minimized by using the lowest-level one.
     // See EconomyFormulas for why that rules out scaling these by the actor's level.
 
+    // How long /home waits between uses, per character. Measured in WALL-CLOCK time from a stamp on the
+    // character, so it runs down while the player is logged out and a relog neither clears nor pauses it.
+    public const int HomeCooldownSeconds = 30 * 60;
+
     // Gold to found a new guild. Consumed on success (a creation sink; the new guild's vault starts
     // empty). Charged via GoldItemIndex, client-blocked then server-revalidated.
     public const int GuildCreationCost = 35_000;
@@ -377,7 +381,7 @@ public static class Constants
     public const int GuildTaxPerLevel = 35_000;
     // Valor auto-offsets the weekly tax at settlement (consumed before gold): every
     // GuildValorPerTaxDiscount valor in the vault removes GuildGoldPerTaxDiscount gold from the tax, in whole
-    // increments, capped at GuildValorTaxOffsetCapPercent% of the tax (at L5: 250 valor -> 87,500 off of
+    // increments, capped at GuildValorTaxOffsetCapPercent% of the tax (at L5: 250 valor → 87,500 off of
     // 175,000). Scales with the tax it offsets, so valor's relief stays a fixed share of the bill.
     public const int GuildValorPerTaxDiscount = 10;
     public const int GuildGoldPerTaxDiscount = 3_500;
@@ -546,7 +550,7 @@ public static class Constants
     public const int TerritoryIncomeChancePercent = 25;
     public const int TerritoryIncomeNonOwnerGold = 35;
     public const int TerritoryIncomeOwnerGold = 70;
-    // Weeks-held income multiplier caps here (= 1 "month"): weeks 0->x1, 1->x2, 2->x3, 3+->x4.
+    // Weeks-held income multiplier caps here (= 1 "month"): weeks 0→x1, 1→x2, 2→x3, 3+→x4.
     public const int TerritoryWeeksHeldCap = 4;
     // Per-territory per-day accrual cap (anti-snowball); resets when the day's income is credited.
     public const long TerritoryIncomeDailyCap = 17_500;
@@ -597,7 +601,7 @@ public static class Constants
     // Capture meter: signed [-Full, +Full]. -Full = the owner securely holds; a challenger with the tick's
     // strict-plurality pushes it up (+1/tick); the owner pushes it back down; a contested/empty point drifts
     // toward 0 (neutral). At +Full the point flips to the challenger (reset to -Full = they now securely hold).
-    // A full owner->challenger swing is 2*Full ticks; at 5s/tick and Full=3 that's ~30s.
+    // A full owner→challenger swing is 2*Full ticks; at 5s/tick and Full=3 that's ~30s.
     public const int TerritoryCaptureFull = 3;
     // The owner scores a held point only while the meter is at/below -NeutralBand; the band around 0 scores
     // nobody (a ~10s neutral zone mid-swing).
@@ -652,7 +656,7 @@ public static class Constants
 
     // NPC-vs-player damage disfavor: on-level mobs get +20% HP (favor, StatFormulas.GetNpcMaxHp) AND hit players
     // this much softer, so PvE fights stay impactful without spiking a squishy build down.  PvE-only lever
-    // (player->NPC and NPC->NPC stay full mirror); applied post-mitigation at CombatSystem.ApplyNpcDamageToPlayer
+    // (player→NPC and NPC→NPC stay full mirror); applied post-mitigation at CombatSystem.ApplyNpcDamageToPlayer
     // and folded into the kill-EXP danger term (ExpFormulas.ExpForKill) so EXP prices the softened real threat.
     public const double NpcVsPlayerDamageMultiplier = 0.70;
 
@@ -702,14 +706,14 @@ public static class Constants
     // Amounts are a dimensionless "stain strength"; the wire quantizes amount in [0, BloodMaxTileAmount] to a byte 0..255.
     public const int BloodTickIntervalMs = 250;        // server sim/broadcast cadence (client fade is per-frame, so this only bounds event latency)
     public const float BloodPerHitScale = 0.45f;       // per-hit deposit = intensity * this (intensity = hit-size x closeness boost, see BloodDepositStrength)
-    public const float BloodStrengthExponent = 0.5f;   // concave damage-fraction -> strength map (sqrt): LOW-damage hits still leave clear blood
+    public const float BloodStrengthExponent = 0.5f;   // concave damage-fraction → strength map (sqrt): LOW-damage hits still leave clear blood
     public const float BloodMinHitStrength = 0.12f;    // floor so ANY damaging hit shows something (a chip off a huge-HP boss still bleeds)
-    public const float BloodLownessScale = 3.0f;       // per-hit deposit boost by HP-left-after-hit: x1 at full HP up to x(1+this)=x4 on a killing blow -> pooling ACCELERATES as a mob weakens, and any kill (even a 1-shot) gives a big "death" splash
+    public const float BloodLownessScale = 3.0f;       // per-hit deposit boost by HP-left-after-hit: x1 at full HP up to x(1+this)=x4 on a killing blow → pooling ACCELERATES as a mob weakens, and any kill (even a 1-shot) gives a big "death" splash
     public const float BloodTrailHpThreshold = 0.34f;  // an entity at/below this fraction of max HP leaves a blood TRAIL as it walks/runs (drips onto fresh tiles)
-    public const float BloodTrailStrength = 0.25f;     // deposit strength for one trail drip -> ~0.11 amount: a small stain (~24px) that lasts ~6.2s (decays from 0.11 to the 0.02 visibility floor at BloodDissipationPerSec) with ~1 droplet
+    public const float BloodTrailStrength = 0.25f;     // deposit strength for one trail drip → ~0.11 amount: a small stain (~24px) that lasts ~6.2s (decays from 0.11 to the 0.02 visibility floor at BloodDissipationPerSec) with ~1 droplet
     public const float BloodMaxTileAmount = 3.0f;      // hard per-pool amount cap; maps to wire byte 255
     public const int MaxMapBloodPools = 128;           // safety cap on live blood pools per map; the faintest is evicted past this (merge + decay usually keep it far lower)
-    public const float BloodDissipationPerSec = 0.015f; // linear decay; lifetime = amount / this (0.6 -> 40s, 1.0 -> 67s). SHARED by server sim + client decay.
+    public const float BloodDissipationPerSec = 0.015f; // linear decay; lifetime = amount / this (0.6 → 40s, 1.0 → 67s). SHARED by server sim + client decay.
     public const float BloodVisibleEpsilon = 0.02f;    // below this a tile is dry: skip render, and free the map once every tile is under it
     public const float BloodMaxAlpha = 0.9f;           // decal opacity at full saturation (near-opaque so pools read solid, not washed out)
     // Render mapping (client only): OPACITY = freshness — any hit REDARKENS the stain to full, then it fades in
@@ -745,7 +749,7 @@ public static class Constants
     public static float BloodDepositStrength(int damage, int maxHp, int victimHp)
     {
         if (maxHp <= 0) return 0f;
-        float hpAfter = Math.Clamp((victimHp - damage) / (float)maxHp, 0f, 1f);   // 0 on a kill -> finishing blows get the full boost
+        float hpAfter = Math.Clamp((victimHp - damage) / (float)maxHp, 0f, 1f);   // 0 on a kill → finishing blows get the full boost
         return BloodStrength(damage, maxHp) * (1f + BloodLownessScale * (1f - hpAfter));
     }
 }

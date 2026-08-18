@@ -497,7 +497,7 @@ public class MovementSystemTests
     {
         var (world, _, move, _) = Setup(0, 0);
         world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
-        world.Maps[Map].Right = 2;      // link Map 1 -> Map 2 at the right seam
+        world.Maps[Map].Right = 2;      // link Map 1 → Map 2 at the right seam
         world.Maps[2].Left = Map;
         var npc = world.MapNpcs[Map, 1];
         npc.Num = 1;

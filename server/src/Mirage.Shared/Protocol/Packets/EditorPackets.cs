@@ -361,7 +361,7 @@ public sealed record EditorAllClassesPacket : IPacket
     [JsonPropertyName("classes")] public UpdateClassPacket[] Classes { get; init; } = [];
 }
 
-// S->C: one group's full state (RequestMapGroup response). Mirrors the authored fields; ControllingGuild is
+// S→C: one group's full state (RequestMapGroup response). Mirrors the authored fields; ControllingGuild is
 // included read-only so the editor can surface who currently holds a territory.
 public sealed record UpdateMapGroupPacket : IPacket
 {

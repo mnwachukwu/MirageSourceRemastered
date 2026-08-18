@@ -61,7 +61,7 @@ public sealed class NpcRecord
     /// designer lever for authoring bosses / walls or buffing significant NPCs beyond what their combat stats
     /// imply: the HP formula derives HP from total stat investment, so this is how you make something
     /// exceptionally tanky without inflating its other stats.  Grants PREMIUM kill-EXP — more EXP per point than
-    /// natural stat HP earns — because grinding through boss HP is an epic slog (epic HP -> epic EXP).  It's also
+    /// natural stat HP earns — because grinding through boss HP is an epic slog (epic HP → epic EXP).  It's also
     /// the intended way to restore an old-style extreme-DEF wall under the unified vital formula.</summary>
     public int ExtraHp { get; set; }
     /// <summary>Author flag marking this NPC as a BOSS — a deliberate designer classification, NOT inferred from

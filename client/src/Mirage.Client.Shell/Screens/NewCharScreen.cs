@@ -82,7 +82,7 @@ public sealed class NewCharScreen : IGameScreen
     private static readonly Rectangle SpriteRect =
         new(ColRX + (ColRW - Constants.PicX) / 2, 152, Constants.PicX, Constants.PicY);
 
-    private const int StatsY = 190;         // first of seven stat rows in the right column -> 302
+    private const int StatsY = 190;         // first of seven stat rows in the right column → 302
     private const int DescY = 324;          // the class's pitch, full width
     private const int LoadoutY = 344;       // the three loadout groups, flowed across the lines below
     /// <summary>Lines the loadout may use. A group starts on a fresh line and spills onto the next when

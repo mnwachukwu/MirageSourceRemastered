@@ -82,12 +82,12 @@ public class MapNpcRecord
     // opening approach; otherwise the AoS mob walks in until HasMadeContact turns true (it reached the target
     // once) — non-AoS chasers run the opening approach freely.  After contact the run/walk decision passes to
     // the distance hysteresis (see ChaseSprinting below).  See NpcAiSystem.NpcWantsChaseRun.  Both carry across
-    // the native<->guest seam.
+    // the native↔guest seam.
     public bool RushCommitted { get; set; }
     public bool HasMadeContact { get; set; }
 
     // Re-close sprint latch (runtime; not persisted).  Lifecycle mirrors HasMadeContact: init false in
-    // BeginEngagement/BeginRushEngagement, carried across the native<->guest seam, cleared at the chase
+    // BeginEngagement/BeginRushEngagement, carried across the native↔guest seam, cleared at the chase
     // steppers' adjacency early-returns.  Set true once a re-closing melee mob opens
     // Constants.NpcChaseSprintGapTiles; while set it sprints (SP permitting) until it regains melee, which
     // clears it back to a walk — so it bursts stamina instead of gluing.  Only non-guard, non-caster chasers

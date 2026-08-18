@@ -82,7 +82,7 @@ public sealed class MailPanel : IGamePanel
     private readonly TextArea _bodyField = new() { ReadOnly = false, MaxLength = Constants.MailBodyMaxLength };
     private readonly TextInputField _codField = new() { MaxLength = 10 };   // CoD price (gold); blank/0 = ordinary mail
     private readonly ListBox _invList = new();          // inventory attach candidates
-    private readonly List<int> _invSlots = new();       // row -> inventory slot
+    private readonly List<int> _invSlots = new();       // row → inventory slot
     private readonly ListBox _stagedList = new();       // staged attachments
     private readonly List<(int Slot, int Quantity)> _staged = new();   // Quantity 0 = whole non-currency slot
     private readonly Button _attachBtn = new();
@@ -279,7 +279,7 @@ public sealed class MailPanel : IGamePanel
             _focusField = -1;
         }
 
-        // Tab cycles To -> Subject -> Body -> CoD price.
+        // Tab cycles To → Subject → Body → CoD price.
         if (input.IsKeyPressed(Keys.Tab))
         {
             _focusField = _focusField < 0 ? 0 : (_focusField + 1) % 4;

@@ -324,4 +324,16 @@ public sealed partial class GameplayScreen : IGameScreen
 
         return null;
     }
+
+    private TargetRef ComputeHoveredEntity()
+    {
+        var mp = _lastInput.MousePosition;
+        if (mp.X < 0 || mp.X >= Camera.ViewW || mp.Y < 0 || mp.Y >= Camera.ViewH) return default;
+        for (int zi = 0; zi < _zOrder.Count; zi++)
+            if (PanelIsOpen(_zOrder[zi]) && PanelContainsMouse(_zOrder[zi], mp)) return default;
+        // Hover spans the full 3x3 region: the client doesn't distinguish "your map" from "next
+        // map over" for bars/tooltips. Reuse the click-targeting hit-test so a mouseover on a
+        // neighbor-map NPC (or a chasing traversal guest) gets the same identity a click would.
+        return FindEntityAtPixel(mp.X + _camera.CameraX, mp.Y + _camera.CameraY);
+    }
 }

@@ -23,8 +23,8 @@ public sealed partial class QuestRewardRowViewModel : ObservableObject
 
     public NamedEntry[] ItemEntries => _itemEntriesProvider();
 
-    // Quantity rule (mirrors TradeRow): no item -> 0; a non-currency item -> exactly 1 (never stacks); a currency
-    // item -> 1..9999. Bound to the NumericUpDown Min/Max; CoerceValue is the authoritative backstop.
+    // Quantity rule (mirrors TradeRow): no item → 0; a non-currency item → exactly 1 (never stacks); a currency
+    // item → 1..9999. Bound to the NumericUpDown Min/Max; CoerceValue is the authoritative backstop.
     public int ValueMin => ItemNum > 0 ? 1 : 0;
     public int ValueMax => ItemNum <= 0 ? 0 : (_isCurrency(ItemNum) ? 9999 : 1);
 

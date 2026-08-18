@@ -4,13 +4,13 @@ namespace Mirage.Shared.Protocol.Packets;
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C-&gt;S: request the class list for the account and new-character screens.</summary>
+/// <summary>C→S: request the class list for the account and new-character screens.</summary>
 public sealed record GetClassesPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.GetClasses;
 }
 
-/// <summary>C-&gt;S: create an account. <c>Locale</c> tells the server which language to reply in, since no session exists yet.
+/// <summary>C→S: create an account. <c>Locale</c> tells the server which language to reply in, since no session exists yet.
 ///
 /// <para>Carries the machine key for the same reason <see cref="LoginPacket"/> does, and with more at
 /// stake: registering again is precisely what an account ban cannot stop, so this is the packet a machine
@@ -25,7 +25,7 @@ public sealed record NewAccountPacket : IPacket
     [JsonPropertyName("mkey")] public string MachineKey { get; init; } = "";
 }
 
-/// <summary>C-&gt;S: delete an account and every character on it, re-authenticating first.</summary>
+/// <summary>C→S: delete an account and every character on it, re-authenticating first.</summary>
 public sealed record DelAccountPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.DelAccount;
@@ -34,7 +34,7 @@ public sealed record DelAccountPacket : IPacket
     [JsonPropertyName("locale")] public string Locale { get; init; } = "en";
 }
 
-/// <summary>C-&gt;S: change an account password, authenticating with the old one.</summary>
+/// <summary>C→S: change an account password, authenticating with the old one.</summary>
 public sealed record ChangePasswordPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ChangePassword;
@@ -44,7 +44,7 @@ public sealed record ChangePasswordPacket : IPacket
     [JsonPropertyName("locale")] public string Locale { get; init; } = "en";
 }
 
-/// <summary>C-&gt;S: authenticate. Carries the client's version triple so the server can reject a mismatched build before touching the account store.</summary>
+/// <summary>C→S: authenticate. Carries the client's version triple so the server can reject a mismatched build before touching the account store.</summary>
 public sealed record LoginPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.Login;
@@ -65,14 +65,14 @@ public sealed record LoginPacket : IPacket
     [JsonPropertyName("mkey")] public string MachineKey { get; init; } = "";
 }
 
-/// <summary>C-&gt;S: switch the language for this session, so later server text arrives localized.</summary>
+/// <summary>C→S: switch the language for this session, so later server text arrives localized.</summary>
 public sealed record SetLanguagePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SetLanguage;
     [JsonPropertyName("locale")] public string Locale { get; init; } = "";
 }
 
-/// <summary>C-&gt;S: create a character in the next free slot.</summary>
+/// <summary>C→S: create a character in the next free slot.</summary>
 public sealed record AddCharPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.AddChar;
@@ -81,7 +81,7 @@ public sealed record AddCharPacket : IPacket
     [JsonPropertyName("class")] public int Class { get; init; }
 }
 
-/// <summary>C-&gt;S: delete the character in <c>Slot</c>.</summary>
+/// <summary>C→S: delete the character in <c>Slot</c>.</summary>
 public sealed record DelCharPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.DelChar;
@@ -89,7 +89,7 @@ public sealed record DelCharPacket : IPacket
 }
 
 /// <summary>
-/// C-&gt;S: enter the world as the character in <c>Slot</c>. <c>Locale</c> rides along for the same
+/// C→S: enter the world as the character in <c>Slot</c>. <c>Locale</c> rides along for the same
 /// reason the other pre-session packets carry one: handling this packet immediately produces
 /// localized text (the welcome, the MOTD, the join broadcast), so the language has to be settled
 /// before the handler runs. A <see cref="SetLanguagePacket"/> cannot do that job — the client only
@@ -102,7 +102,7 @@ public sealed record UseCharPacket : IPacket
     [JsonPropertyName("locale")] public string Locale { get; init; } = "en";
 }
 
-/// <summary>C-&gt;S: leave the world but stay logged in, returning to character select.</summary>
+/// <summary>C→S: leave the world but stay logged in, returning to character select.</summary>
 public sealed record LogoutToCharSelectPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.LogoutToCharSelect;
@@ -110,7 +110,7 @@ public sealed record LogoutToCharSelectPacket : IPacket
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
-/// <summary>S-&gt;C: a message for the alert dialog. <c>Code</c> carries the flow-control result for auth alerts so the client branches on a stable value instead of the localized text.</summary>
+/// <summary>S→C: a message for the alert dialog. <c>Code</c> carries the flow-control result for auth alerts so the client branches on a stable value instead of the localized text.</summary>
 public sealed record AlertMsgPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.AlertMsg;
@@ -121,7 +121,7 @@ public sealed record AlertMsgPacket : IPacket
 }
 
 /// <summary>
-/// S-&gt;C: what this server is, sent the moment a connection is accepted and before anything else.
+/// S→C: what this server is, sent the moment a connection is accepted and before anything else.
 ///
 /// <para><b>This is the pre-login handshake.</b> A client compiles against the PROTOCOL ceilings — the
 /// largest numbers the wire can carry — but a given server runs on its own, usually much smaller, limits.
@@ -150,7 +150,7 @@ public sealed record ServerHelloPacket : IPacket
 }
 
 /// <summary>
-/// S-&gt;C: you are waiting for a slot on a full server, and this is where you are in the line.
+/// S→C: you are waiting for a slot on a full server, and this is where you are in the line.
 ///
 /// <para>Numbers rather than a sentence, unlike <see cref="AlertMsgPacket"/>: the client has its own
 /// string table and renders the line in the language the PLAYER chose, which is the one the menus are
@@ -172,7 +172,7 @@ public sealed record QueueUpdatePacket : IPacket
     [JsonPropertyName("total")] public int Total { get; init; }
 }
 
-/// <summary>S-&gt;C: the class list, in response to <see cref="GetClassesPacket"/>.</summary>
+/// <summary>S→C: the class list, in response to <see cref="GetClassesPacket"/>.</summary>
 public sealed record SendClassesPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SendClasses;
@@ -206,7 +206,7 @@ public sealed record SendClassesPacket : IPacket
     );
 }
 
-/// <summary>S-&gt;C: the class list for the character-creation screen, with the starting loadout each
+/// <summary>S→C: the class list for the character-creation screen, with the starting loadout each
 /// class grants. Reuses <see cref="SendClassesPacket.ClassData"/> so both class screens read one shape.
 ///
 /// <para>The loadout rides along as DEFINITIONS rather than pre-rendered text, because the screen shows
@@ -253,7 +253,7 @@ public sealed record NewCharClassesPacket : IPacket
     );
 }
 
-/// <summary>S-&gt;C: the account's character slots, for the selection screen.</summary>
+/// <summary>S→C: the account's character slots, for the selection screen.</summary>
 public sealed record SendCharsPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SendChars;

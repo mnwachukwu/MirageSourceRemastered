@@ -15,8 +15,8 @@ using System.Text.Json.Serialization;
 namespace Mirage.Server.Tests;
 
 /// <summary>NPC conversations: the world resolver (<see cref="GameWorld.ConversationForNpc"/>), the per-character
-/// visited-log (<see cref="ConversationSystem"/>.MarkSpoken / OnPlayerJoin — the source of the yellow-&gt;gray
-/// "..." glyph), the record deep-copy + root resolution, and a wire round-trip of the three S-&gt;C packets (the
+/// visited-log (<see cref="ConversationSystem"/>.MarkSpoken / OnPlayerJoin — the source of the yellow→gray
+/// "..." glyph), the record deep-copy + root resolution, and a wire round-trip of the three S→C packets (the
 /// DEBUG registration check is compiled out of the Release test build, so this asserts it explicitly).</summary>
 [TestFixture]
 public class ConversationSystemTests

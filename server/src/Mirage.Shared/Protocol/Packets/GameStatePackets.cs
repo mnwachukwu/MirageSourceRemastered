@@ -16,7 +16,7 @@ public sealed record PlayerInGamePacket : IPacket
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.PlayerInGame;
 }
 
-/// <summary>C->S: the dead player clicked Respawn. The server honors it only once the respawn timer has
+/// <summary>C→S: the dead player clicked Respawn. The server honors it only once the respawn timer has
 /// elapsed; an early request is ignored.</summary>
 public sealed record RespawnRequestPacket : IPacket
 {

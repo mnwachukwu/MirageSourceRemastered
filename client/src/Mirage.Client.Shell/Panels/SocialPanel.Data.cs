@@ -69,16 +69,16 @@ public sealed partial class SocialPanel : IGamePanel
         {
             var info = state.GuildInfo;
 
-            // Roster -> the data-bound Table: feed the collection; it declares its own columns and follows
+            // Roster → the data-bound Table: feed the collection; it declares its own columns and follows
             // the selected member by login (WithRowKey) across this wholesale push.
             _rosterTable.Items = info?.Roster ?? new List<SocialEntry>();
 
-            // Territories -> its read-only Table (every territory, all guilds).
+            // Territories → its read-only Table (every territory, all guilds).
             _territoryTable.Items = info?.Territories ?? new List<TerritoryView>();
 
-            // Standings -> the seasonal leaderboard Table (every guild; server-ordered best-first).
+            // Standings → the seasonal leaderboard Table (every guild; server-ordered best-first).
             _standingsTable.Items = state.Leaderboard?.Rows ?? new List<LeaderboardEntry>();
-            // Historical browser -> the selected archived season's standings.
+            // Historical browser → the selected archived season's standings.
             _archiveTable.Items = state.SeasonArchive?.Standings ?? new List<SeasonStanding>();
 
             // Open-guild browser (guildless view).

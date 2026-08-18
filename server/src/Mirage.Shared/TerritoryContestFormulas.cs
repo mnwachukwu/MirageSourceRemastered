@@ -46,7 +46,7 @@ public static class TerritoryContestFormulas
             return new MeterResult(m, owner, m <= 0 ? 0 : challenger);
         }
         // A challenger (not the owner) pushes toward capture — keeping the meter position, so a full
-        // owner->challenger swing spans 2*Full ticks even if the pushing guild changes mid-swing.
+        // owner→challenger swing spans 2*Full ticks even if the pushing guild changes mid-swing.
         int pushed = meter + 1;
         if (pushed >= full)
             return new MeterResult(-full, majorityGuild, 0);   // captured: new owner, now securely held
@@ -80,6 +80,6 @@ public static class TerritoryContestFormulas
         foreach (long v in scores.Values) if (v > max) max = v;
         int topGuild = 0, topCount = 0;
         foreach (var kv in scores) if (kv.Value == max) { topGuild = kv.Key; topCount++; }
-        return topCount == 1 ? topGuild : defenderGuild;   // tie -> defender keeps (0 = stays unclaimed)
+        return topCount == 1 ? topGuild : defenderGuild;   // tie → defender keeps (0 = stays unclaimed)
     }
 }

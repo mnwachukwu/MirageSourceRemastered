@@ -396,7 +396,7 @@ public sealed class GuildScheduleSystem : GameSystem
                 changed = true;
             }
 
-            // Weekly roll of IncomeThisWeek -> PreviousWeekIncome, guarded per date so a re-run/force can't wipe
+            // Weekly roll of IncomeThisWeek → PreviousWeekIncome, guarded per date so a re-run/force can't wipe
             // the real previous-week figure by rolling a now-zeroed IncomeThisWeek over it (idempotent).
             if (doWeekRoll && group.LastWeekRollDate != date)
             {
@@ -632,7 +632,7 @@ public sealed class GuildScheduleSystem : GameSystem
             Announce(guild, ServerStrings.GuildSchedule_IncomeCredited, ("Amount", result.GoldCredited));
     }
 
-    // Guild-channel system notice (no speaker -> not ignore-suppressible). The Guild channel carries these
+    // Guild-channel system notice (no speaker → not ignore-suppressible). The Guild channel carries these
     // notices, and each is also written to the guild's unified log.
     private void Announce(GuildRecord guild, string key, params (string Key, object? Value)[] args)
         => _dispatcher.SendLocalizedChatToGuild(guild.Index, key,

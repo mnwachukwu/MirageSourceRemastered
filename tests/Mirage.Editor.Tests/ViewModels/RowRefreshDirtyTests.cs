@@ -33,8 +33,8 @@ public class RowRefreshDirtyTests
     private static bool IsCurrency(int id) => id == Gold;
 
     // ── NPC drop rows ─────────────────────────────────────────────────────────
-    // Rule: no item -> 0; non-currency -> 0 (the game reads no quantity off a non-stacking drop);
-    // currency -> at least 1.
+    // Rule: no item → 0; non-currency → 0 (the game reads no quantity off a non-stacking drop);
+    // currency → at least 1.
 
     [Test]
     public void NpcDrop_RefreshNormalizingAuthoredQuantity_DoesNotDirty()
@@ -79,7 +79,7 @@ public class RowRefreshDirtyTests
     }
 
     // ── Quest reward rows ─────────────────────────────────────────────────────
-    // Rule: no item -> 0; non-currency -> exactly 1; currency -> at least 1.
+    // Rule: no item → 0; non-currency → exactly 1; currency → at least 1.
 
     [Test]
     public void QuestReward_RefreshNormalizingAuthoredQuantity_DoesNotDirty()

@@ -304,7 +304,7 @@ public sealed partial class PacketHandler
     }
 
     // Open the NPC's conversation (dialogue tree) for `index`, if it has one (ConversationRecord.SpeakerNpc). Marks
-    // it spoken — the visited-log that flips the overhead "..." glyph yellow -> gray — and sends the trigger; the
+    // it spoken — the visited-log that flips the overhead "..." glyph yellow → gray — and sends the trigger; the
     // client opens the panel and walks the cached tree locally, round-tripping only for a hand-off choice. No-op if
     // the NPC has no conversation.
     private void OpenNpcConversation(int index, int npcNum, int mapNum, int npcSlot)

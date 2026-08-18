@@ -188,10 +188,10 @@ public class TableModelTests
     {
         var m = Make();
         var order = m.Order.ToArray();
-        m.ApplyLayout(new[] { 0, 1 }, new[] { 10, 20 });          // wrong count -> ignored (stale/foreign config)
+        m.ApplyLayout(new[] { 0, 1 }, new[] { 10, 20 });          // wrong count → ignored (stale/foreign config)
         Assert.That(m.Order, Is.EqualTo(order));
         Assert.That(m.ColumnAt(0).Width, Is.EqualTo(60));         // unchanged default
-        m.ApplyLayout(new[] { 0, 0, 1 }, new[] { 60, 100, 50 });  // not a permutation -> order ignored
+        m.ApplyLayout(new[] { 0, 0, 1 }, new[] { 60, 100, 50 });  // not a permutation → order ignored
         Assert.That(m.Order, Is.EqualTo(order));
     }
 }

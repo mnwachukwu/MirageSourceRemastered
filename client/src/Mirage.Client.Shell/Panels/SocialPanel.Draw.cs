@@ -206,40 +206,6 @@ public sealed partial class SocialPanel : IGamePanel
         return new Rectangle(gbody.X + Pad, top, gbody.Width - Pad * 2, Math.Max(0, gbody.Bottom - top - Pad));
     }
 
-    // Standings header buttons (right-aligned on the header row): History toggle + prev/next season paging.
-    private void LayoutStandingsButtons(Rectangle gbody)
-    {
-        int y = gbody.Y + Pad;
-        _historyBtn.Bounds = new Rectangle(gbody.Right - Pad - HistoryBtnW, y, HistoryBtnW, ButtonH);
-        _nextSeasonBtn.Bounds = new Rectangle(_historyBtn.Bounds.Left - Pad - SeasonNavW, y, SeasonNavW, ButtonH);
-        _prevSeasonBtn.Bounds = new Rectangle(_nextSeasonBtn.Bounds.Left - Pad - SeasonNavW, y, SeasonNavW, ButtonH);
-    }
-
-    private void UpdateGuildStandings(InputState input, ClientState state, ClientPacketSender sender, Rectangle gbody)
-    {
-        LayoutStandingsButtons(gbody);
-        if (_historyBtn.IsClicked(input))
-        {
-            _viewingHistory = !_viewingHistory;
-            if (_viewingHistory) sender.SendSeasonArchiveRequest(0);   // 0 = latest archived season
-        }
-        if (_viewingHistory)
-        {
-            var seasons = state.SeasonArchive?.AvailableSeasons ?? new List<int>();
-            int idx = seasons.IndexOf(state.SeasonArchive?.Season ?? 0);
-            _prevSeasonBtn.Enabled = idx > 0;                                 // an older season exists
-            _nextSeasonBtn.Enabled = idx >= 0 && idx < seasons.Count - 1;    // a newer season exists
-            if (_prevSeasonBtn.IsClicked(input) && _prevSeasonBtn.Enabled) sender.SendSeasonArchiveRequest(seasons[idx - 1]);
-            else if (_nextSeasonBtn.IsClicked(input) && _nextSeasonBtn.Enabled) sender.SendSeasonArchiveRequest(seasons[idx + 1]);
-            _archiveTable.Update(input, StandingsTableRect(gbody), keyboardActive: false);
-            ColumnsChanged |= _archiveTable.LayoutChanged;
-        }
-        else
-        {
-            _standingsTable.Update(input, StandingsTableRect(gbody), keyboardActive: false);
-            ColumnsChanged |= _standingsTable.LayoutChanged;
-        }
-    }
 
     private void DrawGuildStandings(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle gbody)
     {

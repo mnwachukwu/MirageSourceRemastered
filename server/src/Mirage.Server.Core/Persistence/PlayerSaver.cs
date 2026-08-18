@@ -15,7 +15,7 @@ namespace Mirage.Server.Core.Persistence;
 /// <item><see cref="SaveCharInBackground"/> — persist one character + the shared bank from snapshots.</item>
 /// <item><see cref="MutateAccountInBackground"/> — apply an arbitrary account-field change (mute, kick,
 /// guild membership, ...). This is the ONE correct way to change an account-level field: a direct
-/// <c>LoadAccountAsync -> set -> SaveAccountAsync</c> elsewhere would race this chain and lose updates.</item>
+/// <c>LoadAccountAsync → set → SaveAccountAsync</c> elsewhere would race this chain and lose updates.</item>
 /// </list>
 ///
 /// Contract: anything passed in must NOT be mutated after the call returns — pass a

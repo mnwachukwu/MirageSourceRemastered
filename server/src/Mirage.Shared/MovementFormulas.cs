@@ -1,6 +1,6 @@
 namespace Mirage.Shared;
 
-/// <summary>SPD -> movement-speed math (the gap-control mechanic).  SPD scales RUN speed only — walk stays a
+/// <summary>SPD → movement-speed math (the gap-control mechanic).  SPD scales RUN speed only — walk stays a
 /// fixed baseline — so a higher-SPD build kites/closes a slower one.  BASELINE-PRESERVING: the base run speed
 /// is a hard FLOOR (a 0-SPD / low-level build runs at exactly today's 5 t/s, never slower — the earlier
 /// both-ways power curve made low levels crawl), and SPD is a pure additive bonus that raises run speed
@@ -24,7 +24,7 @@ public static class MovementFormulas
     // Run speed rises LINEARLY with SPD from 1.0x (at 0 SPD) to MaxRunSpeedMult (at SpdAtMaxRunSpeed), then caps.
     // Gentle on purpose: SPD already compounds through the SP pool (bigger reserve + longer runs).  Both the cap
     // and the SPD needed to reach it are playtest-tuned (target: a big SPD edge shifts a duel ~60-70%, not 90%+).
-    private const float MaxRunSpeedMult = 1.5f;    // top run speed = 1.5x base (7.5 t/s -> 133 ms/tile fast cap)
+    private const float MaxRunSpeedMult = 1.5f;    // top run speed = 1.5x base (7.5 t/s → 133 ms/tile fast cap)
     private const float SpdAtMaxRunSpeed = 150f;    // SPD at which the cap is reached (a heavy SPD investment)
 
     /// <summary>Run ms-per-tile for a given SPD.  Speed multiplier = <c>1 + (0.5) * min(spd / 150, 1)</c> (linear,

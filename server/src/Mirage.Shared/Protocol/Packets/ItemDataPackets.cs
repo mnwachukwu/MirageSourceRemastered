@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Mirage.Shared.Protocol.Packets;
 
-/// <summary>S-&gt;C: the full item definition table, sent once at join and cached by the client.</summary>
+/// <summary>S→C: the full item definition table, sent once at join and cached by the client.</summary>
 public sealed record SendItemsPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SendItems;
@@ -33,7 +33,7 @@ public sealed record SendItemsPacket : IPacket
     );
 }
 
-/// <summary>S-&gt;C: one item's definition — the editor's request response, and the live broadcast on an editor save so clients refresh without reconnecting.</summary>
+/// <summary>S→C: one item's definition — the editor's request response, and the live broadcast on an editor save so clients refresh without reconnecting.</summary>
 public sealed record UpdateItemPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.UpdateItem;

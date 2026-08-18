@@ -8,6 +8,13 @@ public static partial class ServerStrings
     // ── Player commands ───────────────────────────────────────────────────────
     // /played + the /info playtime line: current character + account total.
     public const string Command_Played = nameof(Command_Played);
+    // /home — the warp itself, and the refusal while the cooldown still has time on it.
+    public const string Command_HomeWarped = nameof(Command_HomeWarped);
+    public const string Command_HomeCooldown = nameof(Command_HomeCooldown);   // "{Remaining}"
+    public const string Command_HomeInCombat = nameof(Command_HomeInCombat);
+    // /homecd — the same timer, asked about rather than hit.
+    public const string Command_HomeCooldownLeft = nameof(Command_HomeCooldownLeft);   // "{Remaining}"
+    public const string Command_HomeReady = nameof(Command_HomeReady);
 
     // ── Admin commands ────────────────────────────────────────────────────────
     public const string AdminCommand_PlayerInfo = nameof(AdminCommand_PlayerInfo);

@@ -17,8 +17,8 @@ using System.Text;
 
 namespace Mirage.Client.Shell.Screens;
 
-/// <summary>The screen-space pass over the world: HUD, panels in z-order, floating combat text,
-/// and the small primitives (bars, arrows, fixed-cell text) those share.</summary>
+/// <summary>The screen-space pass over the world: the frame's UI draw (background, sidebar, HUD, chat
+/// and panels in z-order) and the small primitives (bars, arrows, fixed-cell text) it shares.</summary>
 public sealed partial class GameplayScreen : IGameScreen
 {
     // ── Rendering helpers ──────────────────────────────────────────────────────
@@ -206,5 +206,88 @@ public sealed partial class GameplayScreen : IGameScreen
         UiHelper.DrawFilledRect(sb, x, y, w, h, UiHelper.BarBg);
         if (frac > 0)
             UiHelper.DrawFilledRect(sb, x, y, w * frac, h, fill);
+    }
+
+    /// <summary>
+    /// Draws the UI (background, sidebar, HUD, chat, panels) into the main reference target, inside the
+    /// batch MirageGame already opened.  The scrolling world is drawn separately by
+    /// <see cref="DrawWorld"/> into its own target and composited over the (black) map area afterward.
+    /// </summary>
+    public void Draw(SpriteBatch sb, SpriteFont font)
+    {
+        long nowMs = Environment.TickCount64;
+        // Black background for the UI region ONLY — leave the map viewport (0,0,ViewW,ViewH) TRANSPARENT
+        // so the world composite shows through underneath it, with panels drawn on top (these two rects
+        // are the whole reference frame minus the map area).
+        UiHelper.DrawFilledRect(sb, new Rectangle(0, Camera.ViewH, UiHelper.RefW, UiHelper.RefH - Camera.ViewH), Color.Black);
+        UiHelper.DrawFilledRect(sb, new Rectangle(Camera.ViewW, 0, UiHelper.RefW - Camera.ViewW, Camera.ViewH), Color.Black);
+
+        // Sidebar background (right column, separated from the map viewport area).
+        UiHelper.DrawFilledRect(sb, new Rectangle(Camera.ViewW, 0, UiHelper.RefW - Camera.ViewW, UiHelper.RefH), UiHelper.BarBg);
+
+        // Find the topmost open panel under the mouse BEFORE any UI draws. Widgets below it
+        // (HUD buttons, vital bars, sidebar links, chat hyperlinks, lower-z panels) must not
+        // hover-highlight or request a cursor — the mouse is visually over the panel, not them.
+        // The topmost-under-mouse panel resets hover around its own Draw so its widgets work.
+        int topUnderMouse = -1;
+        var mpos = _lastInput.MousePosition;
+        for (int zi = _zOrder.Count - 1; zi >= 0; zi--)
+        {
+            int idx = _zOrder[zi];
+            if (PanelIsOpen(idx) && PanelContainsMouse(idx, mpos))
+            {
+                topUnderMouse = idx;
+                break;
+            }
+        }
+        bool mouseOverPanel = topUnderMouse >= 0;
+        if (mouseOverPanel) _lastInput.ConsumeMouseHover();
+
+        _hud.Draw(sb, font, _ctx.TitleFont ?? font, _ctx.State, _lastInput);
+        _partyOverlay.Draw(sb, font, _ctx.State, _lastInput, _tabTarget, nowMs);
+        _contestHud.Draw(sb, font, _ctx.State);
+        _chat.Draw(sb, font, nowMs);
+
+        // Sidebar [Options (O)] / [Help (H)] links — drawn BEFORE the panel z-order so any
+        // open panel (or tooltip) overlapping the bottom-right link strip renders on top of them,
+        // matching the user expectation that floating panels always win over background UI.
+        // Mail is drawn first (leftmost) and tinted gold while there is unread mail, so the inbox
+        // announces itself without a separate badge; Options/Help keep their default gray idle color.
+        HudPanel.MailLink.IdleColor = _ctx.State.UnreadMailCount() > 0 ? Color.Gold : Color.Gray;
+        HudPanel.MailLink.Draw(sb, font, _lastInput);
+        HudPanel.OptionsLinkInGame.Draw(sb, font, _lastInput);
+        HudPanel.HelpLink.Draw(sb, font, _lastInput);
+
+        // The action bar sits directly above those links and belongs to the same background layer, so it
+        // draws here — before the panel z-order — and an open window covers it like any other chrome.
+        // Its hover tooltip is suppressed whenever a panel is under the mouse, for the same reason.
+        float cooldown = _hotkeyReadyAtMs > nowMs
+            ? (float)(_hotkeyReadyAtMs - nowMs) / Constants.PlayerAttackCooldownMs
+            : 0f;
+        HotkeyBarPanel.Draw(sb, font, _ctx.State, _items, cooldown,
+            _lastInput.ShowGamepadPrompts, _lastInput, canHover: topUnderMouse < 0);
+
+        // The single tooltip is fed by panel Draws; only the topmost open panel under the mouse
+        // may notify it this frame, so a hovered row in a panel hidden behind another panel
+        // doesn't leak its tooltip through the occluding window above it.
+        foreach (int idx in _zOrder)
+        {
+            if (idx == topUnderMouse) _lastInput.ResetMouseHover();
+            DrawPanel(idx, sb, font, nowMs, idx == _activePanel, idx == topUnderMouse);
+            if (idx == topUnderMouse) _lastInput.ConsumeMouseHover();
+        }
+
+        // Tooltip floats above every panel — panels call Tooltip.NotifyHover* during their draws
+        // and this single global tick decides whether to render, where (pinned), and when to hide.
+        Tooltip.TickAndDraw(sb, font, nowMs, _lastInput.MousePosition);
+
+        // Chat tab options panel draws above the chat panel but below the context menu.
+        _chatOptions.Draw(sb, font, _lastInput);
+
+        // Context menu draws LAST so it overlays every panel, the tooltip, and the world.
+        _contextMenu.Draw(sb, font);
+
+        // Death overlay is the true top layer while the local player is dead (a full-screen modal).
+        _death.Draw(sb, font, _lastInput, _ctx.State);
     }
 }

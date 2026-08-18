@@ -19,8 +19,8 @@ namespace Mirage.Server.Tests;
 /// same hit, and a block wears the shield again on top. Getting this wrong once understated a kit's upkeep
 /// by about half, and nothing failed — the number was simply wrong in a spreadsheet.</para>
 ///
-/// <para><b>The sliding scale.</b> A hit does not always chip: the chance rises as the piece wears, 25% ->
-/// 50% -> 75% -> 100% across four condition bands. Two properties of that fall out and the economy leans
+/// <para><b>The sliding scale.</b> A hit does not always chip: the chance rises as the piece wears, 25% →
+/// 50% → 75% → 100% across four condition bands. Two properties of that fall out and the economy leans
 /// on both. It is SCALE-FREE (the bands are percentages of max, so a 2,000-durability piece behaves
 /// exactly like a 100-durability one in relative terms) which is why scaling durability moves the repair
 /// CADENCE and not the repair GOLD. And it is CONVEX (wear accelerates as a piece degrades), which is why
@@ -156,7 +156,7 @@ public class EquipmentWearAttributionTests
     {
         // EconomyFormulas and CombatFormulas.SubHpReagentCost both price upkeep on ~0.48 durability lost
         // per wear event. That is not a chosen constant — it is the four bands integrated over a full
-        // 100 -> 0 cycle, so this recomputes it from the band constants rather than restating it.
+        // 100 → 0 cycle, so this recomputes it from the band constants rather than restating it.
         (int Width, int Chance)[] bands =
         [
             (100 - CombatFormulas.DurDegradeHealthyPct, CombatFormulas.DurDegradeHealthyChancePct),

@@ -72,10 +72,10 @@ public sealed class AccountConfig
         public Dictionary<string, TableColumnState> TableColumns { get; set; } = new();
     }
 
-    /// <summary>A Table control's persisted column layout: <see cref="Order"/> is display-position -> logical
+    /// <summary>A Table control's persisted column layout: <see cref="Order"/> is display-position → logical
     /// column index (null/omitted for a fixed-order table — only reorderable tables persist it), <see cref="Widths"/>
     /// is each column's width indexed by logical column, and the sort is the logical column + direction
-    /// (<see cref="SortColumn"/> -1 = none saved -> keep the table's default).</summary>
+    /// (<see cref="SortColumn"/> -1 = none saved → keep the table's default).</summary>
     public sealed class TableColumnState
     {
         [JsonPropertyName("order")]

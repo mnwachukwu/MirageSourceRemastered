@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests;
 
-/// <summary>Guild progression (#10): the XP->level curve, its inverse, and the perk-active gate
+/// <summary>Guild progression (#10): the XP→level curve, its inverse, and the perk-active gate
 /// (level threshold AND tax-paid PerksActive) that every perk site consults.</summary>
 [TestFixture]
 public class GuildProgressionTests

@@ -131,6 +131,10 @@ public sealed class PlayerRecord
     public int SpawnX { get; set; }
     public int SpawnY { get; set; }
 
+    /// <summary>When /home last ran, as unix seconds; 0 when it never has. A wall-clock stamp rather than
+    /// elapsed play time, so the cooldown counts down while the character is logged out.</summary>
+    public long HomeUsedAtUtc { get; set; }
+
     // Runtime fields (not persisted — populated by server/client during play)
     [JsonIgnore] public int MaxHp { get; set; }
     [JsonIgnore] public int MaxMp { get; set; }

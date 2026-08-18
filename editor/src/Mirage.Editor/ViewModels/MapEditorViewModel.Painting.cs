@@ -37,7 +37,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             return;
         }
         if (ClipboardKind == ClipboardKind.Attribute && SelectedMode == EditorMode.Attribute
-            && SelectedMap.Record.Tile[x, y].Type != SelectedAttribute)   // editing an existing attr -> keep clipboard, open its dialog
+            && SelectedMap.Record.Tile[x, y].Type != SelectedAttribute)   // editing an existing attr → keep clipboard, open its dialog
         {
             PasteAttrsAt(x, y, retain);
             return;
@@ -387,7 +387,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         // Resolve the destination by map id and look the row up by index (like WarpDestinationClicked),
         // not by record-reference: id-based navigation lands on the right row regardless of whether the
         // neighbor's record has been fetched yet, so switching to it triggers the normal load path
-        // (OnSelectedMapChanged -> LoadMapAsync) and its own connected properties fill in.
+        // (OnSelectedMapChanged → LoadMapAsync) and its own connected properties fill in.
         int id = NeighborTargetId(cell);
         var row = RowFor(id);
         if (row is not null && row != SelectedMap) SelectedMap = row;

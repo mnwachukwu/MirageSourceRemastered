@@ -96,14 +96,14 @@ public sealed partial class SocialPanel : IGamePanel
     private readonly Button _createBtn = new();
     private readonly Button _applyBtn = new();
     private readonly ListBox _browseList = new();
-    private readonly List<int> _browseIndices = new(); // browse row -> guild index
+    private readonly List<int> _browseIndices = new(); // browse row → guild index
     // Label editor.
     private readonly Button _labelSaveBtn = new();
     private readonly Button _labelCancelBtn = new();
     private readonly Button[] _labelBtns = InitLabelButtons();
     // Applications review overlay (officer+).
     private readonly ListBox _appList = new();
-    private readonly List<string> _appLogins = new(); // app row -> applicant login
+    private readonly List<string> _appLogins = new(); // app row → applicant login
     private readonly Button _approveBtn = new();
     private readonly Button _rejectBtn = new();
     private readonly Button _appsBackBtn = new();
@@ -123,7 +123,7 @@ public sealed partial class SocialPanel : IGamePanel
     private readonly Button _challengeBtn = new();
     // Wars page: a selectable war list + the selected war's status area + action buttons.
     private readonly ListBox _warList = new();
-    private readonly List<int> _warOpp = new();        // war row -> opponent guild index
+    private readonly List<int> _warOpp = new();        // war row → opponent guild index
     private readonly Button _warDeclareBtn = new();
     private readonly Button _warRetractBtn = new();
     private readonly Button _warPeaceBtn = new();      // toggles Sue-for-Peace / Withdraw
@@ -136,7 +136,7 @@ public sealed partial class SocialPanel : IGamePanel
     private readonly Button _warReqsBtn = new();        // leader: open the officer request queue
     // War-requests review overlay (leader) — the officer queue of declare/retract/peace asks.
     private readonly ListBox _warReqList = new();
-    private readonly List<(GuildWarRequestKind Kind, int Target)> _warReqKeys = new(); // req row -> (kind, target)
+    private readonly List<(GuildWarRequestKind Kind, int Target)> _warReqKeys = new(); // req row → (kind, target)
     private readonly Button _warReqAcceptBtn = new();
     private readonly Button _warReqDenyBtn = new();
     private readonly Button _warReqBackBtn = new();
@@ -151,7 +151,7 @@ public sealed partial class SocialPanel : IGamePanel
     private bool _labelEditing;
     private readonly List<GuildLabel> _pendingLabels = new();
 
-    private readonly List<string> _rowLogins = new();   // Friends/Ignore row index -> account login, parallel to _list.Items
+    private readonly List<string> _rowLogins = new();   // Friends/Ignore row index → account login, parallel to _list.Items
 
     // Roster page: a data-bound Table fed the member roster directly — it declares its own columns from
     // SocialEntry fields and follows the selected member by login across server pushes.
@@ -167,7 +167,7 @@ public sealed partial class SocialPanel : IGamePanel
     // Historical-season browser: a past season's archived standings + a toggle + prev/next season paging.
     private readonly Table<SeasonStanding> _archiveTable;
     private bool _viewingHistory;
-    private readonly Button _historyBtn = new();       // toggle current <-> past seasons
+    private readonly Button _historyBtn = new();       // toggle current ↔ past seasons
     private readonly Button _prevSeasonBtn = new();     // "<" older season
     private readonly Button _nextSeasonBtn = new();     // ">" newer season
 

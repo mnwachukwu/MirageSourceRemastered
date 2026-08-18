@@ -5,7 +5,7 @@ namespace Mirage.Shared.Protocol.Packets;
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
-/// <summary>S->C: the NPC conversation DEFINITIONS (1-based; speaker NPC + node tree), sent once at join like
+/// <summary>S→C: the NPC conversation DEFINITIONS (1-based; speaker NPC + node tree), sent once at join like
 /// items/npcs/quests. The client caches these and walks a tree locally when a conversation opens; only a
 /// terminal hand-off choice round-trips. Only non-empty conversations are included.</summary>
 public sealed record SendConversationsPacket : IPacket
@@ -25,7 +25,7 @@ public sealed record SendConversationsPacket : IPacket
     }
 }
 
-/// <summary>S->C: the set of conversation numbers this CHARACTER has already spoken to (the visited-log),
+/// <summary>S→C: the set of conversation numbers this CHARACTER has already spoken to (the visited-log),
 /// replaced wholesale on any change. The client colors each talkable NPC's overhead "..." glyph yellow
 /// (unspoken) or gray (spoken) from this set. Pushed at join and again whenever a new conversation is opened.</summary>
 public sealed record ConversationLogPacket : IPacket
@@ -34,7 +34,7 @@ public sealed record ConversationLogPacket : IPacket
     [JsonPropertyName("spoken")] public int[] Spoken { get; init; } = System.Array.Empty<int>();
 }
 
-/// <summary>S->C: open the client conversation panel for the NPC at (map, slot) — the reply to an NpcInteract
+/// <summary>S→C: open the client conversation panel for the NPC at (map, slot) — the reply to an NpcInteract
 /// that resolved talk-first (or a context-menu "Talk"). Carries the conversation number so the client opens the
 /// exact cached tree; map+slot let a hand-off choice re-issue an NpcInteract at the same NPC.</summary>
 public sealed record OpenNpcConversationPacket : IPacket

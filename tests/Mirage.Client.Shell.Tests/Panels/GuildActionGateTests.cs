@@ -82,9 +82,9 @@ public class GuildActionGateTests
     public bool CanAbandonQuest_ByRank(GuildRank me, bool hasQuest) => GuildActionGate.CanAbandonQuest(me, hasQuest);
 
     // ── Pay tax late: officer+, only while perks are suspended ──────────────────
-    [TestCase(GuildRank.Officer, false, ExpectedResult = true)]  // suspended -> can pay
+    [TestCase(GuildRank.Officer, false, ExpectedResult = true)]  // suspended → can pay
     [TestCase(GuildRank.Leader, false, ExpectedResult = true)]
-    [TestCase(GuildRank.Officer, true, ExpectedResult = false)]  // perks active -> nothing to pay
+    [TestCase(GuildRank.Officer, true, ExpectedResult = false)]  // perks active → nothing to pay
     [TestCase(GuildRank.Member, false, ExpectedResult = false)]  // members can't
     public bool CanPayTax_ByRankAndPerks(GuildRank me, bool perksActive) => GuildActionGate.CanPayTax(me, perksActive);
 

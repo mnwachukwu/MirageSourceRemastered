@@ -154,6 +154,13 @@ public sealed record SpawnConfig
     public int Map { get; init; } = 1;
     public int X { get; init; } = (Mirage.Shared.Constants.MaxMapX + 1) / 2;
     public int Y { get; init; } = (Mirage.Shared.Constants.MaxMapY + 1) / 2;
+
+    /// <summary>Where a character comes back to: the point they paid for at an Inn, or this default when
+    /// they have not set one. Death and /home both land here, so neither can drift from the other.</summary>
+    public (short Map, byte X, byte Y) HomeFor(Mirage.Shared.Records.PlayerRecord p) =>
+        p.SpawnMap > 0
+            ? ((short)p.SpawnMap, (byte)p.SpawnX, (byte)p.SpawnY)
+            : ((short)Map, (byte)X, (byte)Y);
 }
 
 /// <summary>

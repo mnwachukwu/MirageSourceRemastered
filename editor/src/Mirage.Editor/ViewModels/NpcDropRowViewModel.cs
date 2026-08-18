@@ -29,8 +29,8 @@ public sealed partial class NpcDropRowViewModel : ObservableObject
 
     public NamedEntry[] ItemEntries => _itemEntriesProvider();
 
-    // Quantity rule, identical to a quest reward: no item -> 0; a non-currency item -> exactly 1 (one
-    // drop of a sword is one sword); a currency item -> 1..9999.
+    // Quantity rule, identical to a quest reward: no item → 0; a non-currency item → exactly 1 (one
+    // drop of a sword is one sword); a currency item → 1..9999.
     public int ValueMin => ItemNum > 0 && _isCurrency(ItemNum) ? 1 : 0;
     public int ValueMax => ItemNum <= 0 ? 0 : (_isCurrency(ItemNum) ? 9999 : 0);
 

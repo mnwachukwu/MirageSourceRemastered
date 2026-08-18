@@ -30,8 +30,8 @@ public static class MapGroupResolve
     public static int BootX(MapRecord map, MapGroupRecord? g) => map.BootMap != 0 ? map.BootX : g?.BootX ?? 0;
     public static int BootY(MapRecord map, MapGroupRecord? g) => map.BootMap != 0 ? map.BootY : g?.BootY ?? 0;
 
-    /// <summary>The player-facing display name chain: map DisplayName -> group DisplayName ->
-    /// map Name -> "" (the caller supplies the final "Map N" fallback). Names use "" (blank) as their unset
+    /// <summary>The player-facing display name chain: map DisplayName → group DisplayName →
+    /// map Name → "" (the caller supplies the final "Map N" fallback). Names use "" (blank) as their unset
     /// sentinel. Group null-safe.</summary>
     public static string DisplayName(MapRecord map, MapGroupRecord? g)
     {

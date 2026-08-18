@@ -9,7 +9,7 @@ namespace Mirage.Editor.Tests;
 
 /// <summary>The conversation-editor row: a dynamic NODES table where each node owns its own dynamic CHOICES table
 /// (two levels over the quest pattern). Covers blank-start, add/remove + ceilings at both levels, nested dirty
-/// bubbling (choice -> node -> conversation), STABLE node ids that survive a middle removal (never reused), the
+/// bubbling (choice → node → conversation), STABLE node ids that survive a middle removal (never reused), the
 /// self-referential NextNode picker, empties dropped on save (ids preserved), and ApplyPacket loading clean.</summary>
 [TestFixture]
 public class ConversationRowViewModelTests

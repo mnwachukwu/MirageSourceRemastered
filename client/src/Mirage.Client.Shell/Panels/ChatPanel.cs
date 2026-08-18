@@ -109,7 +109,7 @@ public sealed partial class ChatPanel
     // SpeechChannelRouter.cs so the pure router shares it.
     private ActiveSpeechChannel _activeChannel = ActiveSpeechChannel.Say;
     // Channel selector dropdown docked to the left of the input box. Opens UPWARD (bottom-docked).
-    // Rebuilt each frame from access/guild/rank; `_channelDropChannels` maps its row index -> channel.
+    // Rebuilt each frame from access/guild/rank; `_channelDropChannels` maps its row index → channel.
     private readonly DropDown _channelDropDown = new() { OpenUp = true };
     private readonly List<ActiveSpeechChannel> _channelDropChannels = new();
     private InputState? _lastInput;   // cached in Update so Draw can render the dropdown (needs input for hover)

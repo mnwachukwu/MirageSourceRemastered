@@ -263,7 +263,7 @@ public sealed partial class GuildSystem : GameSystem
         }
 
         // Stamp the settlement's own per-date guard (server-LOCAL date, as GuildScheduleSystem derives it) so a
-        // forced re-settlement of today — /guildreset -> RunManualSettlement — can't charge this week's tax twice.
+        // forced re-settlement of today — /guildreset → RunManualSettlement — can't charge this week's tax twice.
         guild.LastTaxPaidDate = DateOnly.FromDateTime(Clock.LocalNow);
         SaveGuild(guild);
         _dispatcher.SendLocalizedChatToGuild(guild.Index, ServerStrings.GuildSchedule_TaxPaid,

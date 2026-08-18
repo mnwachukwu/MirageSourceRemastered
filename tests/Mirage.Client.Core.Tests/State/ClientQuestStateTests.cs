@@ -143,7 +143,7 @@ public class ClientQuestStateTests
     [Test]
     public void MultiRole_MostActionableWins()
     {
-        // NPC 7 gives quest 1 (eligible -> yellow ?) and is the turn-in for quest 2 (ready -> yellow !). yellow ! wins.
+        // NPC 7 gives quest 1 (eligible → yellow ?) and is the turn-in for quest 2 (ready → yellow !). yellow ! wins.
         var s = new ClientState();
         s.SetQuestDefs(new[] { (1, Kill(7)), (2, Kill(giver: 5, turnIn: 7, count: 1)) });
         var log = new List<PlayerQuest> { new() { QuestNum = 2, Status = QuestStatus.InProgress, Progress = new List<int> { 1 } } };

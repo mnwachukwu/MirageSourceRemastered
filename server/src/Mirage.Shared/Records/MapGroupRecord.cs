@@ -12,8 +12,8 @@ public sealed class MapGroupRecord
     /// <summary>Group name — an identifier (like a Map Name); NON-unique. It does not override map names; it
     /// slots into the display chain between a map's DisplayName and its raw Name.</summary>
     public string Name { get; set; } = "";
-    /// <summary>Player-facing group display name, inserted into the map name chain (Map DisplayName -> this ->
-    /// Map Name -> "Map N"). Blank falls through to <see cref="Name"/>.</summary>
+    /// <summary>Player-facing group display name, inserted into the map name chain (Map DisplayName → this →
+    /// Map Name → "Map N"). Blank falls through to <see cref="Name"/>.</summary>
     public string DisplayName { get; set; } = "";
 
     // ── Map-like fallbacks (used only where the map leaves its own unset; the map always wins) ──────────

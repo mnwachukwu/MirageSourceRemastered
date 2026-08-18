@@ -78,9 +78,9 @@ public class ObjectiveTests
     public void Clone_IsIndependentCopy()
     {
         var o = KillN(5, 3);
-        o.TryAdvance(ObjectiveKind.Kill, 5);   // original -> 1
+        o.TryAdvance(ObjectiveKind.Kill, 5);   // original → 1
         var c = o.Clone();
-        c.TryAdvance(ObjectiveKind.Kill, 5);   // clone -> 2
+        c.TryAdvance(ObjectiveKind.Kill, 5);   // clone → 2
         Assert.That(o.Progress, Is.EqualTo(1));  // original untouched
         Assert.That(c.Progress, Is.EqualTo(2));
     }

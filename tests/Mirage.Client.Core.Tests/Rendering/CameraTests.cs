@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Mirage.Client.Core.Tests;
 
 /// <summary>The seamless-world camera follows the local player on the center map but clamps to the loaded
-/// 3x3 grid's extent, and its tile&lt;-&gt;screen transforms round-trip. With no neighbors it locks to the
+/// 3x3 grid's extent, and its tile↔screen transforms round-trip. With no neighbors it locks to the
 /// center map exactly, reproducing the original single-map view (screenX == localX * PicX).</summary>
 [TestFixture]
 public class CameraTests
@@ -97,7 +97,7 @@ public class CameraTests
         Assert.That(cam.CameraX, Is.LessThan(512f));
     }
 
-    // ScreenToGridTile is the inverse of the tile->screen map: the center-map origin round-trips to (1,1,0,0).
+    // ScreenToGridTile is the inverse of the tile→screen map: the center-map origin round-trips to (1,1,0,0).
     [Test]
     public void ScreenToGridTile_InvertsWorldTileToScreen()
     {

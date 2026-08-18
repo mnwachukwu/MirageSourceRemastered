@@ -129,7 +129,7 @@ public class ItemFormulaTests
     public void HasItem_Absent_ReturnsZero()
         => Assert.That(ItemSystem.HasItem(new PlayerRecord(), BuildItems(), Wep), Is.EqualTo(0));
 
-    // ── SortKey (canonical ordering; internal static -> reflection) ─────────────
+    // ── SortKey (canonical ordering; internal static → reflection) ─────────────
 
     static readonly MethodInfo SortKeyMethod =
         typeof(ItemSystem).GetMethod("SortKey", BindingFlags.NonPublic | BindingFlags.Static)!;

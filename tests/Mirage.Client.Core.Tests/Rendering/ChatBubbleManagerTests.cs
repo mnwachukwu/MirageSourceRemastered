@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Mirage.Client.Core.Tests;
 
-/// <summary>Chat-bubble head -> drifter demotion. Silent entities pay zero allocation (the drifter list is
+/// <summary>Chat-bubble head → drifter demotion. Silent entities pay zero allocation (the drifter list is
 /// lazy). Demote-only keeps the head text (a replacement is arriving); natural expiry demotes AND clears.</summary>
 [TestFixture]
 public class ChatBubbleManagerTests

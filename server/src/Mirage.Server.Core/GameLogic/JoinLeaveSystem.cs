@@ -71,7 +71,7 @@ public sealed class JoinLeaveSystem : GameSystem
         _pm.NotifyRosterChanged();
         long joinUtc = NowUtc;
         sp.PlayTimeAnchorUtc = joinUtc;   // start banking this session's playtime
-        sp.SessionStartUtc = joinUtc;     // session length -> guild active-member accrual at logout
+        sp.SessionStartUtc = joinUtc;     // session length → guild active-member accrual at logout
 
         var p = sp.Char;
         // A character saved before the action bar existed has no "hotkeys" key at all, so the property

@@ -65,7 +65,7 @@ public class TerritoryFormulasTests
             Assert.That(TerritoryFormulas.NextWarNight(wed, DayOfWeek.Saturday, 20), Is.EqualTo(expected));       // later this week
             Assert.That(TerritoryFormulas.NextWarNight(satBefore, DayOfWeek.Saturday, 20), Is.EqualTo(expected)); // today, slot still ahead
             Assert.That(TerritoryFormulas.NextWarNight(satAfter, DayOfWeek.Saturday, 20),
-                Is.EqualTo(expected.AddDays(7)));                                                                 // today's slot passed -> next week
+                Is.EqualTo(expected.AddDays(7)));                                                                 // today's slot passed → next week
         });
     }
 
@@ -108,7 +108,7 @@ public class TerritoryFormulasTests
             Assert.That(g.PendingIncome, Is.Zero, "pending zeroed after the daily credit");
             Assert.That(g.IncomeThisWeek, Is.EqualTo(142), "the credited amount rolls into the weekly tally");
         });
-        // Nothing pending -> no-op (doesn't touch the weekly tally).
+        // Nothing pending → no-op (doesn't touch the weekly tally).
         Assert.That(GuildScheduleSystem.CreditTerritoryIncome(g), Is.Zero);
         Assert.That(g.IncomeThisWeek, Is.EqualTo(142));
     }

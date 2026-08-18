@@ -32,7 +32,7 @@ public sealed class ConversationSystem : GameSystem
     public void OnPlayerJoin(int index) => SyncTo(index);
 
     /// <summary>Record that the character opened conversation <paramref name="convNum"/> — the visit that flips its
-    /// overhead "..." glyph yellow -> gray. No-op if it isn't a real conversation or was already spoken; otherwise
+    /// overhead "..." glyph yellow → gray. No-op if it isn't a real conversation or was already spoken; otherwise
     /// it persists (marks the character dirty) and re-pushes the log to just that player.</summary>
     public void MarkSpoken(int index, int convNum)
     {

@@ -17,7 +17,7 @@ public static class GuildQuests
             if (diff < minD) minD = diff;
             if (diff > maxD) maxD = diff;
         }
-        // The guild's level places its target across the difficulty range (L0 -> easiest, max -> hardest).
+        // The guild's level places its target across the difficulty range (L0 → easiest, max → hardest).
         double target = minD + (maxD - minD) * (guildLevel / (double)Constants.GuildMaxLevel);
 
         double total = 0;
@@ -53,7 +53,7 @@ public static class GuildQuests
     }
 
     /// <summary>Kill count for a quest against a mob of the given difficulty and a [0,1) variation
-    /// <paramref name="roll01"/>: a baseline that scales UP with difficulty (tougher mobs -> more kills),
+    /// <paramref name="roll01"/>: a baseline that scales UP with difficulty (tougher mobs → more kills),
     /// spread +/- by the roll (so it's not a flat, linear count). A normal mob uses the big curve (hundreds of
     /// kills, clamped to <see cref="Constants.GuildQuestMaxKills"/>); a <paramref name="isBoss"/> mob uses a
     /// COMPRESSED curve (tens, clamped to <see cref="Constants.GuildQuestBossMaxKills"/>) so "kill hundreds of
@@ -70,8 +70,8 @@ public static class GuildQuests
 
     /// <summary>Guild XP a quest awards on completion — scaled by guild level (to chase the ballooning level
     /// curve), mob difficulty, and the same <paramref name="roll01"/> variation as the kill count (more kills
-    /// asked -> more XP). A <paramref name="isBoss"/> quest pays <see cref="Constants.GuildQuestBossRewardPercent"/>%
-    /// of that (fewer kills -> slighter reward). At MAX guild level XP is worthless, so it is eschewed entirely
+    /// asked → more XP). A <paramref name="isBoss"/> quest pays <see cref="Constants.GuildQuestBossRewardPercent"/>%
+    /// of that (fewer kills → slighter reward). At MAX guild level XP is worthless, so it is eschewed entirely
     /// (0) — the gold bonus in <see cref="RewardGold"/> replaces it.</summary>
     public static long RewardExp(int difficulty, int guildLevel, double roll01, bool isBoss)
     {

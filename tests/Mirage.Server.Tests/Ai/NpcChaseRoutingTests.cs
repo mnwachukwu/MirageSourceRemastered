@@ -52,7 +52,7 @@ public class NpcChaseRoutingTests
     {
         // The blocker is now chasing the chaser (its NpcTarget == the chaser's identity): it must stay
         // walkable in the plan so the chaser holds behind it (settles) instead of routing around its own
-        // hunter — the exact exclusion that keeps the guard<->AoS dance from reopening.
+        // hunter — the exact exclusion that keeps the guard↔AoS dance from reopening.
         var (ai, world) = NewWorldWithBlocker(blockerChasesChaser: true);
         var step = FindStep(ai, world, fromX: 8, fromY: 6, toX: 8, toY: 3, selfSlot: 1, planAroundActors: true);
         Assert.That(step, Is.EqualTo(Direction.Up), "a pursuer is not masked, so the chaser plans straight into it and holds (no dance)");

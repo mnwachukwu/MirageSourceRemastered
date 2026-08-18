@@ -93,11 +93,11 @@ public class MapGroupRoundTripTests
     {
         var map = new MapRecord { MapGroup = 5, Moral = null, Indoors = false, AlwaysDark = null };
 
-        // Editor -> wire (the editor authors RAW nullable fields via BuildSaveMapPacket).
+        // Editor → wire (the editor authors RAW nullable fields via BuildSaveMapPacket).
         var wire = EditorDataService.BuildSaveMapPacket(7, map).Map;
         Assert.That(wire.MapGroup, Is.EqualTo(5));
 
-        // Wire -> editor record.
+        // Wire → editor record.
         var back = EditorDataService.MapRecordFromPacket(wire);
         Assert.Multiple(() =>
         {

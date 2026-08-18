@@ -98,7 +98,7 @@ public class ShopSalesTableTests
     public void ASalesListCostsOneIntPerEntry_HoweverLargeTheShopfront()
     {
         // Why the sales table is numbers and not TradeItemRecord rows. The armory is 471 items; as barter
-        // rows that is four ints and a hand-authored line each, and a shop panel rendering "give X -> get Y"
+        // rows that is four ints and a hand-authored line each, and a shop panel rendering "give X → get Y"
         // for every one. As numbers it is a list, and the client prices it from definitions it already holds.
         var big = new ShopRecord { SalesItem = [.. Enumerable.Range(1, 200)] };
         big.Normalize(MaxItems);

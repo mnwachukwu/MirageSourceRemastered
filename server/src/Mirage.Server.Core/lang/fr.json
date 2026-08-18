@@ -548,6 +548,11 @@
   "PacketHandler_Notice":            "{Name} annonce : '{Message}'",
   "PacketHandler_Admin":             "{Name} dit à la compagnie privilégiée : '{Message}'",
   "Command_Played":                  "Temps de jeu : {Char} sur ce personnage, {Total} au total sur le compte.",
+  "Command_HomeWarped":              "Vous rentrez chez vous.",
+  "Command_HomeCooldown":            "Vous ne pouvez pas encore rentrer. Réessayez dans {Remaining}.",
+  "Command_HomeInCombat":            "Vous ne pouvez pas rentrer chez vous en combat.",
+  "Command_HomeCooldownLeft":        "Vous pourrez rentrer chez vous dans {Remaining}.",
+  "Command_HomeReady":               "Vous pouvez rentrer chez vous maintenant.",
   "AdminCommand_PlayerInfo":         "Compte : {Account}, Nom : {Name}",
 
   "SearchSystem_WouldntStandChance":  "Vous n'auriez aucune chance.",

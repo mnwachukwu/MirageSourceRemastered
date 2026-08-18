@@ -50,7 +50,7 @@ public class WorldBarAnimatorTests
         p.MaxHp = 100;
         p.Hp = 100;
         p.DispHp = 0f;  // animating up from empty
-        WorldBarAnimator.Tick(s, 0.1f);   // t = min(1, 5*0.1) = 0.5 -> 0 + (1-0)*0.5
+        WorldBarAnimator.Tick(s, 0.1f);   // t = min(1, 5*0.1) = 0.5 → 0 + (1-0)*0.5
         Assert.That(p.DispHp, Is.EqualTo(0.5f).Within(1e-4f));
     }
 

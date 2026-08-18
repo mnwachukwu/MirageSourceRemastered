@@ -146,7 +146,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         AttrLayerIsFringe
             ? (t.FringeAttr?.ToAttr() ?? TileAttr.Walkable)
             : t.ToGroundAttr();
-    // Write an attribute to the ACTIVE layer.  Ground -> inline fields; Fringe -> FringeAttr (Walkable
+    // Write an attribute to the ACTIVE layer.  Ground → inline fields; Fringe → FringeAttr (Walkable
     // clears it back to the default walkable plane, since Walkable authors no fields).  Never used for the
     // ramp (which writes both-plane occupancy).
     private void SetActiveAttr(TileRecord t, TileAttr attr)

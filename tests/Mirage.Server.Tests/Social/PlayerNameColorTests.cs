@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests;
 
-/// <summary>Locks the access-rank -> name color mapping after the chat-overhaul recolor: each rank maps to
+/// <summary>Locks the access-rank → name color mapping after the chat-overhaul recolor: each rank maps to
 /// an appended color slot (Monitor orange, Mapper turquoise, Developer royal-blue, Creator amethyst, Player
 /// tan), with PK keeping the QB bright red. A silent repaint here would shift every overhead and chat-name
 /// color, so pin it.</summary>

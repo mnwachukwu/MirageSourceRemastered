@@ -36,7 +36,7 @@ public class BloodProcessorTests
     {
         var s = new ClientState { CenterMapNum = 1 };
         AddPool(s, 1, 0, 0, amount: 0.6f, fresh: 1f);
-        BloodProcessor.Process(s, 100f);   // d = 1.5 > amount -> below the floor -> pool removed, map emptied
+        BloodProcessor.Process(s, 100f);   // d = 1.5 > amount → below the floor → pool removed, map emptied
         Assert.That(s.BloodByMap.ContainsKey(1), Is.False, "a fully-decayed pool (and its now-empty map) is dropped");
     }
 

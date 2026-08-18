@@ -1,4 +1,4 @@
-﻿using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -378,7 +378,7 @@ public sealed partial class NpcAiSystem : GameSystem
     private static void FinishChaseStep(MapNpcRecord mn, int spd, bool running, int beforeX, int beforeY, int spBefore, long now)
     {
         bool moved = mn.Num == 0 || mn.X != beforeX || mn.Y != beforeY;
-        if (running && !moved) mn.Sp = spBefore;                    // blocked, no move -> refund the speculative pre-step drain
+        if (running && !moved) mn.Sp = spBefore;                    // blocked, no move → refund the speculative pre-step drain
         mn.MoveType = MovementType.Walking;                         // reset — everything else steps at walk
         mn.NextMoveMs = now + (long)MathF.Round(running ? MovementFormulas.NpcRunMsPerTile(spd) : MovementFormulas.NpcWalkMsPerTile);
     }

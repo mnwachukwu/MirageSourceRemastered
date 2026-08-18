@@ -312,7 +312,7 @@ public sealed partial class CombatSystem : GameSystem
         int prot = GetPlayerProtection(victimIndex);
         var victimForBlock = _pm[victimIndex].Char;   // capture shield name before negation (a break would clear the slot)
         string blockShieldName = victimForBlock.ShieldSlot > 0 ? _world.Items[victimForBlock.Inv[victimForBlock.ShieldSlot].Num].TrimmedName : "";
-        var negation = TryPlayerNegateMagic(victimIndex);   // shield -> block, no shield -> dodge (mirror of melee)
+        var negation = TryPlayerNegateMagic(victimIndex);   // shield → block, no shield → dodge (mirror of melee)
         bool negated = negation != MagicNegation.None;
         bool wasCrit = !negated && CanNpcSpellCritical(mapNpc, mapNum);
         int damage;
@@ -372,11 +372,11 @@ public sealed partial class CombatSystem : GameSystem
     /// noun to "spell" in the messages so spell hits read as spells, not swings.</summary>
     private void ApplyNpcDamageToPlayer(int mapNum, NpcRecord npcRec, int victimIndex, int damage, bool wasCrit, bool isSpell)
     {
-        // Belt-and-suspenders: the single shared NPC->player damage chokepoint never touches a corpse, so no
+        // Belt-and-suspenders: the single shared NPC→player damage chokepoint never touches a corpse, so no
         // future caller (DoT/AoE/trap) can re-enter the lethal branch and re-escalate the respawn penalty/timer.
         if (_pm[victimIndex].Char.Dead) return;
         // NPC-vs-player damage disfavor: on-level mobs are +20% HP (favor) AND hit players softer, so PvE fights
-        // stay impactful without spiking a squishy build down.  PvE-only (player->NPC / NPC->NPC stay full mirror),
+        // stay impactful without spiking a squishy build down.  PvE-only (player→NPC / NPC→NPC stay full mirror),
         // applied here post-mitigation.  Guard on damage>0 so a fully-phased-out hit stays 0.  The kill-EXP danger
         // term mirrors this multiplier (ExpFormulas.ExpForKill) so EXP prices the softened threat.
         if (damage > 0)

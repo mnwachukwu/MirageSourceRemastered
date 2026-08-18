@@ -4,7 +4,7 @@ namespace Mirage.Shared.Protocol.Packets;
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C-&gt;S: the local player asks to step one tile in <c>Dir</c>.</summary>
+/// <summary>C→S: the local player asks to step one tile in <c>Dir</c>.</summary>
 public sealed record PlayerMovePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.PlayerMove;
@@ -12,7 +12,7 @@ public sealed record PlayerMovePacket : IPacket
     [JsonPropertyName("movement")] public MovementType Movement { get; init; }
 }
 
-/// <summary>C-&gt;S: turn to face <c>Dir</c> without moving.</summary>
+/// <summary>C→S: turn to face <c>Dir</c> without moving.</summary>
 public sealed record PlayerDirPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.PlayerDir;
@@ -21,7 +21,7 @@ public sealed record PlayerDirPacket : IPacket
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
-/// <summary>S-&gt;C: a player's authoritative step, broadcast to everyone observing them.</summary>
+/// <summary>S→C: a player's authoritative step, broadcast to everyone observing them.</summary>
 public sealed record SendPlayerMovePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.PlayerMove;
@@ -40,7 +40,7 @@ public sealed record SendPlayerMovePacket : IPacket
     public WorldLayer Layer { get; init; }
 }
 
-/// <summary>S-&gt;C: an NPC's authoritative step.</summary>
+/// <summary>S→C: an NPC's authoritative step.</summary>
 public sealed record NpcMovePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.NpcMove;
@@ -56,7 +56,7 @@ public sealed record NpcMovePacket : IPacket
     public WorldLayer Layer { get; init; }
 }
 
-/// <summary>S-&gt;C: an NPC turned in place, with no movement to animate.</summary>
+/// <summary>S→C: an NPC turned in place, with no movement to animate.</summary>
 public sealed record NpcDirPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.NpcDir;

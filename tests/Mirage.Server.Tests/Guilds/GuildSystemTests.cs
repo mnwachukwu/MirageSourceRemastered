@@ -80,7 +80,7 @@ public class GuildSystemTests
         var (guilds, guild) = Setup(level: 2, vault: tax * 2);
 
         guilds.PayTaxLate(Idx);
-        // Today IS the founding weekday, so /guildreset -> RunManualSettlement settles this very date.
+        // Today IS the founding weekday, so /guildreset → RunManualSettlement settles this very date.
         var result = GuildScheduleSystem.SettleGuild(guild, today, nowUtc: 0);
 
         Assert.Multiple(() =>

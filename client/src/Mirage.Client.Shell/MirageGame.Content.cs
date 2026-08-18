@@ -338,7 +338,7 @@ public sealed partial class MirageGame : Game
     }
 
     // Parses the leading run of digits in a filename as its sheet index; -1 when there is none.
-    /// <summary>Reads the leading sheet index off a tile-sheet filename ("3_forest.bmp" -> 3);
+    /// <summary>Reads the leading sheet index off a tile-sheet filename ("3_forest.bmp" → 3);
     /// -1 when the name doesn't start with one.</summary>
     private static int ParseSheetIndex(string fileName)
     {

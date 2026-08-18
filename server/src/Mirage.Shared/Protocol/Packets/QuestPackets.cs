@@ -5,7 +5,7 @@ namespace Mirage.Shared.Protocol.Packets;
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
-/// <summary>S->C: the player's full player-quest state (InProgress + Done entries), replaced wholesale on any
+/// <summary>S→C: the player's full player-quest state (InProgress + Done entries), replaced wholesale on any
 /// change. The client pairs each entry with the quest DEFINITION (sent at join, like items/npcs) to render the
 /// quest log and drive the overhead ?/! glyphs.</summary>
 public sealed record QuestLogPacket : IPacket
@@ -31,7 +31,7 @@ public sealed record QuestLogPacket : IPacket
     }
 }
 
-/// <summary>S->C: the quest DEFINITIONS (1-based; name/objectives/rewards/requirements/giver+turn-in NPCs),
+/// <summary>S→C: the quest DEFINITIONS (1-based; name/objectives/rewards/requirements/giver+turn-in NPCs),
 /// sent once at join like items/npcs. The client pairs these with its QuestLog state to render the log, the
 /// accept/turn-in dialog, and the overhead ?/! glyphs. Only non-empty quests are included.</summary>
 public sealed record SendQuestsPacket : IPacket
@@ -65,7 +65,7 @@ public sealed record SendQuestsPacket : IPacket
     }
 }
 
-/// <summary>S->C: open the client-built quest/gossip menu for the NPC at (map, slot) — the reply to a melee-key
+/// <summary>S→C: open the client-built quest/gossip menu for the NPC at (map, slot) — the reply to a melee-key
 /// NpcInteract on an NPC that has an actionable quest for this player. The client already holds the quest defs +
 /// its log, so it builds the menu locally; this packet is just the trigger (mirrors OpenInnPacket).</summary>
 public sealed record OpenNpcQuestMenuPacket : IPacket
@@ -77,7 +77,7 @@ public sealed record OpenNpcQuestMenuPacket : IPacket
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C->S: accept a quest (from a giver dialog). Carries the giver NPC the player is standing at (map +
+/// <summary>C→S: accept a quest (from a giver dialog). Carries the giver NPC the player is standing at (map +
 /// map-NPC slot); the server re-validates it is the quest's GiverNpc and within r=5 — accepting is only allowed
 /// at the giver. Server also validates eligibility.</summary>
 public sealed record QuestAcceptPacket : IPacket
@@ -88,7 +88,7 @@ public sealed record QuestAcceptPacket : IPacket
     [JsonPropertyName("slot")] public int NpcSlot { get; init; }
 }
 
-/// <summary>C->S: turn a completed quest in for its rewards (from a turn-in dialog). Carries the turn-in NPC the
+/// <summary>C→S: turn a completed quest in for its rewards (from a turn-in dialog). Carries the turn-in NPC the
 /// player is standing at; the server re-validates it is the quest's EffectiveTurnInNpc and within r=5.</summary>
 public sealed record QuestTurnInPacket : IPacket
 {
@@ -98,7 +98,7 @@ public sealed record QuestTurnInPacket : IPacket
     [JsonPropertyName("slot")] public int NpcSlot { get; init; }
 }
 
-/// <summary>C->S: abandon an in-progress quest (drops it back to not-started, re-acceptable).</summary>
+/// <summary>C→S: abandon an in-progress quest (drops it back to not-started, re-acceptable).</summary>
 public sealed record QuestAbandonPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.QuestAbandon;

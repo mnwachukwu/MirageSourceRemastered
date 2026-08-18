@@ -5,7 +5,7 @@ namespace Mirage.Shared.Protocol.Packets;
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
-/// <summary>S->C: the current marketplace listings, sent when a player opens the market from an inn and
+/// <summary>S→C: the current marketplace listings, sent when a player opens the market from an inn and
 /// after any change. <see cref="Open"/> doubles as the "open the market panel" signal. <see cref="MeLogin"/>
 /// is the viewer's own account login, so the client can pick out its own listings without a separate feed.</summary>
 public sealed record MarketListPacket : IPacket
@@ -20,14 +20,14 @@ public sealed record MarketListPacket : IPacket
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C->S: open + browse the marketplace (server-validated to be at an inn); the server replies with
+/// <summary>C→S: open + browse the marketplace (server-validated to be at an inn); the server replies with
 /// a <see cref="MarketListPacket"/> carrying the open signal.</summary>
 public sealed record MarketOpenPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketOpen;
 }
 
-/// <summary>C->S: list an inventory stack for sale at a fixed gold price. <see cref="Quantity"/> applies only
+/// <summary>C→S: list an inventory stack for sale at a fixed gold price. <see cref="Quantity"/> applies only
 /// to a currency slot (a partial take); a non-currency slot is listed whole.</summary>
 public sealed record MarketCreatePacket : IPacket
 {
@@ -37,7 +37,7 @@ public sealed record MarketCreatePacket : IPacket
     [JsonPropertyName("price")] public int Price { get; init; }
 }
 
-/// <summary>C->S: buy a listing by id. The buyer is charged the price in gold; the goods and the (post-tax)
+/// <summary>C→S: buy a listing by id. The buyer is charged the price in gold; the goods and the (post-tax)
 /// payout are delivered as delayed marketplace mail. <see cref="Quantity"/> buys only that many units of a
 /// CURRENCY listing (a partial buy); 0 (or a non-currency listing) buys the whole stack.</summary>
 public sealed record MarketBuyPacket : IPacket
@@ -47,21 +47,21 @@ public sealed record MarketBuyPacket : IPacket
     [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }
 
-/// <summary>C->S: cancel your own listing by id; the escrowed item is returned to you.</summary>
+/// <summary>C→S: cancel your own listing by id; the escrowed item is returned to you.</summary>
 public sealed record MarketCancelPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketCancel;
     [JsonPropertyName("id")] public int Id { get; init; }
 }
 
-/// <summary>C->S: re-fetch the current listings on demand (the "Refresh" button) without a close-reopen. The
+/// <summary>C→S: re-fetch the current listings on demand (the "Refresh" button) without a close-reopen. The
 /// server replies with a <see cref="MarketListPacket"/> (no open toggle).</summary>
 public sealed record MarketRefreshPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketRefresh;
 }
 
-/// <summary>C->S: the market panel closed — stop sending this player live listing broadcasts.</summary>
+/// <summary>C→S: the market panel closed — stop sending this player live listing broadcasts.</summary>
 public sealed record MarketClosePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketClose;

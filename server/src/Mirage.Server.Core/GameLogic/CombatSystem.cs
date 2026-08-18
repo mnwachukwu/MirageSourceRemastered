@@ -201,9 +201,7 @@ public sealed partial class CombatSystem : GameSystem
         }
         else
         {
-            respawnMap = vp.SpawnMap > 0 ? vp.SpawnMap : (short)Config.Spawn.Map;
-            respawnX = vp.SpawnMap > 0 ? vp.SpawnX : (byte)Config.Spawn.X;
-            respawnY = vp.SpawnMap > 0 ? vp.SpawnY : (byte)Config.Spawn.Y;
+            (respawnMap, respawnX, respawnY) = Config.Spawn.HomeFor(vp);
         }
         vp.Dead = false;
         vp.DiedInWar = false;
@@ -270,7 +268,7 @@ public sealed partial class CombatSystem : GameSystem
     // best always wins); higher = stickier / harder to peel.
     private const double AggroStickinessFactor = 1.25;
 
-    // DEF -> aggro weight multiplier.  Monotonic increasing; DEF==0 -> 1.0.  Clamp at 0 so a
+    // DEF → aggro weight multiplier.  Monotonic increasing; DEF==0 → 1.0.  Clamp at 0 so a
     // (hypothetical) negative DEF can never pull the weight below 1.0 and zero out a live contributor's
     // score, which would false-trip the pick.Damage<=0 liveness gate in ReEvaluateAggro.
     private static double AggroWeight(double def) => 1.0 + Math.Max(def, 0.0) / AggroDefWeightBase;

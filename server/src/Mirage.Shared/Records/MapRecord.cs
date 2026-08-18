@@ -31,9 +31,9 @@ public sealed class MapRecord
     // ── MapGroup-inheritable properties ──────────────────────────────────────────
     // ALWAYS read these through MapGroupResolve / the GameWorld.*Of(mapNum) helpers so the group fallback is
     // honored — a raw read returns the map's own value only. The int fields (Music/Boot) use 0 as the
-    // "not set -> inherit the group" sentinel (0 == absent, with no distinct meaning apart from "unset").
+    // "not set → inherit the group" sentinel (0 == absent, with no distinct meaning apart from "unset").
     // Moral and the environment bools are NULLABLE instead — MapMoral.None and false are real, meaningful
-    // values with no spare sentinel: null = "not set -> inherit", an explicit value overrides the group, and
+    // values with no spare sentinel: null = "not set → inherit", an explicit value overrides the group, and
     // null on both map+group resolves to the hard default (None / false). The greeting strings use "" (blank)
     // as their inherit sentinel and resolve per-field (map's own wins if non-blank, else the group's).
     public MapMoral? Moral { get; set; }

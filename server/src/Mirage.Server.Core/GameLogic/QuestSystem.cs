@@ -25,7 +25,7 @@ public sealed class QuestSystem : GameSystem
     private readonly ItemSystem _items;
     private readonly MailSystem _mail;
     private readonly ObjectiveSystem _objectives;
-    // Lazy to break a DI cycle: CombatSystem -> JoinLeaveSystem -> QuestSystem -> CombatSystem. We only need
+    // Lazy to break a DI cycle: CombatSystem → JoinLeaveSystem → QuestSystem → CombatSystem. We only need
     // its level-up entry point at reward time (turn-in), by which point everything is constructed.
     private readonly Lazy<CombatSystem> _combat;
     private readonly GuildScheduleSystem _guildSchedule;
@@ -126,7 +126,7 @@ public sealed class QuestSystem : GameSystem
         foreach (var r in rewardItems)   // gold is just item #1 here; currency stacks, so it never mails
         {
             if (r.ItemNum <= 0 || r.ItemNum > _world.Limits.Items || r.Quantity <= 0) continue;
-            if (!_items.TryGiveItem(index, r.ItemNum, r.Quantity, 0))   // bag full (a non-currency item) -> mail it, never lost
+            if (!_items.TryGiveItem(index, r.ItemNum, r.Quantity, 0))   // bag full (a non-currency item) → mail it, never lost
             {
                 _mail.Deliver(_pm[index].Login, QuestSender,
                     ServerStrings.Get(ServerStrings.Quest_RewardMailSubject),
@@ -153,7 +153,7 @@ public sealed class QuestSystem : GameSystem
         StopTracking(index, questNum);
         if (pq.Status == QuestStatus.InProgress)
         {
-            // Never completed -> drop the entry entirely: a clean first-time reset, eligible for the main rewards again.
+            // Never completed → drop the entry entirely: a clean first-time reset, eligible for the main rewards again.
             sp.Char.Quests.Remove(pq);
         }
         else   // InProgressRepeat

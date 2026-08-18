@@ -47,6 +47,8 @@ public sealed class HelpPanel : IGamePanel
         new("/help",                       ClientStrings.HelpText_Cmd_Help,    AdminLevel.Player),
         new("/info [name]",                ClientStrings.HelpText_Cmd_Info,    AdminLevel.Player),
         new("/played",                     ClientStrings.HelpText_Cmd_Played,  AdminLevel.Player),
+        new("/home",                       ClientStrings.HelpText_Cmd_Home,    AdminLevel.Player),
+        new("/homecd",                     ClientStrings.HelpText_Cmd_HomeCd,  AdminLevel.Player),
         new("/who",                        ClientStrings.HelpText_Cmd_Who,     AdminLevel.Player),
         new("/fps",                        ClientStrings.HelpText_Cmd_Fps,     AdminLevel.Player),
         new("/inv",                        ClientStrings.HelpText_Cmd_Inv,     AdminLevel.Player),

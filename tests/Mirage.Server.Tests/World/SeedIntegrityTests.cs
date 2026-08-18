@@ -129,7 +129,7 @@ public class SeedIntegrityTests
         RequireSeed();
         // A drop naming a missing item is INERT, not loud: the roller skips it. So a drop table that lost
         // its footing during a renumber pays out nothing and reports nothing. The armory has been
-        // renumbered twice in two days (potions 3 -> 15 tiers, then treasure), and both times this is the
+        // renumbered twice in two days (potions 3 → 15 tiers, then treasure), and both times this is the
         // check that would have caught a stale table.
         Assert.Multiple(() =>
         {
@@ -263,7 +263,7 @@ public class SeedIntegrityTests
     {
         RequireSeed();
         // The bug this is written for actually happened. gen-npcs.mjs hand-writes its JSON, so when the C#
-        // field was renamed Value -> Quantity the generator kept emitting the old key; every gold line
+        // field was renamed Value → Quantity the generator kept emitting the old key; every gold line
         // would have deserialized to quantity 0 (clamped to 1 at roll time) and the entire gold economy
         // would have vanished with no error anywhere. A JS generator is outside the compiler's reach, and
         // this is the only thing standing where the compiler would otherwise be.

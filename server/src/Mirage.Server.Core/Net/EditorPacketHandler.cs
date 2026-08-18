@@ -245,7 +245,7 @@ public sealed partial class EditorPacketHandler
             .ToArray();
 
         // MapGroups live in a sparse Dictionary; project the editor's 1-based slot range over it (absent
-        // slots -> blank name), matching how every other record type presents a fixed slot list.
+        // slots → blank name), matching how every other record type presents a fixed slot list.
         var mapGroups = Enumerable.Range(1, _world.Limits.MapGroups)
             .Select(i => new EditorDataPacket.NameEntry(i, _world.MapGroups.GetValueOrDefault(i)?.Name ?? ""))
             .ToArray();
@@ -605,8 +605,8 @@ public sealed partial class EditorPacketHandler
         npc.Group = p.Group;
         npc.Range = p.Range;
         // Drop table. Value only matters for a CURRENCY line; the runtime ignores it for every other item
-        // type. Normalized per line on save so a bad state never persists: currency -> at least 1,
-        // anything else -> 0. Lines naming no item are dropped by npc.Normalize() below, along with the
+        // type. Normalized per line on save so a bad state never persists: currency → at least 1,
+        // anything else → 0. Lines naming no item are dropped by npc.Normalize() below, along with the
         // legacy single-drop fields, so what lands on disk is exactly what the roller reads.
         npc.Drops = p.Drops is null ? null : [.. p.Drops.Select(d =>
         {
@@ -687,7 +687,7 @@ public sealed partial class EditorPacketHandler
 
         // Rebuild the trade list from the packet: drop empty rows (so persisted data stays dense with no
         // gaps) and normalize each side's quantity so a bad state never persists (mirrors the NPC-drop rule
-        // above): no item -> 0, non-currency -> exactly 1 (never stacks), currency -> at least 1. This keeps
+        // above): no item → 0, non-currency → exactly 1 (never stacks), currency → at least 1. This keeps
         // the give-side HasItem(>=) check well-formed and stops a zero quantity from minting free items.
         // No row ceiling, matching the sales table.
         shop.TradeItem = p.Trades
@@ -722,7 +722,7 @@ public sealed partial class EditorPacketHandler
             Sales = [.. shop.SalesItem]
         });
 
-        // A keeper reassignment (or a Store<->Inn flip on the same keeper) changes which NPC shows the $
+        // A keeper reassignment (or a Store↔Inn flip on the same keeper) changes which NPC shows the $
         // vendor glyph and what its melee/right-click interact opens (and the menu label). Re-broadcast the
         // affected NPC template(s) so already-connected clients refresh without a reconnect — KeeperShopKind
         // reads the just-saved shop.
@@ -912,8 +912,8 @@ public sealed partial class EditorPacketHandler
         return list;
     }
 
-    // Trade quantity rule shared by both sides of a trade: no item -> 0; a non-currency item -> exactly 1
-    // (it never stacks); a currency item -> the caller's value floored at 1.
+    // Trade quantity rule shared by both sides of a trade: no item → 0; a non-currency item → exactly 1
+    // (it never stacks); a currency item → the caller's value floored at 1.
     private int NormalizeTradeQuantity(int itemNum, int value)
     {
         if (itemNum <= 0 || itemNum > _world.Limits.Items) return 0;

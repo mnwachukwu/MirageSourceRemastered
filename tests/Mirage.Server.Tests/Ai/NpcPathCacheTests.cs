@@ -200,7 +200,7 @@ public class NpcPathCacheTests
         var pm = new PlayerManager();
         world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
         world.Npcs[1].Size = 1;
-        world.Maps[Map].Right = 2;      // link Map 1 -> Map 2 at the right seam
+        world.Maps[Map].Right = 2;      // link Map 1 → Map 2 at the right seam
         world.Maps[2].Left = Map;
         // Ramp at Map 1's right edge (15,6), ground side Left (mount from (14,6) by stepping Right); deck continues
         // onto Map 2 at (0,6). Mirrors map6.json (ramp (15,9) data1=Left).

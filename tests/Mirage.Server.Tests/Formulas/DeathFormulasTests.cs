@@ -26,7 +26,7 @@ public class DeathFormulasTests
     public void Decay_ShedsOneStepPerFullMinute()
     {
         long last = 1_000_000;
-        Assert.That(DeathFormulas.NextPenaltySteps(5, last, last + 3 * 60), Is.EqualTo(3));   // decay 3 -> 2, +1 -> 3
+        Assert.That(DeathFormulas.NextPenaltySteps(5, last, last + 3 * 60), Is.EqualTo(3));   // decay 3 → 2, +1 → 3
         Assert.That(DeathFormulas.NextPenaltySteps(5, last, last + 60 * 60), Is.EqualTo(1));  // fully decayed, floor 1
     }
 

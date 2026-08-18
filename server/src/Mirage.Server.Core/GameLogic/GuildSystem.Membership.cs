@@ -123,7 +123,7 @@ public sealed partial class GuildSystem : GameSystem
         }
     }
 
-    // Add an approved applicant: online + still guildless -> the normal join; else set account membership
+    // Add an approved applicant: online + still guildless → the normal join; else set account membership
     // + a roster row offline (their character snapshot fills in on next login via RefreshMemberSnapshot).
     private void AddApplicantToGuild(GuildRecord guild, string login)
     {
@@ -237,8 +237,8 @@ public sealed partial class GuildSystem : GameSystem
         NotifyOk(requesterIndex, ServerStrings.Guild_RequestSent, ("GuildName", guild.Name));
     }
 
-    /// <summary>Accept the pending guild offer: a received invite -> I join; a request I was asked to
-    /// approve -> the requester joins.</summary>
+    /// <summary>Accept the pending guild offer: a received invite → I join; a request I was asked to
+    /// approve → the requester joins.</summary>
     public void AcceptOffer(int index)
     {
         var sp = _pm[index];

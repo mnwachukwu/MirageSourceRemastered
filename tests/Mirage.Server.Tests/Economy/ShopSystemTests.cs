@@ -58,7 +58,7 @@ public class ShopSystemTests
     }
 
     // ── Buy (the gold storefront) ────────────────────────────────────────────────
-    // Sales entries are item NUMBERS priced from ItemRecord.Price, as opposed to Trade's give->get rows.
+    // Sales entries are item NUMBERS priced from ItemRecord.Price, as opposed to Trade's give→get rows.
 
     static void SetSales(GameWorld world, params int[] itemNums)
     {

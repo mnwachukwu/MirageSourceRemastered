@@ -136,7 +136,7 @@ public sealed partial class GuildSystem : GameSystem
 
         // Disbanding mid-war = forfeit: the opponent wins each active war decisively, taking any wager
         // pot (their own ante back + our escrowed stake), before the guild dissolves. Done via the shared static
-        // helpers (no GuildWarSystem dependency -> no cycle); GuildSystem owns the announce path directly.
+        // helpers (no GuildWarSystem dependency → no cycle); GuildSystem owns the announce path directly.
         foreach (var war in guild.Wars.ToList())
         {
             var opponent = GuildById(war.OpponentIndex);

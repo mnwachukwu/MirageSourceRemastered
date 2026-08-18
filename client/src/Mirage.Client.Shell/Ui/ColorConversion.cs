@@ -2,7 +2,7 @@ using System;
 
 namespace Mirage.Client.Shell.Ui;
 
-/// <summary>HSV &lt;-&gt; RGB conversion for the color picker. Hue is degrees [0,360), saturation/value are
+/// <summary>HSV ↔ RGB conversion for the color picker. Hue is degrees [0,360), saturation/value are
 /// [0,1], and RGB channels are 0-255. Pure and static so the picker's box/strip math is unit-testable.</summary>
 public static class ColorConversion
 {

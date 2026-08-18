@@ -36,7 +36,7 @@ public interface IColumnLayoutTable
     bool LayoutChanged { get; }
     /// <summary>Whether the user can drag columns into a new order. Hosts persist the order only when true.</summary>
     bool AllowReorder { get; }
-    /// <summary>Current display order (display position -> logical column index).</summary>
+    /// <summary>Current display order (display position → logical column index).</summary>
     IReadOnlyList<int> ColumnOrder { get; }
     /// <summary>Current per-logical-column widths.</summary>
     IReadOnlyList<int> ColumnWidths { get; }
@@ -70,7 +70,7 @@ public sealed class Table<T> : IColumnLayoutTable
     private Func<T, object>? _rowKey;
     private Func<T, Color>? _rowColor;
     private readonly ListBox _body = new();
-    private int[] _rowOrder = Array.Empty<int>();   // display position -> source index into Items
+    private int[] _rowOrder = Array.Empty<int>();   // display position → source index into Items
     private int _selectedSource = -1;               // selected row as a source index into Items (-1 none)
     private bool _dirty = true;
     // The host's declared default sort, captured from its first SortBy call (every panel makes exactly
@@ -435,7 +435,7 @@ public sealed class Table<T> : IColumnLayoutTable
     private void UpdateHeader(InputState input, Rectangle header)
     {
         var boxes = Model.Layout();
-        int localX = input.MousePosition.X - header.X + _hScroll;   // screen -> content x (columns start at content 0)
+        int localX = input.MousePosition.X - header.X + _hScroll;   // screen → content x (columns start at content 0)
 
         if (_drag == Drag.None && input.IsPressIn(header))
         {
@@ -589,7 +589,7 @@ public sealed class Table<T> : IColumnLayoutTable
                 _hDragging = false;   // capture auto-releases the frame after button-up
             }
         }
-        // Click the track (not the thumb) -> page by a column-window width.
+        // Click the track (not the thumb) → page by a column-window width.
         if (input.IsClickIn(m.HBar) && !thumb.Contains(input.MousePosition))
         {
             _hScroll = input.MousePosition.X < thumb.X

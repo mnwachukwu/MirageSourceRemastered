@@ -34,7 +34,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         player.AttackTimer = Environment.TickCount64;
         if (p.InCombat) player.LastCombatMs = Environment.TickCount64;
         // Sparks fire only when the swing connected. InCombat is set exactly when the attacker engaged a
-        // target (player or NPC); an empty swing (whiff) arrives with InCombat=false -> crescent, no sparks.
+        // target (player or NPC); an empty swing (whiff) arrives with InCombat=false → crescent, no sparks.
         MeleeSwing?.Invoke(player.Map, player.X, player.Y, player.XOffset, player.YOffset, player.Dir, p.InCombat);
     }
 

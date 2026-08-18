@@ -87,7 +87,7 @@ public class GuildQuestsTests
     [Test]
     public void Variation_ScalesKillsAndRewardsTogether()
     {
-        // A bigger roll = a bigger objective, and the XP + gold rise in lockstep (more effort -> more reward).
+        // A bigger roll = a bigger objective, and the XP + gold rise in lockstep (more effort → more reward).
         Assert.That(GuildQuests.KillCount(100, 1.0, isBoss: false), Is.GreaterThan(GuildQuests.KillCount(100, 0.0, isBoss: false)));
         Assert.That(GuildQuests.RewardExp(100, 1, 1.0, isBoss: false), Is.GreaterThan(GuildQuests.RewardExp(100, 1, 0.0, isBoss: false)));
         Assert.That(GuildQuests.RewardGold(100, 1, 1.0, isBoss: false), Is.GreaterThan(GuildQuests.RewardGold(100, 1, 0.0, isBoss: false)));

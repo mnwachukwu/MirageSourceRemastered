@@ -310,14 +310,6 @@ public sealed partial class SocialPanel : IGamePanel
         }
     }
 
-    private void LayoutGuildTerritories(Rectangle gbody, out Rectangle tableRect)
-    {
-        int rowY = gbody.Bottom - ButtonH - Pad;
-        _challengeBtn.Bounds = new Rectangle(gbody.Right - Pad - 130, rowY, 130, ButtonH);
-        int top = gbody.Y + Pad;
-        tableRect = new Rectangle(gbody.X + Pad, top, gbody.Width - Pad * 2, Math.Max(0, rowY - top - Pad));
-    }
-
     private void UpdateGuildVault(InputState input, ClientPacketSender sender, Rectangle gbody, GuildInfoPacket info)
     {
         LayoutGuildVault(gbody);
@@ -555,6 +547,32 @@ public sealed partial class SocialPanel : IGamePanel
         {
             input.ConsumeKey(Keys.Escape);
             _labelEditing = false;
+        }
+    }
+
+    private void UpdateGuildStandings(InputState input, ClientState state, ClientPacketSender sender, Rectangle gbody)
+    {
+        LayoutStandingsButtons(gbody);
+        if (_historyBtn.IsClicked(input))
+        {
+            _viewingHistory = !_viewingHistory;
+            if (_viewingHistory) sender.SendSeasonArchiveRequest(0);   // 0 = latest archived season
+        }
+        if (_viewingHistory)
+        {
+            var seasons = state.SeasonArchive?.AvailableSeasons ?? new List<int>();
+            int idx = seasons.IndexOf(state.SeasonArchive?.Season ?? 0);
+            _prevSeasonBtn.Enabled = idx > 0;                                 // an older season exists
+            _nextSeasonBtn.Enabled = idx >= 0 && idx < seasons.Count - 1;    // a newer season exists
+            if (_prevSeasonBtn.IsClicked(input) && _prevSeasonBtn.Enabled) sender.SendSeasonArchiveRequest(seasons[idx - 1]);
+            else if (_nextSeasonBtn.IsClicked(input) && _nextSeasonBtn.Enabled) sender.SendSeasonArchiveRequest(seasons[idx + 1]);
+            _archiveTable.Update(input, StandingsTableRect(gbody), keyboardActive: false);
+            ColumnsChanged |= _archiveTable.LayoutChanged;
+        }
+        else
+        {
+            _standingsTable.Update(input, StandingsTableRect(gbody), keyboardActive: false);
+            ColumnsChanged |= _standingsTable.LayoutChanged;
         }
     }
 }

@@ -52,7 +52,7 @@ public sealed class ShopPanel : IGamePanel
 
     // ── The three storefronts ─────────────────────────────────────────────────
     // BUY is the gold shopfront (ShopRecord.SalesItem, priced from ItemRecord.Price), TRADE is the
-    // barter table (give -> get rows), SELL is the player's own bag. They are separate tabs rather
+    // barter table (give → get rows), SELL is the player's own bag. They are separate tabs rather
     // than one list because they are separate transactions — see SendTradePacket's note on why the
     // sales list is item numbers while a trade row names both sides.
     private enum Tab { Buy, Trade, Sell }

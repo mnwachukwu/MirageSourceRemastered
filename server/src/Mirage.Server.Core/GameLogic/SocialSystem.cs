@@ -17,7 +17,7 @@ namespace Mirage.Server.Core.GameLogic;
 /// the authoritative copies persist on the <see cref="AccountRecord"/> through the per-login write chain.
 ///
 /// Targets are ADDED by character name and must be online — that is the only way to resolve a character
-/// to its account without a name->account index, and it matches the right-click-a-player flow. Removal
+/// to its account without a name→account index, and it matches the right-click-a-player flow. Removal
 /// is by login (the row's own identity), so it works for offline accounts.
 /// </summary>
 public sealed class SocialSystem : GameSystem

@@ -27,7 +27,7 @@ public class ColumnLayoutPersistenceTests
     {
         var t = FiveColTable();
         t.ApplyColumnLayout(new[] { 0, 1, 2, 3, 4 }, new[] { 104, 96, 83, 91, 100 }, sortColumn: 0, sortAscending: true);
-        // The host getter reads exactly this: ColumnWidths -> Model.Columns[i].Width.
+        // The host getter reads exactly this: ColumnWidths → Model.Columns[i].Width.
         Assert.That(t.ColumnWidths, Is.EqualTo(new[] { 104, 96, 83, 91, 100 }));
     }
 
@@ -64,7 +64,7 @@ public class ColumnLayoutPersistenceTests
     [Test]
     public void FullRoundTrip_UserResize_SaveToConfig_NewSessionLoad_PreservesCustomWidths()
     {
-        // Session 1: the user drags WeeksHeld (56 -> 83) and PrevIncome (72 -> 91), then the host persists.
+        // Session 1: the user drags WeeksHeld (56 → 83) and PrevIncome (72 → 91), then the host persists.
         var session1 = FiveColTable();
         session1.Model.ResizeColumn(2, 83);
         session1.Model.ResizeColumn(3, 91);

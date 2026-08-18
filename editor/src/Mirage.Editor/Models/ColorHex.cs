@@ -2,7 +2,7 @@ using Avalonia.Media;
 
 namespace Mirage.Editor.Models;
 
-/// <summary>Shared hex string &lt;-&gt; Avalonia <see cref="Color"/> conversions for the light color inputs
+/// <summary>Shared hex string ↔ Avalonia <see cref="Color"/> conversions for the light color inputs
 /// (map-editor light dialog + NPC light block), keeping the color picker and hex box in agreement.</summary>
 internal static class ColorHex
 {

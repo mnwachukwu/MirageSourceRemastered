@@ -47,8 +47,8 @@ public sealed class ChatOptionsPanel
     // The General head is a plain label (its single Notify option is toggled directly), unlike
     // the three channel heads below which are clickable group toggles. Captured only for drawing.
     private Rectangle _generalHeaderRect;
-    // Section heads are clickable tri-state toggles (all-on -> all-off when anything is on,
-    // off-state -> all-on when everything is off). The rectangle is captured during Layout for
+    // Section heads are clickable tri-state toggles (all-on → all-off when anything is on,
+    // off-state → all-on when everything is off). The rectangle is captured during Layout for
     // hit-testing.
     private Rectangle _chatHeaderRect, _systemHeaderRect, _combatHeaderRect;
 

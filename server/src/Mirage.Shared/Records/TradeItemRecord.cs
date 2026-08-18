@@ -12,7 +12,7 @@ namespace Mirage.Shared.Records;
 /// <para>This was documented backwards (as the shop's side, with GetValue called "the price") until
 /// 2026-08-13. Both the server and the client read it the way described above — <c>ShopSystem.Trade</c>
 /// does <c>TakeItem(GiveItem)</c> then <c>GiveItem(GetItem)</c>, and the shop panel lists each row as
-/// "give -&gt; get" — so the code was always consistent with itself and only the comment was wrong.
+/// "give → get" — so the code was always consistent with itself and only the comment was wrong.
 /// THE PRICE IS <see cref="GiveQuantity"/>.</para></summary>
 public sealed class TradeItemRecord
 {

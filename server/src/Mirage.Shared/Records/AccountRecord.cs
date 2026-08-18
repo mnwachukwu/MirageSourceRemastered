@@ -31,7 +31,7 @@ public sealed class AccountRecord
     public List<MailMessage> Mail { get; set; } = new();
 
     // Sent mail this account composed (player-origin only; system mail has no outbox). Kept so the same
-    // in-transit -> delivered state shows on the SENDER's end too. Recipient is the addressed account.
+    // in-transit → delivered state shows on the SENDER's end too. Recipient is the addressed account.
     public List<MailMessage> Outbox { get; set; } = new();
 
     // 1-based char slots: indices 1..MaxChars; index 0 unused

@@ -48,7 +48,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         set { if (value is not null) SelectedTileset = value.Id; }
     }
 
-    // Sheet index -> display name (filename minus numeric prefix), falling back to the shared
+    // Sheet index → display name (filename minus numeric prefix), falling back to the shared
     // "(unnamed)" string. Shared by the tileset picker entries and the Used Tilesheets list.
     private string TilesetDisplayName(int sheet) =>
         sheet >= 0 && sheet < TilesetNames.Count && !string.IsNullOrWhiteSpace(TilesetNames[sheet])

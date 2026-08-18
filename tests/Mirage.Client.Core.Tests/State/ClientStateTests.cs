@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Mirage.Client.Core.Tests;
 
 /// <summary>Central client game-state helpers: time-of-day darkness, gold scan, unread-mail count, the
-/// map-number -> grid-cell routing used to place incoming entity packets, guest collision, and the warp reset.</summary>
+/// map-number → grid-cell routing used to place incoming entity packets, guest collision, and the warp reset.</summary>
 [TestFixture]
 public class ClientStateTests
 {

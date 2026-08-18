@@ -40,7 +40,7 @@ public sealed class ShopRecord
     /// <para>A plain list of numbers rather than <see cref="TradeItemRecord"/> rows, because once price
     /// lives on the item a sales row carries no other information. That is the whole reason for the split:
     /// an ordinary storefront becomes "these items", authorable by picking them and renderable as a normal
-    /// item list — where the barter table renders as a wall of "give X -&gt; get Y" strings and needed a row
+    /// item list — where the barter table renders as a wall of "give X → get Y" strings and needed a row
     /// hand-written per item. 471 items could never have been a trade table.</para>
     ///
     /// <para><see cref="TradeItem"/> keeps everything it always did and is NOT superseded. Barter has cases

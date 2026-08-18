@@ -299,7 +299,7 @@ public sealed class MovementSystem : GameSystem
             }
 
             // Arena transition — a separate if/else (not chained to the safe block above) so an
-            // Arena<->Safe crossing correctly announces both "exit arena" and "enter safe".
+            // Arena↔Safe crossing correctly announces both "exit arena" and "enter safe".
             if (newMoral == MapMoral.Arena && oldMoral != MapMoral.Arena)
             {
                 _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterArenaBase, new ChatMetadata(GameColor.Yellow, ChatChannel.System));

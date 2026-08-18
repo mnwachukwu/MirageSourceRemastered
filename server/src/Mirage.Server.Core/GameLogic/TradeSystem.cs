@@ -16,7 +16,7 @@ namespace Mirage.Server.Core.GameLogic;
 /// be within casting range (r=5, world-space); the client trade window locks movement, and any separation
 /// (death / warp / disconnect) or invite timeout cancels the trade and returns both offers. No mail, instant
 /// — except that a returned item a full bag can't take is mailed back rather than lost. Mirrors the party
-/// invite flow (request -> notify -> accept), so the same anti-spam / symmetric-accept rules apply.
+/// invite flow (request → notify → accept), so the same anti-spam / symmetric-accept rules apply.
 /// </summary>
 public sealed class TradeSystem : GameSystem
 {
@@ -24,7 +24,7 @@ public sealed class TradeSystem : GameSystem
     private readonly PlayerManager _pm;
     private readonly ItemSystem _items;
     private readonly MailSystem _mail;
-    private readonly IPersistenceService _persistence;   // null in unit tests -> plain in-memory swap, no journal
+    private readonly IPersistenceService _persistence;   // null in unit tests → plain in-memory swap, no journal
     private readonly PlayerSaver _saver;
     private int _nextJournalId = 1;   // seeded past any survivor by RecoverJournalsAsync at boot
 
@@ -70,7 +70,7 @@ public sealed class TradeSystem : GameSystem
             return;
         }
 
-        // Symmetric accept: the target already has a request out to me -> accept theirs instead of overwriting.
+        // Symmetric accept: the target already has a request out to me → accept theirs instead of overwriting.
         if (_pm[target].TradeStarter && _pm[target].TradePartner == index)
         {
             Accept(index);

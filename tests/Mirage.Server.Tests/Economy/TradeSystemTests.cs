@@ -141,7 +141,7 @@ public class TradeSystemTests
         trade.OfferAdd(2, 3, 0);   // Bob offers his Shield
 
         trade.Confirm(1, true);
-        trade.Confirm(2, true);    // both confirmed -> atomic swap
+        trade.Confirm(2, true);    // both confirmed → atomic swap
 
         Assert.Multiple(() =>
         {

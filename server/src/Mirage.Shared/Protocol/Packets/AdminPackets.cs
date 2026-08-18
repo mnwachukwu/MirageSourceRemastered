@@ -59,7 +59,7 @@ public sealed record RefreshBanListPacket : IPacket
 }
 
 /// <summary>
-/// C-&gt;S: ban the account AND the machine the target is signed in from. Creator only, and only against
+/// C→S: ban the account AND the machine the target is signed in from. Creator only, and only against
 /// somebody ONLINE — the key lives on the live session and nowhere else, so there is nothing to record
 /// for a player who is not here. An offline account is what the ordinary ban is for.
 /// </summary>
@@ -92,7 +92,7 @@ public sealed record UnmutePlayerPacket : IPacket
     [JsonPropertyName("target")] public string Target { get; init; } = "";
 }
 
-/// <summary>C-&gt;S: lift every machine ban recorded against an account. The account's own ban is a
+/// <summary>C→S: lift every machine ban recorded against an account. The account's own ban is a
 /// separate lift — <see cref="UnbanPlayerPacket"/> — because the two were applied for different reasons
 /// and an operator may well want only one of them gone.</summary>
 public sealed record HwUnbanPlayerPacket : IPacket
@@ -101,14 +101,14 @@ public sealed record HwUnbanPlayerPacket : IPacket
     [JsonPropertyName("target")] public string Target { get; init; } = "";
 }
 
-/// <summary>C-&gt;S: asks for everything currently in force. Answered with <see cref="ModerationListPacket"/>.</summary>
+/// <summary>C→S: asks for everything currently in force. Answered with <see cref="ModerationListPacket"/>.</summary>
 public sealed record RequestModerationPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.RequestModeration;
 }
 
 /// <summary>
-/// S-&gt;C: every ban and every running kick or mute, for the Creator's moderation panel. Replaced
+/// S→C: every ban and every running kick or mute, for the Creator's moderation panel. Replaced
 /// wholesale, and pushed again after any lift so the panel never shows a row that is already gone.
 ///
 /// <para>Carries the same summaries the server window's report does — a punishment is a punishment
@@ -164,9 +164,23 @@ public sealed record PlayerInfoRequestPacket : IPacket
     [JsonPropertyName("target")] public string Target { get; init; } = "";
 }
 
-/// <summary>C->S: /played — the requester's own playtime readout (current character + account total). No
+/// <summary>C→S: /played — the requester's own playtime readout (current character + account total). No
 /// target; playtime is not admin-gated (account details are visible by design).</summary>
 public sealed record PlayedRequestPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.PlayedRequest;
+}
+
+/// <summary>C→S: /home — go to the character's own spawn point. No destination on the wire: where home
+/// is belongs to the server, and a client that could name it could name anywhere.</summary>
+public sealed record HomeRequestPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.HomeRequest;
+}
+
+/// <summary>C→S: /homecd — how long is left on the /home cooldown. Separate from
+/// <see cref="HomeRequestPacket"/> so asking can never spend it.</summary>
+public sealed record HomeCooldownRequestPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.HomeCooldownRequest;
 }

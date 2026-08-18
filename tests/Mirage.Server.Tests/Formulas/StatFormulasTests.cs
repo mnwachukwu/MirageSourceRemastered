@@ -51,7 +51,7 @@ public class StatFormulasTests
         });
     }
 
-    // A weather-reduced tick (mult < 1) rounds DOWN (2.5 -> 2, not 3) so the penalty always bites...
+    // A weather-reduced tick (mult < 1) rounds DOWN (2.5 → 2, not 3) so the penalty always bites...
     [Test]
     public void PlayerSpRegen_ReducedTick_RoundsDown()
         => Assert.That(StatFormulas.GetPlayerSpRegen(10, 0.5), Is.EqualTo(2),

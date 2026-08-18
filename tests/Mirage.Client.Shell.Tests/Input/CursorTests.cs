@@ -6,7 +6,7 @@ namespace Mirage.Client.Shell.Tests;
 
 /// <summary>
 /// Regression coverage for every place the OS mouse cursor changes shape. All cursor changes funnel through
-/// the one <see cref="UiHelper"/> request bus (Request*Cursor -> highest priority wins -> CommitFrameCursor),
+/// the one <see cref="UiHelper"/> request bus (Request*Cursor → highest priority wins → CommitFrameCursor),
 /// so these pin (a) the bus arbitration itself and (b) each widget's PURE geometric "do I want cursor X here?"
 /// decision. The hardware input path (InputState / actual hover) stays a manual playtest — same boundary the
 /// table tests draw — but the geometry + priority that decide the cursor are all exercised here.
@@ -126,7 +126,7 @@ public class TableResizeCursorTests
 {
     private sealed record Row(int V);
 
-    // Two columns 100 + 80 wide -> right-edge dividers at content x = 100 and x = 180. Header at x=0 so the
+    // Two columns 100 + 80 wide → right-edge dividers at content x = 100 and x = 180. Header at x=0 so the
     // screen x maps straight through (no horizontal scroll). DividerGrab is +/-4 px.
     private static Table<Row> Grid() => new Table<Row>()
         .Column("A", r => r.V, width: 100)

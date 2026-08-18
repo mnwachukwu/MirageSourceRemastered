@@ -402,7 +402,7 @@ public sealed partial class TileGridControl : Control
 
         // The visual stack the user is focused on — drawn full-strength while the other two dim on the center
         // cell.  Tile mode: the selected stack; Attribute/Light mode: the active logical plane's surface stack
-        // (Ground -> Ground[], Fringe -> Fringe[]), so the Canopy and the other plane recede while you author.
+        // (Ground → Ground[], Fringe → Fringe[]), so the Canopy and the other plane recede while you author.
         LayerType activeStack = EditorMode == EditorMode.Tile
             ? SelectedLayerType
             : (attrLayer == WorldLayer.Fringe ? LayerType.Fringe : LayerType.Ground);

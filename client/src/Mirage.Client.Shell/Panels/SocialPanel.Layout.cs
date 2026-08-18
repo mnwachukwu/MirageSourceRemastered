@@ -215,4 +215,21 @@ public sealed partial class SocialPanel : IGamePanel
         _labelSaveBtn.Bounds = UiHelper.PanelBottomButton(body, 0);
         _labelCancelBtn.Bounds = UiHelper.PanelBottomButton(body, 1);
     }
+
+    // Standings header buttons (right-aligned on the header row): History toggle + prev/next season paging.
+    private void LayoutStandingsButtons(Rectangle gbody)
+    {
+        int y = gbody.Y + Pad;
+        _historyBtn.Bounds = new Rectangle(gbody.Right - Pad - HistoryBtnW, y, HistoryBtnW, ButtonH);
+        _nextSeasonBtn.Bounds = new Rectangle(_historyBtn.Bounds.Left - Pad - SeasonNavW, y, SeasonNavW, ButtonH);
+        _prevSeasonBtn.Bounds = new Rectangle(_nextSeasonBtn.Bounds.Left - Pad - SeasonNavW, y, SeasonNavW, ButtonH);
+    }
+
+    private void LayoutGuildTerritories(Rectangle gbody, out Rectangle tableRect)
+    {
+        int rowY = gbody.Bottom - ButtonH - Pad;
+        _challengeBtn.Bounds = new Rectangle(gbody.Right - Pad - 130, rowY, 130, ButtonH);
+        int top = gbody.Y + Pad;
+        tableRect = new Rectangle(gbody.X + Pad, top, gbody.Width - Pad * 2, Math.Max(0, rowY - top - Pad));
+    }
 }

@@ -3,8 +3,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 
 namespace Mirage.Client.Core.State;
-
-/// <summary>Quest and conversation state: definitions, progress, eligibility, and the overhead
+/// <summary>Player quests: definitions, the per-character log, eligibility, and the overhead ?/!
 /// glyphs those resolve to on each NPC.</summary>
 public sealed partial class ClientState
 {
@@ -184,95 +183,4 @@ public sealed partial class ClientState
     }
 
     // ── NPC conversations ─────────────────────────────────────────────────────
-    // ConvDefs: dialogue-tree definitions cached at join (SendConversationsPacket), like items/npcs/quests — the
-    // client walks a tree locally when a conversation opens. _spokenConversations: this character's visited-set
-    // (ConversationLogPacket). NpcConvGlyph: the DERIVED overhead "..." marker per NPC, recomputed from the above
-    // whenever the defs or the spoken-set change.
-
-    /// <summary>Conversation definitions (1-based); null slot = no such conversation.</summary>
-    public ConversationRecord[] ConvDefs { get; private set; } = new ConversationRecord[RecordLimits.Default.Conversations + 1];
-
-    /// <summary>NPC template num → overhead conversation glyph (0 none / 1 gray "..." spoken / 2 yellow "..."
-    /// unspoken; higher wins so an unspoken conversation outranks a spoken one). Derived, never pushed.</summary>
-    public int[] NpcConvGlyph { get; private set; } = new int[RecordLimits.Default.Npcs + 1];
-
-    public const int ConvGlyphNone = 0, ConvGlyphSpoken = 1, ConvGlyphUnspoken = 2;
-
-    private HashSet<int> _spokenConversations = new();
-
-    /// <summary>Replace the conversation definitions from the join-time SendConversations, then refresh glyphs.</summary>
-    public void SetConvDefs(IEnumerable<(int Num, ConversationRecord Def)> defs)
-    {
-        Array.Clear(ConvDefs, 0, ConvDefs.Length);
-        foreach (var (num, def) in defs)
-            if (num >= 1 && num < ConvDefs.Length) ConvDefs[num] = def;
-        RecomputeNpcConvGlyphs();
-    }
-
-    /// <summary>Replace ONE conversation definition (a live editor UpdateConversation broadcast) + refresh glyphs.</summary>
-    public void SetConvDef(int num, ConversationRecord def)
-    {
-        if (num >= 1 && num < ConvDefs.Length) ConvDefs[num] = def;
-        RecomputeNpcConvGlyphs();
-    }
-
-    /// <summary>Replace the character's spoken-conversation set (from a ConversationLogPacket) + refresh glyphs.</summary>
-    public void SetConversationsSpoken(IEnumerable<int> spoken)
-    {
-        _spokenConversations = new HashSet<int>(spoken);
-        RecomputeNpcConvGlyphs();
-    }
-
-    /// <summary>The conversation attached to NPC template <paramref name="npcNum"/> (SpeakerNpc), or 0 if none —
-    /// drives the context-menu "Talk" item. First non-empty match wins (mirrors GameWorld.ConversationForNpc).</summary>
-    public int ConversationForNpc(int npcNum)
-    {
-        if (npcNum <= 0) return 0;
-        for (int c = 1; c < ConvDefs.Length; c++)
-        {
-            var def = ConvDefs[c];
-            if (def is not null && def.SpeakerNpc == npcNum && def.TrimmedName.Length > 0) return c;
-        }
-        return 0;
-    }
-
-    private void RecomputeNpcConvGlyphs()
-    {
-        Array.Clear(NpcConvGlyph, 0, NpcConvGlyph.Length);
-        for (int c = 1; c < ConvDefs.Length; c++)
-        {
-            var def = ConvDefs[c];
-            if (def is null || def.TrimmedName.Length == 0) continue;
-            int npc = def.SpeakerNpc;
-            if (npc < 1 || npc >= NpcConvGlyph.Length) continue;
-            int g = _spokenConversations.Contains(c) ? ConvGlyphSpoken : ConvGlyphUnspoken;
-            if (g > NpcConvGlyph[npc]) NpcConvGlyph[npc] = g;   // yellow (unspoken) outranks gray (spoken)
-        }
-    }
-
-    /// <summary>1-based; index 0 is unused dummy. Sized dynamically from server.</summary>
-    public ClassRecord[] Classes { get; set; } = new ClassRecord[1]; // placeholder until server sends
-
-    // MapGroup defs, cached like the other shared defs: filled in bulk at join (SendMapGroups) and
-    // refreshed per-group on a live editor save (UpdateMapGroup). The client resolves a map's EFFECTIVE
-    // inheritable values against these on demand via the *Of helpers below — the client-side mirror of the
-    // server's GameWorld.*Of(mapNum) — instead of the server baking resolved values into each map packet. That
-    // is what lets a group edit land live with no map reload or revision bump. Index 0 unused; a null slot means
-    // "no such group" and resolves to the map's own raw values / hard defaults.
-    public MapGroupRecord?[] MapGroups { get; private set; } = new MapGroupRecord?[RecordLimits.Default.MapGroups + 1];
-
-    /// <summary>The cached MapGroup a map belongs to, or null (group-less map, or the group not yet received).</summary>
-    public MapGroupRecord? GroupOf(MapRecord? map)
-    {
-        int g = map?.MapGroup ?? 0;
-        return g > 0 && g <= Limits.MapGroups ? MapGroups[g] : null;
-    }
-
-    // Effective inheritable map values — resolve the map's own value over its group's over the hard default via
-    // the shared MapGroupResolve, mirroring GameWorld.*Of on the server. Null-map-safe so render/predict sites can
-    // pass an unloaded neighbor cell without a guard.
-    public MapMoral MoralOf(MapRecord? map) => map is null ? MapMoral.None : MapGroupResolve.Moral(map, GroupOf(map));
-    public int MusicOf(MapRecord? map) => map is null ? 0 : MapGroupResolve.Music(map, GroupOf(map));
-    public bool IndoorsOf(MapRecord? map) => map is not null && MapGroupResolve.Indoors(map, GroupOf(map));
-    public bool AlwaysDarkOf(MapRecord? map) => map is not null && MapGroupResolve.AlwaysDark(map, GroupOf(map));
 }

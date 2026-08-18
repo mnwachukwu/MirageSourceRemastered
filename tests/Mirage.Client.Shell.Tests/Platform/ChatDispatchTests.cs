@@ -100,7 +100,7 @@ public class ChatDispatchTests
     public void PlainText_Yell()
         => Assert.That(SpeechChannelRouter.ForActiveChannel(ActiveSpeechChannel.Yell, "hello", AdminLevel.Player, 0, GuildRank.None).Kind, Is.EqualTo(SpeechKind.Yell));
 
-    // The retired symbol prefixes are just plain text now -> they go to the active channel (default Say).
+    // The retired symbol prefixes are just plain text now → they go to the active channel (default Say).
     [TestCase("'hello")]
     [TestCase("-hello")]
     [TestCase("!hello")]

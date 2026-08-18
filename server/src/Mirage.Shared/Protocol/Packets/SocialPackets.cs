@@ -27,7 +27,7 @@ public sealed record SocialEntry
 
 // ── S→C ─────────────────────────────────────────────────────────────────────
 
-/// <summary>S->C: the account's full friends + ignore lists (sent on entering the world and after any
+/// <summary>S→C: the account's full friends + ignore lists (sent on entering the world and after any
 /// change). Both are replaced wholesale.</summary>
 public sealed record SocialListPacket : IPacket
 {
@@ -38,7 +38,7 @@ public sealed record SocialListPacket : IPacket
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C->S: add the account behind an ONLINE character to my friends list. Addressed by character
+/// <summary>C→S: add the account behind an ONLINE character to my friends list. Addressed by character
 /// name (that is what the player can see/right-click); the server resolves it to the account.</summary>
 public sealed record SocialAddFriendPacket : IPacket
 {
@@ -46,14 +46,14 @@ public sealed record SocialAddFriendPacket : IPacket
     [JsonPropertyName("name")] public string Name { get; init; } = "";
 }
 
-/// <summary>C->S: add the account behind an ONLINE character to my ignore list.</summary>
+/// <summary>C→S: add the account behind an ONLINE character to my ignore list.</summary>
 public sealed record SocialAddIgnorePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SocialAddIgnore;
     [JsonPropertyName("name")] public string Name { get; init; } = "";
 }
 
-/// <summary>C->S: drop an account from my friends list. Addressed by login (the row's identity), so it
+/// <summary>C→S: drop an account from my friends list. Addressed by login (the row's identity), so it
 /// works whether or not that account is online.</summary>
 public sealed record SocialRemoveFriendPacket : IPacket
 {
@@ -61,7 +61,7 @@ public sealed record SocialRemoveFriendPacket : IPacket
     [JsonPropertyName("login")] public string Login { get; init; } = "";
 }
 
-/// <summary>C->S: drop an account from my ignore list.</summary>
+/// <summary>C→S: drop an account from my ignore list.</summary>
 public sealed record SocialRemoveIgnorePacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.SocialRemoveIgnore;

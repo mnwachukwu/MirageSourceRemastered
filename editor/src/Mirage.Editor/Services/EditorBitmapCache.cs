@@ -79,7 +79,7 @@ public sealed class EditorBitmapCache
         return i > 0 && int.TryParse(fileName[..i], out int n) ? n : -1;
     }
 
-    // "0_Tiles" -> "Tiles", "12_dungeon" -> "dungeon": strip the leading digit run and one following
+    // "0_Tiles" → "Tiles", "12_dungeon" → "dungeon": strip the leading digit run and one following
     // separator (_, -, or space). If nothing remains, fall back to the full stem.
     public static string SheetDisplayName(string fileNameNoExt)
     {

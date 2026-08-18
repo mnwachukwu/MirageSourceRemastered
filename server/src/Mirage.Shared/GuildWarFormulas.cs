@@ -5,7 +5,7 @@ namespace Mirage.Shared;
 /// <summary>
 /// Pure guild-war math + the mirror-list maintenance for <see cref="GuildRecord.Wars"/>. Kept free of any
 /// server type so it is directly unit-testable and can be shared by every caller that touches war entries
-/// (the war system, the daily settlement, and disband cleanup — the last avoids a GuildSystem-&gt;war
+/// (the war system, the daily settlement, and disband cleanup — the last avoids a GuildSystem→war
 /// dependency cycle). Nothing here does I/O or messaging; callers persist + announce.
 /// </summary>
 public static class GuildWarFormulas

@@ -451,6 +451,12 @@ public sealed partial class PacketHandler
                 case PlayedRequestPacket:
                     HandlePlayedRequest(index);
                     break;
+                case HomeRequestPacket:
+                    HandleHomeRequest(index);
+                    break;
+                case HomeCooldownRequestPacket:
+                    HandleHomeCooldownRequest(index);
+                    break;
                 case GetStatsPacket:
                     HandleGetStats(index);
                     break;

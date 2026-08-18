@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
@@ -107,7 +107,7 @@ public class CorpseImmunityTests
         Assert.That(combat.CanNpcAttackPlayer(Map, mn, CorpseIdx, Environment.TickCount64), Is.False);
     }
 
-    // ── 3. Shared NPC->player damage body no-ops on a corpse ───────────────────
+    // ── 3. Shared NPC→player damage body no-ops on a corpse ───────────────────
     [Test]
     public void ApplyNpcDamageToPlayer_NoOp_ForCorpse()
     {

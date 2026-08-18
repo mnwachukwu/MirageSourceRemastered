@@ -101,7 +101,7 @@ public sealed class MirageServerService : IHostedService
         await LoadWorldDataAsync(ct);
 
         // Wire the level-up → quest-eligibility refresh now that every system exists (can't be done at
-        // construction — the Combat<->Quest DI cycle is broken by a Lazy, so neither can reference the other in
+        // construction — the Combat↔Quest DI cycle is broken by a Lazy, so neither can reference the other in
         // its ctor). A gained level may newly satisfy a quest's accept requirements, relighting its giver "?".
         _combat.PlayerLeveledUp = _quests.RefreshEligibility;
 

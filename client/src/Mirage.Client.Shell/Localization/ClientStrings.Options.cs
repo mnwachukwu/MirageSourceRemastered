@@ -60,6 +60,7 @@ public static partial class ClientStrings
     // ── ChatPanel ─────────────────────────────────────────────────────────────
     public const string ChatPanel_Title = nameof(ChatPanel_Title);
     public const string ChatPanel_FpsDisplay = nameof(ChatPanel_FpsDisplay);
+    public const string ChatPanel_HomeInCombat = nameof(ChatPanel_HomeInCombat);
     public const string ChatPanel_UsageTell = nameof(ChatPanel_UsageTell);
     public const string ChatPanel_InvalidMapNumber = nameof(ChatPanel_InvalidMapNumber);
     public const string ChatPanel_UsageRoll = nameof(ChatPanel_UsageRoll);

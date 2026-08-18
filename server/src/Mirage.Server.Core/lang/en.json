@@ -548,6 +548,11 @@
   "PacketHandler_Notice":            "{Name} announces, '{Message}'",
   "PacketHandler_Admin":             "{Name} says to privileged company, '{Message}'",
   "Command_Played":                  "Time played: {Char} this character, {Total} account total.",
+  "Command_HomeWarped":              "You return home.",
+  "Command_HomeCooldown":            "You cannot return home yet. Try again in {Remaining}.",
+  "Command_HomeInCombat":            "You cannot return home while in combat.",
+  "Command_HomeCooldownLeft":        "You can return home in {Remaining}.",
+  "Command_HomeReady":               "You can return home now.",
   "AdminCommand_PlayerInfo":         "Account: {Account}, Name: {Name}",
 
   "SearchSystem_WouldntStandChance":  "You wouldn't stand a chance.",

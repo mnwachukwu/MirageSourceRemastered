@@ -127,9 +127,9 @@ public class WorldCoordHelperFootprintTests
     [Test]
     public void IsInSpellRange_NpcVsNpc_BothOversize_UsesNearestEdges()
     {
-        // Two size-3 footprints on the same rows: A [0,2], B [7,9] on X -> nearest edges col 2<->7 -> gap 5 = IN.
+        // Two size-3 footprints on the same rows: A [0,2], B [7,9] on X → nearest edges col 2↔7 → gap 5 = IN.
         Assert.That(WorldCoordHelper.IsInSpellRange(0, 0, 3, 7, 0, 3), Is.True);
-        // Shift B one further (anchor 8 -> near edge col 8) -> gap 6 -> OUT.
+        // Shift B one further (anchor 8 → near edge col 8) → gap 6 → OUT.
         Assert.That(WorldCoordHelper.IsInSpellRange(0, 0, 3, 8, 0, 3), Is.False);
     }
 }

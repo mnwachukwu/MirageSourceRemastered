@@ -72,11 +72,11 @@ public sealed class BloodSystem : GameSystem
                 Redarken(p, d);
                 enveloped = true;
             }
-            else if (RectContains(x, y, size, p.X, p.Y, p.Size))     // the footprint fully contains p -> absorb it
+            else if (RectContains(x, y, size, p.X, p.Y, p.Size))     // the footprint fully contains p → absorb it
             {
                 (absorb ??= new()).Add(p);
             }
-            else                                                     // partial overlap -> feed it too
+            else                                                     // partial overlap → feed it too
             {
                 Redarken(p, d);
             }

@@ -76,6 +76,19 @@ public sealed partial class ClientState
     /// <summary>Shortcut to the local player's record.</summary>
     public PlayerRecord Me => Players[MyIndex];
 
+    /// <summary>How long after the last blow a fighter still counts as in combat. Matches the server's
+    /// <c>CombatSystem.CombatDurationMs</c>, which is the authority; this copy is what the client uses to
+    /// gray out what the server would refuse.</summary>
+    public const long CombatWindowMs = 10_000;
+
+    /// <summary>Whether combatant <paramref name="lastCombatMs"/> is still in combat at
+    /// <paramref name="nowMs"/>. Zero means never fought, which must not read as in combat forever.</summary>
+    public static bool InCombatAt(long lastCombatMs, long nowMs) =>
+        lastCombatMs > 0 && nowMs - lastCombatMs < CombatWindowMs;
+
+    /// <summary>Whether the local player is in combat right now.</summary>
+    public bool AmIInCombat() => InCombatAt(Me.LastCombatMs, Environment.TickCount64);
+
     // ── Players (1-based, 1..MaxPlayers) ─────────────────────────────────────
 
     /// <summary>

@@ -31,6 +31,8 @@ public static partial class ClientStrings
     public const string HelpText_Cmd_Help = nameof(HelpText_Cmd_Help);
     public const string HelpText_Cmd_Info = nameof(HelpText_Cmd_Info);
     public const string HelpText_Cmd_Played = nameof(HelpText_Cmd_Played);
+    public const string HelpText_Cmd_Home = nameof(HelpText_Cmd_Home);
+    public const string HelpText_Cmd_HomeCd = nameof(HelpText_Cmd_HomeCd);
     public const string HelpText_Cmd_Who = nameof(HelpText_Cmd_Who);
     public const string HelpText_Cmd_Fps = nameof(HelpText_Cmd_Fps);
     public const string HelpText_Cmd_Inv = nameof(HelpText_Cmd_Inv);
@@ -73,7 +75,7 @@ public static partial class ClientStrings
     public const string ContextMenu_Inn = nameof(ContextMenu_Inn);
     public const string ContextMenu_Talk = nameof(ContextMenu_Talk);
     public const string ContextMenu_PickUp = nameof(ContextMenu_PickUp);
-    public const string ContextMenu_YourLoot = nameof(ContextMenu_YourLoot);
+    public const string ContextMenu_PickUpMenu = nameof(ContextMenu_PickUpMenu);
     public const string ContextMenu_PickUpAll = nameof(ContextMenu_PickUpAll);
     public const string ContextMenu_LootHeldBy = nameof(ContextMenu_LootHeldBy);
     public const string ContextMenu_TileGround = nameof(ContextMenu_TileGround);

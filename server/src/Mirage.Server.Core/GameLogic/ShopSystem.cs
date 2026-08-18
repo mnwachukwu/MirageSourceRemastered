@@ -102,7 +102,7 @@ public sealed class ShopSystem : GameSystem
     // ── Buy / sell ────────────────────────────────────────────────────────────
     // The gold storefront, as opposed to Trade's barter table. A sales entry is just an item number:
     // the price comes from ItemRecord.Price, which is what let a shopfront be authored by picking
-    // items instead of hand-writing a give->get row each (see ShopRecord.SalesItem).
+    // items instead of hand-writing a give→get row each (see ShopRecord.SalesItem).
 
     /// <summary>Buy one unit of a sales-list entry for its <see cref="ItemRecord.Price"/>.
     /// <para>Refuses unless the shop is open for this player, is a Store, the entry is priced, the purse

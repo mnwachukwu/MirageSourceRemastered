@@ -361,7 +361,7 @@ public class MarketSystemTests
         var lister = AtInn(world, pm, 1, "lister");
         _ = AtInn(world, pm, 2, "browser");
         lister.Char.Inv[3].Num = Sword;
-        market.Open(1);            // both open the market -> both become live-broadcast viewers
+        market.Open(1);            // both open the market → both become live-broadcast viewers
         market.Open(2);
         int browserSyncsBefore = dispatcher.MarketListTo.GetValueOrDefault(2);
 

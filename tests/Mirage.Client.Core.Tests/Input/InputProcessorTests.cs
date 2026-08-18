@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace Mirage.Client.Core.Tests;
 
-/// <summary>Input -> C2S packet translation + client-side movement prediction/collision: a clear step predicts
+/// <summary>Input → C2S packet translation + client-side movement prediction/collision: a clear step predicts
 /// and sends a move; a wall / another player / an NPC on the destination faces-only; safe zones let players
 /// pass through; hold-to-attack respects the cooldown; and nothing is sent while not in game.</summary>
 [TestFixture]
@@ -98,7 +98,7 @@ public class InputProcessorTests
     public void Process_SafeZone_InheritedFromGroup_PlayersPassThrough()
     {
         var (s, t, sender) = Setup(5, 5);
-        s.Map.MapGroup = 5;                                          // map's own Moral stays null -> inherit
+        s.Map.MapGroup = 5;                                          // map's own Moral stays null → inherit
         s.MapGroups[5] = new MapGroupRecord { Index = 5, Moral = MapMoral.Safe };
         var other = s.Players[2];
         other.Name = "Blocker";
@@ -151,7 +151,7 @@ public class InputProcessorTests
     [Test]
     public void Process_MeleeInteract_FiresForConversationOnlyNpc()
     {
-        var (s, t, sender) = Setup(5, 5);                                  // facing Down -> front tile (5,6)
+        var (s, t, sender) = Setup(5, 5);                                  // facing Down → front tile (5,6)
         s.MapNpcs[1].Num = 9;
         s.MapNpcs[1].X = 5;
         s.MapNpcs[1].Y = 6;  // same layer as the player (Ground)
@@ -171,7 +171,7 @@ public class InputProcessorTests
     [Test]
     public void Process_MeleeInteract_PrefersFacingNpcOnPlayersLayer()
     {
-        var (s, t, sender) = Setup(5, 5);                                  // facing Down -> front tile (5,6)
+        var (s, t, sender) = Setup(5, 5);                                  // facing Down → front tile (5,6)
         s.Me.Layer = WorldLayer.Fringe;                                    // the player stands on the bridge deck
         // A ground wanderer beneath the bridge in a LOWER slot (a layer-blind scan would pick it)...
         s.MapNpcs[1].Num = 7;
@@ -202,7 +202,7 @@ public class InputProcessorTests
     [Test]
     public void Process_MeleeInteract_CrossLayerNoRamp_RefusesAndFlags()
     {
-        var (s, t, sender) = Setup(5, 5);                                  // facing Down -> front tile (5,6)
+        var (s, t, sender) = Setup(5, 5);                                  // facing Down → front tile (5,6)
         s.Me.Layer = WorldLayer.Ground;
         s.MapNpcs[1].Num = 9;
         s.MapNpcs[1].X = 5;
@@ -225,7 +225,7 @@ public class InputProcessorTests
     [Test]
     public void Process_MeleeInteract_CrossLayerOntoRamp_Interacts()
     {
-        var (s, t, sender) = Setup(5, 5);                                  // facing Down -> front tile (5,6)
+        var (s, t, sender) = Setup(5, 5);                                  // facing Down → front tile (5,6)
         s.Me.Layer = WorldLayer.Ground;
         s.MapNpcs[1].Num = 9;
         s.MapNpcs[1].X = 5;
@@ -269,7 +269,7 @@ public class InputProcessorTests
     [Test]
     public void Process_MeleeAtCrossLayerFriendlyNpc_StillSwings()
     {
-        var (s, t, sender) = Setup(5, 5);                                 // facing Down -> front tile (5,6)
+        var (s, t, sender) = Setup(5, 5);                                 // facing Down → front tile (5,6)
         s.Me.Layer = WorldLayer.Ground;
         s.MapNpcs[1].Num = 12;
         s.MapNpcs[1].X = 5;
@@ -291,7 +291,7 @@ public class InputProcessorTests
     [Test]
     public void Process_MeleeAtFriendlyNpc_SendsAttackButSuppressesSwing()
     {
-        var (s, t, sender) = Setup(5, 5);                                 // facing Down -> front tile (5,6)
+        var (s, t, sender) = Setup(5, 5);                                 // facing Down → front tile (5,6)
         s.MapNpcs[1].Num = 12;
         s.MapNpcs[1].X = 5;
         s.MapNpcs[1].Y = 6;  // same layer as the player

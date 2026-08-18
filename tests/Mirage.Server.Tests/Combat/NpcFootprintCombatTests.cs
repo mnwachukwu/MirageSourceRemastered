@@ -1,4 +1,4 @@
-﻿using Mirage.Server.Core.GameLogic;
+using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -304,7 +304,7 @@ public class NpcFootprintCombatTests
         pc.Level = 1;
         pc.MaxHp = StartHp;
         pc.Hp = StartHp;
-        pc.Sp = 0;   // no SP -> no block/dodge, so a landed swing always deals damage (deterministic)
+        pc.Sp = 0;   // no SP → no block/dodge, so a landed swing always deals damage (deterministic)
         pc.Access = AdminLevel.Player;
         world.MapObservers[Map].Add(index);
         return pc;

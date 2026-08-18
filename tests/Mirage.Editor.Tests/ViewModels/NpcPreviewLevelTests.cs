@@ -31,12 +31,12 @@ public class NpcPreviewLevelTests
     [Test]
     public void Ctor_Offline_OpensSpinnerOnOwnLevel()
     {
-        var vm = new NpcRowViewModel(1, Npc(str: 32));   // sum 32 -> level 5
+        var vm = new NpcRowViewModel(1, Npc(str: 32));   // sum 32 → level 5
         Assert.That(vm.PreviewLevel, Is.EqualTo(StatFormulas.NpcLevel(32, 0, 0, 0)));
         Assert.That(vm.PreviewLevel, Is.EqualTo(5), "(32-20)/3 + 1 = 5");
     }
 
-    // The reported bug: an online row is built name-only (all-zero stats -> placeholder level 1), then filled in
+    // The reported bug: an online row is built name-only (all-zero stats → placeholder level 1), then filled in
     // by the packet.  Before the fix, ApplyPacket never touched PreviewLevel, so the spinner stayed at 1.
     [Test]
     public void ApplyPacket_Online_OpensSpinnerOnOwnLevel_NotOne()
@@ -104,7 +104,7 @@ public class NpcPreviewLevelTests
     public void Spinner_DoesNotMove_WhenStatEditKeepsSameLevel()
     {
         var vm = new NpcRowViewModel(1, Npc(str: 32));   // level 5 (sum 32)
-        vm.Str = 33;                                     // sum 33 -> still level 5
+        vm.Str = 33;                                     // sum 33 → still level 5
         Assert.That(vm.PreviewLevel, Is.EqualTo(5),
             "an edit that doesn't change the mob's level must leave the spinner alone");
     }
@@ -130,7 +130,7 @@ public class NpcPreviewLevelTests
         Assume.That(vm.PreviewLevel, Is.EqualTo(20));
 
         vm.PreviewLevel = 6;                             // scrub back onto the mob's CURRENT level (6)
-        vm.Str = 38;                                     // sum 38 -> level 7
+        vm.Str = 38;                                     // sum 38 → level 7
         Assert.That(vm.PreviewLevel, Is.EqualTo(7),
             "returning the spinner to the mob's level re-enables auto-follow");
     }

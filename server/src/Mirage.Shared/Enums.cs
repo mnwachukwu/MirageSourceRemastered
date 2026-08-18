@@ -236,8 +236,8 @@ public enum ObjectiveKind : byte
 public enum QuestStatus : byte
 {
     NotStarted = 0,        // never accepted — no entry
-    InProgress = 1,        // accepted, NEVER completed before -> abandon DROPS it; turn-in pays the MAIN rewards
-    InProgressRepeat = 2,  // re-accepted after a prior completion -> abandon reverts to Done; turn-in pays REPEAT rewards
+    InProgress = 1,        // accepted, NEVER completed before → abandon DROPS it; turn-in pays the MAIN rewards
+    InProgressRepeat = 2,  // re-accepted after a prior completion → abandon reverts to Done; turn-in pays REPEAT rewards
     Done = 3,              // completed at least once, not currently active
 }
 
@@ -302,8 +302,8 @@ public enum MapMoral : byte
     Safe = 1,
     // Consequence-free PvP: behaves like an open (None) map for every mechanic (collision, grace,
     // regen, PvP permitted), but player-vs-player kills carry no stakes — no EXP loss, no drops, no
-    // PK/aggressor flag, no reward — whenever either party is on an Arena map. Arena<->Safe combat is
-    // still blocked exactly like None<->Safe.
+    // PK/aggressor flag, no reward — whenever either party is on an Arena map. Arena↔Safe combat is
+    // still blocked exactly like None↔Safe.
     Arena = 2,
 }
 

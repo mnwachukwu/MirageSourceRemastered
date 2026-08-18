@@ -52,7 +52,7 @@ public class PacketHeaderScanTests
 
     // ── The shared-cmd disambiguation this exists to serve ────────────────────
 
-    // PlayerMove (C->S, no index) vs SendPlayerMove (S->C, has index) share one cmd string. The
+    // PlayerMove (C→S, no index) vs SendPlayerMove (S→C, has index) share one cmd string. The
     // client picks the type off HasIndex, so these two lines MUST differ in exactly that bit.
     [Test]
     public void SharedCmdPair_IsSeparatedOnlyByIndexPresence()
@@ -137,7 +137,7 @@ public class PacketHeaderScanTests
     public void NonStringCmd_YieldsNullCmd(string line) =>
         Assert.That(PacketSerializer.ReadHeader(line).Cmd, Is.Null);
 
-    // An explicit JSON null index is "absent" — the S->C forms always carry a real integer.
+    // An explicit JSON null index is "absent" — the S→C forms always carry a real integer.
     [Test]
     public void ExplicitNullIndex_IsTreatedAsAbsent()
     {

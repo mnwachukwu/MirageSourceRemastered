@@ -5,8 +5,8 @@ using NUnit.Framework;
 namespace Mirage.Server.Tests;
 
 /// <summary>The pure map/MapGroup property-fallback resolver. Int/enum fields use their default
-/// (0 / None) as the "not set -> inherit" sentinel; the environment bools are nullable (null = inherit,
-/// explicit true/false overrides, null on both -> false). The display-name chain inserts the group between the
+/// (0 / None) as the "not set → inherit" sentinel; the environment bools are nullable (null = inherit,
+/// explicit true/false overrides, null on both → false). The display-name chain inserts the group between the
 /// map's DisplayName and its Name. All resolvers are safe when the group is null.</summary>
 [TestFixture]
 public class MapGroupResolveTests
@@ -16,8 +16,8 @@ public class MapGroupResolveTests
     {
         var g = new MapGroupRecord { Music = 9 };
         Assert.That(MapGroupResolve.Music(new MapRecord { Music = 5 }, g), Is.EqualTo(5));   // map set (non-0) wins
-        Assert.That(MapGroupResolve.Music(new MapRecord { Music = 0 }, g), Is.EqualTo(9));   // map 0 = unset -> group
-        Assert.That(MapGroupResolve.Music(new MapRecord { Music = 0 }, new MapGroupRecord()), Is.EqualTo(0)); // both unset -> 0
+        Assert.That(MapGroupResolve.Music(new MapRecord { Music = 0 }, g), Is.EqualTo(9));   // map 0 = unset → group
+        Assert.That(MapGroupResolve.Music(new MapRecord { Music = 0 }, new MapGroupRecord()), Is.EqualTo(0)); // both unset → 0
         Assert.That(MapGroupResolve.Music(new MapRecord { Music = 0 }, null), Is.EqualTo(0));  // null group is safe
     }
 
@@ -46,7 +46,7 @@ public class MapGroupResolveTests
         Assert.That(MapGroupResolve.Moral(new MapRecord { Moral = MapMoral.Arena }, g), Is.EqualTo(MapMoral.Arena)); // map explicit wins
         Assert.That(MapGroupResolve.Moral(new MapRecord { Moral = null }, g), Is.EqualTo(MapMoral.Safe));            // null inherits group
         Assert.That(MapGroupResolve.Moral(new MapRecord { Moral = MapMoral.None }, g), Is.EqualTo(MapMoral.None));   // explicit None OVERRIDES Safe (why Moral is nullable)
-        Assert.That(MapGroupResolve.Moral(new MapRecord { Moral = null }, new MapGroupRecord { Moral = null }), Is.EqualTo(MapMoral.None)); // both null -> None
+        Assert.That(MapGroupResolve.Moral(new MapRecord { Moral = null }, new MapGroupRecord { Moral = null }), Is.EqualTo(MapMoral.None)); // both null → None
         Assert.That(MapGroupResolve.Moral(new MapRecord { Moral = null }, null), Is.EqualTo(MapMoral.None));         // null group safe
     }
 
@@ -57,8 +57,8 @@ public class MapGroupResolveTests
         Assert.That(MapGroupResolve.Indoors(new MapRecord { Indoors = null }, g), Is.True);   // null inherits group true
         Assert.That(MapGroupResolve.Indoors(new MapRecord { Indoors = false }, g), Is.False); // explicit false overrides (opt out)
         Assert.That(MapGroupResolve.AlwaysDark(new MapRecord { AlwaysDark = true }, new MapGroupRecord()), Is.True); // map true wins
-        Assert.That(MapGroupResolve.Indoors(new MapRecord { Indoors = null }, new MapGroupRecord { Indoors = null }), Is.False); // both null -> false
-        Assert.That(MapGroupResolve.AlwaysDark(new MapRecord { AlwaysDark = null }, null), Is.False); // null group -> false
+        Assert.That(MapGroupResolve.Indoors(new MapRecord { Indoors = null }, new MapGroupRecord { Indoors = null }), Is.False); // both null → false
+        Assert.That(MapGroupResolve.AlwaysDark(new MapRecord { AlwaysDark = null }, null), Is.False); // null group → false
     }
 
     [Test]
@@ -70,7 +70,7 @@ public class MapGroupResolveTests
         Assert.That(MapGroupResolve.BootX(ownBoot, g), Is.EqualTo(4));     // ...brings its own X/Y
         Assert.That(MapGroupResolve.BootY(ownBoot, g), Is.EqualTo(5));
         var noBoot = new MapRecord { BootMap = 0, BootX = 99, BootY = 99 };
-        Assert.That(MapGroupResolve.BootMap(noBoot, g), Is.EqualTo(8));    // 0 boot map -> whole set inherits
+        Assert.That(MapGroupResolve.BootMap(noBoot, g), Is.EqualTo(8));    // 0 boot map → whole set inherits
         Assert.That(MapGroupResolve.BootX(noBoot, g), Is.EqualTo(1));
         Assert.That(MapGroupResolve.BootY(noBoot, g), Is.EqualTo(2));
     }

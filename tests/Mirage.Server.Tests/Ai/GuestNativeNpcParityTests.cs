@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace Mirage.Server.Tests;
 
-// GUEST <-> NATIVE NPC PARITY.
+// GUEST ↔ NATIVE NPC PARITY.
 //
 // A guest (traversal) NPC and a native (slot) NPC must be imperceptible to the player and treated
 // identically by the engine; a cross-seam gap between the two is exactly the kind of divergence that
@@ -15,7 +15,7 @@ namespace Mirage.Server.Tests;
 // (every combat/AI field inherited, never shadowed) and every method that takes a MapNpcRecord operates
 // on both identically — data-level divergence is impossible. This fixture locks that inheritance, the
 // seam state-carry (CopyCombatLedgerTo), the shared chase decision (NpcWantsChaseRun), and the ONE
-// intentional specialization (GetSpawnIdentity -> permanent home identity).
+// intentional specialization (GetSpawnIdentity → permanent home identity).
 //
 // Scope note: running a full AI + movement TICK and diffing native vs guest outcomes would need the
 // whole CombatSystem/MovementSystem/dispatcher graph wired up (a much heavier harness). The structural

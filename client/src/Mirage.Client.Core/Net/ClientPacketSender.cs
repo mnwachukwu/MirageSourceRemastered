@@ -491,6 +491,14 @@ public sealed class ClientPacketSender
     public void SendPlayedRequest()
         => _transport.Send(new PlayedRequestPacket());
 
+    /// <summary>/home — ask to be sent to this character's spawn point.</summary>
+    public void SendHomeRequest()
+        => _transport.Send(new HomeRequestPacket());
+
+    /// <summary>/homecd — ask how long is left on the /home cooldown, without spending it.</summary>
+    public void SendHomeCooldownRequest()
+        => _transport.Send(new HomeCooldownRequestPacket());
+
     public void SendRequestLocation()
         => _transport.Send(new RequestLocationPacket());
 

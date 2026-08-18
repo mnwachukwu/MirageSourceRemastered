@@ -6,7 +6,7 @@ namespace Mirage.Shared;
 public static class TerritoryFormulas
 {
     /// <summary>Income multiplier for a territory held <paramref name="weeksHeld"/> consecutive weeks:
-    /// 0 (fresh) -> x1, 1 -> x2, 2 -> x3, 3+ -> x<see cref="Constants.TerritoryWeeksHeldCap"/> (capped).</summary>
+    /// 0 (fresh) → x1, 1 → x2, 2 → x3, 3+ → x<see cref="Constants.TerritoryWeeksHeldCap"/> (capped).</summary>
     public static int WeeksHeldMultiplier(int weeksHeld) =>
         Math.Clamp(weeksHeld, 0, Constants.TerritoryWeeksHeldCap - 1) + 1;
 

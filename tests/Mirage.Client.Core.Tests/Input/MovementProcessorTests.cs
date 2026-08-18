@@ -31,7 +31,7 @@ public class MovementProcessorTests
     }
 
     // Same elapsed time (140ms): a max-SPD local player finishes the run-step; a 0-SPD one does not. Locks the
-    // SPD -> run-speed gap-control mechanic on the client's own interpolation.
+    // SPD → run-speed gap-control mechanic on the client's own interpolation.
     [Test]
     public void Process_LocalRunSpeed_ScalesWithSpd()
     {

@@ -84,11 +84,11 @@ public class ObjectiveSystemTests
         Assert.That(completed, Is.EqualTo(0));
         Assert.That(sys.ActiveCount, Is.EqualTo(1));
 
-        sys.RecordNpcKill(7, new[] { 1 });   // 2/2 -> completes, callback fires, untracks
+        sys.RecordNpcKill(7, new[] { 1 });   // 2/2 → completes, callback fires, untracks
         Assert.That(completed, Is.EqualTo(1));
         Assert.That(sys.ActiveCount, Is.EqualTo(0));
 
-        sys.RecordNpcKill(7, new[] { 1 });   // nothing tracked -> no re-fire
+        sys.RecordNpcKill(7, new[] { 1 });   // nothing tracked → no re-fire
         Assert.That(completed, Is.EqualTo(1));
     }
 
@@ -101,7 +101,7 @@ public class ObjectiveSystemTests
 
         sys.RecordNpcKill(7, new[] { 1 });   // 1/3
         handle.Stop();
-        sys.RecordNpcKill(7, new[] { 1 });   // stopped -> ignored + swept
+        sys.RecordNpcKill(7, new[] { 1 });   // stopped → ignored + swept
 
         Assert.That(obj.Progress, Is.EqualTo(1));
         Assert.That(sys.ActiveCount, Is.EqualTo(0));

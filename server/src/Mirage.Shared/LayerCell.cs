@@ -86,8 +86,8 @@ public static class LayerCell
     }
 
     /// <summary>Array index of the anim-flagged layer to draw at animation frame <paramref name="frame"/>,
-    /// or -1 to draw no anim layer this frame. 0 anim layers -> -1; exactly 1 -> on/off blink (shown on
-    /// even frames); 2+ -> traversed by the lowest anim layer's <see cref="AnimStyle"/> (Cycle = frame mod N,
+    /// or -1 to draw no anim layer this frame. 0 anim layers → -1; exactly 1 → on/off blink (shown on
+    /// even frames); 2+ → traversed by the lowest anim layer's <see cref="AnimStyle"/> (Cycle = frame mod N,
     /// Pendulum = triangle wave). Non-anim layers are unaffected -- callers only consult this for
     /// Anim-flagged cells. Allocation-free.</summary>
     public static int VisibleAnimIndex(int[] layers, int frame)

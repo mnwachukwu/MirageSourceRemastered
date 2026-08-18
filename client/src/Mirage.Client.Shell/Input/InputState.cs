@@ -281,6 +281,14 @@ public sealed class InputState
     /// Mirror of <see cref="IsKeyboardActive"/> for the other device.</summary>
     public bool IsGamepadActive => ActiveDevice != ActiveInputDevice.Keyboard;
 
+    /// <summary>Whether on-screen prompts should name gamepad buttons rather than keys.
+    ///
+    /// <para>Not <see cref="IsGamepadActive"/>: that one arbitrates which device may ACT, so before either
+    /// has claimed a frame it lets BOTH through — correct for suppressing double-fires, and wrong for a
+    /// badge, which has to print one thing. This needs the pad turned on in options AND actually holding
+    /// the frame, so the keyboard is what a player sees until they pick up a controller.</para></summary>
+    public bool ShowGamepadPrompts => UseGamepad && ActiveDevice == ActiveInputDevice.Gamepad;
+
     // Shared gamepad analog thresholds — used both by the active-device tracker below and by
     // gameplay input building (GameplayScreen.BuildInputSnapshot). Public so a single value
     // governs every "did the player push the stick?" / "is the trigger held?" check.

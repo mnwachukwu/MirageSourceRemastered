@@ -569,7 +569,7 @@ public static class RenderCommandBuilder
     // During a cross-layer slide (stepping onto/off a ramp), draw the moving sprite on the HIGHER layer (Fringe)
     // until its walk-offset finishes, so it isn't occluded by the ramp/fringe tile art mid-slide ("sliding out
     // from under the ramp").  When the slide ends (offset 0) it commits to the destination layer.  Cross-layer is
-    // always Ground<->Fringe, so the higher layer is Fringe.
+    // always Ground↔Fringe, so the higher layer is Fringe.
     private static WorldLayer SlideRenderLayer(WorldLayer layer, WorldLayer prevLayer, float xOffset, float yOffset)
     {
         bool sliding = xOffset != 0f || yOffset != 0f;
@@ -1033,7 +1033,7 @@ public static class RenderCommandBuilder
         max > 0 ? Math.Clamp((float)cur / max, 0f, 1f) : -1f;
 
     private static bool IsInCombat(long lastCombatMs, long tickNow) =>
-        lastCombatMs > 0 && (tickNow - lastCombatMs) < 10_000;
+        ClientState.InCombatAt(lastCombatMs, tickNow);
 
     // True when a target at WORLD tile (targetWX,targetWY) is outside the local player's spell
     // circle, computed as if the player stood in the middle of the map regardless of camera

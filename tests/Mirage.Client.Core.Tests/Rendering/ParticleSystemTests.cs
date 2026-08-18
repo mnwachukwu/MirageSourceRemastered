@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Mirage.Client.Core.Tests;
 
 /// <summary>The pooled, allocation-free particle subsystem: bounded capacity, swap-remove of dead particles,
-/// the rain->splash and homing-projectile arrival morphs, and the pure fade/velocity/flight-time helpers the
+/// the rain→splash and homing-projectile arrival morphs, and the pure fade/velocity/flight-time helpers the
 /// shell reads to draw.</summary>
 [TestFixture]
 public class ParticleSystemTests
@@ -39,7 +39,7 @@ public class ParticleSystemTests
     public void OnScreenVelocity_RainFloor_KeepsFalling()
     {
         var p = new Particle { Vx = 0f, Vy = 100f, Kind = ParticleKind.RainStreak };
-        var (_, vy) = ParticleSystem.OnScreenVelocity(p, 0f, 80f);   // 100-80 = 20 < 40 -> clamped to 40
+        var (_, vy) = ParticleSystem.OnScreenVelocity(p, 0f, 80f);   // 100-80 = 20 < 40 → clamped to 40
         Assert.That(vy, Is.EqualTo(40f));
     }
 

@@ -173,7 +173,7 @@ public sealed partial class ChatPanel
         if (!TabStripRect().Contains(input.MousePosition)) return false;
         int n = Math.Min(_tabRects.Length, _tabs.Count);
 
-        // Left click: priority order is X button -> tab body -> + button.
+        // Left click: priority order is X button → tab body → + button.
         if (input.IsMouseClicked())
         {
             for (int i = 0; i < n; i++)

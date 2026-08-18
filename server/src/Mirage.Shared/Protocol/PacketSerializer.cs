@@ -372,6 +372,8 @@ public static class PacketSerializer
                 PacketNames.SetWeather => JsonSerializer.Deserialize<SetWeatherPacket>(line, Options),
                 PacketNames.PlayerInfoRequest => JsonSerializer.Deserialize<PlayerInfoRequestPacket>(line, Options),
                 PacketNames.PlayedRequest => JsonSerializer.Deserialize<PlayedRequestPacket>(line, Options),
+                PacketNames.HomeRequest => JsonSerializer.Deserialize<HomeRequestPacket>(line, Options),
+                PacketNames.HomeCooldownRequest => JsonSerializer.Deserialize<HomeCooldownRequestPacket>(line, Options),
 
                 // S→C (client side deserializes these)
                 PacketNames.AlertMsg => JsonSerializer.Deserialize<AlertMsgPacket>(line, Options),

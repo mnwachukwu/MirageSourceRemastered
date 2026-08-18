@@ -116,8 +116,8 @@ public class PinnedRandomnessTests
     [Test]
     public void LootRoll_TieRerollsOnlyTheTiedPlayers()
     {
-        // Round 1: 5->40, 7->40, 9->10  (5 and 7 tie for best)
-        // Round 2: 5->8,  7->30         (only the two tied players roll again)
+        // Round 1: 5→40, 7→40, 9→10  (5 and 7 tie for best)
+        // Round 2: 5→8,  7→30         (only the two tied players roll again)
         var rng = new Rolls(40, 40, 10, 8, 30);
         var combat = Combat(rng);
         var args = new object?[] { new List<int> { 5, 7, 9 }, null };

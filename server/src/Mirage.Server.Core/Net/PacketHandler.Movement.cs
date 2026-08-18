@@ -12,7 +12,8 @@ using Mirage.Shared.Security;
 
 namespace Mirage.Server.Core.Net;
 
-/// <summary>Movement and facing packets — the two highest-frequency messages the server receives.</summary>
+/// <summary>Movement and facing packets — the two highest-frequency messages the server receives — plus
+/// /home, the one way a player moves themselves somewhere they are not adjacent to.</summary>
 public sealed partial class PacketHandler
 {
     //  Movement handlers
@@ -47,6 +48,64 @@ public sealed partial class PacketHandler
             return;
         }
         _movement.PlayerDir(index, p.Dir);
+    }
+
+    /// <summary>/home — go to this character's spawn point, or the server default when they have not set
+    /// one. Convenience, and the way out when a player is stuck somewhere they cannot walk off.
+    ///
+    /// <para>The cooldown is a wall-clock stamp on the character, not a session timer: it keeps running
+    /// while the player is logged out, and a relog neither clears nor pauses it. Saved with the same
+    /// immediacy the Inn uses, because a cooldown a hard disconnect erases is not a cooldown.</para>
+    ///
+    /// <para>Refused in combat, so it cannot be an escape hatch from a fight. The client hides it there
+    /// too; this is the half that counts, since the packet can arrive regardless.</para></summary>
+    private void HandleHomeRequest(int index)
+    {
+        var sp = _pm[index];
+        if (!sp.IsPlaying) return;
+        var vp = sp.Char;
+
+        if (sp.IsInCombat(Environment.TickCount64))
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeInCombat,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            return;
+        }
+
+        long now = NowUtc;
+        long readyAt = vp.HomeUsedAtUtc + Constants.HomeCooldownSeconds;
+        if (vp.HomeUsedAtUtc > 0 && now < readyAt)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeCooldown,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.Notice),
+                ("Remaining", PlaytimeFormat.HoursMinutes(readyAt - now)));
+            return;
+        }
+
+        var (map, x, y) = _config.Spawn.HomeFor(vp);
+        vp.HomeUsedAtUtc = now;
+        _movement.PlayerWarp(index, map, x, y);
+        _saver.SaveCharInBackground(sp.Login, sp.CharNum, vp.Clone(), sp.CloneBank());
+        _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeWarped,
+            new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice));
+    }
+
+    /// <summary>/homecd — how long is left on the cooldown. Reads the stamp and writes nothing, so
+    /// checking never costs the use being checked for.</summary>
+    private void HandleHomeCooldownRequest(int index)
+    {
+        var sp = _pm[index];
+        if (!sp.IsPlaying) return;
+
+        long now = NowUtc;
+        long readyAt = sp.Char.HomeUsedAtUtc + Constants.HomeCooldownSeconds;
+        if (sp.Char.HomeUsedAtUtc > 0 && now < readyAt)
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeCooldownLeft,
+                new ChatMetadata(GameColor.Yellow, ChatChannel.Notice),
+                ("Remaining", PlaytimeFormat.HoursMinutes(readyAt - now)));
+        else
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeReady,
+                new ChatMetadata(GameColor.BrightGreen, ChatChannel.Notice));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

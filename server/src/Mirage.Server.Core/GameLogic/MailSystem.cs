@@ -71,7 +71,7 @@ public sealed class MailSystem : GameSystem
     }
 
     /// <summary>Send player-composed mail: deliver it to the recipient's inbox AND record a receipt in the
-    /// sender's outbox, both stamped with the same <paramref name="deliverAt"/> so the "in transit ->
+    /// sender's outbox, both stamped with the same <paramref name="deliverAt"/> so the "in transit →
     /// delivered" state shows on both ends. Player-origin only (the marketplace reuses this); system mail
     /// goes through <see cref="Deliver"/> and has no outbox.</summary>
     public void SendPlayerMail(string senderLogin, string recipientLogin, string subject, string body,

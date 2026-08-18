@@ -101,11 +101,11 @@ public sealed partial class GameplayScreen : IGameScreen
     private readonly ConversationPanel _conversation = new();
     private readonly DeathPanel _death = new();   // uncloseable death overlay
     private readonly ModerationPanel _moderation = new();   // Creator only; gated in the panel and again on the server
-    private bool _wasDead;                          // alive->dead edge, to close open panels once on death
+    private bool _wasDead;                          // alive→dead edge, to close open panels once on death
     // Action bar: ONE cooldown for all four slots, on the same 1s beat as attacking and casting, so the
     // bar can't outpace the rest of combat. Held here rather than per-slot because the cooldown is global.
     private long _hotkeyReadyAtMs;
-    private bool _marketWasOpen;                    // market open->closed edge, to tell the server to stop live broadcasts
+    private bool _marketWasOpen;                    // market open→closed edge, to tell the server to stop live broadcasts
     private readonly ContextMenu _contextMenu = new();
 
     // Panel slot indices, used throughout this file as z-order entries and registry indices.
@@ -325,7 +325,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
     // ── Particle FX (weather + combat) ────────────────────────────────────────
     private readonly ParticleSystem _particles = new();
-    // Tracks the current map's Indoors flag between frames so we can detect the Outdoor->Indoor edge and
+    // Tracks the current map's Indoors flag between frames so we can detect the Outdoor→Indoor edge and
     // instantly clear lingering weather when stepping inside (distinct from a weather-state change, which
     // stops spawning and lets existing particles animate out). Default false: spawning onto an indoor map
     // fires a harmless no-op clear on the first frame.

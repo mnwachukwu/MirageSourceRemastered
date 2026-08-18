@@ -30,7 +30,7 @@ public class SeasonFormulasTests
         double step = Constants.TerritorySeasonHoldBonusPercentPerWeek / 100.0;
         Assert.Multiple(() =>
         {
-            Assert.That(SeasonFormulas.WeeklyHoldScore(0), Is.EqualTo(b));                                  // fresh -> base
+            Assert.That(SeasonFormulas.WeeklyHoldScore(0), Is.EqualTo(b));                                  // fresh → base
             Assert.That(SeasonFormulas.WeeklyHoldScore(1), Is.EqualTo((long)Math.Round(b * (1 + step))));   // +1 week
             Assert.That(SeasonFormulas.WeeklyHoldScore(4), Is.EqualTo((long)Math.Round(b * (1 + step * 4))));
             int cap = Constants.TerritorySeasonHoldBonusCapWeeks;

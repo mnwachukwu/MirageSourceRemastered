@@ -75,7 +75,7 @@ public class BloodDecalSizeTests
         var (world, blood) = NewBlood();
         blood.Deposit(1, 5, 5, 1.0f, size: 3);          // footprint [5,7]
         float before = Pools(world)[0].Amount;
-        blood.Deposit(1, 6, 6, 1.0f, size: 2);          // 2x2 footprint [6,7] fully inside the 3x3 -> enveloped
+        blood.Deposit(1, 6, 6, 1.0f, size: 2);          // 2x2 footprint [6,7] fully inside the 3x3 → enveloped
         Assert.That(Pools(world).Count, Is.EqualTo(1), "a size-2 fully inside a size-3 feeds it, no new pool");
         Assert.That(Pools(world)[0].Size, Is.EqualTo(3));
         Assert.That(Pools(world)[0].Amount, Is.GreaterThan(before));
@@ -86,7 +86,7 @@ public class BloodDecalSizeTests
     {
         var (world, blood) = NewBlood();
         blood.Deposit(1, 5, 5, 1.0f, size: 2);          // existing 2x2 pool [5,6]
-        blood.Deposit(1, 5, 5, 1.0f, size: 3);          // 3x3 [5,7] fully contains the 2x2 -> absorb it
+        blood.Deposit(1, 5, 5, 1.0f, size: 3);          // 3x3 [5,7] fully contains the 2x2 → absorb it
         Assert.That(Pools(world).Count, Is.EqualTo(1), "the bigger footprint absorbs the smaller pool it covers");
         Assert.That(Pools(world)[0].Size, Is.EqualTo(3));
     }
@@ -102,7 +102,7 @@ public class BloodDecalSizeTests
         }
 
         Assert.That(Pools(world).Count, Is.EqualTo(9), "adjacent size-1 pools don't merge with each other");
-        blood.Deposit(1, 5, 5, 1.0f, size: 3);          // a size-3 covering all 9 -> absorb them all
+        blood.Deposit(1, 5, 5, 1.0f, size: 3);          // a size-3 covering all 9 → absorb them all
         Assert.That(Pools(world).Count, Is.EqualTo(1), "the size-3 absorbs every fully-covered size-1 pool");
         Assert.That(Pools(world)[0].Size, Is.EqualTo(3));
     }
@@ -148,7 +148,7 @@ public class BloodDecalSizeTests
         var (world, blood) = NewBlood();
         blood.Deposit(1, 5, 5, 1.0f, size: 3);          // pool covers [5,7]
         int count = Pools(world).Count;
-        blood.DepositTrail(1, 6, 6, 1);                  // (6,6) is already under the pool -> no drip
+        blood.DepositTrail(1, 6, 6, 1);                  // (6,6) is already under the pool → no drip
         Assert.That(Pools(world).Count, Is.EqualTo(count), "a trail drip on a tile already under a pool is suppressed");
     }
 

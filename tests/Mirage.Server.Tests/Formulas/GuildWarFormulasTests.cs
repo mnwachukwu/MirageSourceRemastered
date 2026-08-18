@@ -23,21 +23,21 @@ public class GuildWarFormulasTests
     // as a unit, and what these protect is the DIRECTION and SIZE of the level tilt, which a rescale
     // leaves alone. Literals here would only prove nobody had retuned the guild economy.
     [Test]
-    public void DeclareCost_PunchingUp_CostsLess()   // L1 -> L5 = base - 4*step
+    public void DeclareCost_PunchingUp_CostsLess()   // L1 → L5 = base - 4*step
     {
         Assert.That(GuildWarFormulas.DeclareCost(1, 5),
             Is.EqualTo(Constants.GuildWarDeclareBaseCost - 4 * Constants.GuildWarDeclareLevelStep));
     }
 
     [Test]
-    public void DeclareCost_PunchingDown_CostsMore()   // L5 -> L1 = base + 4*step
+    public void DeclareCost_PunchingDown_CostsMore()   // L5 → L1 = base + 4*step
     {
         Assert.That(GuildWarFormulas.DeclareCost(5, 1),
             Is.EqualTo(Constants.GuildWarDeclareBaseCost + 4 * Constants.GuildWarDeclareLevelStep));
     }
 
     [Test]
-    public void DeclareCost_Level0Target_DoublesWholeCost()   // L5 -> L0 = (base + 5*step) * 2
+    public void DeclareCost_Level0Target_DoublesWholeCost()   // L5 → L0 = (base + 5*step) * 2
     {
         Assert.That(GuildWarFormulas.DeclareCost(5, 0),
             Is.EqualTo((Constants.GuildWarDeclareBaseCost + 5 * Constants.GuildWarDeclareLevelStep)
@@ -45,7 +45,7 @@ public class GuildWarFormulasTests
     }
 
     [Test]
-    public void DeclareCost_HugeGap_FlooredAtMin()   // synthetic gap drives the base negative -> floor
+    public void DeclareCost_HugeGap_FlooredAtMin()   // synthetic gap drives the base negative → floor
     {
         Assert.That(GuildWarFormulas.DeclareCost(declarerLevel: 5, targetLevel: 20),
             Is.EqualTo(Constants.GuildWarDeclareMinCost));
@@ -60,7 +60,7 @@ public class GuildWarFormulasTests
     }
 
     [Test]
-    public void DailyMaintenance_RoundsAwayFromZero()   // 999 * 0.5 = 499.5 -> 500
+    public void DailyMaintenance_RoundsAwayFromZero()   // 999 * 0.5 = 499.5 → 500
     {
         Assert.That(GuildWarFormulas.DailyMaintenance(999), Is.EqualTo(500));
     }
@@ -191,7 +191,7 @@ public class GuildWarFormulasTests
     public void WarDeathVaultCost_Is75PercentRoundedAwayFromZero()
     {
         Assert.That(GuildWarFormulas.WarDeathVaultCost(1000), Is.EqualTo(750));
-        Assert.That(GuildWarFormulas.WarDeathVaultCost(101), Is.EqualTo(76));   // 75.75 -> 76
+        Assert.That(GuildWarFormulas.WarDeathVaultCost(101), Is.EqualTo(76));   // 75.75 → 76
     }
 
     [Test]
@@ -199,7 +199,7 @@ public class GuildWarFormulasTests
     {
         Assert.That(GuildWarFormulas.WarDeathVaultCovers(totalRepairCost: 0, vaultGold: 10_000), Is.False);   // no wear
         Assert.That(GuildWarFormulas.WarDeathVaultCovers(1000, 750), Is.True);    // exactly the 75% share
-        Assert.That(GuildWarFormulas.WarDeathVaultCovers(1000, 749), Is.False);   // one short -> whole-or-nothing
+        Assert.That(GuildWarFormulas.WarDeathVaultCovers(1000, 749), Is.False);   // one short → whole-or-nothing
     }
 
     [Test]
@@ -207,7 +207,7 @@ public class GuildWarFormulasTests
     {
         Assert.That(GuildWarFormulas.WarDeathItemWear(doubledWear: 20, vaultCovered: true), Is.EqualTo(5));    // 25%
         Assert.That(GuildWarFormulas.WarDeathItemWear(20, vaultCovered: false), Is.EqualTo(20));               // full
-        Assert.That(GuildWarFormulas.WarDeathItemWear(1, vaultCovered: true), Is.EqualTo(0));                  // 0.25 -> 0
+        Assert.That(GuildWarFormulas.WarDeathItemWear(1, vaultCovered: true), Is.EqualTo(0));                  // 0.25 → 0
     }
 
     // ── Attrition & per-target DR ────────────────────────────────────────────
@@ -215,7 +215,7 @@ public class GuildWarFormulasTests
     [Test]
     public void DecayedDrStage_RecoversOneStagePerPeriod_FlooredAt1()
     {
-        Assert.That(GuildWarFormulas.DecayedDrStage(stage: 0, lastUtc: 0, nowUtc: 1000), Is.EqualTo(1));       // never killed -> fresh
+        Assert.That(GuildWarFormulas.DecayedDrStage(stage: 0, lastUtc: 0, nowUtc: 1000), Is.EqualTo(1));       // never killed → fresh
         Assert.That(GuildWarFormulas.DecayedDrStage(3, 1000, 1000), Is.EqualTo(3));                            // no time passed
         Assert.That(GuildWarFormulas.DecayedDrStage(3, 1000, 1000 + Constants.GuildWarDrRecoverySeconds), Is.EqualTo(2));
         Assert.That(GuildWarFormulas.DecayedDrStage(3, 1000, 1000 + 5 * Constants.GuildWarDrRecoverySeconds), Is.EqualTo(1));
@@ -333,10 +333,10 @@ public class GuildWarFormulasTests
     {
         var (a, b) = MutualPair(anteA: 0, anteB: 0);
         GuildWarFormulas.Find(b, a.Index)!.PeaceEscrow = 150;   // b sued for peace with a 150-gold offering
-        long pot = GuildWarFormulas.SettleWagerPot(a, b, a);    // a accepts -> a wins the offering
+        long pot = GuildWarFormulas.SettleWagerPot(a, b, a);    // a accepts → a wins the offering
         Assert.That(pot, Is.EqualTo(150));
         Assert.That(a.VaultGold, Is.EqualTo(150));
-        // No war entries at all -> no throw, no transfer.
+        // No war entries at all → no throw, no transfer.
         var x = new GuildRecord { Index = 10 };
         var y = new GuildRecord { Index = 11 };
         Assert.That(GuildWarFormulas.SettleWagerPot(x, y, x), Is.EqualTo(0));

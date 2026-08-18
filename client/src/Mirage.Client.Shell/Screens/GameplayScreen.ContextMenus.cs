@@ -280,7 +280,7 @@ public sealed partial class GameplayScreen : IGameScreen
             }
             else
             {
-                entries.Add(new(ClientStrings.Get(ClientStrings.ContextMenu_YourLoot), claimable));
+                entries.Add(new(ClientStrings.Get(ClientStrings.ContextMenu_PickUpMenu), claimable));
             }
         }
 

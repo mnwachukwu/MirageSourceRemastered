@@ -25,7 +25,7 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
         Enumerable.Range(1, Constants.MaxNpcSize).Select(s => new NpcSizeOption(s)).ToArray();
 
     // Two-way bridge for the Size ComboBox: reads/writes SelectedNpc.Size as an NpcSizeOption (Avalonia's
-    // ComboBox has no SelectedValuePath, so the int<->option mapping lives here). Refreshed on NPC change.
+    // ComboBox has no SelectedValuePath, so the int↔option mapping lives here). Refreshed on NPC change.
     public NpcSizeOption? SelectedNpcSize
     {
         get => SelectedNpc is null ? null : NpcSizes.FirstOrDefault(o => o.Value == SelectedNpc.Size);

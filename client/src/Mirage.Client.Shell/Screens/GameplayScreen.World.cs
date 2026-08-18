@@ -18,7 +18,8 @@ using System.Text;
 namespace Mirage.Client.Shell.Screens;
 
 /// <summary>Building and drawing the scrolling world into the supersampled render target: ground,
-/// fringe, weather and overlay passes, plus the entity groups and name/bar overlays.</summary>
+/// fringe, weather and overlay passes, the entity groups and name/bar overlays, and the camera
+/// projection from a map tile to a screen pixel that hover and floating text both read.</summary>
 public sealed partial class GameplayScreen : IGameScreen
 {
     // ── World draw ────────────────────────────────────────────────────────────────────────────────────
@@ -366,5 +367,39 @@ public sealed partial class GameplayScreen : IGameScreen
         DrawWorldGround(sb, font, transform);
         DrawWorldFringe(sb, font, transform);
         DrawWorldOverlay(sb, font, transform);
+    }
+
+    /// <summary>The camera's world-pixel Y — the heat shader uses it to anchor its wave to the world so the
+    /// shimmer doesn't appear to speed up while moving vertically.</summary>
+    public float CameraWorldY => _camera.CameraY;
+
+    /// <summary>Grid cell (col,row) currently holding <paramref name="mapNum"/>, or null if off-grid.</summary>
+    private (int col, int row)? GridCellForMap(int mapNum)
+    {
+        if (mapNum <= 0) return null;
+        var nums = _ctx.State.NeighborMapNums;
+        for (int c = 0; c < 3; c++)
+        {
+            for (int r = 0; r < 3; r++)
+                if (nums[c, r] == mapNum) return (c, r);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Top-left screen pixel of an entity given its map + local tile + sub-tile offset, via the
+    /// camera.  Returns false when that map isn't part of the current 3×3 grid.  Shared by hover
+    /// hit-testing and floating combat text so both track the scrolling camera.
+    /// </summary>
+    public bool TryEntityScreen(int mapNum, int localX, int localY, float xOff, float yOff, out float sx, out float sy)
+    {
+        sx = sy = 0f;
+        var cell = GridCellForMap(mapNum);
+        if (cell is null) return false;
+        (sx, sy) = _camera.WorldTileToScreen(
+            cell.Value.col * WorldCoordHelper.MapTilesX + localX,
+            cell.Value.row * WorldCoordHelper.MapTilesY + localY, xOff, yOff);
+        return true;
     }
 }

@@ -28,7 +28,7 @@ public static class LightModel
     public const float PulseAmp = 0.30f;        // magical "breathing" depth; higher = more pronounced
     public const float PulseSpeed = 3.2f;       // magical breathing tempo (rad/s)
 
-    // Cheap integer hash -> [0,1). Deterministic per (step, source) so the flicker is stable frame-to-frame.
+    // Cheap integer hash → [0,1). Deterministic per (step, source) so the flicker is stable frame-to-frame.
     public static float Hash01(int n)
     {
         unchecked
@@ -81,7 +81,7 @@ public static class LightModel
     };
 
     // Halo alpha falloffs over a normalized distance-from-center in [0,1] (>=1 is fully transparent).
-    // Outer: smoothstep 1->0 (stable soft reach). Inner: Gaussian (sigma ~ radius/2.5) tight flame core.
+    // Outer: smoothstep 1→0 (stable soft reach). Inner: Gaussian (sigma ~ radius/2.5) tight flame core.
     public static float Smoothstep(float x)
     {
         x = Math.Clamp(x, 0f, 1f);

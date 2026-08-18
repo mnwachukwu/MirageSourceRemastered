@@ -80,7 +80,7 @@ public sealed class GuildWarSystem : GameSystem
 
         var existing = GuildWarFormulas.Find(guild, target.Index);
         bool isReturn = existing is { WeDeclared: false, TheyDeclared: true };
-        // Already our aggression (one-sided or mutual) -> can't re-declare; short-circuit for everyone
+        // Already our aggression (one-sided or mutual) → can't re-declare; short-circuit for everyone
         // (an officer shouldn't queue a redundant request for a war that already exists).
         if (existing is not null && !isReturn)
         {
@@ -179,7 +179,7 @@ public sealed class GuildWarSystem : GameSystem
         return true;
     }
 
-    // Reciprocate a declaration made against us -> mutual war (free; pops immediately, nullifying the
+    // Reciprocate a declaration made against us → mutual war (free; pops immediately, nullifying the
     // original declarer's daily maintenance since maintenance is waived once mutual).
     private bool ReturnDeclaration(int index, GuildRecord guild, GuildRecord target, GuildWar ourEntry)
     {
@@ -828,7 +828,7 @@ public sealed class GuildWarSystem : GameSystem
         }
 
         // Cold-war sweep: end any MUTUAL war where neither side has pushed the other to a new attrition low
-        // for GuildWarColdSeconds (a stalemate or an abandoned war -> a draw). Collect first — EndWarCold
+        // for GuildWarColdSeconds (a stalemate or an abandoned war → a draw). Collect first — EndWarCold
         // mutates the Wars lists — and handle each pair once (guild.Index < opponent).
         List<(GuildRecord A, GuildRecord B)>? cold = null;
         foreach (var guild in _world.Guilds.Values)

@@ -22,7 +22,7 @@ public class AnimationProcessorTests
             Assert.That(s.MapAnimTimer, Is.EqualTo((long)Constants.MapAnimIntervalMs));
         });
 
-        AnimationProcessor.Process(s, Constants.MapAnimIntervalMs + 50);   // only 50ms since last -> no advance
+        AnimationProcessor.Process(s, Constants.MapAnimIntervalMs + 50);   // only 50ms since last → no advance
         Assert.That(s.MapAnimFrame, Is.EqualTo(1));
     }
 

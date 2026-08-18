@@ -78,7 +78,7 @@ public sealed partial class NpcAiSystem : GameSystem
         while (head < tail)
         {
             int cur = queue[head++];
-            int curLayerI = cur >= N ? 1 : 0;               // decode the state index -> (layer, cell)
+            int curLayerI = cur >= N ? 1 : 0;               // decode the state index → (layer, cell)
             var curLayer = (WorldLayer)curLayerI;
             int cell = cur - curLayerI * N;
             int cwx = cell % RW;
@@ -95,7 +95,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 int nRow = nwy / H;
                 int nMap = grid[nCol, nRow];
 
-                // Each cell has two candidate states (ground / fringe).  The neighbor->cur step is a real graph
+                // Each cell has two candidate states (ground / fringe).  The neighbor→cur step is a real graph
                 // edge only when LayerLogic says stepping `stepDir` from the neighbor on `nLayer` actually lands
                 // on (cur, curLayer): sticky within a layer, flipping only across a ramp.  This is the SAME gate
                 // CanNpcMoveFrom applies live, so a planned step is always executable.  On a bridge-free map the
@@ -237,7 +237,7 @@ public sealed partial class NpcAiSystem : GameSystem
         while (head < tail)
         {
             int cur = queue[head++];
-            int curLayerI = cur >= N ? 1 : 0;               // decode the state index -> (layer, cell)
+            int curLayerI = cur >= N ? 1 : 0;               // decode the state index → (layer, cell)
             var curLayer = (WorldLayer)curLayerI;
             int cell = cur - curLayerI * N;
             int cwx = cell % RW;
@@ -257,7 +257,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 for (int nl = 0; nl < 2; nl++)
                 {
                     var nLayer = (WorldLayer)nl;
-                    // Layer-transition gate (mirrors FindStep): neighbor->cur is a real edge only when stepping
+                    // Layer-transition gate (mirrors FindStep): neighbor→cur is a real edge only when stepping
                     // stepDir from the neighbor on nLayer lands on (cur, curLayer).  Ramp = the only cross-layer.
                     if (!LayerLogic.CanEnter(view, cwx, cwy, footprintSize, nLayer, stepDir, out var landed)
                         || landed != curLayer)
@@ -458,7 +458,7 @@ public sealed partial class NpcAiSystem : GameSystem
     // NpcTarget == the chaser's (selfSpawnMap, selfSpawnSlot)).  A pursuer left walkable means the chaser's
     // plan runs straight into it and holds (the per-step CanNpcMove still refuses the overlap), so a guard
     // walling off its target makes the target SETTLE rather than route around its own hunter — the one case
-    // that separates "route around a mid-path blocker" (good) from the guard<->AoS dance (bad).  Built from
+    // that separates "route around a mid-path blocker" (good) from the guard↔AoS dance (bad).  Built from
     // current positions each call; only invoked while a chaser is stalled, so the rebuild cost is off the
     // hot path.  The chaser's own tile may be marked (harmless: the BFS returns at the source before the
     // occupancy check) and so may the target root (never expanded into).

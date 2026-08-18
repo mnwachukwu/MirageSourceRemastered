@@ -14,11 +14,11 @@ public class TerritoryContestFormulasTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(TerritoryContestFormulas.PointCount(3), Is.EqualTo(2));   // below min -> min 2
+            Assert.That(TerritoryContestFormulas.PointCount(3), Is.EqualTo(2));   // below min → min 2
             Assert.That(TerritoryContestFormulas.PointCount(10), Is.EqualTo(2));  // 10/5 = 2
             Assert.That(TerritoryContestFormulas.PointCount(15), Is.EqualTo(3));  // 15/5 = 3
             Assert.That(TerritoryContestFormulas.PointCount(25), Is.EqualTo(5));  // 25/5 = 5 (cap)
-            Assert.That(TerritoryContestFormulas.PointCount(100), Is.EqualTo(5)); // above max -> max 5
+            Assert.That(TerritoryContestFormulas.PointCount(100), Is.EqualTo(5)); // above max → max 5
         });
     }
 
@@ -30,7 +30,7 @@ public class TerritoryContestFormulasTests
         var step = TerritoryContestFormulas.AdvanceMeter(-full, owner: 5, challenger: 0, majorityGuild: 6);
         Assert.That(step, Is.EqualTo(new TerritoryContestFormulas.MeterResult(-full + 1, 5, 6)));
 
-        // One step short of full -> reaching full flips the point: new owner 6, reset to -full, challenger cleared.
+        // One step short of full → reaching full flips the point: new owner 6, reset to -full, challenger cleared.
         var flip = TerritoryContestFormulas.AdvanceMeter(full - 1, owner: 5, challenger: 6, majorityGuild: 6);
         Assert.That(flip, Is.EqualTo(new TerritoryContestFormulas.MeterResult(-full, 6, 0)));
     }
@@ -39,7 +39,7 @@ public class TerritoryContestFormulasTests
     public void AdvanceMeter_OwnerReinforces_And_ContestedDriftsToNeutral()
     {
         int full = Constants.TerritoryCaptureFull;
-        // Owner regains the majority -> meter pushes back toward secure (capped at -full), clearing a challenger.
+        // Owner regains the majority → meter pushes back toward secure (capped at -full), clearing a challenger.
         Assert.That(TerritoryContestFormulas.AdvanceMeter(0, owner: 5, challenger: 6, majorityGuild: 5),
             Is.EqualTo(new TerritoryContestFormulas.MeterResult(-1, 5, 0)));
         Assert.That(TerritoryContestFormulas.AdvanceMeter(-full, owner: 5, challenger: 0, majorityGuild: 5),
@@ -56,8 +56,8 @@ public class TerritoryContestFormulasTests
     {
         Assert.Multiple(() =>
         {
-            Assert.That(TerritoryContestFormulas.ScorerThisTick(-Constants.TerritoryCaptureFull, 5), Is.EqualTo(5)); // secure -> owner scores
-            Assert.That(TerritoryContestFormulas.ScorerThisTick(0, 5), Is.EqualTo(0));   // neutral band -> nobody
+            Assert.That(TerritoryContestFormulas.ScorerThisTick(-Constants.TerritoryCaptureFull, 5), Is.EqualTo(5)); // secure → owner scores
+            Assert.That(TerritoryContestFormulas.ScorerThisTick(0, 5), Is.EqualTo(0));   // neutral band → nobody
             Assert.That(TerritoryContestFormulas.ScorerThisTick(-Constants.TerritoryCaptureFull, 0), Is.EqualTo(0)); // unowned
             Assert.That(TerritoryContestFormulas.ScoreDelta(5, defenderGuild: 5),
                 Is.EqualTo(Constants.TerritoryOwnedScorePerTick + Constants.TerritoryDefenderScoreBonus)); // defender edge
@@ -87,10 +87,10 @@ public class TerritoryContestFormulasTests
         {
             Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [5] = 100, [6] = 50 }, 5), Is.EqualTo(5));
             Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [5] = 50, [6] = 100 }, 5), Is.EqualTo(6)); // attacker outscores defender
-            Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [5] = 100, [6] = 100 }, 5), Is.EqualTo(5)); // tie -> defender
-            Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [6] = 100, [7] = 100 }, 0), Is.EqualTo(0)); // unclaimed tie -> unclaimed
+            Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [5] = 100, [6] = 100 }, 5), Is.EqualTo(5)); // tie → defender
+            Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [6] = 100, [7] = 100 }, 0), Is.EqualTo(0)); // unclaimed tie → unclaimed
             Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long> { [6] = 100, [7] = 50 }, 0), Is.EqualTo(6)); // strict top on unclaimed
-            Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long>(), 5), Is.EqualTo(5)); // nobody scored -> defender keeps
+            Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long>(), 5), Is.EqualTo(5)); // nobody scored → defender keeps
         });
     }
 }

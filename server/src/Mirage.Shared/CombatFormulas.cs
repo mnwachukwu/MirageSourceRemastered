@@ -295,7 +295,7 @@ public static class CombatFormulas
     public static int ChancePercentDivisor => Constants.ChanceScaleFactor;
     /// <summary>Decimal places to print for a chance value, derived from
     /// <see cref="Constants.ChanceScaleFactor"/> so the format matches the actual granularity:
-    /// scale 1 -> 0 decimals (50 -> "50%"), scale 10 -> 1 decimal (50 -> "5.0%"), scale 100 -> 2.
+    /// scale 1 → 0 decimals (50 → "50%"), scale 10 → 1 decimal (50 → "5.0%"), scale 100 → 2.
     /// Dividing by the scale introduces exactly log10(scale) decimal places; Ceiling handles
     /// non-powers-of-10 (scale=5 still wants 1 decimal, e.g. 12/5 = 2.4) and Max(0,…) guards a
     /// degenerate scale &lt; 1 where log10 goes negative.</summary>

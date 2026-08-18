@@ -142,8 +142,8 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<ObjectiveSystem>();
         services.AddSingleton<QuestSystem>();
         services.AddSingleton<ConversationSystem>();
-        // Lazy CombatSystem for QuestSystem — defers resolution to break the CombatSystem<->JoinLeaveSystem
-        // <->QuestSystem construction cycle (QuestSystem only needs it for level-up at reward time).
+        // Lazy CombatSystem for QuestSystem — defers resolution to break the CombatSystem↔JoinLeaveSystem
+        // ↔QuestSystem construction cycle (QuestSystem only needs it for level-up at reward time).
         services.AddSingleton(p => new Lazy<CombatSystem>(() => p.GetRequiredService<CombatSystem>()));
         services.AddSingleton<SocialSystem>();
         services.AddSingleton<SpawnSystem>();

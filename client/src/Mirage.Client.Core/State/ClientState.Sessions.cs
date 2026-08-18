@@ -44,7 +44,7 @@ public sealed partial class ClientState
     public List<MailMessage> Mail { get; private set; } = new();
 
     /// <summary>The local account's SENT mail (outbox), newest-last. Replaced whole alongside <see cref="Mail"/>
-    /// by every <c>MailboxPacket</c>; shows the same in-transit -> delivered state on the sender's end.</summary>
+    /// by every <c>MailboxPacket</c>; shows the same in-transit → delivered state on the sender's end.</summary>
     public List<MailMessage> Outbox { get; private set; } = new();
 
     /// <summary>Bumped whenever <see cref="Mail"/> / <see cref="Outbox"/> are replaced, so the Mail panel can

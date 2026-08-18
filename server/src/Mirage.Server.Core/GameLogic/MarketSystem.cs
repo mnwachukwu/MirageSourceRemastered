@@ -204,7 +204,7 @@ public sealed class MarketSystem : GameSystem
         int tax = SaleTax((int)cost);
         int payout = (int)cost - tax;
 
-        // Goods -> buyer, post-tax payout -> seller, both as delayed marketplace mail.
+        // Goods → buyer, post-tax payout → seller, both as delayed marketplace mail.
         _mail.Deliver(sp.Login, MarketSender, ServerStrings.Get(ServerStrings.Market_BoughtSubject),
             ServerStrings.Get(ServerStrings.Market_BoughtBody),
             new List<MailAttachment> { new() { ItemNum = listing.ItemNum, Quantity = units, Dur = listing.Dur } }, deliverAt);

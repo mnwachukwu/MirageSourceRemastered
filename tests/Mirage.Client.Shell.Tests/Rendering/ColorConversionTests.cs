@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Mirage.Client.Shell.Tests;
 
-/// <summary>HSV &lt;-&gt; RGB math behind the guild color picker's box/slider. The picker relies on a clean
+/// <summary>HSV ↔ RGB math behind the guild color picker's box/slider. The picker relies on a clean
 /// round-trip so dragging the box and typing RGB numbers stay in sync without drifting.</summary>
 [TestFixture]
 public class ColorConversionTests

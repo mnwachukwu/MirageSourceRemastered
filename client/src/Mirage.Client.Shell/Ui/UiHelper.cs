@@ -300,7 +300,7 @@ public static class UiHelper
     public static void LabelTooltip(SpriteFont font, string text, Rectangle textRect, Point mouse, string scope, object key)
     {
         if (string.IsNullOrEmpty(text)) return;
-        if (font.MeasureString(text).X <= textRect.Width) return;   // fits -> nothing to reveal
+        if (font.MeasureString(text).X <= textRect.Width) return;   // fits → nothing to reveal
         if (!textRect.Contains(mouse)) return;
         Tooltip.NotifyHoverText(scope, (scope, key), text, mouse);
     }
@@ -366,7 +366,7 @@ public static class UiHelper
     // One triangle edge's intersection with a horizontal scanline at y, widening [xL,xR] if it crosses.
     private static void ScanEdge(Vector2 a, Vector2 b, float y, ref float xL, ref float xR)
     {
-        if ((a.Y <= y) == (b.Y <= y)) return;   // both endpoints on the same side -> no crossing
+        if ((a.Y <= y) == (b.Y <= y)) return;   // both endpoints on the same side → no crossing
         float x = a.X + (y - a.Y) / (b.Y - a.Y) * (b.X - a.X);
         if (x < xL) xL = x;
         if (x > xR) xR = x;

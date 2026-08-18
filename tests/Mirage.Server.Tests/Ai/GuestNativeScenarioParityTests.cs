@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Mirage.Server.Tests;
 
-// GUEST <-> NATIVE SCENARIO PARITY (runtime layer).
+// GUEST ↔ NATIVE SCENARIO PARITY (runtime layer).
 //
 // The structural suite (GuestNativeNpcParityTests) proves a guest IS a native record at the data level.
 // This one goes further: it stands up a REAL NpcAiSystem (real CombatSystem + MovementSystem + BloodSystem,
@@ -37,7 +37,7 @@ public class GuestNativeScenarioParityTests
     [Test]
     public void OpeningApproach_StrollsWhenTargetWithinCeiling_GuestMatchesNative()
     {
-        int ceilingY = 6 + Constants.NpcApproachWalkMaxGap;   // gap == the stroll ceiling -> still a walk
+        int ceilingY = 6 + Constants.NpcApproachWalkMaxGap;   // gap == the stroll ceiling → still a walk
         var native = RunChaseStep(guest: false, npcX: 8, npcY: 6, targetX: 8, targetY: ceilingY, hasContact: false, sprinting: false);
         var guest = RunChaseStep(guest: true, npcX: 8, npcY: 6, targetX: 8, targetY: ceilingY, hasContact: false, sprinting: false);
         Assert.That(guest, Is.EqualTo(native), "a guest must stroll the opening approach exactly like a native");
@@ -48,11 +48,11 @@ public class GuestNativeScenarioParityTests
 
     // Opening approach (PRE-contact), target spotted just PAST the stroll ceiling (ceiling + 1): the AoS mob RUSHES
     // the opening gap instead of strolling, latching the charge (ChaseSprinting) so it commits to melee.  Covers
-    // both "spotted far -> rush" and "a stalked target opens the gap past the ceiling -> the walk becomes a charge".
+    // both "spotted far → rush" and "a stalked target opens the gap past the ceiling → the walk becomes a charge".
     [Test]
     public void OpeningApproach_RushesWhenTargetPastCeiling_GuestMatchesNative()
     {
-        int pastCeilingY = 6 + Constants.NpcApproachWalkMaxGap + 1;   // one tile past the ceiling -> rush/charge
+        int pastCeilingY = 6 + Constants.NpcApproachWalkMaxGap + 1;   // one tile past the ceiling → rush/charge
         var native = RunChaseStep(guest: false, npcX: 8, npcY: 6, targetX: 8, targetY: pastCeilingY, hasContact: false, sprinting: false);
         var guest = RunChaseStep(guest: true, npcX: 8, npcY: 6, targetX: 8, targetY: pastCeilingY, hasContact: false, sprinting: false);
         Assert.That(guest, Is.EqualTo(native), "a guest must rush the opening approach exactly like a native");
@@ -68,7 +68,7 @@ public class GuestNativeScenarioParityTests
     [Test]
     public void ChaseStep_Walk_GuestMatchesNative()
     {
-        int walkBandY = 6 + Constants.NpcChaseSprintGapTiles - 1;   // target just inside the sprint gap -> walk (not adjacent, below threshold)
+        int walkBandY = 6 + Constants.NpcChaseSprintGapTiles - 1;   // target just inside the sprint gap → walk (not adjacent, below threshold)
         var native = RunChaseStep(guest: false, npcX: 8, npcY: 6, targetX: 8, targetY: walkBandY, hasContact: true, sprinting: false);
         var guest = RunChaseStep(guest: true, npcX: 8, npcY: 6, targetX: 8, targetY: walkBandY, hasContact: true, sprinting: false);
         Assert.That(guest, Is.EqualTo(native), "a guest must walk-step exactly like a native (post-contact, target inside the sprint gap)");
@@ -77,7 +77,7 @@ public class GuestNativeScenarioParityTests
         Assert.That(native.Sp, Is.EqualTo(20), "a walk-step drains no SP");
     }
 
-    // Post-contact, target 8 tiles away (>= the sprint gap) -> both SPRINT one tile, drain the same SP, latch identically.
+    // Post-contact, target 8 tiles away (>= the sprint gap) → both SPRINT one tile, drain the same SP, latch identically.
     [Test]
     public void ChaseStep_Run_GuestMatchesNative()
     {
@@ -91,7 +91,7 @@ public class GuestNativeScenarioParityTests
 
     // Post-contact, LATCHED, target just INSIDE the sprint gap (threshold-1 tiles): the sprint latch HOLDS it
     // running toward the not-yet-adjacent target instead of dropping to a walk — the hysteresis's "keep sprinting
-    // until adjacent" half.  Same geometry as ChaseStep_Walk but latched -> sprints, isolating the latch as the
+    // until adjacent" half.  Same geometry as ChaseStep_Walk but latched → sprints, isolating the latch as the
     // deciding factor below the threshold.  Guest and native identically, SP draining.
     [Test]
     public void ChaseStep_LatchedSprintNearTarget_GuestMatchesNative()
@@ -579,7 +579,7 @@ public class GuestNativeScenarioParityTests
             mn.Mp = mp;  // hold mana at the target fraction
             mn.AttackTimer = 0;
             mn.WeaveWasReady = false;  // fresh beat
-            mn.WeaveModalityBeatsLeft = 0;                  // re-roll every beat -> measures the raw P(cast)
+            mn.WeaveModalityBeatsLeft = 0;                  // re-roll every beat → measures the raw P(cast)
             mn.CombatExpiresAt = tick + 10_000_000;
             ai.RunForAllMaps(tick);
             if (mn.WeaveCastThisBeat) castBeats++;

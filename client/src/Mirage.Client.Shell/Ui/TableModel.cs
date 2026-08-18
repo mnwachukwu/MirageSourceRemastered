@@ -38,7 +38,7 @@ public readonly record struct TableColumnBox(int Logical, int X, int Width);
 public sealed class TableModel
 {
     private readonly List<TableColumn> _columns;
-    private int[] _order;   // display position -> logical column index
+    private int[] _order;   // display position → logical column index
 
     /// <summary>Logical index of the column the rows are sorted by, or -1 when unsorted.</summary>
     public int SortColumn { get; private set; } = -1;
@@ -112,7 +112,7 @@ public sealed class TableModel
     }
 
     /// <summary>Restore a persisted layout: <paramref name="widths"/> is a per-logical-column width and
-    /// <paramref name="order"/> is a display->logical permutation. Each is applied only if its shape matches
+    /// <paramref name="order"/> is a display→logical permutation. Each is applied only if its shape matches
     /// this model (so a config saved against a different column set is ignored, never corrupts the table);
     /// widths are clamped up to each column's <see cref="TableColumn.MinWidth"/>. Sort state is not persisted.</summary>
     public void ApplyLayout(IReadOnlyList<int> order, IReadOnlyList<int> widths)

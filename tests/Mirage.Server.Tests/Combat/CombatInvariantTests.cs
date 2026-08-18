@@ -5,7 +5,7 @@ namespace Mirage.Server.Tests;
 
 // Deterministic locks on the damage/vital invariants that Simulations/CombatSim only checks by printed
 // eyeball (the sim reimplements the math standalone, so it can silently drift from Mirage.Shared).  These
-// pin the REAL formulas.  Parity/mirror properties (STR==INT offense, NPC<->player pools/regen/mit) already
+// pin the REAL formulas.  Parity/mirror properties (STR==INT offense, NPC↔player pools/regen/mit) already
 // live in NpcPlayerFormulaParityTests; this file covers the pieces that fixture doesn't: the damage floors,
 // crit/variance shape, and the player HP==MP mirror.
 [TestFixture]
@@ -14,7 +14,7 @@ public class CombatInvariantTests
     static readonly int[] StatSweep = { 0, 1, 5, 10, 30, 60, 100, 150, 200, 255 };
     static readonly int[] LevelSweep = { 1, 10, 30, 60, 100, 150, 200, 255 };
     static readonly int[] RawSweep = { 1, 5, 10, 50, 100, 500, 1000 };
-    const int HugeProtection = 1_000_000;   // more mitigation than any real hit -> the floor always binds
+    const int HugeProtection = 1_000_000;   // more mitigation than any real hit → the floor always binds
 
     // A stacked-DEF defender is never fully immune: through unlimited mitigation the hit still lands the
     // MinDamageFloorPercent (12%) fraction of the varied raw.  Locks the "no immortal tank" guardrail.

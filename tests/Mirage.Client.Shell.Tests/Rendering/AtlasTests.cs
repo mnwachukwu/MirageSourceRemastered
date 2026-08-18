@@ -59,7 +59,7 @@ public class AtlasTests
     [Test]
     public void TileAtlas_Init_DerivesColumnsFromWidth_ZeroWidthFallsBackToOne()
     {
-        TileAtlas.Init([0]);   // a 0-width sheet -> 1-column fallback
+        TileAtlas.Init([0]);   // a 0-width sheet → 1-column fallback
         Assert.That(TileAtlas.GetSourceRect(0, 3), Is.EqualTo(Cell(0, 2)), "single column: tile 3 sits at row 2");
     }
 

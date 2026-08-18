@@ -1,4 +1,4 @@
-﻿using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -71,7 +71,7 @@ public sealed partial class NpcAiSystem : GameSystem
         if (!hasMana) return false;
 
         // Melee-vs-magic WEAVE, committed for a short run of beats (see RollCastModality + WeaveModalityBeatsLeft)
-        // so it doesn't flicker cast<->melee every beat.  The chosen modality latches in WeaveCastThisBeat (rolled
+        // so it doesn't flicker cast↔melee every beat.  The chosen modality latches in WeaveCastThisBeat (rolled
         // on the rising edge of castReady) so the 500ms brain and the 100ms legs pass agree within the beat.  A
         // MELEE beat returns false here so the brain's melee fall-through closes in and swings — the same path an
         // Int=0 or out-of-mana NPC uses.
@@ -80,7 +80,7 @@ public sealed partial class NpcAiSystem : GameSystem
         if (freshBeat)
         {
             // Commit to whichever modality we roll for a short run of beats (NpcWeaveCommitMin..MaxBeats) before
-            // re-rolling — re-rolling every beat read as twitchy/mechanical cast<->melee flicker.
+            // re-rolling — re-rolling every beat read as twitchy/mechanical cast↔melee flicker.
             if (mn.WeaveModalityBeatsLeft <= 0)
             {
                 mn.WeaveCastThisBeat = RollCastModality(mn, npc);

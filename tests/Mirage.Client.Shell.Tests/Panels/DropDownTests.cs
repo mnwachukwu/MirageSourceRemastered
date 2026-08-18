@@ -38,7 +38,7 @@ public class DropDownTests
     static void OpenPopup(InputState input, DropDown dd)
     {
         Frame(input, dd, new Point(40, 210), true);   // press the header
-        Frame(input, dd, new Point(40, 210), false);  // release -> popup opens
+        Frame(input, dd, new Point(40, 210), false);  // release → popup opens
     }
 
     [Test]
@@ -90,7 +90,7 @@ public class DropDownTests
 
         OpenPopup(input, dd);                          // open
         Frame(input, dd, new Point(40, 210), true);    // press the header again
-        Frame(input, dd, new Point(40, 210), false);   // release -> closes
+        Frame(input, dd, new Point(40, 210), false);   // release → closes
 
         // With the popup closed there are no rows; a click where a row used to be must not select.
         Frame(input, dd, new Point(40, 172), true);

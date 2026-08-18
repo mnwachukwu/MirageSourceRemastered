@@ -27,7 +27,7 @@ public sealed partial class CombatSystem : GameSystem
         if (ap.Access > AdminLevel.Player) return PvpBlock.AttackerAdmin;
         if (vp.Access > AdminLevel.Player) return PvpBlock.VictimAdmin;
         // Safe zone protects when EITHER party's map is Safe (cross-map combat aware). An Arena map
-        // is NOT protected — it permits open PvP like None — but Arena<->Safe stays blocked, since a
+        // is NOT protected — it permits open PvP like None — but Arena↔Safe stays blocked, since a
         // Safe map on either side trips this check regardless of what the other side is. A
         // grace-period PKer counts as effectively non-PK here so they get the same safe-zone
         // immunity as a normal player; the attacker sees the standard "This is a safe zone!" reply.

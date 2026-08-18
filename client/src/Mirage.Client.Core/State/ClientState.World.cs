@@ -224,4 +224,31 @@ public sealed partial class ClientState
             }
         }
     }
+
+    // Classes and map groups
+    /// <summary>1-based; index 0 is unused dummy. Sized dynamically from server.</summary>
+    public ClassRecord[] Classes { get; set; } = new ClassRecord[1]; // placeholder until server sends
+
+    // MapGroup defs, cached like the other shared defs: filled in bulk at join (SendMapGroups) and
+    // refreshed per-group on a live editor save (UpdateMapGroup). The client resolves a map's EFFECTIVE
+    // inheritable values against these on demand via the *Of helpers below — the client-side mirror of the
+    // server's GameWorld.*Of(mapNum) — instead of the server baking resolved values into each map packet. That
+    // is what lets a group edit land live with no map reload or revision bump. Index 0 unused; a null slot means
+    // "no such group" and resolves to the map's own raw values / hard defaults.
+    public MapGroupRecord?[] MapGroups { get; private set; } = new MapGroupRecord?[RecordLimits.Default.MapGroups + 1];
+
+    /// <summary>The cached MapGroup a map belongs to, or null (group-less map, or the group not yet received).</summary>
+    public MapGroupRecord? GroupOf(MapRecord? map)
+    {
+        int g = map?.MapGroup ?? 0;
+        return g > 0 && g <= Limits.MapGroups ? MapGroups[g] : null;
+    }
+
+    // Effective inheritable map values — resolve the map's own value over its group's over the hard default via
+    // the shared MapGroupResolve, mirroring GameWorld.*Of on the server. Null-map-safe so render/predict sites can
+    // pass an unloaded neighbor cell without a guard.
+    public MapMoral MoralOf(MapRecord? map) => map is null ? MapMoral.None : MapGroupResolve.Moral(map, GroupOf(map));
+    public int MusicOf(MapRecord? map) => map is null ? 0 : MapGroupResolve.Music(map, GroupOf(map));
+    public bool IndoorsOf(MapRecord? map) => map is not null && MapGroupResolve.Indoors(map, GroupOf(map));
+    public bool AlwaysDarkOf(MapRecord? map) => map is not null && MapGroupResolve.AlwaysDark(map, GroupOf(map));
 }

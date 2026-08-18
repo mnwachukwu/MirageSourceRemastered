@@ -85,7 +85,7 @@ public sealed class ParticleSystem
             Move(ref p, dtSec);
             // A homing projectile that reached its target resolves its arrival FX: a drain bolt bursts, a give-item
             // cube blooms a swirl on the receiver, and each restore-glitter mote morphs into that same swirl (living
-            // on as an Orbit mote rather than dying — the rain->splash pattern, so no new motes are spawned).
+            // on as an Orbit mote rather than dying — the rain→splash pattern, so no new motes are spawned).
             if (IsHoming(p.Kind) && p.X == p.Tx && p.Y == p.Ty)
             {
                 switch (p.Kind)
@@ -166,7 +166,7 @@ public sealed class ParticleSystem
                 }
                 break;
             case ParticleKind.Orbit:
-                // Circle the landing point (Tx,Ty): radius blooms 0->max (sqrt = quick out, then holds) while the
+                // Circle the landing point (Tx,Ty): radius blooms 0→max (sqrt = quick out, then holds) while the
                 // mote sweeps around at its angular velocity. World-anchored on the arrival spot, so it reads as a
                 // swirl on the sprite. Vx = max radius, Vy = angular velocity (signed), Seed = start phase.
                 float orbR = p.Vx * MathF.Sqrt(p.Age / MathF.Max(p.Life, 0.0001f));
@@ -205,7 +205,7 @@ public sealed class ParticleSystem
     // ── Weather emission ────────────────────────────────────────────────────
     // Spawn over the world-space viewport + a margin so particles enter from just off each edge. Rain and
     // snow fall straight DOWN in world space — the camera-follow parallax supplies the "lean opposite your
-    // motion" the design calls for (left->leans right, up/down->stays vertical), so no per-particle velocity
+    // motion" the design calls for (left→leans right, up/down→stays vertical), so no per-particle velocity
     // hack. Weather states are mutually exclusive, so there's no rain-during-wind angle to blend.
     private float _fallAccum;      // rain/snow spawn carry
     private float _windAccum;      // wind-streak spawn carry
