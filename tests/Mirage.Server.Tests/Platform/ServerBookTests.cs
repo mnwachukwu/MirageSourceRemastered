@@ -45,6 +45,36 @@ public class ServerBookTests
     }
 
     [Test]
+    public void AFreshInstallWritesItsBookRatherThanKeepingItInMemory()
+    {
+        _ = New();
+
+        Assert.That(File.Exists(_file), Is.True, "an operator has to be able to see and ship this file");
+        Assert.That(New().All[0].Name, Is.EqualTo(ServerBook.DefaultName));
+    }
+
+    [Test]
+    public void AnEntryAddedWithNoNameKeepsNotHavingOne()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(_file,
+            $$"""[{"name":"","host":"localhost","port":{{ServerBook.DefaultPort}}}]""");
+
+        Assert.That(New().All[0].Name, Is.Empty, "leaving the name blank is a choice, not a gap to fill");
+    }
+
+    [Test]
+    public void AnUnreadableBookIsLeftOnDiskRatherThanOverwritten()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(_file, "{ this is not a server list");
+
+        _ = New();
+
+        Assert.That(File.ReadAllText(_file), Does.StartWith("{ this is not"));
+    }
+
+    [Test]
     public void AnAppOnAnotherPortSeedsThatPort_UnderTheSameName()
     {
         var book = new ServerBook(_file, defaultPort: 4001);

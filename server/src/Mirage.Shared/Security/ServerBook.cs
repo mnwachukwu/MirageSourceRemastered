@@ -41,7 +41,8 @@ public sealed class ServerBook
     {
         _path = path;
         _defaultPort = defaultPort;
-        _entries = Load(path, defaultPort);
+        _entries = Load(path, defaultPort, out bool created);
+        if (created) Save();
     }
 
     /// <summary>Every known server, in insertion order.</summary>
@@ -113,19 +114,28 @@ public sealed class ServerBook
 
     public void Reload()
     {
-        lock (_gate) { _entries = Load(_path, _defaultPort); }
+        lock (_gate)
+        {
+            _entries = Load(_path, _defaultPort, out bool created);
+            if (created) Save();
+        }
     }
 
-    // No file means a fresh install, which starts on the default address. A file that parses to nothing
-    // is a book someone emptied, and stays empty.
-    private static List<ServerEntry> Load(string path, int defaultPort)
+    /// <summary>Reads the book. No file means a fresh install: the default entry is created and
+    /// <paramref name="created"/> says to write it out. A file that parses to nothing is a book someone
+    /// emptied, and stays empty; one that fails to parse is read as empty and left on disk untouched.</summary>
+    private static List<ServerEntry> Load(string path, int defaultPort, out bool created)
     {
+        created = false;
         if (!File.Exists(path))
+        {
+            created = true;
             return [new ServerEntry { Name = DefaultName, Host = DefaultHost, Port = defaultPort }];
+        }
 
         List<ServerEntry> read;
         try { read = JsonSerializer.Deserialize<List<ServerEntry>>(File.ReadAllText(path)) ?? []; }
-        catch { read = []; }
+        catch { return []; }
 
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         return read.Where(e => !string.IsNullOrWhiteSpace(e.Host) && seen.Add(e.Key)).ToList();
