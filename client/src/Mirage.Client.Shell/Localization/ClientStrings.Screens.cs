@@ -10,6 +10,8 @@ public static partial class ClientStrings
     public const string LoginScreen_Title = nameof(LoginScreen_Title);
     public const string LoginScreen_Instruction = nameof(LoginScreen_Instruction);
     public const string LoginScreen_ChangePasswordLink = nameof(LoginScreen_ChangePasswordLink);
+    public const string LoginScreen_RememberMe = nameof(LoginScreen_RememberMe);
+    public const string LoginScreen_RememberMeWarning = nameof(LoginScreen_RememberMeWarning);
     public const string LoginScreen_ConnectButton = nameof(LoginScreen_ConnectButton);
     public const string LoginScreen_LoggingIn = nameof(LoginScreen_LoggingIn);
 

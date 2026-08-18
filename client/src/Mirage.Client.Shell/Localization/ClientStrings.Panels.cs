@@ -92,6 +92,7 @@ public static partial class ClientStrings
     public const string ShopPanel_TeachesSpell = nameof(ShopPanel_TeachesSpell);
     public const string ShopPanel_MpCost = nameof(ShopPanel_MpCost);
     public const string ShopPanel_ReagentCost = nameof(ShopPanel_ReagentCost);
+    public const string ShopPanel_ReagentDepletes = nameof(ShopPanel_ReagentDepletes);
     public const string ShopPanel_PotionEffect = nameof(ShopPanel_PotionEffect);
     public const string ShopPanel_TradeCost = nameof(ShopPanel_TradeCost);
     public const string ShopPanel_StatRequirement = nameof(ShopPanel_StatRequirement);

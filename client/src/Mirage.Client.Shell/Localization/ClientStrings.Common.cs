@@ -90,6 +90,8 @@ public static partial class ClientStrings
     public const string HotkeyBar_ItemGone = nameof(HotkeyBar_ItemGone);
     public const string HotkeyBar_SpellGone = nameof(HotkeyBar_SpellGone);
     public const string Tooltip_ReagentCost = nameof(Tooltip_ReagentCost);
-    public const string Tooltip_ReagentCostRained = nameof(Tooltip_ReagentCostRained);   // rain-doubled reagent value: "{Count} (x2)"
+    public const string Tooltip_ReagentCostRained = nameof(Tooltip_ReagentCostRained);   // rain-doubled value: "{Count} (x2)"
+    public const string Tooltip_ReagentDepletes = nameof(Tooltip_ReagentDepletes);
+    public const string Tooltip_ReagentChancePercent = nameof(Tooltip_ReagentChancePercent);   // how often: "{Percent}%"
     public const string Tooltip_IntReq = nameof(Tooltip_IntReq);
 }

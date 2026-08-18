@@ -20,6 +20,11 @@ public sealed class ShellContext
     public required Action ExitGame { get; init; }
     public required string ServerHost { get; set; }
     public required int ServerPort { get; set; }
+
+    /// <summary>The login screen's "remember me" state and the name it prefills. Held here rather than on
+    /// the screen because a screen is rebuilt on every transition; <c>SaveSettings</c> writes both.</summary>
+    public required bool RememberLogin { get; set; }
+    public required string RememberedLogin { get; set; }
     public required AlertDialog Dialog { get; init; }
     public required OptionsPanel OptionsPanel { get; init; }
     public required Action<bool> OnAspectRatioChanged { get; init; }

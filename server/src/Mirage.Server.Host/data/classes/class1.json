@@ -10,7 +10,7 @@
   "startingItems": [
     {
       "itemNum": 1,
-      "quantity": 200
+      "quantity": 75
     },
     {
       "itemNum": 6,
@@ -33,11 +33,11 @@
       "quantity": 0
     },
     {
-      "itemNum": 185,
+      "itemNum": 184,
       "quantity": 0
     },
     {
-      "itemNum": 185,
+      "itemNum": 184,
       "quantity": 0
     },
     {

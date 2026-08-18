@@ -68,7 +68,7 @@ public sealed class JsonPersistenceService : IPersistenceService
     private string SpellsPath => Path.Combine(_dataPath, "spells");
     private string ClassesPath => Path.Combine(_dataPath, "classes");
     private string GuildsPath => Path.Combine(_dataPath, "guilds");
-    private string MapGroupsPath => Path.Combine(_dataPath, "mapgroups");
+    private string MapGroupsPath => Path.Combine(_dataPath, "map_groups");
     private string SeasonsPath => Path.Combine(_dataPath, "seasons");
     private string MarketListingsPath => Path.Combine(_dataPath, "market");
 

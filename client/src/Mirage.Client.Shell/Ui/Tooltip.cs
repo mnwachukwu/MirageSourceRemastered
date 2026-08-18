@@ -403,18 +403,32 @@ public static class Tooltip
 
         _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_MpCost), mpCost.ToString(), ValueColor));
 
-        // SubHp also burns casting reagents per cast — show "<Reagent> Cost: N" using the reagent item's own name.
-        // In the rain the cast consumes twice as many, so tag the base cost with "(x2)" as a hint the cost is doubled.
+        // SubHp also burns casting reagents. TWO lines, both whole numbers: what a cast takes, then how often
+        // it takes the larger of the two. A cast usually costs nothing at low tiers, so one averaged figure
+        // ("0.1") reads as a strange fraction of an item the player never sees leave the bag.
+        // Rain is folded into both numbers rather than tagged onto one, and still carries its "(x2)" hint.
         if (spell.Type == SpellType.SubHp)
         {
             string reagentName = (Constants.CastingReagentItemIndex < itemDefs.Length
                 ? itemDefs[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
-            int reagentCost = CombatFormulas.SubHpReagentCost(spell.LevelReq);
-            string reagentValue = weather == WeatherType.Rain
-                ? ClientStrings.Format(ClientStrings.Tooltip_ReagentCostRained, ("Count", reagentCost))
-                : reagentCost.ToString();
+            bool raining = weather == WeatherType.Rain;
+            double exact = CombatFormulas.SubHpReagentCostExact(spell.LevelReq)
+                         * (raining ? Constants.WeatherRainReagentMultiplier : 1);
+            int perCast = CombatFormulas.ReagentCostPerCast(exact);
+            double chance = CombatFormulas.ReagentDepleteChancePercent(exact);
+
+            string costText = perCast.ToString();
+            if (raining) costText = ClientStrings.Format(ClientStrings.Tooltip_ReagentCostRained, ("Count", costText));
             _lines.Add(new Line(ClientStrings.Format(ClientStrings.Tooltip_ReagentCost, ("Reagent", reagentName)),
-                reagentValue, ValueColor));
+                costText, ValueColor));
+
+            // Omitted at 100%, where every cast pays and there are no odds worth stating.
+            if (chance is > 0 and < 100)
+            {
+                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ReagentDepletes),
+                    ClientStrings.Format(ClientStrings.Tooltip_ReagentChancePercent, ("Percent", chance.ToString("0.#"))),
+                    ValueColor));
+            }
         }
 
         // Effectiveness: M-DMG for damaging spells (any Sub* drains a vital), and a per-vital restore

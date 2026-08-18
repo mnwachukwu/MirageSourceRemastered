@@ -61,6 +61,11 @@ public sealed partial class MirageGame : Game
                     s.UseGamepad = ugp.GetBoolean();
                 if (root.TryGetProperty("Language", out var lang) && lang.GetString() is { } ls)
                     s.Language = ls;
+                if (root.TryGetProperty("RememberLogin", out var rl))
+                    s.RememberLogin = rl.GetBoolean();
+                // Capped on the way in so a hand-edited file cannot overflow the field it lands in.
+                if (root.TryGetProperty("RememberedLogin", out var rln) && rln.GetString() is { } login)
+                    s.RememberedLogin = login.Length > Constants.NameLength ? login[..Constants.NameLength] : login;
                 if (root.TryGetProperty("OptionsPanel", out var op) &&
                     op.TryGetProperty("x", out var ox) && op.TryGetProperty("y", out var oy) &&
                     op.TryGetProperty("width", out var ow) && op.TryGetProperty("height", out var oh))
@@ -95,6 +100,9 @@ public sealed partial class MirageGame : Game
             root["Server"] = new JsonObject { ["Host"] = _serverHost, ["Port"] = _serverPort };
             root["MaintainAspectRatio"] = _maintainAspectRatio;
             root["Language"] = _language;
+            // Read back off the context: the login screen owns these, and it is the only writer.
+            root["RememberLogin"] = _ctx?.RememberLogin ?? false;
+            root["RememberedLogin"] = _ctx?.RememberedLogin ?? "";
             root["PlayMusic"] = _playMusic;
             root["MusicVolume"] = _musicVolume;
             root["MainMenuMusic"] = _mainMenuMusic;

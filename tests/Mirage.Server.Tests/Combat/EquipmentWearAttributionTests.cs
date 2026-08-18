@@ -154,7 +154,7 @@ public class EquipmentWearAttributionTests
     [Test]
     public void FullCycleAverage_IsTheNumberTheEconomyIsQuotedOn()
     {
-        // EconomyFormulas and CombatFormulas.SubHpReagentCost both price upkeep on ~0.48 durability lost
+        // EconomyFormulas and CombatFormulas.SubHpReagentCostExact both price upkeep on ~0.48 durability lost
         // per wear event. That is not a chosen constant — it is the four bands integrated over a full
         // 100 → 0 cycle, so this recomputes it from the band constants rather than restating it.
         (int Width, int Chance)[] bands =

@@ -158,6 +158,12 @@ public sealed class DeleteAccountScreen : IGameScreen
     private void DoDelete()
     {
         _ctx.State.AccountName = _nameField.Text;
+        // Forget the name being deleted. Optimistic: a refused delete costs a retype.
+        if (string.Equals(_ctx.RememberedLogin, _nameField.Text, StringComparison.OrdinalIgnoreCase))
+        {
+            _ctx.RememberedLogin = "";
+            _ctx.SaveSettings();
+        }
         _ctx.Menu.LastAuthFlow = AuthFlow.DeleteAccount;
         _ctx.Sender.SendDelAccount(_nameField.Text, _passwordField.Text);
         _ctx.Menu.GoToLoading(ClientStrings.Get(ClientStrings.DeleteAccountScreen_DeletingAccount));

@@ -81,6 +81,8 @@
   "HotkeyBar_SpellGone": "You no longer know {Spell}.",
   "Tooltip_ReagentCost": "{Reagent} Cost",
   "Tooltip_ReagentCostRained": "{Count} (x2)",
+  "Tooltip_ReagentDepletes": "Depletes",
+  "Tooltip_ReagentChancePercent": "{Percent}%",
   "Tooltip_IntReq":      "INT Req.",
 
   "InnPanel_SetSpawnButton":   "Set Spawn",
@@ -161,6 +163,7 @@
   "ShopPanel_TeachesSpell":       "Teaches: {SpellName}",
   "ShopPanel_MpCost":             "MP Cost: {Cost}",
   "ShopPanel_ReagentCost":        "{Reagent} Cost: {Count}",
+  "ShopPanel_ReagentDepletes":    "Depletes: {Percent}%",
   "ShopPanel_PotionEffect":       "Effect: {Effect}",
   "ShopPanel_TradeCost":          "Cost: {Amount} {Item}",
   "ShopPanel_StatRequirement":    "Required {Stat}: {Value}",
@@ -718,6 +721,8 @@
   "LoginScreen_Title":               "Login",
   "LoginScreen_Instruction":         "Enter your account name and password.",
   "LoginScreen_ChangePasswordLink":  "[Change Password]",
+  "LoginScreen_RememberMe":          "Remember me",
+  "LoginScreen_RememberMeWarning":   "Do not select this on public computers.",
   "LoginScreen_ConnectButton":       "Connect",
   "LoginScreen_LoggingIn":           "Logging in...",
 

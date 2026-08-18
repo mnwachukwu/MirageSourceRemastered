@@ -85,9 +85,14 @@ public class SpellRowViewModelTests
         Assert.Multiple(() =>
         {
             Assert.That(Row(SpellType.SubHp).ShowReagentCost, Is.True);
-            Assert.That(Row(SpellType.SubHp, vitalAmount: 40).ReagentCost, Is.GreaterThan(0), "a SubHp spell costs reagents");
+            // A whole count and a percent: reagents are items so the count must be whole, while the odds
+            // are stated outright. A low-tier cast usually takes nothing, which is what the percent says.
+            var subHp = Row(SpellType.SubHp, vitalAmount: 40);
+            Assert.That(subHp.ReagentCost, Is.Not.Empty, "a SubHp spell costs reagents");
+            Assert.That(subHp.ReagentChance, Does.Contain("%"), "and states how often it takes them");
             Assert.That(Row(SpellType.AddHp).ShowReagentCost, Is.False);
-            Assert.That(Row(SpellType.AddMp).ReagentCost, Is.EqualTo(0));
+            Assert.That(Row(SpellType.AddMp).ReagentCost, Is.Empty);
+            Assert.That(Row(SpellType.AddMp).ReagentChance, Is.Empty);
         });
     }
 

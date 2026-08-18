@@ -188,7 +188,7 @@ public static class EconomyFormulas
 
     /// <summary>Gold per durability point on a piece of the given <paramref name="power"/>, BEFORE the
     /// replacement-cost cap — the one place the repair rate is stated.  Also the anchor a caster's reagent
-    /// bill is matched against (<see cref="CombatFormulas.SubHpReagentCost"/>), so the two cannot drift.</summary>
+    /// bill is matched against (<see cref="CombatFormulas.SubHpReagentCostExact"/>), so the two cannot drift.</summary>
     public static double RepairGoldPerPoint(int power) => Math.Max(power, 0) / RepairPowerDivisor;
 
     /// <summary>Gold to repair <paramref name="durabilityPoints"/> of durability on <paramref name="item"/>,

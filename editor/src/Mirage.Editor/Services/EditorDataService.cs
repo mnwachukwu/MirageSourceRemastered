@@ -260,7 +260,7 @@ public sealed class EditorDataService
     // files like the record editors — the server stores them sparsely too. Sized to the editor slot cap.
     private static async Task<MapGroupRecord[]> LoadAllMapGroupsAsync(string dataPath)
     {
-        var dir = Path.Combine(dataPath, "mapgroups");
+        var dir = Path.Combine(dataPath, "map_groups");
         var result = new MapGroupRecord[RecordLimits.Default.MapGroups + 1];
         for (int i = 1; i <= RecordLimits.Default.MapGroups; i++) result[i] = new MapGroupRecord { Index = i };
 
@@ -418,7 +418,7 @@ public sealed class EditorDataService
     {
         OfflineMapGroups[index] = record;
         _mapGroupEntries = null;
-        await WriteJsonAsync(Path.Combine(EditorPaths.Data, "mapgroups", $"mapgroup{index}.json"), record);
+        await WriteJsonAsync(Path.Combine(EditorPaths.Data, "map_groups", $"mapgroup{index}.json"), record);
         RaiseEntriesInvalidated();
     }
 

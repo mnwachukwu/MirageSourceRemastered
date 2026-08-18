@@ -134,6 +134,8 @@ public static partial class EditorStrings
     public const string SpellEditor_SectionTitle = nameof(SpellEditor_SectionTitle);
     public const string SpellEditor_MaxMpCostLabel = nameof(SpellEditor_MaxMpCostLabel);
     public const string SpellEditor_ReagentCostLabel = nameof(SpellEditor_ReagentCostLabel);
+    public const string SpellEditor_ReagentChanceLabel = nameof(SpellEditor_ReagentChanceLabel);
+    public const string SpellEditor_ReagentChancePercent = nameof(SpellEditor_ReagentChancePercent);   // "{Percent}%"
     public const string SpellEditor_SubHpMpCostValue = nameof(SpellEditor_SubHpMpCostValue);
     public const string SpellEditor_AddMpCostValue = nameof(SpellEditor_AddMpCostValue);
     public const string SpellEditor_MpCostNote = nameof(SpellEditor_MpCostNote);

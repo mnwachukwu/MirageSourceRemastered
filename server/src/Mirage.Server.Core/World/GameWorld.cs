@@ -37,7 +37,7 @@ public sealed class GameWorld
     public List<MarketSale> MarketSales { get; } = new();
 
     // Map groups are also UNBOUNDED (guild-style), keyed by group Index, backed by
-    // mapgroups/mapgroup{Index}.json. Maps reference a group via MapRecord.MapGroup; a territory is a group
+    // map_groups/mapgroup{Index}.json. Maps reference a group via MapRecord.MapGroup; a territory is a group
     // with Territory = true.
     public Dictionary<int, MapGroupRecord> MapGroups { get; } = new();
 

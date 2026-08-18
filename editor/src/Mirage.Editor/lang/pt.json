@@ -477,6 +477,8 @@
   "SpellEditor_SectionTitle": "Editor de magias",
   "SpellEditor_MaxMpCostLabel": "Custo máx. de PM:",
   "SpellEditor_ReagentCostLabel": "Reagente / conjuro:",
+  "SpellEditor_ReagentChanceLabel": "Consome:",
+  "SpellEditor_ReagentChancePercent": "{Percent}%",
   "SpellEditor_SubHpMpCostValue": "MaxMP / 20 (irrisório)",
   "SpellEditor_AddMpCostValue": "{Cost} (com INT {Int})",
   "SpellEditor_MpCostNote": "(SubHp: PM irrisório da reserva + o reagente abaixo. AddMp é cobrado conforme o que restaura, portanto o seu custo sobe com a INT do conjurador — o valor mostrado é o do conjurador mais fraco que poderia aprendê-lo. Os outros tipos mostram o seu custo fixo de PM utilitário.)",

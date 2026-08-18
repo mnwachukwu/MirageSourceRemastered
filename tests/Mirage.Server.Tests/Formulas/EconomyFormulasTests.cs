@@ -282,14 +282,17 @@ public class EconomyFormulasTests
     [Test]
     public void CasterAndWarriorUpkeepStayInStep()
     {
-        // Reagents are 1 gold each, so a cast's reagent count must equal the gold a warrior burns per
-        // swing. The parity has to be DERIVED from the live repair rule: priced off a copy of it, the two
-        // drift to ~87x apart at max level in the caster's favor and nothing fails.
-        foreach (int level in new[] { 20, 100, 120, 235, 255 })
+        // Reagents are 1 gold each, so a cast's reagent cost must equal the gold a warrior burns per swing.
+        // The parity has to be DERIVED from the live repair rule: priced off a copy of it, the two drift to
+        // ~87x apart at max level in the caster's favor and nothing fails.
+        //
+        // EXACT, and the whole ladder. A +/-1 gold tolerance is wider than the entire quantity below level 40,
+        // so it admitted a level-1 cast costing ten times a level-1 swing; and starting at 20 never looked.
+        foreach (int level in new[] { 1, 2, 5, 10, 20, 40, 100, 120, 235, 255 })
         {
             double warriorPerSwing = EconomyFormulas.RepairGoldPerDurabilityPoint(level) * 0.48;   // avg chip per hit
-            int casterPerCast = CombatFormulas.SubHpReagentCost(level);
-            Assert.That(casterPerCast, Is.EqualTo(warriorPerSwing).Within(1.0),
+            double casterPerCast = CombatFormulas.SubHpReagentCostExact(level);
+            Assert.That(casterPerCast, Is.EqualTo(warriorPerSwing).Within(0.0001),
                 $"level {level}: a cast must cost what a swing costs, in gold");
         }
     }

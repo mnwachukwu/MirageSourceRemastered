@@ -341,7 +341,7 @@ public static class Constants
     public const int GoldItemIndex = 1;
 
     // Item slot 2 is the spellcasting reagent (a Currency item authored in data). A SubHp cast consumes
-    // CombatFormulas.SubHpReagentCost(LevelReq) of it — the magic-side mirror of a warrior's weapon-repair upkeep.
+    // CombatFormulas.SubHpReagentCostExact(LevelReq) of it — the magic-side mirror of a warrior's repair upkeep.
     // The item's definition (name, value, drops, shop stock) is authored in item data; the code only references
     // this index to check/consume the stack, exactly as gold does.
     public const int CastingReagentItemIndex = 2;

@@ -15,18 +15,18 @@
   "reqSpd": 0,
   "reqInt": 0,
   "prereqQuest": 0,
-  "rewardExp": 1918597,
+  "rewardExp": 1918605,
   "rewardItems": [
     {
       "itemNum": 1,
-      "quantity": 611708
+      "quantity": 611711
     }
   ],
-  "repeatRewardExp": 1023251,
+  "repeatRewardExp": 1023256,
   "repeatRewardItems": [
     {
       "itemNum": 1,
-      "quantity": 326244
+      "quantity": 326246
     }
   ],
   "giverNpc": 142,

@@ -263,6 +263,24 @@ public sealed partial class SpellRowViewModel : ObservableObject
     // that's the cost an author actually tunes.
     /// <summary>Whether to show the reagent-cost row (SubHp only).</summary>
     public bool ShowReagentCost => Type == SpellType.SubHp;
-    /// <summary>Reagents consumed per cast; 0 for any type other than SubHp.</summary>
-    public int ReagentCost => Type == SpellType.SubHp ? CombatFormulas.SubHpReagentCost(LevelReq) : 0;
+    /// <summary>Reagents one cast takes when it takes any — a flat count. Empty for a type that consumes
+    /// none.</summary>
+    public string ReagentCost =>
+        Type == SpellType.SubHp
+            ? CombatFormulas.ReagentCostPerCast(CombatFormulas.SubHpReagentCostExact(LevelReq)).ToString()
+            : "";
+
+    /// <summary>How often a cast takes its reagents at all, as a percent. Empty at 100%, where every cast
+    /// pays and there are no odds to state.</summary>
+    public string ReagentChance
+    {
+        get
+        {
+            if (Type != SpellType.SubHp) return "";
+            double chance = CombatFormulas.ReagentDepleteChancePercent(CombatFormulas.SubHpReagentCostExact(LevelReq));
+            return chance is > 0 and < 100
+                ? EditorStrings.Format(EditorStrings.SpellEditor_ReagentChancePercent, ("Percent", chance.ToString("0.#")))
+                : "";
+        }
+    }
 }

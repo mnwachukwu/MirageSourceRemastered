@@ -55,6 +55,8 @@ public sealed partial class MirageGame : Game
             ExitGame = Exit,
             ServerHost = _serverHost,
             ServerPort = _serverPort,
+            RememberLogin = _rememberLogin,
+            RememberedLogin = _rememberedLogin,
             Dialog = _dialog,
             OptionsPanel = _optionsPanel,
             OnAspectRatioChanged = v => { _maintainAspectRatio = v; SaveConfig(); },

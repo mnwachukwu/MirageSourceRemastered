@@ -698,10 +698,20 @@ public sealed class ShopPanel : IGamePanel
             {
                 string reagentName = (Constants.CastingReagentItemIndex < state.Items.Length
                     ? state.Items[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
+                // Two lines, matching the spell tooltip: what a cast takes, then how often it takes the
+                // larger of the two. No rain factor here — the counter does not know the caster's weather.
+                double exact = CombatFormulas.SubHpReagentCostExact(spell.LevelReq);
+                double chance = CombatFormulas.ReagentDepleteChancePercent(exact);
                 UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ReagentCost,
-                    ("Reagent", reagentName), ("Count", CombatFormulas.SubHpReagentCost(spell.LevelReq))),
+                    ("Reagent", reagentName), ("Count", CombatFormulas.ReagentCostPerCast(exact))),
                     new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
                 textY += 18;
+                if (chance is > 0 and < 100)
+                {
+                    UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ReagentDepletes,
+                        ("Percent", chance.ToString("0.#"))), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
+                    textY += 18;
+                }
             }
             // Effectiveness preview: M-DMG for any Sub* (vital-draining) spell, and a per-vital
             // restore label for any Add* spell. Shows ONLY the spell's contribution paired with the

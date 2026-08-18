@@ -19,6 +19,8 @@ public sealed class LoginScreen : IGameScreen
     private readonly TextInputField _passwordField = new() { MaxLength = int.MaxValue, IsPassword = true };
     private readonly Button _connectBtn;
     private readonly Button _cancelBtn;
+    private readonly Checkbox _rememberBox = new();
+    private readonly string _tooltipScope = UiHelper.NextTooltipScope("login");
     private readonly bool _clearName;
     private readonly bool _clearPassword;
     private int _focusedField;
@@ -36,36 +38,43 @@ public sealed class LoginScreen : IGameScreen
     {
         _connectBtn.Label = ClientStrings.Get(ClientStrings.LoginScreen_ConnectButton);
         _cancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
+        _rememberBox.Label = ClientStrings.Get(ClientStrings.LoginScreen_RememberMe);
     }
 
     private static readonly Rectangle Dlg = new(127, 148, 546, 304);
     private static readonly Rectangle NameRect = new(439, 220, 225, 26);
     private static readonly Rectangle PassRect = new(439, 260, 225, 26);
-    private static readonly Rectangle ChangePwdLink = new(PassRect.X, PassRect.Y + PassRect.Height + 2, 140, 16);
+    private static readonly Rectangle RememberBox = new(PassRect.X, PassRect.Y + PassRect.Height + 4, 225, 16);
+    private static readonly Rectangle ChangePwdLink = new(PassRect.X, RememberBox.Bottom + 4, 140, 16);
 
     public LoginScreen(ShellContext ctx, bool clearName = true, bool clearPassword = true)
     {
         _ctx = ctx;
         _clearName = clearName;
         _clearPassword = clearPassword;
-        _connectBtn = new Button { Bounds = new Rectangle(399, 316, 200, 34), Label = ClientStrings.Get(ClientStrings.LoginScreen_ConnectButton) };
-        _cancelBtn = new Button { Bounds = new Rectangle(399, 354, 200, 34), Label = ClientStrings.Get(ClientStrings.Common_Cancel) };
+        _connectBtn = new Button { Bounds = new Rectangle(399, 336, 200, 34), Label = ClientStrings.Get(ClientStrings.LoginScreen_ConnectButton) };
+        _cancelBtn = new Button { Bounds = new Rectangle(399, 374, 200, 34), Label = ClientStrings.Get(ClientStrings.Common_Cancel) };
+        _rememberBox.Bounds = RememberBox;
+        _rememberBox.Label = ClientStrings.Get(ClientStrings.LoginScreen_RememberMe);
     }
 
     /// <summary>Clear or preserve the name and password fields per the constructor flags, so returning
-    /// from a sibling screen doesn't force a re-type.</summary>
+    /// from a sibling screen doesn't force a re-type. A remembered name fills a field the flags would have
+    /// cleared, and focus follows the same rule either way: a filled name sends the caret to the password.</summary>
     public void OnEnter()
     {
-        if (_clearName) _nameField.Clear();
-        else _nameField.SetText(_ctx.State.AccountName);
+        if (!_clearName) _nameField.SetText(_ctx.State.AccountName);
+        else if (_ctx.RememberLogin && _ctx.RememberedLogin.Length > 0) _nameField.SetText(_ctx.RememberedLogin);
+        else _nameField.Clear();
         if (_clearPassword) _passwordField.Clear();
-        _focusedField = (!_clearName && _clearPassword) ? 1 : 0;
+        _rememberBox.Checked = _ctx.RememberLogin;
+        _focusedField = (_nameField.Text.Length > 0 && _clearPassword) ? 1 : 0;
         _errorMsg = "";
         _connecting = false;
         _draggingField = -1;
     }
-    /// <summary>Nothing to release — the screen holds no resources beyond its fields.</summary>
-    public void OnExit() { }
+    /// <summary>Dismiss the remember-me tooltip so it can't outlive the screen.</summary>
+    public void OnExit() => Tooltip.CloseScope(_tooltipScope);
 
     /// <summary>Handle typing, field focus, link clicks, and the submit key; also completes any
     /// in-flight connection attempt started by the submit handler.</summary>
@@ -100,6 +109,15 @@ public sealed class LoginScreen : IGameScreen
         {
             bool shift = input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift);
             _focusedField = shift ? (_focusedField - 1 + 2) % 2 : (_focusedField + 1) % 2;
+        }
+
+        if (_rememberBox.Update(input))
+        {
+            _ctx.RememberLogin = _rememberBox.Checked;
+            // Unticking forgets NOW rather than at the next login, so clearing a stored name never
+            // requires logging in again to take effect.
+            if (!_rememberBox.Checked) _ctx.RememberedLogin = "";
+            _ctx.SaveSettings();
         }
 
         if (input.IsKeyPressed(Keys.Enter)) TryLogin();
@@ -167,6 +185,11 @@ public sealed class LoginScreen : IGameScreen
     private void DoLogin()
     {
         _ctx.State.AccountName = _nameField.Text;
+        if (_rememberBox.Checked)
+        {
+            _ctx.RememberedLogin = _nameField.Text;
+            _ctx.SaveSettings();
+        }
         _ctx.Menu.LastAuthFlow = AuthFlow.Login;
         _ctx.Sender.SendLogin(_nameField.Text, _passwordField.Text);
         _ctx.Menu.GoToLoading(ClientStrings.Get(ClientStrings.LoginScreen_LoggingIn));
@@ -189,6 +212,13 @@ public sealed class LoginScreen : IGameScreen
         _nameField.Draw(sb, font, NameRect, _focusedField == 0, now);
         _passwordField.Draw(sb, font, PassRect, _focusedField == 1, now);
 
+        _rememberBox.Draw(sb, font, _input);
+        if (RememberBox.Contains(_input.MousePosition))
+        {
+            Tooltip.NotifyHoverText(_tooltipScope, (_tooltipScope, "remember"),
+                ClientStrings.Get(ClientStrings.LoginScreen_RememberMeWarning), _input.MousePosition);
+        }
+
         _connectBtn.Draw(sb, font, _input, UiHelper.PrimaryButtonNormal, UiHelper.PrimaryButtonHover);
         _cancelBtn.Draw(sb, font, _input);
 
@@ -200,5 +230,7 @@ public sealed class LoginScreen : IGameScreen
             UiHelper.DrawMenuAlert(sb, font, ClientStrings.Get(ClientStrings.Common_Connecting), Color.Yellow);
         else if (_errorMsg.Length > 0)
             UiHelper.DrawMenuAlert(sb, font, _errorMsg, Color.Red);
+
+        Tooltip.TickAndDraw(sb, font, now, _input.MousePosition);
     }
 }

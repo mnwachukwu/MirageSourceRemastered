@@ -477,6 +477,8 @@
   "SpellEditor_SectionTitle": "Editor de hechizos",
   "SpellEditor_MaxMpCostLabel": "Coste máx. de PM:",
   "SpellEditor_ReagentCostLabel": "Reactivo / conjuro:",
+  "SpellEditor_ReagentChanceLabel": "Se gasta:",
+  "SpellEditor_ReagentChancePercent": "{Percent}%",
   "SpellEditor_SubHpMpCostValue": "MaxMP / 20 (mínimo)",
   "SpellEditor_AddMpCostValue": "{Cost} (con INT {Int})",
   "SpellEditor_MpCostNote": "(SubHp: PM mínimos de la reserva + el reactivo de abajo. AddMp se cobra según lo que restaura, así que su coste sube con la INT del lanzador: la cifra mostrada corresponde al lanzador más débil que podría aprenderlo. Los otros tipos muestran su coste fijo de PM de utilidad.)",

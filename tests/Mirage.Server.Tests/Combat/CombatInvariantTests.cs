@@ -96,10 +96,47 @@ public class CombatInvariantTests
     [Test]
     public void CasterDeathReagentLoss_ScalesWithTierAndWearPercent()
     {
-        int perCast = CombatFormulas.SubHpReagentCost(100);
+        double perCast = CombatFormulas.SubHpReagentCostExact(100);
         int normal = CombatFormulas.CasterDeathReagentLoss(tierLevel: 100, wearPercent: 10);
-        Assert.That(normal, Is.EqualTo(perCast * Constants.CasterDeathReagentMultiplier));
+        Assert.That(normal, Is.EqualTo((int)Math.Round(perCast * Constants.CasterDeathReagentMultiplier, MidpointRounding.AwayFromZero)));
         Assert.That(CombatFormulas.CasterDeathReagentLoss(100, 20), Is.EqualTo(normal * 2));   // PK/war doubles it
         Assert.That(CombatFormulas.CasterDeathReagentLoss(tierLevel: 0, wearPercent: 10), Is.EqualTo(0));   // no tier
+    }
+
+    /// <summary>Scripted rolls for <see cref="CombatFormulas.RollReagents"/>. NextDouble is the only member
+    /// exercised, so the rest throw rather than quietly returning zero.</summary>
+    sealed class Doubles(params double[] values) : IRandomSource
+    {
+        private int _i;
+        public double NextDouble() => values[_i++];
+        public int Next(int maxExclusive) => throw new NotSupportedException();
+        public int Next(int minInclusive, int maxExclusive) => throw new NotSupportedException();
+        public long NextInt64(long minInclusive, long maxExclusive) => throw new NotSupportedException();
+    }
+
+    // A cast takes its whole reagent count or nothing, exactly as a swing takes 1 durability or none.
+    // Asserted against scripted rolls on both sides of the threshold, so the test reads as "this roll
+    // charged this much" — and the amount is never a fraction of an item.
+    [Test]
+    public void RollReagents_ChargesTheFullCount_OrNothing()
+    {
+        // Level 1: one reagent on 9.6% of casts, so nearly every cast is free.
+        double level1 = CombatFormulas.SubHpReagentCostExact(1);
+        Assert.That(CombatFormulas.ReagentCostPerCast(level1), Is.EqualTo(1));
+        Assert.That(CombatFormulas.RollReagents(level1, new Doubles(0.99)), Is.EqualTo(0), "roll above the odds: free");
+        Assert.That(CombatFormulas.RollReagents(level1, new Doubles(0.01)), Is.EqualTo(1), "roll under the odds: charged");
+
+        // Level 255: four reagents on 93.9% of casts — the count is flat, only the odds moved.
+        double level255 = CombatFormulas.SubHpReagentCostExact(255);
+        Assert.That(CombatFormulas.ReagentCostPerCast(level255), Is.EqualTo(4));
+        Assert.That(CombatFormulas.RollReagents(level255, new Doubles(0.99)), Is.EqualTo(0));
+        Assert.That(CombatFormulas.RollReagents(level255, new Doubles(0.01)), Is.EqualTo(4));
+
+        // The displayed odds ARE the odds rolled against, at both ends of the ladder.
+        Assert.That(CombatFormulas.ReagentDepleteChancePercent(level1), Is.EqualTo(level1 * 100).Within(0.0001));
+        Assert.That(CombatFormulas.ReagentDepleteChancePercent(level255), Is.EqualTo(level255 / 4 * 100).Within(0.0001));
+
+        // A free cast (arena waiver) draws no randomness at all.
+        Assert.That(CombatFormulas.RollReagents(0, new Doubles()), Is.EqualTo(0));
     }
 }

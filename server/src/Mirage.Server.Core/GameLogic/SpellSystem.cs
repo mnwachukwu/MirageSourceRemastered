@@ -121,11 +121,16 @@ public sealed class SpellSystem : GameSystem
             bool pvpArenaFree = !forceSelf
                 && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= _pm.Slots && _pm[sp.Target].IsPlaying
                 && (_world.MoralOf(p.Map) == MapMoral.Arena || _world.MoralOf(_pm[sp.Target].Char.Map) == MapMoral.Arena);
-            reagentCost = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.LevelReq);
-            if (ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentCost)
+            double exactReagents = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.LevelReq);
+            reagentCost = CombatFormulas.RollReagents(exactReagents, Rng);
+            // Hold what a cast CAN take, not what this one rolled: a roll of zero must not let an empty
+            // pouch cast, any more than a weapon at 0 durability can swing. The arena waiver is free by
+            // rule rather than by roll, so it needs no pouch.
+            int reagentsNeeded = CombatFormulas.ReagentCostPerCast(exactReagents);
+            if (ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentsNeeded)
             {
                 SendMsg(index, ServerStrings.SpellSystem_NotEnoughReagents, GameColor.BrightRed, ChatChannel.System,
-                    ("Count", reagentCost), ("Reagent", _world.Items[Constants.CastingReagentItemIndex].TrimmedName));
+                    ("Count", reagentsNeeded), ("Reagent", _world.Items[Constants.CastingReagentItemIndex].TrimmedName));
                 return;
             }
         }
@@ -259,7 +264,7 @@ public sealed class SpellSystem : GameSystem
                 else if (!HasLineOfSight(index, guest.CurrentMapNum, guest.X, guest.Y, guest.Layer))
                     SendMsg(index, ServerStrings.SpellSystem_NoLineOfSight, GameColor.BrightRed, ChatChannel.System);
                 else
-                    casted = CastSpellOnNpc(index, p, spell, mpCost, guest.CurrentMapNum, guest, npcSlot: 0, spellNum, fxTarget);
+                    casted = CastSpellOnNpc(index, p, spell, mpCost, guest.CurrentMapNum, guest, npcSlot: 0, spellNum, fxTarget, reagentCost);
             }
         }
         else if (forceSelf || n == 0 || sp.TargetType == 2)
@@ -504,7 +509,7 @@ public sealed class SpellSystem : GameSystem
                         SendMsg(index, ServerStrings.SpellSystem_NoLineOfSight, GameColor.BrightRed, ChatChannel.System);
                         return;
                     }
-                    casted = CastSpellOnNpc(index, p, spell, mpCost, mapNum, mapNpc, n, spellNum, fxTarget);
+                    casted = CastSpellOnNpc(index, p, spell, mpCost, mapNum, mapNpc, n, spellNum, fxTarget, reagentCost);
                 }
                 else
                 {
@@ -614,11 +619,12 @@ public sealed class SpellSystem : GameSystem
         SendToMap(_world, p.Map, PacketBuilder.SendMp(index, p.Mp, p.MaxMp));
     }
 
-    // Reagents a SubHp cast consumes right now: the base per-cast cost, DOUBLED while it's raining — the magic-side
-    // mirror of Rain doubling weapon-durability wear (CombatSystem.DegradeItemDurability). Arena's reagent waiver is
-    // PvP-only and decided at the cast gate (a cast at an NPC always pays), so this is just the normal rain cost.
-    private int SubHpReagentCostNow(int casterMap, int spellLevelReq) =>
-        CombatFormulas.SubHpReagentCost(spellLevelReq)
+    // What a SubHp cast costs on average right now, DOUBLED while it's raining — the magic-side mirror of
+    // Rain doubling weapon-durability wear (CombatSystem.DegradeItemDurability). Arena's reagent waiver is
+    // PvP-only and decided at the cast gate (a cast at an NPC always pays), so this is just the rain cost.
+    // Fractional: CombatFormulas turns it into a flat charge on a chance.
+    private double SubHpReagentCostNow(int casterMap, int spellLevelReq) =>
+        CombatFormulas.SubHpReagentCostExact(spellLevelReq)
         * (_world.WeatherOn(casterMap) == WeatherType.Rain ? Constants.WeatherRainReagentMultiplier : 1);
 
     // Spend a successful cast's cost: deduct MP always, and — for SubHp only — consume its reagents (the per-cast
@@ -744,7 +750,8 @@ public sealed class SpellSystem : GameSystem
     // casted=true if MP was spent, inCombat=true if this cast should mark the caster as in combat.
     // The slot-agnostic combat overloads route damage/aggro for both kinds.
     private bool CastSpellOnNpc(int index, PlayerRecord p, SpellRecord spell, int mpCost, int mapNum,
-                                MapNpcRecord mapNpc, int npcSlot, int spellNum, CastFxTarget fxTarget)
+                                MapNpcRecord mapNpc, int npcSlot, int spellNum, CastFxTarget fxTarget,
+                                int reagentCost)
     {
         var npcRec = _world.Npcs[mapNpc.Num];
         if (npcRec.Behavior is NpcBehavior.Friendly or NpcBehavior.Stationary)
@@ -873,9 +880,9 @@ public sealed class SpellSystem : GameSystem
             }
         }
 
-        // Reagent for a SubHp cast on an NPC always pays the normal cost — the arena reagent waiver is PvP-only, so
-        // casting at a mob is never free, regardless of either map's moral.
-        SpendCastCost(index, mpCost, spell, SubHpReagentCostNow(p.Map, spell.LevelReq));
+        // The amount rolled at the cast gate, never a fresh roll: the gate refused the cast unless the caster
+        // held this many, so charging a different number could take more than was checked for.
+        SpendCastCost(index, mpCost, spell, reagentCost);
         return true;
     }
 }

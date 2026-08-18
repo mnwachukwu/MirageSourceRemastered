@@ -477,6 +477,8 @@
   "SpellEditor_SectionTitle": "Éditeur de sorts",
   "SpellEditor_MaxMpCostLabel": "Coût max en PM :",
   "SpellEditor_ReagentCostLabel": "Réactif / incantation :",
+  "SpellEditor_ReagentChanceLabel": "Consomme :",
+  "SpellEditor_ReagentChancePercent": "{Percent}%",
   "SpellEditor_SubHpMpCostValue": "MaxMP / 20 (négligeable)",
   "SpellEditor_AddMpCostValue": "{Cost} (à INT {Int})",
   "SpellEditor_MpCostNote": "(SubHp : coût en PM négligeable + le réactif ci-dessous. AddMp est facturé d'après ce qu'il restaure, donc son coût augmente avec l'INT de l'incantateur : le chiffre affiché correspond au plus faible incantateur capable de l'apprendre. Les autres types affichent leur coût fixe en PM utilitaire.)",

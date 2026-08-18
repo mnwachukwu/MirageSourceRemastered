@@ -439,16 +439,9 @@ public static class CombatFormulas
     public static int GetSubHpSpellMpCost(int maxMp) =>
         Math.Max(1, (int)Math.Round((double)maxMp / SubHpMpCostDivisor, MidpointRounding.AwayFromZero));
 
-    // Reagent consumed per SubHp cast — the magic-side mirror of weapon-repair upkeep, priced in reagents worth
-    // 1 gold each.  A warrior's per-SWING upkeep = (gold to repair 1 durability) × (durability actually lost that
-    // swing).  Gold per durability = Power/10 (ShopSystem: full repair = durNeeded × (Power/5) / 2).  A swing CHIPS
-    // on a rising CHANCE (DurabilityDegradeChancePercent), NOT every hit, so the true durability lost per swing is
-    // the swing-weighted average of those chances (~0.48, AvgDurabilityDegradePerHit) — a caster is no more bound to
-    // "1 cast = 1 durability cost" than a warrior is to "1 hit = 1 durability".  So reagents/cast =
-    // round(VitalAmount/10 × 0.48) ≈ VitalAmount/21.  Consumption scales with spell power (the spell's VitalAmount,
-    // the mirror of a weapon's Power), never the reagent item's fixed value.  Floored at 1 for a token cost.
-    /// <summary>Reagents a SubHp cast consumes — the magic-side mirror of a warrior's weapon-repair upkeep,
-    /// priced in reagents worth 1 gold each.
+    /// <summary>Reagents a SubHp cast costs on average — the magic-side mirror of a warrior's weapon-repair
+    /// upkeep, priced in reagents worth 1 gold each. Fractional on purpose; see
+    /// <see cref="RollReagents"/> for how a fraction of an item is actually charged.
     ///
     /// <para>A warrior's per-SWING upkeep is (gold per durability point) x (durability actually lost that
     /// swing). A swing CHIPS on a rising chance (<see cref="DurabilityDegradeChancePercent"/>) rather than
@@ -464,10 +457,46 @@ public static class CombatFormulas
     /// <para>Takes the spell's LEVEL, not its magnitude: the warrior it is matched against is defined by
     /// tier, and VitalAmount is the spell's power WITHIN a tier — the analogue of a weapon's bulk, not of
     /// its rung.</para></summary>
-    public static int SubHpReagentCost(int spellLevelReq) =>
-        Math.Max(1, (int)Math.Round(
-            EconomyFormulas.RepairGoldPerDurabilityPoint(spellLevelReq) * AvgDurabilityDegradePerHit(),
-            MidpointRounding.AwayFromZero));
+    public static double SubHpReagentCostExact(int spellLevelReq) =>
+        EconomyFormulas.RepairGoldPerDurabilityPoint(spellLevelReq) * AvgDurabilityDegradePerHit();
+
+    /// <summary>Reagents one cast takes WHEN IT TAKES ANY — a flat whole number, never a range.
+    ///
+    /// <para>This is the shape of the thing being mirrored: a swing removes exactly 1 durability or none
+    /// (<see cref="DurabilityDegradeChancePercent"/> decides which), never a point and sometimes two. So a
+    /// cast takes this many reagents or nothing, and <see cref="ReagentDepleteChancePercent"/> says how often.
+    /// The smallest count that keeps the odds a probability, so the whole low band is a single reagent.</para>
+    ///
+    /// <para>Takes the cost rather than the level so a caller can fold in a multiplier — rain doubles the
+    /// bill, and doubling it here moves BOTH the amount and the odds instead of leaving the reader to
+    /// apply a factor to a printed number themselves.</para></summary>
+    public static int ReagentCostPerCast(double exactCost) =>
+        exactCost <= 0 ? 0 : (int)Math.Ceiling(exactCost);
+
+    /// <summary>Charges <see cref="ReagentCostPerCast"/> or nothing, on a roll that averages to
+    /// <paramref name="exactCost"/> at every tier.
+    ///
+    /// <para>A CAST DOES NOT ALWAYS COST A REAGENT, for the same reason a swing does not always cost
+    /// durability. Charging one every time is the lopsided case — at level 1 it is ten times what the
+    /// mirror swing costs, and the two only converge near level 40. Same device the loot tables use for an
+    /// odd coin: exact on average, with no single event carrying a fraction it cannot represent.</para></summary>
+    public static int RollReagents(double exactCost, IRandomSource rng)
+    {
+        int perCast = ReagentCostPerCast(exactCost);
+        if (perCast <= 0) return 0;
+        return rng.NextDouble() < exactCost / perCast ? perCast : 0;
+    }
+
+    /// <summary>Percent chance that a cast takes <see cref="ReagentCostPerCast"/> at all — the exact odds
+    /// the roll uses, so the displayed figure and the charge cannot disagree. 0 when nothing is charged.
+    ///
+    /// <para>The COUNT has to be whole because reagents are items; the chance does not, so it is stated
+    /// outright instead of being rounded into a ratio.</para></summary>
+    public static double ReagentDepleteChancePercent(double exactCost)
+    {
+        int perCast = ReagentCostPerCast(exactCost);
+        return perCast <= 0 ? 0 : exactCost / perCast * 100;
+    }
 
     // The wear percent of a normal (non-PK, non-war) death — the basis the caster-death multiplier is
     // calibrated to (a PK/war death passes 20, i.e. double).
@@ -480,11 +509,14 @@ public static class CombatFormulas
     /// any equipped weapon (whose durability wears separately). Mirrors a warrior's weapon-repair cost at
     /// 1 reagent = 1 gold. 0 when the caster has no offensive tier.
     ///
-    /// <para>LEVEL, matching <see cref="SubHpReagentCost"/>: the warrior this is matched against is defined
-    /// by tier, and VitalAmount ranks a spell WITHIN one.</para></summary>
+    /// <para>LEVEL, matching <see cref="SubHpReagentCostExact"/>: the warrior this is matched against is
+    /// defined by tier, and VitalAmount ranks a spell WITHIN one. Rounded rather than rolled — a death is
+    /// one event a player will read the number off, not a stream that averages out.</para></summary>
     public static int CasterDeathReagentLoss(int tierLevel, int wearPercent) =>
         tierLevel <= 0 ? 0
-            : SubHpReagentCost(tierLevel) * Constants.CasterDeathReagentMultiplier * wearPercent / NormalDeathWearPercent;
+            : (int)Math.Round(
+                SubHpReagentCostExact(tierLevel) * Constants.CasterDeathReagentMultiplier * wearPercent / NormalDeathWearPercent,
+                MidpointRounding.AwayFromZero);
 
     /// <summary>Swing-weighted average durability lost per hit over a full 100%→0% wear cycle: total durability
     /// (100) divided by the hits needed to traverse every condition band (each band's width ÷ its chip chance =

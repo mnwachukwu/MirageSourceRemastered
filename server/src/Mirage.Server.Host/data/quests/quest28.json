@@ -20,18 +20,18 @@
     8
   ],
   "prereqQuest": 0,
-  "rewardExp": 7647,
+  "rewardExp": 7707,
   "rewardItems": [
     {
       "itemNum": 1,
-      "quantity": 346
+      "quantity": 348
     }
   ],
-  "repeatRewardExp": 7647,
+  "repeatRewardExp": 7707,
   "repeatRewardItems": [
     {
       "itemNum": 1,
-      "quantity": 346
+      "quantity": 348
     }
   ],
   "giverNpc": 126,

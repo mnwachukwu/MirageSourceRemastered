@@ -233,6 +233,8 @@ public sealed partial class MirageGame : Game
 
     private string _serverHost;
     private int _serverPort;
+    private readonly bool _rememberLogin;
+    private readonly string _rememberedLogin;
     private string _language = "en";
     private string _langDir = "lang";
 
@@ -241,6 +243,8 @@ public sealed partial class MirageGame : Game
         var cfg = ReadConfig();
         _serverHost = cfg.ServerHost;
         _serverPort = cfg.ServerPort;
+        _rememberLogin = cfg.RememberLogin;
+        _rememberedLogin = cfg.RememberedLogin;
         _maintainAspectRatio = cfg.MaintainAspectRatio;
         _playMusic = cfg.PlayMusic;
         _musicVolume = cfg.MusicVolume;

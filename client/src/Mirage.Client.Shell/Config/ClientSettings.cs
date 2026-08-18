@@ -28,6 +28,12 @@ public sealed record ClientSettings
     public bool UseGamepad { get; set; }
     public string Language { get; set; } = "en";
 
+    /// <summary>Whether the login screen prefills the account name, and the name it prefills. NAMES ONLY —
+    /// no password is stored, in any form. Off by default: a name on disk is a small disclosure, so it
+    /// happens because the player ticked a box, never because they did nothing.</summary>
+    public bool RememberLogin { get; set; }
+    public string RememberedLogin { get; set; } = "";
+
     /// <summary>The Options window's saved position/size, or null when the player has never moved it —
     /// the panel then keeps the centered rectangle it was declared with.</summary>
     public Rectangle? OptionsPanelBounds { get; set; }

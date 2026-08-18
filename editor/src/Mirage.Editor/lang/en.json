@@ -477,6 +477,8 @@
   "SpellEditor_SectionTitle": "Spell Editor",
   "SpellEditor_MaxMpCostLabel": "Max MP Cost:",
   "SpellEditor_ReagentCostLabel": "Reagent / cast:",
+  "SpellEditor_ReagentChanceLabel": "Depletes:",
+  "SpellEditor_ReagentChancePercent": "{Percent}%",
   "SpellEditor_SubHpMpCostValue": "MaxMP / 20 (trivial)",
   "SpellEditor_AddMpCostValue": "{Cost} (at INT {Int})",
   "SpellEditor_MpCostNote": "(SubHp: trivial pool MP + the reagent below. AddMp is priced off what it restores, so its cost rises with the caster's INT — the figure shown is for the weakest caster who could learn it. Other types show their fixed utility MP cost.)",
