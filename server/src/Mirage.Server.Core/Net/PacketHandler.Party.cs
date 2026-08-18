@@ -39,7 +39,4 @@ public sealed partial class PacketHandler
         if (!_pm[index].IsPlaying) return;
         _party.LeaveParty(index);
     }
-
-
-    // ===========================================================================
 }

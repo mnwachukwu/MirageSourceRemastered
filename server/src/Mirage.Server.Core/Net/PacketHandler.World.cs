@@ -61,6 +61,4 @@ public sealed partial class PacketHandler
         if (!_pm[index].IsPlaying || _pm[index].GettingMap) return;
         _joinLeave.SendRegionSync(index);
     }
-
-    // ═══════════════════════════════════════════════════════════════════════════
 }

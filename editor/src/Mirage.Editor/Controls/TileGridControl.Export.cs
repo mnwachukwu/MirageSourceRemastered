@@ -65,21 +65,4 @@ public sealed partial class TileGridControl : Control
         DrawPlacementsBand(ctx, placements, tilesets, bandTopPx: 0, bandHeightPx: heightPx);
         return rtb;
     }
-
-    // The packed LayerCell value of the currently-selected layer (type + index) on a tile.
-    private int SelectedLayerCellOf(TileRecord t)
-    {
-        var layers = SelectedLayerType switch
-        {
-            LayerType.Ground => t.Ground,
-            LayerType.Fringe => t.Fringe,
-            _ => t.Canopy,
-        };
-        int i = SelectedLayerIndex - 1;
-        return i >= 0 && i < layers.Length ? layers[i] : LayerCell.Empty;
-    }
-
-    // ── Layout ────────────────────────────────────────────────────────────────
-    protected override Size MeasureOverride(Size _) =>
-        new(TotalCols * TileW * Zoom, TotalRows * TileH * Zoom);
 }

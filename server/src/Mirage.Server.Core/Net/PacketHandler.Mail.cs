@@ -286,7 +286,4 @@ public sealed partial class PacketHandler
         => _dispatcher.SendLocalizedChatTo(index, key, new ChatMetadata(color, ChatChannel.Notice), args);
 
     private static string ClampText(string s, int max) => s.Length <= max ? s : s[..max];
-
-
-    // ===========================================================================
 }

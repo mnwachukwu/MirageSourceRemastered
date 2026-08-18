@@ -35,60 +35,6 @@ public sealed partial class ConsoleCommands
         PublishModeration();
     }
 
-    // ── /hwban ────────────────────────────────────────────────────────────────
-
-    /// <summary>Bans the account AND the machine behind it. ONLINE targets only: the machine key is held
-    /// on the live session and never written to an account file, so an offline account has nothing to ban
-    /// — that case is what <c>/ban</c> covers, and saying so beats applying half of what was asked.</summary>
-    private async Task CmdHwBanAsync(string args)
-    {
-        string arg = args.Trim();
-        if (arg.Length == 0)
-        {
-            Write(ServerStrings.Console_HwBanUsage);
-            return;
-        }
-
-        var online = await OnGameThreadAsync(_moderation.OnlineLogins);
-        string? login = await _moderation.ResolveLoginAsync(arg, online);
-        if (login is null || !online.ContainsKey(login))
-        {
-            Write(ServerStrings.Console_HwBanOffline, ("Name", arg));
-            return;
-        }
-
-        // Read on the loop: the key lives on live session state and nowhere else.
-        string capturedLogin = login;
-        string key = await OnGameThreadAsync(() => _moderation.OnlineMachineKey(capturedLogin));
-        if (key.Length == 0)
-        {
-            Write(ServerStrings.Console_HwBanNoKey, ("Login", login));
-            return;
-        }
-
-        await _moderation.HardwareBanAsync(login, key, $"Hardware banned by {ConsoleOperatorName}");
-        await OnGameThreadAsync(() => DisconnectBannedSession(capturedLogin));
-
-        Write(ServerStrings.Console_HwBanned, ("Login", login));
-        _logger.LogInformation("Console hardware-banned {Login}.", login);
-        PublishModeration();
-    }
-
-    /// <summary>Alerts and drops whoever is signed in on a just-banned account.
-    /// <para> Game thread only — it walks the roster and sends. Returns a bool purely so it can ride
-    /// <see cref="OnGameThreadAsync{T}"/>, which has no void form.</para></summary>
-    private bool DisconnectBannedSession(string login)
-    {
-        foreach (int slot in _pm.Online)
-        {
-            if (!string.Equals(_pm[slot].Login, login, StringComparison.OrdinalIgnoreCase)) continue;
-            _dispatcher.SendTo(slot, PacketBuilder.Alert(ServerStrings.Format(
-                ServerStrings.Auth_Banned, ("GameName", _config.GameName))));
-            _dispatcher.GracefulDisconnect(slot);
-        }
-        return true;
-    }
-
     // ── /hwunban ──────────────────────────────────────────────────────────────
 
     /// <summary>Lifts every machine ban on an account. Deliberately does NOT lift the account ban —

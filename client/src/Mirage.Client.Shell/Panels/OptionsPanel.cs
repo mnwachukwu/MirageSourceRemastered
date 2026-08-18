@@ -351,7 +351,7 @@ public sealed class OptionsPanel : IGamePanel
         langDropRect = new Rectangle(rx, langY + 16, colW, 20);
 
         // ── Bottom spanning both columns ───────────────────────────────────────
-        // Two buttons side by side across the same strip the single Restore button used to fill.
+        // Two buttons side by side across the strip.
         // Restore Defaults resets the OPTIONS above; Reset Panels resets panel geometry and column
         // layouts, which the options have nothing to do with — separate buttons because one is about
         // what the game shows and the other about where the windows sit.

@@ -8,13 +8,13 @@ namespace Mirage.Editor.Tests;
 /// well-formed: an empty side carries 0, a non-currency item pins to exactly 1 (gear never stacks), and a
 /// currency item allows 1..9999. The spinner Min/Max bounds track the item the same way.</summary>
 [TestFixture]
-public class TradeRowViewModelTests
+public class ShopBarterRowViewModelTests
 {
     const int Gold = 1;    // the test predicate treats this id as currency
     const int Sword = 2;   // non-currency
 
-    static TradeRowViewModel Trade(TradeItemRecord? r = null) =>
-        new(1, r ?? new TradeItemRecord(), () => [], id => id == Gold);
+    static ShopBarterRowViewModel Trade(BarterItemRecord? r = null) =>
+        new(1, r ?? new BarterItemRecord(), () => [], id => id == Gold);
 
     [Test]
     public void NonCurrencyGive_PinsQuantityToOne()
@@ -37,7 +37,7 @@ public class TradeRowViewModelTests
     [Test]
     public void ClearingTheItem_ZeroesQuantity()
     {
-        var t = Trade(new TradeItemRecord { GiveItem = Gold, GiveQuantity = 50 });
+        var t = Trade(new BarterItemRecord { GiveItem = Gold, GiveQuantity = 50 });
         t.GiveItem = 0;
         Assert.That(t.GiveQuantity, Is.EqualTo(0), "an empty side carries no quantity");
     }
@@ -81,7 +81,7 @@ public class TradeRowViewModelTests
     [Test]
     public void ToRecord_RoundTripsAllFourFields()
     {
-        var t = Trade(new TradeItemRecord { GiveItem = Gold, GiveQuantity = 100, GetItem = Sword, GetQuantity = 1 });
+        var t = Trade(new BarterItemRecord { GiveItem = Gold, GiveQuantity = 100, GetItem = Sword, GetQuantity = 1 });
         var r = t.ToRecord();
         Assert.That((r.GiveItem, r.GiveQuantity, r.GetItem, r.GetQuantity), Is.EqualTo((Gold, 100, Sword, 1)));
     }

@@ -16,7 +16,7 @@ public sealed partial class ClientState
     // ── Active shop ───────────────────────────────────────────────────────────
 
     public int ActiveShopNum { get; set; }
-    public SendTradePacket.TradeRow[] ActiveTrades { get; set; } = [];
+    public ShopContentsPacket.BarterRow[] ActiveBarters { get; set; } = [];
     /// <summary>Item numbers the open shop sells for gold, in authored order. Only the NUMBERS travel —
     /// the price is <c>ItemRecord.Price</c> from the item definitions the client already holds, so the
     /// panel looks it up rather than being quoted it per entry.</summary>

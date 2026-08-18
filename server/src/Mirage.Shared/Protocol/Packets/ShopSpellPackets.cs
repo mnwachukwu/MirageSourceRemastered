@@ -13,21 +13,21 @@ public sealed record OpenInnPacket : IPacket
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
 }
 
-public sealed record TradeRequestPacket : IPacket
+public sealed record ShopBarterRequestPacket : IPacket
 {
-    [JsonPropertyName("cmd")] public string Cmd => PacketNames.TradeRequest;
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBarterRequest;
     [JsonPropertyName("slot")] public int Slot { get; init; }
 }
 
-public sealed record TradePacket : IPacket
+public sealed record ShopBarterPacket : IPacket
 {
-    [JsonPropertyName("cmd")] public string Cmd => PacketNames.Trade;
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBarter;
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
-    [JsonPropertyName("tradeSlot")] public int TradeSlot { get; init; }
+    [JsonPropertyName("barterSlot")] public int BarterSlot { get; init; }
 }
 
 /// <summary>C→S: buy one entry from the open shop's SALES list. <paramref name="SalesSlot"/> is 1-based to
-/// match <see cref="TradePacket.TradeSlot"/> — the client sends its display index + 1.</summary>
+/// match <see cref="ShopBarterPacket.BarterSlot"/> — the client sends its display index + 1.</summary>
 public sealed record ShopBuyPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBuy;
@@ -67,19 +67,19 @@ public sealed record SendShopsPacket : IPacket
 
 /// <summary>S→C: everything needed to draw an open shop — its barter rows AND its sales list.
 ///
-/// <para>The two are separate because they are different transactions, not two spellings of one. A trade row
+/// <para>The two are separate because they are different transactions, not two spellings of one. A barter row
 /// names both sides explicitly and can ask for anything; a sales entry is just an item number, priced from
 /// <see cref="Records.ItemRecord.Price"/>, which the client already holds from the item definitions. So the
 /// sales list costs one int per entry on the wire no matter how large the shopfront gets.</para></summary>
-public sealed record SendTradePacket : IPacket
+public sealed record ShopContentsPacket : IPacket
 {
-    [JsonPropertyName("cmd")] public string Cmd => PacketNames.SendTrade;
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopContents;
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
-    [JsonPropertyName("trades")] public TradeRow[] Trades { get; init; } = [];
+    [JsonPropertyName("barters")] public BarterRow[] Barters { get; init; } = [];
     /// <summary>Item numbers the shop sells for gold, in authored display order.</summary>
     [JsonPropertyName("sales")] public int[] Sales { get; init; } = [];
 
-    public sealed record TradeRow(
+    public sealed record BarterRow(
         [property: JsonPropertyName("giveItem")] int GiveItem,
         [property: JsonPropertyName("giveQuantity")] int GiveQuantity,
         [property: JsonPropertyName("getItem")] int GetItem,

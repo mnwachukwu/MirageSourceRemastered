@@ -4,7 +4,7 @@ using Mirage.Editor.Models;
 using Mirage.Shared.Records;
 namespace Mirage.Editor.ViewModels;
 
-public sealed partial class TradeRowViewModel : ObservableObject
+public sealed partial class ShopBarterRowViewModel : ObservableObject
 {
     private readonly Func<NamedEntry[]> _entriesProvider;
     private readonly Func<int, bool> _isCurrency;
@@ -58,7 +58,7 @@ public sealed partial class TradeRowViewModel : ObservableObject
         }
     }
 
-    public TradeRowViewModel(int slotIndex, TradeItemRecord r, Func<NamedEntry[]> entriesProvider, Func<int, bool> isCurrency)
+    public ShopBarterRowViewModel(int slotIndex, BarterItemRecord r, Func<NamedEntry[]> entriesProvider, Func<int, bool> isCurrency)
     {
         SlotIndex = slotIndex;
         _entriesProvider = entriesProvider;
@@ -117,7 +117,7 @@ public sealed partial class TradeRowViewModel : ObservableObject
         return value < 1 ? 1 : value;           // currency → at least one
     }
 
-    /// <summary>An unused trade row — neither side carries an item. Dropped when the shop is saved.</summary>
+    /// <summary>An unused barter row — neither side carries an item. Dropped when the shop is saved.</summary>
     public bool IsEmpty => GiveItem <= 0 && GetItem <= 0;
 
     public void ClearDirty() => IsDirty = false;
@@ -149,7 +149,7 @@ public sealed partial class TradeRowViewModel : ObservableObject
         finally { _refreshing = false; }
     }
 
-    public TradeItemRecord ToRecord() => new()
+    public BarterItemRecord ToRecord() => new()
     {
         GiveItem = GiveItem,
         GiveQuantity = GiveQuantity,

@@ -513,8 +513,6 @@ public sealed class EditorDataService
         return map;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private static async Task<T?> LoadJsonAsync<T>(string path)
     {
         if (!File.Exists(path)) return default;

@@ -25,6 +25,11 @@ namespace Mirage.Client.Shell;
 /// key, and the procedurally generated light-halo and box textures.</summary>
 public sealed partial class MirageGame : Game
 {
+    /// <summary>Loads the localized strings, applies window settings, installs the Alt+F4 filter, and
+    /// <summary>Absolute path to a numbered music track.</summary>
+    private static string MusicPath(int track) => AppPaths.Asset("assets", "music", $"music{track}.ogg");
+
+    /// builds the screen stack and event wiring. Runs before <see cref="LoadContent"/>.</summary>
     protected override void Initialize()
     {
         _langDir = Path.Combine(AppContext.BaseDirectory, "lang");
@@ -405,8 +410,4 @@ public sealed partial class MirageGame : Game
         }
         tex.SetData(pixels);
     }
-
-    /// <summary>Per-frame tick: window state and deferred config saves, input, the network pump, music,
-    /// dialogs, and the active screen. Input is swapped for an empty <c>_blockedInput</c> whenever a
-    /// modal dialog is up, so screens keep ticking without receiving player input.</summary>
 }

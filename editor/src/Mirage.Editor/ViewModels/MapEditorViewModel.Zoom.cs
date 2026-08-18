@@ -4,12 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace Mirage.Editor.ViewModels;
 
 /// <summary>Canvas zoom, and the two callbacks the view hands back so the view model can invalidate
-/// the tile grid without holding a reference to the control.
-///
-/// <para>RECOVERED: this content was lost to a bad file split and restored from the compiled
-/// assembly. The declarations and bodies match what the previous build emitted; the
-/// <c>nameof</c>/comment layer was reconstructed. The zoom step (1.5x) and clamps (0.125 - 4.0) are
-/// the values that were compiled in.</para></summary>
+/// the tile grid without holding a reference to the control.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
     // Canvas zoom factor: 1.0 = one screen pixel per map pixel. Bound by the view's zoom transform.

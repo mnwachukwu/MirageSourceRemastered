@@ -58,7 +58,7 @@ public static class EconomyFormulas
 
     // ── Item pricing ─────────────────────────────────────────────────────────
     // The engine stores no price anywhere: ItemRecord carries Name/Pic/Type/Durability/VitalAmount/
-    // SpellNum/Power/LevelReq and nothing else, and every price in the game is a TradeItemRecord line on a
+    // SpellNum/Power/LevelReq and nothing else, and every price in the game is a BarterItemRecord line on a
     // shop. So a price has to be DERIVED, or the armory's 471 items become ~900 hand-typed numbers with
     // nothing keeping them consistent with each other or with income.
     //
@@ -105,7 +105,7 @@ public static class EconomyFormulas
     /// floor rather than pricing at zero.</para>
     ///
     /// <para>Currency and keys return 0: gold has no price in gold, and a key is quest furniture rather
-    /// than stock.  A shop CAN still trade either — a TradeItemRecord names both sides explicitly — this
+    /// than stock.  A shop CAN still trade either — a BarterItemRecord names both sides explicitly — this
     /// only says the derivation declines to invent a number for them.</para></summary>
     public static int ItemValue(ItemRecord item, SpellRecord? spell = null)
     {

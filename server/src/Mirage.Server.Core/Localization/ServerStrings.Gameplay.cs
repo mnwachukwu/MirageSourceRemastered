@@ -3,7 +3,7 @@ using Mirage.Shared.Localization;
 namespace Mirage.Server.Core.Localization;
 
 /// <summary>The remaining per-system lines: spells, movement, parties, spawning, PK expiry,
-/// regeneration, packet validation, search, time of day, and weather.</summary>
+/// regeneration, packet validation, search, quests, time of day, and weather.</summary>
 public static partial class ServerStrings
 {
     // ── SpellSystem ───────────────────────────────────────────────────────────
@@ -135,4 +135,15 @@ public static partial class ServerStrings
     public const string Weather_WelcomeHeavyWind = nameof(Weather_WelcomeHeavyWind);
     public const string Weather_UnnaturalShift = nameof(Weather_UnnaturalShift);
     public const string Weather_UnnaturalShiftBy = nameof(Weather_UnnaturalShiftBy);
+
+    public const string Quest_Sender = nameof(Quest_Sender);
+    public const string Quest_Accepted = nameof(Quest_Accepted);
+    public const string Quest_ReadyToTurnIn = nameof(Quest_ReadyToTurnIn);
+    public const string Quest_Complete = nameof(Quest_Complete);
+    public const string Quest_Abandoned = nameof(Quest_Abandoned);
+    public const string Quest_NotEligible = nameof(Quest_NotEligible);
+    public const string Quest_NotComplete = nameof(Quest_NotComplete);
+    public const string Quest_TooMany = nameof(Quest_TooMany);
+    public const string Quest_RewardMailSubject = nameof(Quest_RewardMailSubject);
+    public const string Quest_RewardMailBody = nameof(Quest_RewardMailBody);
 }

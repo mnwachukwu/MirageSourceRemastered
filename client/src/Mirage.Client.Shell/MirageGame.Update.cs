@@ -25,6 +25,9 @@ namespace Mirage.Client.Shell;
 /// state transitions that drive the enter/leave-combat effects.</summary>
 public sealed partial class MirageGame : Game
 {
+    /// <summary>Per-frame tick: window state and deferred config saves, input, the network pump, music,
+    /// dialogs, and the active screen. Input is swapped for an empty <c>_blockedInput</c> whenever a
+    /// modal dialog is up, so screens keep ticking without receiving player input.</summary>
     protected override void Update(GameTime gameTime)
     {
         // Detect window position/size changes and save ~1s after the last one.
@@ -302,8 +305,4 @@ public sealed partial class MirageGame : Game
             _partyInCombatPrev = false;
         }
     }
-
-    /// <summary>Renders the frame in passes: the scrolling world into its supersampled target (with the
-    /// light and blood passes, split per layer when a bridge is in view), the composite of that target
-    /// onto the letterboxed map area, then the HUD, panels and dialogs at reference scale.</summary>
 }

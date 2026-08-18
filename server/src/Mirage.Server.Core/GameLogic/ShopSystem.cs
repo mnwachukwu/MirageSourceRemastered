@@ -47,21 +47,21 @@ public sealed class ShopSystem : GameSystem
             SendMsg(index, ServerStrings.ShopSystem_LeaveSay, GameColor.Npc, ("ShopName", g.Speaker.TrimEnd()), ("LeaveSay", g.LeaveSay.TrimEnd()));
     }
 
-    // ── Trade ─────────────────────────────────────────────────────────────────
+    // ── Barter ────────────────────────────────────────────────────────────────
 
-    /// <summary>Execute one row of a shop's trade list: take the row's "give" stack from the player and
+    /// <summary>Execute one row of a shop's barter table: take the row's "give" stack from the player and
     /// hand back its "get" stack. An ordinary purchase is just a row whose give side is the currency item.
     /// <para>Refuses unless the shop is open for this player, is a Store, the player holds enough, and the
     /// bag has room — checked in that order so the player gets the most specific message.</para></summary>
-    public void Trade(int index, int shopNum, int tradeSlot)
+    public void Barter(int index, int shopNum, int barterSlot)
     {
         if (!_pm[index].IsPlaying) return;
         if (shopNum <= 0 || shopNum > _world.Limits.Shops) return;
         var p = _pm[index].Char;
         var shop = _world.Shops[shopNum];
 
-        // tradeSlot is 1-based: the client sends its display index + 1, resolved here as TradeItem[slot - 1].
-        if (tradeSlot < 1 || tradeSlot > shop.TradeItem.Count) return;
+        // barterSlot is 1-based: the client sends its display index + 1, resolved here as BarterItem[slot - 1].
+        if (barterSlot < 1 || barterSlot > shop.BarterItem.Count) return;
 
         if (_pm[index].ActiveShop(_world, index) != shopNum)
         {
@@ -75,32 +75,32 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        var trade = shop.TradeItem[tradeSlot - 1];
-        // Not a real trade unless both sides carry an item AND a positive quantity. A zero give quantity
+        var row = shop.BarterItem[barterSlot - 1];
+        // Not a real barter unless both sides carry an item AND a positive quantity. A zero give quantity
         // slips past the HasItem check below (HasItem(...) >= 0 is always true) and a zero get quantity
         // still mints the item, so a misconfigured slot would hand out free items. Reject outright. The
         // editor and the shop-save handler both keep quantities >= 1, so this only guards legacy/bad data.
-        if (trade.GiveItem <= 0 || trade.GetItem <= 0 || trade.GiveQuantity <= 0 || trade.GetQuantity <= 0) return;
+        if (row.GiveItem <= 0 || row.GetItem <= 0 || row.GiveQuantity <= 0 || row.GetQuantity <= 0) return;
 
-        if (ItemSystem.HasItem(p, _world.Items, trade.GiveItem) < trade.GiveQuantity)
+        if (ItemSystem.HasItem(p, _world.Items, row.GiveItem) < row.GiveQuantity)
         {
             SendMsg(index, ServerStrings.ShopSystem_NotEnoughTrade, GameColor.BrightRed);
             return;
         }
 
-        if (ItemSystem.FindOpenInvSlot(p, _world.Items, trade.GetItem) == 0)
+        if (ItemSystem.FindOpenInvSlot(p, _world.Items, row.GetItem) == 0)
         {
             SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
             return;
         }
 
-        _items.TakeItem(index, trade.GiveItem, trade.GiveQuantity);
-        _items.GiveItem(index, trade.GetItem, trade.GetQuantity);
+        _items.TakeItem(index, row.GiveItem, row.GiveQuantity);
+        _items.GiveItem(index, row.GetItem, row.GetQuantity);
         SendMsg(index, ServerStrings.ShopSystem_TradedWith, GameColor.Yellow, ("ShopName", shop.TrimmedName));
     }
 
     // ── Buy / sell ────────────────────────────────────────────────────────────
-    // The gold storefront, as opposed to Trade's barter table. A sales entry is just an item number:
+    // The gold storefront, as opposed to Barter's item-for-item table. A sales entry is just an item number:
     // the price comes from ItemRecord.Price, which is what let a shopfront be authored by picking
     // items instead of hand-writing a give→get row each (see ShopRecord.SalesItem).
 
@@ -114,7 +114,7 @@ public sealed class ShopSystem : GameSystem
         var p = _pm[index].Char;
         var shop = _world.Shops[shopNum];
 
-        // 1-based on the wire, like TradeSlot: the client sends its display index + 1.
+        // 1-based on the wire, like BarterSlot: the client sends its display index + 1.
         if (salesSlot < 1 || salesSlot > shop.SalesItem.Count) return;
 
         if (_pm[index].ActiveShop(_world, index) != shopNum || shop.ShopType != ShopType.Store)
@@ -128,7 +128,7 @@ public sealed class ShopSystem : GameSystem
         var item = _world.Items[itemNum];
 
         // An unpriced entry is a data bug, and handing it over free is the same class of bug as the
-        // zero-quantity trade row that used to mint items. Refuse rather than give it away.
+        // zero-quantity barter row that used to mint items. Refuse rather than give it away.
         int price = item.Price;
         if (price <= 0)
         {
@@ -317,6 +317,4 @@ public sealed class ShopSystem : GameSystem
             SendMsg(index, ServerStrings.ShopSystem_PartiallyFixed, GameColor.BrightBlue, ("Gold", goldActual));
         }
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 }

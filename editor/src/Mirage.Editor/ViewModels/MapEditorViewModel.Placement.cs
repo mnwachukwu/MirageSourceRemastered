@@ -471,4 +471,13 @@ public sealed partial class MapEditorViewModel : ObservableObject
         CommitBatch();
         StatusMessage = EditorStrings.Get(EditorStrings.MapEditorStatus_ClearedLights);
     }
+
+    // Localized "can't place here" reason for a failed footprint validation.
+    private static string PlacementErrorText(NpcPlacementError err) => err switch
+    {
+        NpcPlacementError.OffMap => EditorStrings.Get(EditorStrings.MapEditorStatus_PlaceOffMap),
+        NpcPlacementError.OnBlocked => EditorStrings.Get(EditorStrings.MapEditorStatus_PlaceOnBlocked),
+        NpcPlacementError.Overlap => EditorStrings.Get(EditorStrings.MapEditorStatus_PlaceOverlap),
+        _ => "",
+    };
 }

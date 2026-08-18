@@ -145,9 +145,4 @@ public sealed partial class CombatSystem : GameSystem
         AlertNpc(mapNum, npcSlot, mapNpc, attackerIndex);
         return true;
     }
-
-    /// <summary>
-    /// Full attack dispatch for a player's melee swing.
-    /// Checks players first, then NPCs. Handles block and critical hit chances.
-    /// </summary>
 }

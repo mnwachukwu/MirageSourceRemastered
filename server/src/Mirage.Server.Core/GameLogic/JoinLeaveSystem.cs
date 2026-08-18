@@ -439,8 +439,6 @@ public sealed class JoinLeaveSystem : GameSystem
         _quests.OnPlayerGone(index);   // stop kernel tracking; the persisted quest state carries progress
         sp.ViewingMarket = false;   // a disconnect / ghost isn't a live market browser
 
-
-
         // Stamp the guild roster's last-seen before the ghost branch can return: a combat ghost is
         // still a disconnected account, so either way this is the moment the member was last seen.
         _guilds.StampMemberLastSeen(index);
@@ -602,8 +600,6 @@ public sealed class JoinLeaveSystem : GameSystem
 
         _logger.LogInformation("{Login} ghost cleared from map {Map}.", login, mapNum);
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void CheckEquippedItems(int index)
     {

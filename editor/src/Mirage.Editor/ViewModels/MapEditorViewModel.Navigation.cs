@@ -129,52 +129,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
         SelectedMap = target;
     }
 
-    private bool CanUndo() => _undoStack.Count > 0 && SelectedMap is not null;
-    private bool CanRedo() => _redoStack.Count > 0 && SelectedMap is not null;
-
-    [RelayCommand(CanExecute = nameof(CanUndo))]
-    private void Undo()
-    {
-        if (!_undoStack.TryPop(out var batch) || SelectedMap is null) return;
-        var map = SelectedMap.Record;
-        for (int i = batch.Count - 1; i >= 0; i--)
-            ApplyUndoOp(map, batch[i], undo: true);
-        _redoStack.Push(batch);
-        UpdateUndoRedo();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanRedo))]
-    private void Redo()
-    {
-        if (!_redoStack.TryPop(out var batch) || SelectedMap is null) return;
-        var map = SelectedMap.Record;
-        foreach (var op in batch)
-            ApplyUndoOp(map, op, undo: false);
-        _undoStack.Push(batch);
-        UpdateUndoRedo();
-    }
-
-    // Applies one undo entry to its "before" (undo) or "after" (redo) state.
-    private void ApplyUndoOp(MapRecord map, UndoOp op, bool undo)
-    {
-        switch (op)
-        {
-            case TileOp t:
-                Restore(map.Tile[t.X, t.Y], undo ? t.Before : t.After);
-                break;
-            case LightOp l:
-                SetLightSlot(map, l.X, l.Y, (l.Before ?? l.After)?.Layer ?? WorldLayer.Ground, undo ? l.Before : l.After);
-                break;
-            case NpcSpawnOp n:
-                SetEntryPinAt(map, n.X, n.Y, n.Layer, undo ? n.Before : n.After);
-                RefreshNpcRow(n.Before);
-                RefreshNpcRow(n.After);
-                break;
-        }
-        SelectedMap!.UpdateRecord(map);
-        InvalidateTileGrid?.Invoke(op.X, op.Y);
-    }
-
     // ── Placed-light helpers (at most one light per tile PER LAYER — a ground torch under a bridge and a fringe
     // lamp on the deck may share a tile) ──────────────────────────────────────
     private static int FindLightIndex(MapRecord map, int x, int y, WorldLayer layer)

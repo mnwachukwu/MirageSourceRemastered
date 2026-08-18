@@ -208,26 +208,4 @@ public static partial class ServerStrings
     public const string Guild_MailApprovedBody = nameof(Guild_MailApprovedBody);
     public const string Guild_MailRejectedSubject = nameof(Guild_MailRejectedSubject);
     public const string Guild_MailRejectedBody = nameof(Guild_MailRejectedBody);
-    // "System" mail sender label (engine-generated mail).
-    public const string Mail_SystemSender = nameof(Mail_SystemSender);
-    public const string Mail_Sent = nameof(Mail_Sent);
-    public const string Mail_CannotMailItem = nameof(Mail_CannotMailItem);
-    public const string Mail_NoRecipient = nameof(Mail_NoRecipient);
-    public const string Mail_ReturnedSubject = nameof(Mail_ReturnedSubject);
-    public const string Mail_ReturnedBody = nameof(Mail_ReturnedBody);
-    public const string Mail_CannotMailSelf = nameof(Mail_CannotMailSelf);
-    public const string Mail_MultiNoAttachments = nameof(Mail_MultiNoAttachments);
-    public const string Mail_CannotAfford = nameof(Mail_CannotAfford);
-    public const string Mail_NoSubjectDefault = nameof(Mail_NoSubjectDefault);
-    public const string Mail_SentToMany = nameof(Mail_SentToMany);
-    public const string Mail_TooManyRecipients = nameof(Mail_TooManyRecipients);
-    public const string Mail_CannotAffordCod = nameof(Mail_CannotAffordCod);
-    public const string Mail_CodNoRoom = nameof(Mail_CodNoRoom);
-    public const string Mail_CodPaid = nameof(Mail_CodPaid);
-    public const string Mail_CodNeedsItem = nameof(Mail_CodNeedsItem);
-    public const string Mail_CodSingleOnly = nameof(Mail_CodSingleOnly);
-    public const string Mail_CodPaidSubject = nameof(Mail_CodPaidSubject);
-    public const string Mail_CodPaidBody = nameof(Mail_CodPaidBody);
-    public const string Mail_CodReturnedSubject = nameof(Mail_CodReturnedSubject);
-    public const string Mail_CodReturnedBody = nameof(Mail_CodReturnedBody);
 }

@@ -211,14 +211,8 @@ public sealed partial class ClientState
         return arr;
     }
 
-    // ── World data (1-based, loaded once on join) ─────────────────────────────
-
-    public ItemRecord[] Items { get; private set; } = new ItemRecord[RecordLimits.Default.Items + 1];
-    public NpcRecord[] NpcDefs { get; private set; } = new NpcRecord[RecordLimits.Default.Npcs + 1];
-    // Client-only: NPC template num → keeper-shop KIND (0 none / 1 store / 2 inn; from SendNpcsPacket +
-    // UpdateNpcPacket). Drives the $ vendor glyph, the melee-key/right-click interact routing, and the
-    // right-click menu label (Shop vs Inn). Parallel to NpcDefs; never persisted.
-    public int[] NpcKeeperShop { get; private set; } = new int[RecordLimits.Default.Npcs + 1];
-    public ShopRecord[] ShopDefs { get; private set; } = new ShopRecord[RecordLimits.Default.Shops + 1];
-    public SpellRecord[] SpellDefs { get; private set; } = new SpellRecord[RecordLimits.Default.Spells + 1];
+    /// <summary>Set by <c>InputProcessor</c> when the melee key aimed at an interactable NPC on the OTHER plane —
+    /// refused rather than sent. One-shot: the Shell drains it into a chat refusal and clears it (same hand-off as
+    /// <see cref="BankOpen"/>), because Core owns the decision but has no chat of its own.</summary>
+    public bool NpcInteractWrongLayer { get; set; }
 }

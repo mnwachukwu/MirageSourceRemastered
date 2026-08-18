@@ -17,6 +17,8 @@ namespace Mirage.Editor.ViewModels;
 /// reciprocal links consistent when one edge is repointed.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
+    private readonly HashSet<int> _loadingNeighborIds = [];
+
     // ── Neighbor map 3×3 grid properties ────────────────────────────────────
     private MapRecord? Resolve(int id)
     {

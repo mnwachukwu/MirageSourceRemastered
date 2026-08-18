@@ -26,8 +26,6 @@ public sealed class SpellSystem : GameSystem
         _items = items;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     /// <summary>Returns 1-based spell slot index of the first empty slot, or 0 if all full.</summary>
     public static int FindOpenSpellSlot(PlayerRecord p)
     {

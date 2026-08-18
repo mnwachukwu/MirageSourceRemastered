@@ -11,8 +11,9 @@ using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
-/// <summary>What the client sees: the guild info payload, roster snapshots kept current as members
-/// come and go, and the rank/kick/promote/demote operations that reshape it.</summary>
+/// <summary>What the guild sees: the guild info payload, roster snapshots kept current as members
+/// come and go, the rank/kick/promote/demote operations that reshape it, and the guild and officer
+/// chat channels those notices share.</summary>
 public sealed partial class GuildSystem : GameSystem
 {
     // ── Client sync ──────────────────────────────────────────────────────────────
@@ -470,4 +471,45 @@ public sealed partial class GuildSystem : GameSystem
     private void GuildNotice(int guildId, string key, params (string Key, object? Value)[] args) =>
         _dispatcher.SendLocalizedChatToGuild(guildId, key,
             new ChatMetadata(GameColor.Guild, ChatChannel.Guild), args);
+
+    // ── Guild chat ─────────────────────────────────────────────────────────────────
+
+    /// <summary>Route a guild-chat line to the whole guild (or, when <paramref name="officer"/>, just the
+    /// leader + officers) with the right decorator and rank preface. A guildless sender is a silent no-op
+    /// (the client guards too); the officer channel requires Officer+. Recipients who ignore the speaker's
+    /// account are skipped by the dispatch (via <see cref="ChatMetadata.SpeakerLogin"/>).</summary>
+    public void GuildChat(int index, string msg, bool officer)
+    {
+        var sp = _pm[index];
+        if (!sp.IsPlaying) return;
+        var guild = GuildOf(sp);
+        if (guild is null) return;                               // guildless: silent no-op
+        if (officer && sp.GuildRank < GuildRank.Officer)
+        {
+            Notify(index, ServerStrings.Guild_NeedOfficer);
+            return;
+        }  // officer channel = leader/officers only
+
+        long nowUtc = NowUtc;
+        bool showAsPk = sp.Char.IsPk(nowUtc) && sp.PkGraceUntilUtc <= nowUtc;
+        string name = sp.Char.TrimmedName;
+        bool ranked = sp.GuildRank > GuildRank.Member;           // only a Leader/Officer gets a rank preface
+        string rankWord = sp.GuildRank switch
+        {
+            GuildRank.Leader => ServerStrings.Get(ServerStrings.Guild_RankLeader),
+            GuildRank.Officer => ServerStrings.Get(ServerStrings.Guild_RankOfficer),
+            _ => "",
+        };
+        int color = officer ? GameColor.GuildOfficer : GameColor.Guild;
+        var channel = officer ? ChatChannel.GuildOfficer : ChatChannel.Guild;
+        var meta = new ChatMetadata(color, channel, name, sp.Char.Access, showAsPk, sp.Login);
+        string key = officer
+            ? (ranked ? ServerStrings.GuildOfficer_ChatSayRanked : ServerStrings.GuildOfficer_ChatSay)
+            : (ranked ? ServerStrings.Guild_ChatSayRanked : ServerStrings.Guild_ChatSay);
+
+        if (officer)
+            _dispatcher.SendLocalizedChatToGuildOfficers(guild.Index, key, meta, ("Rank", rankWord), ("Name", name), ("Msg", msg));
+        else
+            _dispatcher.SendLocalizedChatToGuild(guild.Index, key, meta, ("Rank", rankWord), ("Name", name), ("Msg", msg));
+    }
 }

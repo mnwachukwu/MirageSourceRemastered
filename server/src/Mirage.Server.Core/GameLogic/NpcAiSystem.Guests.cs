@@ -9,10 +9,15 @@ using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
-/// <summary>Traversal-guest NPC-versus-NPC stepping, plus the direction helper and neighbor
-/// tables the pathing flood is built on.</summary>
+/// <summary>Traversal-guest NPC-versus-NPC stepping: the guest twin of the native combat step.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
+    /// <summary>Guest twin of <see cref="RunNpcVsNpcStep"/>: a traversal NPC pursuing an NPC target.
+    /// When the victim dies, despawns, or flees outside the guest's 9-map observable area, the target
+    /// is dropped and the guest falls into idle (<see cref="RunGuestIdle"/>) rather than immediately
+    /// returning home — the unified combat-expire gate in <see cref="RunTraversalAi"/> handles the
+    /// actual return-home + reset when combat lapses.  Adjacent → strike; not adjacent → BFS-step.
+    /// Refreshes combat each chase step (relentless by design for acquired NPC engagements).</summary>
     private void RunGuestNpcVsNpcStep(int mapNum, int listIndex, TraversalNpcRecord t, long now)
     {
         var npc = _world.Npcs[t.Num];
@@ -84,39 +89,4 @@ public sealed partial class NpcAiSystem : GameSystem
         if (_world.MapObservers[mapNum].Count == 0)
             StepGuestTowardObservableArea(mapNum, listIndex, t, victimMap, victimMn.X, victimMn.Y, victimMn.Layer);
     }
-
-    private static Direction DirectionToward(MapPos from, MapPos to)
-    {
-        int dx = to.X - from.X;
-        int dy = to.Y - from.Y;
-        if (Math.Abs(dx) >= Math.Abs(dy))
-            return dx > 0 ? Direction.Right : Direction.Left;
-        return dy > 0 ? Direction.Down : Direction.Up;
-    }
-
-    // Direction deltas for BFS neighbor expansion (Up/Down/Left/Right) and the corresponding
-    // direction the NPC steps to go FROM that neighbor back to the current tile.  Static so they
-    // never allocate per call — the BFS hot path runs once per chasing NPC per tick.
-    private static readonly int[] _bfsDx = { 0, 0, -1, 1 };
-    private static readonly int[] _bfsDy = { -1, 1, 0, 0 };
-    private static readonly Direction[] _bfsStepFromNeighbor = { Direction.Down, Direction.Up, Direction.Right, Direction.Left };
-
-    // BFS for the shortest walkable path from (fromX,fromY) on `mapNum` to (toX,toY) on `targetMap`,
-    // across the WHOLE 3×3 observable area (48×36 world tiles).  Returns the first step direction
-    // the NPC should take — the actual move for this tick — letting it route around walls, U-shapes,
-    // and any solid map geometry AND follow linked borders into neighbor maps when that's shorter.
-    // Cell crossings run the same entry gate as the live cross step, so a planned route can never reach
-    // somewhere the NPC could not actually step.  Tiles currently held by other players
-    // and NPCs are pinned as walls via a one-shot occupancy snapshot — so the planned route matches
-    // what the NPC can actually step to THIS tick, and the plan stays consistent across ticks while
-    // a blocker persists (no oscillation against a stationary mob standing between NPC and target).
-    // Source and target tiles are special-cased: source is the BFS termination so its own occupancy
-    // is never checked; target is the BFS root so the same is true.  Returns null when no walkable
-    // path connects source and target in the observable area.
-    //
-    // Two-layer world: the BFS state is (cell, WorldLayer), 2*N states.  It roots at the target's layer
-    // (targetLayer) and terminates on the chaser's layer (fromLayer); a ramp is the only place a step
-    // crosses between layers (LayerLogic.CanEnter decides, matching live movement).  So an NPC under a
-    // bridge routes to a ramp to reach a target on top, and one that can't reach the target's layer at all
-    // returns null (the acquire gate then skips it / the give-up timer drops the lock).
 }

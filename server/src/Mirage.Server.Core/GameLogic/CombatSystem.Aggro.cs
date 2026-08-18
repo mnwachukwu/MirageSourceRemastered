@@ -257,66 +257,8 @@ public sealed partial class CombatSystem : GameSystem
         }
         // Hit guard's AttackSay was already sent by the AttackNpc / damage path; propagation handles
         // comrades' AttackSay (deduped via LastAttackSayTarget).  best == 0 propagates the clear so
-        // comrades drop in sync — matches the pre-extraction loop.
+        // comrades drop in sync.
         PropagateGuardAggro(mapNum, mn, new GuardTargetSpec(best, 0, 0), overwrite: true);
-    }
-
-    // Broadcasts a traversal guest's full state to observers of its current map.  Optional
-    // damage/dead flags drive the client's floating combat number and (on death) its removal.
-    private void SendTraversalState(TraversalNpcRecord t, int damage = 0, bool isCrit = false, bool dead = false)
-    {
-        long now = Environment.TickCount64;
-        var npc = _world.Npcs[t.Num];
-        SendToMap(_world, t.CurrentMapNum, new TraversalNpcPacket
-        {
-            SpawnMapNum = t.SpawnMapNum,
-            SpawnSlot = t.SpawnSlot,
-            CurrentMapNum = t.CurrentMapNum,
-            Num = t.Num,
-            X = t.X,
-            Y = t.Y,
-            Dir = t.Dir,
-            Movement = t.Moving,
-            Hp = Math.Max(t.Hp, 0),
-            MaxHp = _world.EffectiveNpcMaxHp(npc),
-            MsSinceCombat = PacketBuilder.MsSinceCombat(t.CombatExpiresAt, now, CombatDurationMs),
-            HasTarget = t.Target > 0,
-            Attacking = t.Attacking,
-            Damage = damage,
-            IsCrit = isCrit,
-            Dead = dead,
-            Layer = t.Layer,
-        });
-    }
-
-    private int ResolveLootRoll(List<int> all, out List<(int player, int roll)> finalRolls)
-    {
-        finalRolls = new List<(int player, int roll)>(all.Count);
-        for (int i = 0; i < all.Count; i++) finalRolls.Add((all[i], 0));
-        // Two working buffers swapped each round; allocated once, reused as winners narrow.
-        var remaining = new List<int>(all);
-        var nextRound = new List<int>(all.Count);
-        while (remaining.Count > 1)
-        {
-            int best = 0;
-            for (int i = 0; i < remaining.Count; i++)
-            {
-                int player = remaining[i];
-                int roll = Rng.Next(1, Constants.LootRollSides + 1);
-                int idx = finalRolls.FindIndex(x => x.player == player);
-                finalRolls[idx] = (player, roll);
-                if (roll > best) best = roll;
-            }
-            nextRound.Clear();
-            for (int i = 0; i < remaining.Count; i++)
-            {
-                if (finalRolls[finalRolls.FindIndex(x => x.player == remaining[i])].roll == best)
-                    nextRound.Add(remaining[i]);
-            }
-
-            (remaining, nextRound) = (nextRound, remaining);
-        }
-        return remaining[0];
     }
 
     /// <summary>Tagged "who wins aggro" — a player index, an NPC identity, or none.
@@ -594,13 +536,4 @@ public sealed partial class CombatSystem : GameSystem
             }
         }
     }
-
-    // Most CombatSystem lines are damage feedback / NPC says / status, which classify as Combat.
-    // EXP and loot lines pass ChatChannel.Rewards explicitly; level up/down and item-durability
-    // notices pass ChatChannel.System; the server-wide death and Player-Killer broadcasts pass
-    // ChatChannel.Notice (global announcements, not personal combat feedback).
-    // Key-based overloads: resolve the recipient's session locale at dispatch time so each
-    // player sees the line in their own language. The default-channel form covers the bulk of
-    // call sites; the explicit-channel form is for the few that pass Rewards/System/etc.
-    // Per-recipient localized hit messages. The {Suffix} value ("(killed)") is resolved with
 }

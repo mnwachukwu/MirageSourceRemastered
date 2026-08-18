@@ -4,6 +4,6 @@
   "shopType": "Inn",
   "allowBanking": true,
   "keeper": 133,
-  "tradeItem": [],
+  "barterItem": [],
   "salesItem": []
 }

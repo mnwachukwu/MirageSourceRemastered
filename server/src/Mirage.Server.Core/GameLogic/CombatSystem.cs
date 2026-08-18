@@ -64,7 +64,6 @@ public sealed partial class CombatSystem : GameSystem
     // null-safe for guildless players even when _guilds is absent (unit tests).
     private GuildRecord? GuildOf(int index) => _world.Guilds.GetValueOrDefault(_pm[index].Guild);
 
-
     /// <summary>Broadcasts a no-damage combat outcome (block/dodge/zero-hit) to every observer of
     /// <paramref name="mapNum"/> so clients float localized text over the entity. Players and native
     /// slot NPCs resolve by <paramref name="index"/> (player index / NPC slot); traversal guests pass

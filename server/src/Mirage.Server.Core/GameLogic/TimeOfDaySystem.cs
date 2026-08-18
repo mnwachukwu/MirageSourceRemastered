@@ -181,8 +181,6 @@ public sealed class TimeOfDaySystem : GameSystem
         _ => ServerStrings.TimeOfDay_WelcomeDay,
     };
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     /// <summary>Current cycle position in ms.  Exposed for the HUD packet on join.</summary>
     public long CurrentPosMs =>
         (Environment.TickCount64 - _cycleStartMs) % Constants.TodCycleDurationMs;

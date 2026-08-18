@@ -252,8 +252,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
         // they see the new trades without re-entering the shop tile.
         if (_state.ActiveShopNum == p.ShopNum)
         {
-            _state.ActiveTrades = p.Trades
-                .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
+            _state.ActiveBarters = p.Barters
+                .Select(t => new ShopContentsPacket.BarterRow(t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                 .ToArray();
         }
     }

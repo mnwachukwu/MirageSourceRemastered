@@ -308,8 +308,6 @@ public sealed class BankSystem : GameSystem
         SendFullBank(index);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private bool IsAtBankingInn(int index)
     {
         int shopNum = _pm[index].ActiveShop(_world, index);

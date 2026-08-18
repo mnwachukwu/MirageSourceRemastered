@@ -10,7 +10,8 @@ using Mirage.Shared.Records;
 namespace Mirage.Server.Core.GameLogic;
 
 /// <summary>Per-map NPC AI loop: acquires targets, advances chases and kites, casts, ticks regen,
-/// and drives idle wander for every native NPC and visiting guest on the map.</summary>
+/// and drives idle wander for every native NPC and visiting guest on the map. Also sweeps open
+/// doors shut, which rides the same per-map tick.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
     private readonly GameWorld _world;
@@ -535,8 +536,32 @@ public sealed partial class NpcAiSystem : GameSystem
             mn.Sp = Math.Min(mn.Sp + StatFormulas.GetNpcSpRegen(npc, regenMult), maxSp);
     }
 
-    // Light AI for a map with no observers: a vacated town's guards still tidy player-dropped litter
-    // so it's clean when someone returns.  No observers means no players in range, so there's nothing
-    // to target and nothing to broadcast — we skip the whole aggressive/wander path and run only the
-    // janitor sweep.  Non-Safe maps (where guards don't janitor) return immediately, and a single
+    // Each open door ages out on ITS OWN stamp, so opening a second door no longer extends the first one's
+    // window and doors don't all slam shut together.  No early-out on a shared timer: the map is 16x12x2 and
+    // the shut-door test is one array read, so the sweep is noise next to the pathfinding already running here.
+    private void CheckDoorAutoClose(int mapNum, long now)
+    {
+        var temp = _world.TempTiles[mapNum];
+        var map = _world.Maps[mapNum];
+        for (int y = 0; y <= Constants.MaxMapY; y++)
+        {
+            for (int x = 0; x <= Constants.MaxMapX; x++)
+            {
+                for (int l = 0; l < 2; l++)   // both planes — a deck door and the ground door under it are tracked separately
+                {
+                    long openedAt = temp.DoorOpenedAt[x, y, l];
+                    if (openedAt == 0 || now - openedAt < DoorAutoCloseMs) continue;
+
+                    // A tile the editor has since retyped away from Key keeps its stale stamp rather than
+                    // broadcasting a close for a door the client no longer draws.  Inert either way: every
+                    // door check is gated on TileType.Key first.
+                    var layer = (WorldLayer)l;
+                    if (LayerLogic.AttrFor(map.Tile[x, y], layer).Type != TileType.Key) continue;
+
+                    temp.DoorOpenedAt[x, y, l] = 0;
+                    SendToMap(_world, mapNum, new MapKeyPacket { MapNum = mapNum, X = x, Y = y, Open = false, Layer = layer });
+                }
+            }
+        }
+    }
 }

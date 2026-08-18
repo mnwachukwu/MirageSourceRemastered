@@ -127,10 +127,10 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     // ── Shop ─────────────────────────────────────────────────────────────────
 
-    private void HandleSendTrade(SendTradePacket p)
+    private void HandleShopContents(ShopContentsPacket p)
     {
         _state.ActiveShopNum = p.ShopNum;
-        _state.ActiveTrades = p.Trades;
+        _state.ActiveBarters = p.Barters;
         _state.ActiveSales = p.Sales;
         ShopOpened?.Invoke(p.ShopNum);
     }
@@ -198,13 +198,5 @@ public sealed partial class ClientPacketHandler : IClientEvents
         party.LastCombatTickMs = p.MsSinceCombat == int.MaxValue
             ? 0
             : Environment.TickCount64 - p.MsSinceCombat;
-    }
-
-    // ── Misc ──────────────────────────────────────────────────────────────────
-
-    private void HandlePlayersOnline(PlayersOnlinePacket p)
-    {
-        _state.PlayersOnline = p.Count;
-        PlayersOnlineChanged?.Invoke(p.Count);
     }
 }

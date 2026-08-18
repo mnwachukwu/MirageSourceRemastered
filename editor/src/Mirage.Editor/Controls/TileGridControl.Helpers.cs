@@ -17,7 +17,6 @@ namespace Mirage.Editor.Controls;
 /// <summary>Coordinate mapping and the Bresenham walk that fills gaps between drag samples.</summary>
 public sealed partial class TileGridControl : Control
 {
-    // ── Helpers ───────────────────────────────────────────────────────────────
     private static IEnumerable<(int x, int y)> BresenhamLine(int x0, int y0, int x1, int y1)
     {
         int dx = Math.Abs(x1 - x0), sx = x0 < x1 ? 1 : -1;

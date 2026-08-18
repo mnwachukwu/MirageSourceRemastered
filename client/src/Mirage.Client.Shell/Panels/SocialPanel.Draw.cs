@@ -206,7 +206,6 @@ public sealed partial class SocialPanel : IGamePanel
         return new Rectangle(gbody.X + Pad, top, gbody.Width - Pad * 2, Math.Max(0, gbody.Bottom - top - Pad));
     }
 
-
     private void DrawGuildStandings(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle gbody)
     {
         LayoutStandingsButtons(gbody);

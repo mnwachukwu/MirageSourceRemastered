@@ -36,6 +36,4 @@ public sealed partial class PacketHandler
     private void HandleTradeOfferRemove(int index, TradeOfferRemovePacket p) { if (_pm[index].IsPlaying) _trade.OfferRemove(index, p.Index); }
     private void HandleTradeConfirm(int index, TradeConfirmPacket p) { if (_pm[index].IsPlaying) _trade.Confirm(index, p.Confirmed); }
     private void HandleTradeCancel(int index) { if (_pm[index].IsPlaying) _trade.Cancel(index); }
-
-    // ===========================================================================
 }

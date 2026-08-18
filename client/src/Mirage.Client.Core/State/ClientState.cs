@@ -302,4 +302,15 @@ public sealed partial class ClientState
         if (drop is not null)
             foreach (int m in drop) BloodByMap.Remove(m);
     }
+
+    /// <summary>How much gold the character is carrying, or 0 when the stack is absent.</summary>
+    public long PlayerGold()
+    {
+        for (int i = 1; i <= Constants.MaxInv; i++)
+        {
+            var slot = Me?.Inv?[i];
+            if (slot is not null && Items[slot.Num]?.Name == "Gold") return slot.Quantity;
+        }
+        return 0;
+    }
 }

@@ -96,7 +96,7 @@
                        IsChecked="{Binding SelectedShop.AllowBanking}" />
           </Grid>
 
-          <!-- Trade table — visible for Store-type shops only -->
+          <!-- Barter table — visible for Store-type shops only -->
           <TextBlock x:Name="_tradesHeader" Margin="0,8,0,2"
                      IsVisible="{Binding SelectedShop.IsStore}"/>
           <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4"
@@ -110,11 +110,11 @@
                 <TextBlock x:Name="_colGetQty"   Grid.Column="3" Padding="6,4" FontWeight="SemiBold"/>
               </Grid>
               <!-- Empty-state hint shown when the shop has no trades yet -->
-              <TextBlock x:Name="_noTradesHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
-                         IsVisible="{Binding SelectedShop.HasNoTrades}"/>
-              <!-- Trade rows bound to observable collection; bounded scroll region keeps long lists usable -->
+              <TextBlock x:Name="_noBartersHint" Margin="8,6" Foreground="#8B84AE" FontStyle="Italic"
+                         IsVisible="{Binding SelectedShop.HasNoBarters}"/>
+              <!-- Barter rows bound to observable collection; bounded scroll region keeps long lists usable -->
               <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding SelectedShop.Trades}">
+                <ItemsControl ItemsSource="{Binding SelectedShop.Barters}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <Grid ColumnDefinitions="2*,*,2*,*,34" HorizontalAlignment="Stretch">
@@ -139,7 +139,7 @@
                                        Minimum="{Binding GetQuantityMin}" Maximum="{Binding GetQuantityMax}" FormatString="0"
                                        BorderThickness="0,0,1,1" CornerRadius="0"/>
                         <Button Grid.Column="4" Content="-" FontWeight="Bold"
-                                Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.RemoveTradeCommand}"
+                                Command="{Binding $parent[ItemsControl].DataContext.SelectedShop.RemoveBarterCommand}"
                                 CommandParameter="{Binding}"
                                 Classes="glyph" Margin="2,0,0,1"
                                 HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
@@ -149,8 +149,8 @@
                 </ItemsControl>
               </ScrollViewer>
               <!-- Add-row button -->
-              <Button x:Name="_addTradeBtn"
-                      Command="{Binding SelectedShop.AddTradeCommand}"
+              <Button x:Name="_addBarterBtn"
+                      Command="{Binding SelectedShop.AddBarterCommand}"
                       HorizontalAlignment="Left" Margin="8,6" Padding="10,3"/>
             </StackPanel>
           </Border>

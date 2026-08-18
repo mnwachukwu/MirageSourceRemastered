@@ -140,7 +140,6 @@ public sealed partial class PacketHandler
         }
     }
 
-
     private void HandleNoticeMsg(int index, NoticeMsgPacket p)
     {
         if (!_pm[index].IsPlaying) return;
@@ -217,6 +216,4 @@ public sealed partial class PacketHandler
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_PlayerNotOnline, new ChatMetadata(GameColor.White, ChatChannel.System));
         }
     }
-
-    // ===========================================================================
 }

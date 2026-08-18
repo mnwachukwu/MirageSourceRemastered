@@ -26,7 +26,6 @@ namespace Mirage.Client.Shell;
 /// that edit them live.</summary>
 public sealed partial class MirageGame : Game
 {
-    private static string MusicPath(int track) => AppPaths.Asset("assets", "music", $"music{track}.ogg");
 
     // User settings persist in the per-user config dir. appsettings.json is not bundled; until the
     // player changes a setting the app falls back to the in-code defaults in ReadConfig.
@@ -225,7 +224,4 @@ public sealed partial class MirageGame : Game
         SaveConfig();
         if (_transport.IsConnected) _sender.SendSetLanguage(_language);
     }
-
-    /// <summary>Loads the localized strings, applies window settings, installs the Alt+F4 filter, and
-    /// builds the screen stack and event wiring. Runs before <see cref="LoadContent"/>.</summary>
 }

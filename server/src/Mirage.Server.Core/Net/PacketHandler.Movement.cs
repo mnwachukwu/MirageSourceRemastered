@@ -107,6 +107,4 @@ public sealed partial class PacketHandler
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeReady,
                 new ChatMetadata(GameColor.BrightGreen, ChatChannel.Notice));
     }
-
-    // ═══════════════════════════════════════════════════════════════════════════
 }

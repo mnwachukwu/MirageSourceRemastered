@@ -60,26 +60,6 @@ public sealed partial class TextArea
         return null;
     }
 
-    // Cross-platform launch of the OS-default browser via the shell. UseShellExecute=true
-    // invokes ShellExecute on Windows, "open" on macOS, and "xdg-open" on Linux — no
-    // per-OS branching needed in .NET 5+. Failures (e.g. headless box, missing browser)
-    // are swallowed because the user already opted in by clicking.
-    private static void OpenUrl(string url)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true,
-            });
-        }
-        catch
-        {
-            // No browser configured / shell rejected — silently ignore.
-        }
-    }
-
     private static string FilterForFont(string s) => TextValidation.Filter(s);
 
     // ── Word wrap ─────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@
   "shopType": "Store",
   "allowBanking": false,
   "keeper": 139,
-  "tradeItem": [],
+  "barterItem": [],
   "salesItem": [
     397,
     398,

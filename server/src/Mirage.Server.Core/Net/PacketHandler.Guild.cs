@@ -249,6 +249,4 @@ public sealed partial class PacketHandler
         if (!_pm[index].IsPlaying) return;
         _guilds.SendGuildInfo(index);
     }
-
-    // ===========================================================================
 }

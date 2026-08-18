@@ -10,10 +10,9 @@ using Mirage.Shared.Records;
 namespace Mirage.Server.Core.GameLogic;
 
 /// <summary>What an exchange costs the participants: the stamina drains behind block, dodge and
-/// critical, the weather multipliers on those costs, and the equipment wear a hit inflicts.</summary>
+/// critical, the weather multipliers on those costs, and the equipment wear dying inflicts.</summary>
 public sealed partial class CombatSystem : GameSystem
 {
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>Drains 5% of the player's max SP on a successful crit and broadcasts the update.</summary>
     public void DrainSpForCrit(int index)
@@ -45,16 +44,6 @@ public sealed partial class CombatSystem : GameSystem
         _world.WeatherOn(map) == WeatherType.HeatWave ? Constants.WeatherHeatWaveSpCostMultiplier : 1;
     private int NpcSpBlockOrCrit(NpcRecord npc, int map) => CombatFormulas.SpCostForBlockOrCrit(_world.EffectiveNpcMaxSp(npc)) * WeatherSpCostMult(map);
     private int NpcSpDodge(NpcRecord npc, int map) => CombatFormulas.SpCostForDodge(_world.EffectiveNpcMaxSp(npc)) * WeatherSpCostMult(map);
-
-    private static bool IsAdjacentInDir(Direction dir, int ax, int ay, int bx, int by) =>
-        dir switch
-        {
-            Direction.Up => by + 1 == ay && bx == ax,
-            Direction.Down => by - 1 == ay && bx == ax,
-            Direction.Left => bx + 1 == ax && by == ay,
-            Direction.Right => bx - 1 == ax && by == ay,
-            _ => false
-        };
 
     // Death-time gear wear, gated here rather than at the four death sites so their load-bearing
     // drop-before-degrade order can't drift. Per-hit combat wear (DegradeItemDurability) is NOT gated:

@@ -38,6 +38,4 @@ public sealed partial class PacketHandler
         _quests.TurnIn(index, p.QuestNum);
     }
     private void HandleQuestAbandon(int index, QuestAbandonPacket p) { if (_pm[index].IsPlaying) _quests.Abandon(index, p.QuestNum); }
-
-    // ===========================================================================
 }

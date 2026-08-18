@@ -14,6 +14,8 @@ namespace Mirage.Server.Core.GameLogic;
 /// guest's own idle/chase/step lifecycle, and the return home that ends it.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
+    /// <summary>True when stepping one tile in <paramref name="dir"/> from (x,y) crosses the map
+    /// edge; on true, (destX,destY) is the wrapped landing tile on the neighbor map.</summary>
     private static bool StepLeavesMap(int x, int y, Direction dir, out int destX, out int destY)
     {
         destX = x;
@@ -629,5 +631,14 @@ public sealed partial class NpcAiSystem : GameSystem
         home.Num = 0;          // force SpawnNpc to fully re-initialize the slot
         home.SpawnWait = 0;
         _spawn.SpawnNpc(t.SpawnSlot, t.SpawnMapNum);
+    }
+
+    private static Direction DirectionToward(MapPos from, MapPos to)
+    {
+        int dx = to.X - from.X;
+        int dy = to.Y - from.Y;
+        if (Math.Abs(dx) >= Math.Abs(dy))
+            return dx > 0 ? Direction.Right : Direction.Left;
+        return dy > 0 ? Direction.Down : Direction.Up;
     }
 }

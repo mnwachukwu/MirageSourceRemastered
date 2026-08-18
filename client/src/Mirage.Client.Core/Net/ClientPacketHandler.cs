@@ -341,8 +341,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 break;
 
             // Shop
-            case SendTradePacket p:
-                HandleSendTrade(p);
+            case ShopContentsPacket p:
+                HandleShopContents(p);
                 break;
             case OpenInnPacket p:
                 HandleOpenInn(p);
@@ -415,7 +415,6 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 _state.SetSeasonArchive(p);
                 break;
 
-            // Misc
             case PlayersOnlinePacket p:
                 HandlePlayersOnline(p);
                 break;

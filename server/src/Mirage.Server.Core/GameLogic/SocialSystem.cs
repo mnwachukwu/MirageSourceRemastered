@@ -142,8 +142,6 @@ public sealed class SocialSystem : GameSystem
         NotifyOk(index, ServerStrings.Social_IgnoreRemoved, ("Name", login));
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
-
     // Resolve an ONLINE character name to its account login, rejecting self-targeting. Emits the
     // rejection to the caller, so a false return means "already handled, stop".
     private bool TryResolveTarget(int index, string charName, out string login, out string targetName)

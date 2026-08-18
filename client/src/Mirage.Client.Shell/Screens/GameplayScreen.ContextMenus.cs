@@ -21,6 +21,8 @@ namespace Mirage.Client.Shell.Screens;
 /// open. Includes the stacked-NPC case, where several NPCs occupy one tile.</summary>
 public sealed partial class GameplayScreen : IGameScreen
 {
+    /// <summary>Builds and opens the right-click player context menu. Items are filtered by the
+    /// local player's access tier.</summary>
     private void OpenPlayerContextMenu(string targetName, Point at)
     {
         if (BuildPlayerMenuItems(targetName) is not { } items) return;
@@ -198,9 +200,8 @@ public sealed partial class GameplayScreen : IGameScreen
     /// deliberate — "there is loot here you cannot have yet" is information, and an item that silently
     /// vanished from the menu would read as a bug.</para>
     ///
-    /// <para>This matters more than it used to: a split gold drop puts one tagged stack per
-    /// contributor on a single tile, so several claimable stacks sharing a square is now the ordinary
-    /// case rather than an edge one.</para>
+    /// <para>A split gold drop puts one tagged stack per contributor on a single tile, so several
+    /// claimable stacks sharing a square is the ordinary case, not an edge one.</para>
     ///
     /// <para>Every entry is range-gated by the same per-frame predicate the NPC menu uses, so walking
     /// closer enables it in place.</para>
@@ -485,8 +486,4 @@ public sealed partial class GameplayScreen : IGameScreen
     {
         _chat.StartWhisper(targetName);
     }
-
-    // Single entry point for every panel show/hide path (slash commands, sidebar buttons,
-    // hotkeys, links). Closing only happens when the panel is already the topmost open one;
-    // a buried panel is raised to the front instead of toggled, and a closed panel is opened.
 }

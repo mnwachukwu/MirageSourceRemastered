@@ -108,6 +108,6 @@ public sealed class NpcRecord
         // no key at all, matching how ClassGate collapses an empty AllowedClasses.
         if (Drops.Count == 0) Drops = null;
         // No length cap: a hoard is authored as repeated lines (quantity does not stack off Currency), so
-        // truncating here would silently delete payout. See Constants for why the old cap of 8 was removed.
+        // truncating here would silently delete payout.
     }
 }

@@ -21,6 +21,9 @@ namespace Mirage.Client.Shell.Screens;
 /// chat commands call, and the config restore on entering the screen.</summary>
 public sealed partial class GameplayScreen : IGameScreen
 {
+    // Single entry point for every panel show/hide path (slash commands, sidebar buttons,
+    // hotkeys, links). Closing only happens when the panel is already the topmost open one;
+    // a buried panel is raised to the front instead of toggled, and a closed panel is opened.
     private void ActivatePanel(int slot)
     {
         if (PanelIsOpen(slot))

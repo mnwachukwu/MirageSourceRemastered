@@ -14,6 +14,19 @@ namespace Mirage.Server.Core.GameLogic;
 /// mob defer to guards, and the full reset a native runs when a chase ends.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
+    // Seamless world: an aggressive NPC sees players within Range across the whole 9-map observable area,
+    // using world-tile distance from its own position (the center cell).  A player spotted on a
+    // neighbor map is acquired here; the chase logic then walks the NPC to the border to engage.
+    // Iterates MapObservers[mapNum] — the pre-maintained set of players who can see this map (which is
+    // exactly the players in the observable area) — instead of the whole 1,000-slot roster.
+    // LoS gate: a player behind a wall or closed door is skipped — the loop keeps scanning, so the
+    // winner is the lowest-level player who is BOTH in range AND visible (not "lowest, bail if blocked").
+    // Reachability gate: a candidate that passes LoS but has no walkable BFS path (e.g. behind an
+    // NpcAvoid wall) is also skipped — without this, the AoS would lock on, fail to close, give up,
+    // and instantly reacquire the same unreachable player forever.  Lowest-level REACHABLE player
+    // wins (nearest breaks equal-level ties); if none reachable, the NPC stays idle until a path
+    // opens or a reachable player wanders into range.  Once acquired, the chase BFS routes around
+    // walls as before.
     private int FindLowestLevelPlayer(int mapNum, MapNpcRecord mn, int range)
     {
         var npc = _world.Npcs[mn.Num];
@@ -480,11 +493,4 @@ public sealed partial class NpcAiSystem : GameSystem
             Layer = mn.Layer,
         });
     }
-
-    /// <summary>Guest twin of <see cref="RunNpcVsNpcStep"/>: a traversal NPC pursuing an NPC target.
-    /// When the victim dies, despawns, or flees outside the guest's 9-map observable area, the target
-    /// is dropped and the guest falls into idle (<see cref="RunGuestIdle"/>) rather than immediately
-    /// returning home — the unified combat-expire gate in <see cref="RunTraversalAi"/> handles the
-    /// actual return-home + reset when combat lapses.  Adjacent → strike; not adjacent → BFS-step.
-    /// Refreshes combat each chase step (relentless by design for acquired NPC engagements).</summary>
 }

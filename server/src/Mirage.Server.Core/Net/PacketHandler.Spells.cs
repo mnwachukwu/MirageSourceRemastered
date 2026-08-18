@@ -159,6 +159,4 @@ public sealed partial class PacketHandler
         });
         _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_ForgotSpell, new ChatMetadata(GameColor.Yellow, ChatChannel.System), ("Spell", spellName));
     }
-
-    // ===========================================================================
 }

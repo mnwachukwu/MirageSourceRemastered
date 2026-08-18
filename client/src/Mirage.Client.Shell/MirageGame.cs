@@ -276,7 +276,4 @@ public sealed partial class MirageGame : Game
         _instance = this;
         // _audioAvailable is probed lazily on first use in Initialize()
     }
-
-    // Background music track {n} → its bundled .ogg, anchored to the install dir (read-only).
-    /// <summary>Absolute path to a numbered music track.</summary>
 }

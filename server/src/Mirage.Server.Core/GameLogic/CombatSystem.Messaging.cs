@@ -9,10 +9,14 @@ using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
-/// <summary>The per-recipient hit lines. Each is resolved in the recipient's own locale, so the
-/// attacker and the victim read the same exchange in their own language.</summary>
+/// <summary>What an exchange sends out: the per-recipient hit lines, each resolved in the recipient's
+/// own locale so attacker and victim read the same exchange in their own language, and the traversal
+/// guest's state broadcast. Combat lines default to <c>ChatChannel.Combat</c>; EXP and loot pass
+/// Rewards, level and durability notices pass System, and the server-wide death and Player-Killer
+/// broadcasts pass Notice.</summary>
 public sealed partial class CombatSystem : GameSystem
 {
+    // Per-recipient localized hit messages. The {Suffix} value ("(killed)") is resolved with
     // ForPlayer so it lands in the recipient's locale alongside the outer template.
     private void SendYouHitMsg(int index, string target, string weapName, int damage, int color, bool killing = false)
     {
@@ -41,5 +45,33 @@ public sealed partial class CombatSystem : GameSystem
             SendMsg(index, ServerStrings.CombatSystem_TheyHitYou, color,
                 ("Attacker", attacker), ("Damage", damage));
         }
+    }
+
+    // Broadcasts a traversal guest's full state to observers of its current map.  Optional
+    // damage/dead flags drive the client's floating combat number and (on death) its removal.
+    private void SendTraversalState(TraversalNpcRecord t, int damage = 0, bool isCrit = false, bool dead = false)
+    {
+        long now = Environment.TickCount64;
+        var npc = _world.Npcs[t.Num];
+        SendToMap(_world, t.CurrentMapNum, new TraversalNpcPacket
+        {
+            SpawnMapNum = t.SpawnMapNum,
+            SpawnSlot = t.SpawnSlot,
+            CurrentMapNum = t.CurrentMapNum,
+            Num = t.Num,
+            X = t.X,
+            Y = t.Y,
+            Dir = t.Dir,
+            Movement = t.Moving,
+            Hp = Math.Max(t.Hp, 0),
+            MaxHp = _world.EffectiveNpcMaxHp(npc),
+            MsSinceCombat = PacketBuilder.MsSinceCombat(t.CombatExpiresAt, now, CombatDurationMs),
+            HasTarget = t.Target > 0,
+            Attacking = t.Attacking,
+            Damage = damage,
+            IsCrit = isCrit,
+            Dead = dead,
+            Layer = t.Layer,
+        });
     }
 }

@@ -45,8 +45,8 @@ public static class PacketNames
     public const string MapDropBulk = "mapdropbulk";
     public const string SortInventory = "sortinventory";
     public const string GetStats = "getstats";
-    public const string Trade = "trade";
-    public const string TradeRequest = "traderequest";
+    public const string ShopBarter = "shopbarter";                // C→S: take one row from a shop's BARTER table (item → item)
+    public const string ShopBarterRequest = "shopbarterrequest";  // C→S: preview one barter row before confirming it
     public const string ShopBuy = "shopbuy";     // C→S: buy one entry from a shop's SALES list (gold → item)
     public const string ShopSell = "shopsell";   // C→S: sell an inventory slot to the open shop (item → gold)
     public const string FixItem = "fixitem";
@@ -284,7 +284,7 @@ public static class PacketNames
     public const string SendSpells = "sendspells";
     public const string UpdateSpell = "updatespell";
     public const string EditSpellData = "editspelldata";
-    public const string SendTrade = "sendtrade";
+    public const string ShopContents = "shopcontents";             // S→C: an open shop's barter rows AND its sales list
     public const string OpenInn = "openinn";                       // S→C: raise the client-local Inn panel (from an NPC interact)
     public const string PlayerSpells = "playerspells";
     public const string PlayerHotkeys = "playerhotkeys";

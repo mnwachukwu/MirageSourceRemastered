@@ -244,7 +244,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
         NotifyOk(requesterIndex, ServerStrings.GuildWar_RequestSent);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     private static string TerritoryName(MapGroupRecord g) =>
         string.IsNullOrWhiteSpace(g.DisplayName) ? g.Name : g.DisplayName.Trim();
 

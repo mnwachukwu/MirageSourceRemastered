@@ -801,7 +801,7 @@ public class SeedIntegrityTests
                               .Select(kv => kv.Key).ToArray();
         if (treasures.Length == 0) Assert.Ignore("no treasure authored");
 
-        var bought = _shops.Values.SelectMany(s => s.TradeItem).Select(t => t.GiveItem).ToHashSet();
+        var bought = _shops.Values.SelectMany(s => s.BarterItem).Select(t => t.GiveItem).ToHashSet();
         Assert.Multiple(() =>
         {
             foreach (int t in treasures)

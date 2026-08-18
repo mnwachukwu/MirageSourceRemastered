@@ -18,7 +18,6 @@ public sealed partial class PacketHandler
     //  Info handlers
     // ===========================================================================
 
-
     private void HandleWhosOnline(int index)
     {
         if (!_pm[index].IsPlaying) return;
@@ -96,7 +95,4 @@ public sealed partial class PacketHandler
         Say(ServerStrings.AdminCommand_StatsAttributes, ("Str", p.Str), ("Def", p.Def), ("Int", p.Int), ("Spd", p.Spd));
         Say(ServerStrings.AdminCommand_StatsChances, ("PCrit", critChance), ("Block", blockChance), ("MCrit", spellCritChance));
     }
-
-
-    // ===========================================================================
 }

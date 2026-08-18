@@ -25,6 +25,9 @@ namespace Mirage.Client.Shell;
 /// heat-haze shader pass, and the letterbox that maps it all to the window.</summary>
 public sealed partial class MirageGame : Game
 {
+    /// <summary>Renders the frame in passes: the scrolling world into its supersampled target (with the
+    /// light and blood passes, split per layer when a bridge is in view), the composite of that target
+    /// onto the letterboxed map area, then the HUD, panels and dialogs at reference scale.</summary>
     protected override void Draw(GameTime gameTime)
     {
         var gs = _screens.Current as GameplayScreen;
@@ -374,6 +377,4 @@ public sealed partial class MirageGame : Game
         }
         return new Rectangle(x, y, w, h);
     }
-
-    /// <summary>Persists the config on the way out, so window geometry and options survive a quit.</summary>
 }

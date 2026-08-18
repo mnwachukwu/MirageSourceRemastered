@@ -14,33 +14,9 @@ using System.ComponentModel;
 namespace Mirage.Editor.ViewModels;
 
 /// <summary>The undo/redo stacks and the batching that groups a drag-paint into one operation,
-/// plus the per-tile snapshot/restore those operate on.</summary>
+/// plus the per-tile snapshot/restore those operate on and the Undo/Redo commands that replay them.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
-    // ── Selected attribute description (shown in attribute mode tools panel) ──
-    // Each description opens with the attribute's name, which EditorVocabulary supplies in English
-    // for every language; the explanation after it is translated.
-    public string SelectedAttributeDescription => AttributeDescription(SelectedAttributeTool);
-
-    private static string AttributeDescription(AttributeTool tool)
-    {
-        string key = tool switch
-        {
-            AttributeTool.Blocked => EditorStrings.MapEditor_AttrDesc_Blocked,
-            AttributeTool.Warp => EditorStrings.MapEditor_AttrDesc_Warp,
-            AttributeTool.Item => EditorStrings.MapEditor_AttrDesc_Item,
-            AttributeTool.NpcAvoid => EditorStrings.MapEditor_AttrDesc_NpcAvoid,
-            AttributeTool.Key => EditorStrings.MapEditor_AttrDesc_Key,
-            AttributeTool.KeyOpen => EditorStrings.MapEditor_AttrDesc_KeyOpen,
-            AttributeTool.NpcSpawn => EditorStrings.MapEditor_AttrDesc_NpcSpawn,
-            AttributeTool.LayerRamp => EditorStrings.MapEditor_AttrDesc_LayerRamp,
-            _ => "",
-        };
-        return key.Length == 0
-            ? EditorVocabulary.NameOf(tool)
-            : EditorStrings.Format(key, ("Name", EditorVocabulary.NameOf(tool)));
-    }
-
     // ── Undo / Redo ────────────────────────────────────────────────────────────
 
     // Two-layer world: the snapshot also carries the third visual stack (Canopy) and the fringe-layer attribute
@@ -132,5 +108,88 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         UndoCommand.NotifyCanExecuteChanged();
         RedoCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanUndo() => _undoStack.Count > 0 && SelectedMap is not null;
+    private bool CanRedo() => _redoStack.Count > 0 && SelectedMap is not null;
+
+    [RelayCommand(CanExecute = nameof(CanUndo))]
+    private void Undo()
+    {
+        if (!_undoStack.TryPop(out var batch) || SelectedMap is null) return;
+        var map = SelectedMap.Record;
+        for (int i = batch.Count - 1; i >= 0; i--)
+            ApplyUndoOp(map, batch[i], undo: true);
+        _redoStack.Push(batch);
+        UpdateUndoRedo();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRedo))]
+    private void Redo()
+    {
+        if (!_redoStack.TryPop(out var batch) || SelectedMap is null) return;
+        var map = SelectedMap.Record;
+        foreach (var op in batch)
+            ApplyUndoOp(map, op, undo: false);
+        _undoStack.Push(batch);
+        UpdateUndoRedo();
+    }
+
+    // Applies one undo entry to its "before" (undo) or "after" (redo) state.
+    private void ApplyUndoOp(MapRecord map, UndoOp op, bool undo)
+    {
+        switch (op)
+        {
+            case TileOp t:
+                Restore(map.Tile[t.X, t.Y], undo ? t.Before : t.After);
+                break;
+            case LightOp l:
+                SetLightSlot(map, l.X, l.Y, (l.Before ?? l.After)?.Layer ?? WorldLayer.Ground, undo ? l.Before : l.After);
+                break;
+            case NpcSpawnOp n:
+                SetEntryPinAt(map, n.X, n.Y, n.Layer, undo ? n.Before : n.After);
+                RefreshNpcRow(n.Before);
+                RefreshNpcRow(n.After);
+                break;
+        }
+        SelectedMap!.UpdateRecord(map);
+        InvalidateTileGrid?.Invoke(op.X, op.Y);
+    }
+
+    // A row removal shifts entry indices, so fix up the entry-index keys in every queued NPC-spawn pin op (undo
+    // AND redo) IN PLACE — preserving the whole undo history instead of clearing it. Before/After are the entry
+    // index pinned at the op's tile: the removed index → null (that entry, and its pin, are gone, so the op
+    // degrades to a harmless "clear this tile" no-op), an index past the removed one shifts down by one.
+    private void AdjustPinOpsAfterRemoval(int removedIndex)
+    {
+        ShiftPinOps(_undoStack, removedIndex);
+        ShiftPinOps(_redoStack, removedIndex);
+    }
+
+    private static void ShiftPinOps(Stack<List<UndoOp>> stack, int removedIndex)
+    {
+        // The stack's batches are mutable List references; editing an op in place persists without disturbing the
+        // stack order, so history depth and CanUndo/CanRedo are untouched.
+        foreach (var batch in stack)
+        {
+            for (int i = 0; i < batch.Count; i++)
+            {
+                if (batch[i] is NpcSpawnOp op)
+                {
+                    batch[i] = op with
+                    {
+                        Before = ShiftPinIndex(op.Before, removedIndex),
+                        After = ShiftPinIndex(op.After, removedIndex)
+                    };
+                }
+            }
+        }
+    }
+
+    private static int? ShiftPinIndex(int? entryIndex, int removedIndex)
+    {
+        if (entryIndex is not int i) return null;
+        if (i == removedIndex) return null;      // the pinned entry was removed — no target remains
+        return i > removedIndex ? i - 1 : i;     // entries after the removed one slid down a post
     }
 }

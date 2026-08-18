@@ -540,11 +540,11 @@ public sealed partial class PacketHandler
                 case NpcInteractPacket p:
                     HandleNpcInteract(index, p);
                     break;
-                case TradePacket p:
-                    HandleTrade(index, p);
+                case ShopBarterPacket p:
+                    HandleShopBarter(index, p);
                     break;
-                case TradeRequestPacket p:
-                    HandleTradeRequest(index, p);
+                case ShopBarterRequestPacket p:
+                    HandleShopBarterRequest(index, p);
                     break;
                 case ShopBuyPacket p:
                     HandleShopBuy(index, p);

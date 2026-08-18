@@ -328,8 +328,8 @@ public static class PacketSerializer
 
                 // Shop / trade
                 PacketNames.NpcInteract => JsonSerializer.Deserialize<NpcInteractPacket>(line, Options),
-                PacketNames.Trade => JsonSerializer.Deserialize<TradePacket>(line, Options),
-                PacketNames.TradeRequest => JsonSerializer.Deserialize<TradeRequestPacket>(line, Options),
+                PacketNames.ShopBarter => JsonSerializer.Deserialize<ShopBarterPacket>(line, Options),
+                PacketNames.ShopBarterRequest => JsonSerializer.Deserialize<ShopBarterRequestPacket>(line, Options),
                 PacketNames.ShopBuy => JsonSerializer.Deserialize<ShopBuyPacket>(line, Options),
                 PacketNames.ShopSell => JsonSerializer.Deserialize<ShopSellPacket>(line, Options),
                 PacketNames.FixItem => JsonSerializer.Deserialize<FixItemPacket>(line, Options),
@@ -425,7 +425,7 @@ public static class PacketSerializer
                 PacketNames.NpcDespawn => JsonSerializer.Deserialize<NpcDespawnPacket>(line, Options),
                 PacketNames.NpcDir => JsonSerializer.Deserialize<NpcDirPacket>(line, Options),
                 PacketNames.SendShops => JsonSerializer.Deserialize<SendShopsPacket>(line, Options),
-                PacketNames.SendTrade => JsonSerializer.Deserialize<SendTradePacket>(line, Options),
+                PacketNames.ShopContents => JsonSerializer.Deserialize<ShopContentsPacket>(line, Options),
                 PacketNames.OpenInn => JsonSerializer.Deserialize<OpenInnPacket>(line, Options),
                 PacketNames.UpdateShop => JsonSerializer.Deserialize<UpdateShopPacket>(line, Options),
                 PacketNames.UpdateQuest => JsonSerializer.Deserialize<UpdateQuestPacket>(line, Options),

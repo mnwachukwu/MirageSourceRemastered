@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 namespace Mirage.Editor.ViewModels;
 
 /// <summary>One authored quest objective: a Kind, an NPC target, and a count. Mirrors
-/// TradeRowViewModel — an id↔NamedEntry picker facade + dirty tracking. An empty row (Kind None / Count 0) is
+/// ShopBarterRowViewModel — an id↔NamedEntry picker facade + dirty tracking. An empty row (Kind None / Count 0) is
 /// dropped on save.</summary>
 public sealed partial class QuestObjectiveRowViewModel : ObservableObject
 {

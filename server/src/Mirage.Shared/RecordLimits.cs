@@ -11,8 +11,8 @@ namespace Mirage.Shared;
 /// reason it exists: <c>Constants.Max*</c> is <c>const</c>, so a client compiled against 1000 items would
 /// REJECT item 1200 as out of range on a server that authored it.</para>
 ///
-/// <para>The defaults are the values that used to be the constants, so an operator who configures nothing
-/// gets exactly what they had before. Raising costs three things, all local and known: the server pads
+/// <para>The defaults match <c>Constants.Max*</c>, so an operator who configures nothing gets the stock
+/// world size. Raising costs three things, all local and known: the server pads
 /// each family to its ceiling in the RUNTIME data folder on first launch, <c>GameWorld</c> allocates one
 /// array per family, and the editor's slot pickers list that many rows.</para>
 ///

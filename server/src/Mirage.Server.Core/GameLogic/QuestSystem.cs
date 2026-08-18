@@ -294,8 +294,6 @@ public sealed class QuestSystem : GameSystem
 
     private bool IsDone(int index, int questNum) => Find(index, questNum) is { Status: QuestStatus.Done };
 
-    // ── Helpers ─────────────────────────────────────────────────────────────────
-
     private bool QuestExists(int questNum) =>
         SlotValidation.IsValidQuestNum(questNum, _world.Limits.Quests) && _world.Quests[questNum].TrimmedName.Length > 0;
 

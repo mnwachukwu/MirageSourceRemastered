@@ -663,4 +663,21 @@ public sealed partial class TextArea
             UiHelper.DrawBorder(sb, thumb, UiHelper.TextAreaSbThumbBorder);
         }
     }
+
+    // Hands the URL to the OS-default browser (ShellExecute / open / xdg-open).
+    private static void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // No browser configured / shell rejected — silently ignore.
+        }
+    }
 }

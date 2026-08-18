@@ -1,18 +1,215 @@
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Mirage.Editor.Controls;
+using Mirage.Editor.Localization;
+using Mirage.Editor.Models;
+using Mirage.Editor.Services;
+using Mirage.Shared;
+using Mirage.Shared.Records;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
-
 namespace Mirage.Editor.ViewModels;
 
-/// <summary>Change notification for the selected map's own properties, and the hook that keeps the
-/// view in step when the selected map's record is replaced elsewhere.
-///
-/// <para>RECOVERED: these two methods were lost to a bad file split and restored from the compiled
-/// assembly. The bodies are the exact set of notifications the previous build emitted; the
-/// <c>nameof</c> form and these comments were reconstructed (the compiler bakes <c>nameof</c> down to
-/// a string literal, so that much could not survive the round-trip). If either reads oddly against
-/// your memory of the original, this is the file to check.</para></summary>
+/// <summary>The selected map's own record fields — every property the Properties panel binds and
+/// edits — and the notification that re-raises them all when the record is swapped wholesale.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
+    // Tri-state Moral choices for the map's inherit/override ComboBox. Rebuilt on language change.
+    public IReadOnlyList<MoralChoice> MoralOptions { get; private set; } = MoralChoices.Build();
+
+    // Routes map name edits through the ViewModel so the list item DisplayName updates live.
+    public string MapName
+    {
+        get => SelectedMap?.Record.Name ?? "";
+        set
+        {
+            if (SelectedMap is null) return;
+            SelectedMap.Record.Name = value;
+            SelectedMap.NotifyDisplayName();
+        }
+    }
+
+    // Player-facing name. Routed through NotifyDisplayName so the list row's parenthetical updates live.
+    public string MapDisplayName
+    {
+        get => SelectedMap?.Record.DisplayName ?? "";
+        set
+        {
+            if (SelectedMap is null) return;
+            SelectedMap.Record.DisplayName = value;
+            SelectedMap.NotifyDisplayName();
+        }
+    }
+
+    // Pass-through properties for map record fields — each setter marks the map dirty
+    // so that edits to numeric fields and NPC slots register correctly.
+
+    // Tri-state Moral: "(Inherit)" (null) or an explicit MapMoral. The map's own value overrides
+    // its group; null inherits the group (else the hard default None).
+    public MoralChoice? SelectedMapMoral
+    {
+        get => MoralOptions.FirstOrDefault(c => c.Value == SelectedMap?.Record.Moral) ?? MoralOptions[0];
+        set
+        {
+            if (SelectedMap is null || value is null || SelectedMap.Record.Moral == value.Value) return;
+            SelectedMap.Record.Moral = value.Value;
+            SelectedMap.MarkDirty();
+            OnPropertyChanged(nameof(SelectedMapMoral));
+        }
+    }
+    public int MapUp
+    {
+        get => SelectedMap?.Record.Up ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.Up == value) return;
+            SelectedMap.Record.Up = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapDown
+    {
+        get => SelectedMap?.Record.Down ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.Down == value) return;
+            SelectedMap.Record.Down = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapLeft
+    {
+        get => SelectedMap?.Record.Left ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.Left == value) return;
+            SelectedMap.Record.Left = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapRight
+    {
+        get => SelectedMap?.Record.Right ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.Right == value) return;
+            SelectedMap.Record.Right = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapMusic
+    {
+        get => SelectedMap?.Record.Music ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.Music == value) return;
+            SelectedMap.Record.Music = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapBootMap
+    {
+        get => SelectedMap?.Record.BootMap ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.BootMap == value) return;
+            SelectedMap.Record.BootMap = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapBootX
+    {
+        get => SelectedMap?.Record.BootX ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.BootX == value) return;
+            SelectedMap.Record.BootX = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapBootY
+    {
+        get => SelectedMap?.Record.BootY ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.BootY == value) return;
+            SelectedMap.Record.BootY = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    // Map-enter/leave greeting, authored per map (shops are not map-bound).
+    // Blank on the map inherits the field from its MapGroup; blank everywhere = no greeting.
+    public string MapGreetingSpeaker
+    {
+        get => SelectedMap?.Record.GreetingSpeaker ?? "";
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.GreetingSpeaker == value) return;
+            SelectedMap.Record.GreetingSpeaker = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public string MapJoinSay
+    {
+        get => SelectedMap?.Record.JoinSay ?? "";
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.JoinSay == value) return;
+            SelectedMap.Record.JoinSay = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public string MapLeaveSay
+    {
+        get => SelectedMap?.Record.LeaveSay ?? "";
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.LeaveSay == value) return;
+            SelectedMap.Record.LeaveSay = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    // Tri-state (null = inherit from the map group) — bound to IsThreeState CheckBoxes.
+    public bool? MapIndoors
+    {
+        get => SelectedMap?.Record.Indoors;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.Indoors == value) return;
+            SelectedMap.Record.Indoors = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public bool? MapAlwaysDark
+    {
+        get => SelectedMap?.Record.AlwaysDark;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.AlwaysDark == value) return;
+            SelectedMap.Record.AlwaysDark = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    public int MapGroup
+    {
+        get => SelectedMap?.Record.MapGroup ?? 0;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.MapGroup == value) return;
+            SelectedMap.Record.MapGroup = value;
+            SelectedMap.MarkDirty();
+        }
+    }
+    // Server-bumped revision.  Display-only — surfaces what the live server has (or will have after
+    // the next push); editing it client-side would just be cosmetic since the server ignores it.
+    public int MapRevision => SelectedMap?.Record.Revision ?? 0;
+    // Status-bar readout: "Revision: N" (built like SelectedLayerLabel, reusing the localized label).
+    public string MapRevisionText =>
+        $"{EditorStrings.Get(EditorStrings.MapEditor_RevisionLabel)} {MapRevision}";
+
     /// <summary>Re-raises every property the map Properties panel and the neighbor grid bind to.
     /// Called whenever the selected map changes wholesale — a different map selected, a record
     /// swapped in by a load, or an edit applied outside the bound setters — because those paths

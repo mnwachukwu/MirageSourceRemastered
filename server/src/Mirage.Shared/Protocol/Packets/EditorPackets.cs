@@ -167,12 +167,12 @@ public sealed record EditorSaveShopPacket : IPacket
     // NPC template number this shop/inn is assigned to (0 = none) — the editor's Keeper picker. Drives the
     // client $ glyph + attack-key/right-click interact.
     [JsonPropertyName("keeper")] public int Keeper { get; init; }
-    [JsonPropertyName("trades")] public TradeEntry[] Trades { get; init; } = [];
+    [JsonPropertyName("barters")] public BarterEntry[] Barters { get; init; } = [];
     /// <summary>Item numbers this shop sells for gold, priced from the item. Plain numbers, not rows —
     /// see <see cref="Records.ShopRecord.SalesItem"/>.</summary>
     [JsonPropertyName("sales")] public int[] Sales { get; init; } = [];
 
-    public sealed record TradeEntry(
+    public sealed record BarterEntry(
         [property: JsonPropertyName("giveItem")] int GiveItem,
         [property: JsonPropertyName("giveQuantity")] int GiveQuantity,
         [property: JsonPropertyName("getItem")] int GetItem,
@@ -311,7 +311,7 @@ public sealed record UpdateShopPacket : IPacket
     [JsonPropertyName("shopType")] public ShopType ShopType { get; init; }
     [JsonPropertyName("allowBanking")] public bool AllowBanking { get; init; }
     [JsonPropertyName("keeper")] public int Keeper { get; init; }
-    [JsonPropertyName("trades")] public EditorSaveShopPacket.TradeEntry[] Trades { get; init; } = [];
+    [JsonPropertyName("barters")] public EditorSaveShopPacket.BarterEntry[] Barters { get; init; } = [];
     [JsonPropertyName("sales")] public int[] Sales { get; init; } = [];
 }
 

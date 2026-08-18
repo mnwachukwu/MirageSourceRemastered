@@ -242,27 +242,27 @@ public sealed partial class PacketHandler
     //  Shop handlers
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // Build + send a Store's trade window to `index`. On the client this sets ActiveShopNum, which opens the
+    // Build + send a Store's barter table and sales list to `index`. On the client this sets ActiveShopNum, which opens the
     // ShopPanel. The single store-open path, called by OpenNpcShop.
-    private void SendStoreTrades(int index, int shopNum, ShopRecord shop)
+    private void SendShopContents(int index, int shopNum, ShopRecord shop)
     {
-        // Send the shop's trades in list order; the client's display index maps 1:1 to the slot it sends
-        // back (slot = index + 1), which ShopSystem.Trade resolves as TradeItem[slot - 1].
-        var trades = shop.TradeItem
-            .Select(t => new SendTradePacket.TradeRow(t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
+        // Send the shop's barter rows in list order; the client's display index maps 1:1 to the slot it sends
+        // back (slot = index + 1), which ShopSystem.Trade resolves as BarterItem[slot - 1].
+        var trades = shop.BarterItem
+            .Select(t => new ShopContentsPacket.BarterRow(t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
             .ToArray();
         // The sales list rides along as bare item numbers — the client already has every item definition,
         // so it can price and label the shopfront without a row per entry.
-        _dispatcher.SendTo(index, new SendTradePacket
+        _dispatcher.SendTo(index, new ShopContentsPacket
         {
             ShopNum = shopNum,
-            Trades = trades,
+            Barters = trades,
             Sales = shop.SalesItem.ToArray(),
         });
     }
 
     // Resolve the map NPC at (map, slot) a player is interacting with, enforcing map visibility + the r=5 range
-    // gate (cross-map-aware — mirrors the spell/trade proximity check). Returns false (npcNum=0) if the slot is
+    // gate (cross-map-aware — mirrors the spell proximity check). Returns false (npcNum=0) if the slot is
     // empty, off-view, or out of range. Authoritative backstop: a modified client can't interact from afar.
     // Shared by the NPC-interact spine and the quest accept/turn-in proximity checks;
     // the world-geometry core lives on GameWorld so the active-shop re-validation reuses the same gate.
@@ -317,7 +317,7 @@ public sealed partial class PacketHandler
 
     // Open the shop/inn assigned to NPC template `npcNum` (ShopRecord.Keeper) for `index`, if any. Records the
     // active shop (shop# + this keeper's map/slot) so follow-up ops re-validate r=5 of the keeper. Store → the
-    // trade window; Inn → the client-local inn panel (carrying the shop# so it resolves banking/market/
+    // shop panel; Inn → the client-local inn panel (carrying the shop# so it resolves banking/market/
     // set-spawn against this keeper's inn from anywhere). No-op if the NPC keeps no shop.
     private bool OpenNpcShop(int index, int npcNum, int keeperMap, int keeperSlot)
     {
@@ -326,24 +326,24 @@ public sealed partial class PacketHandler
         var shop = _world.Shops[shopNum];
         _pm[index].SetActiveShop(shopNum, keeperMap, keeperSlot);
         if (shop.ShopType == ShopType.Store)
-            SendStoreTrades(index, shopNum, shop);
+            SendShopContents(index, shopNum, shop);
         else
             _dispatcher.SendTo(index, new OpenInnPacket { ShopNum = shopNum });
         return true;
     }
 
-    private void HandleTrade(int index, TradePacket p)
+    private void HandleShopBarter(int index, ShopBarterPacket p)
     {
         if (!_pm[index].IsPlaying) return;
-        if (_pm[index].Char.Dead) return;  // a corpse can't trade at a shop
+        if (_pm[index].Char.Dead) return;  // a corpse can't barter at a shop
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum > 0)
-            _shop.Trade(index, shopNum, p.TradeSlot);
+            _shop.Barter(index, shopNum, p.BarterSlot);
         else
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
     }
 
-    private void HandleTradeRequest(int index, TradeRequestPacket p)
+    private void HandleShopBarterRequest(int index, ShopBarterRequestPacket p)
     {
         if (!_pm[index].IsPlaying) return;
         // Only a malformed slot is a hacking signal here. The real bound is the shop's own trade count,
@@ -356,7 +356,7 @@ public sealed partial class PacketHandler
         }
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum > 0)
-            _shop.Trade(index, shopNum, p.Slot);
+            _shop.Barter(index, shopNum, p.Slot);
     }
 
     private void HandleShopBuy(int index, ShopBuyPacket p)
@@ -365,7 +365,7 @@ public sealed partial class PacketHandler
         if (_pm[index].Char.Dead) return;  // a corpse can't shop
         // Resolve the shop from the SERVER's active-shop record, never from the packet: the client's
         // shopNum is a display hint, and trusting it would let a modified client buy from any shop in
-        // the world. Same rule HandleTrade follows.
+        // the world. Same rule HandleShopBarter follows.
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum > 0)
             _shop.Buy(index, shopNum, p.SalesSlot);
@@ -386,6 +386,4 @@ public sealed partial class PacketHandler
         if (_pm[index].Char.Dead) return;  // a corpse can't repair at a shop
         _shop.FixItem(index, p.InvSlot);
     }
-
-    // ═══════════════════════════════════════════════════════════════════════════
 }

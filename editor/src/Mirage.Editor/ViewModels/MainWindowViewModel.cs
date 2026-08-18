@@ -426,7 +426,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ConnectionEndpoint = "";
     }
 
-
     // Three tiers now: a Creator gets everything, Developer gets the content sections, and a Mapper gets
     // the map and map-group editors only. Offline editing is unrestricted — this narrowing applies to a
     // live server session, and the SERVER re-checks every one of these; see EditorPacketHandler's

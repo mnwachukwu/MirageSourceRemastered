@@ -438,7 +438,4 @@ public sealed partial class GameplayScreen : IGameScreen
         _chat.OnTabRightClicked = (tabIndex, _) =>
             _chatOptions.Open(_chat, tabIndex, _ctx.State.Me.Access > AdminLevel.Player, _ctx.State.GuildInfo?.InGuild ?? false);
     }
-
-    /// <summary>Builds and opens the right-click player context menu. Items are filtered by the
-    /// local player's access tier.</summary>
 }

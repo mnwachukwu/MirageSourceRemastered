@@ -267,12 +267,12 @@ public class ShopSystemTests
 
     // ── Trade ────────────────────────────────────────────────────────────────────
 
-    // Trades are a dense 0-based list now; slot 1 (what the tests trade against) is TradeItem[0].
+    // Barters are a dense 0-based list now; slot 1 (what the tests trade against) is BarterItem[0].
     static void SetTrade(GameWorld world, int giveItem, int giveVal, int getItem, int getVal)
     {
-        var trades = world.Shops[ShopNum].TradeItem;
+        var trades = world.Shops[ShopNum].BarterItem;
         trades.Clear();
-        trades.Add(new TradeItemRecord { GiveItem = giveItem, GiveQuantity = giveVal, GetItem = getItem, GetQuantity = getVal });
+        trades.Add(new BarterItemRecord { GiveItem = giveItem, GiveQuantity = giveVal, GetItem = getItem, GetQuantity = getVal });
     }
 
     [Test]
@@ -284,7 +284,7 @@ public class ShopSystemTests
         p.Inv[1].Num = Gold;
         p.Inv[1].Quantity = 100;
 
-        shop.Trade(Idx, ShopNum, tradeSlot: 1);
+        shop.Barter(Idx, ShopNum, barterSlot: 1);
 
         Assert.Multiple(() =>
         {
@@ -302,7 +302,7 @@ public class ShopSystemTests
         p.Inv[1].Num = Gold;
         p.Inv[1].Quantity = 50;  // only 50 of the 100 needed
 
-        shop.Trade(Idx, ShopNum, 1);
+        shop.Barter(Idx, ShopNum, 1);
 
         Assert.Multiple(() =>
         {
@@ -320,7 +320,7 @@ public class ShopSystemTests
         p.Inv[1].Num = Gold;
         p.Inv[1].Quantity = 100;
 
-        shop.Trade(Idx, ShopNum, 1);
+        shop.Barter(Idx, ShopNum, 1);
 
         Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "an Inn is not a trading store");
     }
@@ -335,7 +335,7 @@ public class ShopSystemTests
         p.Inv[1].Num = Gold;
         p.Inv[1].Quantity = 100;
 
-        shop.Trade(Idx, ShopNum, 1);
+        shop.Barter(Idx, ShopNum, 1);
 
         Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "a zero-quantity trade hands out nothing");
     }

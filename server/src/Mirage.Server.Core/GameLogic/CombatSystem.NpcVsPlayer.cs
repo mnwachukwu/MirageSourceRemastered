@@ -364,7 +364,6 @@ public sealed partial class CombatSystem : GameSystem
             ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: true);
     }
 
-
     /// <summary>Shared damage-application body for both NPC melee (<see cref="NpcAttackPlayer"/>)
     /// and NPC magic (<see cref="NpcCastSpellOnPlayer"/>).  Handles the zero-damage taunt, the
     /// regular hit broadcast, and the full death-penalty / warp / vital-reset path on lethal

@@ -47,14 +47,14 @@ public class ShopSalesTableTests
         // disturb it. A trade row can still name any two items; a sales entry is only ever a number.
         var shop = new ShopRecord
         {
-            TradeItem = [new TradeItemRecord { GiveItem = 9, GiveQuantity = 5, GetItem = 4, GetQuantity = 1 }],
+            BarterItem = [new BarterItemRecord { GiveItem = 9, GiveQuantity = 5, GetItem = 4, GetQuantity = 1 }],
             SalesItem = [11, 12],
         };
         shop.Normalize(MaxItems);
         Assert.Multiple(() =>
         {
-            Assert.That(shop.TradeItem, Has.Count.EqualTo(1), "normalizing sales must not touch trades");
-            Assert.That(shop.TradeItem[0].GiveQuantity, Is.EqualTo(5), "GiveQuantity is the price");
+            Assert.That(shop.BarterItem, Has.Count.EqualTo(1), "normalizing sales must not touch trades");
+            Assert.That(shop.BarterItem[0].GiveQuantity, Is.EqualTo(5), "GiveQuantity is the price");
             Assert.That(shop.SalesItem, Is.EqualTo(new[] { 11, 12 }));
         });
     }
@@ -71,7 +71,7 @@ public class ShopSalesTableTests
             Name = "Kilnforged Armory",
             ShopType = ShopType.Store,
             Sales = [31, 32, 33],
-            Trades = [new EditorSaveShopPacket.TradeEntry(1, 500, 88, 1)],
+            Barters = [new EditorSaveShopPacket.BarterEntry(1, 500, 88, 1)],
         };
 
         var shop = new ShopRecord
@@ -79,7 +79,7 @@ public class ShopSalesTableTests
             Name = packet.Name,
             ShopType = packet.ShopType,
             SalesItem = [.. packet.Sales],
-            TradeItem = [.. packet.Trades.Select(t => new TradeItemRecord
+            BarterItem = [.. packet.Barters.Select(t => new BarterItemRecord
             {
                 GiveItem = t.GiveItem, GiveQuantity = t.GiveQuantity,
                 GetItem = t.GetItem, GetQuantity = t.GetQuantity,
@@ -90,14 +90,14 @@ public class ShopSalesTableTests
         Assert.Multiple(() =>
         {
             Assert.That(shop.SalesItem, Is.EqualTo(new[] { 31, 32, 33 }));
-            Assert.That(shop.TradeItem[0].GiveQuantity, Is.EqualTo(500));
+            Assert.That(shop.BarterItem[0].GiveQuantity, Is.EqualTo(500));
         });
     }
 
     [Test]
     public void ASalesListCostsOneIntPerEntry_HoweverLargeTheShopfront()
     {
-        // Why the sales table is numbers and not TradeItemRecord rows. The armory is 471 items; as barter
+        // Why the sales table is numbers and not BarterItemRecord rows. The armory is 471 items; as barter
         // rows that is four ints and a hand-authored line each, and a shop panel rendering "give X → get Y"
         // for every one. As numbers it is a list, and the client prices it from definitions it already holds.
         var big = new ShopRecord { SalesItem = [.. Enumerable.Range(1, 200)] };

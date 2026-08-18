@@ -14,6 +14,10 @@ namespace Mirage.Server.Core.GameLogic;
 /// against an obstacle.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
+    // Attempts a single planned step for a native (slot) NPC — either a within-map move or a
+    // one-tile border cross (converting the NPC to a traversal guest).  Returns true on success;
+    // false when the planned tile is blocked (transient mob/player on it, or a cross blocked by
+    // missing link / occupied landing).  The caller re-plans on false.
     private bool TryNativeStep(int mapNum, int slot, MapNpcRecord mn, Direction dir)
     {
         var npc = _world.Npcs[mn.Num];
@@ -475,10 +479,4 @@ public sealed partial class NpcAiSystem : GameSystem
         _world.MapNpcs[mapNum, slot].Dir = dir;
         SendToMap(_world, mapNum, new NpcDirPacket { MapNum = mapNum, NpcSlot = slot, Dir = dir });
     }
-
-    // ── NPC magic decision + kite ─────────────────────────────────────────────
-
-    /// <summary>Per-tick magic decision for an aggressive NPC against a player target.  Thin wrapper
-    /// around <see cref="TryNpcMagicActionCore"/> with player-victim args.  Returns true if a magic
-    /// action consumed the tick (cast, kite step, or hold-at-range), false to fall through to melee.</summary>
 }

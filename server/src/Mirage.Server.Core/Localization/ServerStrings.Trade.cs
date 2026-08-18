@@ -2,7 +2,8 @@ using Mirage.Shared.Localization;
 
 namespace Mirage.Server.Core.Localization;
 
-/// <summary>Marketplace listings, direct player-to-player trade, and the friends/ignore lists.</summary>
+/// <summary>Player-to-player exchange: marketplace listings, direct trade, mail and its
+/// cash-on-delivery terms, and the friends/ignore lists.</summary>
 public static partial class ServerStrings
 {
     // ── Marketplace ─────────────────────────────────────────────────────────────
@@ -45,16 +46,29 @@ public static partial class ServerStrings
     public const string Trade_Canceled = nameof(Trade_Canceled);
     public const string Trade_ReturnedSubject = nameof(Trade_ReturnedSubject);
     public const string Trade_ReturnedBody = nameof(Trade_ReturnedBody);
-    public const string Quest_Sender = nameof(Quest_Sender);
-    public const string Quest_Accepted = nameof(Quest_Accepted);
-    public const string Quest_ReadyToTurnIn = nameof(Quest_ReadyToTurnIn);
-    public const string Quest_Complete = nameof(Quest_Complete);
-    public const string Quest_Abandoned = nameof(Quest_Abandoned);
-    public const string Quest_NotEligible = nameof(Quest_NotEligible);
-    public const string Quest_NotComplete = nameof(Quest_NotComplete);
-    public const string Quest_TooMany = nameof(Quest_TooMany);
-    public const string Quest_RewardMailSubject = nameof(Quest_RewardMailSubject);
-    public const string Quest_RewardMailBody = nameof(Quest_RewardMailBody);
+
+    // "System" mail sender label (engine-generated mail).
+    public const string Mail_SystemSender = nameof(Mail_SystemSender);
+    public const string Mail_Sent = nameof(Mail_Sent);
+    public const string Mail_CannotMailItem = nameof(Mail_CannotMailItem);
+    public const string Mail_NoRecipient = nameof(Mail_NoRecipient);
+    public const string Mail_ReturnedSubject = nameof(Mail_ReturnedSubject);
+    public const string Mail_ReturnedBody = nameof(Mail_ReturnedBody);
+    public const string Mail_CannotMailSelf = nameof(Mail_CannotMailSelf);
+    public const string Mail_MultiNoAttachments = nameof(Mail_MultiNoAttachments);
+    public const string Mail_CannotAfford = nameof(Mail_CannotAfford);
+    public const string Mail_NoSubjectDefault = nameof(Mail_NoSubjectDefault);
+    public const string Mail_SentToMany = nameof(Mail_SentToMany);
+    public const string Mail_TooManyRecipients = nameof(Mail_TooManyRecipients);
+    public const string Mail_CannotAffordCod = nameof(Mail_CannotAffordCod);
+    public const string Mail_CodNoRoom = nameof(Mail_CodNoRoom);
+    public const string Mail_CodPaid = nameof(Mail_CodPaid);
+    public const string Mail_CodNeedsItem = nameof(Mail_CodNeedsItem);
+    public const string Mail_CodSingleOnly = nameof(Mail_CodSingleOnly);
+    public const string Mail_CodPaidSubject = nameof(Mail_CodPaidSubject);
+    public const string Mail_CodPaidBody = nameof(Mail_CodPaidBody);
+    public const string Mail_CodReturnedSubject = nameof(Mail_CodReturnedSubject);
+    public const string Mail_CodReturnedBody = nameof(Mail_CodReturnedBody);
 
     // ── Social (friends / ignore) ─────────────────────────────────────────────
     public const string Social_FriendAdded = nameof(Social_FriendAdded);

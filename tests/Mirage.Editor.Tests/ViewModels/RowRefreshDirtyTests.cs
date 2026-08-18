@@ -114,8 +114,8 @@ public class RowRefreshDirtyTests
     [Test]
     public void Trade_RefreshNormalizingAuthoredQuantity_DoesNotDirty()
     {
-        var row = new TradeRowViewModel(1,
-            new TradeItemRecord { GiveItem = Gold, GiveQuantity = 200, GetItem = Sword, GetQuantity = 7 },
+        var row = new ShopBarterRowViewModel(1,
+            new BarterItemRecord { GiveItem = Gold, GiveQuantity = 200, GetItem = Sword, GetQuantity = 7 },
             Entries, IsCurrency);
         Assert.That(row.IsDirty, Is.False);
 
@@ -132,8 +132,8 @@ public class RowRefreshDirtyTests
     [Test]
     public void Trade_AuthorEditingQuantity_StillDirties()
     {
-        var row = new TradeRowViewModel(1,
-            new TradeItemRecord { GiveItem = Gold, GiveQuantity = 200, GetItem = Sword, GetQuantity = 1 },
+        var row = new ShopBarterRowViewModel(1,
+            new BarterItemRecord { GiveItem = Gold, GiveQuantity = 200, GetItem = Sword, GetQuantity = 1 },
             Entries, IsCurrency);
         row.NotifyEntriesChanged();
         Assert.That(row.IsDirty, Is.False, "precondition: opening is clean");

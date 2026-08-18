@@ -13,6 +13,9 @@ namespace Mirage.Server.Core.GameLogic;
 /// backs a caster out of melee to keep its range advantage.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
+    /// <summary>Per-tick magic decision for an aggressive NPC against a player target.  Thin wrapper
+    /// around <see cref="TryNpcMagicActionCore"/> with player-victim args.  Returns true if a magic
+    /// action consumed the tick (cast, kite step, or hold-at-range), false to fall through to melee.</summary>
     private bool TryNpcMagicAction(int mapNum, int slot, MapNpcRecord mn, int target, PlayerRecord vp, long now)
         => TryNpcMagicActionCore(mapNum, slot, mn, vp.Map, vp.X, vp.Y, now, target, 0, null);
 
@@ -331,9 +334,4 @@ public sealed partial class NpcAiSystem : GameSystem
             return dy > 0 ? Direction.Up : dy < 0 ? Direction.Down : RandomPerpendicular(primaryToward);
         return dx > 0 ? Direction.Left : dx < 0 ? Direction.Right : RandomPerpendicular(primaryToward);
     }
-
-    // ── Seamless cross-map chase ──────────────────────────────────────────────
-
-    /// <summary>True when stepping one tile in <paramref name="dir"/> from (x,y) crosses the map
-    /// edge; on true, (destX,destY) is the wrapped landing tile on the neighbor map.</summary>
 }

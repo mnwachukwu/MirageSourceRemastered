@@ -12,7 +12,7 @@ using Mirage.Shared.Records;
 
 namespace Mirage.Client.Shell.Panels;
 
-/// <summary>Shop/trade panel: buy, sell, and the repair (fix-item) flow.</summary>
+/// <summary>The shop panel: buy for gold, barter item-for-item, sell, and the repair (fix-item) flow.</summary>
 public sealed class ShopPanel : IGamePanel
 {
     private readonly DraggablePanel _panel = new(new Rectangle(20, 20, 360, 250), minH: 142);
@@ -28,7 +28,7 @@ public sealed class ShopPanel : IGamePanel
     public void Open()
     {
         IsOpen = true;
-        _tradeDirty = true;
+        _barterDirty = true;
         _fixSlotDirty = true;
         _salesDirty = true;
         _sellDirty = true;
@@ -47,15 +47,15 @@ public sealed class ShopPanel : IGamePanel
 
     // True while a confirm sub-view is showing — lets GameplayScreen suppress Escape-closes-panel.
     public bool IsCapturingInput =>
-        _viewState is ViewState.ConfirmingRepair or ViewState.ConfirmingTrade
+        _viewState is ViewState.ConfirmingRepair or ViewState.ConfirmingBarter
                    or ViewState.ConfirmingBuy or ViewState.ConfirmingSell;
 
     // ── The three storefronts ─────────────────────────────────────────────────
     // BUY is the gold shopfront (ShopRecord.SalesItem, priced from ItemRecord.Price), TRADE is the
     // barter table (give → get rows), SELL is the player's own bag. They are separate tabs rather
-    // than one list because they are separate transactions — see SendTradePacket's note on why the
-    // sales list is item numbers while a trade row names both sides.
-    private enum Tab { Buy, Trade, Sell }
+    // than one list because they are separate transactions — see ShopContentsPacket's note on why the
+    // sales list is item numbers while a barter row names both sides.
+    private enum Tab { Buy, Barter, Sell }
     private Tab _tab = Tab.Buy;
     private const int TabStripH = 24;
 
@@ -78,9 +78,9 @@ public sealed class ShopPanel : IGamePanel
     private int _sellHash;
     private bool _sellDirty = true;
 
-    // Normal trade mode
-    private readonly ListBox _tradeList = new();
-    private readonly Button _tradeBtn = new();
+    // Normal barter mode
+    private readonly ListBox _barterList = new();
+    private readonly Button _barterBtn = new();
     private readonly Button _fixBtn = new();
 
     // Fix-item slot selection mode: the player picks which inventory slot to repair.
@@ -92,18 +92,18 @@ public sealed class ShopPanel : IGamePanel
     private readonly Button _repairConfirmBtn = new();
     private readonly Button _repairCancelBtn = new();
 
-    // Trade confirm mode
-    private readonly Button _tradeConfirmBtn = new();
-    private readonly Button _tradeCancelBtn = new();
+    // Barter confirm mode
+    private readonly Button _barterConfirmBtn = new();
+    private readonly Button _barterCancelBtn = new();
     private int _labelsGeneration = -1;
 
-    private enum ViewState { None, SelectingSlot, ConfirmingRepair, ConfirmingTrade, ConfirmingBuy, ConfirmingSell }
+    private enum ViewState { None, SelectingSlot, ConfirmingRepair, ConfirmingBarter, ConfirmingBuy, ConfirmingSell }
     private ViewState _viewState;
     private int _pendingFixSlot;
-    private int _pendingTradeSlot;
+    private int _pendingBarterSlot;
 
-    private int _tradeHash;
-    private bool _tradeDirty = true;
+    private int _barterHash;
+    private bool _barterDirty = true;
     private int _fixSlotHash;
     private bool _fixSlotDirty = true;
     private readonly List<int> _fixSlotNums = new(); // maps list index → inventory slot number
@@ -167,16 +167,16 @@ public sealed class ShopPanel : IGamePanel
             return;
         }
 
-        if (_viewState == ViewState.ConfirmingTrade)
+        if (_viewState == ViewState.ConfirmingBarter)
         {
-            SetTradeConfirmButtonBounds(c);
+            SetBarterConfirmButtonBounds(c);
 
-            if (_tradeConfirmBtn.IsClicked(input))
+            if (_barterConfirmBtn.IsClicked(input))
             {
-                sender.SendTrade(state.ActiveShopNum, _pendingTradeSlot);
+                sender.SendShopBarter(state.ActiveShopNum, _pendingBarterSlot);
                 _viewState = ViewState.None;
             }
-            if (_tradeCancelBtn.IsClicked(input) || input.IsKeyPressed(Keys.Escape))
+            if (_barterCancelBtn.IsClicked(input) || input.IsKeyPressed(Keys.Escape))
             {
                 input.ConsumeKey(Keys.Escape);
                 _viewState = ViewState.None;
@@ -226,7 +226,7 @@ public sealed class ShopPanel : IGamePanel
         switch (_tab)
         {
             case Tab.Buy:
-                _salesList.Update(input, TradeListBoundsOf(c));
+                _salesList.Update(input, TabbedListBoundsOf(c));
                 _buyBtn.Enabled = _salesList.SelectedIndex >= 0 && _salesList.SelectedIndex < state.ActiveSales.Length;
                 if (_buyBtn.IsClicked(input) && _buyBtn.Enabled)
                 {
@@ -235,17 +235,17 @@ public sealed class ShopPanel : IGamePanel
                 }
                 break;
 
-            case Tab.Trade:
-                _tradeList.Update(input, TradeListBoundsOf(c));
-                if (_tradeBtn.IsClicked(input) && _tradeList.SelectedIndex >= 0)
+            case Tab.Barter:
+                _barterList.Update(input, TabbedListBoundsOf(c));
+                if (_barterBtn.IsClicked(input) && _barterList.SelectedIndex >= 0)
                 {
-                    _pendingTradeSlot = _tradeList.SelectedIndex + 1;
-                    _viewState = ViewState.ConfirmingTrade;
+                    _pendingBarterSlot = _barterList.SelectedIndex + 1;
+                    _viewState = ViewState.ConfirmingBarter;
                 }
                 break;
 
             case Tab.Sell:
-                _sellList.Update(input, TradeListBoundsOf(c));
+                _sellList.Update(input, TabbedListBoundsOf(c));
                 _sellBtn.Enabled = _sellList.SelectedIndex >= 0 && _sellList.SelectedIndex < _sellSlotNums.Count;
                 if (_sellBtn.IsClicked(input) && _sellBtn.Enabled)
                 {
@@ -278,7 +278,7 @@ public sealed class ShopPanel : IGamePanel
             {
                 _tab = picked;
                 _salesList.SelectedIndex = -1;
-                _tradeList.SelectedIndex = -1;
+                _barterList.SelectedIndex = -1;
                 _sellList.SelectedIndex = -1;
             }
             input.ConsumeMouseClick();
@@ -296,16 +296,16 @@ public sealed class ShopPanel : IGamePanel
         return rects;
     }
 
-    private static int ComputeTradeHash(ClientState state)
+    private static int ComputeBarterHash(ClientState state)
     {
         var h = new HashCode();
         h.Add(state.ActiveShopNum);
-        foreach (var trade in state.ActiveTrades)
+        foreach (var row in state.ActiveBarters)
         {
-            h.Add(trade.GiveItem);
-            h.Add(trade.GiveQuantity);
-            h.Add(trade.GetItem);
-            h.Add(trade.GetQuantity);
+            h.Add(row.GiveItem);
+            h.Add(row.GiveQuantity);
+            h.Add(row.GetItem);
+            h.Add(row.GetQuantity);
         }
         return h.ToHashCode();
     }
@@ -330,17 +330,17 @@ public sealed class ShopPanel : IGamePanel
 
     public void Refresh(ClientState state)
     {
-        _tradeList.Items.Clear();
+        _barterList.Items.Clear();
 
-        foreach (var trade in state.ActiveTrades)
+        foreach (var row in state.ActiveBarters)
         {
-            string give = trade.GiveItem > 0 && trade.GiveItem <= state.Items.Length - 1
-                ? $"{state.Items[trade.GiveItem]?.Name ?? "?"} x{trade.GiveQuantity}"
+            string give = row.GiveItem > 0 && row.GiveItem <= state.Items.Length - 1
+                ? $"{state.Items[row.GiveItem]?.Name ?? "?"} x{row.GiveQuantity}"
                 : "?";
-            string get = trade.GetItem > 0 && trade.GetItem <= state.Items.Length - 1
-                ? $"{state.Items[trade.GetItem]?.Name ?? "?"} x{trade.GetQuantity}"
+            string get = row.GetItem > 0 && row.GetItem <= state.Items.Length - 1
+                ? $"{state.Items[row.GetItem]?.Name ?? "?"} x{row.GetQuantity}"
                 : "?";
-            _tradeList.Items.Add($"{give} -> {get}");
+            _barterList.Items.Add($"{give} -> {get}");
         }
     }
 
@@ -430,7 +430,7 @@ public sealed class ShopPanel : IGamePanel
         if (_labelsGeneration != ClientStrings.Generation)
         {
             _labelsGeneration = ClientStrings.Generation;
-            _tradeBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_TradeButton);
+            _barterBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_TradeButton);
             _buyBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_BuyButton);
             _sellBtn.Label = ClientStrings.Get(ClientStrings.ShopPanel_SellButton);
             _buyConfirmBtn.Label = ClientStrings.Get(ClientStrings.Common_Confirm);
@@ -442,8 +442,8 @@ public sealed class ShopPanel : IGamePanel
             _fixCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
             _repairConfirmBtn.Label = ClientStrings.Get(ClientStrings.Common_Confirm);
             _repairCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
-            _tradeConfirmBtn.Label = ClientStrings.Get(ClientStrings.Common_Confirm);
-            _tradeCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
+            _barterConfirmBtn.Label = ClientStrings.Get(ClientStrings.Common_Confirm);
+            _barterCancelBtn.Label = ClientStrings.Get(ClientStrings.Common_Cancel);
         }
 
         var shop = state.ActiveShopNum > 0 ? state.ShopDefs[state.ActiveShopNum] : null;
@@ -459,13 +459,13 @@ public sealed class ShopPanel : IGamePanel
             return;
         }
 
-        if (_viewState == ViewState.ConfirmingTrade)
+        if (_viewState == ViewState.ConfirmingBarter)
         {
             _panel.Draw(sb, font, title, isActive);
             var c2 = _panel.ContentBounds;
-            SetTradeConfirmButtonBounds(c2);
-            DrawTradeConfirm(sb, font, state, c2, itemsTex, state.ActiveTrades[_pendingTradeSlot - 1],
-                _tradeConfirmBtn, _tradeCancelBtn);
+            SetBarterConfirmButtonBounds(c2);
+            DrawBarterConfirm(sb, font, state, c2, itemsTex, state.ActiveBarters[_pendingBarterSlot - 1],
+                _barterConfirmBtn, _barterCancelBtn);
             _panel.DrawOverlay(sb);
             return;
         }
@@ -510,11 +510,11 @@ public sealed class ShopPanel : IGamePanel
             return;
         }
 
-        int tradeHash = ComputeTradeHash(state);
-        if (_tradeDirty || tradeHash != _tradeHash)
+        int barterHash = ComputeBarterHash(state);
+        if (_barterDirty || barterHash != _barterHash)
         {
-            _tradeHash = tradeHash;
-            _tradeDirty = false;
+            _barterHash = barterHash;
+            _barterDirty = false;
             Refresh(state);
         }
         int salesHash = ComputeSalesHash(state);
@@ -542,15 +542,15 @@ public sealed class ShopPanel : IGamePanel
         switch (_tab)
         {
             case Tab.Buy:
-                _salesList.Draw(sb, font, TradeListBoundsOf(c));
+                _salesList.Draw(sb, font, TabbedListBoundsOf(c));
                 _buyBtn.Draw(sb, font, _input);
                 break;
-            case Tab.Trade:
-                _tradeList.Draw(sb, font, TradeListBoundsOf(c));
-                _tradeBtn.Draw(sb, font, _input);
+            case Tab.Barter:
+                _barterList.Draw(sb, font, TabbedListBoundsOf(c));
+                _barterBtn.Draw(sb, font, _input);
                 break;
             case Tab.Sell:
-                _sellList.Draw(sb, font, TradeListBoundsOf(c));
+                _sellList.Draw(sb, font, TabbedListBoundsOf(c));
                 _sellBtn.Draw(sb, font, _input);
                 break;
         }
@@ -641,11 +641,11 @@ public sealed class ShopPanel : IGamePanel
     /// effect, the durability readout, the stat and INT requirements and the "you already know this
     /// spell" warning are all things a buyer needs exactly as much as a barterer, and there is now one
     /// copy of them.</para></summary>
-    private void DrawTradeConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c,
-        Texture2D? itemsTex, SendTradePacket.TradeRow trade, Button confirmBtn, Button cancelBtn)
+    private void DrawBarterConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c,
+        Texture2D? itemsTex, ShopContentsPacket.BarterRow row, Button confirmBtn, Button cancelBtn)
     {
-        var get = trade.GetItem > 0 && trade.GetItem <= state.Limits.Items ? state.Items[trade.GetItem] : null;
-        var give = trade.GiveItem > 0 && trade.GiveItem <= state.Limits.Items ? state.Items[trade.GiveItem] : null;
+        var get = row.GetItem > 0 && row.GetItem <= state.Limits.Items ? state.Items[row.GetItem] : null;
+        var give = row.GiveItem > 0 && row.GiveItem <= state.Limits.Items ? state.Items[row.GiveItem] : null;
         var me = state.Me;
 
         var bgRect = new Rectangle(c.X + 2, c.Y + 2, c.Width - 4, c.Height - 4);
@@ -670,7 +670,7 @@ public sealed class ShopPanel : IGamePanel
             _ => null,
         };
 
-        string nameLine = get?.Type == ItemType.Currency ? $"{trade.GetQuantity} {name}" : name;
+        string nameLine = get?.Type == ItemType.Currency ? $"{row.GetQuantity} {name}" : name;
 
         float textY = c.Y + 12;
         UiHelper.DrawLabel(sb, font, nameLine, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
@@ -725,7 +725,7 @@ public sealed class ShopPanel : IGamePanel
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_PotionEffect, ("Effect", potionEffect)), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
             textY += 18;
         }
-        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_TradeCost, ("Amount", trade.GiveQuantity), ("Item", giveName)), new Vector2(c.X + 8, textY), Color.Yellow, c.Width - 16);
+        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_TradeCost, ("Amount", row.GiveQuantity), ("Item", giveName)), new Vector2(c.X + 8, textY), Color.Yellow, c.Width - 16);
         textY += 18;
 
         if (isEquip)
@@ -819,14 +819,14 @@ public sealed class ShopPanel : IGamePanel
     }
 
     /// <summary>Buying renders through the shared acquisition confirm by describing the purchase as the
-    /// trade row it actually is — gold in, item out.</summary>
+    /// barter row it actually is — gold in, item out.</summary>
     private void DrawBuyConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
     {
         int itemNum = _pendingBuySlot >= 1 && _pendingBuySlot <= state.ActiveSales.Length
             ? state.ActiveSales[_pendingBuySlot - 1] : 0;
         var item = itemNum > 0 && itemNum <= state.Limits.Items ? state.Items[itemNum] : null;
-        var row = new SendTradePacket.TradeRow(Constants.GoldItemIndex, item?.Price ?? 0, itemNum, 1);
-        DrawTradeConfirm(sb, font, state, c, itemsTex, row, _buyConfirmBtn, _buyCancelBtn);
+        var row = new ShopContentsPacket.BarterRow(Constants.GoldItemIndex, item?.Price ?? 0, itemNum, 1);
+        DrawBarterConfirm(sb, font, state, c, itemsTex, row, _buyConfirmBtn, _buyCancelBtn);
     }
 
     /// <summary>Selling gets its own compact confirm rather than the acquisition one: the player already
@@ -912,7 +912,7 @@ public sealed class ShopPanel : IGamePanel
         // does not move as the player switches tabs.
         var action = UiHelper.PanelBottomButton(c, 0);
         _buyBtn.Bounds = action;
-        _tradeBtn.Bounds = action;
+        _barterBtn.Bounds = action;
         _sellBtn.Bounds = action;
         _fixBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
     }
@@ -941,16 +941,16 @@ public sealed class ShopPanel : IGamePanel
         _repairCancelBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
     }
 
-    private void SetTradeConfirmButtonBounds(Rectangle c)
+    private void SetBarterConfirmButtonBounds(Rectangle c)
     {
-        _tradeConfirmBtn.Bounds = UiHelper.PanelBottomButton(c, 0);
-        _tradeCancelBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
+        _barterConfirmBtn.Bounds = UiHelper.PanelBottomButton(c, 0);
+        _barterCancelBtn.Bounds = UiHelper.PanelBottomButton(c, 1);
     }
 
     private static Rectangle ListBoundsOf(Rectangle c) =>
         new(c.X + 4, c.Y + 2, c.Width - 8, Math.Max(0, c.Height - 44));
 
     // Leaves room for the tab strip above and the gold label + buttons below.
-    private static Rectangle TradeListBoundsOf(Rectangle c) =>
+    private static Rectangle TabbedListBoundsOf(Rectangle c) =>
         new(c.X + 4, c.Y + TabStripH + 2, c.Width - 8, Math.Max(0, c.Height - TabStripH - 66));
 }

@@ -15,7 +15,8 @@ namespace Mirage.Editor.ViewModels;
 
 /// <summary>The paint entry points — left click, right click, delete and drag-selection phases —
 /// and what each editor mode does with a tile: place or erase a layer cell, stamp an attribute,
-/// apply a warp/item/key dialog, or navigate to a clicked neighbor map.</summary>
+/// apply a warp/item/key dialog, or navigate to a clicked neighbor map. Also the description text
+/// the tools panel shows for the selected attribute.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
     /// <summary>Called by TileGridControl on left-click at tile (x, y).</summary>
@@ -565,5 +566,29 @@ public sealed partial class MapEditorViewModel : ObservableObject
         int ny1 = Math.Clamp(Math.Min(y1, y2), 0, Constants.MaxMapY);
         int ny2 = Math.Clamp(Math.Max(y1, y2), 0, Constants.MaxMapY);
         SelectionRect = new SelectionBox(nx1, ny1, nx2, ny2);
+    }
+
+    // ── Selected attribute description (shown in attribute mode tools panel) ──
+    // Each description opens with the attribute's name, which EditorVocabulary supplies in English
+    // for every language; the explanation after it is translated.
+    public string SelectedAttributeDescription => AttributeDescription(SelectedAttributeTool);
+
+    private static string AttributeDescription(AttributeTool tool)
+    {
+        string key = tool switch
+        {
+            AttributeTool.Blocked => EditorStrings.MapEditor_AttrDesc_Blocked,
+            AttributeTool.Warp => EditorStrings.MapEditor_AttrDesc_Warp,
+            AttributeTool.Item => EditorStrings.MapEditor_AttrDesc_Item,
+            AttributeTool.NpcAvoid => EditorStrings.MapEditor_AttrDesc_NpcAvoid,
+            AttributeTool.Key => EditorStrings.MapEditor_AttrDesc_Key,
+            AttributeTool.KeyOpen => EditorStrings.MapEditor_AttrDesc_KeyOpen,
+            AttributeTool.NpcSpawn => EditorStrings.MapEditor_AttrDesc_NpcSpawn,
+            AttributeTool.LayerRamp => EditorStrings.MapEditor_AttrDesc_LayerRamp,
+            _ => "",
+        };
+        return key.Length == 0
+            ? EditorVocabulary.NameOf(tool)
+            : EditorStrings.Format(key, ("Name", EditorVocabulary.NameOf(tool)));
     }
 }

@@ -1027,8 +1027,6 @@ public static class RenderCommandBuilder
             frame.ChatBubbles.Add(new ChatBubbleDrawCmd(centerX, anchorY, p.ChatBubbleText!, p.ChatBubbleColor, 1f, anchorBelow));
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private static float Frac(int cur, int max) =>
         max > 0 ? Math.Clamp((float)cur / max, 0f, 1f) : -1f;
 

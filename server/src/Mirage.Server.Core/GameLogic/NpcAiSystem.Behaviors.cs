@@ -14,6 +14,10 @@ namespace Mirage.Server.Core.GameLogic;
 /// depending on what it is and whether anything is in reach.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
+    // Light AI for a map with no observers: a vacated town's guards still tidy player-dropped litter
+    // so it's clean when someone returns.  No observers means no players in range, so there's nothing
+    // to target and nothing to broadcast — we skip the whole aggressive/wander path and run only the
+    // janitor sweep.  Non-Safe maps (where guards don't janitor) return immediately, and a single
     // litter check up front skips the per-guard item scan entirely on an already-clean town (the
     // common steady state) — so an idle vacated town costs one MaxMapItems scan per tick, not N.
     private void RunUnobservedUpkeep(int mapNum)
@@ -40,35 +44,6 @@ public sealed partial class NpcAiSystem : GameSystem
         for (int i = 0; i < list.Count; i++)
             if (list[i].Source == ItemSource.PlayerDropped) return true;
         return false;
-    }
-
-    // Each open door ages out on ITS OWN stamp, so opening a second door no longer extends the first one's
-    // window and doors don't all slam shut together.  No early-out on a shared timer: the map is 16x12x2 and
-    // the shut-door test is one array read, so the sweep is noise next to the pathfinding already running here.
-    private void CheckDoorAutoClose(int mapNum, long now)
-    {
-        var temp = _world.TempTiles[mapNum];
-        var map = _world.Maps[mapNum];
-        for (int y = 0; y <= Constants.MaxMapY; y++)
-        {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
-            {
-                for (int l = 0; l < 2; l++)   // both planes — a deck door and the ground door under it are tracked separately
-                {
-                    long openedAt = temp.DoorOpenedAt[x, y, l];
-                    if (openedAt == 0 || now - openedAt < DoorAutoCloseMs) continue;
-
-                    // A tile the editor has since retyped away from Key keeps its stale stamp rather than
-                    // broadcasting a close for a door the client no longer draws.  Inert either way: every
-                    // door check is gated on TileType.Key first.
-                    var layer = (WorldLayer)l;
-                    if (LayerLogic.AttrFor(map.Tile[x, y], layer).Type != TileType.Key) continue;
-
-                    temp.DoorOpenedAt[x, y, l] = 0;
-                    SendToMap(_world, mapNum, new MapKeyPacket { MapNum = mapNum, X = x, Y = y, Open = false, Layer = layer });
-                }
-            }
-        }
     }
 
     // Combat upkeep for a map with no observers.  A native NPC here can still hold a target whose
@@ -559,18 +534,4 @@ public sealed partial class NpcAiSystem : GameSystem
         dir is Direction.Up or Direction.Down
             ? (Rng.Next(2) == 0 ? Direction.Left : Direction.Right)
             : (Rng.Next(2) == 0 ? Direction.Up : Direction.Down);
-
-    // Seamless world: an aggressive NPC sees players within Range across the whole 9-map observable area,
-    // using world-tile distance from its own position (the center cell).  A player spotted on a
-    // neighbor map is acquired here; the chase logic then walks the NPC to the border to engage.
-    // Iterates MapObservers[mapNum] — the pre-maintained set of players who can see this map (which is
-    // exactly the players in the observable area) — instead of the whole 1,000-slot roster.
-    // LoS gate: a player behind a wall or closed door is skipped — the loop keeps scanning, so the
-    // winner is the lowest-level player who is BOTH in range AND visible (not "lowest, bail if blocked").
-    // Reachability gate: a candidate that passes LoS but has no walkable BFS path (e.g. behind an
-    // NpcAvoid wall) is also skipped — without this, the AoS would lock on, fail to close, give up,
-    // and instantly reacquire the same unreachable player forever.  Lowest-level REACHABLE player
-    // wins (nearest breaks equal-level ties); if none reachable, the NPC stays idle until a path
-    // opens or a reachable player wanders into range.  Once acquired, the chase BFS routes around
-    // walls as before.
 }

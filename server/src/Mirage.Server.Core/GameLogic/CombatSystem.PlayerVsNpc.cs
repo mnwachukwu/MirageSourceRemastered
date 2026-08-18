@@ -722,4 +722,35 @@ public sealed partial class CombatSystem : GameSystem
             mapNpc.DamageByPlayer[i] = Math.Max(0, dmg - delta);
         }
     }
+
+    // Picks one winner out of `all` by a d100 each, re-rolling among the tied leaders until one stands alone.
+    private int ResolveLootRoll(List<int> all, out List<(int player, int roll)> finalRolls)
+    {
+        finalRolls = new List<(int player, int roll)>(all.Count);
+        for (int i = 0; i < all.Count; i++) finalRolls.Add((all[i], 0));
+        // Two working buffers swapped each round; allocated once, reused as winners narrow.
+        var remaining = new List<int>(all);
+        var nextRound = new List<int>(all.Count);
+        while (remaining.Count > 1)
+        {
+            int best = 0;
+            for (int i = 0; i < remaining.Count; i++)
+            {
+                int player = remaining[i];
+                int roll = Rng.Next(1, Constants.LootRollSides + 1);
+                int idx = finalRolls.FindIndex(x => x.player == player);
+                finalRolls[idx] = (player, roll);
+                if (roll > best) best = roll;
+            }
+            nextRound.Clear();
+            for (int i = 0; i < remaining.Count; i++)
+            {
+                if (finalRolls[finalRolls.FindIndex(x => x.player == remaining[i])].roll == best)
+                    nextRound.Add(remaining[i]);
+            }
+
+            (remaining, nextRound) = (nextRound, remaining);
+        }
+        return remaining[0];
+    }
 }

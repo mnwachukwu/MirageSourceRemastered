@@ -421,7 +421,7 @@ public sealed class JsonPersistenceService : IPersistenceService
         // 1-based array ([null, slot1..slot8]); this normalizes it on load — no file rewrite required.
         foreach (var shop in result)
         {
-            shop.TradeItem = shop.TradeItem
+            shop.BarterItem = shop.BarterItem
                 .Where(t => t is not null && (t.GiveItem > 0 || t.GetItem > 0))
                 .ToList();
             // Sales list: drop dead item numbers and duplicates. A shop authored before the sales table

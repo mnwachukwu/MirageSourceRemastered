@@ -108,7 +108,7 @@ public class EditorLiveBroadcastTests
         h.Save(new EditorSaveShopPacket
         {
             ShopNum = 2, Name = "General Store",
-            FixesItems = true, ShopType = ShopType.Store, AllowBanking = true, Trades = [],
+            FixesItems = true, ShopType = ShopType.Store, AllowBanking = true, Barters = [],
         });
 
         var u = h.Dispatcher.OneBroadcast<UpdateShopPacket>();

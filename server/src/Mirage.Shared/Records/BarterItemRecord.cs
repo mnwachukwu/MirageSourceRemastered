@@ -14,7 +14,7 @@ namespace Mirage.Shared.Records;
 /// does <c>TakeItem(GiveItem)</c> then <c>GiveItem(GetItem)</c>, and the shop panel lists each row as
 /// "give → get" — so the code was always consistent with itself and only the comment was wrong.
 /// THE PRICE IS <see cref="GiveQuantity"/>.</para></summary>
-public sealed class TradeItemRecord
+public sealed class BarterItemRecord
 {
     /// <summary>Item slot the player hands over — the currency item on a normal purchase.</summary>
     public int GiveItem { get; set; }

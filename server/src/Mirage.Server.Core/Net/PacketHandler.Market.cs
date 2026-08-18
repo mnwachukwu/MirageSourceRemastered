@@ -52,6 +52,4 @@ public sealed partial class PacketHandler
 
     // No IsPlaying gate: a closing panel should always clear the viewer flag (harmless if already gone).
     private void HandleMarketClose(int index) => _market.Close(index);
-
-    // ===========================================================================
 }

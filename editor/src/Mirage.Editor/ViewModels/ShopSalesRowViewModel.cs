@@ -5,7 +5,7 @@ namespace Mirage.Editor.ViewModels;
 
 /// <summary>One line of a shop's SALES table: an item, and nothing else.
 ///
-/// <para>Deliberately thinner than <see cref="TradeRowViewModel"/>, and that thinness is the whole reason
+/// <para>Deliberately thinner than <see cref="ShopBarterRowViewModel"/>, and that thinness is the whole reason
 /// the sales table exists. A barter row has to say what is given AND what is got, with a quantity on each
 /// side; a sales row is just "this shop stocks item N", because price lives on the item record. Authoring a
 /// 40-item storefront as barter rows would mean writing 40 give→get pairs that all say "some gold".</para>

@@ -25,6 +25,7 @@ namespace Mirage.Client.Shell;
 /// layer's events to the screens.</summary>
 public sealed partial class MirageGame : Game
 {
+    /// <summary>Persists the config on the way out, so window geometry and options survive a quit.</summary>
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
         SaveConfig();

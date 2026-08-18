@@ -9,7 +9,7 @@ namespace Mirage.Editor.Tests;
 /// <summary>The shop-editor row: the Store/Inn radio facade over ShopType is mutually exclusive; the shop's
 /// dirty flag AGGREGATES its nested trade rows (a dirty trade dirties the shop) and its structure (adding or
 /// removing a row dirties the shop, ClearDirty clears both). The trade table is dynamic — blank by default,
-/// grown via AddTrade up to the MaxTrades ceiling; load skips empty/legacy-null slots, and ToRecord persists a
+/// grown via AddBarter up to the MaxTrades ceiling; load skips empty/legacy-null slots, and ToRecord persists a
 /// dense list (empty rows dropped, no gaps).</summary>
 [TestFixture]
 public class ShopRowViewModelTests
@@ -17,14 +17,14 @@ public class ShopRowViewModelTests
     static ShopRowViewModel Shop(ShopRecord? r = null) =>
         new(1, r ?? new ShopRecord(), () => [], () => [], _ => false);
 
-    static ShopRecord ShopWith(params TradeItemRecord[] trades)
+    static ShopRecord ShopWith(params BarterItemRecord[] trades)
     {
         var r = new ShopRecord();
-        r.TradeItem.AddRange(trades);
+        r.BarterItem.AddRange(trades);
         return r;
     }
 
-    static TradeItemRecord Trade(int giveItem = 1, int giveQuantity = 100, int getItem = 2, int getQuantity = 1) =>
+    static BarterItemRecord Trade(int giveItem = 1, int giveQuantity = 100, int getItem = 2, int getQuantity = 1) =>
         new() { GiveItem = giveItem, GiveQuantity = giveQuantity, GetItem = getItem, GetQuantity = getQuantity };
 
     [Test]
@@ -55,8 +55,8 @@ public class ShopRowViewModelTests
         var s = Shop();
         Assert.Multiple(() =>
         {
-            Assert.That(s.Trades, Is.Empty, "a shop with no trades shows a blank table");
-            Assert.That(s.HasNoTrades, Is.True);
+            Assert.That(s.Barters, Is.Empty, "a shop with no trades shows a blank table");
+            Assert.That(s.HasNoBarters, Is.True);
             Assert.That(s.IsDirty, Is.False);
         });
     }
@@ -66,14 +66,14 @@ public class ShopRowViewModelTests
     {
         // Legacy shop JSON deserializes to a list with a leading null + empty padding; keep only real trades.
         var r = new ShopRecord();
-        r.TradeItem.Add(null!);                 // legacy index-0 null
-        r.TradeItem.Add(Trade(getItem: 5));     // real
-        r.TradeItem.Add(new TradeItemRecord());  // empty
-        r.TradeItem.Add(Trade(getItem: 9));     // real
+        r.BarterItem.Add(null!);                 // legacy index-0 null
+        r.BarterItem.Add(Trade(getItem: 5));     // real
+        r.BarterItem.Add(new BarterItemRecord());  // empty
+        r.BarterItem.Add(Trade(getItem: 9));     // real
 
         var s = Shop(r);
 
-        Assert.That(s.Trades, Has.Count.EqualTo(2), "only the two real trades load, dense");
+        Assert.That(s.Barters, Has.Count.EqualTo(2), "only the two real trades load, dense");
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class ShopRowViewModelTests
         var s = Shop(ShopWith(Trade()));
         Assume.That(s.IsDirty, Is.False, "a freshly loaded shop is clean");
 
-        s.Trades[0].GetItem = 5;
+        s.Barters[0].GetItem = 5;
 
         Assert.That(s.IsDirty, Is.True, "a dirty trade row makes the whole shop dirty");
     }
@@ -93,16 +93,16 @@ public class ShopRowViewModelTests
         var s = Shop();
         Assume.That(s.IsDirty, Is.False);
 
-        s.AddTradeCommand.Execute(null);
+        s.AddBarterCommand.Execute(null);
         Assert.Multiple(() =>
         {
-            Assert.That(s.Trades, Has.Count.EqualTo(1), "add appends a blank row");
-            Assert.That(s.HasNoTrades, Is.False);
+            Assert.That(s.Barters, Has.Count.EqualTo(1), "add appends a blank row");
+            Assert.That(s.HasNoBarters, Is.False);
             Assert.That(s.IsDirty, Is.True, "a structural change dirties the shop");
         });
 
-        s.RemoveTradeCommand.Execute(s.Trades[0]);
-        Assert.That(s.Trades, Is.Empty, "remove deletes the row");
+        s.RemoveBarterCommand.Execute(s.Barters[0]);
+        Assert.That(s.Barters, Is.Empty, "remove deletes the row");
     }
 
     /// <summary>There is no row ceiling — the same rule the sales table already had. An author adds as many
@@ -111,12 +111,12 @@ public class ShopRowViewModelTests
     public void AddTrade_HasNoCeiling()
     {
         var s = Shop();
-        for (int i = 0; i < 300; i++) s.AddTradeCommand.Execute(null);
+        for (int i = 0; i < 300; i++) s.AddBarterCommand.Execute(null);
 
         Assert.Multiple(() =>
         {
-            Assert.That(s.Trades, Has.Count.EqualTo(300));
-            Assert.That(s.AddTradeCommand.CanExecute(null), Is.True, "still addable past the old 255 ceiling");
+            Assert.That(s.Barters, Has.Count.EqualTo(300));
+            Assert.That(s.AddBarterCommand.CanExecute(null), Is.True, "still addable past the old 255 ceiling");
         });
     }
 
@@ -125,8 +125,8 @@ public class ShopRowViewModelTests
     {
         var s = Shop(ShopWith(Trade()));
         s.Name = "Blacksmith";            // shop-level dirt
-        s.Trades[0].GetItem = 5;          // nested-trade dirt
-        s.AddTradeCommand.Execute(null);  // structural dirt
+        s.Barters[0].GetItem = 5;          // nested-trade dirt
+        s.AddBarterCommand.Execute(null);  // structural dirt
         Assume.That(s.IsDirty, Is.True);
 
         s.ClearDirty();
@@ -142,15 +142,15 @@ public class ShopRowViewModelTests
         {
             Name = "General Store",
             ShopType = ShopType.Store,
-            Trades = [new EditorSaveShopPacket.TradeEntry(GiveItem: 1, GiveQuantity: 100, GetItem: 2, GetQuantity: 1)],
+            Barters = [new EditorSaveShopPacket.BarterEntry(GiveItem: 1, GiveQuantity: 100, GetItem: 2, GetQuantity: 1)],
         });
 
         Assert.Multiple(() =>
         {
-            Assert.That(s.Trades, Has.Count.EqualTo(1), "loads exactly the wire trades — no padding");
+            Assert.That(s.Barters, Has.Count.EqualTo(1), "loads exactly the wire trades — no padding");
             Assert.That(s.IsLoaded, Is.True);
             Assert.That(s.IsDirty, Is.False, "loading from the wire is not an edit");
-            Assert.That(s.Trades[0].ToRecord().GiveItem, Is.EqualTo(1), "the row carries the packet's trade");
+            Assert.That(s.Barters[0].ToRecord().GiveItem, Is.EqualTo(1), "the row carries the packet's trade");
         });
     }
 
@@ -181,9 +181,9 @@ public class ShopRowViewModelTests
             Assert.That(back.Name, Is.EqualTo("Shop"));
             Assert.That(back.ShopType, Is.EqualTo(ShopType.Store));
             Assert.That(back.FixesItems, Is.True);
-            Assert.That(back.TradeItem, Has.Count.EqualTo(1));
-            Assert.That(back.TradeItem[0].GiveItem, Is.EqualTo(1));
-            Assert.That(back.TradeItem[0].GiveQuantity, Is.EqualTo(100));
+            Assert.That(back.BarterItem, Has.Count.EqualTo(1));
+            Assert.That(back.BarterItem[0].GiveItem, Is.EqualTo(1));
+            Assert.That(back.BarterItem[0].GiveQuantity, Is.EqualTo(100));
         });
     }
 
@@ -192,16 +192,16 @@ public class ShopRowViewModelTests
     {
         var s = Shop(ShopWith(Trade(getItem: 5), Trade(getItem: 6), Trade(getItem: 7)));
         // Blank the middle row (both sides itemless) — it must not persist, and the list compacts with no gap.
-        s.Trades[1].GiveItem = 0;
-        s.Trades[1].GetItem = 0;
+        s.Barters[1].GiveItem = 0;
+        s.Barters[1].GetItem = 0;
 
         var back = s.ToRecord();
 
         Assert.Multiple(() =>
         {
-            Assert.That(back.TradeItem, Has.Count.EqualTo(2), "the empty middle row is dropped");
-            Assert.That(back.TradeItem[0].GetItem, Is.EqualTo(5));
-            Assert.That(back.TradeItem[1].GetItem, Is.EqualTo(7), "the third row compacts up — no gap");
+            Assert.That(back.BarterItem, Has.Count.EqualTo(2), "the empty middle row is dropped");
+            Assert.That(back.BarterItem[0].GetItem, Is.EqualTo(5));
+            Assert.That(back.BarterItem[1].GetItem, Is.EqualTo(7), "the third row compacts up — no gap");
         });
     }
 }

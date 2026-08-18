@@ -28,22 +28,22 @@ public sealed class ShopRecord
     // this shop, and the NPC shows the $ overhead glyph. Kept on the shop record (not NpcRecord) by design.
     public int Keeper { get; set; }
 
-    // Trades this shop offers — a dense, 0-based list of real trades, as many as the author writes and with
+    // Barters this shop offers — a dense, 0-based list of real trades, as many as the author writes and with
     // no ceiling (the same rule as SalesItem). The purchase/display slot number on the wire stays 1-based (slot N =
-    // TradeItem[N-1]) so the client and trade-request protocol are unchanged. Legacy shop JSON stored a
+    // BarterItem[N-1]) so the client and trade-request protocol are unchanged. Legacy shop JSON stored a
     // fixed 1-based array (a leading null at index 0 + slots 1..8); it deserializes into this list and is
     // compacted on load (drop null/empty) — see JsonPersistenceService and ShopRowViewModel.
-    public List<TradeItemRecord> TradeItem { get; set; } = new();
+    public List<BarterItemRecord> BarterItem { get; set; } = new();
 
     /// <summary>Item numbers this shop SELLS for gold, priced from <see cref="ItemRecord.Price"/>.
     ///
-    /// <para>A plain list of numbers rather than <see cref="TradeItemRecord"/> rows, because once price
+    /// <para>A plain list of numbers rather than <see cref="BarterItemRecord"/> rows, because once price
     /// lives on the item a sales row carries no other information. That is the whole reason for the split:
     /// an ordinary storefront becomes "these items", authorable by picking them and renderable as a normal
     /// item list — where the barter table renders as a wall of "give X → get Y" strings and needed a row
     /// hand-written per item. 471 items could never have been a trade table.</para>
     ///
-    /// <para><see cref="TradeItem"/> keeps everything it always did and is NOT superseded. Barter has cases
+    /// <para><see cref="BarterItem"/> keeps everything it always did and is NOT superseded. Barter has cases
     /// a single global price cannot express: "five Witch's Hair for a Ruby Pendant", and treasure, where two
     /// different vendors may deliberately pay differently for the same thing. The accepted trade-off of
     /// pricing from the item is that similar goods cost the same at every vendor; the trade table is the

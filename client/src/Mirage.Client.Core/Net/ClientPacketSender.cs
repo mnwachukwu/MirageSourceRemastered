@@ -213,11 +213,11 @@ public sealed class ClientPacketSender
 
     // ── Shop ─────────────────────────────────────────────────────────────────
 
-    public void SendTradeRequest(int tradeSlot)
-        => _transport.Send(new TradeRequestPacket { Slot = tradeSlot });
+    public void SendShopBarterRequest(int barterSlot)
+        => _transport.Send(new ShopBarterRequestPacket { Slot = barterSlot });
 
-    public void SendTrade(int shopNum, int tradeSlot)
-        => _transport.Send(new TradePacket { ShopNum = shopNum, TradeSlot = tradeSlot });
+    public void SendShopBarter(int shopNum, int barterSlot)
+        => _transport.Send(new ShopBarterPacket { ShopNum = shopNum, BarterSlot = barterSlot });
 
     public void SendShopBuy(int shopNum, int salesSlot)
         => _transport.Send(new ShopBuyPacket { ShopNum = shopNum, SalesSlot = salesSlot });
@@ -479,7 +479,7 @@ public sealed class ClientPacketSender
     public void SendSocialRemoveIgnore(string login)
         => _transport.Send(new SocialRemoveIgnorePacket { Login = login });
 
-    // ── Misc ─────────────────────────────────────────────────────────────────
+    // ── Lookups and self-service commands (/who, /played, /home) ─────────────
 
     public void SendWhoIsOnline()
         => _transport.Send(new WhoIsOnlinePacket());

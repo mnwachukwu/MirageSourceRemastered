@@ -350,8 +350,8 @@ public sealed partial class EditorPacketHandler
             ShopType = shop.ShopType,
             AllowBanking = shop.AllowBanking,
             Keeper = shop.Keeper,
-            Trades = shop.TradeItem
-                .Select(t => new EditorSaveShopPacket.TradeEntry(
+            Barters = shop.BarterItem
+                .Select(t => new EditorSaveShopPacket.BarterEntry(
                     t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                 .ToArray(),
             Sales = [.. shop.SalesItem],
@@ -455,8 +455,8 @@ public sealed partial class EditorPacketHandler
                     ShopNum = n, Name = shop.Name, FixesItems = shop.FixesItems,
                     ShopType = shop.ShopType, AllowBanking = shop.AllowBanking,
                     Keeper = shop.Keeper,
-                    Trades = shop.TradeItem
-                        .Select(t => new EditorSaveShopPacket.TradeEntry(
+                    Barters = shop.BarterItem
+                        .Select(t => new EditorSaveShopPacket.BarterEntry(
                             t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                         .ToArray(),
                 };
@@ -685,19 +685,19 @@ public sealed partial class EditorPacketHandler
         shop.AllowBanking = p.AllowBanking;
         shop.Keeper = p.Keeper;
 
-        // Rebuild the trade list from the packet: drop empty rows (so persisted data stays dense with no
+        // Rebuild the barter table from the packet: drop empty rows (so persisted data stays dense with no
         // gaps) and normalize each side's quantity so a bad state never persists (mirrors the NPC-drop rule
         // above): no item → 0, non-currency → exactly 1 (never stacks), currency → at least 1. This keeps
         // the give-side HasItem(>=) check well-formed and stops a zero quantity from minting free items.
         // No row ceiling, matching the sales table.
-        shop.TradeItem = p.Trades
+        shop.BarterItem = p.Barters
             .Where(t => t.GiveItem > 0 || t.GetItem > 0)
-            .Select(t => new TradeItemRecord
+            .Select(t => new BarterItemRecord
             {
                 GiveItem = t.GiveItem,
-                GiveQuantity = NormalizeTradeQuantity(t.GiveItem, t.GiveQuantity),
+                GiveQuantity = NormalizeBarterQuantity(t.GiveItem, t.GiveQuantity),
                 GetItem = t.GetItem,
-                GetQuantity = NormalizeTradeQuantity(t.GetItem, t.GetQuantity),
+                GetQuantity = NormalizeBarterQuantity(t.GetItem, t.GetQuantity),
             })
             .ToList();
 
@@ -715,8 +715,8 @@ public sealed partial class EditorPacketHandler
             ShopType = shop.ShopType,
             AllowBanking = shop.AllowBanking,
             Keeper = shop.Keeper,
-            Trades = shop.TradeItem
-                .Select(t => new EditorSaveShopPacket.TradeEntry(
+            Barters = shop.BarterItem
+                .Select(t => new EditorSaveShopPacket.BarterEntry(
                     t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
                 .ToArray(),
             Sales = [.. shop.SalesItem]
@@ -763,7 +763,7 @@ public sealed partial class EditorPacketHandler
         quest.Name = p.Name;
         quest.Description = p.Description;
         // Drop degenerate/empty authored rows + cap to the shared limits so a bad state never persists (mirrors
-        // the shop trade-quantity normalization). The editor sends fixed-slot lists that include empties.
+        // the shop barter-quantity normalization). The editor sends fixed-slot lists that include empties.
         quest.Objectives = NormalizeQuestObjectives(p.Objectives);
         quest.ReqLevel = p.ReqLevel;
         quest.ReqStr = p.ReqStr;
@@ -912,9 +912,9 @@ public sealed partial class EditorPacketHandler
         return list;
     }
 
-    // Trade quantity rule shared by both sides of a trade: no item → 0; a non-currency item → exactly 1
+    // Barter quantity rule shared by both sides of a row: no item → 0; a non-currency item → exactly 1
     // (it never stacks); a currency item → the caller's value floored at 1.
-    private int NormalizeTradeQuantity(int itemNum, int value)
+    private int NormalizeBarterQuantity(int itemNum, int value)
     {
         if (itemNum <= 0 || itemNum > _world.Limits.Items) return 0;
         if (_world.Items[itemNum].Type != ItemType.Currency) return 1;
@@ -1143,16 +1143,12 @@ public sealed partial class EditorPacketHandler
     }
 
     /// <summary>
-    /// Whether this session is authenticated AND cleared to <paramref name="required"/>.
-    ///
-    /// <para> <b>The access half did not exist.</b> Every handler used to check authentication alone,
-    /// and <c>session.AdminLevel</c> was assigned at login and never read again — so a Mapper, the lowest
-    /// tier the editor admits, could save items, NPCs, shops, spells, classes, quests and conversations.
-    /// The editor client hides those sections below Developer, but that is presentation: the server took
-    /// the packet from anyone who had logged in, and this engine ships its client's source.</para>
+    /// Whether this session is authenticated AND cleared to <paramref name="required"/>. Both halves are
+    /// checked here: a logged-in session still has to carry the tier, since the editor client's hiding of
+    /// a section is presentation and this engine ships its client's source.
     ///
     /// <para>A refusal is LOGGED rather than silently dropped, mirroring the in-game handlers' hacking
-    /// notice — an operator should be able to see somebody reaching past their tier.</para>
+    /// notice, so an operator can see somebody reaching past their tier.</para>
     /// </summary>
     private bool RequireAccess(int editorIndex, AdminLevel required)
     {

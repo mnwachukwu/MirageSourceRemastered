@@ -34,15 +34,15 @@ public sealed partial class ShopRowViewModel : ObservableObject
         set { if (value && ShopType != ShopType.Inn) ShopType = ShopType.Inn; }
     }
 
-    public ObservableCollection<TradeRowViewModel> Trades { get; } = [];
+    public ObservableCollection<ShopBarterRowViewModel> Barters { get; } = [];
 
     /// <summary>The shop's SALES table — items sold for gold at <see cref="ItemRecord.Price"/>, in the order
     /// the player sees them. Order is authored, not derived: <c>ShopRecord.Normalize</c> deliberately keeps
     /// it, so the move-up/move-down commands are editing a real property rather than a cosmetic one.</summary>
     public ObservableCollection<ShopSalesRowViewModel> Sales { get; } = [];
 
-    /// <summary>True when the trade table has no rows — drives the editor's empty-state hint.</summary>
-    public bool HasNoTrades => Trades.Count == 0;
+    /// <summary>True when the barter table has no rows — drives the editor's empty-state hint.</summary>
+    public bool HasNoBarters => Barters.Count == 0;
 
     /// <summary>True when the sales table has no rows.</summary>
     public bool HasNoSales => Sales.Count == 0;
@@ -77,11 +77,11 @@ public sealed partial class ShopRowViewModel : ObservableObject
     public bool HasSalesWarning => SalesWarning.Length > 0;
 
     public bool IsDirty => _textDirty || _fixesDirty || _typeDirty || _structuralDirty
-        || Trades.Any(t => t.IsDirty) || Sales.Any(s => s.IsDirty);
+        || Barters.Any(t => t.IsDirty) || Sales.Any(s => s.IsDirty);
     private bool _textDirty;
     private bool _fixesDirty;
     private bool _typeDirty;
-    private bool _structuralDirty;   // a trade/sales row was added, removed or REORDERED (not a field edit)
+    private bool _structuralDirty;   // a barter/sales row was added, removed or REORDERED (not a field edit)
     private bool _loading;
 
     public string DisplayName => $"{Index}: {(string.IsNullOrEmpty(Name) ? EditorStrings.Get(EditorStrings.Common_EmptyName) : Name)}";
@@ -123,48 +123,48 @@ public sealed partial class ShopRowViewModel : ObservableObject
         _allowBanking = r.AllowBanking;
         _keeper = r.Keeper;
 
-        Trades.CollectionChanged += OnTradesCollectionChanged;
+        Barters.CollectionChanged += OnBartersCollectionChanged;
         Sales.CollectionChanged += OnSalesCollectionChanged;
         // Guarded exactly like the NPC drop table: building child rows subscribes handlers that land on the
         // dirty flag, and an unguarded load flags every stocked shop as edited the moment it is opened.
         _loading = true;
         try
         {
-            LoadTrades(r);
+            LoadBarters(r);
             LoadSales(r.SalesItem);
         }
         finally { _loading = false; }
         ClearDirty();   // a row built straight from disk has not been edited
     }
 
-    private void OnTradesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    private void OnBartersCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (e.OldItems is not null)
         {
-            foreach (TradeRowViewModel t in e.OldItems)
-                t.PropertyChanged -= OnTradeRowPropertyChanged;
+            foreach (ShopBarterRowViewModel t in e.OldItems)
+                t.PropertyChanged -= OnBarterRowPropertyChanged;
         }
 
         if (e.NewItems is not null)
         {
-            foreach (TradeRowViewModel t in e.NewItems)
-                t.PropertyChanged += OnTradeRowPropertyChanged;
+            foreach (ShopBarterRowViewModel t in e.NewItems)
+                t.PropertyChanged += OnBarterRowPropertyChanged;
         }
 
-        OnPropertyChanged(nameof(HasNoTrades));
+        OnPropertyChanged(nameof(HasNoBarters));
         if (_loading) return;
         _structuralDirty = true;
         OnPropertyChanged(nameof(IsDirty));
     }
 
     [RelayCommand]
-    private void AddTrade() =>
-        Trades.Add(new TradeRowViewModel(Trades.Count + 1, new TradeItemRecord(), _entriesProvider, _isCurrency));
+    private void AddBarter() =>
+        Barters.Add(new ShopBarterRowViewModel(Barters.Count + 1, new BarterItemRecord(), _entriesProvider, _isCurrency));
 
     [RelayCommand]
-    private void RemoveTrade(TradeRowViewModel row) => Trades.Remove(row);
+    private void RemoveBarter(ShopBarterRowViewModel row) => Barters.Remove(row);
 
-    private void OnTradeRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnBarterRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (_loading) return;
         OnPropertyChanged(nameof(IsDirty));
@@ -291,7 +291,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
         _textDirty = _fixesDirty = _typeDirty = _structuralDirty = false;
         // Child rows too: one left dirty re-marks the shop on its next derived re-raise, and the dot comes
         // straight back with nobody having touched anything.
-        foreach (var t in Trades) t.ClearDirty();
+        foreach (var t in Barters) t.ClearDirty();
         foreach (var s in Sales) s.ClearDirty();
         OnPropertyChanged(nameof(IsDirty));
     }
@@ -300,21 +300,21 @@ public sealed partial class ShopRowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(KeeperEntries));
         OnPropertyChanged(nameof(SelectedKeeper));
-        foreach (var t in Trades) t.NotifyEntriesChanged();
+        foreach (var t in Barters) t.NotifyEntriesChanged();
         foreach (var s in Sales) s.NotifyEntriesChanged();
         NotifySalesDerived();   // prices may have moved under us — the summary and warnings follow
     }
 
-    // Build trade rows from a record, skipping empties and the legacy null-at-index-0, so the table shows
-    // only real trades (dense). Callers set _loading around this so the rebuild doesn't dirty the row.
-    private void LoadTrades(ShopRecord r)
+    // Build barter rows from a record, skipping empties and the legacy null-at-index-0, so the table shows
+    // only real barters (dense). Callers set _loading around this so the rebuild doesn't dirty the row.
+    private void LoadBarters(ShopRecord r)
     {
-        Trades.Clear();
+        Barters.Clear();
         int slot = 1;
-        foreach (var t in r.TradeItem)
+        foreach (var t in r.BarterItem)
         {
             if (t is null || (t.GiveItem <= 0 && t.GetItem <= 0)) continue;
-            Trades.Add(new TradeRowViewModel(slot++, t, _entriesProvider, _isCurrency));
+            Barters.Add(new ShopBarterRowViewModel(slot++, t, _entriesProvider, _isCurrency));
         }
     }
 
@@ -328,7 +328,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
             ShopType = r.ShopType;
             AllowBanking = r.AllowBanking;
             Keeper = r.Keeper;
-            LoadTrades(r);
+            LoadBarters(r);
             LoadSales(r.SalesItem);
         }
         finally
@@ -350,12 +350,12 @@ public sealed partial class ShopRowViewModel : ObservableObject
             AllowBanking = pkt.AllowBanking;
             Keeper = pkt.Keeper;
             LoadSales([.. pkt.Sales]);
-            Trades.Clear();
+            Barters.Clear();
             int slot = 1;
-            foreach (var t in pkt.Trades)
+            foreach (var t in pkt.Barters)
             {
                 if (t.GiveItem <= 0 && t.GetItem <= 0) continue;   // skip empty rows — table stays dense
-                Trades.Add(new TradeRowViewModel(slot++, new TradeItemRecord
+                Barters.Add(new ShopBarterRowViewModel(slot++, new BarterItemRecord
                 {
                     GiveItem = t.GiveItem,
                     GiveQuantity = t.GiveQuantity,
@@ -385,12 +385,12 @@ public sealed partial class ShopRowViewModel : ObservableObject
             AllowBanking = AllowBanking,
             Keeper = Keeper,
             // Dense and in authored order — the order IS the shopfront. Half-authored rows are dropped here
-            // the same way empty trades are, so the file says what it means.
+            // the same way empty barters are, so the file says what it means.
             SalesItem = [.. Sales.Where(s => !s.IsEmpty).Select(s => s.ItemNum)],
         };
-        // Persist a dense list of real trades only — empty rows (either side itemless) are dropped, so a
+        // Persist a dense list of real barters only — empty rows (either side itemless) are dropped, so a
         // blank row anywhere leaves no gap in the saved data.
-        r.TradeItem = Trades.Where(t => !t.IsEmpty).Select(t => t.ToRecord()).ToList();
+        r.BarterItem = Barters.Where(t => !t.IsEmpty).Select(t => t.ToRecord()).ToList();
         return r;
     }
 
@@ -404,7 +404,7 @@ public sealed partial class ShopRowViewModel : ObservableObject
         ShopType = ShopType,
         AllowBanking = AllowBanking,
         Keeper = Keeper,
-        Trades = Trades.Select(t => new EditorSaveShopPacket.TradeEntry(
+        Barters = Barters.Select(t => new EditorSaveShopPacket.BarterEntry(
             t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity)).ToArray(),
         Sales = [.. Sales.Where(s => !s.IsEmpty).Select(s => s.ItemNum)],
     };
