@@ -264,5 +264,5 @@ public sealed partial class SpellRowViewModel : ObservableObject
     /// <summary>Whether to show the reagent-cost row (SubHp only).</summary>
     public bool ShowReagentCost => Type == SpellType.SubHp;
     /// <summary>Reagents consumed per cast; 0 for any type other than SubHp.</summary>
-    public int ReagentCost => Type == SpellType.SubHp ? CombatFormulas.SubHpReagentCost(VitalAmount) : 0;
+    public int ReagentCost => Type == SpellType.SubHp ? CombatFormulas.SubHpReagentCost(LevelReq) : 0;
 }

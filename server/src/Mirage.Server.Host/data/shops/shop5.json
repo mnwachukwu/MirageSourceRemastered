@@ -1,11 +1,12 @@
 {
-  "name": "Cantor Wex, Mending Words",
+  "name": "Cantor Wex, Giving Words",
   "fixesItems": false,
   "shopType": "Store",
   "allowBanking": false,
   "keeper": 130,
   "barterItem": [],
   "salesItem": [
+    2,
     316,
     317,
     318,

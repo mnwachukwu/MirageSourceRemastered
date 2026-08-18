@@ -699,18 +699,20 @@ public sealed class ShopPanel : IGamePanel
                 string reagentName = (Constants.CastingReagentItemIndex < state.Items.Length
                     ? state.Items[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
                 UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ReagentCost,
-                    ("Reagent", reagentName), ("Count", CombatFormulas.SubHpReagentCost(spell.VitalAmount))),
+                    ("Reagent", reagentName), ("Count", CombatFormulas.SubHpReagentCost(spell.LevelReq))),
                     new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
                 textY += 18;
             }
-            // Effectiveness preview: M-DMG for any Sub* (vital-draining) spell, HEALING for any
-            // Add* (vital-restoring) spell. Shows ONLY the spell's contribution paired with the
+            // Effectiveness preview: M-DMG for any Sub* (vital-draining) spell, and a per-vital
+            // restore label for any Add* spell. Shows ONLY the spell's contribution paired with the
             // player's Int — matches the weapon line's "P-DMG: +N" semantics (gear contribution
             // only, not base + gear). GiveItem is suppressed since it carries an item id, not a magnitude.
             string? effectLabel = spell.Type switch
             {
                 SpellType.SubHp or SpellType.SubMp or SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_MDmg),
-                SpellType.AddHp or SpellType.AddMp or SpellType.AddSp => ClientStrings.Get(ClientStrings.Stats_Healing),
+                SpellType.AddHp => ClientStrings.Get(ClientStrings.Stats_Healing),
+                SpellType.AddMp => ClientStrings.Get(ClientStrings.Stats_MpRestore),
+                SpellType.AddSp => ClientStrings.Get(ClientStrings.Stats_SpRestore),
                 _ => null,
             };
             if (effectLabel is not null)

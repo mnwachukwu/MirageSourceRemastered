@@ -109,9 +109,10 @@ public sealed class ItemRecord
     /// every item, so 471 prices stay consistent with each other and with measured income without anyone
     /// typing them. The field exists so a price CAN be overridden — which is the only way to express a
     /// treasure item, whose worth is the point rather than a function of its power and tier.
-    /// <see cref="Normalize"/> clears it only for the types that cannot have a worth at all (gold has no
-    /// price in gold); it never recomputes one, because an authored price is data and re-seeding must not
-    /// silently overwrite a deliberate override.</para>
+    /// <see cref="Normalize"/> leaves it standing on every type and never recomputes one: an authored price
+    /// is data, and re-seeding must not silently overwrite a deliberate override. Gold needs no type rule
+    /// to stay unsellable — <see cref="EconomyFormulas.ItemValue"/> derives nothing for it, so a re-seed
+    /// leaves it at zero and the shop's purchase path refuses any zero-price row.</para>
     ///
     /// <para>0 means "no derived worth". Combined with <see cref="NonJunkable"/> that is unambiguous:
     /// a 0-price junkable item can still be dumped for nothing, purely to clear a bag, so not every
@@ -143,17 +144,6 @@ public sealed class ItemRecord
     public static bool UsesVitalAmount(ItemType type) => IsPotion(type);
     public static bool UsesSpellNum(ItemType type) => type is ItemType.Spell;
 
-    /// <summary>Everything except gold can carry a <see cref="Price"/> — gold has no price in gold.
-    ///
-    /// <para>Key and None are deliberately INCLUDED even though <see cref="EconomyFormulas.ItemValue"/>
-    /// declines to derive a number for either. "The formula cannot price it" and "it may not have a price"
-    /// are different claims, and conflating them would silently zero any item whose worth is AUTHORED
-    /// rather than derived — which is exactly what a treasure item is. TREASURE IS TYPED None: it has no
-    /// stats, no level gate and no use, so every other <c>Uses*</c> rule already answers false for it and
-    /// <see cref="Normalize"/> keeps it clean without a special case. Admitting None here is the one thing
-    /// it needs.</para></summary>
-    public static bool UsesPrice(ItemType type) => type is not ItemType.Currency;
-
     /// <summary>Everything a character equips or consumes can carry a level gate — the wearables, the
     /// potions and the spell scrolls. Currency and keys cannot: gold is not something you qualify for,
     /// and a door that refuses its own key because the holder is level 4 is a puzzle nobody asked for.</summary>
@@ -173,9 +163,6 @@ public sealed class ItemRecord
         if (!UsesSpellNum(Type)) SpellNum = 0;
         if (!UsesPower(Type)) Power = 0;
         if (!UsesLevelReq(Type)) LevelReq = 0;
-        // Cleared, never recomputed: a price that does not apply is stale data, but a price that DOES
-        // apply may be a deliberate override (treasure), and Normalize runs on every editor save.
-        if (!UsesPrice(Type)) Price = 0;
         AllowedClasses = UsesAllowedClasses(Type) ? ClassGate.Normalize(AllowedClasses) : null;
     }
 }

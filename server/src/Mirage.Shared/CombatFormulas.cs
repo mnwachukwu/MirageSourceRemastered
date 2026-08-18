@@ -474,14 +474,17 @@ public static class CombatFormulas
     private const int NormalDeathWearPercent = 10;
 
     /// <summary>Reagents a caster destroys on death: the per-cast reagent cost at its tier
-    /// (<paramref name="tierVitalAmount"/> = the prepared spell's VitalAmount, else the strongest known
-    /// SubHp spell's) times <see cref="Constants.CasterDeathReagentMultiplier"/>, scaled by the death's
+    /// (<paramref name="tierLevel"/> = the prepared spell's LevelReq, else the highest-tier known SubHp
+    /// spell's) times <see cref="Constants.CasterDeathReagentMultiplier"/>, scaled by the death's
     /// <paramref name="wearPercent"/> (10 normal, 20 PK/war). Priced off the prepared spell independently of
     /// any equipped weapon (whose durability wears separately). Mirrors a warrior's weapon-repair cost at
-    /// 1 reagent = 1 gold. 0 when the caster has no offensive tier.</summary>
-    public static int CasterDeathReagentLoss(int tierVitalAmount, int wearPercent) =>
-        tierVitalAmount <= 0 ? 0
-            : SubHpReagentCost(tierVitalAmount) * Constants.CasterDeathReagentMultiplier * wearPercent / NormalDeathWearPercent;
+    /// 1 reagent = 1 gold. 0 when the caster has no offensive tier.
+    ///
+    /// <para>LEVEL, matching <see cref="SubHpReagentCost"/>: the warrior this is matched against is defined
+    /// by tier, and VitalAmount ranks a spell WITHIN one.</para></summary>
+    public static int CasterDeathReagentLoss(int tierLevel, int wearPercent) =>
+        tierLevel <= 0 ? 0
+            : SubHpReagentCost(tierLevel) * Constants.CasterDeathReagentMultiplier * wearPercent / NormalDeathWearPercent;
 
     /// <summary>Swing-weighted average durability lost per hit over a full 100%→0% wear cycle: total durability
     /// (100) divided by the hits needed to traverse every condition band (each band's width ÷ its chip chance =

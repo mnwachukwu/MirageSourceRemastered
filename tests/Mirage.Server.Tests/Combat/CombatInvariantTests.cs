@@ -97,9 +97,9 @@ public class CombatInvariantTests
     public void CasterDeathReagentLoss_ScalesWithTierAndWearPercent()
     {
         int perCast = CombatFormulas.SubHpReagentCost(100);
-        int normal = CombatFormulas.CasterDeathReagentLoss(tierVitalAmount: 100, wearPercent: 10);
+        int normal = CombatFormulas.CasterDeathReagentLoss(tierLevel: 100, wearPercent: 10);
         Assert.That(normal, Is.EqualTo(perCast * Constants.CasterDeathReagentMultiplier));
         Assert.That(CombatFormulas.CasterDeathReagentLoss(100, 20), Is.EqualTo(normal * 2));   // PK/war doubles it
-        Assert.That(CombatFormulas.CasterDeathReagentLoss(tierVitalAmount: 0, wearPercent: 10), Is.EqualTo(0));   // no tier
+        Assert.That(CombatFormulas.CasterDeathReagentLoss(tierLevel: 0, wearPercent: 10), Is.EqualTo(0));   // no tier
     }
 }

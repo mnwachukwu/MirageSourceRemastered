@@ -234,13 +234,13 @@ public sealed partial class CombatSystem : GameSystem
 
     // The caster's offensive "tier" for reagent parity: the prepared (Q-cast) spell's power, or — if none is
     // prepared — the strongest known SubHp spell's power. 0 = no offensive tier (not a caster).
-    private int CasterTierVitalAmount(int index)
+    private int CasterTierLevel(int index)
     {
         var p = _pm[index].Char;
         if (p.PreparedSpell > 0 && p.PreparedSpell < p.Spell.Length)
         {
             int prepNum = p.Spell[p.PreparedSpell];
-            if (prepNum > 0 && prepNum <= _world.Limits.Spells) return _world.Spells[prepNum].VitalAmount;
+            if (prepNum > 0 && prepNum <= _world.Limits.Spells) return _world.Spells[prepNum].LevelReq;
         }
         int best = 0;
         for (int i = 1; i < p.Spell.Length; i++)
@@ -248,7 +248,7 @@ public sealed partial class CombatSystem : GameSystem
             int sn = p.Spell[i];
             if (sn <= 0 || sn > _world.Limits.Spells) continue;
             var s = _world.Spells[sn];
-            if (s.Type == SpellType.SubHp && s.VitalAmount > best) best = s.VitalAmount;
+            if (s.Type == SpellType.SubHp && s.LevelReq > best) best = s.LevelReq;
         }
         return best;
     }
@@ -261,7 +261,7 @@ public sealed partial class CombatSystem : GameSystem
     private int CasterReagentLoss(int index, int wearPercent)
     {
         var p = _pm[index].Char;
-        int tier = CasterTierVitalAmount(index);
+        int tier = CasterTierLevel(index);
         if (tier <= 0) return 0;
         long held = ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex);
         if (held <= 0) return 0;

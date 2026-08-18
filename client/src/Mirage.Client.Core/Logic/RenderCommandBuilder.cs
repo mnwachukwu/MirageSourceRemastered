@@ -475,7 +475,7 @@ public static class RenderCommandBuilder
         {
             if (mi.Num == 0 || mi.Num > state.Limits.Items) continue;
             var itemDef = state.Items[mi.Num];
-            if (itemDef is null || itemDef.Pic <= 0) continue;
+            if (itemDef is null || itemDef.Pic < 0) continue;
 
             var (screenX, screenY) = camera.WorldTileToScreen(offX + mi.X, offY + mi.Y, 0, 0);
             if (!OnScreen(screenX, screenY)) continue;

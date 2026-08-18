@@ -44,6 +44,8 @@
   "Stats_PDmg":        "DAN-F",
   "Stats_MDmg":        "DAN-M",
   "Stats_Healing":     "Cura",
+  "Stats_MpRestore":   "Restaur. PM",
+  "Stats_SpRestore":   "Restaur. PE",
   "Stats_Mit":         "MIT",
   "Stats_Sprint":      "Corrida",
   "Stats_HpRegen":     "Regen. PV",

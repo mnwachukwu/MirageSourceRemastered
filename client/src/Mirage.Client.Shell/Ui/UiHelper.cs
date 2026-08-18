@@ -569,7 +569,7 @@ public static class UiHelper
 
     public static void DrawMenuSpritePreview(SpriteBatch sb, Texture2D sprites, int spriteRow, int animFrame, Rectangle dest, Direction direction = Direction.Down)
     {
-        if (spriteRow <= 0) return;
+        if (spriteRow < 0) return;
         var src = SpriteAtlas.GetSourceRect(spriteRow, direction, animFrame);
         sb.Draw(sprites, dest, src, Color.White);
     }

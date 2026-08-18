@@ -44,6 +44,8 @@
   "Stats_PDmg":        "DAÑ-F",
   "Stats_MDmg":        "DAÑ-M",
   "Stats_Healing":     "Curación",
+  "Stats_MpRestore":   "Restaur. PM",
+  "Stats_SpRestore":   "Restaur. PE",
   "Stats_Mit":         "MIT",
   "Stats_Sprint":      "Carrera",
   "Stats_HpRegen":     "Regen. PV",

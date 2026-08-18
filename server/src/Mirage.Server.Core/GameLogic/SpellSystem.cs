@@ -121,7 +121,7 @@ public sealed class SpellSystem : GameSystem
             bool pvpArenaFree = !forceSelf
                 && sp.TargetType == 0 && sp.Target >= 1 && sp.Target <= _pm.Slots && _pm[sp.Target].IsPlaying
                 && (_world.MoralOf(p.Map) == MapMoral.Arena || _world.MoralOf(_pm[sp.Target].Char.Map) == MapMoral.Arena);
-            reagentCost = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.VitalAmount);
+            reagentCost = pvpArenaFree ? 0 : SubHpReagentCostNow(p.Map, spell.LevelReq);
             if (ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentCost)
             {
                 SendMsg(index, ServerStrings.SpellSystem_NotEnoughReagents, GameColor.BrightRed, ChatChannel.System,
@@ -617,8 +617,8 @@ public sealed class SpellSystem : GameSystem
     // Reagents a SubHp cast consumes right now: the base per-cast cost, DOUBLED while it's raining — the magic-side
     // mirror of Rain doubling weapon-durability wear (CombatSystem.DegradeItemDurability). Arena's reagent waiver is
     // PvP-only and decided at the cast gate (a cast at an NPC always pays), so this is just the normal rain cost.
-    private int SubHpReagentCostNow(int casterMap, int data1) =>
-        CombatFormulas.SubHpReagentCost(data1)
+    private int SubHpReagentCostNow(int casterMap, int spellLevelReq) =>
+        CombatFormulas.SubHpReagentCost(spellLevelReq)
         * (_world.WeatherOn(casterMap) == WeatherType.Rain ? Constants.WeatherRainReagentMultiplier : 1);
 
     // Spend a successful cast's cost: deduct MP always, and — for SubHp only — consume its reagents (the per-cast
@@ -875,7 +875,7 @@ public sealed class SpellSystem : GameSystem
 
         // Reagent for a SubHp cast on an NPC always pays the normal cost — the arena reagent waiver is PvP-only, so
         // casting at a mob is never free, regardless of either map's moral.
-        SpendCastCost(index, mpCost, spell, SubHpReagentCostNow(p.Map, spell.VitalAmount));
+        SpendCastCost(index, mpCost, spell, SubHpReagentCostNow(p.Map, spell.LevelReq));
         return true;
     }
 }

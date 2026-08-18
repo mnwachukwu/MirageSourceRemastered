@@ -10,7 +10,11 @@
   "startingItems": [
     {
       "itemNum": 1,
-      "quantity": 200
+      "quantity": 150
+    },
+    {
+      "itemNum": 2,
+      "quantity": 50
     },
     {
       "itemNum": 7,

@@ -44,6 +44,8 @@
   "Stats_PDmg":        "DÉG-P",
   "Stats_MDmg":        "DÉG-M",
   "Stats_Healing":     "Soins",
+  "Stats_MpRestore":   "Restaur. PM",
+  "Stats_SpRestore":   "Restaur. PE",
   "Stats_Mit":         "RÉD",
   "Stats_Sprint":      "Course",
   "Stats_HpRegen":     "Régén. PV",

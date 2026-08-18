@@ -409,7 +409,7 @@ public static class Tooltip
         {
             string reagentName = (Constants.CastingReagentItemIndex < itemDefs.Length
                 ? itemDefs[Constants.CastingReagentItemIndex]?.Name?.Trim() : null) ?? "?";
-            int reagentCost = CombatFormulas.SubHpReagentCost(spell.VitalAmount);
+            int reagentCost = CombatFormulas.SubHpReagentCost(spell.LevelReq);
             string reagentValue = weather == WeatherType.Rain
                 ? ClientStrings.Format(ClientStrings.Tooltip_ReagentCostRained, ("Count", reagentCost))
                 : reagentCost.ToString();
@@ -417,15 +417,17 @@ public static class Tooltip
                 reagentValue, ValueColor));
         }
 
-        // Effectiveness: M-DMG for damaging spells (any Sub* drains a vital), HEALING for Add*
-        // (restore-vital) spells. Shows ONLY the spell's own contribution paired with playerInt,
+        // Effectiveness: M-DMG for damaging spells (any Sub* drains a vital), and a per-vital restore
+        // label for Add* spells. Shows ONLY the spell's own contribution paired with playerInt,
         // not base + contribution — matches how the weapon tooltip shows just WeaponContribution
         // rather than UnarmedDamage + WeaponContribution. GiveItem is suppressed because it carries an
         // item id rather than a magnitude.
         string? effectLabel = spell.Type switch
         {
             SpellType.SubHp or SpellType.SubMp or SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_MDmg),
-            SpellType.AddHp or SpellType.AddMp or SpellType.AddSp => ClientStrings.Get(ClientStrings.Stats_Healing),
+            SpellType.AddHp => ClientStrings.Get(ClientStrings.Stats_Healing),
+            SpellType.AddMp => ClientStrings.Get(ClientStrings.Stats_MpRestore),
+            SpellType.AddSp => ClientStrings.Get(ClientStrings.Stats_SpRestore),
             _ => null,
         };
         if (effectLabel is not null)

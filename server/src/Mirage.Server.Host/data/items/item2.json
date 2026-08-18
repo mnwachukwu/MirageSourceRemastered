@@ -6,5 +6,6 @@
   "nonListable": true,
   "nonMailable": false,
   "destroyOnDrop": false,
-  "nonJunkable": false
+  "nonJunkable": false,
+  "price": 1
 }

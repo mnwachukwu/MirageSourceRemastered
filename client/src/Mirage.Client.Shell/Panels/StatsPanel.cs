@@ -446,9 +446,9 @@ public sealed class StatsPanel : IGamePanel
         return (baseVal, gearVal);
     }
 
-    /// <summary>Label for the magic combat-output row — switches from "M-DMG" to "HEALING" when
-    /// an Add* (restore-vital) spell is the prepared spell, since the same SpellPower formula
-    /// drives both directions and the player cares which one the prepared spell will produce.</summary>
+    /// <summary>Label for the magic combat-output row — switches from "M-DMG" to the prepared spell's
+    /// own restore label when an Add* spell is prepared, naming the vital it refills, since the same
+    /// SpellPower formula drives both directions and the player cares which one they will produce.</summary>
     private static string GetMagicEffectLabel(Mirage.Shared.Records.PlayerRecord me, ClientState state)
     {
         int preparedSlot = me.PreparedSpell;
@@ -456,10 +456,15 @@ public sealed class StatsPanel : IGamePanel
         {
             int spellNum = me.Spell[preparedSlot];
             if (spellNum > 0 && state.SpellDefs is not null && spellNum < state.SpellDefs.Length
-                && state.SpellDefs[spellNum] is { } spell
-                && spell.Type is SpellType.AddHp or SpellType.AddMp or SpellType.AddSp)
+                && state.SpellDefs[spellNum] is { } spell)
             {
-                return ClientStrings.Get(ClientStrings.Stats_Healing);
+                switch (spell.Type)
+                {
+                    case SpellType.AddHp: return ClientStrings.Get(ClientStrings.Stats_Healing);
+                    case SpellType.AddMp: return ClientStrings.Get(ClientStrings.Stats_MpRestore);
+                    case SpellType.AddSp: return ClientStrings.Get(ClientStrings.Stats_SpRestore);
+                    default: break;
+                }
             }
         }
         return ClientStrings.Get(ClientStrings.Stats_MDmg);

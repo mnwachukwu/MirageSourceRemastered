@@ -27,12 +27,21 @@ public class ItemPriceTests
     }
 
     [Test]
-    public void Normalize_ClearsPriceOnCurrency_ButKeepsItEverywhereElse()
+    public void Normalize_KeepsAnAuthoredPriceOnEveryType_IncludingCurrency()
     {
-        // Gold has no price in gold.
-        var gold = new ItemRecord { Name = "Gold", Type = ItemType.Currency, Price = 500 };
+        // The casting reagent is typed Currency so that it STACKS, but it is a consumable good a spell
+        // vendor sells for gold. Normalize must leave its authored price alone or the shop row it appears
+        // in is permanently "not for sale".
+        var reagent = new ItemRecord { Name = "Magical Reagent", Type = ItemType.Currency, Price = 1 };
+        reagent.Normalize();
+        Assert.That(reagent.Price, Is.EqualTo(1), "a reagent is bought at a counter like anything else");
+
+        // Gold is protected by the two rules that actually matter rather than by a schema ban: nothing
+        // derives a worth for it, so a re-seed never writes one, and the purchase path refuses a zero.
+        var gold = new ItemRecord { Name = "Gold", Type = ItemType.Currency };
         gold.Normalize();
-        Assert.That(gold.Price, Is.Zero);
+        Assert.That(gold.Price, Is.Zero, "gold has no price in gold");
+        Assert.That(EconomyFormulas.ItemValue(gold), Is.Zero, "and nothing may derive one for it");
 
         // A KEY keeps its price even though the formula declines to derive one — "cannot be derived" and
         // "cannot exist" are different claims, and treasure lives in that gap.
@@ -58,18 +67,19 @@ public class ItemPriceTests
     }
 
     [Test]
-    public void UsesPrice_ExcludesOnlyCurrency()
+    public void NormalizeKeepsAnAuthoredPrice_OnEveryType()
     {
+        // Normalize never zeroes a price, whatever the type. Currency covers gold AND the casting reagent
+        // a spell vendor sells; None is TREASURE's type, whose whole substance is its price. A type-level
+        // bar on either silently deletes authored data.
         Assert.Multiple(() =>
         {
-            Assert.That(ItemRecord.UsesPrice(ItemType.Currency), Is.False, "gold has no price in gold");
-            // None is TREASURE's type, and a treasure's whole substance is its price. It was excluded here
-            // while None meant only "blank record"; admitting it is the one schema concession treasure
-            // needs, since every other Uses* rule already answers false for it.
-            Assert.That(ItemRecord.UsesPrice(ItemType.None), Is.True, "treasure is typed None and must price");
-            foreach (var t in new[] { ItemType.Weapon, ItemType.Armor, ItemType.Helmet, ItemType.Shield,
-                                      ItemType.PotionAddHp, ItemType.Spell, ItemType.Key })
-                Assert.That(ItemRecord.UsesPrice(t), Is.True, $"{t} must be priceable");
+            foreach (var t in Enum.GetValues<ItemType>())
+            {
+                var item = new ItemRecord { Name = $"{t} probe", Type = t, Price = 77 };
+                item.Normalize();
+                Assert.That(item.Price, Is.EqualTo(77), $"{t} must keep an authored price");
+            }
         });
     }
 

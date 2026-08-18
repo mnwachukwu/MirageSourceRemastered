@@ -1,11 +1,12 @@
 {
-  "name": "Ordinal Kesh, Mending Words",
+  "name": "Ordinal Kesh, Giving Words",
   "fixesItems": false,
   "shopType": "Store",
   "allowBanking": false,
   "keeper": 146,
   "barterItem": [],
   "salesItem": [
+    2,
     496,
     497,
     498,

@@ -283,9 +283,11 @@ public class DeathPenaltySwitchTests
         for (int i = BagSlot; i < BagSlot + BagSlots; i++) p.Inv[i].Num = TrinketNum;
 
         // A caster with a tier and a stack to burn: DestroyCasterDeathReagents prices the loss off the
-        // strongest known SubHp spell when none is prepared.
+        // highest-tier known SubHp spell when none is prepared. LevelReq IS the tier — a spell with none
+        // has no offensive tier and burns nothing, so this fixture needs one to burn anything at all.
         world.Spells[SpellNum].Name = "Drain";
         world.Spells[SpellNum].Type = SpellType.SubHp;
+        world.Spells[SpellNum].LevelReq = 100;
         world.Spells[SpellNum].VitalAmount = 100;
         p.Spell[1] = SpellNum;
 
