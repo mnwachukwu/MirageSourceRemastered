@@ -212,8 +212,11 @@ public sealed class LoginScreen : IGameScreen
         _nameField.Draw(sb, font, NameRect, _focusedField == 0, now);
         _passwordField.Draw(sb, font, PassRect, _focusedField == 1, now);
 
-        _rememberBox.Draw(sb, font, _input);
-        if (RememberBox.Contains(_input.MousePosition))
+        // The checkbox and the link gray out with the buttons while a login is in flight. Update
+        // already returns early in that state, so they were inert but still drew as though they were
+        // not — the one control still lighting up on hover reads as the only thing still working.
+        _rememberBox.Draw(sb, font, _input, disabled: _connecting);
+        if (!_connecting && RememberBox.Contains(_input.MousePosition))
         {
             Tooltip.NotifyHoverText(_tooltipScope, (_tooltipScope, "remember"),
                 ClientStrings.Get(ClientStrings.LoginScreen_RememberMeWarning), _input.MousePosition);
@@ -222,9 +225,9 @@ public sealed class LoginScreen : IGameScreen
         _connectBtn.Draw(sb, font, _input, UiHelper.PrimaryButtonNormal, UiHelper.PrimaryButtonHover);
         _cancelBtn.Draw(sb, font, _input);
 
-        bool linkHovered = ChangePwdLink.Contains(_input.MousePosition);
+        bool linkHovered = !_connecting && ChangePwdLink.Contains(_input.MousePosition);
         sb.DrawString(font, ClientStrings.Get(ClientStrings.LoginScreen_ChangePasswordLink), new Vector2(ChangePwdLink.X, ChangePwdLink.Y),
-            linkHovered ? Color.White : Color.Gray);
+            _connecting ? UiHelper.DisabledColor : (linkHovered ? Color.White : Color.Gray));
 
         if (_connecting)
             UiHelper.DrawMenuAlert(sb, font, ClientStrings.Get(ClientStrings.Common_Connecting), Color.Yellow);
