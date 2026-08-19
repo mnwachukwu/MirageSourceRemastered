@@ -26,27 +26,6 @@ public sealed class ShopSystem : GameSystem
         _items = items;
     }
 
-    // ── Map-enter/leave greeting (called by movement + join systems) ──────────
-    // The greeting lives on the MAP (+ MapGroup) rather than the shop, since shops are not map-bound: it
-    // speaks the map's own JoinSay/LeaveSay, said by its GreetingSpeaker. Blank fields stay silent, and
-    // there is no generic "you walk into a store/inn" line (a map can't know store-vs-inn).
-
-    /// <summary>Speak the map's join greeting, if it has one. Silent when the resolved line is blank.</summary>
-    public void OnJoinMap(int index)
-    {
-        var g = _world.GreetingOf(_pm[index].Char.Map);
-        if (!string.IsNullOrWhiteSpace(g.JoinSay))
-            SendMsg(index, ServerStrings.ShopSystem_JoinSay, GameColor.Npc, ("ShopName", g.Speaker.TrimEnd()), ("JoinSay", g.JoinSay.TrimEnd()));
-    }
-
-    /// <summary>Speak the map's leave greeting, if it has one.</summary>
-    public void OnLeaveMap(int index)
-    {
-        var g = _world.GreetingOf(_pm[index].Char.Map);
-        if (!string.IsNullOrWhiteSpace(g.LeaveSay))
-            SendMsg(index, ServerStrings.ShopSystem_LeaveSay, GameColor.Npc, ("ShopName", g.Speaker.TrimEnd()), ("LeaveSay", g.LeaveSay.TrimEnd()));
-    }
-
     // ── Barter ────────────────────────────────────────────────────────────────
 
     /// <summary>Execute one row of a shop's barter table: take the row's "give" stack from the player and

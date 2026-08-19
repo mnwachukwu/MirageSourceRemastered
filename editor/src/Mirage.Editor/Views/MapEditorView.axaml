@@ -305,134 +305,241 @@
                        IsVisible="{Binding SelectedMap, Converter={x:Static ObjectConverters.IsNull}}"
                        Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                        FontStyle="Italic"/>
-            <ScrollViewer x:Name="PropertiesScrollViewer"
+            <ScrollViewer x:Name="PropertiesScrollViewer" Grid.IsSharedSizeScope="True"
                           IsVisible="{Binding SelectedMap, Converter={x:Static ObjectConverters.IsNotNull}}">
               <StackPanel Margin="12" Spacing="8">
 
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <TextBox   Grid.Column="1" Text="{Binding MapName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <TextBox   Grid.Column="1" Text="{Binding MapDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <TextBox   Grid.Column="1" Text="{Binding MapDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Watermark="{Binding MapDisplayNamePlaceholder}" />
                 </Grid>
 
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_moralLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <ComboBox  Grid.Column="1"
-                             ItemsSource="{Binding MoralOptions}"
-                             SelectedItem="{Binding SelectedMapMoral, Mode=TwoWay}"
-                             HorizontalAlignment="Stretch"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_upMapLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <controls:DropdownAutoCompleteBox x:Name="_searchUpMap" Grid.Column="1"
-                                   ItemsSource="{Binding MapEntries}"
-                                   SelectedItem="{Binding SelectedMapUp, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_downLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <controls:DropdownAutoCompleteBox x:Name="_searchDown" Grid.Column="1"
-                                   ItemsSource="{Binding MapEntries}"
-                                   SelectedItem="{Binding SelectedMapDown, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_leftLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <controls:DropdownAutoCompleteBox x:Name="_searchLeft" Grid.Column="1"
-                                   ItemsSource="{Binding MapEntries}"
-                                   SelectedItem="{Binding SelectedMapLeft, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_rightLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <controls:DropdownAutoCompleteBox x:Name="_searchRight" Grid.Column="1"
-                                   ItemsSource="{Binding MapEntries}"
-                                   SelectedItem="{Binding SelectedMapRight, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <NumericUpDown Grid.Column="1"
-                                 Value="{Binding MapMusic, Mode=TwoWay}"
-                                 Minimum="0" Maximum="255" FormatString="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <controls:DropdownAutoCompleteBox x:Name="_searchBootMap" Grid.Column="1"
-                                   ItemsSource="{Binding MapEntries}"
-                                   SelectedItem="{Binding SelectedMapBootMap, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <NumericUpDown Grid.Column="1"
-                                 Value="{Binding MapBootX, Mode=TwoWay}"
-                                 Minimum="0" Maximum="15" FormatString="0"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <NumericUpDown Grid.Column="1"
-                                 Value="{Binding MapBootY, Mode=TwoWay}"
-                                 Minimum="0" Maximum="11" FormatString="0"/>
-                </Grid>
-
-                <!-- Map-enter/leave greeting (NPC epic Slice 6). Blank fields inherit from the MapGroup. -->
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <TextBox Grid.Column="1" Text="{Binding MapGreetingSpeaker, Mode=TwoWay}"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <TextBox Grid.Column="1" Text="{Binding MapJoinSay, Mode=TwoWay}"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <TextBox Grid.Column="1" Text="{Binding MapLeaveSay, Mode=TwoWay}"/>
-                </Grid>
-
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_mapGroupLabel" Grid.Column="0" VerticalAlignment="Center"/>
+                <!-- The group a map belongs to decides what its blank fields inherit, so it sits with
+                     the map's identity rather than below the fields it governs. -->
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_mapGroupLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <controls:DropdownAutoCompleteBox x:Name="_searchMapGroup" Grid.Column="1"
                                    ItemsSource="{Binding MapGroupEntries}"
                                    SelectedItem="{Binding SelectedMapGroup, Mode=TwoWay}"
                                    ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                                    FilterMode="Custom"
                                    MinimumPrefixLength="0"/>
+                  <Button x:Name="_clearMapGroup" Grid.Column="2" Classes="glyph" Content="×"
+                          Command="{Binding ClearMapEntityCommand}" CommandParameter="MapGroup"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_moralLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <ComboBox  Grid.Column="1"
+                             ItemsSource="{Binding MoralOptions}"
+                             SelectedItem="{Binding SelectedMapMoral, Mode=TwoWay}"
+                             HorizontalAlignment="Stretch"/>
+                </Grid>
+
+                <!-- ── Map Links ── the four edges, together, because they are read as a set -->
+                <HeaderedContentControl x:Name="_mapLinksGroup" Classes="propGroup">
+                  <StackPanel Spacing="8">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_upLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <controls:DropdownAutoCompleteBox x:Name="_searchUpMap" Grid.Column="1"
+                                       ItemsSource="{Binding MapEntries}"
+                                       SelectedItem="{Binding SelectedMapUp, Mode=TwoWay}"
+                                       ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                       FilterMode="Custom"
+                                       MinimumPrefixLength="0"/>
+                      <Button x:Name="_clearUp" Grid.Column="2" Classes="glyph" Content="×"
+                              Command="{Binding ClearMapEntityCommand}" CommandParameter="Up"/>
+                    </Grid>
+
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_downLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <controls:DropdownAutoCompleteBox x:Name="_searchDown" Grid.Column="1"
+                                       ItemsSource="{Binding MapEntries}"
+                                       SelectedItem="{Binding SelectedMapDown, Mode=TwoWay}"
+                                       ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                       FilterMode="Custom"
+                                       MinimumPrefixLength="0"/>
+                      <Button x:Name="_clearDown" Grid.Column="2" Classes="glyph" Content="×"
+                              Command="{Binding ClearMapEntityCommand}" CommandParameter="Down"/>
+                    </Grid>
+
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_leftLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <controls:DropdownAutoCompleteBox x:Name="_searchLeft" Grid.Column="1"
+                                       ItemsSource="{Binding MapEntries}"
+                                       SelectedItem="{Binding SelectedMapLeft, Mode=TwoWay}"
+                                       ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                       FilterMode="Custom"
+                                       MinimumPrefixLength="0"/>
+                      <Button x:Name="_clearLeft" Grid.Column="2" Classes="glyph" Content="×"
+                              Command="{Binding ClearMapEntityCommand}" CommandParameter="Left"/>
+                    </Grid>
+
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_rightLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <controls:DropdownAutoCompleteBox x:Name="_searchRight" Grid.Column="1"
+                                       ItemsSource="{Binding MapEntries}"
+                                       SelectedItem="{Binding SelectedMapRight, Mode=TwoWay}"
+                                       ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                       FilterMode="Custom"
+                                       MinimumPrefixLength="0"/>
+                      <Button x:Name="_clearRight" Grid.Column="2" Classes="glyph" Content="×"
+                              Command="{Binding ClearMapEntityCommand}" CommandParameter="Right"/>
+                    </Grid>
+                  </StackPanel>
+                </HeaderedContentControl>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding MapMusic, Mode=TwoWay}"
+                                 Minimum="0" Maximum="255" FormatString="0"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <controls:DropdownAutoCompleteBox x:Name="_searchBootMap" Grid.Column="1"
+                                   ItemsSource="{Binding MapEntries}"
+                                   SelectedItem="{Binding SelectedMapBootMap, Mode=TwoWay}"
+                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                   FilterMode="Custom"
+                                   MinimumPrefixLength="0"/>
+                  <Button x:Name="_clearBootMap" Grid.Column="2" Classes="glyph" Content="×"
+                          Command="{Binding ClearMapEntityCommand}" CommandParameter="BootMap"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center"/>
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding MapBootX, Mode=TwoWay}"
+                                 Minimum="0" Maximum="15" FormatString="0"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center"/>
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding MapBootY, Mode=TwoWay}"
+                                 Minimum="0" Maximum="11" FormatString="0"/>
+                </Grid>
+
+                <!-- Map-enter/leave greeting (NPC epic Slice 6). Blank fields inherit from the MapGroup,
+                     and the watermark shows the value that would be inherited. -->
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <TextBox Grid.Column="1" Text="{Binding MapGreetingSpeaker, Mode=TwoWay}"
+                           Watermark="{Binding MapGreetingSpeakerPlaceholder}"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <TextBox Grid.Column="1" Text="{Binding MapJoinSay, Mode=TwoWay}"
+                           Watermark="{Binding MapJoinSayPlaceholder}"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <TextBox Grid.Column="1" Text="{Binding MapLeaveSay, Mode=TwoWay}"
+                           Watermark="{Binding MapLeaveSayPlaceholder}"/>
                 </Grid>
 
                 <!-- Indoors / AlwaysDark are tri-state: checked = on, unchecked = off, dash = inherit the group. -->
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <CheckBox  Grid.Column="1" IsThreeState="True"
                              IsChecked="{Binding MapIndoors}"/>
                 </Grid>
 
-                <Grid ColumnDefinitions="110,*">
-                  <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <CheckBox  Grid.Column="1" IsThreeState="True"
                              IsChecked="{Binding MapAlwaysDark}"/>
                 </Grid>
@@ -452,7 +559,7 @@
                         <ItemsControl.ItemTemplate>
                           <DataTemplate>
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto,34" Margin="0,2">
-                              <TextBlock Grid.Column="0" Text="{Binding SlotLabel}" Width="22"
+                              <TextBlock Grid.Column="0" Text="{Binding SlotLabel}" MinWidth="22"
                                          TextAlignment="Right" VerticalAlignment="Center"
                                          Margin="0,0,6,0" Foreground="#8B84AE"/>
                               <controls:DropdownAutoCompleteBox Grid.Column="1"
@@ -809,7 +916,11 @@
         <TextBlock x:Name="_keyTitle" FontSize="14" FontWeight="Bold"/>
         <TextBlock x:Name="_keyDesc" FontSize="11" Foreground="#8B84AE" TextWrapping="Wrap"/>
         <StackPanel Spacing="8">
-          <Grid ColumnDefinitions="100,*">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
             <TextBlock x:Name="_keyItemLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox x:Name="_searchKeyItem" Grid.Column="1"
                              ItemsSource="{Binding ItemEntries}"
@@ -841,20 +952,32 @@
         <TextBlock x:Name="_keyOpenTitle" FontSize="14" FontWeight="Bold"/>
         <TextBlock x:Name="_keyOpenDesc" FontSize="11" Foreground="#8B84AE" TextWrapping="Wrap"/>
         <StackPanel Spacing="8">
-          <Grid ColumnDefinitions="100,*">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
             <TextBlock x:Name="_keyOpenXLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown x:Name="_keyOpenXInput" Grid.Column="1"
                            Value="{Binding KeyOpenDoorX}"
                            Minimum="0" Maximum="15" FormatString="0"/>
           </Grid>
-          <Grid ColumnDefinitions="100,*">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
             <TextBlock x:Name="_keyOpenYLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown x:Name="_keyOpenYInput" Grid.Column="1"
                            Value="{Binding KeyOpenDoorY}"
                            Minimum="0" Maximum="11" FormatString="0"/>
           </Grid>
           <!-- Two-plane world: which layer's Key door this plate opens (independent of the plate's own plane). -->
-          <Grid ColumnDefinitions="100,*">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
             <TextBlock x:Name="_keyOpenLayerLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                       ItemsSource="{Binding AttributeLayers}" ItemTemplate="{StaticResource VocabularyItem}"

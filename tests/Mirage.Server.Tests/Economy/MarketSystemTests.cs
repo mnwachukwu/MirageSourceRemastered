@@ -32,7 +32,7 @@ public class MarketSystemTests
         var dispatcher = new NoOpDispatcher();
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance);
+        var mail = new MailSystem(pm, dispatcher, saver, items);
         var market = new MarketSystem(world, pm, dispatcher, items, mail, persistence: null!, bg: null!);
 
         // An inn reachable via its keeper NPC — any inn opens the marketplace (the market
@@ -351,7 +351,7 @@ public class MarketSystemTests
         var dispatcher = new NoOpDispatcher();
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance);
+        var mail = new MailSystem(pm, dispatcher, saver, items);
         var market = new MarketSystem(world, pm, dispatcher, items, mail, persistence: null!, bg: null!);
         world.Shops[1].ShopType = ShopType.Inn;
         world.Shops[1].Keeper = KeeperNpc;

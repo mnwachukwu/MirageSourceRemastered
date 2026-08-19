@@ -99,7 +99,8 @@ public partial class MapEditorView : LocalizedUserControl
         _nameLabel.Text = EditorStrings.Get(EditorStrings.Common_NameLabel);
         _displayNameLabel.Text = EditorStrings.Get(EditorStrings.Common_DisplayNameLabel);
         _moralLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_MoralLabel);
-        _upMapLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_UpMapLabel);
+        _mapLinksGroup.Header = EditorStrings.Get(EditorStrings.MapEditor_MapLinksHeader);
+        _upLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_UpLabel);
         _downLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_DownLabel);
         _leftLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_LeftLabel);
         _rightLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_RightLabel);
@@ -128,6 +129,11 @@ public partial class MapEditorView : LocalizedUserControl
         _searchRight.PlaceholderText = mapPh;
         _searchBootMap.PlaceholderText = mapPh;
         _searchMapGroup.PlaceholderText = EditorStrings.Get(EditorStrings.MapEditor_SearchMapGroupsPlaceholder);
+
+        // Every picker's clear button says the same thing on hover.
+        string clear = EditorStrings.Get(EditorStrings.MapEditor_ClearTooltip);
+        foreach (var btn in new[] { _clearUp, _clearDown, _clearLeft, _clearRight, _clearBootMap, _clearMapGroup })
+            ToolTip.SetTip(btn, clear);
 
         // Footer action buttons
         _btnUndo.Content = EditorStrings.Get(EditorStrings.MapEditor_UndoButton);

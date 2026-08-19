@@ -182,7 +182,7 @@ public class PinnedClockTests
         var clock = new FixedClock { UtcNowUnix = 100_000 };
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance, clock: clock);
+        var mail = new MailSystem(pm, dispatcher, saver, items, clock: clock);
         var market = new MarketSystem(world, pm, dispatcher, items, mail,
                                       persistence: null!, bg: null!, clock: clock);
 
@@ -222,7 +222,7 @@ public class PinnedClockTests
         var clock = new FixedClock { UtcNowUnix = 200_000 };
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance, clock: clock);
+        var mail = new MailSystem(pm, dispatcher, saver, items, clock: clock);
 
         var sp = Online(pm, 1);
         mail.Deliver("tester", "sender", "subject", "body");
@@ -253,7 +253,7 @@ public class PinnedClockTests
         var clock = new FixedClock { UtcNowUnix = 300_000 };
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance, clock: clock);
+        var mail = new MailSystem(pm, dispatcher, saver, items, clock: clock);
 
         var sp = Online(pm, 1);
         mail.Deliver("tester", "sender", "cod", "pay up",

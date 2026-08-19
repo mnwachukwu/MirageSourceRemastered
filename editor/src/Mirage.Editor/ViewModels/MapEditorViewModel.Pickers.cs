@@ -101,7 +101,27 @@ public sealed partial class MapEditorViewModel : ObservableObject
     public NamedEntry? SelectedMapGroup
     {
         get => EntryFor(_data.LiveMapGroupEntries, MapGroup);
-        set => SetMapEntityField(id => SelectedMap!.Record.MapGroup = id, MapGroup, value, nameof(SelectedMapGroup));
+        set
+        {
+            SetMapEntityField(id => SelectedMap!.Record.MapGroup = id, MapGroup, value, nameof(SelectedMapGroup));
+            NotifyInheritedPlaceholders();
+        }
+    }
+
+    /// <summary>The X beside each picker. Routed through the property setters rather than writing the
+    /// record, so clearing a direction still takes the target's back-link with it.</summary>
+    [RelayCommand]
+    private void ClearMapEntity(string? which)
+    {
+        switch (which)
+        {
+            case "Up": SelectedMapUp = null; break;
+            case "Down": SelectedMapDown = null; break;
+            case "Left": SelectedMapLeft = null; break;
+            case "Right": SelectedMapRight = null; break;
+            case "BootMap": SelectedMapBootMap = null; break;
+            case "MapGroup": SelectedMapGroup = null; break;
+        }
     }
     // (Per-slot NPC-type pickers now live in the MapNpcSlots row collection above — see SetMapNpcSlot.)
 

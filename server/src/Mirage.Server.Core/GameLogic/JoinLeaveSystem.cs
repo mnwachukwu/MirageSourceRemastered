@@ -21,8 +21,6 @@ public sealed class JoinLeaveSystem : GameSystem
     private readonly GuildSystem _guilds;
     private readonly MailSystem _mail;
     private readonly SocialSystem _social;
-    private readonly ItemSystem _items;
-    private readonly ShopSystem _shop;
     private readonly TradeSystem _trade;
     private readonly QuestSystem _quests;
     private readonly ConversationSystem _conversations;
@@ -34,7 +32,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
     public JoinLeaveSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher,
                            PlayerSaver saver, MovementSystem movement,
-                           PartySystem party, GuildSystem guilds, MailSystem mail, SocialSystem social, ItemSystem items, ShopSystem shop, TradeSystem trade, QuestSystem quests,
+                           PartySystem party, GuildSystem guilds, MailSystem mail, SocialSystem social, TradeSystem trade, QuestSystem quests,
                            ConversationSystem conversations,
                            TimeOfDaySystem tod, WeatherSystem weather, BloodSystem blood,
                            ILogger<JoinLeaveSystem> logger,
@@ -51,8 +49,6 @@ public sealed class JoinLeaveSystem : GameSystem
         _guilds = guilds;
         _mail = mail;
         _social = social;
-        _items = items;
-        _shop = shop;
         _trade = trade;
         _quests = quests;
         _conversations = conversations;
@@ -178,10 +174,10 @@ public sealed class JoinLeaveSystem : GameSystem
         _dispatcher.SendTo(index, PacketBuilder.TimeOfDay(_world.TimePhase, _world.TimeProgress));
 
         // Warp to saved location (triggers map loading flow via CheckForMap).
-        // suppressShopGreeting: true so the spawn-map's NPC chatter can be re-issued AFTER SendWelcome
+        // suppressMapGreeting: true so the spawn-map's NPC chatter can be re-issued AFTER SendWelcome
         // and land last in the joining player's chat.  destLayer: p.Layer restores the PERSISTED layer so a relog
         // on a bridge stays on the bridge (PlayerWarp re-fits if that tile is no longer walkable on that layer).
-        _movement.PlayerWarp(index, p.Map, p.X, p.Y, suppressShopGreeting: true, destLayer: p.Layer);
+        _movement.PlayerWarp(index, p.Map, p.X, p.Y, suppressMapGreeting: true, destLayer: p.Layer);
 
         // Welcome / help-hint / MOTD / who's-online — the joining player only.
         SendWelcome(index);
@@ -206,7 +202,7 @@ public sealed class JoinLeaveSystem : GameSystem
         }
 
         // Finally the map-enter greeting, so it reads as the last chat line on login (no-op if the map has none).
-        _shop.OnJoinMap(index);
+        _movement.OnJoinMap(index);
 
         // Final in-game flag
         _dispatcher.SendTo(index, PacketBuilder.PlayerInGame());

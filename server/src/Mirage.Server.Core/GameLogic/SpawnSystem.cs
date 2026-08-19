@@ -10,16 +10,14 @@ public sealed class SpawnSystem : GameSystem
 {
     private readonly GameWorld _world;
     private readonly PlayerManager _pm;
-    private readonly ItemSystem _items;
     private const int SpawnSearchAttempts = 100;
 
-    public SpawnSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher, ItemSystem items,
+    public SpawnSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher,
                        IRandomSource? rng = null)
         : base(dispatcher, rng: rng)
     {
         _world = world;
         _pm = pm;
-        _items = items;
     }
 
     public void SpawnNpc(int mapNpcSlot, int mapNum)

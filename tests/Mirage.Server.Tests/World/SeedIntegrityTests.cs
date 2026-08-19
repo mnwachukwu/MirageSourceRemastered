@@ -292,11 +292,15 @@ public class SeedIntegrityTests
         if (_conversations.Count == 0) Assert.Ignore("no conversations authored");
     }
 
-    /// <summary>The numbering contract the whole content chain rests on. A conversation names its NPC by
-    /// number, but the friendly NPCs are authored LAST (they need conversation/shop/quest numbers), so
-    /// gen-conversations RESERVES the range and everything downstream reads it back off disk. If this
-    /// drifts, #51/#52/#53 wire content onto NPCs that do not exist — silently, because an unresolvable
-    /// SpeakerNpc just means "no conversation" rather than an error.</summary>
+    /// <summary>A conversation names its NPC by number, and an unresolvable number is not an error
+    /// anywhere in the engine — <c>GameWorld.ConversationForNpc</c> simply finds nothing and the NPC
+    /// says its AttackSay instead. So authored dialogue that can never open is silent, and this is what
+    /// catches it.
+    ///
+    /// <para>Two things have to hold, and only two: the speaker sits above the hostile bestiary, and it
+    /// names an NPC that exists. The number itself is free — a conversation may speak for any friendly,
+    /// which is what lets a talker be added without disturbing a block that shops and quests already
+    /// point at.</para></summary>
     [Test]
     public void EveryConversation_SpeaksForItsReservedNpc()
     {
@@ -306,12 +310,11 @@ public class SeedIntegrityTests
         {
             foreach (var (num, conv) in _conversations.OrderBy(kv => kv.Key))
             {
-                Assert.That(conv.SpeakerNpc, Is.EqualTo(firstFriendlyNpc + num - 1),
-                    $"conversation{num} ({conv.TrimmedName}) breaks the reserved numbering — "
-                    + "speakerNpc must be 124 + the conversation number");
                 Assert.That(conv.SpeakerNpc, Is.GreaterThanOrEqualTo(firstFriendlyNpc),
-                    $"conversation{num} speaks for npc {conv.SpeakerNpc}, inside the hostile bestiary — "
-                    + "a mob would open a dialogue tree instead of fighting");
+                    $"conversation{num} ({conv.TrimmedName}) speaks for npc {conv.SpeakerNpc}, inside the "
+                    + "hostile bestiary — a mob would open a dialogue tree instead of fighting");
+                Assert.That(_npcs.ContainsKey(conv.SpeakerNpc), Is.True,
+                    $"conversation{num} ({conv.TrimmedName}) speaks for npc {conv.SpeakerNpc}, which does not exist");
             }
         });
     }

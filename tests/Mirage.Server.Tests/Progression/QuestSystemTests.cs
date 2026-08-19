@@ -32,7 +32,7 @@ public class QuestSystemTests
         var dispatcher = new NoOpDispatcher();
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance);
+        var mail = new MailSystem(pm, dispatcher, saver, items);
         var objectives = new ObjectiveSystem();
         var combat = new CombatSystem(world, pm, dispatcher, items: null!, movement: null!, joinLeave: null!,
             blood: null!, objectives, guilds: null!, guildWar: null!, territory: null!);

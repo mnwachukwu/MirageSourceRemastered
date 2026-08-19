@@ -14,21 +14,24 @@ public record NamedEntry(int Id, string Name)
 /// value — they strip that prefix so re-opening a filled picker still lists matches.</summary>
 public static class NamedEntryFilter
 {
-    // Empty/null search → show all (including the id=0 "(none)" sentinel at the top).
-    // Non-empty search → hide id=0; match name substring, plus id-prefix when the query is all digits.
-    // If the search looks like "id: name" (i.e. the full ToString of a selected entry is in
-    // the box), strip the prefix so clicking a filled picker still shows relevant results.
-    /// <summary>Filter for 1-based lists where id 0 is the "(none)" sentinel: shown when the box is
-    /// empty, hidden as soon as the author types.</summary>
+    // Match a name substring, plus an id prefix when the query is all digits. If the search looks like
+    // "id: name" (the full ToString of a selected entry sitting in the box), strip the prefix so
+    // clicking a filled picker still shows relevant results.
+    /// <summary>Filter for 1-based lists where id 0 is the "(none)" sentinel.
+    ///
+    /// <para>The sentinel ALWAYS matches, whatever is typed. It used to drop out as soon as the query
+    /// was non-empty — and a picker that already holds a value has a non-empty query the instant it
+    /// opens, so a filled picker offered no way to choose "(none)" and the value could not be cleared
+    /// from the list at all.</para></summary>
     public static AutoCompleteFilterPredicate<object> ByNameOrId { get; } =
         (search, item) =>
         {
             if (item is not NamedEntry e) return false;
+            if (e.Id == 0) return true;
             if (string.IsNullOrEmpty(search)) return true;
             var colonIdx = search.IndexOf(": ", StringComparison.Ordinal);
             var query = colonIdx >= 0 ? search[(colonIdx + 2)..] : search;
             if (string.IsNullOrEmpty(query)) return true;
-            if (e.Id == 0) return false;
             if (e.Name.Contains(query, StringComparison.OrdinalIgnoreCase)) return true;
             return IsAllDigits(query) && e.Id.ToString().StartsWith(query, StringComparison.Ordinal);
         };

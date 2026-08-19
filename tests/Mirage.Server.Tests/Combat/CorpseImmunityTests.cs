@@ -289,7 +289,7 @@ public class CorpseImmunityTests
         var pm = new PlayerManager();
         var dispatcher = new CapturingDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         var combat = new CombatSystem(world, pm, dispatcher, items: null!, movement, joinLeave: null!, blood, objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
 
         var npc = world.Npcs[NpcNum];
@@ -322,9 +322,9 @@ public class CorpseImmunityTests
     {
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         var combat = new CombatSystem(world, pm, dispatcher, items: null!, movement, joinLeave: null!, blood, objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
-        var spawn = new SpawnSystem(world, pm, dispatcher, items: null!);
+        var spawn = new SpawnSystem(world, pm, dispatcher);
         return new NpcAiSystem(world, pm, dispatcher, combat, movement, spawn, items: null!, blood);
     }
 
@@ -334,7 +334,7 @@ public class CorpseImmunityTests
     {
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         return new CombatSystem(world, pm, dispatcher, items: null!, movement, joinLeave: null!, blood, objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
     }
 
@@ -356,7 +356,7 @@ public class CorpseImmunityTests
         var quests = new QuestSystem(world, pm, dispatcher, items: null!, mail: null!, objectives: null!,
             combat: new Lazy<CombatSystem>(() => null!), guildSchedule: null!);
         // Positional; nulls are movement, mail, social, items, shop, conversations, tod, weather, blood — none touched on the dead normal-leave path.
-        return new JoinLeaveSystem(world, pm, dispatcher, saver, null!, party, guilds, null!, null!, null!, null!, trade, quests, null!, null!, null!, null!,
+        return new JoinLeaveSystem(world, pm, dispatcher, saver, null!, party, guilds, null!, null!, trade, quests, null!, null!, null!, null!,
             NullLogger<JoinLeaveSystem>.Instance);
     }
 

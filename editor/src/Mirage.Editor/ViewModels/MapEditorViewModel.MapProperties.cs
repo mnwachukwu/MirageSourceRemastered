@@ -172,6 +172,66 @@ public sealed partial class MapEditorViewModel : ObservableObject
             SelectedMap.MarkDirty();
         }
     }
+    // ── What a blank field would inherit ─────────────────────────────────────
+    // Each greeting field falls back to the map's group, so the placeholder shows the value that
+    // would actually be used rather than a generic hint — leaving a box empty is then an informed
+    // choice instead of a guess. Offline only: the online session holds group NAMES, not records, so
+    // there is nothing to read and these fall back to the plain hint.
+
+    /// <summary>Resolves a map-group id to its record. Set by the shell to read the MapGroup editor's
+    /// own rows, which are live in BOTH modes — the offline folder is the fallback, and online the
+    /// service holds group NAMES only, so without this the hints would go blank the moment you
+    /// connected.</summary>
+    public Func<int, MapGroupRecord?>? ResolveMapGroup { get; set; }
+
+    private MapGroupRecord? SelectedGroupRecord
+    {
+        get
+        {
+            int id = MapGroup;
+            if (id <= 0) return null;
+            if (ResolveMapGroup?.Invoke(id) is { } fromShell) return fromShell;
+            var groups = _data.OfflineMapGroups;
+            return id < groups.Length ? groups[id] : null;
+        }
+    }
+
+    private static string InheritedOr(string? inherited, string fallbackKey) =>
+        string.IsNullOrWhiteSpace(inherited)
+            ? EditorStrings.Get(fallbackKey)
+            : inherited;
+
+    /// <summary>What the map would be CALLED if this box stays blank — the group's display name, then
+    /// its plain name, then "Map N", exactly as <see cref="MapGroupResolve.DisplayName"/> resolves it.</summary>
+    public string MapDisplayNamePlaceholder
+    {
+        get
+        {
+            var g = SelectedGroupRecord;
+            if (!string.IsNullOrWhiteSpace(g?.DisplayName)) return g!.DisplayName;
+            if (!string.IsNullOrWhiteSpace(g?.Name)) return g!.Name;
+            if (!string.IsNullOrWhiteSpace(MapName)) return MapName;
+            return SelectedMap is null
+                ? EditorStrings.Get(EditorStrings.MapEditor_InheritsPlaceholder)
+                : EditorStrings.Format(EditorStrings.MapEditor_MapWithId, ("Id", SelectedMap.Index));
+        }
+    }
+
+    public string MapGreetingSpeakerPlaceholder =>
+        InheritedOr(SelectedGroupRecord?.GreetingSpeaker, EditorStrings.MapEditor_GreetingPlaceholder);
+    public string MapJoinSayPlaceholder =>
+        InheritedOr(SelectedGroupRecord?.JoinSay, EditorStrings.MapEditor_InheritsPlaceholder);
+    public string MapLeaveSayPlaceholder =>
+        InheritedOr(SelectedGroupRecord?.LeaveSay, EditorStrings.MapEditor_InheritsPlaceholder);
+
+    private void NotifyInheritedPlaceholders()
+    {
+        OnPropertyChanged(nameof(MapDisplayNamePlaceholder));
+        OnPropertyChanged(nameof(MapGreetingSpeakerPlaceholder));
+        OnPropertyChanged(nameof(MapJoinSayPlaceholder));
+        OnPropertyChanged(nameof(MapLeaveSayPlaceholder));
+    }
+
     // Tri-state (null = inherit from the map group) — bound to IsThreeState CheckBoxes.
     public bool? MapIndoors
     {
@@ -234,6 +294,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(MapGreetingSpeaker));
         OnPropertyChanged(nameof(MapJoinSay));
         OnPropertyChanged(nameof(MapLeaveSay));
+        NotifyInheritedPlaceholders();
         OnPropertyChanged(nameof(MapIndoors));
         OnPropertyChanged(nameof(MapAlwaysDark));
         OnPropertyChanged(nameof(MapRevisionText));

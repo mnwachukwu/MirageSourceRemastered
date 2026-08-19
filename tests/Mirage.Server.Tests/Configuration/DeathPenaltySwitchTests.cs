@@ -238,7 +238,7 @@ public class DeathPenaltySwitchTests
         var pm = new PlayerManager();
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         // A real ItemSystem: the wear and destroy paths both push inventory updates through it.
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var combat = new CombatSystem(world, pm, dispatcher, items, movement, joinLeave: null!, blood,

@@ -259,7 +259,7 @@ public class PinnedRandomnessTests
         // that adds or reorders a draw here silently shifts every spawn position, and this test is
         // what would catch it.
         var rng = new Rolls((int)Direction.Left, 6, 4);
-        var spawn = new SpawnSystem(world, pm, new NoOpDispatcher(), items: null!, rng: rng);
+        var spawn = new SpawnSystem(world, pm, new NoOpDispatcher(), rng: rng);
         spawn.SpawnNpc(Slot, Map);
 
         var mn = world.MapNpcs[Map, Slot];

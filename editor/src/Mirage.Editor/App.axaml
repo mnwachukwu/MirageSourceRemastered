@@ -70,6 +70,23 @@
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
+    <!-- A titled box around a run of related properties, so a long panel reads as a few groups rather
+         than one list. The header sits on the border's top edge in the panel's own accent. -->
+    <Style Selector="HeaderedContentControl.propGroup">
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4"
+                  Padding="10,8,10,10" Margin="0,4">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="{TemplateBinding Header}"
+                         FontSize="11" FontWeight="SemiBold" Foreground="#99BBDD"
+                         Margin="0,0,0,8"/>
+              <ContentPresenter Content="{TemplateBinding Content}"/>
+            </DockPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
   </Application.Styles>
 
   <!-- Automatic view selection: ContentControl.Content = ViewModel → selects the right View -->

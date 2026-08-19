@@ -21,7 +21,6 @@ public sealed class MailSystem : GameSystem
     private readonly PlayerManager _pm;
     private readonly PlayerSaver _saver;
     private readonly ItemSystem _items;
-    private readonly ILogger<MailSystem> _logger;
 
     // Bounds a mailbox so it can't grow without limit; the oldest read message is dropped past this.
     public const int MaxMailPerAccount = 50;
@@ -32,14 +31,13 @@ public sealed class MailSystem : GameSystem
     // field initializer runs before the base constructor has set it.
     private long _lastSweepUtc;
 
-    public MailSystem(PlayerManager pm, IPacketDispatcher dispatcher, PlayerSaver saver, ItemSystem items, ILogger<MailSystem> logger,
+    public MailSystem(PlayerManager pm, IPacketDispatcher dispatcher, PlayerSaver saver, ItemSystem items,
                       IClock? clock = null, IRandomSource? rng = null)
         : base(dispatcher, clock: clock, rng: rng)
     {
         _pm = pm;
         _saver = saver;
         _items = items;
-        _logger = logger;
         _lastSweepUtc = NowUtc;
     }
 

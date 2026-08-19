@@ -65,7 +65,7 @@ public sealed class GameWorld
 
     /// <summary>The EFFECTIVE map-enter/leave greeting for <paramref name="mapNum"/>,
     /// resolving each field map-over-group. The single source the server speaks the greeting from
-    /// (ShopSystem.OnJoinMap/OnLeaveMap) and detects a greeting change against (MovementSystem).</summary>
+    /// (MovementSystem.OnJoinMap/OnLeaveMap) and detects a greeting change against (MovementSystem).</summary>
     public MapGreeting GreetingOf(int mapNum) => MapGroupResolve.Greeting(Maps[mapNum], GroupOf(mapNum));
 
     /// <summary>The shop/inn whose <see cref="ShopRecord.Keeper"/> is NPC template

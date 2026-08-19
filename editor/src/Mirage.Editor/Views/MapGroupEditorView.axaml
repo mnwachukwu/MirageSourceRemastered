@@ -54,61 +54,98 @@
                  IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNull}}"
                  Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
-      <ScrollViewer IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <ScrollViewer Grid.IsSharedSizeScope="True"
+                    IsVisible="{Binding SelectedMapGroup, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="16" Spacing="8">
 
           <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox   Grid.Column="1" Text="{Binding SelectedMapGroup.Name}" />
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox   Grid.Column="1" Text="{Binding SelectedMapGroup.DisplayNameText}" />
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_territoryLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_territoryLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <CheckBox  Grid.Column="1" IsChecked="{Binding SelectedMapGroup.Territory}"/>
           </Grid>
 
           <!-- Inheritable fallback fields (a map's own value overrides these). -->
           <TextBlock x:Name="_fallbackHeader" Margin="0,8,0,0" FontWeight="SemiBold"/>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_moralLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_moralLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <ComboBox  Grid.Column="1"
                        ItemsSource="{Binding SelectedMapGroup.MoralOptions}"
                        SelectedItem="{Binding SelectedMapGroup.SelectedMoral, Mode=TwoWay}"
                        HorizontalAlignment="Stretch"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedMapGroup.Music, Mode=TwoWay}"
                            Minimum="0" Maximum="255" FormatString="0"/>
           </Grid>
 
           <!-- Map-enter/leave greeting fallback (NPC epic Slice 6): member maps inherit any blank field. -->
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox Grid.Column="1" Text="{Binding SelectedMapGroup.GreetingSpeaker, Mode=TwoWay}"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox Grid.Column="1" Text="{Binding SelectedMapGroup.JoinSay, Mode=TwoWay}"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBox Grid.Column="1" Text="{Binding SelectedMapGroup.LeaveSay, Mode=TwoWay}"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <controls:DropdownAutoCompleteBox x:Name="_searchBootMap" Grid.Column="1"
                              ItemsSource="{Binding MapEntries}"
                              SelectedItem="{Binding SelectedMapGroup.SelectedBootMap, Mode=TwoWay}"
@@ -116,26 +153,42 @@
                              FilterMode="Custom" MinimumPrefixLength="0"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedMapGroup.BootX, Mode=TwoWay}"
                            Minimum="0" Maximum="15" FormatString="0"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <NumericUpDown Grid.Column="1" Value="{Binding SelectedMapGroup.BootY, Mode=TwoWay}"
                            Minimum="0" Maximum="11" FormatString="0"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <CheckBox  Grid.Column="1" IsThreeState="True"
                        IsChecked="{Binding SelectedMapGroup.Indoors}"/>
           </Grid>
 
-          <Grid ColumnDefinitions="130,*">
-            <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="GroupPropLabel"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <CheckBox  Grid.Column="1" IsThreeState="True"
                        IsChecked="{Binding SelectedMapGroup.AlwaysDark}"/>
           </Grid>
@@ -144,7 +197,7 @@
                      TextWrapping="Wrap"/>
 
           <Grid ColumnDefinitions="130,*" Margin="0,8,0,0">
-            <TextBlock x:Name="_controllingGuildLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="_controllingGuildLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource MirageMutedBrush}"
                        Text="{Binding SelectedMapGroup.ControllingGuildText}"/>
           </Grid>

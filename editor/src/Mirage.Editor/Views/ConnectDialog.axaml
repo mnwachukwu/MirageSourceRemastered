@@ -1,54 +1,73 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Mirage.Editor.Views.ConnectDialog"
-        MinWidth="440" Height="420"
-        SizeToContent="Width"
+        MinWidth="440"
+        SizeToContent="WidthAndHeight"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
   <StackPanel Margin="20" Spacing="10">
     <TextBlock Text="{Binding ConnectTitle}" FontSize="15" FontWeight="Bold" Margin="0,0,0,4"/>
 
-    <StackPanel Spacing="8">
-      <Grid ColumnDefinitions="100,*">
-        <TextBlock x:Name="_usernameLabel" Grid.Column="0" VerticalAlignment="Center"/>
-        <TextBox   Grid.Column="1" Name="UsernameBox" Text="{Binding Username}" />
-      </Grid>
-      <Grid ColumnDefinitions="100,*">
-        <TextBlock x:Name="_passwordLabel" Grid.Column="0" VerticalAlignment="Center"/>
-        <TextBox   Grid.Column="1" Text="{Binding Password}" PasswordChar="*"/>
-      </Grid>
-      <Grid ColumnDefinitions="100,*">
-        <TextBlock x:Name="_hostLabel" Grid.Column="0" VerticalAlignment="Center"/>
-        <TextBox   Grid.Column="1" Text="{Binding Host}" />
-      </Grid>
-      <Grid ColumnDefinitions="100,*">
-        <TextBlock x:Name="_portLabel" Grid.Column="0" VerticalAlignment="Center"/>
-        <NumericUpDown Grid.Column="1"
-                       Value="{Binding Port}"
-                       Minimum="1" Maximum="65535"
-                       FormatString="0" />
-      </Grid>
-      <Grid ColumnDefinitions="100,*">
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding ServerNameLabel}"/>
-        <TextBox   Grid.Column="1" Text="{Binding ServerName}" />
-      </Grid>
-      <Grid ColumnDefinitions="100,*">
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding KnownServersLabel}"/>
-        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding KnownServers}"
-                  SelectedItem="{Binding SelectedServer}">
-          <ComboBox.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding Label}"/>
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-      </Grid>
-      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-        <Button Content="{Binding AddLabel}" Command="{Binding AddServerCommand}" MinWidth="88"/>
-        <Button Content="{Binding ForgetLabel}" Command="{Binding ForgetServerCommand}" MinWidth="88"/>
-      </StackPanel>
+    <!-- Three groups, because the six fields answer three different questions: who you are, where the
+         server is, and which saved entry you are working with. Add and Forget act on the SAVED entry
+         alone, so they live inside that box instead of floating above Cancel/Connect. -->
+    <StackPanel Spacing="4">
+      <HeaderedContentControl x:Name="_signInGroup" Classes="propGroup">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="100,*">
+            <TextBlock x:Name="_usernameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox   Grid.Column="1" Name="UsernameBox" Text="{Binding Username}" />
+          </Grid>
+          <Grid ColumnDefinitions="100,*">
+            <TextBlock x:Name="_passwordLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox   Grid.Column="1" Text="{Binding Password}" PasswordChar="*"/>
+          </Grid>
+        </StackPanel>
+      </HeaderedContentControl>
+
+      <HeaderedContentControl x:Name="_serverGroup" Classes="propGroup">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="100,*">
+            <TextBlock x:Name="_hostLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <TextBox   Grid.Column="1" Text="{Binding Host}" />
+          </Grid>
+          <Grid ColumnDefinitions="100,*">
+            <TextBlock x:Name="_portLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <NumericUpDown Grid.Column="1"
+                           Value="{Binding Port}"
+                           Minimum="1" Maximum="65535"
+                           FormatString="0" />
+          </Grid>
+        </StackPanel>
+      </HeaderedContentControl>
+
+      <HeaderedContentControl x:Name="_savedServersGroup" Classes="propGroup">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="100,*">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                       Text="{Binding KnownServersLabel}"/>
+            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding KnownServers}"
+                      SelectedItem="{Binding SelectedServer}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Label}"/>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
+          <Grid ColumnDefinitions="100,*">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                       Text="{Binding ServerNameLabel}"/>
+            <TextBox   Grid.Column="1" Text="{Binding ServerName}" />
+          </Grid>
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+            <Button Content="{Binding AddLabel}" Command="{Binding AddServerCommand}" MinWidth="88"/>
+            <Button Content="{Binding ForgetLabel}" Command="{Binding ForgetServerCommand}" MinWidth="88"/>
+          </StackPanel>
+        </StackPanel>
+      </HeaderedContentControl>
     </StackPanel>
 
     <TextBlock Text="{Binding ErrorMessage}"

@@ -235,27 +235,19 @@ public sealed partial class MapEditorViewModel : ObservableObject
         ApplyLink(mapId, dir, wantedTarget, visited, conflicts, changed);
     }
 
+    /// <summary>Clearing a link removes the ONE edge the user cleared: the target's back-link home.
+    ///
+    /// <para>It is deliberately not the mirror of <see cref="ApplyLink"/>. Linking asserts facts that
+    /// are still true afterwards, so re-asserting one is free; unlinking with the same shape DELETES
+    /// facts the removed edge never implied. With A.Right=B, A.Up=C and C.Right=D, clearing A.Right
+    /// walked B.Up → D, D.Left → C, and wiped C.Down — the vertical adjacency between C and A, which
+    /// the horizontal A-B edge had nothing to do with — then recursed from there. Removing one link
+    /// could empty a whole neighborhood.</para></summary>
     private void ApplyUnlink(int sourceId, MapDirection dir, int oldTargetId,
         HashSet<(int, MapDirection)> visited, HashSet<int> changed)
     {
         if (sourceId <= 0 || oldTargetId <= 0 || sourceId == oldTargetId) return;
         TryApplyUnlink(oldTargetId, Opposite(dir), sourceId, visited, changed);
-        var (yA, yB) = Perpendiculars(dir);
-        TryDiagonalUnlink(sourceId, dir, oldTargetId, yA, visited, changed);
-        TryDiagonalUnlink(sourceId, dir, oldTargetId, yB, visited, changed);
-    }
-
-    private void TryDiagonalUnlink(int sourceId, MapDirection dir, int oldTargetId, MapDirection y,
-        HashSet<(int, MapDirection)> visited, HashSet<int> changed)
-    {
-        var sourceRec = Resolve(sourceId);
-        if (sourceRec is null) return;
-        int mYId = GetLink(sourceRec, y);
-        var mYRec = Resolve(mYId);
-        if (mYRec is null) return;
-        int diagId = GetLink(mYRec, dir);
-        if (diagId <= 0) return;
-        TryApplyUnlink(diagId, Opposite(y), oldTargetId, visited, changed);
     }
 
     private void TryApplyUnlink(int mapId, MapDirection dir, int matchTarget,
@@ -269,7 +261,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
         SetLink(row.Record, dir, 0);
         row.MarkDirty();
         changed.Add(mapId);
-        ApplyUnlink(mapId, dir, matchTarget, visited, changed);
     }
 
     private string FormatConflictMessage(List<LinkConflict> conflicts)

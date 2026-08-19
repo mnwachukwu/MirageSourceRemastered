@@ -145,7 +145,7 @@ public class DeterminismSeamTests
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
         var clock = new FakeClock { UtcNowUnix = 10_000 };
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance, clock: clock);
+        var mail = new MailSystem(pm, dispatcher, saver, items, clock: clock);
         return (pm, mail, clock);
     }
 
@@ -270,7 +270,7 @@ public class DeterminismSeamTests
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
 
         // No clock argument: MailSystem seeds its sweep watermark from the machine clock.
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance);
+        var mail = new MailSystem(pm, dispatcher, saver, items);
         Online(pm, 1, "tester");
         mail.Deliver("tester", "sender", "s", "b");
 

@@ -124,6 +124,27 @@ public sealed partial class MirageGame : Game
         catch { /* non-fatal: preference just won't persist */ }
     }
 
+    /// <summary>Starts or stops music to match the option, from either place that can flip it.
+    ///
+    /// <para>Switching it on resumes what SHOULD be playing rather than what happened to be playing
+    /// when it went off. Leaving a character clears the remembered track, and the menu only claims one
+    /// while music is already on — so turning music off in game, logging out, and turning it back on at
+    /// the menu left nothing to resume and the toggle looked dead until the next map load handed it a
+    /// track. Outside gameplay the menu track is the answer; inside it, a map with no music is silent
+    /// on purpose.</para></summary>
+    private void ApplyMusicEnabled()
+    {
+        if (!_playMusic)
+        {
+            _music.Stop();
+            return;
+        }
+        if (_currentMusicTrack <= 0 && _screens.Current is not GameplayScreen)
+            _currentMusicTrack = _mainMenuMusic;
+        if (_currentMusicTrack > 0)
+            _music.Play(MusicPath(_currentMusicTrack));
+    }
+
     // Pre-connect screens — those where the user has not yet committed to a server.
     // [Configure] is only shown here; on CharSelect/NewChar/Loading the server choice
     // is already locked in for this session.
@@ -178,10 +199,7 @@ public sealed partial class MirageGame : Game
         if (ch.PlayMusicChanged)
         {
             _playMusic = _optionsPanel.PlayMusic;
-            if (!_playMusic)
-                _music.Stop();
-            else if (_currentMusicTrack > 0)
-                _music.Play(MusicPath(_currentMusicTrack));
+            ApplyMusicEnabled();
             SaveConfig();
         }
         if (ch.VolumeChanged)

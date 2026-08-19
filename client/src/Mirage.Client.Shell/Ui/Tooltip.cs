@@ -180,10 +180,28 @@ public static class Tooltip
         _text = null;
     }
 
+    // The RAW cursor position. The offsets are applied at draw, where the tooltip's own size is known
+    // and decides whether it opens below the cursor or above it.
     private static void PinTo(Point mousePos)
     {
-        _x = mousePos.X + MouseOffsetX;
-        _y = mousePos.Y + MouseOffsetY;
+        _x = mousePos.X;
+        _y = mousePos.Y;
+    }
+
+    /// <summary>Where a card of <paramref name="w"/> x <paramref name="h"/> sits for a cursor at
+    /// (<paramref name="mouseX"/>, <paramref name="mouseY"/>).
+    ///
+    /// <para>Below the cursor by default, ABOVE it when the whole card will not fit below. Clamping
+    /// alone put a tooltip near the bottom edge on top of the row that spawned it — the action bar
+    /// sits 24px off the floor, so every one of its four slots did that. The clamp still runs last,
+    /// for a card taller than the viewport or a cursor at the right edge.</para></summary>
+    internal static Point Place(int mouseX, int mouseY, int w, int h)
+    {
+        int below = mouseY + MouseOffsetY;
+        int y = below + h <= UiHelper.RefH - 2 ? below : mouseY - MouseOffsetY - h;
+        return new Point(
+            Math.Clamp(mouseX + MouseOffsetX, 2, UiHelper.RefW - 2 - w),
+            Math.Clamp(y, 2, UiHelper.RefH - 2 - h));
     }
 
     private static void Draw(SpriteBatch sb, SpriteFont font)
@@ -237,11 +255,8 @@ public static class Tooltip
         int w = (int)Math.Ceiling(contentW) + PadX * 2;
         int h = headerRowH + bodyRowsH + PadY * 2;
 
-        // Clamp the pinned position so the tooltip stays inside the reference viewport.
-        int x = Math.Clamp(_x, 2, UiHelper.RefW - 2 - w);
-        int y = Math.Clamp(_y, 2, UiHelper.RefH - 2 - h);
-
-        _bounds = new Rectangle(x, y, w, h);
+        var at = Place(_x, _y, w, h);
+        _bounds = new Rectangle(at.X, at.Y, w, h);
         UiHelper.DrawFilledRect(sb, _bounds, BgColor);
         UiHelper.DrawBorder(sb, _bounds, BorderColor);
 

@@ -46,16 +46,22 @@ public static partial class EditorStrings
     public const string MapEditor_PropertiesHeader = nameof(MapEditor_PropertiesHeader);
     public const string MapEditor_SelectMapPrompt = nameof(MapEditor_SelectMapPrompt);
     public const string MapEditor_MoralLabel = nameof(MapEditor_MoralLabel);
-    public const string MapEditor_UpMapLabel = nameof(MapEditor_UpMapLabel);
+    public const string MapEditor_MapLinksHeader = nameof(MapEditor_MapLinksHeader);
+    public const string MapEditor_UpLabel = nameof(MapEditor_UpLabel);
     public const string MapEditor_DownLabel = nameof(MapEditor_DownLabel);
     public const string MapEditor_LeftLabel = nameof(MapEditor_LeftLabel);
     public const string MapEditor_RightLabel = nameof(MapEditor_RightLabel);
+    public const string MapEditor_ClearTooltip = nameof(MapEditor_ClearTooltip);
     public const string MapEditor_MusicLabel = nameof(MapEditor_MusicLabel);
     public const string MapEditor_BootMapLabel = nameof(MapEditor_BootMapLabel);
     public const string MapEditor_BootXLabel = nameof(MapEditor_BootXLabel);
     public const string MapEditor_BootYLabel = nameof(MapEditor_BootYLabel);
     // Map-enter/leave greeting; reused by the MapGroup editor's shared fallback fields.
     public const string MapEditor_GreetingSpeakerLabel = nameof(MapEditor_GreetingSpeakerLabel);
+    // Shown in a blank greeting box: the value the map would inherit from its group, or this hint.
+    public const string MapEditor_GreetingPlaceholder = nameof(MapEditor_GreetingPlaceholder);
+    // The generic form, for a blank field whose group has nothing to hand down either.
+    public const string MapEditor_InheritsPlaceholder = nameof(MapEditor_InheritsPlaceholder);
     public const string MapEditor_JoinSayLabel = nameof(MapEditor_JoinSayLabel);
     public const string MapEditor_LeaveSayLabel = nameof(MapEditor_LeaveSayLabel);
     public const string MapEditor_MapGroupLabel = nameof(MapEditor_MapGroupLabel);

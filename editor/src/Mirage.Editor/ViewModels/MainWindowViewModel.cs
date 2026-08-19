@@ -7,6 +7,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Mirage.Editor.ViewModels;
 
@@ -127,6 +128,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         MapEditor = new MapEditorViewModel(data, conn);
         MapGroupEditor = new MapGroupEditorViewModel(data, conn);
+
+        // The map editor shows what a blank field would inherit, and the group rows are the only place
+        // a full group record exists once the session is online.
+        MapEditor.ResolveMapGroup = id =>
+            MapGroupEditor.MapGroups.FirstOrDefault(g => g.Index == id)?.ToRecord();
         ItemEditor = new ItemEditorViewModel(data, conn);
         NpcEditor = new NpcEditorViewModel(data, conn);
         ShopEditor = new ShopEditorViewModel(data, conn);

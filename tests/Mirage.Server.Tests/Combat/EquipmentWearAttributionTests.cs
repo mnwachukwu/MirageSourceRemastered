@@ -188,7 +188,7 @@ public class EquipmentWearAttributionTests
         var pm = new PlayerManager();
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         // A REAL ItemSystem, unlike the other combat fixtures: the wear path calls SendInventoryUpdate on
         // every chip, so a null one throws before any assertion can run.
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);

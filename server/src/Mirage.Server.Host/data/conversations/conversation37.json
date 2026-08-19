@@ -1,0 +1,58 @@
+{
+  "name": "Sounder Vaile (Local)",
+  "speakerNpc": 176,
+  "rootNodeId": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "speaker": "",
+      "text": "Down there is the Reach, and everything in it is a hundred or better. Hundred to a hundred and twenty, top to bottom.\n\nIf that means nothing to you, it isn\u0027t your road yet.",
+      "choices": [
+        {
+          "label": "What\u0027s down there?",
+          "nextNodeId": 2,
+          "action": "None"
+        },
+        {
+          "label": "How do I know when I\u0027m ready?",
+          "nextNodeId": 3,
+          "action": "None"
+        },
+        {
+          "label": "I\u0027ll look elsewhere.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "speaker": "",
+      "text": "The drowned, mostly. They were a garrison once and they still hold a line, which is worse than if they\u0027d forgotten.\n\nTide Marshal Orun keeps the stair. The Sunken Crown sits at the bottom and Leviathan Prime swims over it.",
+      "choices": [
+        {
+          "label": "And if I\u0027m not ready?",
+          "nextNodeId": 3,
+          "action": "None"
+        },
+        {
+          "label": "Noted.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "speaker": "",
+      "text": "You\u0027ll know because the marsh stopped paying. That\u0027s the only honest signal \u2014 not a number, a wage.\n\nCome back at a hundred. Not before. Nothing here scales down to meet you.",
+      "choices": [
+        {
+          "label": "Right.",
+          "nextNodeId": 0,
+          "action": "None"
+        }
+      ]
+    }
+  ]
+}

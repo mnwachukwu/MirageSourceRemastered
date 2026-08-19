@@ -171,9 +171,9 @@ public class NpcChaseRoutingTests
     {
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         var combat = new CombatSystem(world, pm, dispatcher, items: null!, movement, joinLeave: null!, blood, objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
-        var spawn = new SpawnSystem(world, pm, dispatcher, items: null!);
+        var spawn = new SpawnSystem(world, pm, dispatcher);
         return new NpcAiSystem(world, pm, dispatcher, combat, movement, spawn, items: null!, blood);
     }
 

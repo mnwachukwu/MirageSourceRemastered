@@ -408,8 +408,8 @@
   "CombatSystem_PlayerCarelessDeathByNpc": "{VictimName} baixou a guarda e foi morto por um {NpcName}.",
   "CombatSystem_PvpKillExp":            "Você ganhou {Exp} pontos de experiência por matar {VictimName}.",
 
-  "ShopSystem_JoinSay":        "{ShopName} diz: '{JoinSay}'",
-  "ShopSystem_LeaveSay":       "{ShopName} diz: '{LeaveSay}'",
+  "MapGreeting_JoinSay":        "{Speaker} diz: '{JoinSay}'",
+  "MapGreeting_LeaveSay":       "{Speaker} diz: '{LeaveSay}'",
   "ShopSystem_NotAtShop":      "Você não está nesta loja.",
   "ShopSystem_NotEnoughTrade": "Você não tem o bastante desse item para negociar.",
   "ShopSystem_TradedWith":     "Você negociou com {ShopName}.",

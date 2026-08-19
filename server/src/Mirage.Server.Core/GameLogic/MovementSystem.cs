@@ -13,16 +13,14 @@ public sealed class MovementSystem : GameSystem
 {
     private readonly GameWorld _world;
     private readonly PlayerManager _pm;
-    private readonly ShopSystem _shop;
     private readonly BloodSystem _blood;
 
-    public MovementSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher, ShopSystem shop, BloodSystem blood,
+    public MovementSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher, BloodSystem blood,
                           IClock? clock = null)
         : base(dispatcher, clock: clock)
     {
         _world = world;
         _pm = pm;
-        _shop = shop;
         _blood = blood;
     }
 
@@ -235,9 +233,30 @@ public sealed class MovementSystem : GameSystem
     /// 3×3 grid (no reload, no input block) and asks for a region re-sync.  Null = a true warp/teleport,
     /// which uses the blocking reload handshake.
     /// </summary>
+    // ── Map-enter/leave greeting ──────────────────────────────────────────────
+    // The greeting belongs to the MAP (and its MapGroup): it speaks that map's own JoinSay/LeaveSay in
+    // the voice of its GreetingSpeaker. Blank fields stay silent, and there is no generic "you walk into
+    // a store" line — a map does not know whether it holds a store, an inn, or nothing at all.
+
+    /// <summary>Speak the map's join greeting, if it has one. Silent when the resolved line is blank.</summary>
+    public void OnJoinMap(int index)
+    {
+        var g = _world.GreetingOf(_pm[index].Char.Map);
+        if (!string.IsNullOrWhiteSpace(g.JoinSay))
+            SendMsg(index, ServerStrings.MapGreeting_JoinSay, GameColor.Npc, ("Speaker", g.Speaker.TrimEnd()), ("JoinSay", g.JoinSay.TrimEnd()));
+    }
+
+    /// <summary>Speak the map's leave greeting, if it has one.</summary>
+    public void OnLeaveMap(int index)
+    {
+        var g = _world.GreetingOf(_pm[index].Char.Map);
+        if (!string.IsNullOrWhiteSpace(g.LeaveSay))
+            SendMsg(index, ServerStrings.MapGreeting_LeaveSay, GameColor.Npc, ("Speaker", g.Speaker.TrimEnd()), ("LeaveSay", g.LeaveSay.TrimEnd()));
+    }
+
     public void PlayerWarp(int index, int mapNum, int x, int y, Direction? edgeDir = null,
                            MovementType movement = MovementType.Walking,
-                           bool suppressShopGreeting = false,
+                           bool suppressMapGreeting = false,
                            WorldLayer destLayer = WorldLayer.Ground)
     {
         if (!_pm[index].IsPlaying || mapNum <= 0 || mapNum > _world.Limits.Maps) return;
@@ -259,7 +278,7 @@ public sealed class MovementSystem : GameSystem
             sp.ClearActiveShop();
 
         if (greetingChanged)
-            _shop.OnLeaveMap(index);
+            OnLeaveMap(index);
 
         p.Map = mapNum;
         p.X = x;
@@ -273,10 +292,10 @@ public sealed class MovementSystem : GameSystem
         // a bad persisted (X,Y) against an edited map, which isn't rescued either (the layer is just a coordinate).
         p.Layer = destLayer;
 
-        // JoinGame passes suppressShopGreeting:true so the greeting can be re-issued after SendWelcome,
+        // JoinGame passes suppressMapGreeting:true so the greeting can be re-issued after SendWelcome,
         // landing the map chatter last in the joining player's chat instead of before the welcome lines.
-        if (!suppressShopGreeting && greetingChanged)
-            _shop.OnJoinMap(index);
+        if (!suppressMapGreeting && greetingChanged)
+            OnJoinMap(index);
 
         if (sp.InGame && oldMap != mapNum)
         {

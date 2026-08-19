@@ -31,7 +31,7 @@ public class TradeSystemTests
         var dispatcher = new NoOpDispatcher();
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var saver = new PlayerSaver(persistence: null!, NullLogger<PlayerSaver>.Instance);
-        var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance);
+        var mail = new MailSystem(pm, dispatcher, saver, items);
         var trade = new TradeSystem(world, pm, dispatcher, items, mail, persistence: null!, saver: null!);
         return (world, pm, trade);
     }
@@ -288,7 +288,7 @@ public class TradeSystemTests
             var dispatcher = new NoOpDispatcher();
             var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
             var saver = new PlayerSaver(persistence, NullLogger<PlayerSaver>.Instance);
-            var mail = new MailSystem(pm, dispatcher, saver, items, NullLogger<MailSystem>.Instance);
+            var mail = new MailSystem(pm, dispatcher, saver, items);
             var trade = new TradeSystem(world, pm, dispatcher, items, mail, persistence, saver);
 
             // A staged the Sword, B staged the Shield; the swap gives A the Shield and B the Sword.

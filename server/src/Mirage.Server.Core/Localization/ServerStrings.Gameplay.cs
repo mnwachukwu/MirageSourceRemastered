@@ -6,6 +6,12 @@ namespace Mirage.Server.Core.Localization;
 /// regeneration, packet validation, search, quests, time of day, and weather.</summary>
 public static partial class ServerStrings
 {
+    // ── Map greeting ──────────────────────────────────────────────────────────
+    // Spoken on entering or leaving a MAP, by that map's GreetingSpeaker. It belongs to the map (and its
+    // MapGroup), not to any shop standing on it — a map cannot know whether it holds a store or an inn.
+    public const string MapGreeting_JoinSay = nameof(MapGreeting_JoinSay);
+    public const string MapGreeting_LeaveSay = nameof(MapGreeting_LeaveSay);
+
     // ── SpellSystem ───────────────────────────────────────────────────────────
     public const string SpellSystem_NoSpell = nameof(SpellSystem_NoSpell);
     public const string SpellSystem_NotEnoughMana = nameof(SpellSystem_NotEnoughMana);

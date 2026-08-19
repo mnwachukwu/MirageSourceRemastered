@@ -83,10 +83,7 @@ public sealed partial class MirageGame : Game
             OnPlayMusicChanged = v =>
             {
                 _playMusic = v;
-                if (!_playMusic)
-                    _music.Stop();
-                else if (_currentMusicTrack > 0)
-                    _music.Play(MusicPath(_currentMusicTrack));
+                ApplyMusicEnabled();
                 SaveConfig();
             },
             OnMusicVolumeChanged = v => { _musicVolume = v; _music.Volume = v / 100f; SaveConfig(); },

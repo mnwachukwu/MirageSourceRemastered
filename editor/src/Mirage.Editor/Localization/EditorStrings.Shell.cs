@@ -85,6 +85,10 @@ public static partial class EditorStrings
     public const string ConnectDialog_Forget = nameof(ConnectDialog_Forget);
     public const string ConnectDialog_Add = nameof(ConnectDialog_Add);
     public const string ConnectDialog_ServerName = nameof(ConnectDialog_ServerName);
+    // The dialog's three groups: who you are, where the server is, which saved entry.
+    public const string ConnectDialog_SignInHeader = nameof(ConnectDialog_SignInHeader);
+    public const string ConnectDialog_ServerHeader = nameof(ConnectDialog_ServerHeader);
+    public const string ConnectDialog_SavedServersHeader = nameof(ConnectDialog_SavedServersHeader);
 
     // ── DisconnectDialog (connection-lost body + reconnect outcomes) ──
     public const string DisconnectDialog_ConnectionLostBody = nameof(DisconnectDialog_ConnectionLostBody);

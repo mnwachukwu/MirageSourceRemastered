@@ -145,7 +145,7 @@ public class PerfBaselineTests
 
         var join = new JoinLeaveSystem(world, new PlayerManager(), new NoOpDispatcher(),
             saver: null!, movement: null!, party: null!, guilds: null!, mail: null!, social: null!,
-            items: null!, shop: null!, trade: null!, quests: null!, conversations: null!,
+            trade: null!, quests: null!, conversations: null!,
             tod: null!, weather: null!, blood: null!,
             Microsoft.Extensions.Logging.Abstractions.NullLogger<JoinLeaveSystem>.Instance);
 

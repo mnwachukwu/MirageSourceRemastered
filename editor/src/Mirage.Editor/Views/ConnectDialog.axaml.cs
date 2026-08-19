@@ -15,6 +15,9 @@ public partial class ConnectDialog : Window
         _passwordLabel.Text = EditorStrings.Get(EditorStrings.ConnectDialog_PasswordLabel);
         _hostLabel.Text = EditorStrings.Get(EditorStrings.ConnectDialog_HostLabel);
         _portLabel.Text = EditorStrings.Get(EditorStrings.ConnectDialog_PortLabel);
+        _signInGroup.Header = EditorStrings.Get(EditorStrings.ConnectDialog_SignInHeader);
+        _serverGroup.Header = EditorStrings.Get(EditorStrings.ConnectDialog_ServerHeader);
+        _savedServersGroup.Header = EditorStrings.Get(EditorStrings.ConnectDialog_SavedServersHeader);
         _cancelBtn.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
         _connectBtn.Content = EditorStrings.Get(EditorStrings.Common_Connect);
     }

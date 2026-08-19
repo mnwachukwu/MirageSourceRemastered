@@ -6,10 +6,6 @@ namespace Mirage.Server.Core.Localization;
 public static partial class ServerStrings
 {
     // ── ShopSystem ────────────────────────────────────────────────────────────
-    // JoinSay/LeaveSay carry the MAP-enter/leave greeting; {ShopName} holds the map's GreetingSpeaker.
-    // The greeting cannot name a store or an inn specifically — a map does not know which it is.
-    public const string ShopSystem_JoinSay = nameof(ShopSystem_JoinSay);
-    public const string ShopSystem_LeaveSay = nameof(ShopSystem_LeaveSay);
     public const string ShopSystem_NotAtShop = nameof(ShopSystem_NotAtShop);
     public const string ShopSystem_NotEnoughTrade = nameof(ShopSystem_NotEnoughTrade);
     public const string ShopSystem_TradedWith = nameof(ShopSystem_TradedWith);

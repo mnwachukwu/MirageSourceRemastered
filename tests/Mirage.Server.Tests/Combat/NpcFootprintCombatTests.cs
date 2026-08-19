@@ -265,7 +265,7 @@ public class NpcFootprintCombatTests
         var pm = new PlayerManager();
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         var combat = new CombatSystem(world, pm, dispatcher, items: null!, movement, joinLeave: null!, blood,
             objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
         return (combat, world, pm);
@@ -277,7 +277,7 @@ public class NpcFootprintCombatTests
         var pm = new PlayerManager();
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
-        var movement = new MovementSystem(world, pm, dispatcher, shop: null!, blood);
+        var movement = new MovementSystem(world, pm, dispatcher, blood);
         return (world, movement);
     }
 
