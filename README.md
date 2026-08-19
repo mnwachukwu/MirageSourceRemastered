@@ -23,16 +23,18 @@ I don't know why I did this.
 
 | VB6 | C# |
 |---|---|
-| `server/` | `Mirage.Shared` — shared protocol types and records |
+| `server/` | `Mirage.Shared` — protocol types, records, and the formulas both sides evaluate |
 | | `Mirage.Server.Core` — game logic (no transport dependency) |
-| | `Mirage.Server.Host` — TCP, DI, entry point |
-| `client/` (includes editor forms) | `Mirage.Client.Core` — game state and logic |
-| | `Mirage.Client.Shell` — MonoGame rendering and input |
+| | `Mirage.Server.Host` — TCP, DI, entry point; runs headless |
+| | `Mirage.Server.Shell` — optional Avalonia front end for the same server |
+| | `Mirage.Ui` — the Avalonia theme both desktop apps share |
+| `client/` (includes editor forms) | `Mirage.Client.Core` — game state and logic, no MonoGame dependency |
+| | `Mirage.Client.Shell` — MonoGame rendering, input and audio |
 | | `Mirage.Editor` — standalone Avalonia editor |
 
-`Mirage.Shared` is referenced by all three solutions, replacing VB6's duplicated `modTypes.bas` definitions and the server/client divergence they caused.
+`Mirage.Shared` is referenced by all three solutions, replacing VB6's duplicated `modTypes.bas` definitions and the server/client divergence they caused. Every formula that both the client and the server must agree on — damage, requirements, prices, vitals — lives there and is evaluated from the same code on both sides.
 
-On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all twenty-one projects together.
+On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all twenty-one projects together. The other thirteen are the five test suites and the publish/test orchestration projects, one per deliverable plus a root that runs them all.
 
 Some things people expect to find here live **outside** this repository, because they write into it
 rather than build with it: the content generators that produced the seed, the scripts that draw the
@@ -73,11 +75,11 @@ dotnet run --project editor/src/Mirage.Editor
 
 > **Importing VB6 world data:** [MirageSourceRemasteredConverter](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public) turns an original VB6 server directory into this JSON format in one pass — all binary `.dat` maps and INI data files, with account passwords hashed on the way through and the source files never modified, so a run costs nothing if the result is not what you wanted. See [Authoring tools](#authoring-tools).
 
-> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 174 NPCs, 35 conversations, 54 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
+> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 177 NPCs, 38 conversations, 54 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
 >
 > Those counts are checked against the folder by `.github/checks/check-seed-counts.mjs`, which CI runs — they have gone stale twice.
 >
-> **There are no maps in it, and that is the important caveat.** The seed is a content *library*, not a world: it defines what exists — the items, the bestiary, the townsfolk, the shops they keep and the quests they give — but nothing places any of it on a tile. Start a server against this `data/` and you get the 174 NPCs as definitions and a set of blank maps with none of them standing anywhere. Placing them is map authoring, which is what the editor is for.
+> **There are no maps in it, and that is the important caveat.** The seed is a content *library*, not a world: it defines what exists — the items, the bestiary, the townsfolk, the shops they keep and the quests they give — but nothing places any of it on a tile. Start a server against this `data/` and you get the 177 NPCs as definitions and a set of blank maps with none of them standing anywhere. Placing them is map authoring, which is what the editor is for.
 >
 > **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
 >

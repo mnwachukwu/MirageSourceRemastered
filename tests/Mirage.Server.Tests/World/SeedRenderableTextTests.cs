@@ -65,6 +65,52 @@ public class SeedRenderableTextTests
 
     private static string Trim(string s) => s.Length <= 60 ? s : s[..57] + "...";
 
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "server", "src")))
+            dir = dir.Parent;
+        return dir?.FullName ?? "";
+    }
+
+    /// <summary>The two string tables the CLIENT draws: its own UI text, and every line the server
+    /// sends it. Both go through the same SpriteFonts as the seed.
+    ///
+    /// <para>The editor's tables are deliberately not here. Avalonia draws those with system fonts, so
+    /// its arrows, its play and stop glyphs and its Δ belong exactly where they are — the constraint is
+    /// the SpriteFont, not the language.</para></summary>
+    [Test]
+    public void EveryClientFacingLangString_IsDrawableByTheClientFont()
+    {
+        string root = RepoRoot();
+        if (root.Length == 0) Assert.Ignore("repository root not found");
+
+        string[] dirs =
+        [
+            Path.Combine(root, "client", "src", "Mirage.Client.Shell", "lang"),
+            Path.Combine(root, "server", "src", "Mirage.Server.Core", "lang"),
+        ];
+
+        var bad = new List<string>();
+        int scanned = 0;
+        foreach (string dir in dirs)
+        {
+            if (!Directory.Exists(dir)) continue;
+            foreach (string file in Directory.EnumerateFiles(dir, "*.json"))
+            {
+                scanned++;
+                using var doc = JsonDocument.Parse(File.ReadAllText(file));
+                foreach (var entry in doc.RootElement.EnumerateObject())
+                    Collect(entry.Value, $"{Path.GetFileName(dir)}/{Path.GetFileName(file)}:{entry.Name}", bad);
+            }
+        }
+
+        Assert.That(scanned, Is.GreaterThan(0), "no language files found to check");
+        Assert.That(bad, Is.Empty,
+            "these would throw out of SpriteFont.MeasureString the moment they were shown:\n  "
+            + string.Join("\n  ", bad.Take(20)));
+    }
+
     [Test]
     public void EverySeedString_IsDrawableByTheClientFont()
     {

@@ -20,6 +20,10 @@ namespace Mirage.Client.Shell.Screens;
 /// <summary>Overhead chat bubbles: their lifetime tick and the wrapped, tail-anchored drawing.</summary>
 public sealed partial class GameplayScreen : IGameScreen
 {
+    // What a truncated bubble ends with. Three periods rather than U+2026, because the SpriteFonts
+    // cover ASCII plus Latin-1 and MeasureString THROWS on anything else.
+    private const string Ellipsis = "...";
+
     // ── Chat bubble tick + draw ───────────────────────────────────────────────
 
     /// <summary>Demote naturally-expired head bubbles into the drifter list, and remove drifters that
@@ -212,10 +216,11 @@ public sealed partial class GameplayScreen : IGameScreen
         if (truncated && _wrapScratch.Count > 0)
         {
             string last = _wrapScratch[^1];
-            // Make room for ellipsis by trimming the tail until the new line fits the wrap width.
-            while (last.Length > 0 && font.MeasureString(last + "…").X > maxWidthPx)
+            // Make room for the ellipsis by trimming the tail until the new line fits the wrap width.
+            // Three periods, not U+2026: the SpriteFonts stop at Latin-1 plus the French ligature.
+            while (last.Length > 0 && font.MeasureString(last + Ellipsis).X > maxWidthPx)
                 last = last[..^1];
-            _wrapScratch[^1] = last + "…";
+            _wrapScratch[^1] = last + Ellipsis;
         }
         return _wrapScratch;
     }

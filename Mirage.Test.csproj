@@ -61,8 +61,24 @@
       <Output TaskParameter="ExitCode" PropertyName="_ServerShellExit" />
     </Exec>
 
-    <Error Condition="'$(_ServerExit)$(_ClientCoreExit)$(_ClientShellExit)$(_EditorExit)$(_ServerShellExit)' != '00000'"
-           Text="Test suites failed — Server=$(_ServerExit) Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit) Editor=$(_EditorExit) Server.Shell=$(_ServerShellExit)." />
+    <!-- The same guards CI runs over the prose: seed counts, README facts, and relative links. They
+         live outside the test suites because they check documentation rather than code, and running
+         them here is what stops a content change from passing locally and failing on push. Skipped
+         with a warning where node is absent, so a green local run without it is not a silent pass. -->
+    <Message Text="── Docs ──" Importance="High" />
+    <Exec Command="node --version" ContinueOnError="true" StandardOutputImportance="low">
+      <Output TaskParameter="ExitCode" PropertyName="_NodeExit" />
+    </Exec>
+    <Warning Condition="'$(_NodeExit)' != '0'"
+             Text="node not found — the documentation checks did NOT run. CI still runs them." />
+    <Exec Condition="'$(_NodeExit)' == '0'"
+          Command="node .github/checks/check-seed-counts.mjs &amp;&amp; node .github/checks/check-readme-facts.mjs &amp;&amp; node .github/checks/check-doc-links.mjs"
+          WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_DocsExit" />
+    </Exec>
+
+    <Error Condition="'$(_ServerExit)$(_ClientCoreExit)$(_ClientShellExit)$(_EditorExit)$(_ServerShellExit)$(_DocsExit)' != '000000'"
+           Text="Test suites failed — Server=$(_ServerExit) Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit) Editor=$(_EditorExit) Server.Shell=$(_ServerShellExit) Docs=$(_DocsExit)." />
     <Message Text="═══ All test suites passed ═══" Importance="High" />
   </Target>
 
