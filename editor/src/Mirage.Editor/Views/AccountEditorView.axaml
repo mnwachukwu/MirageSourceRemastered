@@ -170,21 +170,24 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-
-            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource MirageOkBrush}"
-                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
           </StackPanel>
         </ScrollViewer>
 
-        <!-- ── Footer ── -->
+        <!-- ── Footer: status line and actions ── -->
         <Border Grid.Row="1" Background="{DynamicResource MirageSurfaceBrush}" Padding="8,6"
                 BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="0,1,0,0">
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
-            <Button x:Name="_reloadBtn" Command="{Binding ReloadCommand}"
-                    IsEnabled="{Binding HasSelection}"/>
-            <Button x:Name="_saveBtn" Classes="primary" Command="{Binding SaveCommand}"
-                    IsEnabled="{Binding HasSelection}"/>
-          </StackPanel>
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+              <Button x:Name="_reloadBtn" Command="{Binding ReloadCommand}"
+                      IsEnabled="{Binding HasSelection}"/>
+              <Button x:Name="_saveBtn" Classes="primary" Command="{Binding SaveCommand}"
+                      IsEnabled="{Binding HasSelection}"/>
+            </StackPanel>
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{DynamicResource MirageOkBrush}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </DockPanel>
         </Border>
       </Grid>
     </Grid>

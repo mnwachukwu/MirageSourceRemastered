@@ -5,10 +5,9 @@ namespace Mirage.Client.Shell.Tests;
 
 /// <summary>
 /// Which device the hotkey badges name. Two properties look similar and answer different questions:
-/// <see cref="InputState.IsGamepadActive"/> arbitrates which device may ACT and lets both through before
-/// either has claimed a frame, so a badge reading it prints controller faces to a keyboard player.
-/// <see cref="InputState.ShowGamepadPrompts"/> has to pick one, and the keyboard is the answer until a
-/// pad is both enabled and in use.
+/// <see cref="InputState.IsGamepadActive"/> arbitrates which device may ACT and changes hands as the
+/// player switches devices. <see cref="InputState.ShowGamepadPrompts"/> answers a display question and
+/// follows the "Use Gamepad" option alone, so the badges hold one reading for as long as it is set.
 /// </summary>
 [TestFixture]
 public class GamepadPromptTests
@@ -22,12 +21,23 @@ public class GamepadPromptTests
     }
 
     [Test]
-    public void BeforeAnythingIsPressedThePromptsAreKeyboardPrompts()
+    public void WithTheGamepadTurnedOnThePromptsAreGamepadPromptsBeforeAnythingIsPressed()
     {
         var input = new InputState { UseGamepad = true };
 
         Assert.That(input.ActiveDevice, Is.EqualTo(ActiveInputDevice.None), "nothing has claimed the frame");
-        Assert.That(input.ShowGamepadPrompts, Is.False, "so the badges read 1-4, not X/Y/B/A");
+        Assert.That(input.ShowGamepadPrompts, Is.True, "so the badges read X/Y/B/A, not 1-4");
+    }
+
+    [Test]
+    public void TheOptionSwitchAloneFlipsThePrompts()
+    {
+        var input = new InputState { UseGamepad = true };
+        Assert.That(input.ShowGamepadPrompts, Is.True);
+
+        input.UseGamepad = false;
+
+        Assert.That(input.ShowGamepadPrompts, Is.False, "no button press is needed either way");
     }
 
     [Test]
@@ -41,11 +51,12 @@ public class GamepadPromptTests
     }
 
     [Test]
-    public void ResetReturnsToTheKeyboardPrompts()
+    public void ResetClearsTheActiveDeviceWithoutDisturbingThePrompts()
     {
         var input = new InputState { UseGamepad = true };
         input.Reset();
 
-        Assert.That(input.ShowGamepadPrompts, Is.False);
+        Assert.That(input.ActiveDevice, Is.EqualTo(ActiveInputDevice.None));
+        Assert.That(input.ShowGamepadPrompts, Is.True);
     }
 }
