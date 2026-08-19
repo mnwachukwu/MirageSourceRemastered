@@ -172,26 +172,8 @@ public sealed class ConversationPanel : IGamePanel
         _panel.DrawOverlay(sb);
     }
 
-    // Minimal greedy word-wrap.
     private static void DrawWrapped(SpriteBatch sb, SpriteFont font, string text, float x, float y, float maxWidth, Color color)
     {
-        if (string.IsNullOrWhiteSpace(text)) return;
-        var words = text.Split(' ');
-        string line = "";
-        foreach (var w in words)
-        {
-            string test = line.Length == 0 ? w : line + " " + w;
-            if (font.MeasureString(test).X > maxWidth && line.Length > 0)
-            {
-                sb.DrawString(font, line, new Vector2(x, y), color);
-                y += LineH;
-                line = w;
-            }
-            else
-            {
-                line = test;
-            }
-        }
-        if (line.Length > 0) sb.DrawString(font, line, new Vector2(x, y), color);
+        UiHelper.DrawWrapped(sb, font, text, x, y, maxWidth, color, LineH);
     }
 }

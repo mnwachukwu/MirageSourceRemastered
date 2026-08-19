@@ -157,31 +157,8 @@ public sealed class QuestDialogPanel : IGamePanel
         _panel.DrawOverlay(sb);
     }
 
-    // Minimal greedy word-wrap; returns the y past the last drawn line.
     private static float DrawWrapped(SpriteBatch sb, SpriteFont font, string text, float x, float y, float maxWidth, Color color)
     {
-        if (string.IsNullOrWhiteSpace(text)) return y;
-        var words = text.Split(' ');
-        string line = "";
-        foreach (var w in words)
-        {
-            string test = line.Length == 0 ? w : line + " " + w;
-            if (font.MeasureString(test).X > maxWidth && line.Length > 0)
-            {
-                sb.DrawString(font, line, new Vector2(x, y), color);
-                y += LineH;
-                line = w;
-            }
-            else
-            {
-                line = test;
-            }
-        }
-        if (line.Length > 0)
-        {
-            sb.DrawString(font, line, new Vector2(x, y), color);
-            y += LineH;
-        }
-        return y;
+        return UiHelper.DrawWrapped(sb, font, text, x, y, maxWidth, color, LineH);
     }
 }

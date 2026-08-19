@@ -1,6 +1,6 @@
 {
   "name": "Hammer-Priest Dain",
-  "attackSay": "Careful \u2014 everything on that wall is sharper than it looks.",
+  "attackSay": "Careful - everything on that wall is sharper than it looks.",
   "sprite": 1,
   "size": 1,
   "spawnSecs": 60,

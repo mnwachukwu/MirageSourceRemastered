@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "Down. Right.\n\nMuren says there is a whole country down there \u2014 marsh, then water, then us. I have never seen water I could not lift in a bucket. I would like to see the kind you cannot.",
+      "text": "Down. Right.\n\nMuren says there is a whole country down there - marsh, then water, then us. I have never seen water I could not lift in a bucket. I would like to see the kind you cannot.",
       "choices": [
         {
           "label": "You should go and look.",
@@ -62,7 +62,7 @@
     {
       "id": 4,
       "speaker": "",
-      "text": "Then I will. Not yet \u2014 Ost would skin me and there is the cut to walk.\n\nBut I have decided, and I am telling you so that somebody outside this town knows I decided it.",
+      "text": "Then I will. Not yet - Ost would skin me and there is the cut to walk.\n\nBut I have decided, and I am telling you so that somebody outside this town knows I decided it.",
       "choices": [
         {
           "label": "I\u0027ll remember.",

@@ -327,7 +327,7 @@
                   </Grid.ColumnDefinitions>
                   <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <TextBox   Grid.Column="1" Text="{Binding MapDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Watermark="{Binding MapDisplayNamePlaceholder}" />
+                             PlaceholderText="{Binding MapDisplayNamePlaceholder}" />
                 </Grid>
 
                 <!-- The group a map belongs to decides what its blank fields inherit, so it sits with
@@ -496,7 +496,7 @@
                   </Grid.ColumnDefinitions>
                   <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <TextBox Grid.Column="1" Text="{Binding MapGreetingSpeaker, Mode=TwoWay}"
-                           Watermark="{Binding MapGreetingSpeakerPlaceholder}"/>
+                           PlaceholderText="{Binding MapGreetingSpeakerPlaceholder}"/>
                 </Grid>
 
                 <Grid>
@@ -507,7 +507,7 @@
                   </Grid.ColumnDefinitions>
                   <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <TextBox Grid.Column="1" Text="{Binding MapJoinSay, Mode=TwoWay}"
-                           Watermark="{Binding MapJoinSayPlaceholder}"/>
+                           PlaceholderText="{Binding MapJoinSayPlaceholder}"/>
                 </Grid>
 
                 <Grid>
@@ -518,7 +518,7 @@
                   </Grid.ColumnDefinitions>
                   <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <TextBox Grid.Column="1" Text="{Binding MapLeaveSay, Mode=TwoWay}"
-                           Watermark="{Binding MapLeaveSayPlaceholder}"/>
+                           PlaceholderText="{Binding MapLeaveSayPlaceholder}"/>
                 </Grid>
 
                 <!-- Indoors / AlwaysDark are tri-state: checked = on, unchecked = off, dash = inherit the group. -->

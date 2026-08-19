@@ -6,6 +6,10 @@
     <Spacing>0</Spacing>
     <UseKerning>true</UseKerning>
     <Style>Regular</Style>
+    <!-- Substituted for any glyph the regions do not cover. WITHOUT this MeasureString and
+         DrawString THROW on an unknown character, so one pasted smart dash in one authored
+         line takes the client down when a player opens it. -->
+    <DefaultCharacter>?</DefaultCharacter>
     <CharacterRegions>
       <CharacterRegion>
         <Start>&#32;</Start>

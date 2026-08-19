@@ -84,25 +84,8 @@ public sealed class ConfirmDialog
         _cancelBtn.Draw(sb, font, _input);
     }
 
-    // Greedy word-wrap within maxWidth, advancing by the font's line height.
     private static void DrawWrapped(SpriteBatch sb, SpriteFont font, string text, float x, float y, float maxWidth, Color color)
     {
-        float lineH = font.LineSpacing;
-        string line = "";
-        foreach (var word in text.Split(' '))
-        {
-            string test = line.Length == 0 ? word : line + " " + word;
-            if (line.Length > 0 && font.MeasureString(test).X > maxWidth)
-            {
-                sb.DrawString(font, line, new Vector2(x, y), color);
-                y += lineH;
-                line = word;
-            }
-            else
-            {
-                line = test;
-            }
-        }
-        if (line.Length > 0) sb.DrawString(font, line, new Vector2(x, y), color);
+        UiHelper.DrawWrapped(sb, font, text, x, y, maxWidth, color, font.LineSpacing);
     }
 }

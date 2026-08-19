@@ -1,0 +1,90 @@
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+
+namespace Mirage.Server.Tests;
+
+/// <summary>
+/// Every authored string in the seed has to be drawable by the client's SpriteFonts.
+///
+/// <para>Those fonts cover ASCII, Latin-1 from the inverted marks up, and the French OE ligature.
+/// A character outside that does not render as a box — <c>SpriteFont.MeasureString</c> THROWS, and
+/// the client dies on the frame it first lays the text out. One smart dash pasted into one
+/// conversation node is enough, and it only shows when a player opens that particular NPC.</para>
+///
+/// <para>The fonts also carry a DefaultCharacter now, so an unknown glyph substitutes rather than
+/// throwing. This fixture is the other half: the client survives bad text, and the seed does not
+/// ship any.</para>
+/// </summary>
+[TestFixture]
+public class SeedRenderableTextTests
+{
+    private static readonly string[] Collections =
+        ["conversations", "npcs", "quests", "items", "spells", "classes", "shops"];
+
+    /// <summary>Mirrors the CharacterRegions in <c>Content/fonts/*.spritefont</c>.</summary>
+    private static bool Renderable(char c) =>
+        (c >= ' ' && c <= '~') || (c >= '¡' && c <= 'ÿ')
+        || c == 'Œ' || c == 'œ' || c == '\n' || c == '\r' || c == '\t';
+
+    private static string SeedDir()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "server", "src")))
+            dir = dir.Parent;
+        return dir is null
+            ? ""
+            : Path.Combine(dir.FullName, "server", "src", "Mirage.Server.Host", "data");
+    }
+
+    private static void Collect(JsonElement el, string where, List<string> bad)
+    {
+        switch (el.ValueKind)
+        {
+            case JsonValueKind.String:
+                string s = el.GetString() ?? "";
+                foreach (char c in s)
+                    if (!Renderable(c))
+                    {
+                        bad.Add($"{where}: U+{(int)c:X4} in \"{Trim(s)}\"");
+                        return;
+                    }
+                break;
+            case JsonValueKind.Object:
+                foreach (var p in el.EnumerateObject()) Collect(p.Value, $"{where}.{p.Name}", bad);
+                break;
+            case JsonValueKind.Array:
+                int i = 0;
+                foreach (var item in el.EnumerateArray()) Collect(item, $"{where}[{i++}]", bad);
+                break;
+        }
+    }
+
+    private static string Trim(string s) => s.Length <= 60 ? s : s[..57] + "...";
+
+    [Test]
+    public void EverySeedString_IsDrawableByTheClientFont()
+    {
+        string seed = SeedDir();
+        if (!Directory.Exists(seed)) Assert.Ignore("seed folder not found");
+
+        var bad = new List<string>();
+        foreach (string collection in Collections)
+        {
+            string dir = Path.Combine(seed, collection);
+            if (!Directory.Exists(dir)) continue;
+            foreach (string file in Directory.EnumerateFiles(dir, "*.json"))
+            {
+                using var doc = JsonDocument.Parse(File.ReadAllText(file));
+                Collect(doc.RootElement, $"{collection}/{Path.GetFileName(file)}", bad);
+            }
+        }
+
+        Assert.That(bad, Is.Empty,
+            "these would throw out of SpriteFont.MeasureString the moment a player read them:\n  "
+            + string.Join("\n  ", bad.Take(20)));
+    }
+}

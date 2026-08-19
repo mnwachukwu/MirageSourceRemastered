@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "Both, obviously. That is what remarkable means most of the time.\n\nGo on. I\u0027m not going to be the one who talks you out of it \u2014 nobody down here has that much standing.",
+      "text": "Both, obviously. That is what remarkable means most of the time.\n\nGo on. I\u0027m not going to be the one who talks you out of it - nobody down here has that much standing.",
       "choices": [
         {
           "label": "Why are you here, then?",
@@ -48,7 +48,7 @@
       "text": "Born on the shelf. My family were Tidewatch, before.\n\nI say \u0027before\u0027 and you will notice I have not said before WHAT. Nobody here does. It is not superstition, it is just that the sentence does not have a good ending.",
       "choices": [
         {
-          "label": "Which is it \u2014 remarkable or stupid?",
+          "label": "Which is it - remarkable or stupid?",
           "nextNodeId": 2,
           "action": "None"
         },

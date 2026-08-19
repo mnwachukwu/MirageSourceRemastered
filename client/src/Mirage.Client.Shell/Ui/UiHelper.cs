@@ -573,4 +573,54 @@ public static class UiHelper
         var src = SpriteAtlas.GetSourceRect(spriteRow, direction, animFrame);
         sb.Draw(sprites, dest, src, Color.White);
     }
+
+    // ── Word wrap ─────────────────────────────────────────────────────────────
+    // Authored text carries its own line breaks — a quest description, a mail body, a conversation
+    // node — so wrapping splits on newlines FIRST and wraps each paragraph on its own. Splitting on
+    // spaces alone leaves the "\n" inside a word: DrawString still renders the break, but the caller's
+    // y never advances for it, and whatever comes next is drawn over the overflow.
+
+    /// <summary>Greedy word-wrap that honors authored newlines. A blank line survives as a blank
+    /// entry, so a deliberate paragraph gap is preserved. A single word wider than
+    /// <paramref name="maxWidth"/> is left whole for the caller to truncate.</summary>
+    public static List<string> WrapLines(SpriteFont font, string text, float maxWidth)
+    {
+        var lines = new List<string>();
+        if (string.IsNullOrEmpty(text)) return lines;
+
+        foreach (string paragraph in text.Replace("\r\n", "\n").Split('\n'))
+        {
+            if (paragraph.Length == 0)
+            {
+                lines.Add("");
+                continue;
+            }
+            string cur = "";
+            foreach (string word in paragraph.Split(' '))
+            {
+                string candidate = cur.Length == 0 ? word : cur + " " + word;
+                if (cur.Length == 0 || font.MeasureString(candidate).X <= maxWidth) cur = candidate;
+                else
+                {
+                    lines.Add(cur);
+                    cur = word;
+                }
+            }
+            if (cur.Length > 0) lines.Add(cur);
+        }
+        return lines;
+    }
+
+    /// <summary>Draws <see cref="WrapLines"/>'s output and returns the y past the last line, so a
+    /// caller can lay the next section directly beneath it.</summary>
+    public static float DrawWrapped(SpriteBatch sb, SpriteFont font, string text, float x, float y,
+                                   float maxWidth, Color color, float lineHeight)
+    {
+        foreach (string line in WrapLines(font, text, maxWidth))
+        {
+            if (line.Length > 0) sb.DrawString(font, line, new Vector2(x, y), color);
+            y += lineHeight;
+        }
+        return y;
+    }
 }

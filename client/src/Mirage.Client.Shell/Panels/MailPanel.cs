@@ -942,34 +942,6 @@ public sealed class MailPanel : IGamePanel
         return parts[0] + ", " + parts[1] + ", and " + parts[2];
     }
 
-    // Minimal greedy word-wrap honoring explicit newlines; over-wide single words are left for
-    // DrawLabel to truncate. Bodies are short, so this stays cheap.
-    private static List<string> WrapLines(SpriteFont font, string text, float maxWidth)
-    {
-        var lines = new List<string>();
-        foreach (string paragraph in text.Replace("\r\n", "\n").Split('\n'))
-        {
-            if (paragraph.Length == 0)
-            {
-                lines.Add("");
-                continue;
-            }
-            string cur = "";
-            foreach (string word in paragraph.Split(' '))
-            {
-                string candidate = cur.Length == 0 ? word : cur + " " + word;
-                if (cur.Length == 0 || font.MeasureString(candidate).X <= maxWidth)
-                {
-                    cur = candidate;
-                }
-                else
-                {
-                    lines.Add(cur);
-                    cur = word;
-                }
-            }
-            if (cur.Length > 0) lines.Add(cur);
-        }
-        return lines;
-    }
+    private static List<string> WrapLines(SpriteFont font, string text, float maxWidth) =>
+        UiHelper.WrapLines(font, text, maxWidth);
 }

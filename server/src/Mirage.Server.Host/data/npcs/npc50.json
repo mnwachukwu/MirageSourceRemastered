@@ -1,6 +1,6 @@
 {
   "name": "Charcoal Burner",
-  "attackSay": "Mind the stack \u2014 mind it!",
+  "attackSay": "Mind the stack - mind it!",
   "sprite": 24,
   "size": 1,
   "spawnSecs": 30,
