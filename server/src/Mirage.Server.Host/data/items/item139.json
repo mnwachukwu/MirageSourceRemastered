@@ -1,7 +1,7 @@
 {
   "name": "Sundered Tunic",
   "pic": 5,
-  "type": 2,
+  "type": "Armor",
   "durability": 1160,
   "power": 221,
   "levelReq": 240,

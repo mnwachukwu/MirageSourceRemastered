@@ -1,7 +1,7 @@
 {
   "name": "Eternal Helm",
   "pic": 35,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1570,
   "power": 301,
   "levelReq": 245,

@@ -1,7 +1,7 @@
 {
   "name": "Runed Greathelm",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1280,
   "power": 166,
   "levelReq": 105,

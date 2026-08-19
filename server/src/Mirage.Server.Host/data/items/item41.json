@@ -1,7 +1,7 @@
 {
   "name": "Tempered Sword",
   "pic": 10,
-  "type": 1,
+  "type": "Weapon",
   "durability": 390,
   "power": 25,
   "levelReq": 15,

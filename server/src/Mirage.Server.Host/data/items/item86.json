@@ -1,7 +1,7 @@
 {
   "name": "Runed Kite Shield",
   "pic": 31,
-  "type": 4,
+  "type": "Shield",
   "durability": 1020,
   "power": 133,
   "levelReq": 105,

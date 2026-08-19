@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Greathelm",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1370,
   "power": 188,
   "levelReq": 120,

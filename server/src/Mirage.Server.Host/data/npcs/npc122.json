@@ -4,7 +4,7 @@
   "sprite": 40,
   "size": 3,
   "spawnSecs": 1500,
-  "behavior": 1,
+  "behavior": "AttackWhenAttacked",
   "group": 0,
   "range": 13,
   "drops": [

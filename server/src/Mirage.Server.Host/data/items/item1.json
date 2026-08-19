@@ -1,7 +1,7 @@
 {
   "name": "Gold",
   "pic": 2,
-  "type": 12,
+  "type": "Currency",
   "nonTradeable": false,
   "nonListable": true,
   "nonMailable": false,

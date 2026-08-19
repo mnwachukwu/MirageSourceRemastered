@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Grand Life Siphon",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 110,
   "nonTradeable": false,
   "nonListable": false,

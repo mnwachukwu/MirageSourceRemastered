@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Novice Focus",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 13,
   "nonTradeable": false,
   "nonListable": false,

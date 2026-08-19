@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Sword",
   "pic": 14,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1100,
   "power": 151,
   "levelReq": 120,

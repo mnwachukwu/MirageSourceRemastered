@@ -1,7 +1,7 @@
 {
   "name": "Runed Sword",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1020,
   "power": 133,
   "levelReq": 105,

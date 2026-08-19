@@ -1,7 +1,7 @@
 {
   "name": "Superior Enervating Vial",
   "pic": 26,
-  "type": 10,
+  "type": "PotionSubSp",
   "vitalAmount": 94,
   "levelReq": 105,
   "nonTradeable": false,

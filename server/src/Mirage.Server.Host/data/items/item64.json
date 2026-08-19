@@ -1,7 +1,7 @@
 {
   "name": "Meteoric Dagger",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 750,
   "power": 95,
   "levelReq": 100,

@@ -3,7 +3,7 @@
   "allowedClasses": [
     10
   ],
-  "type": 4,
+  "type": "SubMp",
   "vitalAmount": 158,
   "levelReq": 100
 }

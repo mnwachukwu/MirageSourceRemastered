@@ -1,7 +1,7 @@
 {
   "name": "Ineffable Healing Elixir",
   "pic": 25,
-  "type": 5,
+  "type": "PotionAddHp",
   "vitalAmount": 3050,
   "levelReq": 250,
   "nonTradeable": false,

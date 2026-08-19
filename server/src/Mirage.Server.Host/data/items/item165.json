@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Plate",
   "pic": 6,
-  "type": 2,
+  "type": "Armor",
   "durability": 1980,
   "power": 384,
   "levelReq": 250,

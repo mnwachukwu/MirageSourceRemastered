@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Apprentice Bloodletting",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 19,
   "nonTradeable": false,
   "nonListable": false,

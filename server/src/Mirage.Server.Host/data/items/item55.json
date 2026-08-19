@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Tunic",
   "pic": 4,
-  "type": 2,
+  "type": "Armor",
   "durability": 340,
   "power": 23,
   "levelReq": 20,

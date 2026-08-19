@@ -1,7 +1,7 @@
 {
   "name": "Tempered Helm",
   "pic": 37,
-  "type": 3,
+  "type": "Helmet",
   "durability": 390,
   "power": 25,
   "levelReq": 15,

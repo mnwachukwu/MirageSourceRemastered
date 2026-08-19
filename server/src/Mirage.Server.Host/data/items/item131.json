@@ -1,7 +1,7 @@
 {
   "name": "Astral Helm",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1530,
   "power": 289,
   "levelReq": 235,

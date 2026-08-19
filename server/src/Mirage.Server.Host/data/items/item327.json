@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Journeyman Exsanguination",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 39,
   "nonTradeable": false,
   "nonListable": false,

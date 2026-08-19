@@ -1,7 +1,7 @@
 {
   "name": "Modest Bloodletting Vial",
   "pic": 23,
-  "type": 8,
+  "type": "PotionSubHp",
   "vitalAmount": 23,
   "levelReq": 10,
   "nonTradeable": false,

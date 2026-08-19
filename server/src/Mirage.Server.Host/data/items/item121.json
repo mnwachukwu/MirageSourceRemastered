@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Buckler",
   "pic": 20,
-  "type": 4,
+  "type": "Shield",
   "durability": 820,
   "power": 113,
   "levelReq": 120,

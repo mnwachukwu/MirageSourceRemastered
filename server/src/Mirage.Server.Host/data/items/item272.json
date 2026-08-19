@@ -1,7 +1,7 @@
 {
   "name": "Absolute Siphon Vial",
   "pic": 22,
-  "type": 9,
+  "type": "PotionSubMp",
   "vitalAmount": 3169,
   "levelReq": 255,
   "nonTradeable": false,

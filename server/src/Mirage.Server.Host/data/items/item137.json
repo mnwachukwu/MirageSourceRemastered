@@ -1,7 +1,7 @@
 {
   "name": "Sundered Sword",
   "pic": 11,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1550,
   "power": 295,
   "levelReq": 240,

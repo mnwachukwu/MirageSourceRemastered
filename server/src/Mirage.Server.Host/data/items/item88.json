@@ -1,7 +1,7 @@
 {
   "name": "Warded Dagger",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 790,
   "power": 104,
   "levelReq": 110,

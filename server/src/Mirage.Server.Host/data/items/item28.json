@@ -1,7 +1,7 @@
 {
   "name": "Steel Dagger",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 240,
   "power": 14,
   "levelReq": 10,

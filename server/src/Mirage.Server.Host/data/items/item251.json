@@ -1,7 +1,7 @@
 {
   "name": "Peerless Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 2822,
   "levelReq": 240,
   "nonTradeable": false,

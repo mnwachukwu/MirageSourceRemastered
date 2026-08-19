@@ -1,7 +1,7 @@
 {
   "name": "Mythic Plate",
   "pic": 6,
-  "type": 2,
+  "type": "Armor",
   "durability": 2000,
   "power": 391,
   "levelReq": 255,

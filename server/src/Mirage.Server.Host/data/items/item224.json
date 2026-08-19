@@ -1,7 +1,7 @@
 {
   "name": "Superior Siphon Vial",
   "pic": 22,
-  "type": 9,
+  "type": "PotionSubMp",
   "vitalAmount": 613,
   "levelReq": 105,
   "nonTradeable": false,

@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Buckler",
   "pic": 18,
-  "type": 4,
+  "type": "Shield",
   "durability": 1190,
   "power": 230,
   "levelReq": 250,

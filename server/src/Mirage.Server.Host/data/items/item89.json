@@ -1,7 +1,7 @@
 {
   "name": "Warded Sword",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1050,
   "power": 139,
   "levelReq": 110,

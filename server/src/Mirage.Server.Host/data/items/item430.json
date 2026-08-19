@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Arch Second Wind",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 142,
   "nonTradeable": false,
   "nonListable": false,

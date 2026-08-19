@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Hauberk",
   "pic": 4,
-  "type": 2,
+  "type": "Armor",
   "durability": 450,
   "power": 31,
   "levelReq": 20,

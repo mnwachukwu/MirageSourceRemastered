@@ -1,7 +1,7 @@
 {
   "name": "Exalted Healing Elixir",
   "pic": 25,
-  "type": 5,
+  "type": "PotionAddHp",
   "vitalAmount": 665,
   "levelReq": 110,
   "nonTradeable": false,

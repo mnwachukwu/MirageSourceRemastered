@@ -1,7 +1,7 @@
 {
   "name": "Runed Greataxe",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1280,
   "power": 166,
   "levelReq": 105,

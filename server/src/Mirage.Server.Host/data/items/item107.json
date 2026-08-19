@@ -1,7 +1,7 @@
 {
   "name": "Obsidian Helm",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1070,
   "power": 145,
   "levelReq": 115,

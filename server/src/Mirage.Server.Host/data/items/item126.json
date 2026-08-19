@@ -1,7 +1,7 @@
 {
   "name": "Astral Greataxe",
   "pic": 11,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1920,
   "power": 361,
   "levelReq": 235,

@@ -1,7 +1,7 @@
 {
   "name": "Obsidian Cap",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 800,
   "power": 109,
   "levelReq": 115,

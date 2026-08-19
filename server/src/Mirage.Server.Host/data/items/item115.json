@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Tunic",
   "pic": 8,
-  "type": 2,
+  "type": "Armor",
   "durability": 820,
   "power": 113,
   "levelReq": 120,

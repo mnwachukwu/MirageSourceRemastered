@@ -1,7 +1,7 @@
 {
   "name": "Radiant Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 721,
   "levelReq": 115,
   "nonTradeable": false,

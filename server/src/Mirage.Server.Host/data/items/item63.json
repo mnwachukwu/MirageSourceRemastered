@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 560,
   "power": 38,
   "levelReq": 20,

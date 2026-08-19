@@ -1,7 +1,7 @@
 {
   "name": "Rusted Greataxe",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 130,
   "power": 10,
   "levelReq": 1,

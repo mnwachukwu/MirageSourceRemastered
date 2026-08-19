@@ -1,7 +1,7 @@
 {
   "name": "Steel Buckler",
   "pic": 19,
-  "type": 4,
+  "type": "Shield",
   "durability": 240,
   "power": 14,
   "levelReq": 10,

@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Buckler",
   "pic": 16,
-  "type": 4,
+  "type": "Shield",
   "durability": 340,
   "power": 23,
   "levelReq": 20,

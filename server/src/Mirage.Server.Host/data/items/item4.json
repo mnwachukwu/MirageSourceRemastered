@@ -1,7 +1,7 @@
 {
   "name": "Rusted Dagger",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 80,
   "power": 6,
   "levelReq": 1,

@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Helm",
   "pic": 37,
-  "type": 3,
+  "type": "Helmet",
   "durability": 450,
   "power": 31,
   "levelReq": 20,

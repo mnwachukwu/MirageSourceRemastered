@@ -1,7 +1,7 @@
 {
   "name": "Meteoric Buckler",
   "pic": 15,
-  "type": 4,
+  "type": "Shield",
   "durability": 750,
   "power": 95,
   "levelReq": 100,

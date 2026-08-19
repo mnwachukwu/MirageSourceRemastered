@@ -1,7 +1,7 @@
 {
   "name": "Iron Greathelm",
   "pic": 34,
-  "type": 3,
+  "type": "Helmet",
   "durability": 280,
   "power": 16,
   "levelReq": 5,

@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Tunic",
   "pic": 6,
-  "type": 2,
+  "type": "Armor",
   "durability": 1190,
   "power": 230,
   "levelReq": 250,

@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Master Mana Leech",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 94,
   "nonTradeable": false,
   "nonListable": false,

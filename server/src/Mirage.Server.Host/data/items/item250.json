@@ -1,7 +1,7 @@
 {
   "name": "Peerless Healing Elixir",
   "pic": 25,
-  "type": 5,
+  "type": "PotionAddHp",
   "vitalAmount": 2822,
   "levelReq": 240,
   "nonTradeable": false,

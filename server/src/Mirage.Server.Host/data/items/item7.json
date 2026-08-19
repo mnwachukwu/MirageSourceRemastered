@@ -1,7 +1,7 @@
 {
   "name": "Rusted Tunic",
   "pic": 7,
-  "type": 2,
+  "type": "Armor",
   "durability": 80,
   "power": 6,
   "levelReq": 1,

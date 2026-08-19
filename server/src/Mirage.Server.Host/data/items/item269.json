@@ -1,7 +1,7 @@
 {
   "name": "Absolute Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 3169,
   "levelReq": 255,
   "nonTradeable": false,

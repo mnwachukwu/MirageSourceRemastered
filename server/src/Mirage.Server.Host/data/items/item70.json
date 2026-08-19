@@ -1,7 +1,7 @@
 {
   "name": "Meteoric Cap",
   "pic": 37,
-  "type": 3,
+  "type": "Helmet",
   "durability": 750,
   "power": 95,
   "levelReq": 100,

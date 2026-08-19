@@ -1,7 +1,7 @@
 {
   "name": "Iron Sword",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 220,
   "power": 13,
   "levelReq": 5,

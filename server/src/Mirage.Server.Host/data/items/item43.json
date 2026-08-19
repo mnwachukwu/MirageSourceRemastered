@@ -1,7 +1,7 @@
 {
   "name": "Tempered Tunic",
   "pic": 4,
-  "type": 2,
+  "type": "Armor",
   "durability": 290,
   "power": 19,
   "levelReq": 15,

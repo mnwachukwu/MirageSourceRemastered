@@ -1,7 +1,7 @@
 {
   "name": "Astral Sword",
   "pic": 11,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1530,
   "power": 289,
   "levelReq": 235,

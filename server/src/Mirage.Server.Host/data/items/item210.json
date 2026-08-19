@@ -1,7 +1,7 @@
 {
   "name": "Potent Vigor Elixir",
   "pic": 21,
-  "type": 7,
+  "type": "PotionAddSp",
   "vitalAmount": 20,
   "levelReq": 20,
   "nonTradeable": false,

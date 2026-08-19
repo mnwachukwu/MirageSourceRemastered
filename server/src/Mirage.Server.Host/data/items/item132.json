@@ -1,7 +1,7 @@
 {
   "name": "Astral Greathelm",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1920,
   "power": 361,
   "levelReq": 235,

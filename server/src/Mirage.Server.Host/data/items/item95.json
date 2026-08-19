@@ -1,7 +1,7 @@
 {
   "name": "Warded Helm",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1050,
   "power": 139,
   "levelReq": 110,

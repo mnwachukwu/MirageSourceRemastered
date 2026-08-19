@@ -1,7 +1,7 @@
 {
   "name": "Rusted Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 130,
   "power": 10,
   "levelReq": 1,

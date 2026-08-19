@@ -1,7 +1,7 @@
 {
   "name": "Eternal Sword",
   "pic": 11,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1570,
   "power": 301,
   "levelReq": 245,

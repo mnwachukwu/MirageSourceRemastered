@@ -1,7 +1,7 @@
 {
   "name": "Exalted Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 665,
   "levelReq": 110,
   "nonTradeable": false,

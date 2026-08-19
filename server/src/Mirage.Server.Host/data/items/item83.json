@@ -1,7 +1,7 @@
 {
   "name": "Runed Helm",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1020,
   "power": 133,
   "levelReq": 105,

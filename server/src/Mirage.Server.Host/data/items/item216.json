@@ -1,7 +1,7 @@
 {
   "name": "Greater Vigor Elixir",
   "pic": 21,
-  "type": 7,
+  "type": "PotionAddSp",
   "vitalAmount": 90,
   "levelReq": 100,
   "nonTradeable": false,

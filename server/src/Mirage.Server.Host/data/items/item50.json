@@ -1,7 +1,7 @@
 {
   "name": "Tempered Kite Shield",
   "pic": 31,
-  "type": 4,
+  "type": "Shield",
   "durability": 390,
   "power": 25,
   "levelReq": 15,

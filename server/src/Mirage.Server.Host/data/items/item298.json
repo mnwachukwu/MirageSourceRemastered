@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Novice Mend",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 10,
   "nonTradeable": false,
   "nonListable": false,

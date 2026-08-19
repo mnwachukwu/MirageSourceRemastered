@@ -1,7 +1,7 @@
 {
   "name": "Superior Healing Elixir",
   "pic": 25,
-  "type": 5,
+  "type": "PotionAddHp",
   "vitalAmount": 613,
   "levelReq": 105,
   "nonTradeable": false,

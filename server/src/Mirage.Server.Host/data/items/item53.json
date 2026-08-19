@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Sword",
   "pic": 10,
-  "type": 1,
+  "type": "Weapon",
   "durability": 450,
   "power": 31,
   "levelReq": 20,

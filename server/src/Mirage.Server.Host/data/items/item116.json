@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Hauberk",
   "pic": 8,
-  "type": 2,
+  "type": "Armor",
   "durability": 1100,
   "power": 151,
   "levelReq": 120,

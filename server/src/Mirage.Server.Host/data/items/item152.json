@@ -1,7 +1,7 @@
 {
   "name": "Eternal Hauberk",
   "pic": 5,
-  "type": 2,
+  "type": "Armor",
   "durability": 1570,
   "power": 301,
   "levelReq": 245,

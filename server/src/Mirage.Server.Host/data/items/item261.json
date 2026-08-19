@@ -1,7 +1,7 @@
 {
   "name": "Transcendent Enervating Vial",
   "pic": 26,
-  "type": 10,
+  "type": "PotionSubSp",
   "vitalAmount": 217,
   "levelReq": 245,
   "nonTradeable": false,

@@ -1,7 +1,7 @@
 {
   "name": "Tempered Plate",
   "pic": 4,
-  "type": 2,
+  "type": "Armor",
   "durability": 480,
   "power": 31,
   "levelReq": 15,

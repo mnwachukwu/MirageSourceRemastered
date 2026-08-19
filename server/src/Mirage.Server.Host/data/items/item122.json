@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Kite Shield",
   "pic": 31,
-  "type": 4,
+  "type": "Shield",
   "durability": 1100,
   "power": 151,
   "levelReq": 120,

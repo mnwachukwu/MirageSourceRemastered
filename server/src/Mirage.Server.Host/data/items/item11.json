@@ -1,7 +1,7 @@
 {
   "name": "Rusted Helm",
   "pic": 34,
-  "type": 3,
+  "type": "Helmet",
   "durability": 100,
   "power": 8,
   "levelReq": 1,

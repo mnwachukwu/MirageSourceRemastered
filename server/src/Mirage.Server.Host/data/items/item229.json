@@ -1,7 +1,7 @@
 {
   "name": "Exalted Bloodletting Vial",
   "pic": 23,
-  "type": 8,
+  "type": "PotionSubHp",
   "vitalAmount": 665,
   "levelReq": 110,
   "nonTradeable": false,

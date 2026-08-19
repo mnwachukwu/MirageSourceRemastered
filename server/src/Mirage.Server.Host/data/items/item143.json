@@ -1,7 +1,7 @@
 {
   "name": "Sundered Helm",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1550,
   "power": 295,
   "levelReq": 240,

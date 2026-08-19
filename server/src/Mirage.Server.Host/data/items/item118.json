@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Cap",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 820,
   "power": 113,
   "levelReq": 120,

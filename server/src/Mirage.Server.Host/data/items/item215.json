@@ -1,7 +1,7 @@
 {
   "name": "Greater Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 561,
   "levelReq": 100,
   "nonTradeable": false,

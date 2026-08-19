@@ -1,7 +1,7 @@
 {
   "name": "Eternal Kite Shield",
   "pic": 31,
-  "type": 4,
+  "type": "Shield",
   "durability": 1570,
   "power": 301,
   "levelReq": 245,

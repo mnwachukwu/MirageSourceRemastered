@@ -1,7 +1,7 @@
 {
   "name": "Tempered Greataxe",
   "pic": 10,
-  "type": 1,
+  "type": "Weapon",
   "durability": 480,
   "power": 31,
   "levelReq": 15,

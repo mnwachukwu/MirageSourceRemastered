@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Void Endurance",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 216,
   "nonTradeable": false,
   "nonListable": false,

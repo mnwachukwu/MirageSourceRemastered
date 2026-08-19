@@ -1,7 +1,7 @@
 {
   "name": "Tempered Dagger",
   "pic": 10,
-  "type": 1,
+  "type": "Weapon",
   "durability": 290,
   "power": 19,
   "levelReq": 15,

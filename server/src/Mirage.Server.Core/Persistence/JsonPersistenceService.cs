@@ -21,14 +21,7 @@ public sealed class JsonPersistenceService : IPersistenceService
     private readonly SemaphoreSlim _hwBanLock = new(1, 1);
     private HardwareBanList? _hwBansCache;
 
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        PropertyNameCaseInsensitive = true,   // editor writes map JSON in PascalCase; server writes camelCase
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
-    };
+    private static readonly JsonSerializerOptions Options = Mirage.Shared.Serialization.RecordJson.Options;
 
     /// <summary><paramref name="limits"/> decides how far each family is padded on load — the same object
     /// <see cref="World.GameWorld"/> sizes its arrays from, so the folder and the world always agree on how

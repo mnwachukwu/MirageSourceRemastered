@@ -1,7 +1,7 @@
 {
   "name": "Astral Cap",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1150,
   "power": 217,
   "levelReq": 235,

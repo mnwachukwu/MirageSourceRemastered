@@ -1,7 +1,7 @@
 {
   "name": "Sundered Greathelm",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1940,
   "power": 368,
   "levelReq": 240,

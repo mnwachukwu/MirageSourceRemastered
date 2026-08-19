@@ -1,7 +1,7 @@
 {
   "name": "Radiant Enervating Vial",
   "pic": 26,
-  "type": 10,
+  "type": "PotionSubSp",
   "vitalAmount": 103,
   "levelReq": 115,
   "nonTradeable": false,

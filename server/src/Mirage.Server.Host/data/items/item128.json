@@ -1,7 +1,7 @@
 {
   "name": "Astral Hauberk",
   "pic": 5,
-  "type": 2,
+  "type": "Armor",
   "durability": 1530,
   "power": 289,
   "levelReq": 235,

@@ -1,7 +1,7 @@
 {
   "name": "Lesser Bloodletting Vial",
   "pic": 23,
-  "type": 8,
+  "type": "PotionSubHp",
   "vitalAmount": 14,
   "levelReq": 5,
   "nonTradeable": false,

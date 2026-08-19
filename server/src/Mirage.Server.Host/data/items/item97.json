@@ -1,7 +1,7 @@
 {
   "name": "Warded Buckler",
   "pic": 15,
-  "type": 4,
+  "type": "Shield",
   "durability": 790,
   "power": 104,
   "levelReq": 110,

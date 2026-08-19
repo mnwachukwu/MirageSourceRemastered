@@ -1,7 +1,7 @@
 {
   "name": "Eternal Plate",
   "pic": 5,
-  "type": 2,
+  "type": "Armor",
   "durability": 1960,
   "power": 376,
   "levelReq": 245,

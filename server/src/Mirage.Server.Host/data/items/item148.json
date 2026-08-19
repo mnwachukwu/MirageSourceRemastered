@@ -1,7 +1,7 @@
 {
   "name": "Eternal Dagger",
   "pic": 11,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1170,
   "power": 226,
   "levelReq": 245,

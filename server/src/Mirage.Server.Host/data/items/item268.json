@@ -1,7 +1,7 @@
 {
   "name": "Absolute Healing Elixir",
   "pic": 25,
-  "type": 5,
+  "type": "PotionAddHp",
   "vitalAmount": 3169,
   "levelReq": 255,
   "nonTradeable": false,

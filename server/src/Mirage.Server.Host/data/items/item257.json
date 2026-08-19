@@ -1,7 +1,7 @@
 {
   "name": "Transcendent Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 2937,
   "levelReq": 245,
   "nonTradeable": false,

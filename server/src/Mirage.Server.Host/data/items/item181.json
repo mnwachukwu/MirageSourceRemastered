@@ -1,7 +1,7 @@
 {
   "name": "Mythic Buckler",
   "pic": 18,
-  "type": 4,
+  "type": "Shield",
   "durability": 1200,
   "power": 235,
   "levelReq": 255,

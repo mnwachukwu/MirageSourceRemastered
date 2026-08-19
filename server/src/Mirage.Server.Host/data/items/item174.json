@@ -1,7 +1,7 @@
 {
   "name": "Angelmaker",
   "pic": 12,
-  "type": 1,
+  "type": "Weapon",
   "durability": 2000,
   "power": 391,
   "levelReq": 255,

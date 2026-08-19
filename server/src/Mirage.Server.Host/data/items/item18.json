@@ -1,7 +1,7 @@
 {
   "name": "Iron Greataxe",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 280,
   "power": 16,
   "levelReq": 5,

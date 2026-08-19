@@ -5,7 +5,7 @@
     9,
     10
   ],
-  "type": 0,
+  "type": "AddHp",
   "vitalAmount": 10,
   "levelReq": 5
 }

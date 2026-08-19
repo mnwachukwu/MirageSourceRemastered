@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Absolute Mana Rupture",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 258,
   "nonTradeable": false,
   "nonListable": false,

@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Absolute Focus",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 265,
   "nonTradeable": false,
   "nonListable": false,

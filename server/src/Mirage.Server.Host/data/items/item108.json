@@ -1,7 +1,7 @@
 {
   "name": "Obsidian Greathelm",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1340,
   "power": 181,
   "levelReq": 115,

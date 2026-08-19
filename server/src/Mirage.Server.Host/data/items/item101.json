@@ -1,7 +1,7 @@
 {
   "name": "Obsidian Sword",
   "pic": 14,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1070,
   "power": 145,
   "levelReq": 115,

@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Cap",
   "pic": 35,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1190,
   "power": 230,
   "levelReq": 250,

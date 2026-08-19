@@ -4,7 +4,7 @@
     4,
     10
   ],
-  "type": 3,
+  "type": "SubHp",
   "vitalAmount": 10,
   "levelReq": 1
 }

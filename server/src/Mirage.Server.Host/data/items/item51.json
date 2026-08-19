@@ -1,7 +1,7 @@
 {
   "name": "Tempered Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 480,
   "power": 31,
   "levelReq": 15,

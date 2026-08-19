@@ -1,7 +1,7 @@
 {
   "name": "Warded Greataxe",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1310,
   "power": 174,
   "levelReq": 110,

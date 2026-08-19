@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Expert Weariness",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 79,
   "nonTradeable": false,
   "nonListable": false,

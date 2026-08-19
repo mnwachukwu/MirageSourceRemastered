@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Eternal Meditation",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 230,
   "nonTradeable": false,
   "nonListable": false,

@@ -1,7 +1,7 @@
 {
   "name": "Steel Tunic",
   "pic": 7,
-  "type": 2,
+  "type": "Armor",
   "durability": 240,
   "power": 14,
   "levelReq": 10,

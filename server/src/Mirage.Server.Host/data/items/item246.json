@@ -1,7 +1,7 @@
 {
   "name": "Supreme Vigor Elixir",
   "pic": 21,
-  "type": 7,
+  "type": "PotionAddSp",
   "vitalAmount": 208,
   "levelReq": 235,
   "nonTradeable": false,

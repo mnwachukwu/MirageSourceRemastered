@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Greataxe",
   "pic": 10,
-  "type": 1,
+  "type": "Weapon",
   "durability": 560,
   "power": 38,
   "levelReq": 20,

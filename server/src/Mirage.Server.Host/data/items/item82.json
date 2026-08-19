@@ -1,7 +1,7 @@
 {
   "name": "Runed Cap",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 770,
   "power": 100,
   "levelReq": 105,

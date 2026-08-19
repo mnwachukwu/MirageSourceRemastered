@@ -1,7 +1,7 @@
 {
   "name": "Iron Plate",
   "pic": 7,
-  "type": 2,
+  "type": "Armor",
   "durability": 280,
   "power": 16,
   "levelReq": 5,

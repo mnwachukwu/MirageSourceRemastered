@@ -1,7 +1,7 @@
 {
   "name": "Obsidian Buckler",
   "pic": 20,
-  "type": 4,
+  "type": "Shield",
   "durability": 800,
   "power": 109,
   "levelReq": 115,

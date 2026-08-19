@@ -1,7 +1,7 @@
 {
   "name": "Sundered Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 1940,
   "power": 368,
   "levelReq": 240,

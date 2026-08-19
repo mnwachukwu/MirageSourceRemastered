@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Greataxe",
   "pic": 14,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1370,
   "power": 188,
   "levelReq": 120,

@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Absolute Bloodletting",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 253,
   "nonTradeable": false,
   "nonListable": false,

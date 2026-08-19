@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Void Attunement",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 213,
   "nonTradeable": false,
   "nonListable": false,

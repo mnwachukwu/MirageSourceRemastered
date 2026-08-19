@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Greataxe",
   "pic": 12,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1980,
   "power": 384,
   "levelReq": 250,

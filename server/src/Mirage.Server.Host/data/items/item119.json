@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Helm",
   "pic": 38,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1100,
   "power": 151,
   "levelReq": 120,

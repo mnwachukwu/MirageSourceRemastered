@@ -1,7 +1,7 @@
 {
   "name": "Tempered Buckler",
   "pic": 16,
-  "type": 4,
+  "type": "Shield",
   "durability": 290,
   "power": 19,
   "levelReq": 15,

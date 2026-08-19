@@ -1,7 +1,7 @@
 {
   "name": "Resplendent Vigor Elixir",
   "pic": 21,
-  "type": 7,
+  "type": "PotionAddSp",
   "vitalAmount": 107,
   "levelReq": 120,
   "nonTradeable": false,

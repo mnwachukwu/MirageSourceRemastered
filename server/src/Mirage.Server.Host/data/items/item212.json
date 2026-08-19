@@ -1,7 +1,7 @@
 {
   "name": "Potent Siphon Vial",
   "pic": 22,
-  "type": 9,
+  "type": "PotionSubMp",
   "vitalAmount": 47,
   "levelReq": 20,
   "nonTradeable": false,

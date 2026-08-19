@@ -1,7 +1,7 @@
 {
   "name": "Meteoric Sword",
   "pic": 9,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1000,
   "power": 127,
   "levelReq": 100,

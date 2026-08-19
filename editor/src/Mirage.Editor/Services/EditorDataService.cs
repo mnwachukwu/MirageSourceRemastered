@@ -8,27 +8,10 @@ namespace Mirage.Editor.Services;
 
 public sealed class EditorDataService
 {
-    // ── Enums travel as STRINGS, and this reader must accept them ────────────────────────────────
-    // JsonPersistenceService.Options (the server's) carries a JsonStringEnumConverter, so every record
-    // the SERVER writes has "shopType": "Inn" rather than "shopType": 2. Without the converter here the
-    // editor cannot read its own game's files: the deserialize throws and the whole collection comes up
-    // empty, with no error surfaced anywhere.
-    //
-    // It hid for a long time because the collections that existed first were authored by generators that
-    // happened to emit numeric enums, and a numeric enum parses with or without the converter. The
-    // moment shops, quests and conversations were generated through the server's own option set, three
-    // entire sections stopped loading at once. Reading is the half that matters; writing carries it too
-    // so a file the editor saves matches what the server would have written.
-    private static readonly JsonSerializerOptions JsonOpts = new()
-    {
-        WriteIndented = true,
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
-    };
-    private static readonly JsonSerializerOptions ReadOpts = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
-    };
+    // One option set for reading and writing, shared with the server and every generator — see
+    // Mirage.Shared/Serialization/RecordJson.cs. A file the editor saves matches what the server writes.
+    private static readonly JsonSerializerOptions JsonOpts = Mirage.Shared.Serialization.RecordJson.Options;
+    private static readonly JsonSerializerOptions ReadOpts = Mirage.Shared.Serialization.RecordJson.Options;
 
     // ── Offline data loaded from disk ─────────────────────────────────────────
     public ItemRecord[] OfflineItems { get; private set; } = [];

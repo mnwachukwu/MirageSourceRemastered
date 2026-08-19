@@ -1,7 +1,7 @@
 {
   "name": "Astral Buckler",
   "pic": 17,
-  "type": 4,
+  "type": "Shield",
   "durability": 1150,
   "power": 217,
   "levelReq": 235,

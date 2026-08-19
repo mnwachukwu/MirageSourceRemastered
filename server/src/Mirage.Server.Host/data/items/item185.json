@@ -1,7 +1,7 @@
 {
   "name": "Minor Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 8,
   "levelReq": 1,
   "nonTradeable": false,

@@ -1,7 +1,7 @@
 {
   "name": "Lesser Vigor Elixir",
   "pic": 21,
-  "type": 7,
+  "type": "PotionAddSp",
   "vitalAmount": 7,
   "levelReq": 5,
   "nonTradeable": false,

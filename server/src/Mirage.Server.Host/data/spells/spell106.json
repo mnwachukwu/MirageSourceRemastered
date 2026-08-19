@@ -9,7 +9,7 @@
     9,
     10
   ],
-  "type": 2,
+  "type": "AddSp",
   "vitalAmount": 95,
   "levelReq": 100
 }

@@ -1,7 +1,7 @@
 {
   "name": "Mythic Tunic",
   "pic": 6,
-  "type": 2,
+  "type": "Armor",
   "durability": 1200,
   "power": 235,
   "levelReq": 255,

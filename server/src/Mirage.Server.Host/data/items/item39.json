@@ -1,7 +1,7 @@
 {
   "name": "Steel Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 400,
   "power": 24,
   "levelReq": 10,

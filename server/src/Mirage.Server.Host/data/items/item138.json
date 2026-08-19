@@ -1,7 +1,7 @@
 {
   "name": "Sundered Greataxe",
   "pic": 11,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1940,
   "power": 368,
   "levelReq": 240,

@@ -1,7 +1,7 @@
 {
   "name": "Iron Tunic",
   "pic": 7,
-  "type": 2,
+  "type": "Armor",
   "durability": 170,
   "power": 10,
   "levelReq": 5,

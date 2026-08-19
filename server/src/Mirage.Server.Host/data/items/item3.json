@@ -1,7 +1,7 @@
 {
   "name": "Valor",
   "pic": 1,
-  "type": 12,
+  "type": "Currency",
   "nonTradeable": true,
   "nonListable": true,
   "nonMailable": true,

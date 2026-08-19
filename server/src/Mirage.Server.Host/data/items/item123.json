@@ -1,7 +1,7 @@
 {
   "name": "Dawnforged Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 1370,
   "power": 188,
   "levelReq": 120,

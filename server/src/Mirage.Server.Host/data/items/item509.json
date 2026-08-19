@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Eternal Mana Siphon",
   "pic": 30,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 221,
   "nonTradeable": false,
   "nonListable": false,

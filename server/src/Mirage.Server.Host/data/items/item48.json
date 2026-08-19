@@ -1,7 +1,7 @@
 {
   "name": "Tempered Greathelm",
   "pic": 37,
-  "type": 3,
+  "type": "Helmet",
   "durability": 480,
   "power": 31,
   "levelReq": 15,

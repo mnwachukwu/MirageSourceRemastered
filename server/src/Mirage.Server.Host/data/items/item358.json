@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Adept Second Wind",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 70,
   "nonTradeable": false,
   "nonListable": false,

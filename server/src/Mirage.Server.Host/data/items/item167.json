@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Helm",
   "pic": 35,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1580,
   "power": 307,
   "levelReq": 250,

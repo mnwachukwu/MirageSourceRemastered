@@ -1,7 +1,7 @@
 {
   "name": "Steel Sword",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 320,
   "power": 19,
   "levelReq": 10,

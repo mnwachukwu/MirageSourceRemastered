@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Greathelm",
   "pic": 37,
-  "type": 3,
+  "type": "Helmet",
   "durability": 560,
   "power": 38,
   "levelReq": 20,

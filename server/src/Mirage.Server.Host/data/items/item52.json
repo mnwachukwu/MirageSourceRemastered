@@ -1,7 +1,7 @@
 {
   "name": "Kilnforged Dagger",
   "pic": 10,
-  "type": 1,
+  "type": "Weapon",
   "durability": 340,
   "power": 23,
   "levelReq": 20,

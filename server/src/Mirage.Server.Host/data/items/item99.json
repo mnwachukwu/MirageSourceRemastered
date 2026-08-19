@@ -1,7 +1,7 @@
 {
   "name": "Warded Tower Shield",
   "pic": 32,
-  "type": 4,
+  "type": "Shield",
   "durability": 1310,
   "power": 174,
   "levelReq": 110,

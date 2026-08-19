@@ -1,7 +1,7 @@
 {
   "name": "Astral Tunic",
   "pic": 5,
-  "type": 2,
+  "type": "Armor",
   "durability": 1150,
   "power": 217,
   "levelReq": 235,

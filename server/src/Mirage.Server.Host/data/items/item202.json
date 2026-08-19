@@ -1,7 +1,7 @@
 {
   "name": "Strong Healing Elixir",
   "pic": 25,
-  "type": 5,
+  "type": "PotionAddHp",
   "vitalAmount": 34,
   "levelReq": 15,
   "nonTradeable": false,

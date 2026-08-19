@@ -1,7 +1,7 @@
 {
   "name": "Exalted Siphon Vial",
   "pic": 22,
-  "type": 9,
+  "type": "PotionSubMp",
   "vitalAmount": 665,
   "levelReq": 110,
   "nonTradeable": false,

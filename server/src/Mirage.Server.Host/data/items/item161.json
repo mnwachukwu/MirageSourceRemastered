@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Sword",
   "pic": 12,
-  "type": 1,
+  "type": "Weapon",
   "durability": 1580,
   "power": 307,
   "levelReq": 250,

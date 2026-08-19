@@ -1,7 +1,7 @@
 {
   "name": "Runed Buckler",
   "pic": 15,
-  "type": 4,
+  "type": "Shield",
   "durability": 770,
   "power": 100,
   "levelReq": 105,

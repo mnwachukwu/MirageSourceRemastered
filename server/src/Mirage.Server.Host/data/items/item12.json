@@ -1,7 +1,7 @@
 {
   "name": "Rusted Greathelm",
   "pic": 34,
-  "type": 3,
+  "type": "Helmet",
   "durability": 130,
   "power": 10,
   "levelReq": 1,

@@ -1,7 +1,7 @@
 {
   "name": "Scroll of Arch Mend",
   "pic": 29,
-  "type": 13,
+  "type": "Spell",
   "spellNum": 136,
   "nonTradeable": false,
   "nonListable": false,

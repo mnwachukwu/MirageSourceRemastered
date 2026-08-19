@@ -1,7 +1,7 @@
 {
   "name": "Godmarked Greathelm",
   "pic": 35,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1980,
   "power": 384,
   "levelReq": 250,

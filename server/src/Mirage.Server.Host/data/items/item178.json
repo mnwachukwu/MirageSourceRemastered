@@ -1,7 +1,7 @@
 {
   "name": "Mythic Cap",
   "pic": 35,
-  "type": 3,
+  "type": "Helmet",
   "durability": 1200,
   "power": 235,
   "levelReq": 255,

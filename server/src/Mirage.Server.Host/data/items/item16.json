@@ -1,7 +1,7 @@
 {
   "name": "Iron Dagger",
   "pic": 13,
-  "type": 1,
+  "type": "Weapon",
   "durability": 170,
   "power": 10,
   "levelReq": 5,

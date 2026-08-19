@@ -1,7 +1,7 @@
 {
   "name": "Ineffable Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 3050,
   "levelReq": 250,
   "nonTradeable": false,

@@ -1,7 +1,7 @@
 {
   "name": "Ineffable Bloodletting Vial",
   "pic": 23,
-  "type": 8,
+  "type": "PotionSubHp",
   "vitalAmount": 3050,
   "levelReq": 250,
   "nonTradeable": false,

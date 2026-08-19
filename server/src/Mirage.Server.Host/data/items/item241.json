@@ -1,7 +1,7 @@
 {
   "name": "Resplendent Bloodletting Vial",
   "pic": 23,
-  "type": 8,
+  "type": "PotionSubHp",
   "vitalAmount": 778,
   "levelReq": 120,
   "nonTradeable": false,

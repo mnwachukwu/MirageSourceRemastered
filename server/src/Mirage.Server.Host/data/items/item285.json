@@ -1,7 +1,7 @@
 {
   "name": "Cinder Ruby",
   "pic": 2,
-  "type": 0,
+  "type": "None",
   "nonTradeable": false,
   "nonListable": false,
   "nonMailable": false,

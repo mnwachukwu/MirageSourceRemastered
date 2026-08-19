@@ -1,7 +1,7 @@
 {
   "name": "Greater Bloodletting Vial",
   "pic": 23,
-  "type": 8,
+  "type": "PotionSubHp",
   "vitalAmount": 561,
   "levelReq": 100,
   "nonTradeable": false,

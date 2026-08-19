@@ -1,7 +1,7 @@
 {
   "name": "Warded Cap",
   "pic": 36,
-  "type": 3,
+  "type": "Helmet",
   "durability": 790,
   "power": 104,
   "levelReq": 110,

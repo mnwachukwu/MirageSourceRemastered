@@ -1,7 +1,7 @@
 {
   "name": "Coral Reliquary",
   "pic": 1,
-  "type": 0,
+  "type": "None",
   "nonTradeable": false,
   "nonListable": false,
   "nonMailable": false,

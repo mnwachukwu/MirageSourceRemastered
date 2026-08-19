@@ -1,7 +1,7 @@
 {
   "name": "Lesser Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 14,
   "levelReq": 5,
   "nonTradeable": false,

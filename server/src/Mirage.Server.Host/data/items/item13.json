@@ -1,7 +1,7 @@
 {
   "name": "Rusted Buckler",
   "pic": 19,
-  "type": 4,
+  "type": "Shield",
   "durability": 80,
   "power": 6,
   "levelReq": 1,

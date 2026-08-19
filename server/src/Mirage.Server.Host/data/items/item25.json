@@ -1,7 +1,7 @@
 {
   "name": "Iron Buckler",
   "pic": 19,
-  "type": 4,
+  "type": "Shield",
   "durability": 170,
   "power": 10,
   "levelReq": 5,

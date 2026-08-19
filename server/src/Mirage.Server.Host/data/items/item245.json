@@ -1,7 +1,7 @@
 {
   "name": "Supreme Mana Elixir",
   "pic": 27,
-  "type": 6,
+  "type": "PotionAddMp",
   "vitalAmount": 2713,
   "levelReq": 235,
   "nonTradeable": false,
