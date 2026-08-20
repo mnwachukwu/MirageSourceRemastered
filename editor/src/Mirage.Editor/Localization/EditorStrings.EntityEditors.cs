@@ -366,6 +366,7 @@ public static partial class EditorStrings
     public const string References_KeepsShop = nameof(References_KeepsShop);
     public const string References_Speaks = nameof(References_Speaks);
     public const string References_SpawnsOn = nameof(References_SpawnsOn);
+    public const string References_GroupedWith = nameof(References_GroupedWith);
     public const string References_PrerequisiteFor = nameof(References_PrerequisiteFor);
     public const string References_RestrictedItems = nameof(References_RestrictedItems);
     public const string References_RestrictedSpells = nameof(References_RestrictedSpells);

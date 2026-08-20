@@ -834,36 +834,61 @@ public class SeedIntegrityTests
     }
 
     /// <summary>
-    /// Every hostile is on a side, and there are only two of them.
+    /// A banner musters more than one kind of mob.
     ///
     /// <para>An attack-on-sight mob picks a fight with any hostile in range that is neither its own kind nor
-    /// a same-group ally, scanning the whole 3×3 map neighbourhood. <c>Group</c> 0 means "allied with my own
-    /// kind only", so an ungrouped roster is one where every warband fights whichever one is camped next
-    /// door — and nothing says so until two of them are placed near each other.</para>
+    /// a same-group ally, scanning the whole 3×3 map neighbourhood. <c>Group</c> 0 already means "allied with
+    /// my own kind only", so a number held by exactly one template grants nothing that group 0 did not — it
+    /// is a warband whose comrades were moved off it, and it reads as a faction while behaving as a loner.</para>
     ///
-    /// <para>Two numbers world-wide rather than a set per area: monstrous and humanoid are world-wide facts,
-    /// and a number reused between two areas that TOUCH would silently ally them across the seam.</para>
+    /// <para>Numbers are world-wide rather than per area: one reused between two areas that TOUCH would
+    /// silently ally them across the seam.</para>
     /// </summary>
     [Test]
-    public void EveryHostileNpc_IsOnOneOfTwoSides()
+    public void NoBanner_MustersASingleKind()
     {
         RequireSeed();
         var hostile = _npcs.Where(n => n.Value.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
             .ToDictionary(k => k.Key, v => v.Value);
         Assume.That(hostile, Is.Not.Empty);
 
-        var sides = hostile.Values.Select(n => n.Group).Distinct().OrderBy(g => g).ToList();
         Assert.Multiple(() =>
         {
-            foreach (var (num, npc) in hostile.OrderBy(k => k.Key))
+            foreach (var banner in hostile.Where(kv => kv.Value.Group != 0).GroupBy(kv => kv.Value.Group).OrderBy(g => g.Key))
             {
-                Assert.That(npc.Group, Is.Not.Zero,
-                    $"npc{num} \"{npc.TrimmedName}\" attacks on sight but is on no side, so it will pick "
-                    + "fights with every other kind of hostile that comes near it");
+                Assert.That(banner.Count(), Is.GreaterThan(1),
+                    $"group {banner.Key} musters only \"{banner.First().Value.TrimmedName}\", which same-kind "
+                    + "peace already covers");
             }
-            Assert.That(sides, Has.Count.EqualTo(2),
-                "the world runs on exactly two sides, monstrous and humanoid: " + string.Join(", ", sides));
         });
+    }
+
+    /// <summary>Each of the two upper bands holds exactly two sides — a cult and the fauna it shares its water
+    /// or its ash with. Two is what makes a band worth walking through: one side and nothing in it ever fights
+    /// anything but the player, three and a number has gone astray. Nothing up there is ungrouped, either,
+    /// since a loner among a whole band of one faction is a mob that fights every neighbour it has.</summary>
+    [Test]
+    public void EachUpperBand_HoldsTwoSides()
+    {
+        RequireSeed();
+        foreach (var (lo, hi, band) in new[] { (100, 120, "the Sunken Reach"), (235, 255, "the Ashen Throne") })
+        {
+            var inBand = _npcs.Values
+                .Where(n => n.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
+                .Where(n => StatFormulas.NpcLevel(n) >= lo && StatFormulas.NpcLevel(n) <= hi)
+                .ToList();
+            Assume.That(inBand, Is.Not.Empty);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(inBand.Where(n => n.Group == 0).Select(n => n.TrimmedName).ToList(), Is.Empty,
+                    $"{band} ({lo}-{hi}) holds a mob on no side at all");
+                Assert.That(inBand.Select(n => n.Group).Distinct().ToList(), Has.Count.EqualTo(2),
+                    $"{band} ({lo}-{hi}) is split across "
+                    + string.Join(", ", inBand.GroupBy(n => n.Group).OrderBy(g => g.Key)
+                        .Select(g => $"{g.Key}x{g.Count()}")));
+            });
+        }
     }
 
     /// <summary>A side means nothing on an NPC the hostility scan never looks at — it skips Friendly,
@@ -883,24 +908,30 @@ public class SeedIntegrityTests
         });
     }
 
-    /// <summary>Two mobs drawn the same way are on the same side. What a mob IS drawn as is what it is, and
-    /// that is how the roster picks a side in the first place — so this catches a hand edit that put one orc
-    /// with the companies without restating the sprite table a third time.</summary>
+    /// <summary>Every mob on a CREATURE row is on the same side. Each of these rows draws one family — the
+    /// wolves, the birdmen, the gravebound, the orcs, the birds — and a family fights as one, so a lone orc
+    /// carrying a company's number is a mis-set group. The human rows say nothing either way: a company, a
+    /// cult and a lone scavenger all wear them, since the roster strides neighbours across the pool so they
+    /// do not arrive looking like twins.</summary>
     [Test]
-    public void MobsDrawnTheSameWay_AreOnTheSameSide()
+    public void EveryCreatureRow_IsOneSide()
     {
         RequireSeed();
-        var bySprite = _npcs.Values
+        // Rows of Sprites.bmp that draw a creature rather than a person: 8/11/12/13/14/18/19 monsters,
+        // 20/21/22 birds, 46 orc.
+        int[] creatureRows = [8, 11, 12, 13, 14, 18, 19, 20, 21, 22, 46];
+        var byRow = _npcs.Values
             .Where(n => n.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
+            .Where(n => creatureRows.Contains(n.Sprite))
             .GroupBy(n => n.Sprite);
 
         Assert.Multiple(() =>
         {
-            foreach (var row in bySprite)
+            foreach (var row in byRow)
             {
                 var sides = row.Select(n => n.Group).Distinct().ToList();
                 Assert.That(sides, Has.Count.EqualTo(1),
-                    $"sprite row {row.Key} is drawn for both sides: "
+                    $"sprite row {row.Key} draws one family across several sides: "
                     + string.Join(", ", row.Select(n => $"{n.TrimmedName}={n.Group}")));
             }
         });

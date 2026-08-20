@@ -126,7 +126,20 @@ public sealed partial class MainWindowViewModel
         AddGroup(groups, EditorStrings.References_KeepsShop, ShopLinks(s => s.Keeper == num));
         AddGroup(groups, EditorStrings.References_Speaks, ConversationLinks(c => c.SpeakerNpc == num));
         AddGroup(groups, EditorStrings.References_SpawnsOn, MapLinks(m => m.Npcs.Any(e => e.Npc == num)));
+        AddGroup(groups, EditorStrings.References_GroupedWith, AlliedNpcLinks(num));
         return groups;
+    }
+
+    /// <summary>The other NPCs sharing this one's alliance group — a sibling relation rather than an inbound
+    /// reference, but it answers the same "who else is involved here?" question the panel exists for. Group 0
+    /// means ungrouped, which is every NPC's default and so names no allies.</summary>
+    private IEnumerable<ReferenceLinkViewModel> AlliedNpcLinks(int num)
+    {
+        var group = NpcEditor.Items.FirstOrDefault(r => r.Index == num)?.Group ?? 0;
+        if (group == 0) return [];
+        return NpcEditor.Items
+            .Where(r => r.Index != num && r.Group == group)
+            .Select(r => Link(r.DisplayName, () => Open("NPCs", NpcEditor, r.Index)));
     }
 
     private IReadOnlyList<ReferenceGroupViewModel> RefsToQuest(int num)
