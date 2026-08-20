@@ -15,9 +15,9 @@ source rather than existing to produce it.
 This folder used to be a catch-all, which is how it ended up holding three unrelated things. The line
 now is what the script is *for*, and there are two other homes:
 
-- **Repository self-checks** live in [`.github/checks/`](../.github/checks) — `check-doc-links.mjs` and
-  `check-seed-counts.mjs`. They validate this repo's own docs and seed data and are run by CI. They are
-  nobody's feature; a player has no reason to run them.
+- **Repository self-checks** live in [`.github/checks/`](../.github/checks) — `check-doc-links.mjs`,
+  `check-seed-counts.mjs` and `check-readme-facts.mjs`. They validate this repo's own docs and seed data
+  and are run by CI. They are nobody's feature; a player has no reason to run them.
 - **Content and asset generators** live in the sibling **`MirageSourceRemastered.Tools`** repository —
   the seed-data pipeline, the icon and control-image scripts, and the balance simulations. Their output
   is committed here; the code that produces it is not part of the game.

@@ -16,7 +16,7 @@
 // go red rather than quietly verifying nothing — a check that silently stops checking is worse than
 // no check, because it also stops anyone worrying about the thing.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -72,21 +72,37 @@ facts.push({
   phrase: v => `.NET ${v}`,
 });
 
+// How many test suites sit under tests/. The number is prose in two documents and in three comments in
+// the CI workflow, and nothing but this ties any of them to the folder they describe.
+const suites = readdirSync(join(root, 'tests'), { withFileTypes: true })
+  .filter(e => e.isDirectory() && existsSync(join(root, 'tests', e.name, `${e.name}.csproj`)))
+  .length;
+facts.push({
+  what: 'test suites',
+  actual: suites,
+  phrase: n => `the ${NUMBER_WORDS[n] ?? n} test suites`,
+  files: ['README.md', 'docs/testing.md'],
+});
+
 const problems = [];
 const passed = [];
 
-for (const { what, actual, phrase } of facts) {
+for (const { what, actual, phrase, files = ['README.md'] } of facts) {
   if (actual === null || actual === undefined) {
     problems.push(`  ${what}: could not read the real value from the repository`);
     continue;
   }
-  const expected = phrase(actual);
-  if (readme.toLowerCase().includes(expected.toLowerCase())) {
+  const expected = phrase(actual).toLowerCase();
+  // A fact stated in several documents has to hold in every one of them: the copy nobody updated is
+  // exactly the copy a reader will find first.
+  const missing = files.filter(f => !readFileSync(join(root, f), 'utf8').toLowerCase().includes(expected));
+  if (missing.length === 0) {
     passed.push(`  ${what}: ${actual}`);
     continue;
   }
   problems.push(
-    `  ${what}: the repository says ${actual}, so README.md should contain "${expected}" — it does not.\n` +
+    `  ${what}: the repository says ${actual}, so ${missing.join(' and ')} should contain "${phrase(actual)}" — ` +
+    `${missing.length > 1 ? 'they do' : 'it does'} not.\n` +
     `      Either the number drifted, or the sentence moved and this check needs its new wording.`);
 }
 

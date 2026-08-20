@@ -19,8 +19,9 @@ place the distinction actually earns its keep.
 
 All three are **drawn** rather than rasterized from an SVG — the mark is nine rounded rectangles and
 the badges are a few polygons, so the geometry is a page of numbers in a generator. That generator is
-part of the unpublished tools repository (see the main README); the icons it produces are committed
-here, in every format and size, so nothing about building or rebranding this repository depends on it.
+published, under `ArtGenerators/` in the [tools repository](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public);
+the icons it produces are committed here, in every format and size, so nothing about building or
+rebranding this repository depends on it.
 
 **Rebranding does not need that script.** Every route below replaces a committed file, and three of
 the four take a repack rather than a compiler. Draw or export your own at the listed sizes and drop

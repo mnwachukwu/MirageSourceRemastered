@@ -18,16 +18,42 @@ dotnet publish editor/src/Mirage.Editor/Mirage.Editor.csproj /p:PublishProfile=o
 
 Publish everything at once with Velopack installers:
 ```sh
-msbuild Mirage.Publish.csproj /t:PublishAll         # all apps, all platforms
-msbuild Mirage.Publish.csproj /t:PublishAll_Win     # all apps, Windows only
-msbuild Mirage.Publish.csproj /t:PublishAll_Linux
-msbuild Mirage.Publish.csproj /t:PublishAll_Osx
-msbuild server/Mirage.Server.Publish.csproj /t:PublishAll   # one app, all platforms
+msbuild Mirage.Publish.csproj -t:PublishAll         # all apps, all platforms
+msbuild Mirage.Publish.csproj -t:PublishAll_Win     # all apps, Windows only
+msbuild Mirage.Publish.csproj -t:PublishAll_Linux
+msbuild Mirage.Publish.csproj -t:PublishAll_Osx
+msbuild server/Mirage.Server.Publish.csproj -t:PublishAll   # one app, all platforms
 ```
 
-Packaging runs **only for an explicit `/t:PublishAll*` target**. A plain `dotnet build` — of a publish project, or of `Mirage.slnx` — prints a one-line reminder and packages nothing. It used to package on every build, so an ordinary solution build ran nine `dotnet publish` passes plus `vpk`/`mgcb`/`tar`, taking 127s instead of ~9s. In Visual Studio, right-click → **Build** on a publish project therefore no longer packages; use the explicit target.
+Packaging runs **only for an explicit `-t:PublishAll*` target**. A plain `dotnet build` — of a publish project, or of `Mirage.slnx` — prints a one-line reminder and packages nothing. It used to package on every build, so an ordinary solution build ran nine `dotnet publish` passes plus `vpk`/`mgcb`/`tar`, taking 127s instead of ~9s. In Visual Studio, right-click → **Build** on a publish project therefore no longer packages; use the explicit target.
 
 Installer artifacts (`.exe`, AppImage, `.app.tar.gz`) land in `dist/installers/`. `dotnet tool restore` runs automatically on solution open. The server publishes as a single self-contained executable; the client and editor cannot be single-file because MonoGame and SkiaSharp native libraries must sit on disk beside the binary.
+
+## Compiled content is committed
+
+An ordinary build **compiles no content**. The six built assets — five spritefont atlases and one
+effect — live in the tree at `client/src/Mirage.Client.Shell/Content/prebuilt/`, and the build copies
+them. Why that trade was made is in
+[Technical decisions](architecture.md#why-compiled-content-is-committed); this is how to work with it.
+
+Rebuild after editing a `.spritefont`, the bundled `.ttf`, or the `.fx` — **on Windows**, which is the
+only platform that can:
+
+```sh
+dotnet msbuild client/src/Mirage.Client.Shell/Mirage.Client.Shell.csproj -t:BuildContent
+```
+
+It runs `mgcb` straight into `Content/prebuilt/`, so `git status` afterwards is the review — the same
+shape as regenerating the seed — and rewrites `Content/prebuilt/sources.sha256`, which records every
+input the committed output was built from. Commit whatever it changed, that file included.
+
+> **The failure this guards against is silence.** An edited source with a stale `.xnb` produces no error
+> anywhere: the game keeps running the old font or the old shader and nothing says so.
+> [`check-prebuilt-content.mjs`](../.github/checks/check-prebuilt-content.mjs) hashes every content
+> source and compares against the manifest, failing in CI and in a local `-t:TestAll` alike. It derives
+> the source list by walking `Content/`, so adding a font cannot escape it — a source with no manifest
+> entry is a failure, and so is a manifest entry whose source is gone. Hashes rather than timestamps,
+> because a fresh clone has no useful mtimes and a rebase has misleading ones.
 
 ## Versioning and releases
 

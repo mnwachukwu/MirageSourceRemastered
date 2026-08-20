@@ -2,16 +2,17 @@
 
 What the suites cover, how to run one, and why the cross-platform matrix exists.
 
-One **NUnit** test project per source portion, each sitting next to the code it exercises; the root `Mirage.slnx` groups them under a `/Tests/` solution folder.
+The five test suites are one **NUnit** project per source portion, each named for the code it exercises; the root `Mirage.slnx` groups them under a `/Tests/` solution folder.
 
 | Test project | Exercises | Runs on |
 |---|---|---|
 | `Mirage.Server.Tests` | `Mirage.Server.Core` + `Mirage.Server.Host` + `Mirage.Shared` | all three platforms |
 | `Mirage.Client.Core.Tests` | `Mirage.Client.Core` — the shell-agnostic core | all three platforms |
 | `Mirage.Editor.Tests` | `Mirage.Editor` | all three platforms |
-| `Mirage.Client.Shell.Tests` | `Mirage.Client.Shell` — input, panels, HUD | Windows only, see below |
+| `Mirage.Server.Shell.Tests` | `Mirage.Server.Shell` — the management window | all three platforms |
+| `Mirage.Client.Shell.Tests` | `Mirage.Client.Shell` — input, panels, HUD | all three platforms |
 
-Around 1,250 tests across the four. The count is left approximate on purpose — an exact one here is a
+Around 1,950 tests across the five. The count is left approximate on purpose — an exact one here is a
 number nothing updates and everything eventually contradicts.
 
 | Scope | Command |
@@ -21,28 +22,33 @@ number nothing updates and everything eventually contradicts.
 | One area | `dotnet msbuild client/Mirage.Client.Test.csproj -t:TestAll` (or `server/Mirage.Server.Test.csproj` / `editor/Mirage.Editor.Test.csproj`) |
 | One project | `dotnet test tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj` |
 
-**Where the suites live, and why the drivers exist.** All four sit under `tests/`, out of the
+**Where the suites live, and why the drivers exist.** All five sit under `tests/`, out of the
 `src/` trees they exercise, and each is named for what it covers rather than for where its subject
 happens to be. Each area then gets a driver — `Mirage.Server.Test.csproj`, `Mirage.Client.Test.csproj`,
 `Mirage.Editor.Test.csproj` — mirroring the publish profiles exactly: publishing the server is
 `Mirage.Server.Publish.csproj`, so testing it is `Mirage.Server.Test.csproj`, and neither asks you to
 remember a path.
 
+Two areas hold two suites each, and the driver names both: the server driver runs `Mirage.Server.Tests`
+and `Mirage.Server.Shell.Tests`, the client driver runs `Mirage.Client.Core.Tests` and
+`Mirage.Client.Shell.Tests`. Each keeps going after a failure and reports both results, so one red suite
+never hides its neighbour.
+
 The area drivers deliberately do **not** run on a solution build; only the aggregate
 `Mirage.Test.csproj` does. Both would mean every suite running twice — the same double-work that once
 turned a 9-second solution build into a 127-second one when the publish projects defaulted to
-publishing. `/t:TestAll` is always explicit for an area.
+publishing. `-t:TestAll` is always explicit for an area.
 
 Inside each suite the sources are grouped into folders (`Combat/`, `Ai/`, `Formulas/`, …) so the
 project root is the csproj and a handful of directories rather than seventy loose files. The folders
 carry no namespace: everything stays in `Mirage.Server.Tests` and friends, because a folder is not a
 namespace in C# and renaming them would be churn no reader benefits from.
 
-`Mirage.Test.csproj` runs every suite, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. A bare `dotnet msbuild Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
+`Mirage.Test.csproj` runs every suite and the documentation checks, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. The six exit codes have to concatenate to `000000`. A bare `dotnet msbuild Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
 
 > Building or testing while the game is running fails to copy the shared DLLs — close the running app first.
 
-**Current coverage.** All four suites are real; the placeholder smoke tests are gone. Roughly 19,300 lines of tests across 137 files, weighted toward the server, where most of the rules live.
+**Current coverage.** All five suites are real; the placeholder smoke tests are gone. Roughly 34,000 lines of tests across 200 files, weighted toward the server, where most of the rules live.
 
 What they actually pin, by kind:
 
@@ -57,7 +63,7 @@ What they actually pin, by kind:
 
 ## Across platforms
 
-CI runs three of the four suites on **Linux, macOS and Windows**; the fourth stays on Windows.
+CI runs **every suite on Linux, macOS and Windows**.
 
 Cross-building for three platforms from one runner proves they *compile* and nothing more — it never
 runs a line of code on the other two. That gap is not theoretical here:
@@ -67,16 +73,56 @@ runs a line of code on the other two. That gap is not theoretical here:
 - Linux is **case-sensitive**. Every path the persistence and localization loaders build is somewhere
   that difference could bite, and no Windows runner will ever tell you.
 
-`Mirage.Client.Shell.Tests` is the exception, and stays on Windows: it is the only suite that pulls
-in MonoGame, and building the client's content — five spritefonts and a shader — needs native tooling
-off Windows that is not worth fighting for tests that are not platform-sensitive in the first place.
-The other three touch no MonoGame at all, which is what makes the split cheap.
+`Mirage.Client.Shell.Tests` is the one that needs a word of explanation, because it pulls in MonoGame
+and MonoGame has a reputation for being Windows-shaped. The **runtime** is not: `DesktopGL` is
+cross-platform by design, and no test in the suite builds a `GraphicsDevice` or loads a piece of
+content. What is Windows-bound is compiling the **content** — see
+[Building](building.md#compiled-content-is-committed) — and since that output is committed rather than
+built, no ordinary build reaches the pipeline at all. The suite needs no special handling to run
+anywhere.
+
+Keeping it in the matrix is the point. The client is a third of what ships, and a row that only ever
+goes green on Windows is not evidence about Linux.
 
 Windows appears in the matrix as well as in the full build job, so the three legs are directly
 comparable. It costs a minute of duplicated work and buys a row per platform that is either green or
 not, instead of one green row and two a reader has to reason about.
 
-## The documentation is checked too
+Each leg also **builds the client for real** — content pipeline included — after its suites. That is the
+only check on the claim that a from-source build needs the .NET SDK and nothing else, and it is a
+different question from whether the code runs: the pipeline shells out to `mgcb`, whose font processor
+is native code and whose inputs have to exist on the machine doing the building.
+
+## What has actually been played
+
+Automated tests say the logic runs; they say nothing about rendering, audio, input or windowing. Those
+have been exercised by hand, and unevenly:
+
+| | Played on |
+|---|---|
+| Windows | continuously, during development |
+| Linux | **yes** — SteamOS on a Steam Deck, handheld mode, which tested the controller scheme at the same time. Controller-arbitration changes made *since* that session have not been back on the device |
+| macOS | **never** |
+
+Worth stating plainly because the download page offers all three. The macOS build is compiled, unit
+tested and unplayed.
+
+## What no compiler reads is checked too
+
+Four checks in [`.github/checks/`](../.github/checks), each its own CI job, each gating a release
+alongside the suites, and all four run by a local `-t:TestAll` as well:
+
+| Check | What it holds |
+|---|---|
+| `check-doc-links.mjs` | Every Markdown link that points inside the repository still resolves |
+| `check-seed-counts.mjs` | The record counts the README quotes match the folders they describe |
+| `check-readme-facts.mjs` | The claims the prose makes about the codebase — project count, suite count, level ceiling, framework — match the repository |
+| `check-prebuilt-content.mjs` | The committed font and shader binaries were built from the content sources beside them |
+
+The middle two exist because a number in a sentence is invisible to the compiler. Nobody adding a test
+project rereads a paragraph in another file, and a count stated in five places is a count that will
+disagree with itself. The last one covers the same blindness in a binary: see
+[Building](building.md#compiled-content-is-committed).
 
 ```sh
 node .github/checks/check-doc-links.mjs

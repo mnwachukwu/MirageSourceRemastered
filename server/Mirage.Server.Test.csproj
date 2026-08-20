@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.Build.NoTargets/3.7.0">
 
-  <!-- Runs the server suite on its own — the test-side mirror of Mirage.Server.Publish.csproj, and
-       one of four such drivers (client, server, editor, plus the aggregate Mirage.Test.csproj at the
-       repository root).
+  <!-- Runs both server suites — the test-side mirror of Mirage.Server.Publish.csproj, and one of four
+       such drivers (client, server, editor, plus the aggregate Mirage.Test.csproj at the repository
+       root).
 
        Why an area driver exists at all when `dotnet test <project>` is one line: this is the name a
        reader already knows. Publishing the server is Mirage.Server.Publish.csproj, so testing it is
@@ -12,30 +12,42 @@
 
          dotnet msbuild server/Mirage.Server.Test.csproj /t:TestAll
 
-       Covers Mirage.Shared as well as the server: the shared protocol types, records and formulas
-       have no suite of their own and are exercised from here. -->
+       Two suites. Mirage.Server.Tests covers Mirage.Shared as well as the server itself — the shared
+       protocol types, records and formulas have no suite of their own and are exercised from here.
+       Mirage.Server.Shell.Tests covers the Avalonia management window that ships beside the console
+       server. Neither takes a MonoGame dependency, so both run on all three platforms. -->
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <_ServerTests>$(MSBuildThisFileDirectory)../tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj</_ServerTests>
+    <_ServerShellTests>$(MSBuildThisFileDirectory)../tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
+    <_AllTests>$(_ServerTests);$(_ServerShellTests)</_AllTests>
   </PropertyGroup>
 
   <!-- Built through the MSBuild task rather than left to `dotnet test`, for the reason spelled out at
        length in Mirage.Test.csproj: a nested `dotnet test` is a separate MSBuild PROCESS writing the
        same bin/obj as an outer solution build, and cross-process builds share no result cache.
        Routing the build through the task puts it in this build's own scheduler instead. -->
-  <Target Name="BuildSuite">
-    <MSBuild Projects="$(_ServerTests)" Targets="Restore" />
-    <MSBuild Projects="$(_ServerTests)" Targets="Build" />
+  <Target Name="BuildSuites">
+    <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" />
+    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" />
   </Target>
 
-  <Target Name="TestAll" DependsOnTargets="BuildSuite">
+  <Target Name="TestAll" DependsOnTargets="BuildSuites">
+    <!-- ContinueOnError, as in the aggregate: a red Server suite should not hide the Shell result. -->
     <Message Text="── Server ──" Importance="High" />
-    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo" />
-  </Target>
+    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_ServerExit" />
+    </Exec>
+    <Message Text="── Server.Shell ──" Importance="High" />
+    <Exec Command="dotnet test &quot;$(_ServerShellTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_ServerShellExit" />
+    </Exec>
 
-  <!-- No ContinueOnError above, unlike the aggregate: with one suite there is nothing to hide behind
-       it, so a plain failure is the clearest report. -->
+    <Error Condition="'$(_ServerExit)$(_ServerShellExit)' != '00'"
+           Text="Server test suites failed — Server=$(_ServerExit) Server.Shell=$(_ServerShellExit)." />
+    <Message Text="═══ Server test suites passed ═══" Importance="High" />
+  </Target>
 
   <!-- Build does NOT chain to TestAll, and that is the whole point of this target existing.
        This project is a member of Mirage.slnx, where Mirage.Test.csproj already runs every suite on
@@ -45,7 +57,7 @@
        explicitly is what makes an area driver free to sit in the solution. -->
   <Target Name="Build">
     <Message Importance="High"
-             Text="Mirage.Server.Test: nothing run. Use /t:TestAll to test the server on its own; a solution build already tests everything via Mirage.Test.csproj." />
+             Text="Mirage.Server.Test: nothing run. Use /t:TestAll to test both server suites on their own; a solution build already tests everything via Mirage.Test.csproj." />
   </Target>
 
 </Project>

@@ -87,6 +87,18 @@ public sealed partial class TileGridControl : Control
 
         if (!inActive) return;
 
+        // A held button with no drag origin means the press never established one: the branches that
+        // navigate, place a pin or paste all finish their work and return before the origin is set.
+        // Seed it from where the cursor is now rather than interpolating from -1,-1, which is off-map
+        // and clips to a streak running out of the 0,0 corner. Only the anomalous case reaches this —
+        // an ordinary press sets the origin to the tile it pressed.
+        if ((_leftDown || _rightDown) && _lastDragX < 0)
+        {
+            _lastDragX = x;
+            _lastDragY = y;
+            return;
+        }
+
         // Selection-drag update — feeds the VM a normalized rect via the SelectionChanged event.
         if (Action == EditorAction.Select && _leftDown && _selStartX >= 0
             && (x != _lastDragX || y != _lastDragY))
@@ -231,9 +243,15 @@ public sealed partial class TileGridControl : Control
         // Ctrl+Alt+Shift + left-click on a neighbor cell = switch to that map.
         // Must run before the pan and paste-retain branches because the modifier
         // set is a superset of both.
+        //
+        // Both navigation branches clear the drag flags first, for the reason the NPC-placement branch
+        // above does: loading a map is synchronous and leaves the button DOWN over a different map, so
+        // the next PointerMoved would Bresenham drag-PAINT from a drag origin belonging to nothing —
+        // `-1,-1` after a release, which clips to a streak running from 0,0 to wherever the cursor got to.
         if (_leftDown && _altDown && _retainDown
             && TryGetNeighborCell(e.GetPosition(this), out var cell))
         {
+            _leftDown = _rightDown = false;
             NeighborMapClicked?.Invoke(cell);
             e.Handled = true;
             return;
@@ -248,6 +266,7 @@ public sealed partial class TileGridControl : Control
             if (InActiveMap(wx, wy) && Map.Tile[wx, wy].Type == TileType.Warp)
             {
                 var t = Map.Tile[wx, wy];
+                _leftDown = _rightDown = false;
                 WarpDestinationClicked?.Invoke((t.WarpMap, t.WarpX, t.WarpY));
                 e.Handled = true;
                 return;

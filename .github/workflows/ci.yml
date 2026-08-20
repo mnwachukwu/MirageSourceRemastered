@@ -81,6 +81,13 @@ jobs:
       - name: Check the README's claims about the repository
         run: node .github/checks/check-readme-facts.mjs
 
+      # The build outputs committed to the tree. Neither half of the content pipeline runs off Windows,
+      # so the compiled fonts and shader are committed and every platform ships them — which means
+      # editing a .spritefont or the .fx changes nothing anybody sees until somebody rebuilds, with no
+      # error in between. See docs/architecture.md, "Why compiled content is committed".
+      - name: Check the committed content matches its sources
+        run: node .github/checks/check-prebuilt-content.mjs
+
   # ---- Does it work off Windows? ---------------------------------------------------------------
   #
   # The build job below compiles for all three platforms from one Windows runner, which proves they
@@ -93,10 +100,16 @@ jobs:
   # runner can ever surface: every path the persistence and localization loaders build is a place
   # that difference could bite.
   #
-  # Three of the four suites run here. The fourth, Mirage.Client.Shell.Tests, is left to the Windows
-  # job: it is the only project that pulls in MonoGame, and building its content — five spritefonts
-  # and a shader — needs native tooling off Windows that is not worth fighting for tests that are not
-  # platform-sensitive anyway.
+  # ALL FIVE suites run here, on all three platforms. Nothing about the client's CODE is
+  # Windows-bound: MonoGame.Framework.DesktopGL is cross-platform by design, and no test in
+  # Mirage.Client.Shell.Tests constructs a GraphicsDevice or loads a piece of content.
+  #
+  # What IS Windows-bound is compiling the one .fx shader — the effect compiler is SharpDX.D3DCompiler
+  # plus libmojoshader_64.dll, and MonoGame's own answer off Windows is Wine. That is a CONTENT step,
+  # not a code one, so the suite skips it with EnableMGCBItems=false: the MonoGame targets gate the
+  # whole content chain on that property, and the project declares no explicit MonoGameContentReference.
+  # The fonts and textures would in fact build anywhere (the mgcb tool ships freetype, FreeImage and
+  # nvtt for Linux and macOS); only the shader would not.
   #
   # Windows is in the matrix as well, even though the build job re-runs these. A minute of duplicated
   # work buys a row per platform that either is or is not green, rather than one row that is green
@@ -128,17 +141,33 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
           restore-keys: nuget-${{ runner.os }}-
 
-      # Named individually rather than through Mirage.Test.csproj, which drives all four and would
-      # drag the MonoGame client in. No tool manifests are restored: none of these three need mgcb,
-      # and nothing here publishes, so vpk is not wanted either.
+      # Named individually rather than through Mirage.Test.csproj, so the content build can be turned
+      # off for the one suite that would otherwise trigger it. No tool manifests are restored: with
+      # EnableMGCBItems off nothing needs mgcb, and nothing here publishes, so vpk is not wanted either.
       - name: Test — server and shared
         run: dotnet test tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo
+
+      - name: Test — server shell
+        run: dotnet test tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj -c Release --nologo
 
       - name: Test — client core
         run: dotnet test tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj -c Release --nologo
 
+      # Nothing special is needed: the client compiles no content, so this suite reaches no native
+      # tooling. No test in it builds a GraphicsDevice or loads an asset either.
+      - name: Test — client shell
+        run: dotnet test tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj -c Release --nologo
+
       - name: Test — editor
         run: dotnet test tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj -c Release --nologo
+
+      # The suites above reach the client only as a project reference. This builds the SHIPPED thing on
+      # each platform — apphost and all — which is the check on what the README promises: that a
+      # from-source build needs the .NET SDK and nothing else, on any of the three. It is only true
+      # because the compiled content is committed; a build that had to run mgcb would need Tahoma and a
+      # Windows effect compiler. Runs last so a failure here reports after the suites, not instead.
+      - name: Build the client
+        run: dotnet build client/src/Mirage.Client.Shell/Mirage.Client.Shell.csproj -c Release --nologo
 
   # ---- Everything, and the shipping artifacts --------------------------------------------------
 
@@ -199,9 +228,9 @@ jobs:
           fi
 
       # This runs the tests as well as compiling. Mirage.Test.csproj is a solution member whose Build
-      # target is TestAll, so a solution build drives all four suites and fails if any of them does —
-      # the four exit codes have to concatenate to "0000". That is the repository's own convention;
-      # asking for the tests separately here would just run them twice.
+      # target is TestAll, so a solution build drives all five suites plus the documentation checks and
+      # fails if any of them does — the six exit codes have to concatenate to "000000". That is the
+      # repository's own convention; asking for the tests separately here would just run them twice.
       - name: Build and test
         run: dotnet build Mirage.slnx -c Release --no-restore --nologo
 

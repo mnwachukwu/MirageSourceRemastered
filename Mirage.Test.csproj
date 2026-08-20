@@ -61,18 +61,19 @@
       <Output TaskParameter="ExitCode" PropertyName="_ServerShellExit" />
     </Exec>
 
-    <!-- The same guards CI runs over the prose: seed counts, README facts, and relative links. They
-         live outside the test suites because they check documentation rather than code, and running
-         them here is what stops a content change from passing locally and failing on push. Skipped
-         with a warning where node is absent, so a green local run without it is not a silent pass. -->
-    <Message Text="── Docs ──" Importance="High" />
+    <!-- The same guards CI runs over what no compiler reads: seed counts, README facts, relative
+         links, and the committed content against its sources. They live outside the test suites because
+         none of them checks code, and running them here is what stops such a change from passing
+         locally and failing on push. Skipped with a warning where node is absent, so a green local
+         run without it is not a silent pass. -->
+    <Message Text="── Checks ──" Importance="High" />
     <Exec Command="node --version" ContinueOnError="true" StandardOutputImportance="low">
       <Output TaskParameter="ExitCode" PropertyName="_NodeExit" />
     </Exec>
     <Warning Condition="'$(_NodeExit)' != '0'"
-             Text="node not found — the documentation checks did NOT run. CI still runs them." />
+             Text="node not found — the repository checks did NOT run. CI still runs them." />
     <Exec Condition="'$(_NodeExit)' == '0'"
-          Command="node .github/checks/check-seed-counts.mjs &amp;&amp; node .github/checks/check-readme-facts.mjs &amp;&amp; node .github/checks/check-doc-links.mjs"
+          Command="node .github/checks/check-seed-counts.mjs &amp;&amp; node .github/checks/check-readme-facts.mjs &amp;&amp; node .github/checks/check-doc-links.mjs &amp;&amp; node .github/checks/check-prebuilt-content.mjs"
           WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_DocsExit" />
     </Exec>

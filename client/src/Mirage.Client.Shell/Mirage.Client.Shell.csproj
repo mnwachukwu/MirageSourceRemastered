@@ -42,6 +42,57 @@
     <PackageReference Include="TextCopy" Version="6.2.1" />
   </ItemGroup>
 
+  <!-- CONTENT IS COMMITTED, NOT COMPILED.
+       Everything under Content/prebuilt/ is a build output kept in the tree, and an ordinary build only
+       copies it. Neither half of this pipeline runs off Windows: the effect compiler is
+       SharpDX.D3DCompiler plus libmojoshader_64.dll, and four of the five spritefonts are drawn from
+       Tahoma, which ships with Windows and with nothing else. Compiling on the one platform that can and
+       shipping the result keeps a from-source build to "the .NET SDK and nothing else" on all three,
+       and keeps every platform looking identical.
+
+       EnableMGCBItems is off so the **/*.mgcb glob cannot sweep the manifest into an ordinary build.
+       Nothing names a MonoGameContentReference, so the content targets never run at all. -->
+  <PropertyGroup>
+    <EnableMGCBItems>false</EnableMGCBItems>
+    <!-- No ordinary build reaches for mgcb, so it is not fetched for one. BuildContent restores it itself. -->
+    <AutoRestoreMGCBTool>false</AutoRestoreMGCBTool>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Content\prebuilt\**\*.xnb"
+             Link="Content\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Recompile it, on Windows, by explicit request:
+         dotnet msbuild client/src/Mirage.Client.Shell/Mirage.Client.Shell.csproj -t:BuildContent
+       mgcb writes straight into Content/prebuilt/, so `git status` afterwards is the review — the same
+       shape as regenerating the seed. sources.sha256 records every input the committed output was built
+       from; .github/checks/check-prebuilt-content.mjs fails the build when they disagree. -->
+  <Target Name="BuildContent">
+    <Error Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+           Text="BuildContent needs Windows: MonoGame's effect compiler ships no Linux or macOS build, and the spritefonts are drawn from Tahoma, which only Windows has. Rebuild on Windows and commit Content/prebuilt/." />
+    <Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
+          Command="dotnet mgcb /quiet /@:&quot;$(MSBuildProjectDirectory)\Content\Content.mgcb&quot; /platform:DesktopGL /outputDir:&quot;$(MSBuildProjectDirectory)\Content\prebuilt&quot; /intermediateDir:&quot;$(MSBuildProjectDirectory)\Content\obj\Prebuilt&quot; /workingDir:&quot;$(MSBuildProjectDirectory)\Content&quot;" />
+
+    <!-- Every input the atlases and the effect are built FROM: the font descriptions, the one font file
+         bundled beside them, and the shader. A change to any of them makes the committed output stale. -->
+    <ItemGroup>
+      <_ContentSource Include="Content\**\*.spritefont;Content\**\*.ttf;Content\**\*.fx"
+                      Exclude="Content\bin\**;Content\obj\**;Content\prebuilt\**" />
+    </ItemGroup>
+    <GetFileHash Files="@(_ContentSource)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_ContentHashed" />
+    </GetFileHash>
+    <!-- Identity, not RecursiveDir: GetFileHash does not carry the latter through, and two files of the
+         same name in different folders have to stay distinguishable. -->
+    <WriteLinesToFile File="Content\prebuilt\sources.sha256" Overwrite="true"
+                      Lines="@(_ContentHashed->'%(FileHash) *%(Identity)')" />
+    <Message Importance="High"
+             Text="Content rebuilt into Content/prebuilt/. Commit what git reports there, sources.sha256 included." />
+  </Target>
+
   <ItemGroup>
     <ProjectReference Include="..\..\..\server\src\Mirage.Shared\Mirage.Shared.csproj" />
     <ProjectReference Include="..\Mirage.Client.Core\Mirage.Client.Core.csproj" />

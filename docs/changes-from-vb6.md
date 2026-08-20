@@ -74,7 +74,7 @@ Where the marketplace moves goods asynchronously, **direct trade** is its real-t
 
 #### Balance Changes
 
-The original Mirage Source 3.0.3 was horribly unbalanced. These are general tweaks and improvements to bring balance to the simplistic duality the original worked within. Formulas were checked against a standalone simulator, `CombatSim`, which lives in the unpublished tools repository (see the main README) — it has no dependency on the engine, so it is kept out of the game's solution and release cycle. The specific magnitudes are playtest-calibrated starting points, and tuning constants are isolated for fast retuning.
+The original Mirage Source 3.0.3 was horribly unbalanced. These are general tweaks and improvements to bring balance to the simplistic duality the original worked within. Formulas were checked against a standalone simulator, `CombatSim`. It is one of the balance simulators, which are the part of the tools repository that is **not** published (see the main README) — it has no dependency on the engine, so it is kept out of the game's solution and release cycle. The specific magnitudes are playtest-calibrated starting points, and tuning constants are isolated for fast retuning.
 
 | Change | What's different |
 |---|---|
