@@ -214,6 +214,7 @@ public sealed record EditorSaveMapGroupPacket : IPacket
     [JsonPropertyName("music")] public int Music { get; init; }
     [JsonPropertyName("moral")] public MapMoral? Moral { get; init; }
     [JsonPropertyName("indoors")] public bool? Indoors { get; init; }
+    [JsonPropertyName("alwaysLit")] public bool? AlwaysLit { get; init; }
     [JsonPropertyName("alwaysDark")] public bool? AlwaysDark { get; init; }
     [JsonPropertyName("bootMap")] public int BootMap { get; init; }
     [JsonPropertyName("bootX")] public int BootX { get; init; }
@@ -372,6 +373,7 @@ public sealed record UpdateMapGroupPacket : IPacket
     [JsonPropertyName("music")] public int Music { get; init; }
     [JsonPropertyName("moral")] public MapMoral? Moral { get; init; }
     [JsonPropertyName("indoors")] public bool? Indoors { get; init; }
+    [JsonPropertyName("alwaysLit")] public bool? AlwaysLit { get; init; }
     [JsonPropertyName("alwaysDark")] public bool? AlwaysDark { get; init; }
     [JsonPropertyName("bootMap")] public int BootMap { get; init; }
     [JsonPropertyName("bootX")] public int BootX { get; init; }

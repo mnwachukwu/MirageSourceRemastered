@@ -102,9 +102,6 @@ public sealed partial class GameplayScreen : IGameScreen
     private readonly DeathPanel _death = new();   // uncloseable death overlay
     private readonly ModerationPanel _moderation = new();   // Creator only; gated in the panel and again on the server
     private bool _wasDead;                          // alive→dead edge, to close open panels once on death
-    // Action bar: ONE cooldown for all four slots, on the same 1s beat as attacking and casting, so the
-    // bar can't outpace the rest of combat. Held here rather than per-slot because the cooldown is global.
-    private long _hotkeyReadyAtMs;
     private bool _marketWasOpen;                    // market open→closed edge, to tell the server to stop live broadcasts
     private readonly ContextMenu _contextMenu = new();
 
@@ -167,6 +164,10 @@ public sealed partial class GameplayScreen : IGameScreen
         var options = _ctx.OptionsPanel;
         _panels = new PanelSlot[PanelSlots.Count];
         _isPanelOpen = slot => _panels[slot].Panel.IsOpen;   // allocated once; see the field's note
+
+        // A potion spends the global beat, so the panel's Use button follows the same clock the action
+        // bar's sweep does.
+        _inv.CanUsePotion = () => PotionReady(Environment.TickCount64);
 
         _panels[PanelInventory] = new(PanelInventory, _inv,
             (input, active) => _inv.Update(input, _ctx.State, _ctx.Sender, active),
@@ -237,7 +238,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
         _panels[PanelTrade] = new(PanelTrade, _trade,
             (input, active) => _trade.Update(input, _ctx.State, _ctx.Sender, active),
-            (sb, font, _, active, _) => _trade.Draw(sb, font, _ctx.State, _items, active),
+            (sb, font, _, active, hover) => _trade.Draw(sb, font, _ctx.State, _items, active, hover),
             () => _trade.Close(), Capturing: () => _trade.IsCapturingInput);
 
         _panels[PanelQuestLog] = new(PanelQuestLog, _questLog,

@@ -261,10 +261,7 @@ public sealed partial class GameplayScreen : IGameScreen
         // The action bar sits directly above those links and belongs to the same background layer, so it
         // draws here — before the panel z-order — and an open window covers it like any other chrome.
         // Its hover tooltip is suppressed whenever a panel is under the mouse, for the same reason.
-        float cooldown = _hotkeyReadyAtMs > nowMs
-            ? (float)(_hotkeyReadyAtMs - nowMs) / Constants.PlayerAttackCooldownMs
-            : 0f;
-        HotkeyBarPanel.Draw(sb, font, _ctx.State, _items, cooldown,
+        HotkeyBarPanel.Draw(sb, font, _ctx.State, _items, hk => HotkeyCooldownFraction(hk, nowMs),
             _lastInput.ShowGamepadPrompts, _lastInput, canHover: topUnderMouse < 0);
 
         // The single tooltip is fed by panel Draws; only the topmost open panel under the mouse

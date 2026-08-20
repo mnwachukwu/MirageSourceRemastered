@@ -979,6 +979,7 @@ public sealed partial class EditorPacketHandler
         map.BootX = src.BootX;
         map.BootY = src.BootY;
         map.Indoors = src.Indoors;
+        map.AlwaysLit = src.AlwaysLit;
         map.AlwaysDark = src.AlwaysDark;
         map.GreetingSpeaker = src.GreetingSpeaker;
         map.JoinSay = src.JoinSay;
@@ -1058,6 +1059,7 @@ public sealed partial class EditorPacketHandler
         Music = g.Music,
         Moral = g.Moral,
         Indoors = g.Indoors,
+        AlwaysLit = g.AlwaysLit,
         AlwaysDark = g.AlwaysDark,
         BootMap = g.BootMap,
         BootX = g.BootX,
@@ -1108,6 +1110,7 @@ public sealed partial class EditorPacketHandler
         group.Music = p.Music;
         group.Moral = p.Moral;
         group.Indoors = p.Indoors;
+        group.AlwaysLit = p.AlwaysLit;
         group.AlwaysDark = p.AlwaysDark;
         group.BootMap = p.BootMap;
         group.BootX = p.BootX;
@@ -1121,7 +1124,7 @@ public sealed partial class EditorPacketHandler
 
         // Push the edit to online players. A MapGroup is an INDEPENDENT client-cached def (like items/npcs/shops):
         // the client holds the group and resolves each member map's effective values (Moral/Music/Indoors/
-        // AlwaysDark/display name) against it on demand (ClientState.*Of + MapGroupResolve), so a group edit needs
+        // lighting/display name) against it on demand (ClientState.*Of + MapGroupResolve), so a group edit needs
         // NO map re-send and NO map-revision bump — broadcasting the new group state re-caches it on every client
         // and the next frame recomputes. Server-side gameplay reads (GameWorld.*Of) already resolve against this
         // same live record, so they pick it up at once too. Reuses UpdateMapGroupPacket (the editor-fetch shape);

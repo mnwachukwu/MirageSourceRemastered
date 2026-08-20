@@ -62,6 +62,7 @@ public sealed record SendMapGroupsPacket : IPacket
         [property: JsonPropertyName("moral")] MapMoral? Moral,
         [property: JsonPropertyName("music")] int Music,
         [property: JsonPropertyName("indoors")] bool? Indoors,
+        [property: JsonPropertyName("alwaysLit")] bool? AlwaysLit,
         [property: JsonPropertyName("alwaysDark")] bool? AlwaysDark,
         [property: JsonPropertyName("bootMap")] int BootMap,
         [property: JsonPropertyName("bootX")] int BootX,
@@ -96,6 +97,7 @@ public sealed record SendMapPacket : IPacket
     [JsonPropertyName("bootX")] public int BootX { get; init; }
     [JsonPropertyName("bootY")] public int BootY { get; init; }
     [JsonPropertyName("indoors")] public bool? Indoors { get; init; }
+    [JsonPropertyName("alwaysLit")] public bool? AlwaysLit { get; init; }
     [JsonPropertyName("alwaysDark")] public bool? AlwaysDark { get; init; }
     // Map-enter/leave greeting. Editor-authored, editor-only: PacketBuilder.SendMap leaves
     // these blank for the game client (which never speaks them — the server does, from its own MapRecord), and

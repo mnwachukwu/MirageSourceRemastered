@@ -62,12 +62,12 @@ public sealed partial class GameplayScreen : IGameScreen
         // Safe-zone map area lights FIRST, MAX-blended: contiguous safe cells' flat interiors tile with no
         // seam, skirts spill. (Emitters are excluded from the Lights list inside safe cells, so no halo
         // sits over a town — only the wilderness-side skirt meets halos, where additive fills cleanly.)
-        if (_renderFrame.SafeMapLights.Count > 0)
+        if (_renderFrame.AlwaysLitMapLights.Count > 0)
         {
             sb.Begin(SpriteSortMode.Deferred, MirageGame.MaxLightBlend,
                 SamplerState.LinearClamp, null, null, null, transform);
             var safeColor = ScaleGlow(SafeZoneLightPeak, 1f);
-            foreach (var m in _renderFrame.SafeMapLights)
+            foreach (var m in _renderFrame.AlwaysLitMapLights)
             {
                 var dest = new Rectangle(
                     (int)m.ScreenX - MirageGame.MapAreaBleed, (int)m.ScreenY - MirageGame.MapAreaBleed,

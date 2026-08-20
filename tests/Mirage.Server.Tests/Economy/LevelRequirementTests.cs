@@ -50,20 +50,45 @@ public class LevelRequirementTests
     // ── Applicability: which kinds of item carry a level at all ──────────────
 
     [Test]
-    public void UsesLevelReq_CoversWhatIsEquippedOrConsumed()
+    public void UsesLevelReq_CoversWhatIsWornOrDrunk()
     {
         Assert.Multiple(() =>
         {
             foreach (var t in new[] { ItemType.Weapon, ItemType.Armor, ItemType.Helmet, ItemType.Shield })
                 Assert.That(ItemRecord.UsesLevelReq(t), Is.True, $"{t} is worn, so it can carry a level");
             foreach (var t in new[] { ItemType.PotionAddHp, ItemType.PotionSubSp })
-                Assert.That(ItemRecord.UsesLevelReq(t), Is.True, $"{t} is consumed, so it can carry a level");
-            Assert.That(ItemRecord.UsesLevelReq(ItemType.Spell), Is.True, "a scroll is consumed");
+                Assert.That(ItemRecord.UsesLevelReq(t), Is.True, $"{t} is drunk, so it can carry a level");
+
+            // A scroll's gate is on the SPELL it teaches — that is where learning is refused. A level on the
+            // paper as well would be a second number nothing reads, and an editor field always showing zero.
+            Assert.That(ItemRecord.UsesLevelReq(ItemType.Spell), Is.False);
 
             // Gold is not something you qualify for, and a door that refuses its own key because the
             // holder is under-leveled is a puzzle nobody asked for.
             Assert.That(ItemRecord.UsesLevelReq(ItemType.Currency), Is.False);
             Assert.That(ItemRecord.UsesLevelReq(ItemType.Key), Is.False);
+        });
+    }
+
+    /// <summary>Dropping the scroll case must not loosen the real gate: learning is still refused below the
+    /// SPELL's level, which is enforced where the scroll is used rather than on the item record.</summary>
+    [Test]
+    public void AScrollsGateIsTheSpellsLevel_NotTheItems()
+    {
+        var (world, items, p) = Setup(level: 5);
+        world.Items[9].Type = ItemType.Spell;
+        world.Items[9].SpellNum = 4;
+        world.Items[9].LevelReq = 0;             // Normalize() zeroes it; the paper carries no level
+        world.Spells[4].Name = "Firebolt";
+        world.Spells[4].LevelReq = 30;
+        p.Inv[1].Num = 9;
+
+        items.UseItem(1, 1);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(p.Spell.Count(s => s == 4), Is.Zero, "under the spell's level, so nothing is learned");
+            Assert.That(p.Inv[1].Num, Is.EqualTo(9), "and the scroll is not consumed");
         });
     }
 
@@ -82,6 +107,21 @@ public class LevelRequirementTests
             Assert.That(key.LevelReq, Is.EqualTo(0));
             Assert.That(sword.LevelReq, Is.EqualTo(20), "a weapon keeps its level");
         });
+    }
+
+    /// <summary>Normalize and the predicate must agree across EVERY type. They drive different things — the
+    /// editor shows the field from the predicate, Normalize decides what a save keeps — so a type where they
+    /// disagree is a field that offers to be set and then silently discards what was typed.</summary>
+    [Test]
+    public void Normalize_AndUsesLevelReq_AgreeOnEveryType()
+    {
+        foreach (ItemType t in Enum.GetValues<ItemType>())
+        {
+            var r = new ItemRecord { Type = t, LevelReq = 40 };
+            r.Normalize();
+            Assert.That(r.LevelReq, Is.EqualTo(ItemRecord.UsesLevelReq(t) ? (short)40 : (short)0),
+                $"{t}: Normalize and UsesLevelReq disagree, so the editor and the saved file do too");
+        }
     }
 
     // Unlike the item fields, a spell's level applies to every type, so Normalize must never clear it —

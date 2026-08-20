@@ -51,4 +51,8 @@
              Link="assets\graphics\items\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mirage.Editor.Tests" />
+  </ItemGroup>
+
 </Project>

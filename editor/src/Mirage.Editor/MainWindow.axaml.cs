@@ -213,7 +213,6 @@ public partial class MainWindow : FAAppWindow
             vm.ShowDisconnectDialogAsync = async dlgVm =>
             {
                 var dlg = new DisconnectDialog { DataContext = dlgVm };
-                bool decided = false;
                 // ConnectDialog must be owned by this dialog, not the main window,
                 // because ShowDialog blocks the owner's message loop.
                 dlgVm.ShowConnectDialogAsync = async connectVm =>
@@ -222,9 +221,10 @@ public partial class MainWindow : FAAppWindow
                     connectVm.CloseRequested += () => connectDlg.Close();
                     await connectDlg.ShowDialog(dlg);
                 };
-                dlgVm.CloseRequested += () => { decided = true; dlg.Close(); };
-                // Force a decision — the user cannot dismiss this with the X button.
-                dlg.Closing += (_, e) => { if (!decided) e.Cancel = true; };
+                dlgVm.CloseRequested += () => dlg.Close();
+                // Closing the window IS a decision: carry on offline, which is what the caller does with any
+                // exit that is not a reconnect. Nothing is preserved by refusing the close — the session is
+                // already gone — and a modal with no way out turns an unexpected open into a frozen editor.
                 await dlg.ShowDialog(this);
             };
         }

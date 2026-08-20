@@ -158,9 +158,15 @@ public sealed partial class TileGridControl : Control
         }
     }
 
+    /// <summary>Drops the tile cursor when the pointer leaves the grid.
+    ///
+    /// <para>The position decides, not the event. Pressing Alt puts the window into access-key mode,
+    /// which raises a synthetic exit while the pointer has not moved at all; an exit whose coordinates
+    /// are still inside the control is one of those and is ignored.</para></summary>
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
+        if (new Rect(Bounds.Size).Contains(e.GetPosition(this))) return;
         if (_hoverX != -1 || _hoverY != -1)
         {
             _hoverX = -1;

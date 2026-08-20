@@ -201,6 +201,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             BootX = p.BootX,
             BootY = p.BootY,
             Indoors = p.Indoors,
+            AlwaysLit = p.AlwaysLit,
             AlwaysDark = p.AlwaysDark,
             MapGroup = p.MapGroup,
         };

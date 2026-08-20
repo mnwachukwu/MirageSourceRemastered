@@ -63,6 +63,48 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject
 
     /// <summary>The row the editor pane is bound to, or null when nothing is selected.</summary>
     public abstract TRow? Selected { get; }
+
+    // ── What points at the selected record ───────────────────────────────────
+    // Every reference in this data model runs one way: the child names the parent, and no record carries a
+    // list of its dependents. So the answer is a scan of the OTHER collections, which only
+    // MainWindowViewModel can reach — it owns every editor. It supplies the scan here.
+
+    /// <summary>Supplies the records that point at the given record number, grouped by relationship. Assigned
+    /// by <see cref="MainWindowViewModel"/>; null in a test or before wiring, which reads as "no references".</summary>
+    public Func<int, IReadOnlyList<ReferenceGroupViewModel>>? ResolveInboundRefs { get; set; }
+
+    /// <summary>What refers to the selected record. Recomputed on demand rather than cached: it is a scan over
+    /// collections this editor does not own, and a cache would need invalidating on every edit anywhere.</summary>
+    public IReadOnlyList<ReferenceGroupViewModel> InboundRefs =>
+        Selected is { } row && ResolveInboundRefs is { } resolve ? resolve(GetIndex(row)) : [];
+
+    /// <summary>Whether anything refers to the selected record, so the panel can say "nothing" rather than
+    /// showing an empty heading.</summary>
+    public bool HasInboundRefs => InboundRefs.Count > 0;
+
+    /// <summary>Re-read <see cref="InboundRefs"/>. The referring records live in other editors, so this one
+    /// cannot see them change: the eager load that fills them finishes long after the list is built, and an
+    /// edit elsewhere can add or remove a reference entirely behind this editor's back.</summary>
+    public void NotifyInboundRefsChanged()
+    {
+        OnPropertyChanged(nameof(InboundRefs));
+        OnPropertyChanged(nameof(HasInboundRefs));
+    }
+    /// <summary>Assign the selection. The backing property is named per editor (SelectedItem, SelectedNpc),
+    /// so the base cannot set it directly.</summary>
+    protected abstract void SetSelected(TRow? row);
+
+    /// <summary>Select the row with this record number, as an ordinary selection so it runs the editor's
+    /// normal lazy-fetch and dirty-tracking path. False when no row has that number, letting a caller leave
+    /// the current section alone rather than switching to a pane showing the wrong record.</summary>
+    public bool TrySelect(int index)
+    {
+        var row = Items.FirstOrDefault(r => GetIndex(r) == index);
+        if (row is null) return false;
+        SetSelected(row);
+        return true;
+    }
+
     /// <summary>Singular display name of the record type ("Item", "NPC"), used in status messages.</summary>
     protected abstract string TypeName { get; }
     /// <summary>Plural display name; defaults to <see cref="TypeName"/> + "s". Override for irregular plurals.</summary>

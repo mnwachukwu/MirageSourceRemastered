@@ -58,6 +58,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
 
         NotifyMapProperties();
+        NotifyMapRefsChanged();
         UpdateUndoRedo();
 
         // A placeholder row carries no tiles until it is fetched; selecting it is the lazy-load
@@ -104,6 +105,37 @@ public sealed partial class MapEditorViewModel : ObservableObject
         SelectedMap = target;
         _isNavigatingHistory = false;
         UpdateNavCommands();
+    }
+
+    /// <summary>Supplies the records that point at a given map. Assigned by MainWindowViewModel, which owns
+    /// every editor; the referring records live in other collections entirely.</summary>
+    public Func<int, IReadOnlyList<ReferenceGroupViewModel>>? ResolveMapRefs { get; set; }
+
+    /// <summary>What refers to the selected map. Recomputed on demand, not cached.</summary>
+    public IReadOnlyList<ReferenceGroupViewModel> MapRefs =>
+        SelectedMap is { } m && ResolveMapRefs is { } resolve ? resolve(m.Index) : [];
+
+    /// <summary>Whether anything refers to the selected map.</summary>
+    public bool HasMapRefs => MapRefs.Count > 0;
+
+    /// <summary>Re-read <see cref="MapRefs"/>. The referring records live outside this editor, so it cannot
+    /// see them arrive or change.</summary>
+    public void NotifyMapRefsChanged()
+    {
+        OnPropertyChanged(nameof(MapRefs));
+        OnPropertyChanged(nameof(HasMapRefs));
+    }
+
+    /// <summary>Open a map by number, as an ordinary selection. Deliberately NOT a history-suppressed jump: a
+    /// link followed in from another section should land on the history trail like any other map switch, so Back
+    /// returns to the map you were on and Forward returns to the one the link opened. Returns false when the
+    /// number names no row, so a caller can leave the current section alone rather than switching to nothing.</summary>
+    public bool SelectByIndex(int mapNum)
+    {
+        var row = RowFor(mapNum);
+        if (row is null) return false;
+        SelectedMap = row;
+        return true;
     }
 
     // Pops until a row that still exists is found; collapses no-op entries that

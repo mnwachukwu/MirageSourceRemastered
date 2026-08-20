@@ -409,7 +409,10 @@ public class QuestSystemTests
             "abandon + re-run still pays repeat (+100), not a fresh main (no farming)");
     }
 
-    // ── NPC interaction: actionable-quest resolver ────────────────────────────────
+    // ── NPC interaction: actionable-quest resolver. This is the ONLY quest gate on the interaction spine — the
+    //    client's overhead glyph and its NPC context menu derive from the same rule, so what an NPC advertises,
+    //    what its menu lists, and what the server will act on are one set. A quest whose requirements aren't met
+    //    yet appears in none of the three; the quest LOG is where it is listed, with the requirements. ──────────
 
     [Test]
     public void HasActionableQuestAt_EligibleGiver_True()
@@ -470,27 +473,8 @@ public class QuestSystemTests
         Assert.That(quests.HasActionableQuestAt(1, 7), Is.True, "with no explicit turn-in NPC, you turn in at the giver");
     }
 
-    // ── NPC interaction: visible-quest resolver (broader than actionable — opens the offer panel for a
-    //    not-yet-eligible giver so its requirements show, but still hides class-locked quests entirely) ──────
-
     [Test]
-    public void HasVisibleQuestAt_GiverWithUnmetRequirement_VisibleButNotActionable()
-    {
-        var (world, pm, _, quests) = Setup();
-        var q = KillQuest(world, 1);
-        q.GiverNpc = 7;
-        q.ReqLevel = 20;
-        AddPlayer(pm, 1, level: 5);   // any class, but below the level requirement
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(quests.HasActionableQuestAt(1, 7), Is.False, "can't accept it yet");
-            Assert.That(quests.HasVisibleQuestAt(1, 7), Is.True, "but interacting still opens the panel to show why");
-        });
-    }
-
-    [Test]
-    public void HasVisibleQuestAt_ClassLockedGiver_Invisible()
+    public void HasActionableQuestAt_ClassLockedGiver_False()
     {
         var (world, pm, _, quests) = Setup();
         var q = KillQuest(world, 1);
@@ -499,23 +483,24 @@ public class QuestSystemTests
         var sp = AddPlayer(pm, 1);
 
         sp.Char.Class = 1;   // wrong class → the NPC falls through to its other actions
-        Assert.That(quests.HasVisibleQuestAt(1, 7), Is.False, "a class-locked quest is hidden entirely");
+        Assert.That(quests.HasActionableQuestAt(1, 7), Is.False, "a class-locked quest offers nothing");
         sp.Char.Class = 2;
-        Assert.That(quests.HasVisibleQuestAt(1, 7), Is.True, "the required class sees it");
+        Assert.That(quests.HasActionableQuestAt(1, 7), Is.True, "the required class can take it");
     }
 
     [Test]
-    public void HasVisibleQuestAt_ActiveOrDoneForever_Invisible()
+    public void HasActionableQuestAt_MidQuestAndDoneForever_False()
     {
         var (world, pm, objectives, quests) = Setup();
-        KillQuest(world, 1, count: 1).GiverNpc = 7;
+        KillQuest(world, 1, count: 1).GiverNpc = 7;   // no explicit turn-in, so 7 is both giver and turn-in
         AddPlayer(pm, 1);
         quests.Accept(1, 1);
-        Assert.That(quests.HasVisibleQuestAt(1, 7), Is.False, "already on it → the giver shows nothing");
+        Assert.That(quests.HasActionableQuestAt(1, 7), Is.False,
+            "accepted but unfinished → nothing to do here (the overhead gray \"!\" is what says come back)");
 
         Kill(objectives, Rat, 1);
         quests.TurnIn(1, 1);   // done, non-repeatable
-        Assert.That(quests.HasVisibleQuestAt(1, 7), Is.False, "a one-time quest done forever stays hidden");
+        Assert.That(quests.HasActionableQuestAt(1, 7), Is.False, "a one-time quest done forever stays quiet");
     }
 
     // ── Harness ──────────────────────────────────────────────────────────────────

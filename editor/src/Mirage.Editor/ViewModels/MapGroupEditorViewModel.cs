@@ -15,12 +15,36 @@ public sealed partial class MapGroupEditorViewModel : EditorViewModelBase<MapGro
 {
     [ObservableProperty] private MapGroupRowViewModel? _selectedMapGroup;
     public override MapGroupRowViewModel? Selected => SelectedMapGroup;
+    protected override void SetSelected(MapGroupRowViewModel? row) => SelectedMapGroup = row;
     public ObservableCollection<MapGroupRowViewModel> MapGroups { get; } = [];
     public override ObservableCollection<MapGroupRowViewModel> Items => MapGroups;
     protected override string GetFilterText(MapGroupRowViewModel row) => row.DisplayName;
 
     // Type-ahead source for the group's BootMap picker (the view's DataContext is this VM).
     public NamedEntry[] MapEntries => _data.LiveMapEntries;
+
+    /// <summary>Supplies the maps whose <c>MapGroup</c> names the given group. Assigned by
+    /// <see cref="MainWindowViewModel"/>, which owns the map editor — membership lives on the MAP, so a group
+    /// cannot answer this from its own record. Mirrors <c>MapEditor.ResolveMapGroup</c> in the other direction.</summary>
+    public Func<int, IReadOnlyList<ReferenceLinkViewModel>>? ResolveGroupMaps { get; set; }
+
+    /// <summary>The maps in the selected group, as links that open them. Recomputed rather than cached: it is a
+    /// scan over the map list, and a cache would have to be invalidated every time a map's group changed.</summary>
+    public IReadOnlyList<ReferenceLinkViewModel> GroupMaps =>
+        SelectedMapGroup is { } g && ResolveGroupMaps is { } resolve ? resolve(g.Index) : [];
+
+    /// <summary>True once the group has members, so the panel can say "no maps" instead of showing nothing.</summary>
+    public bool HasGroupMaps => GroupMaps.Count > 0;
+
+    /// <summary>Re-read <see cref="GroupMaps"/>. Membership is read off map records, which this editor does not
+    /// own, so it cannot see them change: the eager load that fills those records finishes long after the group
+    /// list is built, and a map's group can be reassigned in the map editor entirely behind this one's back.
+    /// <see cref="MainWindowViewModel"/> calls this at both of those moments.</summary>
+    public void NotifyGroupMapsChanged()
+    {
+        OnPropertyChanged(nameof(GroupMaps));
+        OnPropertyChanged(nameof(HasGroupMaps));
+    }
 
     public MapGroupEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
     {
@@ -55,6 +79,7 @@ public sealed partial class MapGroupEditorViewModel : EditorViewModelBase<MapGro
     partial void OnSelectedMapGroupChanged(MapGroupRowViewModel? value)
     {
         NotifyDirtyState();
+        NotifyGroupMapsChanged();
         if (value is not null && !value.IsLoaded && _data.IsOnline)
             _ = LoadEntityAsync(value);
     }

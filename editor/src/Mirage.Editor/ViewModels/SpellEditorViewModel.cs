@@ -17,6 +17,7 @@ public sealed partial class SpellEditorViewModel : EditorViewModelBase<SpellRowV
 {
     [ObservableProperty] private SpellRowViewModel? _selectedSpell;
     public override SpellRowViewModel? Selected => SelectedSpell;
+    protected override void SetSelected(SpellRowViewModel? row) => SelectedSpell = row;
     public ObservableCollection<SpellRowViewModel> Spells { get; } = [];
     public override ObservableCollection<SpellRowViewModel> Items => Spells;
     /// <inheritdoc/>
@@ -151,6 +152,7 @@ public sealed partial class SpellEditorViewModel : EditorViewModelBase<SpellRowV
 
     partial void OnSelectedSpellChanged(SpellRowViewModel? oldValue, SpellRowViewModel? newValue)
     {
+        NotifyInboundRefsChanged();
         if (oldValue is not null) oldValue.PropertyChanged -= OnSpellPropertyChanged;
         if (newValue is not null) newValue.PropertyChanged += OnSpellPropertyChanged;
         NotifyDirtyState();

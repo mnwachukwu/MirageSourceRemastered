@@ -14,6 +14,7 @@ public sealed partial class ShopEditorViewModel : EditorViewModelBase<ShopRowVie
 {
     [ObservableProperty] private ShopRowViewModel? _selectedShop;
     public override ShopRowViewModel? Selected => SelectedShop;
+    protected override void SetSelected(ShopRowViewModel? row) => SelectedShop = row;
     public ObservableCollection<ShopRowViewModel> Shops { get; } = [];
     public override ObservableCollection<ShopRowViewModel> Items => Shops;
     /// <inheritdoc/>
@@ -51,6 +52,7 @@ public sealed partial class ShopEditorViewModel : EditorViewModelBase<ShopRowVie
 
     partial void OnSelectedShopChanged(ShopRowViewModel? value)
     {
+        NotifyInboundRefsChanged();
         NotifyDirtyState();
         if (value is not null && !value.IsLoaded && _data.IsOnline)
             _ = LoadEntityAsync(value);

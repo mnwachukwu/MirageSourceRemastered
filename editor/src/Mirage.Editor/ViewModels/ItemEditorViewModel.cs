@@ -15,6 +15,7 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
 {
     [ObservableProperty] private ItemRowViewModel? _selectedItem;
     public override ItemRowViewModel? Selected => SelectedItem;
+    protected override void SetSelected(ItemRowViewModel? row) => SelectedItem = row;
     public override ObservableCollection<ItemRowViewModel> Items { get; } = [];
     protected override string GetFilterText(ItemRowViewModel row) => row.DisplayName;
     public IEnumerable<ItemType> ItemTypes { get; } = Enum.GetValues<ItemType>();
@@ -125,6 +126,7 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
 
     partial void OnSelectedItemChanged(ItemRowViewModel? oldValue, ItemRowViewModel? newValue)
     {
+        NotifyInboundRefsChanged();
         if (oldValue is not null) oldValue.PropertyChanged -= OnItemPropertyChanged;
         if (newValue is not null) newValue.PropertyChanged += OnItemPropertyChanged;
         NotifyDirtyState();

@@ -219,5 +219,9 @@ public sealed partial class ClientState
     public MapMoral MoralOf(MapRecord? map) => map is null ? MapMoral.None : MapGroupResolve.Moral(map, GroupOf(map));
     public int MusicOf(MapRecord? map) => map is null ? 0 : MapGroupResolve.Music(map, GroupOf(map));
     public bool IndoorsOf(MapRecord? map) => map is not null && MapGroupResolve.Indoors(map, GroupOf(map));
-    public bool AlwaysDarkOf(MapRecord? map) => map is not null && MapGroupResolve.AlwaysDark(map, GroupOf(map));
+    /// <summary>How this map treats the day/night cycle. One answer rather than two flags: AlwaysLit and
+    /// AlwaysDark are mutually exclusive, and resolving them separately would let a map's "lit" and its group's
+    /// "dark" both come out true. An unloaded neighbor cell lights normally.</summary>
+    public MapLighting LightingOf(MapRecord? map) =>
+        map is null ? MapLighting.Normal : MapGroupResolve.Lighting(map, GroupOf(map));
 }

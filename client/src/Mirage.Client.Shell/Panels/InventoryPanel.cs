@@ -72,6 +72,23 @@ public sealed class InventoryPanel : IGamePanel
 
     public bool ContainsMouse(Point mousePos) => IsOpen && _panel.ContainsMouse(mousePos);
 
+    /// <summary>Whether the global beat has come round. A POTION spends the same tick as a swing or a
+    /// cast; nothing else does. The server enforces it, and asking here only keeps Use from looking
+    /// broken while the beat is still running. Unset means always ready.</summary>
+    public Func<bool>? CanUsePotion { get; set; }
+
+    private bool PotionReady => CanUsePotion?.Invoke() ?? true;
+
+    private bool UseReady(ClientState state)
+    {
+        if (_list.SelectedIndex < 0) return false;
+        var inv = state.Me.Inv[_list.SelectedIndex + 1];
+        var type = inv.Num > 0 && inv.Num < state.Items.Length ? state.Items[inv.Num]?.Type : null;
+        bool potion = type is ItemType.PotionAddHp or ItemType.PotionAddMp or ItemType.PotionAddSp
+                           or ItemType.PotionSubHp or ItemType.PotionSubMp or ItemType.PotionSubSp;
+        return !potion || PotionReady;
+    }
+
     public void Update(InputState input, ClientState state, ClientPacketSender sender, bool isActive = false)
     {
         if (!IsOpen) return;
@@ -159,7 +176,11 @@ public sealed class InventoryPanel : IGamePanel
         // items in the count — NPC loot piles don't block voluntary drops server-side either.
         _dropBtn.Enabled = _list.SelectedIndex >= 0 && PlayerDroppedCountOnCurrentMap(state) < Constants.MaxMapItems;
 
-        if (_useBtn.IsClicked(input) && _list.SelectedIndex >= 0)
+        // Use greys out while the beat is still running, so the button reads the way the action bar's
+        // sweep does rather than silently sending something the server will drop.
+        _useBtn.Enabled = UseReady(state);
+
+        if (_useBtn.IsClicked(input) && UseReady(state))
             sender.SendUseItem(_list.SelectedIndex + 1);
 
         if (_dropBtn.IsClicked(input) && _list.SelectedIndex >= 0)

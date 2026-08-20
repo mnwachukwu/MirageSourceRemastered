@@ -25,6 +25,7 @@ public sealed partial class MapGroupRowViewModel : ObservableObject
     [ObservableProperty] private string _joinSay = "";
     [ObservableProperty] private string _leaveSay = "";
     [ObservableProperty] private bool? _indoors;
+    [ObservableProperty] private bool? _alwaysLit;
     [ObservableProperty] private bool? _alwaysDark;
     [ObservableProperty] private int _bootMap;
     [ObservableProperty] private int _bootX;
@@ -72,6 +73,7 @@ public sealed partial class MapGroupRowViewModel : ObservableObject
             JoinSay = r.JoinSay;
             LeaveSay = r.LeaveSay;
             Indoors = r.Indoors;
+            AlwaysLit = r.AlwaysLit;
             AlwaysDark = r.AlwaysDark;
             BootMap = r.BootMap;
             BootX = r.BootX;
@@ -134,7 +136,16 @@ public sealed partial class MapGroupRowViewModel : ObservableObject
     partial void OnJoinSayChanged(string value) => MarkDirty();
     partial void OnLeaveSayChanged(string value) => MarkDirty();
     partial void OnIndoorsChanged(bool? value) => MarkDirty();
-    partial void OnAlwaysDarkChanged(bool? value) => MarkDirty();
+    partial void OnAlwaysLitChanged(bool? value)
+    {
+        if (value == true && AlwaysDark is not null) AlwaysDark = null;
+        MarkDirty();
+    }
+    partial void OnAlwaysDarkChanged(bool? value)
+    {
+        if (value == true && AlwaysLit is not null) AlwaysLit = null;
+        MarkDirty();
+    }
     partial void OnBootMapChanged(int value)
     {
         OnPropertyChanged(nameof(SelectedBootMap));
@@ -185,6 +196,7 @@ public sealed partial class MapGroupRowViewModel : ObservableObject
             JoinSay = pkt.JoinSay;
             LeaveSay = pkt.LeaveSay;
             Indoors = pkt.Indoors;
+            AlwaysLit = pkt.AlwaysLit;
             AlwaysDark = pkt.AlwaysDark;
             BootMap = pkt.BootMap;
             BootX = pkt.BootX;
@@ -213,6 +225,7 @@ public sealed partial class MapGroupRowViewModel : ObservableObject
         JoinSay = JoinSay,
         LeaveSay = LeaveSay,
         Indoors = Indoors,
+        AlwaysLit = AlwaysLit,
         AlwaysDark = AlwaysDark,
         BootMap = BootMap,
         BootX = BootX,
@@ -234,6 +247,7 @@ public sealed partial class MapGroupRowViewModel : ObservableObject
         JoinSay = JoinSay,
         LeaveSay = LeaveSay,
         Indoors = Indoors,
+        AlwaysLit = AlwaysLit,
         AlwaysDark = AlwaysDark,
         BootMap = BootMap,
         BootX = BootX,

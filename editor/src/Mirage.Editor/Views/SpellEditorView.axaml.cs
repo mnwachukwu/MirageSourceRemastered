@@ -19,6 +19,8 @@ public partial class SpellEditorView : LocalizedUserControl
 
     protected override void ApplyStrings()
     {
+        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
+        _noRefs.Text = EditorStrings.Get(EditorStrings.References_None);
         _typeFilterCombo.PlaceholderText = EditorStrings.Get(EditorStrings.SpellEditor_AllSpellTypesFilter);
         _classReqFilterCombo.PlaceholderText = EditorStrings.Get(EditorStrings.SpellEditor_AllClassesFilter);
         _filterTextBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_FilterByName);
@@ -33,7 +35,7 @@ public partial class SpellEditorView : LocalizedUserControl
         _reagentCostLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_ReagentCostLabel);
         _reagentChanceLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_ReagentChanceLabel);
         _mpCostNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_MpCostNote);
-        _formulaNotesHeader.Text = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
         _giveItemLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_ItemNumber);
         _itemQuantityLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_Quantity);
         _intReqLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_IntReq);
@@ -80,6 +82,7 @@ public partial class SpellEditorView : LocalizedUserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         PanelGrid.ColumnDefinitions[0].Width = new GridLength(AppSettings.Current.SpellEditorLeftWidth);
+        PanelGrid.ColumnDefinitions[4].Width = new GridLength(AppSettings.Current.SpellEditorRightWidth);
     }
 
     /// <summary>Save the splitter width. Guards on a non-zero width so a never-shown view
@@ -88,5 +91,9 @@ public partial class SpellEditorView : LocalizedUserControl
     {
         if (LeftPanel.Bounds.Width > 0)
             AppSettings.Current.SpellEditorLeftWidth = LeftPanel.Bounds.Width;
+        // The COLUMN, not the panel: the panel is inset by its margin, so persisting its own width and
+        // restoring it as the column width would narrow the column a little more every session.
+        if (RightPanel.IsVisible && PanelGrid.ColumnDefinitions[4].ActualWidth > 0)
+            AppSettings.Current.SpellEditorRightWidth = PanelGrid.ColumnDefinitions[4].ActualWidth;
     }
 }

@@ -19,6 +19,8 @@ public partial class ItemEditorView : LocalizedUserControl
 
     protected override void ApplyStrings()
     {
+        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
+        _noRefs.Text = EditorStrings.Get(EditorStrings.References_None);
         _typeFilterCombo.PlaceholderText = EditorStrings.Get(EditorStrings.ItemEditor_AllTypesFilter);
         _filterTextBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_FilterByName);
         _selectPrompt.Text = EditorStrings.Get(EditorStrings.ItemEditor_SelectPrompt);
@@ -33,7 +35,7 @@ public partial class ItemEditorView : LocalizedUserControl
         _destroyOnDropCheck.Content = EditorStrings.Get(EditorStrings.ItemEditor_DestroyOnDrop);
         _nonJunkableCheck.Content = EditorStrings.Get(EditorStrings.ItemEditor_NonJunkable);
         _priceLabel.Text = EditorStrings.Get(EditorStrings.ItemEditor_PriceLabel);
-        _fieldNotesHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_FieldNotesHeader);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.ItemEditor_FieldNotesHeader);
 
         // Captions for the fields that mean one thing wherever they apply; Power and VitalAmount bind
         // their captions instead, since those two vary by item type.
@@ -85,6 +87,7 @@ public partial class ItemEditorView : LocalizedUserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         PanelGrid.ColumnDefinitions[0].Width = new GridLength(AppSettings.Current.ItemEditorLeftWidth);
+        PanelGrid.ColumnDefinitions[4].Width = new GridLength(AppSettings.Current.ItemEditorRightWidth);
     }
 
     /// <summary>Save the splitter width. Guards on a non-zero width so a never-shown view
@@ -93,5 +96,9 @@ public partial class ItemEditorView : LocalizedUserControl
     {
         if (LeftPanel.Bounds.Width > 0)
             AppSettings.Current.ItemEditorLeftWidth = LeftPanel.Bounds.Width;
+        // The COLUMN, not the panel: the panel is inset by its margin, so persisting its own width and
+        // restoring it as the column width would narrow the column a little more every session.
+        if (RightPanel.IsVisible && PanelGrid.ColumnDefinitions[4].ActualWidth > 0)
+            AppSettings.Current.ItemEditorRightWidth = PanelGrid.ColumnDefinitions[4].ActualWidth;
     }
 }

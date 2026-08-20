@@ -319,19 +319,8 @@
                   <TextBox   Grid.Column="1" Text="{Binding MapName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <TextBox   Grid.Column="1" Text="{Binding MapDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{Binding MapDisplayNamePlaceholder}" />
-                </Grid>
-
-                <!-- The group a map belongs to decides what its blank fields inherit, so it sits with
-                     the map's identity rather than below the fields it governs. -->
+                <!-- Directly under Name: the group decides what every blank field below inherits, including
+                     the Display Name placeholder on the next row, so it is chosen first. -->
                 <Grid>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
@@ -355,6 +344,17 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_displayNameLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <TextBox   Grid.Column="1" Text="{Binding MapDisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="{Binding MapDisplayNamePlaceholder}" />
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
                   <TextBlock x:Name="_moralLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
                   <ComboBox  Grid.Column="1"
                              ItemsSource="{Binding MoralOptions}"
@@ -362,7 +362,50 @@
                              HorizontalAlignment="Stretch"/>
                 </Grid>
 
-                <!-- ── Map Links ── the four edges, together, because they are read as a set -->
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding MapMusic, Mode=TwoWay}"
+                                 Minimum="0" Maximum="255" FormatString="0"/>
+                </Grid>
+
+                <!-- Indoors / AlwaysLit / AlwaysDark are tri-state: checked = on, unchecked = off, dash = inherit
+                     the group. Lit and Dark are mutually exclusive: ticking one clears the other back to inherit. -->
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <CheckBox  Grid.Column="1" IsThreeState="True" IsChecked="{Binding MapIndoors}"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_alwaysLitLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <CheckBox  Grid.Column="1" IsThreeState="True" IsChecked="{Binding MapAlwaysLit}"/>
+                </Grid>
+
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <CheckBox  Grid.Column="1" IsThreeState="True" IsChecked="{Binding MapAlwaysDark}"/>
+                </Grid>
+
                 <HeaderedContentControl x:Name="_mapLinksGroup" Classes="propGroup">
                   <StackPanel Spacing="8">
                     <Grid>
@@ -435,117 +478,112 @@
                   </StackPanel>
                 </HeaderedContentControl>
 
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_musicLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <NumericUpDown Grid.Column="1"
-                                 Value="{Binding MapMusic, Mode=TwoWay}"
-                                 Minimum="0" Maximum="255" FormatString="0"/>
-                </Grid>
+                <HeaderedContentControl x:Name="_respawnGroup" Classes="propGroup">
+                  <StackPanel Spacing="8">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <controls:DropdownAutoCompleteBox x:Name="_searchBootMap" Grid.Column="1"
+                                       ItemsSource="{Binding MapEntries}"
+                                       SelectedItem="{Binding SelectedMapBootMap, Mode=TwoWay}"
+                                       ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
+                                       FilterMode="Custom"
+                                       MinimumPrefixLength="0"/>
+                      <Button x:Name="_clearBootMap" Grid.Column="2" Classes="glyph" Content="×"
+                              Command="{Binding ClearMapEntityCommand}" CommandParameter="BootMap"/>
+                    </Grid>
 
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_bootMapLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <controls:DropdownAutoCompleteBox x:Name="_searchBootMap" Grid.Column="1"
-                                   ItemsSource="{Binding MapEntries}"
-                                   SelectedItem="{Binding SelectedMapBootMap, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-                  <Button x:Name="_clearBootMap" Grid.Column="2" Classes="glyph" Content="×"
-                          Command="{Binding ClearMapEntityCommand}" CommandParameter="BootMap"/>
-                </Grid>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <NumericUpDown Grid.Column="1" Value="{Binding MapBootX, Mode=TwoWay}"
+                                     Minimum="0" Maximum="15" FormatString="0"/>
+                    </Grid>
 
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_bootXLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <NumericUpDown Grid.Column="1"
-                                 Value="{Binding MapBootX, Mode=TwoWay}"
-                                 Minimum="0" Maximum="15" FormatString="0"/>
-                </Grid>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <NumericUpDown Grid.Column="1" Value="{Binding MapBootY, Mode=TwoWay}"
+                                     Minimum="0" Maximum="11" FormatString="0"/>
+                    </Grid>
+                  </StackPanel>
+                </HeaderedContentControl>
 
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_bootYLabel" Grid.Column="0" VerticalAlignment="Center"/>
-                  <NumericUpDown Grid.Column="1"
-                                 Value="{Binding MapBootY, Mode=TwoWay}"
-                                 Minimum="0" Maximum="11" FormatString="0"/>
-                </Grid>
+                <!-- Blank fields inherit from the MapGroup, and the placeholder shows what would be inherited. -->
+                <HeaderedContentControl x:Name="_greetingGroup" Classes="propGroup">
+                  <StackPanel Spacing="8">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <TextBox Grid.Column="1" Text="{Binding MapGreetingSpeaker, Mode=TwoWay}"
+                               PlaceholderText="{Binding MapGreetingSpeakerPlaceholder}"/>
+                    </Grid>
 
-                <!-- Map-enter/leave greeting (NPC epic Slice 6). Blank fields inherit from the MapGroup,
-                     and the watermark shows the value that would be inherited. -->
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_greetingSpeakerLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <TextBox Grid.Column="1" Text="{Binding MapGreetingSpeaker, Mode=TwoWay}"
-                           PlaceholderText="{Binding MapGreetingSpeakerPlaceholder}"/>
-                </Grid>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <TextBox Grid.Column="1" Text="{Binding MapJoinSay, Mode=TwoWay}"
+                               PlaceholderText="{Binding MapJoinSayPlaceholder}"/>
+                    </Grid>
 
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_joinSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <TextBox Grid.Column="1" Text="{Binding MapJoinSay, Mode=TwoWay}"
-                           PlaceholderText="{Binding MapJoinSayPlaceholder}"/>
-                </Grid>
-
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <TextBox Grid.Column="1" Text="{Binding MapLeaveSay, Mode=TwoWay}"
-                           PlaceholderText="{Binding MapLeaveSayPlaceholder}"/>
-                </Grid>
-
-                <!-- Indoors / AlwaysDark are tri-state: checked = on, unchecked = off, dash = inherit the group. -->
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_indoorsLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <CheckBox  Grid.Column="1" IsThreeState="True"
-                             IsChecked="{Binding MapIndoors}"/>
-                </Grid>
-
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock x:Name="_alwaysDarkLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                  <CheckBox  Grid.Column="1" IsThreeState="True"
-                             IsChecked="{Binding MapAlwaysDark}"/>
-                </Grid>
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                      </Grid.ColumnDefinitions>
+                      <TextBlock x:Name="_leaveSayLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                      <TextBox Grid.Column="1" Text="{Binding MapLeaveSay, Mode=TwoWay}"
+                               PlaceholderText="{Binding MapLeaveSayPlaceholder}"/>
+                    </Grid>
+                  </StackPanel>
+                </HeaderedContentControl>
 
                 <TextBlock x:Name="_inheritHint" FontSize="11" Foreground="#8B84AE" FontStyle="Italic"
                            TextWrapping="Wrap"/>
+
+                <!-- What refers to this map. Read-only; each row opens the record that names this one. -->
+                <StackPanel Spacing="4" Margin="0,12,0,0" IsVisible="{Binding HasMapRefs}">
+                  <TextBlock x:Name="_refsHeader" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                  <ItemsControl ItemsSource="{Binding MapRefs}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Margin="0,0,0,6">
+                          <TextBlock Text="{Binding Header}" FontSize="11"
+                                     Foreground="{DynamicResource MirageMutedBrush}"/>
+                          <ItemsControl ItemsSource="{Binding Links}" Margin="8,0,0,0">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                <Button Classes="link" Command="{Binding OpenCommand}"
+                                        Content="{Binding DisplayName}" HorizontalAlignment="Left"/>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
 
                 <TextBlock x:Name="_npcSlotsLabel" Margin="0,8,0,2"/>
                 <Border BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="1" CornerRadius="4">

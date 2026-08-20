@@ -370,9 +370,16 @@ public sealed partial class GameplayScreen : IGameScreen
         var npcs = _ctx.State.NpcsForMap(npc.B);
         int num = npcs is not null && SlotValidation.IsValidNpcSlot(npc.A) ? npcs[npc.A].Num : 0;
         if (num <= 0) return null;
-        // Only keeper / quest NPCs get a right-click menu; a plain-talk mob
-        // is handled by the melee key, not this menu.
-        if (_ctx.State.NpcKeeperShop[num] == 0 && _ctx.State.NpcQuestGlyph[num] == 0) return null;
+        // An NPC needs something to offer: a shop, a quest, or a conversation. A plain mob has none of
+        // the three and is handled by the melee key rather than this menu.
+        //
+        // The conversation clause is what makes the Talk item below reachable. Gating on shop-or-quest
+        // alone means the only NPCs that can show Talk are the ones that also sell or hire, and the
+        // fourteen whose entire purpose is being talked to — the ferryman, the chronicler, the locals,
+        // the road signs — have no menu at all.
+        if (_ctx.State.NpcKeeperShop[num] == 0
+            && _ctx.State.NpcQuestGlyph[num] == 0
+            && _ctx.State.ConversationForNpc(num) == 0) return null;
         name = _ctx.State.NpcDefs[num]?.Name?.Trim() ?? "";
         int npcSize = _ctx.State.NpcDefs[num]?.EffectiveSize ?? 1;   // footprint-aware r=5: an oversize NPC is reachable by its body
         bool InRange()
@@ -408,9 +415,10 @@ public sealed partial class GameplayScreen : IGameScreen
                 (Func<bool>)InRange));
         }
 
-        // Visible quests: a "Quest:" / "Turn in:" item per quest → the offer dialog. An ineligible giver still gets a
-        // "Quest:" item; opening it shows the dialog read-only (requirements listed, Accept disabled) — not hidden.
-        foreach (var (questNum, action, _) in _ctx.State.VisibleQuestsAt(num))
+        // Actionable quests: a "Quest:" / "Turn in:" item per quest → the offer dialog. Only quests the player can
+        // accept or turn in right now, so the menu matches the overhead glyph instead of listing every quest the
+        // NPC will ever hold.
+        foreach (var (questNum, action) in _ctx.State.ActionableQuestsAt(num))
         {
             string qname = _ctx.State.QuestDefs[questNum]?.TrimmedName ?? "";
             string label = action == ClientState.QuestAction.Accept
@@ -447,18 +455,18 @@ public sealed partial class GameplayScreen : IGameScreen
 
         int firstQuest = 0;
         var firstAction = ClientState.QuestAction.Accept;
-        int visible = 0;
-        foreach (var (questNum, action, _) in _ctx.State.VisibleQuestsAt(num))
+        int actionable = 0;
+        foreach (var (questNum, action) in _ctx.State.ActionableQuestsAt(num))
         {
-            visible++;
-            if (visible == 1)
+            actionable++;
+            if (actionable == 1)
             {
                 firstQuest = questNum;
                 firstAction = action;
             }
         }
 
-        if (visible == 1)
+        if (actionable == 1)
             OpenQuestDialog(firstQuest, firstAction, map, slot);
         else
             OpenNpcContextMenu(new TargetRef(TargetKind.Npc, slot, map), new Point(UiHelper.RefW / 2, UiHelper.RefH / 2));

@@ -44,7 +44,7 @@ public sealed partial class MirageGame : Game
             for (int nr = 0; nr < 3 && !needsLightPass; nr++)
             {
                 for (int nc = 0; nc < 3 && !needsLightPass; nc++)
-                    needsLightPass = _state.AlwaysDarkOf(neighbors[nc, nr]);
+                    needsLightPass = _state.LightingOf(neighbors[nc, nr]) == MapLighting.AlwaysDark;
             }
         }
         // Set when the two-light-map occlusion split ran this frame (it bakes lighting per layer), so Pass 2

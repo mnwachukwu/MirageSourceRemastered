@@ -21,6 +21,40 @@ namespace Mirage.Editor.Views;
 /// </summary>
 public partial class MapEditorView : LocalizedUserControl
 {
+    // ── Access-key mode is off while the map editor is showing ────────────────
+    // A bare Alt press puts the window into access-key mode, and that mode swallows pointer input:
+    // the tile cursor stops following the mouse and re-entering the grid gives no preview, while
+    // clicks still land. This grid uses Alt only as a POINTER modifier — Alt+Click retains values,
+    // Alt+Wheel steps the tileset, Ctrl+Alt+Wheel the layer — and those read KeyModifiers off the
+    // pointer event, not the key event. So the key itself is swallowed and all three still work.
+    //
+    // Tunnelled on the TopLevel so it is seen before the access-key handler, and hooked to this
+    // view's lifetime so every other section keeps its normal Alt behavior.
+    private static void SwallowAltKey(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.LeftAlt or Key.RightAlt) e.Handled = true;
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        if (TopLevel.GetTopLevel(this) is { } top)
+        {
+            top.AddHandler(KeyDownEvent, SwallowAltKey, RoutingStrategies.Tunnel);
+            top.AddHandler(KeyUpEvent, SwallowAltKey, RoutingStrategies.Tunnel);
+        }
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is { } top)
+        {
+            top.RemoveHandler(KeyDownEvent, SwallowAltKey);
+            top.RemoveHandler(KeyUpEvent, SwallowAltKey);
+        }
+        base.OnDetachedFromVisualTree(e);
+    }
+
     // ── Hover panel state ─────────────────────────────────────────────────────
     private bool _shiftDown;
     private bool _ctrlDown;
@@ -45,6 +79,7 @@ public partial class MapEditorView : LocalizedUserControl
     /// this view. Re-run on a language change; these are set in code rather than bound.</summary>
     protected override void ApplyStrings()
     {
+        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
         // Left panel
         _mapsFilterBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_Filter);
 
@@ -100,6 +135,8 @@ public partial class MapEditorView : LocalizedUserControl
         _displayNameLabel.Text = EditorStrings.Get(EditorStrings.Common_DisplayNameLabel);
         _moralLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_MoralLabel);
         _mapLinksGroup.Header = EditorStrings.Get(EditorStrings.MapEditor_MapLinksHeader);
+        _respawnGroup.Header = EditorStrings.Get(EditorStrings.MapEditor_RespawnHeader);
+        _greetingGroup.Header = EditorStrings.Get(EditorStrings.MapEditor_GreetingHeader);
         _upLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_UpLabel);
         _downLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_DownLabel);
         _leftLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_LeftLabel);
@@ -113,6 +150,7 @@ public partial class MapEditorView : LocalizedUserControl
         _leaveSayLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_LeaveSayLabel);
         _mapGroupLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_MapGroupLabel);
         _indoorsLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_IndoorsLabel);
+        _alwaysLitLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_AlwaysLitLabel);
         _alwaysDarkLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_AlwaysDarkLabel);
         _inheritHint.Text = EditorStrings.Get(EditorStrings.MapEditor_InheritHint);
         _npcSlotsLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_NpcSlotsLabel);
@@ -476,9 +514,11 @@ public partial class MapEditorView : LocalizedUserControl
 
         grid.PointerMoved += (_, pe) => UpdateHoverPosition(pe.GetPosition(HoverCanvas));
 
-        // Hide the panel when the mouse leaves the grid entirely.
-        grid.PointerExited += (_, _) =>
+        // Hide the panel when the mouse leaves the grid entirely. The position decides, not the event:
+        // access-key mode raises a synthetic exit with the pointer still over the grid.
+        grid.PointerExited += (_, pe) =>
         {
+            if (new Rect(grid.Bounds.Size).Contains(pe.GetPosition(grid))) return;
             _hoveredValid = false;
             RefreshHoverPanel();
         };

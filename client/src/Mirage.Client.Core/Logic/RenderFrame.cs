@@ -180,7 +180,7 @@ public sealed class RenderFrame
     /// <see cref="Npcs"/>/<see cref="Players"/> so off-screen entities still light the view edge.</summary>
     public List<LightSourceCmd> Lights { get; } = new();
     /// <summary>Safe-zone map cells visible this frame — each gets a map-wide non-flickering area light.</summary>
-    public List<MapLightCmd> SafeMapLights { get; } = new();
+    public List<MapLightCmd> AlwaysLitMapLights { get; } = new();
     /// <summary>Map cells with AlwaysDark set — stamped as NightAmbient in the light RT regardless of time of day.</summary>
     public List<MapLightCmd> AlwaysDarkMapLights { get; } = new();
     /// <summary>Indoor map cells (non-AlwaysDark) — stamped as White in the light RT so they stay lit at night.</summary>
@@ -215,7 +215,7 @@ public sealed class RenderFrame
         CorpseNames.Clear();
         ContestPoints.Clear();
         Lights.Clear();
-        SafeMapLights.Clear();
+        AlwaysLitMapLights.Clear();
         AlwaysDarkMapLights.Clear();
         IndoorsMapLights.Clear();
         Glows.Clear();

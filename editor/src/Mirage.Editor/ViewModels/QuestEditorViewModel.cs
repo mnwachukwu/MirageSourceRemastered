@@ -16,6 +16,7 @@ public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowV
 {
     [ObservableProperty] private QuestRowViewModel? _selectedQuest;
     public override QuestRowViewModel? Selected => SelectedQuest;
+    protected override void SetSelected(QuestRowViewModel? row) => SelectedQuest = row;
     public ObservableCollection<QuestRowViewModel> Quests { get; } = [];
     public override ObservableCollection<QuestRowViewModel> Items => Quests;
     protected override string GetFilterText(QuestRowViewModel row) => row.DisplayName;
@@ -83,6 +84,7 @@ public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowV
 
     partial void OnSelectedQuestChanged(QuestRowViewModel? oldValue, QuestRowViewModel? newValue)
     {
+        NotifyInboundRefsChanged();
         if (oldValue is not null) oldValue.PropertyChanged -= OnQuestPropertyChanged;
         if (newValue is not null) newValue.PropertyChanged += OnQuestPropertyChanged;
         NotifyDirtyState();

@@ -287,15 +287,14 @@ public sealed partial class PacketHandler
                 OpenNpcConversation(index, npcNum, p.MapNum, p.NpcSlot);
                 return;
             case NpcInteractChoice.Quest:
-                if (_quests.HasVisibleQuestAt(index, npcNum))
+                if (_quests.HasActionableQuestAt(index, npcNum))
                     _dispatcher.SendTo(index, new OpenNpcQuestMenuPacket { MapNum = p.MapNum, NpcSlot = p.NpcSlot });
                 return;
-            default:   // Auto — talk-first, then a VISIBLE quest (incl. class-eligible-but-unmet ones, shown grayed
-                       // with their requirements), then the keeper shop; if none apply, the NPC at least speaks its
-                       // AttackSay rather than doing nothing.
+            default:   // Auto — talk-first, then a quest the player can accept or turn in right now, then the keeper
+                       // shop; if none apply, the NPC at least speaks its AttackSay rather than doing nothing.
                 if (_world.ConversationForNpc(npcNum) > 0)
                     OpenNpcConversation(index, npcNum, p.MapNum, p.NpcSlot);
-                else if (_quests.HasVisibleQuestAt(index, npcNum))
+                else if (_quests.HasActionableQuestAt(index, npcNum))
                     _dispatcher.SendTo(index, new OpenNpcQuestMenuPacket { MapNum = p.MapNum, NpcSlot = p.NpcSlot });
                 else if (!OpenNpcShop(index, npcNum, p.MapNum, p.NpcSlot))
                     _combat.SpeakAttackSayTo(index, p.MapNum, p.NpcSlot, _world.Npcs[npcNum]);

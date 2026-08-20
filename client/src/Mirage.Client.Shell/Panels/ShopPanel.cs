@@ -25,6 +25,10 @@ public sealed class ShopPanel : IGamePanel
 
     private const string TooltipScope = "ShopFix";
 
+    /// <summary>Open on a shop. Every list starts at the top with nothing selected, and the tab strip starts on
+    /// Buy: this is a DIFFERENT keeper's stock, so a position carried over from the last one lands the player
+    /// partway down a list they have not seen the start of, and an armed selection index points at whatever
+    /// item now happens to occupy that row.</summary>
     public void Open()
     {
         IsOpen = true;
@@ -32,6 +36,12 @@ public sealed class ShopPanel : IGamePanel
         _fixSlotDirty = true;
         _salesDirty = true;
         _sellDirty = true;
+        _tab = Tab.Buy;
+        _viewState = ViewState.None;
+        _salesList.Reset();
+        _sellList.Reset();
+        _barterList.Reset();
+        _fixSlotList.Reset();
     }
     public void Close()
     {
@@ -55,7 +65,9 @@ public sealed class ShopPanel : IGamePanel
     // barter table (give → get rows), SELL is the player's own bag. They are separate tabs rather
     // than one list because they are separate transactions — see ShopContentsPacket's note on why the
     // sales list is item numbers while a barter row names both sides.
-    private enum Tab { Buy, Barter, Sell }
+    // Declaration order IS the on-screen order — DrawTabs indexes its label array by (Tab)i. The two gold
+    // transactions sit together, with item-for-item barter last.
+    private enum Tab { Buy, Sell, Barter }
     private Tab _tab = Tab.Buy;
     private const int TabStripH = 24;
 
@@ -559,21 +571,61 @@ public sealed class ShopPanel : IGamePanel
         long gold = state.PlayerGold();
         UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.Common_GoldLabel, ("Gold", gold)), new Vector2(c.X + 8, c.Bottom - 56), Color.Gold, c.Width - 16);
         _panel.DrawOverlay(sb);
+        if (canHover) NotifyTabHover(state, itemsTex);
     }
 
     private void NotifyFixSlotHover(ClientState state, Texture2D? itemsTex)
     {
         int hovered = _fixSlotList.HoveredIndex;
         if (hovered < 0 || hovered >= _fixSlotNums.Count) return;
-        int slotIdx = _fixSlotNums[hovered];
+        NotifyInvSlotHover(state, itemsTex, _fixSlotNums[hovered], "fix");
+    }
+
+    // Tooltips for the tab that is showing. Barter rows name two items at once, so a single-item tooltip
+    // would be ambiguous there; that list keeps its truncation tooltip instead.
+    private void NotifyTabHover(ClientState state, Texture2D? itemsTex)
+    {
+        switch (_tab)
+        {
+            case Tab.Buy: NotifySalesHover(state, itemsTex); break;
+            case Tab.Sell: NotifySellSlotHover(state, itemsTex); break;
+        }
+    }
+
+    /// <summary>A shopfront row is an item the player does not own yet, so it is described by a stand-in bag
+    /// slot at full durability — the same shape the character-create kit uses. Quantity is 1 because that is
+    /// what a purchase grants (see DrawBuyConfirm's barter row).</summary>
+    private void NotifySalesHover(ClientState state, Texture2D? itemsTex)
+    {
+        int hovered = _salesList.HoveredIndex;
+        if (hovered < 0 || hovered >= state.ActiveSales.Length) return;
+        int itemNum = state.ActiveSales[hovered];
+        if (itemNum <= 0 || itemNum > state.Limits.Items) return;
+        var item = state.Items[itemNum];
+        if (item is null) return;
+        var slot = new PlayerInvSlot { Num = itemNum, Quantity = 1, Dur = item.Durability };
+        Tooltip.NotifyHoverItem(TooltipScope, (TooltipScope, "buy", itemNum), item, slot,
+            state.Me, state.Classes, itemsTex, _input.MousePosition);
+    }
+
+    private void NotifySellSlotHover(ClientState state, Texture2D? itemsTex)
+    {
+        int hovered = _sellList.HoveredIndex;
+        if (hovered < 0 || hovered >= _sellSlotNums.Count) return;
+        NotifyInvSlotHover(state, itemsTex, _sellSlotNums[hovered], "sell");
+    }
+
+    // A row backed by a real bag slot, so the tooltip shows its true wear and stack. Key on
+    // (panel, list, slotIdx, itemNum) so it re-pins when the user moves to a different slot, when the
+    // slot's item changes underneath them, or when the same slot is reached from a different list.
+    private void NotifyInvSlotHover(ClientState state, Texture2D? itemsTex, int slotIdx, string list)
+    {
         var slot = state.Me?.Inv?[slotIdx];
         if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) return;
         var item = state.Items[slot.Num];
         if (item is null) return;
-        // Key on (panel, slotIdx, itemNum) so the tooltip re-pins position when the user moves
-        // to a different slot OR when the slot's item changes underneath them.
-        var key = (TooltipScope, slotIdx, slot.Num);
-        Tooltip.NotifyHoverItem(TooltipScope, key, item, slot, state.Me, state.Classes, itemsTex, _input.MousePosition);
+        Tooltip.NotifyHoverItem(TooltipScope, (TooltipScope, list, slotIdx, slot.Num), item, slot,
+            state.Me, state.Classes, itemsTex, _input.MousePosition);
     }
 
     private void DrawRepairConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
@@ -682,6 +734,18 @@ public sealed class ShopPanel : IGamePanel
         var myClass = (me is not null && me.Class > 0 && me.Class < state.Classes.Length)
             ? state.Classes[me.Class] : null;
         int classInt = myClass?.Int ?? 0;
+
+        // The level gate, directly under the name: this is the last screen before gold changes hands, and
+        // buying a piece you cannot wear for another eighty levels is the one mistake the confirm exists to
+        // catch. Red when unmet, and shown either way so the number is never a surprise on equip.
+        if (get is { LevelReq: > 0 })
+        {
+            bool meetsLevel = me is not null && me.Level >= get.LevelReq;
+            UiHelper.DrawLabel(sb, font,
+                ClientStrings.Format(ClientStrings.ShopPanel_LevelReq, ("Level", get.LevelReq)),
+                new Vector2(c.X + 8, textY), meetsLevel ? Color.LightGreen : Color.OrangeRed, c.Width - 16);
+            textY += 18;
+        }
 
         if (spell is not null)
         {
@@ -894,8 +958,8 @@ public sealed class ShopPanel : IGamePanel
         string[] labels =
         [
             ClientStrings.Get(ClientStrings.ShopPanel_BuyTab),
-            ClientStrings.Get(ClientStrings.ShopPanel_TradeTab),
             ClientStrings.Get(ClientStrings.ShopPanel_SellTab),
+            ClientStrings.Get(ClientStrings.ShopPanel_TradeTab),
         ];
         for (int i = 0; i < rects.Length; i++)
         {

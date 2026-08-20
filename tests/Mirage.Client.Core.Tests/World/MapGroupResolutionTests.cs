@@ -39,7 +39,7 @@ public class MapGroupResolutionTests
             Assert.That(state.MoralOf(map), Is.EqualTo(MapMoral.Safe));
             Assert.That(state.MusicOf(map), Is.EqualTo(9));
             Assert.That(state.IndoorsOf(map), Is.True);
-            Assert.That(state.AlwaysDarkOf(map), Is.True);
+            Assert.That(state.LightingOf(map), Is.EqualTo(MapLighting.AlwaysDark));
         });
     }
 
@@ -84,7 +84,7 @@ public class MapGroupResolutionTests
         // never touched again — mirroring a client that has the map cached.
         Apply(state, HandleSend, new SendMapGroupsPacket
         {
-            Groups = new[] { new SendMapGroupsPacket.GroupData(3, "Old", MapMoral.Safe, 9, null, null, 0, 0, 0) },
+            Groups = new[] { new SendMapGroupsPacket.GroupData(3, "Old", MapMoral.Safe, 9, null, null, null, 0, 0, 0) },
         });
         var map = new MapRecord { MapGroup = 3 };
         Assert.That(state.MoralOf(map), Is.EqualTo(MapMoral.Safe), "map inherits the joined group state");
@@ -111,7 +111,7 @@ public class MapGroupResolutionTests
         state.MapGroups[2] = new MapGroupRecord { Index = 2, Music = 1 };   // a group from a prior snapshot
         Apply(state, HandleSend, new SendMapGroupsPacket
         {
-            Groups = new[] { new SendMapGroupsPacket.GroupData(3, "G3", null, 0, null, null, 0, 0, 0) },
+            Groups = new[] { new SendMapGroupsPacket.GroupData(3, "G3", null, 0, null, null, null, 0, 0, 0) },
         });
         Assert.Multiple(() =>
         {

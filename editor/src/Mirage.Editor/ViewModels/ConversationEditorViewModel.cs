@@ -15,6 +15,7 @@ public sealed partial class ConversationEditorViewModel : EditorViewModelBase<Co
 {
     [ObservableProperty] private ConversationRowViewModel? _selectedConversation;
     public override ConversationRowViewModel? Selected => SelectedConversation;
+    protected override void SetSelected(ConversationRowViewModel? row) => SelectedConversation = row;
     public ObservableCollection<ConversationRowViewModel> Conversations { get; } = [];
     public override ObservableCollection<ConversationRowViewModel> Items => Conversations;
     protected override string GetFilterText(ConversationRowViewModel row) => row.DisplayName;
@@ -46,6 +47,7 @@ public sealed partial class ConversationEditorViewModel : EditorViewModelBase<Co
 
     partial void OnSelectedConversationChanged(ConversationRowViewModel? value)
     {
+        NotifyInboundRefsChanged();
         NotifyDirtyState();
         if (value is not null && !value.IsLoaded && _data.IsOnline)
             _ = LoadEntityAsync(value);

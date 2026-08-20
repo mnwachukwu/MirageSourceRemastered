@@ -42,6 +42,11 @@ public sealed class MapRecord
     public int BootX { get; set; }
     public int BootY { get; set; }
     public bool? Indoors { get; set; }
+
+    // The two lighting overrides are MUTUALLY EXCLUSIVE — a map cannot be both — and are resolved together by
+    // MapGroupResolve.Lighting rather than read directly, so the exclusivity survives inheritance. Independent
+    // of Moral: whether you can be attacked here and whether you can see here are separate claims.
+    public bool? AlwaysLit { get; set; }
     public bool? AlwaysDark { get; set; }
 
     // ── Map-enter/leave greeting ─────────────────────────────────────────────────

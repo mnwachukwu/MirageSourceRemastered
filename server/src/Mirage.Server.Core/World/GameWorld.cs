@@ -52,7 +52,7 @@ public sealed class GameWorld
     public HashSet<int> DirtyMapGroups { get; } = new();
 
     // ── Effective map properties ─────────────────────────────────────────────────
-    // A map's inheritable properties (Moral/Music/Shop/Indoors/AlwaysDark/Boot) are nullable: null = inherit
+    // A map's inheritable properties (Moral/Music/Shop/Indoors/lighting/Boot) are nullable: null = inherit
     // from the map's MapGroup. ALWAYS resolve them through these helpers, never a raw Maps[n].X read, so the
     // group fallback is honored everywhere. Group-less maps take the fast path (GroupOf returns null).
     public MapGroupRecord? GroupOf(int mapNum)
@@ -159,7 +159,9 @@ public sealed class GameWorld
                                         tw.Value.worldX, tw.Value.worldY, mi.Layer);
     }
     public bool IndoorsOf(int mapNum) => MapGroupResolve.Indoors(Maps[mapNum], GroupOf(mapNum));
-    public bool AlwaysDarkOf(int mapNum) => MapGroupResolve.AlwaysDark(Maps[mapNum], GroupOf(mapNum));
+    /// <summary>How this map treats the day/night cycle. ONE answer, because the two authored flags are
+    /// mutually exclusive and only mean something as a pair. See MapGroupResolve.Lighting.</summary>
+    public MapLighting LightingOf(int mapNum) => MapGroupResolve.Lighting(Maps[mapNum], GroupOf(mapNum));
     public int BootMapOf(int mapNum) => MapGroupResolve.BootMap(Maps[mapNum], GroupOf(mapNum));
     public int BootXOf(int mapNum) => MapGroupResolve.BootX(Maps[mapNum], GroupOf(mapNum));
     public int BootYOf(int mapNum) => MapGroupResolve.BootY(Maps[mapNum], GroupOf(mapNum));

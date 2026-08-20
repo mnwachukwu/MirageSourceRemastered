@@ -15,6 +15,7 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
 {
     [ObservableProperty] private NpcRowViewModel? _selectedNpc;
     public override NpcRowViewModel? Selected => SelectedNpc;
+    protected override void SetSelected(NpcRowViewModel? row) => SelectedNpc = row;
     public ObservableCollection<NpcRowViewModel> Npcs { get; } = [];
     public override ObservableCollection<NpcRowViewModel> Items => Npcs;
     protected override string GetFilterText(NpcRowViewModel row) => row.DisplayName;
@@ -100,6 +101,7 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
 
     partial void OnSelectedNpcChanged(NpcRowViewModel? oldValue, NpcRowViewModel? newValue)
     {
+        NotifyInboundRefsChanged();
         if (oldValue is not null) oldValue.PropertyChanged -= OnNpcPropertyChanged;
         if (newValue is not null) newValue.PropertyChanged += OnNpcPropertyChanged;
         NotifyDirtyState();

@@ -23,6 +23,8 @@ public sealed class MapGroupRecord
     public int Music { get; set; }
     public MapMoral? Moral { get; set; }
     public bool? Indoors { get; set; }
+    // Mutually exclusive with each other, and resolved as a pair — see MapGroupResolve.Lighting.
+    public bool? AlwaysLit { get; set; }
     public bool? AlwaysDark { get; set; }
     public int BootMap { get; set; }
     public int BootX { get; set; }

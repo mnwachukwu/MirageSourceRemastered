@@ -13,8 +13,11 @@ namespace Mirage.Editor.Services;
 public sealed class EditorConnection : IDisposable
 {
     private TcpClient? _client;
-    private StreamReader? _reader;
-    private StreamWriter? _writer;
+    // The transport as TEXT, not as sockets: everything below this line uses ReadLineAsync, WriteAsync
+    // and FlushAsync and nothing else, so the receive loop and the request bookkeeping can be driven
+    // over any reader/writer pair. See AttachTransport.
+    private TextReader? _reader;
+    private TextWriter? _writer;
     private CancellationTokenSource? _cts;
 
     // Pending on-demand record requests keyed by (responseCmd, recordNum)
@@ -23,6 +26,21 @@ public sealed class EditorConnection : IDisposable
     private readonly ConcurrentDictionary<string, TaskCompletionSource<IPacket>> _pendingBulk = new();
 
     public bool IsConnected => _client?.Connected == true;
+
+    /// <summary>Runs the connection over an arbitrary reader/writer pair rather than a socket, and starts
+    /// the receive loop against it. The loop, the pending-request bookkeeping and the disconnect path are
+    /// the same code the real transport runs; only the stream underneath differs.</summary>
+    internal void AttachTransport(TextReader reader, TextWriter writer)
+    {
+        _closingDeliberately = false;
+        _reader = reader;
+        _writer = writer;
+        _cts = new CancellationTokenSource();
+        ReceiveLoop = ReceiveLoopAsync(_cts.Token);
+    }
+
+    /// <summary>The running receive loop, so a caller can await its completion.</summary>
+    internal Task? ReceiveLoop { get; private set; }
 
     public event Action<string>? OnServerMessage;
     public event Action? OnDisconnected;
@@ -54,6 +72,9 @@ public sealed class EditorConnection : IDisposable
     public async Task<AuthResult> ConnectAndAuthAsync(string host, int port, string username, string password,
                                                      CancellationToken ct = default)
     {
+        // A fresh session: whatever ended the LAST one is no longer true of this one. Without this reset a
+        // genuine loss after any deliberate disconnect would be swallowed for the rest of the process.
+        _closingDeliberately = false;
         Endpoint = $"{host}:{port}";
         Login = username;
         _client = new TcpClient();
@@ -101,7 +122,7 @@ public sealed class EditorConnection : IDisposable
             return AuthResult.Failed(EditorStrings.Get(EditorStrings.EditorConnection_ExpectedDataPacket));
 
         _cts = new CancellationTokenSource();
-        _ = ReceiveLoopAsync(_cts.Token);
+        ReceiveLoop = ReceiveLoopAsync(_cts.Token);
 
         ServerBookStore.Book.Remember(Hello?.GameName ?? "", host, port);
         return new AuthResult(true, response.Message, dataPacket, response.AccessLevel);
@@ -190,7 +211,10 @@ public sealed class EditorConnection : IDisposable
                                                 CancellationToken ct) where T : class, IPacket
     {
         if (_writer is null) throw new InvalidOperationException("Not connected.");
+        // One waiter per response command. A second request for the same one displaces the first, so the
+        // displaced caller is released rather than left awaiting a slot nothing points at any more.
         var tcs = new TaskCompletionSource<IPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (_pendingBulk.TryGetValue(responseCmd, out var displacedBulk)) displacedBulk.TrySetCanceled();
         _pendingBulk[responseCmd] = tcs;
         try
         {
@@ -261,7 +285,9 @@ public sealed class EditorConnection : IDisposable
     {
         if (_writer is null) throw new InvalidOperationException("Not connected.");
 
+        // One waiter per (command, record). As in RequestBulkAsync, a displaced caller is released.
         var tcs = new TaskCompletionSource<IPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (_pending.TryGetValue((responseCmd, num), out var displaced)) displaced.TrySetCanceled();
         _pending[(responseCmd, num)] = tcs;
         try
         {
@@ -282,16 +308,20 @@ public sealed class EditorConnection : IDisposable
 
     // ── Disconnect ────────────────────────────────────────────────────────────
 
+    /// <summary>Whether this session's teardown was ASKED FOR. Set before the socket is touched, and read
+    /// by the receive loop to decide whether its exit is news.
+    /// <para>The loop cannot tell from the exception. Closing a socket out from under a pending read raises
+    /// IOException or ObjectDisposedException far more often than OperationCanceledException, so inferring
+    /// intent from the exception type reports a deliberate disconnect as a lost connection — which puts an
+    /// unasked-for modal over the main window on the way out of an ordinary Disconnect.</para></summary>
+    private volatile bool _closingDeliberately;
+
     public async Task DisconnectAsync()
     {
+        _closingDeliberately = true;
         _cts?.Cancel();
         _cts = null;
-        foreach (var tcs in _pending.Values)
-            tcs.TrySetCanceled();
-        _pending.Clear();
-        foreach (var tcs in _pendingBulk.Values)
-            tcs.TrySetCanceled();
-        _pendingBulk.Clear();
+        FailAllPending();
         if (_writer is not null)
         {
             try
@@ -338,7 +368,25 @@ public sealed class EditorConnection : IDisposable
         catch (OperationCanceledException) { }
         catch { unexpected = true; }
 
+        // A teardown we asked for is never news, whatever the read happened to throw on the way out.
+        if (_closingDeliberately) unexpected = false;
+
+        // Nothing can answer a request once this loop is over, so every caller still waiting on one is
+        // released here. A request whose response can never arrive would otherwise await forever, and
+        // the UI operation that started it — connecting, loading a collection — would sit half-done.
+        FailAllPending();
+
         if (unexpected) OnDisconnected?.Invoke();
+    }
+
+    /// <summary>Cancels every in-flight request. Called wherever the connection stops being able to
+    /// answer one, whether that was asked for or not.</summary>
+    private void FailAllPending()
+    {
+        foreach (var tcs in _pending.Values) tcs.TrySetCanceled();
+        _pending.Clear();
+        foreach (var tcs in _pendingBulk.Values) tcs.TrySetCanceled();
+        _pendingBulk.Clear();
     }
 
     private bool TryCompletePending(IPacket packet)

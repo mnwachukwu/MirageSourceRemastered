@@ -19,6 +19,8 @@ public partial class NpcEditorView : LocalizedUserControl
 
     protected override void ApplyStrings()
     {
+        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
+        _noRefs.Text = EditorStrings.Get(EditorStrings.References_None);
         _behaviorFilterCombo.PlaceholderText = EditorStrings.Get(EditorStrings.NpcEditor_AllBehaviorsFilter);
         _nameFilterTextBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_FilterByName);
 
@@ -83,8 +85,7 @@ public partial class NpcEditorView : LocalizedUserControl
         _expLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_ExpLabel);
         _previewLevelLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_PreviewLevelLabel);
         _dropPctLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropPercentLabel);
-
-        _formulaNotesHeader.Text = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
 
         // The drop-item picker is per-ROW now, so its placeholder is bound through
         // NpcDropRowViewModel.ItemPlaceholder rather than set once on a single control here.
@@ -149,6 +150,7 @@ public partial class NpcEditorView : LocalizedUserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         PanelGrid.ColumnDefinitions[0].Width = new GridLength(AppSettings.Current.NpcEditorLeftWidth);
+        PanelGrid.ColumnDefinitions[4].Width = new GridLength(AppSettings.Current.NpcEditorRightWidth);
     }
 
     /// <summary>Save the splitter width. Guards on a non-zero width so a never-shown view
@@ -157,5 +159,9 @@ public partial class NpcEditorView : LocalizedUserControl
     {
         if (LeftPanel.Bounds.Width > 0)
             AppSettings.Current.NpcEditorLeftWidth = LeftPanel.Bounds.Width;
+        // The COLUMN, not the panel: the panel is inset by its margin, so persisting its own width and
+        // restoring it as the column width would narrow the column a little more every session.
+        if (RightPanel.IsVisible && PanelGrid.ColumnDefinitions[4].ActualWidth > 0)
+            AppSettings.Current.NpcEditorRightWidth = PanelGrid.ColumnDefinitions[4].ActualWidth;
     }
 }

@@ -243,6 +243,25 @@ public sealed partial class MapEditorViewModel : ObservableObject
             SelectedMap.MarkDirty();
         }
     }
+    // The two lighting flags are mutually exclusive, so turning one ON clears the other rather than leaving a
+    // pair the resolver has to arbitrate. Cleared to null, not false: an explicit false would also block the
+    // group from supplying that flag, which is a second decision the author did not make by ticking one box.
+    public bool? MapAlwaysLit
+    {
+        get => SelectedMap?.Record.AlwaysLit;
+        set
+        {
+            if (SelectedMap is null || SelectedMap.Record.AlwaysLit == value) return;
+            SelectedMap.Record.AlwaysLit = value;
+            if (value == true && SelectedMap.Record.AlwaysDark is not null)
+            {
+                SelectedMap.Record.AlwaysDark = null;
+                OnPropertyChanged(nameof(MapAlwaysLit));
+        OnPropertyChanged(nameof(MapAlwaysDark));
+            }
+            SelectedMap.MarkDirty();
+        }
+    }
     public bool? MapAlwaysDark
     {
         get => SelectedMap?.Record.AlwaysDark;
@@ -250,6 +269,11 @@ public sealed partial class MapEditorViewModel : ObservableObject
         {
             if (SelectedMap is null || SelectedMap.Record.AlwaysDark == value) return;
             SelectedMap.Record.AlwaysDark = value;
+            if (value == true && SelectedMap.Record.AlwaysLit is not null)
+            {
+                SelectedMap.Record.AlwaysLit = null;
+                OnPropertyChanged(nameof(MapAlwaysLit));
+            }
             SelectedMap.MarkDirty();
         }
     }
@@ -296,6 +320,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(MapLeaveSay));
         NotifyInheritedPlaceholders();
         OnPropertyChanged(nameof(MapIndoors));
+        OnPropertyChanged(nameof(MapAlwaysLit));
         OnPropertyChanged(nameof(MapAlwaysDark));
         OnPropertyChanged(nameof(MapRevisionText));
         OnPropertyChanged(nameof(UsedTilesheets));

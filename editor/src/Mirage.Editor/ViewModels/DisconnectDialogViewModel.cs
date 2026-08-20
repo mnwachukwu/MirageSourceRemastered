@@ -26,8 +26,6 @@ public sealed partial class DisconnectDialogViewModel : ObservableObject
 
     /// <summary>Raised when a reconnect succeeded, carrying the fresh data payload and access level.</summary>
     public event Action<EditorDataPacket, AdminLevel>? ReconnectSuccess;
-    /// <summary>Raised when the author chose to keep working offline instead of reconnecting.</summary>
-    public event Action? GoOfflineRequested;
     /// <summary>Raised when the dialog should close.</summary>
     public event Action? CloseRequested;
 
@@ -70,10 +68,8 @@ public sealed partial class DisconnectDialogViewModel : ObservableObject
         }
     }
 
+    /// <summary>Leave the dialog without reconnecting. Carries no event of its own: the caller treats any
+    /// exit that is not a reconnect as the offline choice, so closing the window by any route lands here.</summary>
     [RelayCommand]
-    private void GoOffline()
-    {
-        GoOfflineRequested?.Invoke();
-        CloseRequested?.Invoke();
-    }
+    private void GoOffline() => CloseRequested?.Invoke();
 }

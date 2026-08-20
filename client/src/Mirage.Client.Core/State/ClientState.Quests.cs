@@ -34,11 +34,13 @@ public sealed partial class ClientState
     /// real change (mirrors <see cref="MailVersion"/>).</summary>
     public int QuestVersion { get; private set; }
 
-    // Overhead glyph codes — also the render priority (higher wins when an NPC fills several roles). Actionable
+    // Overhead glyph codes — also the render priority (higher wins when an NPC fills several roles). A glyph is a
+    // promise that the player can act at this NPC right now, and the context menu offers exactly what it promises;
+    // the one non-actionable state is gray "!", which marks a quest already accepted and still running. Actionable
     // states split by repeatability: a repeatable quest you can accept / turn in shows BLUE, a one-time quest
     // YELLOW. Within a tier, one-time (yellow) outranks repeatable (blue); turn-in (!) outranks accept (?).
-    public const int QuestGlyphNone = 0, QuestGlyphGrayQuestion = 1, QuestGlyphGrayBang = 2,
-        QuestGlyphBlueQuestion = 3, QuestGlyphYellowQuestion = 4, QuestGlyphBlueBang = 5, QuestGlyphYellowBang = 6;
+    public const int QuestGlyphNone = 0, QuestGlyphGrayBang = 1,
+        QuestGlyphBlueQuestion = 2, QuestGlyphYellowQuestion = 3, QuestGlyphBlueBang = 4, QuestGlyphYellowBang = 5;
 
     /// <summary>What a player can do with a quest AT a given NPC (drives the interaction menu).</summary>
     public enum QuestAction { Accept, TurnIn }
@@ -98,7 +100,9 @@ public sealed partial class ClientState
     }
 
     /// <summary>The quests actionable at NPC template <paramref name="npcNum"/> — eligible-to-accept givers and
-    /// ready-to-turn-in quests. Drives the interaction (gossip) menu.</summary>
+    /// ready-to-turn-in quests. Drives the interaction menu, and is the same set the overhead "?"/"!" reflects, so
+    /// the menu offers exactly what the glyph promised. Class-locked quests never reach the server's eligible set,
+    /// so they are filtered here too. Mirrors QuestSystem.HasActionableQuestAt.</summary>
     public IEnumerable<(int QuestNum, QuestAction Action)> ActionableQuestsAt(int npcNum)
     {
         if (npcNum <= 0) yield break;
@@ -108,29 +112,6 @@ public sealed partial class ClientState
             if (def is null || def.TrimmedName.Length == 0) continue;
             if (def.GiverNpc == npcNum && IsQuestEligible(q)) yield return (q, QuestAction.Accept);
             if (def.EffectiveTurnInNpc == npcNum && IsQuestReadyToTurnIn(q)) yield return (q, QuestAction.TurnIn);
-        }
-    }
-
-    /// <summary>Quests VISIBLE at NPC template <paramref name="npcNum"/> for the interaction menu — the same set the
-    /// overhead "?"/"!" reflects: givers the player's CLASS can take (the Eligible flag says whether it can be
-    /// accepted yet), plus ready-to-turn-in quests. Class-locked quests are excluded. A giver with Eligible=false
-    /// opens the quest panel in read-only "here are the requirements" mode. Mirrors QuestSystem.HasVisibleQuestAt.</summary>
-    public IEnumerable<(int QuestNum, QuestAction Action, bool Eligible)> VisibleQuestsAt(int npcNum)
-    {
-        if (npcNum <= 0) yield break;
-        int myClass = Me.Class;
-        for (int q = 1; q < QuestDefs.Length; q++)
-        {
-            var def = QuestDefs[q];
-            if (def is null || def.TrimmedName.Length == 0) continue;
-            if (myClass > 0 && !ClassGate.Allows(def.AllowedClasses, myClass)) continue;   // class-locked → invisible
-            var pq = FindQuest(q);
-            bool active = pq is not null && IsActiveQuestStatus(pq.Status);
-            bool doneForever = pq is { Status: QuestStatus.Done } && !def.Repeatable;
-            if (def.GiverNpc == npcNum && !active && !doneForever)                        // offerable (accept or view)
-                yield return (q, QuestAction.Accept, IsQuestEligible(q));
-            if (def.EffectiveTurnInNpc == npcNum && IsQuestReadyToTurnIn(q))
-                yield return (q, QuestAction.TurnIn, true);
         }
     }
 
@@ -153,16 +134,15 @@ public sealed partial class ClientState
             if (Me.Class > 0 && !ClassGate.Allows(def.AllowedClasses, Me.Class)) continue;
             var pq = FindQuest(q);
             bool active = pq is not null && IsActiveQuestStatus(pq.Status);
-            bool doneForever = pq is { Status: QuestStatus.Done } && !def.Repeatable;
 
             // Giver "?" : eligible to accept → yellow, UNLESS it's a repeatable you've completed before → blue
-            // ("available again"); offerable-but-blocked (unmet requirements) → gray; nothing while active / done.
-            if (def.GiverNpc >= 1 && def.GiverNpc < NpcQuestGlyph.Length)
+            // ("available again"). A quest whose level/stat/prereq requirements aren't met shows NOTHING — these
+            // givers hold eighteen quests apiece, so marking every one you might someday take says only "this NPC
+            // has quests", which the player already knows.
+            if (IsQuestEligible(q) && def.GiverNpc >= 1 && def.GiverNpc < NpcQuestGlyph.Length)
             {
-                bool repeatDone = def.Repeatable && pq is { Status: QuestStatus.Done };
-                int g = IsQuestEligible(q) ? (repeatDone ? QuestGlyphBlueQuestion : QuestGlyphYellowQuestion)
-                       : (!active && !doneForever) ? QuestGlyphGrayQuestion
-                       : QuestGlyphNone;
+                int g = def.Repeatable && pq is { Status: QuestStatus.Done }
+                    ? QuestGlyphBlueQuestion : QuestGlyphYellowQuestion;
                 if (g > NpcQuestGlyph[def.GiverNpc]) NpcQuestGlyph[def.GiverNpc] = g;
             }
             // Turn-in "!" : ready → yellow (first run) / blue (a REPEAT run — done before); gray while not ready.

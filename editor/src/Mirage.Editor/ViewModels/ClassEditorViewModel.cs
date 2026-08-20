@@ -17,6 +17,7 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
 {
     [ObservableProperty] private ClassRowViewModel? _selectedClass;
     public override ClassRowViewModel? Selected => SelectedClass;
+    protected override void SetSelected(ClassRowViewModel? row) => SelectedClass = row;
     public ObservableCollection<ClassRowViewModel> Classes { get; } = [];
     public override ObservableCollection<ClassRowViewModel> Items => Classes;
     /// <inheritdoc/>
@@ -75,6 +76,7 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
 
     partial void OnSelectedClassChanged(ClassRowViewModel? oldValue, ClassRowViewModel? newValue)
     {
+        NotifyInboundRefsChanged();
         // Wire on selection rather than at construction: rows are built in bulk (and lazily for online
         // placeholders), and only the selected one ever shows its loadout tables.
         AttachLoadoutProviders(newValue);

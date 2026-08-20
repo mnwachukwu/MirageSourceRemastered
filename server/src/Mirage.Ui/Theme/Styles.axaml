@@ -301,4 +301,30 @@
     <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}"/>
   </Style>
 
+  <!-- A reference to another record. It navigates rather than acts, so it is drawn as a link: a column of
+       filled buttons reads as a column of commands, and none of these do anything to your data. Chrome is
+       cleared on the template part in every state, for the reason given above the primary block — clearing it
+       on the button alone lets the theme's own pointer-over fill come back. -->
+  <Style Selector="Button.link">
+    <Setter Property="Cursor" Value="Hand"/>
+    <Setter Property="Padding" Value="2,3"/>
+    <Setter Property="MinHeight" Value="0"/>
+    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+  </Style>
+  <Style Selector="Button.link /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource MirageAccentBrush}"/>
+  </Style>
+  <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorLight2Brush}"/>
+  </Style>
+  <Style Selector="Button.link:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark1Brush}"/>
+  </Style>
+
 </Styles>

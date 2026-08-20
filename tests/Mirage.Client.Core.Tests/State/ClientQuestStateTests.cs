@@ -10,7 +10,12 @@ namespace Mirage.Client.Core.Tests;
 /// <summary>Client-side quest derivation: the overhead ?/! glyph + the interaction menu are
 /// computed from the quest DEFS (SendQuests) + the per-player LOG + the server's ELIGIBLE set (QuestLog), with
 /// only the trivial active/done/complete parts derived locally. Glyph codes double as render priority:
-/// 0 none / 1 gray "?" / 2 gray "!" / 3 yellow "?" / 4 yellow "!" (higher wins when an NPC fills several roles).</summary>
+/// 0 none / 1 gray "!" / 2 blue "?" / 3 yellow "?" / 4 blue "!" / 5 yellow "!" (higher wins when an NPC fills
+/// several roles).
+///
+/// <para>A glyph and a menu item say the same thing — the player can act at this NPC right now — and gray "!" is
+/// the one exception, marking a quest already accepted and still running. A quest the player can SEE but not yet
+/// take shows neither; the quest log lists those, with their unmet requirements.</para></summary>
 [TestFixture]
 public class ClientQuestStateTests
 {
@@ -42,12 +47,37 @@ public class ClientQuestStateTests
     }
 
     [Test]
-    public void IneligibleGiver_NotStarted_GrayQuestion()
+    public void IneligibleGiver_NotStarted_ShowsNothing()
     {
         var s = WithQuest(Kill(Giver), new List<PlayerQuest>());   // eligible set empty; never started
 
-        Assert.That(s.NpcQuestGlyph[Giver], Is.EqualTo(ClientState.QuestGlyphGrayQuestion));
-        Assert.That(s.ActionableQuestsAt(Giver), Is.Empty, "not eligible -> no accept item");
+        Assert.Multiple(() =>
+        {
+            Assert.That(s.NpcQuestGlyph[Giver], Is.EqualTo(ClientState.QuestGlyphNone),
+                "a quest you can't take yet is not something to do here");
+            Assert.That(s.ActionableQuestsAt(Giver), Is.Empty, "not eligible -> no accept item");
+        });
+    }
+
+    /// <summary>The reported bug. The three real givers hold eighteen quests apiece, so a marker that lights for
+    /// any of them, or a menu that lists all of them, tells the player nothing about what they can actually do.</summary>
+    [Test]
+    public void AGiverHoldingManyQuests_OffersOnlyTheOneYouCanTake()
+    {
+        var s = new ClientState();
+        var defs = new List<(int, QuestRecord)>();
+        for (int q = 1; q <= 18; q++) defs.Add((q, Kill(Giver)));
+        s.SetQuestDefs(defs);
+        s.SetQuests(new List<PlayerQuest>(), new[] { 4 }, Array.Empty<int>());   // only quest 4 is eligible
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(new List<(int, ClientState.QuestAction)>(s.ActionableQuestsAt(Giver)),
+                Is.EqualTo(new[] { (4, ClientState.QuestAction.Accept) }),
+                "one menu item, not eighteen");
+            Assert.That(s.NpcQuestGlyph[Giver], Is.EqualTo(ClientState.QuestGlyphYellowQuestion),
+                "and the glyph promises exactly that one");
+        });
     }
 
     [Test]
@@ -107,11 +137,11 @@ public class ClientQuestStateTests
         Assert.That(s.NpcQuestGlyph[TurnIn], Is.EqualTo(ClientState.QuestGlyphBlueBang), "a repeat run ready to turn in is blue !");
     }
 
-    // A repeatable quest finished this period stays VISIBLE at its giver (so the offer can still be read) but is
-    // not eligible. The cooldown set is what tells the panel why the Accept button is grayed — without it every
-    // listed requirement reads as met and the gray button has no stated cause.
+    // A repeatable quest finished this period is not eligible, so its giver goes quiet until the period rolls. The
+    // cooldown set is what tells the quest LOG why that row's Accept is grayed — without it every listed
+    // requirement reads as met and the gray button has no stated cause.
     [Test]
-    public void Repeatable_DoneThisPeriod_ReportsCooldownAndStaysVisible()
+    public void Repeatable_DoneThisPeriod_ReportsCooldownAndOffersNothing()
     {
         var def = Kill(Giver, TurnIn, count: 1);
         def.Repeatable = true;
@@ -122,21 +152,22 @@ public class ClientQuestStateTests
         s.SetQuestDefs(new[] { (1, def) });
         s.SetQuests(doneLog, Array.Empty<int>(), new[] { 1 });   // done, not eligible, on cooldown
 
-        var visible = new List<(int, ClientState.QuestAction, bool)>(s.VisibleQuestsAt(Giver));
         Assert.Multiple(() =>
         {
             Assert.That(s.IsQuestOnRepeatCooldown(1), Is.True, "the server flagged this period as already used");
             Assert.That(s.IsQuestEligible(1), Is.False);
-            Assert.That(visible, Is.EqualTo(new[] { (1, ClientState.QuestAction.Accept, false) }),
-                "still offered for viewing, but not acceptable -> the grayed Accept needs the cooldown reason");
+            Assert.That(s.ActionableQuestsAt(Giver), Is.Empty, "nothing to take here until the period rolls");
+            Assert.That(s.NpcQuestGlyph[Giver], Is.EqualTo(ClientState.QuestGlyphNone), "so no glyph either");
         });
 
-        // Once the period rolls the server re-lights it: eligible again, no cooldown line.
+        // Once the period rolls the server re-lights it: eligible again, no cooldown line, and a BLUE "?" — the
+        // repeatable's "available again" state, distinct from a first-time yellow.
         s.SetQuests(doneLog, new[] { 1 }, Array.Empty<int>());
         Assert.Multiple(() =>
         {
             Assert.That(s.IsQuestOnRepeatCooldown(1), Is.False);
             Assert.That(s.IsQuestEligible(1), Is.True);
+            Assert.That(s.NpcQuestGlyph[Giver], Is.EqualTo(ClientState.QuestGlyphBlueQuestion));
         });
     }
 

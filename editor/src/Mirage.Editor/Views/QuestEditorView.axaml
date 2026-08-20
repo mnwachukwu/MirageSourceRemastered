@@ -9,6 +9,8 @@
       <ColumnDefinition Width="200" MinWidth="120"/>
       <ColumnDefinition Width="5"/>
       <ColumnDefinition Width="*" MinWidth="200"/>
+      <ColumnDefinition Width="5"/>
+      <ColumnDefinition Width="220" MinWidth="140"/>
     </Grid.ColumnDefinitions>
 
     <!-- ── Left: quest list ── -->
@@ -267,7 +269,44 @@
     </Grid>
 
     <!-- ── Footer: status line, and the always-visible Save / Discard strip ── -->
-    <Border Grid.Row="1" Grid.ColumnSpan="3" Padding="8,6"
+
+    <GridSplitter Grid.Column="3" Width="5" Background="{DynamicResource MirageLineSoftBrush}"
+                  ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"/>
+
+    <!-- ── Far right: what refers to this record. Its own column rather than a block at the foot of the
+         form, so it is visible without scrolling past every field first. Each row opens its record. ── -->
+    <DockPanel x:Name="RightPanel" Grid.Column="4" Margin="8,16,8,8"
+               IsVisible="{Binding SelectedQuest, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <TextBlock x:Name="_refsHeader" DockPanel.Dock="Top"
+                 FontSize="13" FontWeight="Bold" Margin="0,0,0,6" TextWrapping="Wrap"/>
+      <TextBlock x:Name="_noRefs" DockPanel.Dock="Top"
+                 IsVisible="{Binding !HasInboundRefs}"
+                 Foreground="{DynamicResource MirageMutedBrush}" FontStyle="Italic"
+                 FontSize="11" TextWrapping="Wrap"/>
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding InboundRefs}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Margin="0,0,0,8">
+                <TextBlock Text="{Binding Header}" FontSize="11"
+                           Foreground="{DynamicResource MirageMutedBrush}"/>
+                <ItemsControl ItemsSource="{Binding Links}" Margin="8,0,0,0">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Button Classes="link" Command="{Binding OpenCommand}"
+                              Content="{Binding DisplayName}"
+                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"/>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </DockPanel>
+
+    <Border Grid.Row="1" Grid.ColumnSpan="5" Padding="8,6"
             BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">

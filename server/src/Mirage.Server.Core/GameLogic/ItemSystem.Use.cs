@@ -77,6 +77,28 @@ public sealed partial class ItemSystem : GameSystem
         // Player's class record — drives the class-affinity head-start on the equip/learn gates below
         // (a class needs proportionally less of its affinity stat to meet a requirement).
         var cls = _world.Classes[p.Class];
+        // ── The drinking cooldown ────────────────────────────────────────────────────────────────
+        // Potions run on their own 2s clock, apart from the 1s action beat that attacking and casting
+        // share, so a potion never costs a swing and a swing never delays a potion. Heavy Wind doubles
+        // it as it doubles the others. Authoritative here because a client-side gate is a courtesy.
+        //
+        // ONLY potions. Everything else is already guarded or has no business being paced: equipment and
+        // scrolls are blocked outright in combat, and a KEY is deliberately free — opening a door
+        // mid-fight is a legitimate move and must not cost the swing that follows it.
+        //
+        // Placed after every guard that rejects a use outright — class, broken, level — so a refused
+        // use never burns the cooldown.
+        bool isPotion = item.Type is ItemType.PotionAddHp or ItemType.PotionAddMp or ItemType.PotionAddSp
+                                  or ItemType.PotionSubHp or ItemType.PotionSubMp or ItemType.PotionSubSp;
+        long useWindMult = _world.WeatherOn(p.Map) == WeatherType.HeavyWind
+            ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
+        long useNow = Environment.TickCount64;
+        if (isPotion && useNow < sp.PotionTimer + Constants.PotionCooldownMs * useWindMult) return;
+
+        // Set by the potion branches that actually spend the item, so one refused — a full bar, a vital
+        // with nothing left to give — costs neither the item nor the beat.
+        bool consumed = false;
+
         switch (item.Type)
         {
             case ItemType.Weapon:
@@ -124,22 +146,22 @@ public sealed partial class ItemSystem : GameSystem
                 break;
 
             case ItemType.PotionAddHp:
-                ApplyAddPotion(index, p, item, itemNum, PotionVital.Hp);
+                consumed = ApplyAddPotion(index, p, item, itemNum, PotionVital.Hp);
                 break;
             case ItemType.PotionAddMp:
-                ApplyAddPotion(index, p, item, itemNum, PotionVital.Mp);
+                consumed = ApplyAddPotion(index, p, item, itemNum, PotionVital.Mp);
                 break;
             case ItemType.PotionAddSp:
-                ApplyAddPotion(index, p, item, itemNum, PotionVital.Sp);
+                consumed = ApplyAddPotion(index, p, item, itemNum, PotionVital.Sp);
                 break;
             case ItemType.PotionSubHp:
-                ApplySubPotion(index, p, item, itemNum, PotionVital.Hp);
+                consumed = ApplySubPotion(index, p, item, itemNum, PotionVital.Hp);
                 break;
             case ItemType.PotionSubMp:
-                ApplySubPotion(index, p, item, itemNum, PotionVital.Mp);
+                consumed = ApplySubPotion(index, p, item, itemNum, PotionVital.Mp);
                 break;
             case ItemType.PotionSubSp:
-                ApplySubPotion(index, p, item, itemNum, PotionVital.Sp);
+                consumed = ApplySubPotion(index, p, item, itemNum, PotionVital.Sp);
                 break;
 
             case ItemType.Spell:
@@ -227,6 +249,8 @@ public sealed partial class ItemSystem : GameSystem
                 }
                 break;
         }
+
+        if (consumed) sp.PotionTimer = useNow;
     }
 
     // Shared implementation for the six PotionAdd*/PotionSub* item types: one Add helper, one Sub
@@ -236,17 +260,20 @@ public sealed partial class ItemSystem : GameSystem
 
     /// <summary>PotionAdd{Hp,Mp,Sp}: restore <see cref="ItemRecord.VitalAmount"/> of one vital,
     /// clamped to its max. Refuses (with a chat message) if the vital is already at max.</summary>
-    private void ApplyAddPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital vital)
+    /// <summary>Returns whether the potion was drunk. A refusal costs the player nothing — not the
+    /// item, and not the shared beat.</summary>
+    private bool ApplyAddPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital vital)
     {
         if (GetVital(p, vital) >= GetVitalMax(p, vital))
         {
             SendMsg(index, ServerStrings.ItemSystem_VitalFull, GameColor.BrightRed, ("Vital", VitalName(vital)));
-            return;
+            return false;
         }
         SetVital(p, vital, Math.Min(GetVital(p, vital) + item.VitalAmount, GetVitalMax(p, vital)));
         BroadcastVital(index, p, vital);
         TakeItem(index, itemNum, 0);
         SendMsg(index, ServerStrings.ItemSystem_UsedPotion, GameColor.White, ("Item", item.Name));
+        return true;
     }
 
     /// <summary>PotionSub{Hp,Mp,Sp}: drain <see cref="ItemRecord.VitalAmount"/> from one vital and pay a
@@ -258,14 +285,14 @@ public sealed partial class ItemSystem : GameSystem
     /// <see cref="StatFormulas.SubPotionDrain"/>) so a potion can never be lethal; refused outright only
     /// when there is nothing left to spend. All three vitals are broadcast even when only one moved
     /// meaningfully.</para></summary>
-    private void ApplySubPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital drainVital)
+    private bool ApplySubPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital drainVital)
     {
         int have = GetVital(p, drainVital);
         int drained = StatFormulas.SubPotionDrain(item.VitalAmount, have, drainVital == PotionVital.Hp);
         if (drained <= 0)
         {
             SendMsg(index, ServerStrings.ItemSystem_CantUsePotion, GameColor.BrightRed);
-            return;
+            return false;
         }
         int drainMax = GetVitalMax(p, drainVital);
         SetVital(p, drainVital, have - drained);
@@ -280,6 +307,7 @@ public sealed partial class ItemSystem : GameSystem
         BroadcastVital(index, p, PotionVital.Mp);
         BroadcastVital(index, p, PotionVital.Sp);
         TakeItem(index, itemNum, 0);
+        return true;
     }
 
     private static int GetVital(PlayerRecord p, PotionVital v) => v switch

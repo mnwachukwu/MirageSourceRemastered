@@ -46,7 +46,11 @@ public static partial class EditorStrings
     public const string MapEditor_PropertiesHeader = nameof(MapEditor_PropertiesHeader);
     public const string MapEditor_SelectMapPrompt = nameof(MapEditor_SelectMapPrompt);
     public const string MapEditor_MoralLabel = nameof(MapEditor_MoralLabel);
+    // The three titled groups. Their member labels drop the prefix the header now carries — Boot Map
+    // reads "Map" under Respawn, and the greeting fields read plainly under Greeting.
     public const string MapEditor_MapLinksHeader = nameof(MapEditor_MapLinksHeader);
+    public const string MapEditor_RespawnHeader = nameof(MapEditor_RespawnHeader);
+    public const string MapEditor_GreetingHeader = nameof(MapEditor_GreetingHeader);
     public const string MapEditor_UpLabel = nameof(MapEditor_UpLabel);
     public const string MapEditor_DownLabel = nameof(MapEditor_DownLabel);
     public const string MapEditor_LeftLabel = nameof(MapEditor_LeftLabel);
@@ -67,6 +71,7 @@ public static partial class EditorStrings
     public const string MapEditor_MapGroupLabel = nameof(MapEditor_MapGroupLabel);
     public const string MapEditor_InheritHint = nameof(MapEditor_InheritHint);
     public const string MapEditor_IndoorsLabel = nameof(MapEditor_IndoorsLabel);
+    public const string MapEditor_AlwaysLitLabel = nameof(MapEditor_AlwaysLitLabel);
     public const string MapEditor_AlwaysDarkLabel = nameof(MapEditor_AlwaysDarkLabel);
     public const string MapEditor_NpcSlotsLabel = nameof(MapEditor_NpcSlotsLabel);
     public const string MapEditor_AnimPreviewStart = nameof(MapEditor_AnimPreviewStart);

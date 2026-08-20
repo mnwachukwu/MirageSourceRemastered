@@ -331,36 +331,6 @@ public sealed class QuestSystem : GameSystem
         return false;
     }
 
-    /// <summary>Does NPC template <paramref name="npcNum"/> have a quest VISIBLE to this player — one it gives that
-    /// the player's CLASS can take (even if level/stat/prereq requirements aren't met yet), or one it turns in that's
-    /// ready? Broader than <see cref="HasActionableQuestAt"/> (full eligibility): the interaction opens the quest
-    /// panel for a not-yet-eligible quest so the player can see the requirements. Class-locked quests stay invisible,
-    /// so the NPC falls through to its other actions.</summary>
-    public bool HasVisibleQuestAt(int index, int npcNum)
-    {
-        if (npcNum <= 0 || !_pm[index].IsPlaying) return false;
-        for (int q = 1; q <= _world.Limits.Quests; q++)
-        {
-            if (!QuestExists(q)) continue;
-            var quest = _world.Quests[q];
-            if (quest.GiverNpc == npcNum && IsGiverVisible(index, q)) return true;
-            if (quest.EffectiveTurnInNpc == npcNum && ReadyToTurnIn(index, q)) return true;
-        }
-        return false;
-    }
-
-    // The giver would show a "?" to this player: right class, and the quest isn't already active or permanently done.
-    // Unmet level/stat/prereq requirements still count as visible (the quest panel shows them, grayed, as ineligible).
-    private bool IsGiverVisible(int index, int questNum)
-    {
-        var q = _world.Quests[questNum];
-        if (!ClassGate.Allows(q.AllowedClasses, _pm[index].Char.Class)) return false;   // class-locked → invisible
-        var pq = Find(index, questNum);
-        if (pq is not null && IsActive(pq.Status)) return false;                     // already on it
-        if (pq is { Status: QuestStatus.Done } && !q.Repeatable) return false;       // done forever
-        return true;
-    }
-
     // A quest is ready to turn in when the player has it active and every objective is complete.
     private bool ReadyToTurnIn(int index, int questNum)
         => Find(index, questNum) is { } pq && IsActive(pq.Status) && AllObjectivesComplete(index, questNum);

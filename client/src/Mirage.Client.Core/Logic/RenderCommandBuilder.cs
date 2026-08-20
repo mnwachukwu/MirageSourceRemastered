@@ -52,7 +52,7 @@ public static class RenderCommandBuilder
         _showOtherCooldownBars = showOtherCooldownBars;
         frame.Clear();
         long tickNow = Environment.TickCount64;
-        // AlwaysDark/Indoors overrides first so frame.AlwaysDarkMapLights is populated for EffectiveDarkness lookups.
+        // Lighting overrides first so frame.AlwaysDarkMapLights is populated for EffectiveDarkness lookups.
         EmitMapDarkOverrides(state, frame, camera);
         EmitTileGround(state, frame, camera);
         EmitBloodDecals(state, frame, camera);
@@ -63,7 +63,7 @@ public static class RenderCommandBuilder
         EmitMapPlacedLights(state, frame, camera);
         EmitTileFringe(state, frame, camera);
         EmitTileCanopy(state, frame, camera);
-        EmitSafeMapLights(state, frame, camera);
+        EmitAlwaysLitMapLights(state, frame, camera);
         return frame;
     }
 
@@ -291,12 +291,12 @@ public static class RenderCommandBuilder
     private static float NpcLightRadiusPx(float radiusTiles, int size) =>
         (radiusTiles + (size - 1)) * Constants.PicX;
 
-    // True when world tile (wx,wy) sits on a Safe map — exact cell bounds, no spillover. Emitters here are
-    // suppressed entirely: the halo would be redundant over the town light. Keyed to the map seam (not the
-    // light's soft spill) so a torch snaps on the instant its bearer steps off the safe map. Deliberately
-    // simple: onset is symmetric regardless of what borders the map, and matches where InAlwaysDark lifts.
-    // AlwaysDark maps are excluded even if they are Moral.Safe: no safe-zone light exists there so halos
-    // should be allowed to illuminate the area.
+    // True when world tile (wx,wy) sits on an AlwaysLit map — exact cell bounds, no spillover. Emitters here
+    // are suppressed entirely: the halo would be redundant over a map that is already fully bright. Keyed to
+    // the map seam (not the light's soft spill) so a torch snaps on the instant its bearer steps off the lit
+    // map. Deliberately simple: onset is symmetric regardless of what borders the map, and matches where
+    // InAlwaysDark lifts. Keyed on the authored lighting, not on Moral: a safe map is not lit by virtue of
+    // being safe, and a lit map need not be safe.
     private static bool InTownLight(ClientState state, int wx, int wy)
     {
         for (int row = 0; row < 3; row++)
@@ -304,7 +304,7 @@ public static class RenderCommandBuilder
             for (int col = 0; col < 3; col++)
             {
                 var map = state.NeighborMaps[col, row];
-                if (map is null || state.MoralOf(map) != MapMoral.Safe || state.AlwaysDarkOf(map)) continue;
+                if (state.LightingOf(map) != MapLighting.AlwaysLit) continue;
                 int left = col * WorldCoordHelper.MapTilesX;
                 int top = row * WorldCoordHelper.MapTilesY;
                 int right = left + WorldCoordHelper.MapTilesX - 1;
@@ -317,29 +317,29 @@ public static class RenderCommandBuilder
         return false;
     }
 
-    // Safe-zone maps stay lit at night. Every loaded observable cell whose map is Safe emits a
-    // map-wide area light (one viewport-sized soft box), rendered non-flickering in the light map.
-    // No viewport cull: an adjacent safe map still spills light into the view even when its own cell
-    // has scrolled off-screen, and the max-blended boxes tile seamlessly across contiguous safe maps.
-    // AlwaysDark maps are excluded even if Moral.Safe: darkness overrides the safe-zone light.
-    private static void EmitSafeMapLights(ClientState state, RenderFrame frame, Camera camera)
+    // AlwaysLit maps stay bright at night. Every loaded observable cell whose map is lit emits a map-wide
+    // area light (one viewport-sized soft box), rendered non-flickering in the light map. No viewport cull:
+    // an adjacent lit map still spills light into the view even when its own cell has scrolled off-screen,
+    // and the max-blended boxes tile seamlessly across contiguous lit maps. Nothing needs to exclude the dark
+    // case here: Lighting resolves to exactly one of the two, so a map is never both.
+    private static void EmitAlwaysLitMapLights(ClientState state, RenderFrame frame, Camera camera)
     {
         for (int row = 0; row < 3; row++)
         {
             for (int col = 0; col < 3; col++)
             {
                 var map = state.NeighborMaps[col, row];
-                if (map is null || state.MoralOf(map) != MapMoral.Safe || state.AlwaysDarkOf(map)) continue;
+                if (state.LightingOf(map) != MapLighting.AlwaysLit) continue;
                 var (sx, sy) = camera.WorldTileToScreen(
                     col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY, 0, 0);
-                frame.SafeMapLights.Add(new MapLightCmd(sx, sy));
+                frame.AlwaysLitMapLights.Add(new MapLightCmd(sx, sy));
             }
         }
     }
 
     // Map-placed light sources: each loaded observable cell contributes its authored lights, on the same
     // additive halo path as entity emitters. Unlike players/NPCs these are NOT town-light suppressed: a light
-    // authored on a safe map is a deliberate decoration meant to show even inside the lit town (it still only
+    // authored on a lit map is a deliberate decoration meant to show even inside the bright area (it still only
     // reads where there's darkness to tint — at night / on AlwaysDark maps). AlwaysDark maps are full-bright
     // regardless of time of day. Culled per-source by the light's own radius, and seeded for flicker by its Guid.
     private static void EmitMapPlacedLights(ClientState state, RenderFrame frame, Camera camera)
@@ -378,7 +378,7 @@ public static class RenderCommandBuilder
             for (int col = 0; col < 3; col++)
             {
                 var map = state.NeighborMaps[col, row];
-                if (map is null || !state.AlwaysDarkOf(map)) continue;
+                if (state.LightingOf(map) != MapLighting.AlwaysDark) continue;
                 int left = col * WorldCoordHelper.MapTilesX;
                 int top = row * WorldCoordHelper.MapTilesY;
                 int right = left + WorldCoordHelper.MapTilesX - 1;
@@ -391,7 +391,7 @@ public static class RenderCommandBuilder
         return false;
     }
 
-    // AlwaysDark and Indoors map overrides — must run before entity emitters so AlwaysDarkMapLights
+    // Lighting and Indoors map overrides — must run before entity emitters so AlwaysDarkMapLights
     // is populated when EffectiveDarkness is computed for each light source.
     private static void EmitMapDarkOverrides(ClientState state, RenderFrame frame, Camera camera)
     {
@@ -403,7 +403,7 @@ public static class RenderCommandBuilder
                 if (map is null) continue;
                 var (sx, sy) = camera.WorldTileToScreen(
                     col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY, 0, 0);
-                if (state.AlwaysDarkOf(map))
+                if (state.LightingOf(map) == MapLighting.AlwaysDark)
                     frame.AlwaysDarkMapLights.Add(new MapLightCmd(sx, sy));
                 else if (state.IndoorsOf(map))
                     frame.IndoorsMapLights.Add(new MapLightCmd(sx, sy));
@@ -590,7 +590,7 @@ public static class RenderCommandBuilder
 
         var (screenX, screenY) = camera.WorldTileToScreen(offX + n.X, offY + n.Y, n.XOffset, n.YOffset);
         float centerX = screenX + spritePx / 2f; // horizontal center of the footprint (name/bar/arrow/bubble)
-        // Town light suppresses the halo (redundant over it); AlwaysDark maps are exempt from that
+        // An AlwaysLit map suppresses the halo (redundant over it); AlwaysDark maps are exempt from that
         // suppression (see InTownLight). EffectiveDarkness is full inside a dark map (lit regardless of time
         // of day), otherwise it tracks the time-of-day darkness so the halo fades out by day.
         if (def.EmitsLight)
@@ -675,9 +675,9 @@ public static class RenderCommandBuilder
         if (state.NpcKeeperShop[n.Num] != 0)
             frame.Names.Add(new TextDrawCmd(centerX, npcNameY, "$", GameColor.Yellow, nameAlignBottom, LineOffset: 1, Layer: n.Layer));
 
-        // Quest marker: a "?" (giver) or "!" (turn-in) glyph above the name — gray when it's
-        // known-but-not-actionable, yellow when the player can act (accept / turn in). Stacks a line higher when
-        // the NPC is also a keeper so it doesn't collide with the "$".
+        // Quest marker: a "?" (accept one here) or "!" (turn one in here) glyph above the name — colored when the
+        // player can act, gray for a quest already accepted and still running. Stacks a line higher when the NPC is
+        // also a keeper so it doesn't collide with the "$".
         int questGlyph = state.NpcQuestGlyph[n.Num];
         if (questGlyph != ClientState.QuestGlyphNone)
         {
@@ -687,8 +687,7 @@ public static class RenderCommandBuilder
                 ClientState.QuestGlyphBlueBang => ("!", GameColor.BrightBlue),
                 ClientState.QuestGlyphYellowQuestion => ("?", GameColor.Yellow),
                 ClientState.QuestGlyphBlueQuestion => ("?", GameColor.BrightBlue),
-                ClientState.QuestGlyphGrayBang => ("!", GameColor.Gray),
-                _ => ("?", GameColor.Gray),   // QuestGlyphGrayQuestion
+                _ => ("!", GameColor.Gray),   // QuestGlyphGrayBang
             };
             int questLine = state.NpcKeeperShop[n.Num] != 0 ? 2 : 1;
             frame.Names.Add(new TextDrawCmd(centerX, npcNameY, glyph, color, nameAlignBottom, LineOffset: questLine, Layer: n.Layer));
@@ -861,7 +860,7 @@ public static class RenderCommandBuilder
         }
 
         var (screenX, screenY) = camera.WorldTileToScreen(offX + p.X, offY + p.Y, p.XOffset, p.YOffset);
-        // Town light suppresses the halo; AlwaysDark maps are exempt (see InTownLight / EmitOneNpc).
+        // An AlwaysLit map suppresses the halo; AlwaysDark maps are exempt (see InTownLight / EmitOneNpc).
         if (!InTownLight(state, offX + p.X, offY + p.Y) && LightReaches(screenX, screenY))
         {
             float effectiveDark = InAlwaysDark(state, offX + p.X, offY + p.Y) ? 1f : state.GetCurrentDarkness();

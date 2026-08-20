@@ -69,6 +69,7 @@ public static partial class ClientStrings
     public const string BankPanel_AmountPrompt = nameof(BankPanel_AmountPrompt);
 
     // ── ShopPanel ─────────────────────────────────────────────────────────────
+    public const string ShopPanel_LevelReq = nameof(ShopPanel_LevelReq);
     public const string ShopPanel_TradeButton = nameof(ShopPanel_TradeButton);
     public const string ShopPanel_FixItemButton = nameof(ShopPanel_FixItemButton);
     public const string ShopPanel_BuyTab = nameof(ShopPanel_BuyTab);

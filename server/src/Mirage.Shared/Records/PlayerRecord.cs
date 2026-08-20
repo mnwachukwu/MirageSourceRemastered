@@ -144,6 +144,9 @@ public sealed class PlayerRecord
     [JsonIgnore] public MovementType Moving { get; set; }
     [JsonIgnore] public bool Attacking { get; set; }
     [JsonIgnore] public long AttackTimer { get; set; }
+    /// <summary>When this player last drank — the client's mirror of the server's potion clock, which
+    /// runs apart from <see cref="AttackTimer"/> so drinking and swinging never spend each other.</summary>
+    [JsonIgnore] public long PotionTimer { get; set; }
     [JsonIgnore] public long LastCombatMs { get; set; }
     [JsonIgnore] public long PkGraceUntilUtc { get; set; }
     // Aggressor expiry in UTC seconds. Carried on the wire (PlayerData + AggressorRefresh);

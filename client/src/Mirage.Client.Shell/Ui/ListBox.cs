@@ -28,6 +28,10 @@ public sealed class ListBox
     private Rectangle _lastContentRect;
 
     private int _scrollOffset;
+    /// <summary>Index of the first visible row. Read-only, and exposed only so tests can see that the list is
+    /// not parked past the end of its own contents — the symptom of that is a blank list, which needs a
+    /// SpriteBatch to observe any other way.</summary>
+    internal int ScrollOffset => _scrollOffset;
     private bool _sbDragging;
     private int _sbDragStartY;
     private int _sbDragStartOffset;
@@ -45,11 +49,27 @@ public sealed class ListBox
     private static readonly Color ListBg = new(20, 20, 40);
     private static readonly Color SelectedRowBg = new(60, 60, 120);
 
+    /// <summary>Return to the top with nothing selected. For a list whose CONTENTS are being replaced with an
+    /// unrelated set — a different shop's stock, not the same stock re-filtered — where carrying the old
+    /// position over would drop the reader into the middle of something they have not seen the start of, and
+    /// leave a selection index armed against a row that now means something else.</summary>
+    public void Reset()
+    {
+        _scrollOffset = 0;
+        SelectedIndex = -1;
+    }
+
     public void Update(InputState input, Rectangle bounds, bool keyboardActive = true)
     {
         _lastMouse = input.MousePosition;
         int visibleRows = bounds.Height / RowHeight;
         int maxOffset = Math.Max(0, Items.Count - visibleRows);
+
+        // Whoever owns this list refills Items directly, and nothing tells the control that happened. When the
+        // new contents are shorter than the old offset skipped — a smaller shop, a narrowed filter — every
+        // remaining row sits above the viewport and the list would draw EMPTY. Clamped here rather than only
+        // in the scroll branches below, which would leave it that way until the user happened to scroll.
+        _scrollOffset = Math.Clamp(_scrollOffset, 0, maxOffset);
 
         // Scroll wheel
         int wheel = input.ScrollWheelDelta();

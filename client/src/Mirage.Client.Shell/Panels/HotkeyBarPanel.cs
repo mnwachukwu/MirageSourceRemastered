@@ -99,10 +99,11 @@ public static class HotkeyBarPanel
 
     // ── Draw ─────────────────────────────────────────────────────────────────
 
-    /// <param name="cooldownFraction">How much of the shared 1s beat is still to run, 1→0. The cooldown is
-    /// global across all four slots, so one value covers the row.</param>
+    /// <param name="cooldownOf">How much of a slot's cooldown is still to run, 1→0, asked per slot.
+    /// There are two clocks — drinking and the action beat — so a bar holding a potion beside a spell
+    /// shows two different sweeps, and one value could not describe the row.</param>
     public static void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex,
-                            float cooldownFraction, bool gamepadActive, InputState input, bool canHover)
+                            Func<PlayerHotkey, float> cooldownOf, bool gamepadActive, InputState input, bool canHover)
     {
         var me = state.Me;
         if (me?.Hotkeys is null) return;
@@ -128,10 +129,15 @@ public static class HotkeyBarPanel
             DrawKeyBadge(sb, font, box, slot, gamepadActive);
         }
 
-        // The sweep goes on last so it veils every slot uniformly — it is one shared beat, not four.
-        if (cooldownFraction > 0f)
-            for (int slot = 1; slot <= Constants.MaxHotkeys; slot++)
-                DrawCooldownSweep(sb, SlotBounds(slot), cooldownFraction);
+        // The sweeps go on last so they veil the icons rather than sitting under them. An empty slot is
+        // never veiled: it has nothing to be waiting on.
+        for (int slot = 1; slot <= Constants.MaxHotkeys; slot++)
+        {
+            var hk = slot < me.Hotkeys.Length ? me.Hotkeys[slot] : PlayerHotkey.Empty;
+            if (!hk.IsBound) continue;
+            float fraction = cooldownOf(hk);
+            if (fraction > 0f) DrawCooldownSweep(sb, SlotBounds(slot), fraction);
+        }
 
         // The trigger modifier is a property of the GROUP, not of any one slot, so it is labeled once to
         // the left of the row rather than repeated on all four badges.
@@ -210,18 +216,24 @@ public static class HotkeyBarPanel
     {
         fraction = Math.Clamp(fraction, 0f, 1f);
         var center = new Vector2(box.Center.X, box.Center.Y);
-        // Reach the corners, or the veil would leave four lit triangles behind.
+        // Circumscribed: the spokes reach past the corners so the veil covers the icon completely instead of
+        // leaving four lit triangles. That overhangs the slot on all four sides, and each spoke carries half
+        // its own width further still, so the whole fan is drawn inside a scissor clip on the slot rect. The
+        // geometry stays simple and the pixels stop at the border.
         float radius = MathF.Sqrt(box.Width * box.Width + box.Height * box.Height) / 2f + 1f;
         int spokes = Math.Max(1, (int)MathF.Ceiling(SweepSpokes * fraction));
         float sweep = MathF.Tau * fraction;
         // Thick enough that neighboring spokes overlap at the rim rather than fanning into stripes.
         float thickness = radius * sweep / spokes + 2f;
+
+        UiHelper.BeginClip(sb, box);
         for (int i = 0; i <= spokes; i++)
         {
             float a = -MathF.PI / 2f + sweep * i / spokes;
             var tip = center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius;
             UiHelper.DrawLine(sb, center, tip, CooldownVeil, thickness);
         }
+        UiHelper.EndClip(sb);
     }
 
     // ── Hover ────────────────────────────────────────────────────────────────

@@ -25,7 +25,10 @@ public sealed partial class GameplayScreen : IGameScreen
     {
         _lastInput = input;
         float deltaMs = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-        long nowMs = (long)gameTime.TotalGameTime.TotalMilliseconds;
+        // The client's one clock. Draw, the chat panel, the bubbles and the floating text all stamp
+        // from Environment.TickCount64, and a deadline written here is read over there — the action
+        // bar's cooldowns are charged in this method and compared in Draw.
+        long nowMs = Environment.TickCount64;
 
         // Context menu runs FIRST so it can claim mouse clicks before any other panel sees them.
         // While open, every mouse-button event is consumed regardless of where it lands.
@@ -259,10 +262,10 @@ public sealed partial class GameplayScreen : IGameScreen
             if ((kbActive && input.IsKeyPressed(Keys.Q)) || (padActive && input.IsGamePadButtonPressed(Buttons.Y) && !hotkeyModifier))
                 _spells.TryCastPrepared(_ctx.State, _ctx.Sender);
 
-            // The whole row shares ONE cooldown on the same 1-second beat as attacking and casting, so
-            // the bar can't be used to sidestep the pacing the rest of combat is built on. Only a press
-            // that actually did something starts it — an empty slot or an empty bag costs nothing.
-            if (nowMs >= _hotkeyReadyAtMs)
+            // Each slot answers to the clock its contents keep: a spell to the action beat it shares
+            // with attacking, a potion to the slower drinking clock, anything else to neither. Checked
+            // per slot rather than per row, because the four can hold four different things. Only a
+            // press that did something charges anything — an empty slot or an empty bag costs nothing.
             {
                 int fired = 0;
                 if (kbActive)
@@ -282,11 +285,23 @@ public sealed partial class GameplayScreen : IGameScreen
                     else if (input.IsGamePadButtonPressed(Buttons.B)) fired = 3;
                     else if (input.IsGamePadButtonPressed(Buttons.A)) fired = 4;
                 }
-                if (fired > 0 && TryUseHotkey(fired))
-                    _hotkeyReadyAtMs = nowMs + Constants.PlayerAttackCooldownMs;
+                if (fired > 0 && HotkeySlotReady(fired, nowMs) && TryUseHotkey(fired)) StartHotkeyCooldown(fired, nowMs);
             }
             if (input.IsKeyPressed(Keys.Escape))
                 HandleEscapeKey();
+        }
+
+        // Left-click an action-bar slot to use it, on the same terms as pressing its key: the row's one
+        // shared cooldown, and only a press that did something starts it. The click is consumed for any
+        // slot, bound or not, so it never falls through and swings at the world behind the bar.
+        if (!mouseOverFloating && !dead && input.IsMouseClicked())
+        {
+            int barSlot = HotkeyBarPanel.SlotAt(input.MousePosition);
+            if (barSlot > 0)
+            {
+                input.ConsumeMouseClick();
+                if (HotkeySlotReady(barSlot, nowMs) && TryUseHotkey(barSlot)) StartHotkeyCooldown(barSlot, nowMs);
+            }
         }
 
         // Right-click a bound action-bar slot to empty it. Only a BOUND slot offers the menu — a menu whose

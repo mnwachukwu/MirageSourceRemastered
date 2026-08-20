@@ -141,6 +141,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
         QuestEditor = new QuestEditorViewModel(data, conn);
         ConversationEditor = new ConversationEditorViewModel(data, conn);
         AccountEditor = new AccountEditorViewModel(conn);
+
+        // Every editor's "what refers to this?" panel, wired once all of them exist — the scans read across
+        // collections, so none of them can be hooked up before the last editor is constructed.
+        WireReferenceScans();
+
         _editorLoaders =
         [
             (MapEditor.LoadOnline,   MapEditor.LoadOffline),
@@ -260,8 +265,22 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     partial void OnSelectedSectionChanged(SectionViewModel? value) => SwitchToSection(value?.Name);
 
+    /// <summary>Follow a link to a map: show the Maps section with that map open. Selecting it goes through the
+    /// map editor's ordinary selection path, so it joins the back/forward trail — Back returns to the map that
+    /// was open before, Forward comes here again. A number naming no row changes nothing at all, rather than
+    /// switching the user to a section showing the wrong map.</summary>
+    private void OpenMap(int mapNum)
+    {
+        if (!MapEditor.SelectByIndex(mapNum)) return;
+        SelectedSection = _sectionMap["Maps"];
+    }
+
     private void SwitchToSection(string? section)
     {
+        // Every reference panel reads records owned by OTHER editors, so arriving at a section is the moment
+        // to re-read it: what points at the selected record may have changed while you were elsewhere.
+        RefreshReferences();
+
         CurrentEditor = section switch
         {
             "Maps" => MapEditor,
@@ -414,12 +433,20 @@ public sealed partial class MainWindowViewModel : ObservableObject
         finally
         {
             LoadingStatus = "";
+            // Online, every row starts as a name with an empty record, so no reference exists until the loads
+            // above have run. Anything already showing a reference panel is reading zeroes until this fires.
+            // Also runs on cancel, so a half-finished load still shows what it did get.
+            RefreshReferences();
         }
     }
 
     // The single teardown path — every disconnect route ends here so nothing is left half-online.
     private async Task DoDisconnect()
     {
+        // BEFORE the socket is touched. Tearing it down can raise the connection-lost event, and the first
+        // thing that handler reads is this flag — leaving it true until afterwards let an ordinary
+        // Disconnect open the lost-connection dialog on its own way out.
+        IsOnline = false;
         _eagerLoadCts?.Cancel();
         _eagerLoadCts = null;
         LoadingStatus = "";
@@ -428,7 +455,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshEditors(online: false);
         RestoreAllSections();
         SelectedSection = _sectionMap[AllSectionNames[0]];
-        IsOnline = false;
         ConnectionEndpoint = "";
     }
 
@@ -508,36 +534,49 @@ public sealed partial class MainWindowViewModel : ObservableObject
     // The server dropped us. Raised on the connection's receive-loop thread, so everything below runs
     // marshaled to the UI thread. With unsaved work the author gets the reconnect dialog (which can push
     // it to the recovered session); otherwise the session just closes with a notice.
+    /// <summary>True while a lost connection is being handled. One loss can raise the event more than once,
+    /// and each arrival would otherwise open its own modal over the main window — leaving a second dialog
+    /// nothing can reach to close, which reads as the whole editor having frozen.</summary>
+    private bool _handlingConnectionLoss;
+
     private void OnConnectionLost()
     {
         _ = Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            if (!IsOnline) return;
-            var dirty = GetAllDirty().ToList();
-            if (dirty.Count == 0)
-            {
-                await DoDisconnect();
-                if (ShowAlertAsync is not null)
-                    await ShowAlertAsync(EditorStrings.Get(EditorStrings.MainWindow_DisconnectedAlert));
-                return;
-            }
-            if (ShowDisconnectDialogAsync is null)
-            {
-                await DoDisconnect();
-                return;
-            }
-            var dlgVm = new DisconnectDialogViewModel(_conn);
-            bool reconnected = false;
-            bool goOffline = false;
-            EditorDataPacket? reconnectData = null;
-            AdminLevel reconnectAccess = default;
-            dlgVm.ReconnectSuccess += (pkt, lvl) => { reconnected = true; reconnectData = pkt; reconnectAccess = lvl; };
-            dlgVm.GoOfflineRequested += () => goOffline = true;
-            await ShowDisconnectDialogAsync(dlgVm);
-            if (reconnected && reconnectData is not null)
-                await OnReconnectSuccessAsync(reconnectData, reconnectAccess);
-            else if (goOffline)
-                await DoDisconnect();
+            if (!IsOnline || _handlingConnectionLoss) return;
+            _handlingConnectionLoss = true;
+            try { await HandleConnectionLossAsync(); }
+            finally { _handlingConnectionLoss = false; }
         });
+    }
+
+    private async Task HandleConnectionLossAsync()
+    {
+        var dirty = GetAllDirty().ToList();
+        if (dirty.Count == 0)
+        {
+            await DoDisconnect();
+            if (ShowAlertAsync is not null)
+                await ShowAlertAsync(EditorStrings.Get(EditorStrings.MainWindow_DisconnectedAlert));
+            return;
+        }
+        if (ShowDisconnectDialogAsync is null)
+        {
+            await DoDisconnect();
+            return;
+        }
+        var dlgVm = new DisconnectDialogViewModel(_conn);
+        bool reconnected = false;
+        EditorDataPacket? reconnectData = null;
+        AdminLevel reconnectAccess = default;
+        dlgVm.ReconnectSuccess += (pkt, lvl) => { reconnected = true; reconnectData = pkt; reconnectAccess = lvl; };
+        await ShowDisconnectDialogAsync(dlgVm);
+        if (reconnected && reconnectData is not null)
+            await OnReconnectSuccessAsync(reconnectData, reconnectAccess);
+        else
+            // Reaching here without a reconnect means the dialog was left by the offline route — either the
+            // button or the window's own close, which resolves to the same decision. Dropping offline keeps
+            // the unsaved work in memory; the alternative is a window with no way out.
+            await DoDisconnect();
     }
 }

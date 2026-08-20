@@ -144,11 +144,12 @@ public sealed class ItemRecord
     public static bool UsesVitalAmount(ItemType type) => IsPotion(type);
     public static bool UsesSpellNum(ItemType type) => type is ItemType.Spell;
 
-    /// <summary>Everything a character equips or consumes can carry a level gate — the wearables, the
-    /// potions and the spell scrolls. Currency and keys cannot: gold is not something you qualify for,
-    /// and a door that refuses its own key because the holder is level 4 is a puzzle nobody asked for.</summary>
-    public static bool UsesLevelReq(ItemType type) =>
-        IsEquipment(type) || IsPotion(type) || type is ItemType.Spell;
+    /// <summary>What a character wears or drinks carries a level gate: the wearables and the potions.
+    /// <para>A SCROLL does not. Its gate lives on the SPELL it teaches, which is where learning is actually
+    /// refused, so a level on the paper would be a second number nothing reads. Currency and keys carry none
+    /// either: gold is not something you qualify for, and a door that refuses its own key because the holder
+    /// is level 4 is a puzzle nobody asked for.</para></summary>
+    public static bool UsesLevelReq(ItemType type) => IsEquipment(type) || IsPotion(type);
 
     /// <summary>Zero every field that does not apply to the current <see cref="Type"/>, so the record
     /// carries only properties it actually has. Call on any path that writes an item — the editor's save

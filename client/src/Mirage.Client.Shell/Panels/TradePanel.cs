@@ -43,9 +43,13 @@ public sealed class TradePanel : IGamePanel
         Tooltip.CloseScope(TooltipScope);
     }
 
-    private readonly ListBox _myOffer = new();
-    private readonly ListBox _theirOffer = new();
-    private readonly ListBox _invList = new();
+    // ShowTruncationTooltip off on all three: each row installs the richer item tooltip below, and both
+    // notifiers write the same Tooltip singleton. With truncation left on, a narrow offer row registers its
+    // text tooltip and the item tooltip immediately replaces it — every frame — so the tooltip re-pins to the
+    // cursor on each one instead of staying where it first appeared.
+    private readonly ListBox _myOffer = new() { ShowTruncationTooltip = false };
+    private readonly ListBox _theirOffer = new() { ShowTruncationTooltip = false };
+    private readonly ListBox _invList = new() { ShowTruncationTooltip = false };
     private readonly List<int> _invSlots = new();
     private readonly Button _offerBtn = new();
     private readonly Button _removeBtn = new();
@@ -123,7 +127,10 @@ public sealed class TradePanel : IGamePanel
 
     // ── Draw ─────────────────────────────────────────────────────────────────────
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex, bool isActive = false)
+    /// <param name="canHover">False when another panel sits over the mouse, so a hovered row here cannot
+    /// push its tooltip through the window on top of it. Every other panel with row tooltips takes this.</param>
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex,
+                     bool isActive = false, bool canHover = true)
     {
         if (!IsOpen) return;
         if (_labelsGeneration != ClientStrings.Generation)
@@ -150,7 +157,7 @@ public sealed class TradePanel : IGamePanel
         UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.TradePanel_YourInventory), new Vector2(_invRect.X, _invRect.Y - LabelH), Color.LightGray, _invRect.Width);
         _invList.Draw(sb, font, _invRect);
 
-        if (itemsTex is not null && !_amountPrompt.IsOpen) ShowTooltips(state, itemsTex);
+        if (canHover && itemsTex is not null && !_amountPrompt.IsOpen) ShowTooltips(state, itemsTex);
 
         _confirmBtn.Label = ClientStrings.Get(state.TradeMyConfirmed ? ClientStrings.TradePanel_Unconfirm : ClientStrings.TradePanel_Confirm);
         _offerBtn.Draw(sb, font, _input);

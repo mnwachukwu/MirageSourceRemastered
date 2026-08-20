@@ -19,6 +19,8 @@ public partial class ClassEditorView : LocalizedUserControl
 
     protected override void ApplyStrings()
     {
+        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
+        _noRefs.Text = EditorStrings.Get(EditorStrings.References_None);
         _filterTextBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_Filter);
         _selectPrompt.Text = EditorStrings.Get(EditorStrings.ClassEditor_SelectPrompt);
         _sectionTitle.Text = EditorStrings.Get(EditorStrings.ClassEditor_SectionTitle);
@@ -43,7 +45,7 @@ public partial class ClassEditorView : LocalizedUserControl
         _pdmgLabel.Text = EditorStrings.Get(EditorStrings.Common_PhysDmgAbbrev);
         _mdmgLabel.Text = EditorStrings.Get(EditorStrings.Common_MagDmgAbbrev);
         _mitLabel.Text = EditorStrings.Get(EditorStrings.Common_MitAbbrev);
-        _formulaNotesHeader.Text = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
         _fmtVitalsHeader.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_VitalsHeader);
         _fmtVitalsMaxHp.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_VitalsMaxHp);
         _fmtVitalsMaxMp.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_VitalsMaxMp);
@@ -85,6 +87,7 @@ public partial class ClassEditorView : LocalizedUserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         PanelGrid.ColumnDefinitions[0].Width = new GridLength(AppSettings.Current.ClassEditorLeftWidth);
+        PanelGrid.ColumnDefinitions[4].Width = new GridLength(AppSettings.Current.ClassEditorRightWidth);
     }
 
     /// <summary>Save the splitter width. Guards on a non-zero width so a never-shown view
@@ -93,5 +96,9 @@ public partial class ClassEditorView : LocalizedUserControl
     {
         if (LeftPanel.Bounds.Width > 0)
             AppSettings.Current.ClassEditorLeftWidth = LeftPanel.Bounds.Width;
+        // The COLUMN, not the panel: the panel is inset by its margin, so persisting its own width and
+        // restoring it as the column width would narrow the column a little more every session.
+        if (RightPanel.IsVisible && PanelGrid.ColumnDefinitions[4].ActualWidth > 0)
+            AppSettings.Current.ClassEditorRightWidth = PanelGrid.ColumnDefinitions[4].ActualWidth;
     }
 }

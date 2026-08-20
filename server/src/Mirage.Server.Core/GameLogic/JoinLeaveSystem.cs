@@ -137,7 +137,7 @@ public sealed class JoinLeaveSystem : GameSystem
         _dispatcher.SendTo(index, BuildSendConversations());
 
         // Map groups: shipped before any map so the client can resolve a map's effective inheritable
-        // values (Moral/Music/Indoors/AlwaysDark/display name) against its cached group. Kept fresh live by
+        // values (Moral/Music/Indoors/lighting/display name) against its cached group. Kept fresh live by
         // UpdateMapGroupPacket on an editor save.
         _dispatcher.SendTo(index, BuildSendMapGroups());
 
@@ -786,6 +786,7 @@ public sealed class JoinLeaveSystem : GameSystem
                 g.Moral,
                 g.Music,
                 g.Indoors,
+                g.AlwaysLit,
                 g.AlwaysDark,
                 g.BootMap,
                 g.BootX,

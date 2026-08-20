@@ -180,6 +180,7 @@ public static class PacketBuilder
             BootX = map.BootX,
             BootY = map.BootY,
             Indoors = map.Indoors,
+            AlwaysLit = map.AlwaysLit,
             AlwaysDark = map.AlwaysDark,
             MapGroup = map.MapGroup,
             Up = map.Up,

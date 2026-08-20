@@ -336,6 +336,31 @@ public static partial class EditorStrings
     public const string MapGroupEditor_ControlledBy = nameof(MapGroupEditor_ControlledBy);      // "Guild {Guild}"
     public const string MapGroupEditor_Unclaimed = nameof(MapGroupEditor_Unclaimed);
     public const string MapGroupEditor_SaveButton = nameof(MapGroupEditor_SaveButton);
+    public const string MapGroupEditor_MapsHeader = nameof(MapGroupEditor_MapsHeader);
+    public const string MapGroupEditor_NoMaps = nameof(MapGroupEditor_NoMaps);
+
+    // Inbound-reference panel headings, shared by every editor.
+    public const string References_Header = nameof(References_Header);
+    public const string References_None = nameof(References_None);
+    public const string References_DroppedBy = nameof(References_DroppedBy);
+    public const string References_SoldBy = nameof(References_SoldBy);
+    public const string References_RewardedBy = nameof(References_RewardedBy);
+    public const string References_ReagentFor = nameof(References_ReagentFor);
+    public const string References_StartingGearFor = nameof(References_StartingGearFor);
+    public const string References_TaughtBy = nameof(References_TaughtBy);
+    public const string References_StartingSpellFor = nameof(References_StartingSpellFor);
+    public const string References_GivesQuest = nameof(References_GivesQuest);
+    public const string References_TakesQuest = nameof(References_TakesQuest);
+    public const string References_KilledFor = nameof(References_KilledFor);
+    public const string References_KeepsShop = nameof(References_KeepsShop);
+    public const string References_Speaks = nameof(References_Speaks);
+    public const string References_SpawnsOn = nameof(References_SpawnsOn);
+    public const string References_PrerequisiteFor = nameof(References_PrerequisiteFor);
+    public const string References_RestrictedItems = nameof(References_RestrictedItems);
+    public const string References_RestrictedSpells = nameof(References_RestrictedSpells);
+    public const string References_LinkedFrom = nameof(References_LinkedFrom);
+    public const string References_RespawnFor = nameof(References_RespawnFor);
+    public const string References_GroupRespawn = nameof(References_GroupRespawn);
 
     // ── NpcRowViewModel formatted previews (Drop % and Magic Damage) ──────────
     public const string NpcEditor_DropChanceNever = nameof(NpcEditor_DropChanceNever);   // "0% (never drops)"

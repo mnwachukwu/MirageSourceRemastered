@@ -245,6 +245,64 @@ public sealed partial class GameplayScreen : IGameScreen
     /// that reorders itself under it.
     /// <para>Returns whether anything was actually sent, which is what starts the shared cooldown: a press
     /// on an empty or unusable slot should not eat the beat.</para></summary>
+    // ── The two clocks ────────────────────────────────────────────────────────
+    // Attacking and casting share one beat; drinking runs on its own, slower one. Heavy Wind doubles
+    // both, exactly as the server doubles them. AttackTimer is the same field the head cooldown bar
+    // reads, so the bar over the character and a spell slot's sweep always agree.
+
+    private long WindMult =>
+        _ctx.State.Weather == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
+
+    internal long ActionCooldownMs => Constants.PlayerAttackCooldownMs * WindMult;
+    private long PotionCooldownMs => Constants.PotionCooldownMs * WindMult;
+
+    /// <summary>Whether a potion may be drunk. Only potions wait on the drinking clock — the action
+    /// beat has nothing to do with reaching into a bag.</summary>
+    private bool PotionReady(long nowMs) =>
+        _ctx.State.Me is not { } me || nowMs - me.PotionTimer >= PotionCooldownMs;
+
+    /// <summary>Whether a bar slot may fire, asking the clock its contents answer to. A spell waits on
+    /// the action beat, a potion on the drinking clock, and anything else on neither. The server decides
+    /// either way; this only keeps a slot from looking dead while its own clock runs.</summary>
+    private bool HotkeySlotReady(int slot, long nowMs)
+    {
+        var me = _ctx.State.Me;
+        if (me?.Hotkeys is null || slot < 1 || slot >= me.Hotkeys.Length) return true;
+
+        var hk = me.Hotkeys[slot];
+        if (hk.Kind == HotkeyKind.Spell) return nowMs - me.AttackTimer >= ActionCooldownMs;
+        return !IsPotion(hk.Num) || PotionReady(nowMs);
+    }
+
+    /// <summary>Charges the clock the slot's contents answer to. A spell's beat is stamped by the cast
+    /// itself, so only drinking is recorded here.</summary>
+    private void StartHotkeyCooldown(int slot, long nowMs)
+    {
+        var me = _ctx.State.Me;
+        if (me?.Hotkeys is null || slot < 1 || slot >= me.Hotkeys.Length) return;
+        if (IsPotion(me.Hotkeys[slot].Num)) me.PotionTimer = nowMs;
+    }
+
+    /// <summary>How much of the clock a bound slot answers to is still to run, 1→0. A potion reads the
+    /// drinking clock, a spell the action beat, and anything else is never waiting on either.</summary>
+    private float HotkeyCooldownFraction(PlayerHotkey hk, long nowMs)
+    {
+        if (_ctx.State.Me is not { } me) return 0f;
+
+        long stamped, span;
+        if (hk.Kind == HotkeyKind.Spell) (stamped, span) = (me.AttackTimer, ActionCooldownMs);
+        else if (IsPotion(hk.Num)) (stamped, span) = (me.PotionTimer, PotionCooldownMs);
+        else return 0f;
+
+        long elapsed = nowMs - stamped;
+        return stamped > 0 && elapsed < span ? 1f - elapsed / (float)span : 0f;
+    }
+
+    private bool IsPotion(int itemNum) =>
+        itemNum > 0 && itemNum < _ctx.State.Items.Length
+        && _ctx.State.Items[itemNum]?.Type is ItemType.PotionAddHp or ItemType.PotionAddMp
+            or ItemType.PotionAddSp or ItemType.PotionSubHp or ItemType.PotionSubMp or ItemType.PotionSubSp;
+
     private bool TryUseHotkey(int slot)
     {
         var state = _ctx.State;

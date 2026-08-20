@@ -34,66 +34,6 @@
       "giveQuantity": 1,
       "getItem": 1,
       "getQuantity": 655
-    },
-    {
-      "giveItem": 279,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 4521
-    },
-    {
-      "giveItem": 280,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 4794
-    },
-    {
-      "giveItem": 281,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 5069
-    },
-    {
-      "giveItem": 282,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 5347
-    },
-    {
-      "giveItem": 283,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 5627
-    },
-    {
-      "giveItem": 284,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 12605
-    },
-    {
-      "giveItem": 285,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 12928
-    },
-    {
-      "giveItem": 286,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 13252
-    },
-    {
-      "giveItem": 287,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 13577
-    },
-    {
-      "giveItem": 288,
-      "giveQuantity": 1,
-      "getItem": 1,
-      "getQuantity": 13903
     }
   ],
   "salesItem": []

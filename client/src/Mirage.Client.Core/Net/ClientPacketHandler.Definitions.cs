@@ -29,6 +29,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 VitalAmount = item.VitalAmount,
                 SpellNum = item.SpellNum,
                 Power = item.Power,
+                LevelReq = item.LevelReq,
                 AllowedClasses = item.AllowedClasses,
                 NonTradeable = item.NonTradeable,
                 NonListable = item.NonListable,
@@ -207,6 +208,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             VitalAmount = p.VitalAmount,
             SpellNum = p.SpellNum,
             Power = p.Power,
+            LevelReq = p.LevelReq,
             AllowedClasses = p.AllowedClasses,
             NonTradeable = p.NonTradeable,
             NonListable = p.NonListable,
@@ -313,7 +315,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             _state.MapGroups[g.Num] = new MapGroupRecord
             {
                 Index = g.Num, DisplayName = g.DisplayName, Moral = g.Moral, Music = g.Music,
-                Indoors = g.Indoors, AlwaysDark = g.AlwaysDark, BootMap = g.BootMap, BootX = g.BootX, BootY = g.BootY,
+                Indoors = g.Indoors, AlwaysLit = g.AlwaysLit, AlwaysDark = g.AlwaysDark, BootMap = g.BootMap, BootX = g.BootX, BootY = g.BootY,
             };
         }
     }
@@ -324,7 +326,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         _state.MapGroups[p.GroupNum] = new MapGroupRecord
         {
             Index = p.GroupNum, DisplayName = p.DisplayName, Moral = p.Moral, Music = p.Music,
-            Indoors = p.Indoors, AlwaysDark = p.AlwaysDark, BootMap = p.BootMap, BootX = p.BootX, BootY = p.BootY,
+            Indoors = p.Indoors, AlwaysLit = p.AlwaysLit, AlwaysDark = p.AlwaysDark, BootMap = p.BootMap, BootX = p.BootX, BootY = p.BootY,
         };
     }
 }

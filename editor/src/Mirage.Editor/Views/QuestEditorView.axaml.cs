@@ -19,6 +19,8 @@ public partial class QuestEditorView : LocalizedUserControl
 
     protected override void ApplyStrings()
     {
+        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
+        _noRefs.Text = EditorStrings.Get(EditorStrings.References_None);
         _filterTextBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_Filter);
         _selectPrompt.Text = EditorStrings.Get(EditorStrings.QuestEditor_SelectPrompt);
         _sectionTitle.Text = EditorStrings.Get(EditorStrings.QuestEditor_SectionTitle);
@@ -71,6 +73,7 @@ public partial class QuestEditorView : LocalizedUserControl
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         PanelGrid.ColumnDefinitions[0].Width = new GridLength(AppSettings.Current.QuestEditorLeftWidth);
+        PanelGrid.ColumnDefinitions[4].Width = new GridLength(AppSettings.Current.QuestEditorRightWidth);
     }
 
     /// <summary>Save the splitter width. Guards on a non-zero width so a never-shown view
@@ -79,5 +82,9 @@ public partial class QuestEditorView : LocalizedUserControl
     {
         if (LeftPanel.Bounds.Width > 0)
             AppSettings.Current.QuestEditorLeftWidth = LeftPanel.Bounds.Width;
+        // The COLUMN, not the panel: the panel is inset by its margin, so persisting its own width and
+        // restoring it as the column width would narrow the column a little more every session.
+        if (RightPanel.IsVisible && PanelGrid.ColumnDefinitions[4].ActualWidth > 0)
+            AppSettings.Current.QuestEditorRightWidth = PanelGrid.ColumnDefinitions[4].ActualWidth;
     }
 }
