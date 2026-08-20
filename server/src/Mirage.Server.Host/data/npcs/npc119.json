@@ -5,7 +5,7 @@
   "size": 3,
   "spawnSecs": 1200,
   "behavior": "AttackWhenAttacked",
-  "group": 2,
+  "group": 10,
   "range": 10,
   "drops": [
     {

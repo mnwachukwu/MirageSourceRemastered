@@ -5,7 +5,7 @@
   "size": 1,
   "spawnSecs": 95,
   "behavior": "AttackOnSight",
-  "group": 2,
+  "group": 11,
   "range": 11,
   "drops": [
     {
