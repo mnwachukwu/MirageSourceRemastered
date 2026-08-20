@@ -92,7 +92,7 @@ public sealed partial class MainWindowViewModel
     {
         var groups = new List<ReferenceGroupViewModel>();
         AddGroup(groups, EditorStrings.References_DroppedBy,
-            NpcLinks(n => n.DropItem == num || (n.Drops?.Any(d => d.ItemNum == num) ?? false)));
+            NpcLinks(n => n.Drops?.Any(d => d.ItemNum == num) ?? false));
         AddGroup(groups, EditorStrings.References_SoldBy,
             ShopLinks(s => s.SalesItem.Contains(num) || s.BarterItem.Any(b => b.GiveItem == num || b.GetItem == num)));
         AddGroup(groups, EditorStrings.References_RewardedBy,

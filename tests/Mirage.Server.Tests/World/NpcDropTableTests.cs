@@ -4,49 +4,38 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests.World;
 
-/// <summary>The drop TABLE replacing the single DropChance/DropItem/DropItemValue triple.
+/// <summary>An NPC's drop table and the canonical form <c>Normalize</c> puts it in.
 ///
-/// <para>Two things carry real risk and are pinned here. First the MIGRATION: a world authored before the
-/// table has to keep its drops, and it only gets one chance — <c>Normalize</c> clears the legacy fields as
-/// it folds them, so a bug that loses the fold loses the data silently. Second the CANONICAL FORM: the
-/// roller reads the table directly, so an inert line saved to disk is a line that looks authored and does
-/// nothing.</para></summary>
+/// <para>The canonical form is what carries the risk: the roller reads the table directly, so an inert
+/// line saved to disk is a line that looks authored and does nothing, and a table trimmed too eagerly is
+/// payout deleted in silence.</para></summary>
 [TestFixture]
 public class NpcDropTableTests
 {
     [Test]
-    public void Normalize_FoldsALegacySingleDropIntoTheTable()
+    public void Normalize_IsIdempotent_SoLoadThenSaveSaysTheSameThing()
     {
-        var npc = new NpcRecord { Name = "Bandit", DropChance = 40, DropItem = 12, DropItemValue = 7 };
+        // It runs on load AND on every editor save, so a record that has been through it must survive
+        // going through it again unchanged — a second pass that trimmed one more line would quietly cost
+        // an NPC its drops over a few saves.
+        var npc = new NpcRecord
+        {
+            Name = "Bandit",
+            Drops = [new NpcDrop { ItemNum = 12, Quantity = 7, Chance = 40 },
+                     new NpcDrop { ItemNum = 0, Chance = 90 }],
+        };
 
+        npc.Normalize();
+        npc.Normalize();
         npc.Normalize();
 
         Assert.Multiple(() =>
         {
-            Assert.That(npc.Drops, Is.Not.Null);
             Assert.That(npc.Drops!, Has.Count.EqualTo(1));
             Assert.That(npc.Drops![0].ItemNum, Is.EqualTo(12));
             Assert.That(npc.Drops![0].Chance, Is.EqualTo((short)40));
             Assert.That(npc.Drops![0].Quantity, Is.EqualTo((short)7));
-            // Cleared, so the next save writes the table and nothing else — the file stops being legacy.
-            Assert.That(npc.DropChance, Is.EqualTo((short)0));
-            Assert.That(npc.DropItem, Is.EqualTo(0));
-            Assert.That(npc.DropItemValue, Is.EqualTo((short)0));
         });
-    }
-
-    [Test]
-    public void Normalize_IsIdempotent_SoLoadThenSaveDoesNotDuplicate()
-    {
-        // Normalize runs on load AND on every editor save. If folding were not guarded by the legacy
-        // fields being cleared, a save after a load would append the same drop a second time.
-        var npc = new NpcRecord { Name = "Bandit", DropChance = 40, DropItem = 12 };
-
-        npc.Normalize();
-        npc.Normalize();
-        npc.Normalize();
-
-        Assert.That(npc.Drops!, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -132,24 +121,6 @@ public class NpcDropTableTests
         npc.Normalize();
 
         Assert.That(npc.Drops!, Has.Count.EqualTo(12));
-    }
-
-    [Test]
-    public void Normalize_ALegacyRecordWithNoDropStaysEmpty()
-    {
-        // DropChance without DropItem (or the reverse) was always a misconfiguration; it must not become
-        // a live table line naming item 0.
-        var chanceOnly = new NpcRecord { Name = "A", DropChance = 50 };
-        var itemOnly = new NpcRecord { Name = "B", DropItem = 3 };
-
-        chanceOnly.Normalize();
-        itemOnly.Normalize();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(chanceOnly.Drops, Is.Null);
-            Assert.That(itemOnly.Drops, Is.Null);
-        });
     }
 
     [Test]

@@ -36,9 +36,8 @@ public sealed partial class NpcRowViewModel : ObservableObject
     [ObservableProperty] private int _group;
     /// <summary>Aggro / sight radius in tiles.</summary>
     [ObservableProperty] private int _range;
-    /// <summary>This NPC's drop table — zero or more lines, each rolled independently on a kill. Replaces
-    /// the old single DropChance/DropItem/DropItemValue triple; an empty table means "drops nothing",
-    /// which is an ordinary state for trash rather than a misconfiguration.</summary>
+    /// <summary>This NPC's drop table — zero or more lines, each rolled independently on a kill. An empty
+    /// table means "drops nothing", which is an ordinary state for trash rather than a misconfiguration.</summary>
     public ObservableCollection<NpcDropRowViewModel> Drops { get; } = [];
 
     // Supplied by the editor VM so a drop row can render an item picker. Defaulted rather than required

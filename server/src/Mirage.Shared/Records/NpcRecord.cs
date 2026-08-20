@@ -42,17 +42,6 @@ public sealed class NpcRecord
     /// several — see <see cref="NpcDrop"/> for why that beats a weighted single pick.</summary>
     public List<NpcDrop>? Drops { get; set; }
 
-    // ── Legacy single-drop fields ─────────────────────────────────────────────
-    // Superseded by Drops. Retained ONLY so a world authored before the table still loads: Normalize folds
-    // a non-zero legacy drop into Drops and clears these, and WhenWritingDefault keeps them out of every
-    // file written afterwards. So an old record migrates itself the first time it is saved and the fields
-    // disappear from disk; nothing in the engine reads them.
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public short DropChance { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public int DropItem { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public short DropItemValue { get; set; }
     public int Str { get; set; }
     public int Def { get; set; }
     public int Spd { get; set; }
@@ -78,28 +67,12 @@ public sealed class NpcRecord
     /// the classic torch so existing emit-light NPCs render exactly as before.</summary>
     public LightSpec Light { get; set; } = LightSpec.Torch;
 
-    /// <summary>Canonicalize the drop table, and migrate a pre-table record into it.
+    /// <summary>Canonicalize the drop table, so what reaches disk says what it means.
     ///
-    /// <para>This is the load-bearing half of the single-drop → drop-table change, exactly as
-    /// <c>ItemRecord.Normalize</c> was for the packed-data expansion: a world authored before the table
-    /// carries <see cref="DropChance"/>/<see cref="DropItem"/>/<see cref="DropItemValue"/> and no
-    /// <see cref="Drops"/>, and every reader downstream now looks only at the table. Folding happens
-    /// ONCE at load; the legacy fields are cleared, so the next save writes the table and nothing else.</para>
-    ///
-    /// <para>Idempotent, which matters because it runs on load AND on every editor save. Re-running it on
-    /// an already-migrated record is a no-op: the legacy fields are already zero.</para></summary>
+    /// <para>Idempotent, which matters because it runs on load AND on every editor save: re-running it on
+    /// an already-canonical record changes nothing.</para></summary>
     public void Normalize()
     {
-        // Migrate: a legacy record names exactly one drop, which becomes the table's only line.
-        if (DropChance > 0 && DropItem > 0)
-        {
-            Drops ??= [];
-            Drops.Add(new NpcDrop { ItemNum = DropItem, Quantity = DropItemValue, Chance = DropChance });
-        }
-        DropChance = 0;
-        DropItem = 0;
-        DropItemValue = 0;
-
         if (Drops is null) return;
         // Drop inert lines (no item, or a chance that can never land) rather than carrying them on disk —
         // an editor may hold a half-authored row in memory, but a saved file should say what it means.

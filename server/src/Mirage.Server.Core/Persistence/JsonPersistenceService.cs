@@ -395,10 +395,9 @@ public sealed class JsonPersistenceService : IPersistenceService
         for (int i = 1; i <= _limits.Npcs; i++)
         {
             if (result[i].Size < 1) result[i].Size = 1;
-            // THIS one IS a data migration: it folds a pre-table record's single DropChance/DropItem/
-            // DropItemValue into Drops, so every reader downstream sees one shape. Runs on load rather
-            // than at editor-save like items and spells, because an NPC authored before the table has to
-            // work on a server nobody has opened the editor against.
+            // Canonicalize the drop table: a line naming no item, or one whose chance can never land, is
+            // dropped, and an empty table collapses to none at all. Runs here as well as at editor-save
+            // because a hand-authored file reaches the server without the editor ever seeing it.
             result[i].Normalize();
         }
         return (result, padded);

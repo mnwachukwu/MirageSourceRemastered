@@ -9,10 +9,12 @@ using Mirage.Client.Shell.Ui;
 namespace Mirage.Client.Shell.Panels;
 
 /// <summary>Stat point allocation panel.
-/// <para>Stage-and-confirm: clicking [+] stages a pending buy locally (shown as "(+N)" beside the stat,
-/// and the Points row as "spent/acquired"); nothing is sent until Confirm, which commits the whole
-/// allocation atomically via one <see cref="ClientPacketSender.SendTrainStats"/>. Reset discards the
-/// staged buys, as does closing the panel.</para></summary>
+/// <para>Stage-and-confirm: [+] stages a pending buy locally and [-] takes one back (shown as "(+N)"
+/// beside the stat, and the Points row as "spent/acquired"); nothing is sent until Confirm, which commits
+/// the whole allocation atomically via one <see cref="ClientPacketSender.SendTrainStats"/>. Reset discards
+/// every staged buy at once, as does closing the panel.</para>
+/// <para>Only a STAGED point can be taken back. A stat the server has already been told about is its to
+/// report, so [-] stops at the committed value rather than reaching below it.</para></summary>
 public sealed class TrainingPanel : IGamePanel
 {
     // Default bounds for a brand-new character with no saved layout.  Height fits four stat rows, the
@@ -37,11 +39,19 @@ public sealed class TrainingPanel : IGamePanel
     private readonly Button _addDefBtn = new() { Label = "+" };
     private readonly Button _addSpdBtn = new() { Label = "+" };
     private readonly Button _addIntBtn = new() { Label = "+" };
+    private readonly Button _subStrBtn = new() { Label = "-" };
+    private readonly Button _subDefBtn = new() { Label = "-" };
+    private readonly Button _subSpdBtn = new() { Label = "-" };
+    private readonly Button _subIntBtn = new() { Label = "-" };
     private readonly Button _confirmBtn = new();
     private readonly Button _resetBtn = new();
     private InputState _input = new();
 
+    // BtnW is the width of the [-][+] PAIR, so the stat label keeps the room it has: the two step
+    // buttons and the gap between them divide that span rather than widening it.
     private const int BtnW = 50;
+    private const int StepBtnW = 23;
+    private const int StepGap = 4;
     private const int BtnH = 22;
     private const int RowH = 28;
     private const int ActionBtnH = 24;   // Confirm / Reset row
@@ -86,6 +96,11 @@ public sealed class TrainingPanel : IGamePanel
         int available = points - PendingSpent;
         bool canAllocate = available > 0 && !_awaitingConfirm;
         _addStrBtn.Enabled = _addDefBtn.Enabled = _addSpdBtn.Enabled = _addIntBtn.Enabled = canAllocate;
+        // A stat can give back only what THIS panel staged into it, so each [-] reads its own row.
+        _subStrBtn.Enabled = _pendingStr > 0 && !_awaitingConfirm;
+        _subDefBtn.Enabled = _pendingDef > 0 && !_awaitingConfirm;
+        _subSpdBtn.Enabled = _pendingSpd > 0 && !_awaitingConfirm;
+        _subIntBtn.Enabled = _pendingInt > 0 && !_awaitingConfirm;
         bool hasPending = PendingSpent > 0 && !_awaitingConfirm;
         _confirmBtn.Enabled = hasPending;
         _resetBtn.Enabled = hasPending;
@@ -94,6 +109,11 @@ public sealed class TrainingPanel : IGamePanel
         if (_addDefBtn.IsClicked(input)) _pendingDef++;
         if (_addSpdBtn.IsClicked(input)) _pendingSpd++;
         if (_addIntBtn.IsClicked(input)) _pendingInt++;
+        // The Enabled gates above are the floor: a disabled button never reports a click.
+        if (_subStrBtn.IsClicked(input)) _pendingStr--;
+        if (_subDefBtn.IsClicked(input)) _pendingDef--;
+        if (_subSpdBtn.IsClicked(input)) _pendingSpd--;
+        if (_subIntBtn.IsClicked(input)) _pendingInt--;
 
         if (_confirmBtn.IsClicked(input))
         {
@@ -136,11 +156,16 @@ public sealed class TrainingPanel : IGamePanel
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.TrainingPanel_PointsFormat, ("Value", pointsVal)), new Vector2(c.X + 4, c.Y + 4 + RowH * 4), Color.Yellow, c.Width - 8);
         }
 
-        // [+] buttons are always drawn now; Button.Enabled grays them when no points remain to allocate.
+        // Both step buttons are always drawn; Button.Enabled grays [+] when no points remain to allocate
+        // and [-] when that row has nothing staged to give back.
         _addStrBtn.Draw(sb, font, _input);
         _addDefBtn.Draw(sb, font, _input);
         _addSpdBtn.Draw(sb, font, _input);
         _addIntBtn.Draw(sb, font, _input);
+        _subStrBtn.Draw(sb, font, _input);
+        _subDefBtn.Draw(sb, font, _input);
+        _subSpdBtn.Draw(sb, font, _input);
+        _subIntBtn.Draw(sb, font, _input);
 
         // Confirm / Reset row below the Points row.
         _confirmBtn.Draw(sb, font, _input);
@@ -161,11 +186,17 @@ public sealed class TrainingPanel : IGamePanel
 
     private void SetButtonBounds(Rectangle c)
     {
+        // [-] then [+], with [+] holding the right edge it has always been aligned to.
         int bx = c.Right - BtnW - 4;
-        _addStrBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 0, BtnW, BtnH);
-        _addIntBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 1, BtnW, BtnH);
-        _addDefBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 2, BtnW, BtnH);
-        _addSpdBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 3, BtnW, BtnH);
+        int ax = bx + StepBtnW + StepGap;
+        _subStrBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 0, StepBtnW, BtnH);
+        _subIntBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 1, StepBtnW, BtnH);
+        _subDefBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 2, StepBtnW, BtnH);
+        _subSpdBtn.Bounds = new Rectangle(bx, c.Y + 2 + RowH * 3, StepBtnW, BtnH);
+        _addStrBtn.Bounds = new Rectangle(ax, c.Y + 2 + RowH * 0, StepBtnW, BtnH);
+        _addIntBtn.Bounds = new Rectangle(ax, c.Y + 2 + RowH * 1, StepBtnW, BtnH);
+        _addDefBtn.Bounds = new Rectangle(ax, c.Y + 2 + RowH * 2, StepBtnW, BtnH);
+        _addSpdBtn.Bounds = new Rectangle(ax, c.Y + 2 + RowH * 3, StepBtnW, BtnH);
 
         int by = c.Y + 2 + RowH * 5;
         int halfW = (c.Width - ActionPad * 2 - ActionGap) / 2;
