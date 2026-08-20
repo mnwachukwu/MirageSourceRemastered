@@ -85,7 +85,7 @@ public partial class NpcEditorView : LocalizedUserControl
         _expLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_ExpLabel);
         _previewLevelLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_PreviewLevelLabel);
         _dropPctLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropPercentLabel);
-        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_Notes);
 
         // The drop-item picker is per-ROW now, so its placeholder is bound through
         // NpcDropRowViewModel.ItemPlaceholder rather than set once on a single control here.

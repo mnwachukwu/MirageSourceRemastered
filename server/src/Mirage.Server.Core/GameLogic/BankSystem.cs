@@ -314,6 +314,50 @@ public sealed class BankSystem : GameSystem
         return shopNum > 0 && _world.Shops[shopNum].ShopType == ShopType.Inn && _world.Shops[shopNum].AllowBanking;
     }
 
+    /// <summary>Put a stack in a vault, and nothing else — no player slot, no packet, no message. What
+    /// "deposit" means to the RECORD, so the editor's account browser (which reaches vaults belonging to
+    /// nobody who is logged in) cannot disagree with the counter about stacking or a full vault.
+    /// <para>Returns the vault slot used, or 0 when it is full.</para></summary>
+    public static int PlaceInBank(PlayerInvSlot[] bank, ItemRecord[] items, int itemNum, int value, int dur = 0)
+    {
+        if (itemNum <= 0 || itemNum >= items.Length) return 0;
+        var item = items[itemNum];
+        int slot = FindOpenBankSlot(bank, itemNum, item.Type == ItemType.Currency);
+        if (slot == 0) return 0;
+
+        bank[slot].Num = itemNum;
+        bank[slot].Quantity += value;
+        if (item.Type is ItemType.Armor or ItemType.Weapon or ItemType.Helmet or ItemType.Shield)
+            bank[slot].Dur = dur > 0 ? dur : item.Durability;
+        return slot;
+    }
+
+    /// <summary>Take a stack out of one vault slot. Currency honours <paramref name="amount"/> (0 or more
+    /// than the pile = all of it); anything else goes whole. Nothing is worn out of a vault, so unlike the
+    /// bag there is no gear pointer to clear.
+    /// <para>Returns what came out; ItemNum 0 means the slot held nothing.</para></summary>
+    public static (int ItemNum, int Quantity) TakeFromBank(PlayerInvSlot[] bank, ItemRecord[] items, int bankSlot, int amount)
+    {
+        if (bankSlot < 1 || bankSlot > Constants.MaxBankSlots) return (0, 0);
+        var slot = bank[bankSlot];
+        if (slot.Num <= 0 || slot.Num >= items.Length) return (0, 0);
+
+        int itemNum = slot.Num;
+        bool stacks = items[itemNum].Type == ItemType.Currency;
+        int take = stacks && amount > 0 && amount < slot.Quantity ? amount : Math.Max(slot.Quantity, 1);
+
+        if (stacks && take < slot.Quantity)
+        {
+            bank[bankSlot].Quantity -= take;
+            return (itemNum, take);
+        }
+
+        bank[bankSlot].Num = 0;
+        bank[bankSlot].Quantity = 0;
+        bank[bankSlot].Dur = 0;
+        return (itemNum, take);
+    }
+
     private static int FindOpenBankSlot(PlayerInvSlot[] bank, int itemNum, bool isCurrency)
     {
         if (isCurrency)

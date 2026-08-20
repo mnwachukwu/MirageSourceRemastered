@@ -76,6 +76,9 @@ public static partial class ClientStrings
     public const string ShopPanel_TradeTab = nameof(ShopPanel_TradeTab);
     public const string ShopPanel_SellTab = nameof(ShopPanel_SellTab);
     public const string ShopPanel_BuyButton = nameof(ShopPanel_BuyButton);
+    public const string ShopPanel_BuyHowMany = nameof(ShopPanel_BuyHowMany);
+    public const string ShopPanel_SellHowMany = nameof(ShopPanel_SellHowMany);
+    public const string ShopPanel_EachPrice = nameof(ShopPanel_EachPrice);
     public const string ShopPanel_SellButton = nameof(ShopPanel_SellButton);
     public const string ShopPanel_SalesRow = nameof(ShopPanel_SalesRow);
     public const string ShopPanel_SellRow = nameof(ShopPanel_SellRow);

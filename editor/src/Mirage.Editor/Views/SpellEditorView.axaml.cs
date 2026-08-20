@@ -35,7 +35,7 @@ public partial class SpellEditorView : LocalizedUserControl
         _reagentCostLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_ReagentCostLabel);
         _reagentChanceLabel.Text = EditorStrings.Get(EditorStrings.SpellEditor_ReagentChanceLabel);
         _mpCostNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_MpCostNote);
-        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_Notes);
         _giveItemLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_ItemNumber);
         _itemQuantityLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_Quantity);
         _intReqLabel.Text = EditorStrings.Get(EditorStrings.DataLabel_IntReq);

@@ -105,6 +105,122 @@ public class ShopSystemTests
         });
     }
 
+    // ── Buying a stack ───────────────────────────────────────────────────────────
+    // Reagents are a currency-type item and a caster burns them by the dozen, so the storefront sells them
+    // by the handful. Everything else is one indivisible piece however many the packet asks for.
+
+    const int Reagent = 20;
+
+    static void SetUpReagentStall(GameWorld world, PlayerRecord p, int price, int purse)
+    {
+        world.Items[Reagent].Type = ItemType.Currency;
+        world.Items[Reagent].Price = price;
+        SetSales(world, Reagent);
+        p.Inv[1].Num = Gold;
+        p.Inv[1].Quantity = purse;
+    }
+
+    [Test]
+    public void Buy_AStack_TakesTheWholeCostAndHandsOverTheWholeAmount()
+    {
+        var (world, shop, p) = Setup();
+        SetUpReagentStall(world, p, price: 3, purse: 100);
+
+        shop.Buy(Idx, ShopNum, salesSlot: 1, quantity: 25);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(25));
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(25), "75 of 100 spent");
+        });
+    }
+
+    [Test]
+    public void Buy_AStack_AddsToOneTheBagAlreadyHolds()
+    {
+        var (world, shop, p) = Setup();
+        SetUpReagentStall(world, p, price: 1, purse: 50);
+        p.Inv[2].Num = Reagent;
+        p.Inv[2].Quantity = 8;
+
+        shop.Buy(Idx, ShopNum, 1, quantity: 12);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(20), "stacked, not a second slot");
+            Assert.That(p.Inv[3].Num, Is.Zero);
+        });
+    }
+
+    /// <summary>Clamped to what the purse covers rather than refused, the way a partial repair is. The client
+    /// only ever offers what is affordable, so this is the guard against a packet that asked for more.</summary>
+    [Test]
+    public void Buy_MoreOfAStackThanTheGoldCovers_BuysWhatItCovers()
+    {
+        var (world, shop, p) = Setup();
+        SetUpReagentStall(world, p, price: 5, purse: 32);
+
+        shop.Buy(Idx, ShopNum, 1, quantity: 100);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(6), "32 gold buys six at five");
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(2), "the remainder is left alone");
+        });
+    }
+
+    [Test]
+    public void Buy_AStack_WithoutEnoughForEvenOne_Refused()
+    {
+        var (world, shop, p) = Setup();
+        SetUpReagentStall(world, p, price: 5, purse: 4);
+
+        shop.Buy(Idx, ShopNum, 1, quantity: 10);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.Zero);
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(4));
+        });
+    }
+
+    /// <summary>An amount on a sword means nothing: it is one piece, with its own durability, and a bag slot
+    /// of its own. A packet asking for ten must not hand over ten or charge for them.</summary>
+    [Test]
+    public void Buy_AnAmountOfSomethingThatDoesNotStack_StillBuysOne()
+    {
+        var (world, shop, p) = Setup();
+        world.Items[Sword].Type = ItemType.Weapon;
+        world.Items[Sword].Price = 100;
+        SetSales(world, Sword);
+        p.Inv[1].Num = Gold;
+        p.Inv[1].Quantity = 1000;
+
+        shop.Buy(Idx, ShopNum, 1, quantity: 10);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1));
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(900), "charged once");
+        });
+    }
+
+    [TestCase(0)]
+    [TestCase(-4)]
+    public void Buy_WithNoAmountAsked_BuysOne(int quantity)
+    {
+        var (world, shop, p) = Setup();
+        SetUpReagentStall(world, p, price: 7, purse: 100);
+
+        shop.Buy(Idx, ShopNum, 1, quantity);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(1));
+            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(93));
+        });
+    }
+
     /// <summary>An unpriced entry in a sales list is a data bug. Handing it over free is the same failure
     /// as the zero-quantity trade row that used to mint items, so it is refused rather than given away.</summary>
     [Test]

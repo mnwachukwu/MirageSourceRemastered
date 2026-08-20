@@ -143,24 +143,66 @@ public sealed partial class ItemSystem : GameSystem
     {
         if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > _world.Limits.Items) return false;
 
-        var p = _pm[index].Char;
-        int slot = FindOpenInvSlot(p, _world.Items, itemNum);
-
+        int slot = PlaceInInventory(_pm[index].Char, _world.Items, itemNum, value, dur);
         if (slot == 0)
         {
             SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
             return false;
         }
 
-        var item = _world.Items[itemNum];
+        SendInventoryUpdate(index, slot);
+        return true;
+    }
+
+    /// <summary>Put a stack in a bag, and nothing else — no message, no packet, no player slot. What "give"
+    /// means to the RECORD, so the live path above and the editor's account browser (which has to do this to
+    /// a character who may be nowhere near a player slot) cannot disagree about stacking or durability.
+    /// <para>Returns the bag slot used, or 0 when the bag is full.</para></summary>
+    public static int PlaceInInventory(PlayerRecord p, ItemRecord[] items, int itemNum, int value, int dur = 0)
+    {
+        if (itemNum <= 0 || itemNum >= items.Length) return 0;
+        int slot = FindOpenInvSlot(p, items, itemNum);
+        if (slot == 0) return 0;
+
+        var item = items[itemNum];
         p.Inv[slot].Num = itemNum;
         p.Inv[slot].Quantity = p.Inv[slot].Quantity + value;
 
         if (item.Type is ItemType.Armor or ItemType.Weapon or ItemType.Helmet or ItemType.Shield)
             p.Inv[slot].Dur = dur > 0 ? dur : item.Durability;
 
-        SendInventoryUpdate(index, slot);
-        return true;
+        return slot;
+    }
+
+    /// <summary>Take a stack out of one bag slot, and nothing else. Currency takes <paramref name="amount"/>
+    /// (0 or more than the pile = all of it); anything else goes whole.
+    /// <para><b>A worn piece is taken, and the equipment pointer cleared with it.</b> The in-game paths
+    /// refuse instead — the bank tells you to unequip first — because a player can go and do that. An
+    /// operator reaching into somebody else's bag cannot, and a pointer left naming an emptied slot is a
+    /// corrupt character sheet.</para>
+    /// <para>Returns what came out; ItemNum 0 means the slot held nothing.</para></summary>
+    public static (int ItemNum, int Quantity) TakeFromInventory(PlayerRecord p, ItemRecord[] items, int invSlot, int amount)
+    {
+        if (invSlot < 1 || invSlot > Constants.MaxInv) return (0, 0);
+        var inv = p.Inv[invSlot];
+        if (inv.Num <= 0 || inv.Num >= items.Length) return (0, 0);
+
+        int itemNum = inv.Num;
+        var item = items[itemNum];
+        bool stacks = item.Type == ItemType.Currency;
+        int take = stacks && amount > 0 && amount < inv.Quantity ? amount : Math.Max(inv.Quantity, 1);
+
+        if (stacks && take < inv.Quantity)
+        {
+            p.Inv[invSlot].Quantity -= take;
+            return (itemNum, take);
+        }
+
+        if (EquippedSlotForType(p, item.Type) == invSlot) Unequip(p, item.Type);
+        p.Inv[invSlot].Num = 0;
+        p.Inv[invSlot].Quantity = 0;
+        p.Inv[invSlot].Dur = 0;
+        return (itemNum, take);
     }
 
     /// <summary>Escrow a stack out of a SPECIFIC inventory slot (mail send, marketplace listing). Currency

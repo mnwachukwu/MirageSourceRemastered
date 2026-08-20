@@ -177,37 +177,35 @@ public sealed partial class ItemSystem : GameSystem
                     break;
                 }
                 var learnSpell = _world.Spells[spellNum];
-                if (!ClassGate.Allows(learnSpell.AllowedClasses, p.Class))
+                // One definition of "may this character have this spell", shared with the editor's account
+                // browser — the message names whichever gate failed.
+                var learn = SpellSystem.CanLearn(p, spellNum, learnSpell, cls);
+                if (learn != SpellSystem.LearnResult.Ok)
                 {
-                    SendMsg(index, ServerStrings.ItemSystem_SpellWrongClass, GameColor.White,
-                        ("Class", ClassGate.Describe(learnSpell.AllowedClasses, _world.Classes)));
-                    break;
-                }
-                // The SPELL's own level gate, distinct from the scroll's: a scroll is a delivery mechanism
-                // and could be handed out early, while the spell on it is tied to a tier. INT decides who
-                // may learn it, this decides when — and the message names whichever one failed.
-                if (learnSpell.LevelReq > p.Level)
-                {
-                    SendMsg(index, ServerStrings.ItemSystem_SpellLevelReq, GameColor.White, ("Level", learnSpell.LevelReq));
-                    break;
-                }
-                int learnIntReq = CombatFormulas.GetSpellIntRequirement(learnSpell, cls.Int);
-                if (learnIntReq > p.Int)
-                {
-                    SendMsg(index, ServerStrings.ItemSystem_SpellIntReq, GameColor.White, ("Int", learnIntReq));
+                    switch (learn)
+                    {
+                        case SpellSystem.LearnResult.WrongClass:
+                            SendMsg(index, ServerStrings.ItemSystem_SpellWrongClass, GameColor.White,
+                                ("Class", ClassGate.Describe(learnSpell.AllowedClasses, _world.Classes)));
+                            break;
+                        case SpellSystem.LearnResult.LevelTooLow:
+                            SendMsg(index, ServerStrings.ItemSystem_SpellLevelReq, GameColor.White,
+                                ("Level", learnSpell.LevelReq));
+                            break;
+                        case SpellSystem.LearnResult.IntTooLow:
+                            SendMsg(index, ServerStrings.ItemSystem_SpellIntReq, GameColor.White,
+                                ("Int", CombatFormulas.GetSpellIntRequirement(learnSpell, cls.Int)));
+                            break;
+                        case SpellSystem.LearnResult.AlreadyKnown:
+                            SendMsg(index, ServerStrings.ItemSystem_SpellAlreadyKnown, GameColor.BrightRed);
+                            break;
+                        default:
+                            SendMsg(index, ServerStrings.ItemSystem_SpellBookFull, GameColor.BrightRed);
+                            break;
+                    }
                     break;
                 }
                 int spellSlot = SpellSystem.FindOpenSpellSlot(p);
-                if (spellSlot == 0)
-                {
-                    SendMsg(index, ServerStrings.ItemSystem_SpellBookFull, GameColor.BrightRed);
-                    break;
-                }
-                if (SpellSystem.HasSpell(p, spellNum))
-                {
-                    SendMsg(index, ServerStrings.ItemSystem_SpellAlreadyKnown, GameColor.BrightRed);
-                    break;
-                }
                 p.Spell[spellSlot] = spellNum;
                 TakeItem(index, itemNum, 0);
                 _dispatcher.SendTo(index, new PlayerSpellsPacket { Spells = p.Spell[1..], PreparedSpell = p.PreparedSpell });

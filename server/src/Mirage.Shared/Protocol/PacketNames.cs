@@ -239,6 +239,15 @@ public static class PacketNames
     public const string EditorRequestAccount = "editorreqaccount";
     public const string EditorAccount = "editoraccount";
     public const string EditorSaveAccount = "editorsaveaccount";
+    public const string EditorRenameChar = "editorrenamechar";
+    public const string EditorGiveItem = "editorgiveitem";
+    public const string EditorTakeItem = "editortakeitem";
+    public const string EditorLearnSpell = "editorlearnspell";
+    public const string EditorForgetSpell = "editorforgetspell";
+    public const string EditorBankGive = "editorbankgive";
+    public const string EditorBankTake = "editorbanktake";
+    public const string EditorSetQuestStatus = "editorsetqueststatus";
+    public const string EditorNotice = "editornotice";
 
     // ── S→C: bank ───────────────────────────────────────────────────────────
     public const string SendBank = "sendbank";

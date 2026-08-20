@@ -18,10 +18,9 @@ public static partial class EditorStrings
     public const string ItemEditor_DestroyOnDrop = nameof(ItemEditor_DestroyOnDrop);
     public const string ItemEditor_NonJunkable = nameof(ItemEditor_NonJunkable);
     public const string ItemEditor_PriceLabel = nameof(ItemEditor_PriceLabel);
-    public const string ItemEditor_FieldNotesHeader = nameof(ItemEditor_FieldNotesHeader);
     public const string ItemEditor_SaveItemButton = nameof(ItemEditor_SaveItemButton);
     public const string ItemEditor_SpellSearchPlaceholder = nameof(ItemEditor_SpellSearchPlaceholder);
-    // Field-notes panel — sub-headers, formula lines, and explanatory paragraphs.
+    // Notes panel — sub-headers, formula lines, and explanatory paragraphs.
     public const string ItemEditor_Notes_EquipmentHeader = nameof(ItemEditor_Notes_EquipmentHeader);
     public const string ItemEditor_Notes_EquipmentDurability = nameof(ItemEditor_Notes_EquipmentDurability);
     public const string ItemEditor_Notes_EquipmentPower = nameof(ItemEditor_Notes_EquipmentPower);
@@ -323,6 +322,18 @@ public static partial class EditorStrings
     public const string ConversationEditor_ChoiceLabelPlaceholder = nameof(ConversationEditor_ChoiceLabelPlaceholder);
     public const string ConversationEditor_ChoiceNextPlaceholder = nameof(ConversationEditor_ChoiceNextPlaceholder);
     public const string ConversationEditor_SaveButton = nameof(ConversationEditor_SaveButton);
+    // The visual tree: the view picker, the canvas legend, and the node dialog a click opens.
+    public const string ConversationEditor_ViewText = nameof(ConversationEditor_ViewText);
+    public const string ConversationEditor_ViewGraph = nameof(ConversationEditor_ViewGraph);
+    public const string ConversationEditor_GraphHint = nameof(ConversationEditor_GraphHint);
+    public const string ConversationEditor_GraphStart = nameof(ConversationEditor_GraphStart);
+    public const string ConversationEditor_GraphUnreachable = nameof(ConversationEditor_GraphUnreachable);
+    public const string ConversationEditor_GraphEnds = nameof(ConversationEditor_GraphEnds);
+    public const string ConversationEditor_GraphOpensShop = nameof(ConversationEditor_GraphOpensShop);
+    public const string ConversationEditor_GraphOpensQuests = nameof(ConversationEditor_GraphOpensQuests);
+    public const string ConversationEditor_GraphChoiceCount = nameof(ConversationEditor_GraphChoiceCount);
+    public const string ConversationEditor_NodeDialogTitle = nameof(ConversationEditor_NodeDialogTitle);
+    public const string ConversationEditor_DeleteNode = nameof(ConversationEditor_DeleteNode);
 
     // ── MapGroupEditor ────────────────────────────────────────────────────────
     public const string MapGroupEditor_TypeName = nameof(MapGroupEditor_TypeName);         // "Map Group"
@@ -358,9 +369,6 @@ public static partial class EditorStrings
     public const string References_PrerequisiteFor = nameof(References_PrerequisiteFor);
     public const string References_RestrictedItems = nameof(References_RestrictedItems);
     public const string References_RestrictedSpells = nameof(References_RestrictedSpells);
-    public const string References_LinkedFrom = nameof(References_LinkedFrom);
-    public const string References_RespawnFor = nameof(References_RespawnFor);
-    public const string References_GroupRespawn = nameof(References_GroupRespawn);
 
     // ── NpcRowViewModel formatted previews (Drop % and Magic Damage) ──────────
     public const string NpcEditor_DropChanceNever = nameof(NpcEditor_DropChanceNever);   // "0% (never drops)"

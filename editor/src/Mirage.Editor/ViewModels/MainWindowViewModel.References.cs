@@ -24,7 +24,6 @@ public sealed partial class MainWindowViewModel
             .Select(m => Link(m.DisplayName, () => OpenMap(m.Index)))
             .ToList();
 
-        MapEditor.ResolveMapRefs = RefsToMap;
         ItemEditor.ResolveInboundRefs = RefsToItem;
         SpellEditor.ResolveInboundRefs = RefsToSpell;
         NpcEditor.ResolveInboundRefs = RefsToNpc;
@@ -32,6 +31,8 @@ public sealed partial class MainWindowViewModel
         ClassEditor.ResolveInboundRefs = RefsToClass;
         // Shops and conversations are pointed FROM, never TO: a shop names its keeper, a conversation names
         // its speaker. Nothing in the world names a shop or a conversation, so those two editors get no panel.
+        // The map editor gets none either, though plenty points at a map: its own Up/Down/Left/Right fields
+        // and the group panel above already say who a map's neighbours are, and a mapper is placing tiles.
     }
 
     /// <summary>Re-read the reference panel on whichever editor is showing. The referring records live in
@@ -40,7 +41,6 @@ public sealed partial class MainWindowViewModel
     private void RefreshReferences()
     {
         MapGroupEditor.NotifyGroupMapsChanged();
-        MapEditor.NotifyMapRefsChanged();
         ItemEditor.NotifyInboundRefsChanged();
         SpellEditor.NotifyInboundRefsChanged();
         NpcEditor.NotifyInboundRefsChanged();
@@ -143,18 +143,6 @@ public sealed partial class MainWindowViewModel
             ItemLinks(i => i.AllowedClasses is { Count: > 0 } a && a.Contains((short)num)));
         AddGroup(groups, EditorStrings.References_RestrictedSpells,
             SpellLinks(s => s.AllowedClasses is { Count: > 0 } a && a.Contains((short)num)));
-        return groups;
-    }
-
-    private IReadOnlyList<ReferenceGroupViewModel> RefsToMap(int num)
-    {
-        var groups = new List<ReferenceGroupViewModel>();
-        AddGroup(groups, EditorStrings.References_LinkedFrom,
-            MapLinks(m => m.Up == num || m.Down == num || m.Left == num || m.Right == num));
-        AddGroup(groups, EditorStrings.References_RespawnFor, MapLinks(m => m.BootMap == num));
-        AddGroup(groups, EditorStrings.References_GroupRespawn, MapGroupEditor.MapGroups
-            .Where(g => g.BootMap == num)
-            .Select(g => Link(g.DisplayName, () => Open("MapGroups", MapGroupEditor, g.Index))));
         return groups;
     }
 

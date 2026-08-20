@@ -1,10 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
+using Mirage.Editor.Models;
 using Mirage.Editor.Services;
 using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace Mirage.Editor.ViewModels;
 
@@ -28,13 +30,16 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 {
     private const int PageSize = 25;
 
+    private readonly EditorDataService _data;
     private readonly EditorConnection _conn;
     private CancellationTokenSource? _inFlight;
 
-    public AccountEditorViewModel(EditorConnection conn)
+    public AccountEditorViewModel(EditorDataService data, EditorConnection conn)
     {
+        _data = data;
         _conn = conn;
         BuildAccessFilters();
+        _data.EntriesInvalidated += () => { foreach (var c in Chars) c.NotifyItemEntriesChanged(); };
         // PageText and GuildText resolve their wording on read, so a language switch has to re-raise them
         // or the pager and the guild line stay in whatever language the section was first opened in.
         EditorStrings.LanguageChanged += OnLanguageChanged;
@@ -47,6 +52,12 @@ public sealed partial class AccountEditorViewModel : ObservableObject
         BuildAccessFilters();
         OnPropertyChanged(nameof(PageText));
         OnPropertyChanged(nameof(GuildText));
+        OnPropertyChanged(nameof(WornLabel));
+        OnPropertyChanged(nameof(VaultHeader));
+        OnPropertyChanged(nameof(VaultEmpty));
+        // Row captions resolve on read too, and the rows are not LocalizedUserControls — nothing else
+        // would re-raise them.
+        foreach (var c in Chars) c.NotifyLanguageChanged();
         // A status line is a sentence about something that already happened; re-resolving it would be
         // asserting it happened again, so it is cleared instead.
         StatusMessage = "";
@@ -54,6 +65,22 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 
     public ObservableCollection<EditorAccountRow> Accounts { get; } = [];
     public ObservableCollection<AccountCharRowViewModel> Chars { get; } = [];
+
+    /// <summary>The account vault. Account-shared rather than per character, so it sits with the access and
+    /// guild lines rather than on a character card — every character is looking at this one.</summary>
+    public ObservableCollection<EditorInvSlot> Bank { get; } = [];
+
+    public bool HasNoBank => Bank.Count == 0;
+
+    public NamedEntry[] ItemEntries => _data.LiveItemEntries;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGiveToBank))]
+    private NamedEntry? _bankItem;
+
+    [ObservableProperty] private int _bankQuantity = 1;
+
+    public bool CanGiveToBank => BankItem is { Id: > 0 };
 
     /// <summary>Every level a Creator can hand out, for the access picker.</summary>
     public static IReadOnlyList<AdminLevel> AccessLevels { get; } = Enum.GetValues<AdminLevel>();
@@ -80,6 +107,7 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
     private EditorAccountRow? _selectedAccount;
 
     [ObservableProperty] private string _searchText = "";
@@ -125,9 +153,16 @@ public sealed partial class AccountEditorViewModel : ObservableObject
     public void LoadOffline()
     {
         Accounts.Clear();
-        Chars.Clear();
+        ClearChars();
         SelectedAccount = null;
         Notify();
+    }
+
+    private void ClearChars()
+    {
+        foreach (var c in Chars) c.PropertyChanged -= OnCharRowChanged;
+        Chars.Clear();
+        NotifyBudget();
     }
 
     public void LoadOnline() => _ = RefreshAsync();
@@ -183,7 +218,7 @@ public sealed partial class AccountEditorViewModel : ObservableObject
     {
         if (value is null)
         {
-            Chars.Clear();
+            ClearChars();
             Login = "";
             return;
         }
@@ -205,7 +240,7 @@ public sealed partial class AccountEditorViewModel : ObservableObject
         }
     }
 
-    private void Apply(EditorAccountPacket record)
+    internal void Apply(EditorAccountPacket record)
     {
         Login = record.Login;
         Access = record.Access;
@@ -213,11 +248,46 @@ public sealed partial class AccountEditorViewModel : ObservableObject
         Guild = record.Guild;
         GuildRank = record.GuildRank;
 
-        Chars.Clear();
-        foreach (var c in record.Chars) Chars.Add(new AccountCharRowViewModel(c));
+        Bank.Clear();
+        foreach (var b in record.Bank) Bank.Add(b);
+        OnPropertyChanged(nameof(HasNoBank));
+
+        ClearChars();
+        foreach (var c in record.Chars)
+        {
+            var row = new AccountCharRowViewModel(c, () => _data.LiveItemEntries, () => _data.LiveSpellEntries,
+                () => _data.LiveQuestEntries);
+            row.PropertyChanged += OnCharRowChanged;
+            Chars.Add(row);
+        }
         OnPropertyChanged(nameof(GuildText));
         OnPropertyChanged(nameof(IsSelf));
         OnPropertyChanged(nameof(CanEditAccess));
+        NotifyBudget();
+    }
+
+    private void OnCharRowChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AccountCharRowViewModel.IsOverBudget)) NotifyBudget();
+    }
+
+    /// <summary>True while any character on the account holds more stat value than its level allows.
+    /// Saving is refused until it is fixed: the server would reject the row anyway, and a save that
+    /// silently dropped one character's edits is worse than one that never ran.</summary>
+    public bool HasOverBudgetChar => Chars.Any(c => c.IsOverBudget);
+
+    public bool CanSave => HasSelection && !HasOverBudgetChar;
+
+    /// <summary>Caption for the worn marker on a bag row. On the editor rather than the row because a bag
+    /// slot is a wire record with no captions of its own.</summary>
+    public string WornLabel => EditorStrings.Get(EditorStrings.AccountEditor_Worn);
+    public string VaultHeader => EditorStrings.Get(EditorStrings.AccountEditor_VaultHeader);
+    public string VaultEmpty => EditorStrings.Get(EditorStrings.AccountEditor_VaultEmpty);
+
+    private void NotifyBudget()
+    {
+        OnPropertyChanged(nameof(HasOverBudgetChar));
+        OnPropertyChanged(nameof(CanSave));
     }
 
     // ── Saving ────────────────────────────────────────────────────────────────
@@ -226,6 +296,8 @@ public sealed partial class AccountEditorViewModel : ObservableObject
     private async Task SaveAsync()
     {
         if (!_conn.IsConnected || Login.Length == 0) return;
+        // The footer already carries this refusal in red whenever it holds, so the command stays silent.
+        if (HasOverBudgetChar) return;
 
         IsBusy = true;
         try
@@ -256,6 +328,124 @@ public sealed partial class AccountEditorViewModel : ObservableObject
     private async Task ReloadAsync()
     {
         if (Login.Length > 0) await LoadAccountAsync(Login);
+    }
+
+    // ── Renaming ──────────────────────────────────────────────────────────────
+
+    /// <summary>Rename one character. Its own round trip rather than part of the Save: the server can refuse
+    /// it — the name is taken, the character is logged in — and it says why, in its own words. On success the
+    /// account and the browser list are both re-read, since the list rows name the characters too.</summary>
+    [RelayCommand]
+    private async Task RenameCharAsync(AccountCharRowViewModel? row)
+    {
+        if (row is null || !_conn.IsConnected || Login.Length == 0 || !row.CanRename) return;
+
+        IsBusy = true;
+        try
+        {
+            var notice = await _conn.RenameCharAsync(Login, row.Slot, row.RenameTo.Trim());
+            if (notice is null) return;
+            StatusMessage = notice.Message;
+            if (!notice.Ok) return;
+
+            await LoadAccountAsync(Login);
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    // ── The bag ───────────────────────────────────────────────────────────────
+    // Each is one round trip naming one slot, so an edit cannot carry a stale copy of everything the
+    // character has picked up since the form was filled.
+
+    [RelayCommand]
+    private Task GiveItemAsync(AccountCharRowViewModel? row) =>
+        row is { CanGiveItem: true, GiveItem: { } pick }
+            ? RunCharOpAsync(() => _conn.GiveItemAsync(Login, row.Slot, pick.Id, row.GiveQuantity))
+            : Task.CompletedTask;
+
+    /// <summary>Set one quest's state. The same control adds a quest that is not in the log yet — the state
+    /// IS the operation, so there is nothing separate to add first.</summary>
+    [RelayCommand]
+    private Task SetQuestStatusAsync(AccountCharRowViewModel? row) =>
+        row is { CanSetQuest: true, QuestToSet: { } pick }
+            ? RunCharOpAsync(() => _conn.SetQuestStatusAsync(Login, row.Slot, pick.Id, row.QuestStatusToSet))
+            : Task.CompletedTask;
+
+    /// <summary>Take a quest out of the log, which is what NotStarted means.</summary>
+    [RelayCommand]
+    private Task ClearQuestAsync(EditorQuestRow? quest)
+    {
+        var row = quest is null ? null : Chars.FirstOrDefault(c => c.Quests.Contains(quest));
+        return row is null ? Task.CompletedTask
+            : RunCharOpAsync(() => _conn.SetQuestStatusAsync(Login, row.Slot, quest!.QuestNum, QuestStatus.NotStarted));
+    }
+
+    [RelayCommand]
+    private Task LearnSpellAsync(AccountCharRowViewModel? row) =>
+        row is { CanLearnSpell: true, LearnSpell: { } pick }
+            ? RunCharOpAsync(() => _conn.LearnSpellAsync(Login, row.Slot, pick.Id))
+            : Task.CompletedTask;
+
+    [RelayCommand]
+    private Task ForgetSpellAsync(EditorSpellSlot? slot)
+    {
+        var row = slot is null ? null : Chars.FirstOrDefault(c => c.Spells.Contains(slot));
+        return row is null ? Task.CompletedTask
+            : RunCharOpAsync(() => _conn.ForgetSpellAsync(Login, row.Slot, slot!.Slot));
+    }
+
+    [RelayCommand]
+    private Task GiveToBankAsync() =>
+        BankItem is { Id: > 0 } pick
+            ? RunCharOpAsync(() => _conn.BankGiveAsync(Login, pick.Id, BankQuantity))
+            : Task.CompletedTask;
+
+    /// <summary>Quantity 0 = the whole slot, as everywhere else.</summary>
+    [RelayCommand]
+    private Task TakeFromBankAsync(EditorInvSlot? slot) =>
+        slot is null ? Task.CompletedTask
+            : RunCharOpAsync(() => _conn.BankTakeAsync(Login, slot.Slot, 0));
+
+    [RelayCommand]
+    private Task TakeItemAsync(EditorInvSlot? slot)
+    {
+        var row = slot is null ? null : Chars.FirstOrDefault(c => c.Inv.Contains(slot));
+        // Quantity 0 = the whole slot. A partial take is what the quantity is for, and nothing here offers
+        // one yet: emptying a slot is the operation an operator actually reaches for.
+        return row is null ? Task.CompletedTask
+            : RunCharOpAsync(() => _conn.TakeItemAsync(Login, row.Slot, slot!.Slot, 0));
+    }
+
+    /// <summary>One character operation: send it, show what the server said, and re-read the account when it
+    /// worked so the form shows the bag that actually exists.</summary>
+    private async Task RunCharOpAsync(Func<Task<EditorNoticePacket?>> op)
+    {
+        if (!_conn.IsConnected || Login.Length == 0) return;
+
+        IsBusy = true;
+        try
+        {
+            var notice = await op();
+            if (notice is null) return;
+            StatusMessage = notice.Message;
+            if (notice.Ok) await LoadAccountAsync(Login);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = ex.Message;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     // ── Paging ────────────────────────────────────────────────────────────────
@@ -292,15 +482,36 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 public sealed record AccessFilterOption(AdminLevel? Level, string Label);
 
 /// <summary>One editable character row. Name and class are shown but not editable — a rename has to go
-/// through the character-name registry, which is a different job from fixing a level or a position.</summary>
+/// through the character-name registry, which is a different job from fixing a level or a position.
+///
+/// <para>Level drags EXP and stat points along with it, so setting a level here produces the character
+/// the game itself would have produced at that level: EXP lands on the level's floor, and the point pool
+/// gains or loses <see cref="Constants.PointsPerLevel"/> per level exactly as levelling and the death
+/// penalty do. A delevel that cannot pay out of unspent points does NOT drain stats the way the death
+/// penalty does — the row goes over budget and says so, and the editor refuses to save it.</para></summary>
 public sealed partial class AccountCharRowViewModel : ObservableObject
 {
     private readonly int _slot;
     private readonly string _name;
     private readonly int _class;
 
-    public AccountCharRowViewModel(EditorCharRow row)
+    // What a level change measures from. Recomputing against a baseline rather than nudging the pool by a
+    // delta makes the coupling idempotent: a NumericUpDown fires a value per keystroke, so "5" typed over
+    // "12" passes through 1 and 15 on its way, and an incremental adjustment would clamp at zero somewhere
+    // in the middle and never come back.
+    private int _baseLevel;
+    private int _basePoints;
+    private bool _syncing;
+
+    public AccountCharRowViewModel(EditorCharRow row, Func<NamedEntry[]> itemEntriesProvider,
+        Func<NamedEntry[]> spellEntriesProvider, Func<NamedEntry[]> questEntriesProvider)
     {
+        _itemEntriesProvider = itemEntriesProvider;
+        _spellEntriesProvider = spellEntriesProvider;
+        _questEntriesProvider = questEntriesProvider;
+        foreach (var s in row.Inv) Inv.Add(s);
+        foreach (var s in row.Spells) Spells.Add(s);
+        foreach (var q in row.Quests) Quests.Add(q);
         _slot = row.Slot;
         _name = row.Name;
         _class = row.Class;
@@ -314,10 +525,23 @@ public sealed partial class AccountCharRowViewModel : ObservableObject
         _spd = row.Spd;
         _int = row.Int;
         _points = row.Points;
+        _baseLevel = row.Level;
+        _basePoints = row.Points;
+        _renameTo = row.Name;
     }
 
+    public int Slot => _slot;
     public string Name => _name;
     public int Class => _class;
+
+    /// <summary>What the rename box holds. Separate from <see cref="Name"/>, which stays what the server
+    /// last said: a rename is its own operation, not a field the account Save carries, so the two only agree
+    /// again once the server has accepted it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanRename))]
+    private string _renameTo = "";
+
+    public bool CanRename => RenameTo.Trim().Length > 0 && RenameTo.Trim() != _name;
 
     [ObservableProperty] private int _level;
     [ObservableProperty] private long _exp;
@@ -329,6 +553,167 @@ public sealed partial class AccountCharRowViewModel : ObservableObject
     [ObservableProperty] private int _spd;
     [ObservableProperty] private int _int;
     [ObservableProperty] private int _points;
+
+    partial void OnLevelChanged(int value)
+    {
+        _syncing = true;
+        try
+        {
+            Exp = ExpFormulas.ExpFloorForLevel(value);
+            Points = Math.Max(0, _basePoints + Constants.PointsPerLevel * (value - _baseLevel));
+        }
+        finally { _syncing = false; }
+        NotifyBudget();
+    }
+
+    // A hand-typed point pool becomes the new baseline, so a later level change adjusts from what the
+    // operator entered rather than from what the server sent.
+    partial void OnPointsChanged(int value)
+    {
+        if (!_syncing)
+        {
+            _baseLevel = Level;
+            _basePoints = value;
+        }
+        NotifyBudget();
+    }
+
+    partial void OnStrChanged(int value) => NotifyBudget();
+    partial void OnDefChanged(int value) => NotifyBudget();
+    partial void OnSpdChanged(int value) => NotifyBudget();
+    partial void OnIntChanged(int value) => NotifyBudget();
+
+    /// <summary>Stat value this character holds — the four stats plus the unspent pool.</summary>
+    public int PointsHeld => StatFormulas.PointsHeld(Str, Def, Spd, Int, Points);
+
+    /// <summary>The most a character of this level may hold.</summary>
+    public int PointBudget => StatFormulas.PointBudgetForLevel(Level);
+
+    /// <summary>True when the row describes a character the game could not have produced. The server
+    /// refuses such a row too; this is what stops the editor sending one.</summary>
+    public bool IsOverBudget => PointsHeld > PointBudget;
+    public bool IsWithinBudget => !IsOverBudget;
+
+    // ── The bag ───────────────────────────────────────────────────────────────
+
+    private readonly Func<NamedEntry[]> _itemEntriesProvider;
+
+    /// <summary>The character's occupied bag slots, as the server last described them. Read-only: adding and
+    /// removing are their own round trips, so nothing here is carried by the account Save.</summary>
+    public ObservableCollection<EditorInvSlot> Inv { get; } = [];
+
+    public bool HasNoInv => Inv.Count == 0;
+
+    public NamedEntry[] ItemEntries => _itemEntriesProvider();
+
+    private readonly Func<NamedEntry[]> _spellEntriesProvider;
+
+    /// <summary>The character's spell book, as the server last described it. Read-only for the same reason
+    /// the bag is: teaching and forgetting are their own round trips.</summary>
+    public ObservableCollection<EditorSpellSlot> Spells { get; } = [];
+
+    public bool HasNoSpells => Spells.Count == 0;
+
+    public NamedEntry[] SpellEntries => _spellEntriesProvider();
+
+    private readonly Func<NamedEntry[]> _questEntriesProvider;
+
+    /// <summary>The character's quest log, as the server last described it.</summary>
+    public ObservableCollection<EditorQuestRow> Quests { get; } = [];
+
+    public bool HasNoQuests => Quests.Count == 0;
+
+    public NamedEntry[] QuestEntries => _questEntriesProvider();
+
+    /// <summary>Every state a quest can be put into, including NotStarted — which takes it out of the log.</summary>
+    public static IReadOnlyList<QuestStatus> QuestStatuses { get; } = Enum.GetValues<QuestStatus>();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSetQuest))]
+    private NamedEntry? _questToSet;
+
+    [ObservableProperty] private QuestStatus _questStatusToSet = QuestStatus.InProgress;
+
+    public bool CanSetQuest => QuestToSet is { Id: > 0 };
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanLearnSpell))]
+    private NamedEntry? _learnSpell;
+
+    public bool CanLearnSpell => LearnSpell is { Id: > 0 };
+
+    /// <summary>The item to hand over. Null until one is picked, which is what keeps Give greyed out.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanGiveItem))]
+    private NamedEntry? _giveItem;
+
+    /// <summary>How many, for a stack. One for anything else, which the server enforces anyway.</summary>
+    [ObservableProperty] private int _giveQuantity = 1;
+
+    public bool CanGiveItem => GiveItem is { Id: > 0 };
+
+    // Captions resolved per row, since a DataTemplate has no x:Name for the code-behind to reach.
+    public string RenameLabel => EditorStrings.Get(EditorStrings.AccountEditor_Rename);
+    public string RenamePlaceholder => EditorStrings.Get(EditorStrings.AccountEditor_RenamePlaceholder);
+    public string BagHeader => EditorStrings.Get(EditorStrings.AccountEditor_BagHeader);
+    public string BagEmpty => EditorStrings.Get(EditorStrings.AccountEditor_BagEmpty);
+    public string GiveLabel => EditorStrings.Get(EditorStrings.AccountEditor_Give);
+    public string TakeLabel => EditorStrings.Get(EditorStrings.AccountEditor_Take);
+    public string ItemPlaceholder => EditorStrings.Get(EditorStrings.AccountEditor_ItemPlaceholder);
+    public string BookHeader => EditorStrings.Get(EditorStrings.AccountEditor_BookHeader);
+    public string BookEmpty => EditorStrings.Get(EditorStrings.AccountEditor_BookEmpty);
+    public string TeachLabel => EditorStrings.Get(EditorStrings.AccountEditor_Teach);
+    public string SpellPlaceholder => EditorStrings.Get(EditorStrings.AccountEditor_SpellPlaceholder);
+    public string LogHeader => EditorStrings.Get(EditorStrings.AccountEditor_LogHeader);
+    public string LogEmpty => EditorStrings.Get(EditorStrings.AccountEditor_LogEmpty);
+    public string SetLabel => EditorStrings.Get(EditorStrings.AccountEditor_SetQuest);
+    public string QuestPlaceholder => EditorStrings.Get(EditorStrings.AccountEditor_QuestPlaceholder);
+    public string IneligibleLabel => EditorStrings.Get(EditorStrings.AccountEditor_Ineligible);
+
+    internal void NotifyItemEntriesChanged()
+    {
+        OnPropertyChanged(nameof(ItemEntries));
+        OnPropertyChanged(nameof(SpellEntries));
+        OnPropertyChanged(nameof(QuestEntries));
+    }
+
+    public string BudgetText => EditorStrings.Format(EditorStrings.AccountEditor_StatBudget,
+        ("Held", PointsHeld), ("Max", PointBudget));
+
+    public string OverBudgetText => EditorStrings.Format(EditorStrings.AccountEditor_StatBudgetOver,
+        ("Held", PointsHeld), ("Max", PointBudget), ("Level", Level));
+
+    internal void NotifyLanguageChanged()
+    {
+        OnPropertyChanged(nameof(BudgetText));
+        OnPropertyChanged(nameof(OverBudgetText));
+        OnPropertyChanged(nameof(RenameLabel));
+        OnPropertyChanged(nameof(RenamePlaceholder));
+        OnPropertyChanged(nameof(BagHeader));
+        OnPropertyChanged(nameof(BagEmpty));
+        OnPropertyChanged(nameof(GiveLabel));
+        OnPropertyChanged(nameof(TakeLabel));
+        OnPropertyChanged(nameof(ItemPlaceholder));
+        OnPropertyChanged(nameof(BookHeader));
+        OnPropertyChanged(nameof(BookEmpty));
+        OnPropertyChanged(nameof(TeachLabel));
+        OnPropertyChanged(nameof(SpellPlaceholder));
+        OnPropertyChanged(nameof(LogHeader));
+        OnPropertyChanged(nameof(LogEmpty));
+        OnPropertyChanged(nameof(SetLabel));
+        OnPropertyChanged(nameof(QuestPlaceholder));
+        OnPropertyChanged(nameof(IneligibleLabel));
+    }
+
+    private void NotifyBudget()
+    {
+        OnPropertyChanged(nameof(PointsHeld));
+        OnPropertyChanged(nameof(PointBudget));
+        OnPropertyChanged(nameof(IsOverBudget));
+        OnPropertyChanged(nameof(IsWithinBudget));
+        OnPropertyChanged(nameof(BudgetText));
+        OnPropertyChanged(nameof(OverBudgetText));
+    }
 
     public EditorCharRow ToRow() => new()
     {

@@ -130,7 +130,7 @@ public sealed partial class ItemSystem : GameSystem
 
     /// <summary>The inventory slot currently equipped in <paramref name="type"/>'s gear slot,
     /// or 0 if nothing of that type is equipped (also 0 for non-equipment types).</summary>
-    private static int EquippedSlotForType(PlayerRecord p, ItemType type) => type switch
+    public static int EquippedSlotForType(PlayerRecord p, ItemType type) => type switch
     {
         ItemType.Weapon => p.WeaponSlot,
         ItemType.Armor => p.ArmorSlot,
@@ -138,6 +138,19 @@ public sealed partial class ItemSystem : GameSystem
         ItemType.Shield => p.ShieldSlot,
         _ => 0,
     };
+
+    /// <summary>Clear the gear pointer for <paramref name="type"/>. Used where the worn piece is leaving the
+    /// bag entirely, so the pointer would otherwise name an emptied slot.</summary>
+    public static void Unequip(PlayerRecord p, ItemType type)
+    {
+        switch (type)
+        {
+            case ItemType.Weapon: p.WeaponSlot = 0; break;
+            case ItemType.Armor: p.ArmorSlot = 0; break;
+            case ItemType.Helmet: p.HelmetSlot = 0; break;
+            case ItemType.Shield: p.ShieldSlot = 0; break;
+        }
+    }
 
     /// <summary>
     /// Death-path drop: bypasses the voluntary cap so a corpse always sheds its loot, and tags the

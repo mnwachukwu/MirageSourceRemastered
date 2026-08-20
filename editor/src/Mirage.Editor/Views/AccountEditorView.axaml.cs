@@ -29,5 +29,7 @@ public partial class AccountEditorView : LocalizedUserControl
         _nextBtn.Content = EditorStrings.Get(EditorStrings.AccountEditor_NextPage);
         _reloadBtn.Content = EditorStrings.Get(EditorStrings.AccountEditor_Reload);
         _saveBtn.Content = EditorStrings.Get(EditorStrings.AccountEditor_Save);
+        _blockedHint.Text = EditorStrings.Get(EditorStrings.AccountEditor_SaveBlockedBudget);
+        _bankGiveBtn.Content = EditorStrings.Get(EditorStrings.AccountEditor_Give);
     }
 }

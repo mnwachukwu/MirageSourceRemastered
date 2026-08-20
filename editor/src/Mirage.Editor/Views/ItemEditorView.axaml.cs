@@ -35,7 +35,7 @@ public partial class ItemEditorView : LocalizedUserControl
         _destroyOnDropCheck.Content = EditorStrings.Get(EditorStrings.ItemEditor_DestroyOnDrop);
         _nonJunkableCheck.Content = EditorStrings.Get(EditorStrings.ItemEditor_NonJunkable);
         _priceLabel.Text = EditorStrings.Get(EditorStrings.ItemEditor_PriceLabel);
-        _notesExpander.Header = EditorStrings.Get(EditorStrings.ItemEditor_FieldNotesHeader);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_Notes);
 
         // Captions for the fields that mean one thing wherever they apply; Power and VitalAmount bind
         // their captions instead, since those two vary by item type.

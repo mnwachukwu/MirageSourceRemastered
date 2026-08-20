@@ -38,6 +38,7 @@ public sealed class ShopPanel : IGamePanel
         _sellDirty = true;
         _tab = Tab.Buy;
         _viewState = ViewState.None;
+        _prompt.Close();
         _salesList.Reset();
         _sellList.Reset();
         _barterList.Reset();
@@ -47,6 +48,7 @@ public sealed class ShopPanel : IGamePanel
     {
         IsOpen = false;
         _viewState = ViewState.None;
+        _prompt.Close();
         Tooltip.CloseScope(TooltipScope);
     }
     public void Toggle()
@@ -57,8 +59,14 @@ public sealed class ShopPanel : IGamePanel
 
     // True while a confirm sub-view is showing — lets GameplayScreen suppress Escape-closes-panel.
     public bool IsCapturingInput =>
-        _viewState is ViewState.ConfirmingRepair or ViewState.ConfirmingBarter
-                   or ViewState.ConfirmingBuy or ViewState.ConfirmingSell;
+        _prompt.IsOpen
+        || _viewState is ViewState.ConfirmingRepair or ViewState.ConfirmingBarter
+                      or ViewState.ConfirmingBuy or ViewState.ConfirmingSell;
+
+    /// <summary>How many to buy or sell, for the stackable items where that is a question. A currency item is
+    /// bought and sold by the handful — a caster stocks reagents in dozens — and every other item is one
+    /// indivisible piece, so those go straight to the confirm card instead.</summary>
+    private readonly NumberPromptDialog _prompt = new();
 
     // ── The three storefronts ─────────────────────────────────────────────────
     // BUY is the gold shopfront (ShopRecord.SalesItem, priced from ItemRecord.Price), TRADE is the
@@ -140,6 +148,12 @@ public sealed class ShopPanel : IGamePanel
         }
 
         var c = _panel.ContentBounds;
+
+        if (_prompt.IsOpen)
+        {
+            _prompt.Update(input, c, System.Environment.TickCount64);
+            return;
+        }
 
         if (_viewState == ViewState.SelectingSlot)
         {
@@ -243,7 +257,7 @@ public sealed class ShopPanel : IGamePanel
                 if (_buyBtn.IsClicked(input) && _buyBtn.Enabled)
                 {
                     _pendingBuySlot = _salesList.SelectedIndex + 1;   // 1-based on the wire
-                    _viewState = ViewState.ConfirmingBuy;
+                    if (!BeginBulkBuy(state, sender)) _viewState = ViewState.ConfirmingBuy;
                 }
                 break;
 
@@ -262,7 +276,7 @@ public sealed class ShopPanel : IGamePanel
                 if (_sellBtn.IsClicked(input) && _sellBtn.Enabled)
                 {
                     _pendingSellSlot = _sellSlotNums[_sellList.SelectedIndex];
-                    _viewState = ViewState.ConfirmingSell;
+                    if (!BeginBulkSell(state, sender)) _viewState = ViewState.ConfirmingSell;
                 }
                 break;
         }
@@ -571,8 +585,58 @@ public sealed class ShopPanel : IGamePanel
         long gold = state.PlayerGold();
         UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.Common_GoldLabel, ("Gold", gold)), new Vector2(c.X + 8, c.Bottom - 56), Color.Gold, c.Width - 16);
         _panel.DrawOverlay(sb);
-        if (canHover) NotifyTabHover(state, itemsTex);
+        _prompt.Draw(sb, font, c, System.Environment.TickCount64);
+        if (canHover && !_prompt.IsOpen) NotifyTabHover(state, itemsTex);
     }
+
+    // ── Buying and selling by the handful ─────────────────────────────────────
+    // Only a currency stack has an amount worth asking about. Both return false for everything else, which
+    // sends the caller to the confirm card — the one that shows the level, stat and class gates a piece of
+    // equipment has to clear, none of which a stack of reagents does.
+
+    /// <summary>Asks how many of a stackable sales entry to buy, capped at what the purse covers. False when
+    /// the entry is not a stack, or when a single one is already unaffordable.</summary>
+    private bool BeginBulkBuy(ClientState state, ClientPacketSender sender)
+    {
+        int itemNum = _pendingBuySlot >= 1 && _pendingBuySlot <= state.ActiveSales.Length
+            ? state.ActiveSales[_pendingBuySlot - 1] : 0;
+        var item = itemNum > 0 && itemNum <= state.Limits.Items ? state.Items[itemNum] : null;
+        if (item?.Type != ItemType.Currency || item.Price <= 0) return false;
+
+        int affordable = (int)Math.Min(int.MaxValue, state.PlayerGold() / item.Price);
+        if (affordable <= 0) return false;   // the confirm card says why, in its own words
+
+        int slot = _pendingBuySlot;
+        _prompt.Open(
+            ClientStrings.Get(ClientStrings.ShopPanel_BuyHowMany),
+            EachLine(item.Name, item.Price),
+            affordable,
+            amount => sender.SendShopBuy(state.ActiveShopNum, slot, amount));
+        return true;
+    }
+
+    /// <summary>Asks how much of a stackable bag slot to sell, capped at the stack. False for anything
+    /// else.</summary>
+    private bool BeginBulkSell(ClientState state, ClientPacketSender sender)
+    {
+        var inv = state.Me?.Inv?[_pendingSellSlot];
+        var item = inv is not null && inv.Num > 0 && inv.Num <= state.Limits.Items ? state.Items[inv.Num] : null;
+        if (item?.Type != ItemType.Currency) return false;
+
+        int held = Math.Max(inv!.Quantity, 1);
+        int slot = _pendingSellSlot;
+        // No spell to price against: a scroll is its own item type, never a currency stack.
+        _prompt.Open(
+            ClientStrings.Get(ClientStrings.ShopPanel_SellHowMany),
+            EachLine(item.Name, EconomyFormulas.ItemSellValue(item, inv.Dur)),
+            held,
+            amount => { sender.SendShopSell(slot, amount); _sellDirty = true; });
+        return true;
+    }
+
+    private static string EachLine(string? name, int gold) =>
+        ClientStrings.Format(ClientStrings.ShopPanel_EachPrice,
+            ("Item", name?.TrimEnd() ?? "?"), ("Gold", gold));
 
     private void NotifyFixSlotHover(ClientState state, Texture2D? itemsTex)
     {
@@ -849,6 +913,22 @@ public sealed class ShopPanel : IGamePanel
             }
         }
 
+        // Equipment carries a class gate of its own, and the server enforces it on equip. Stated here as
+        // well as in the tooltip: this is the last screen before gold changes hands, and a piece that reads
+        // fully affordable and then refuses to go on is the mistake the confirm exists to catch.
+        bool meetsEquipClass = true;
+        if (isEquip && ClassGate.IsRestricted(get!.AllowedClasses))
+        {
+            string equipClassNames = ClassGate.Describe(get.AllowedClasses, state.Classes);
+            if (equipClassNames.Length > 0)
+            {
+                meetsEquipClass = me is not null && ClassGate.Allows(get.AllowedClasses, me.Class);
+                UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_ClassRequirement, ("Class", equipClassNames)),
+                    new Vector2(c.X + 8, textY), meetsEquipClass ? Color.LightGreen : Color.OrangeRed, c.Width - 16);
+                textY += 18;
+            }
+        }
+
         bool meetsInt = true;
         bool meetsClass = true;
         bool alreadyKnown = false;
@@ -885,7 +965,7 @@ public sealed class ShopPanel : IGamePanel
         textY += 4;
         if (isSpell && alreadyKnown)
             UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.ShopPanel_AlreadyKnowSpell), new Vector2(c.X + 8, textY), Color.OrangeRed, c.Width - 16);
-        else if (isEquip && !meetsStat)
+        else if (isEquip && (!meetsStat || !meetsEquipClass))
             UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.ShopPanel_RequirementsNotMet), new Vector2(c.X + 8, textY), Color.OrangeRed, c.Width - 16);
         else if (isSpell && (!meetsInt || !meetsClass))
             UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.ShopPanel_CannotLearnSpell), new Vector2(c.X + 8, textY), Color.OrangeRed, c.Width - 16);

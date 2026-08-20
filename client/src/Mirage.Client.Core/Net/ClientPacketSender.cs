@@ -213,8 +213,10 @@ public sealed class ClientPacketSender
     public void SendShopBarter(int shopNum, int barterSlot)
         => _transport.Send(new ShopBarterPacket { ShopNum = shopNum, BarterSlot = barterSlot });
 
-    public void SendShopBuy(int shopNum, int salesSlot)
-        => _transport.Send(new ShopBuyPacket { ShopNum = shopNum, SalesSlot = salesSlot });
+    /// <summary>Buy from the open shop. <paramref name="quantity"/> applies to stackables (currency); the
+    /// server clamps it to what the purse covers and prices it.</summary>
+    public void SendShopBuy(int shopNum, int salesSlot, int quantity = 1)
+        => _transport.Send(new ShopBuyPacket { ShopNum = shopNum, SalesSlot = salesSlot, Quantity = quantity });
 
     /// <summary>Sell an inventory slot to the open shop. <paramref name="quantity"/> 0 means the whole
     /// stack; the server prices it, so nothing here proposes a value.</summary>

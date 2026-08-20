@@ -45,7 +45,7 @@ public partial class ClassEditorView : LocalizedUserControl
         _pdmgLabel.Text = EditorStrings.Get(EditorStrings.Common_PhysDmgAbbrev);
         _mdmgLabel.Text = EditorStrings.Get(EditorStrings.Common_MagDmgAbbrev);
         _mitLabel.Text = EditorStrings.Get(EditorStrings.Common_MitAbbrev);
-        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_FormulaNotes);
+        _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_Notes);
         _fmtVitalsHeader.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_VitalsHeader);
         _fmtVitalsMaxHp.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_VitalsMaxHp);
         _fmtVitalsMaxMp.Text = EditorStrings.Get(EditorStrings.ClassEditor_Formula_VitalsMaxMp);

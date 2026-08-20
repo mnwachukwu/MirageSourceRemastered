@@ -46,6 +46,8 @@ public sealed class AppSettings
     public double QuestEditorLeftWidth { get; set; } = 200;
     public double QuestEditorRightWidth { get; set; } = 220;
     public double ConversationEditorLeftWidth { get; set; } = 200;
+    /// <summary>Draw the dialogue nodes as the branching graph rather than as a stack of cards.</summary>
+    public bool ConversationEditorGraphView { get; set; } = true;
     public double MapGroupEditorLeftWidth { get; set; } = 200;
     public double MapGroupEditorRightWidth { get; set; } = 220;
 

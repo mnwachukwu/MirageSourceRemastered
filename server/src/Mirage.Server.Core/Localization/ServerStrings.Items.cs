@@ -18,8 +18,10 @@ public static partial class ServerStrings
     public const string ShopSystem_FullyRestored = nameof(ShopSystem_FullyRestored);
     public const string ShopSystem_PartiallyFixed = nameof(ShopSystem_PartiallyFixed);
     public const string ShopSystem_Bought = nameof(ShopSystem_Bought);
+    public const string ShopSystem_BoughtMany = nameof(ShopSystem_BoughtMany);
     public const string ShopSystem_NotForSale = nameof(ShopSystem_NotForSale);
     public const string ShopSystem_Sold = nameof(ShopSystem_Sold);
+    public const string ShopSystem_SoldMany = nameof(ShopSystem_SoldMany);
     public const string ShopSystem_SoldForNothing = nameof(ShopSystem_SoldForNothing);
     public const string ShopSystem_CannotSell = nameof(ShopSystem_CannotSell);
     public const string ShopSystem_UnequipFirst = nameof(ShopSystem_UnequipFirst);

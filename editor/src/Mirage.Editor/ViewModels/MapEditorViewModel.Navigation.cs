@@ -58,7 +58,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
 
         NotifyMapProperties();
-        NotifyMapRefsChanged();
         UpdateUndoRedo();
 
         // A placeholder row carries no tiles until it is fetched; selecting it is the lazy-load
@@ -105,25 +104,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
         SelectedMap = target;
         _isNavigatingHistory = false;
         UpdateNavCommands();
-    }
-
-    /// <summary>Supplies the records that point at a given map. Assigned by MainWindowViewModel, which owns
-    /// every editor; the referring records live in other collections entirely.</summary>
-    public Func<int, IReadOnlyList<ReferenceGroupViewModel>>? ResolveMapRefs { get; set; }
-
-    /// <summary>What refers to the selected map. Recomputed on demand, not cached.</summary>
-    public IReadOnlyList<ReferenceGroupViewModel> MapRefs =>
-        SelectedMap is { } m && ResolveMapRefs is { } resolve ? resolve(m.Index) : [];
-
-    /// <summary>Whether anything refers to the selected map.</summary>
-    public bool HasMapRefs => MapRefs.Count > 0;
-
-    /// <summary>Re-read <see cref="MapRefs"/>. The referring records live outside this editor, so it cannot
-    /// see them arrive or change.</summary>
-    public void NotifyMapRefsChanged()
-    {
-        OnPropertyChanged(nameof(MapRefs));
-        OnPropertyChanged(nameof(HasMapRefs));
     }
 
     /// <summary>Open a map by number, as an ordinary selection. Deliberately NOT a history-suppressed jump: a

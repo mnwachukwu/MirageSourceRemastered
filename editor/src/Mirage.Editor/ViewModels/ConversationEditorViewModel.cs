@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Services;
 using Mirage.Shared.Protocol;
@@ -24,6 +25,35 @@ public sealed partial class ConversationEditorViewModel : EditorViewModelBase<Co
     {
         HookItems();
         _data.EntriesInvalidated += () => { foreach (var c in Conversations) c.NotifyEntriesChanged(); };
+    }
+
+    // ── Which way the nodes are shown ─────────────────────────────────────────
+
+    /// <summary>The node region draws the branching graph rather than the stack of cards. The way a
+    /// conversation is normally read, so it leads; the text form is the alternative. A per-user preference,
+    /// carried across sessions by the view; both views edit the same rows, so switching loses nothing.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTextView))]
+    private bool _isGraphView = true;
+
+    /// <summary>The other half of the pair, for the radio buttons. Assigning false does nothing — the button
+    /// being cleared is not the one making the choice.</summary>
+    public bool IsTextView
+    {
+        get => !IsGraphView;
+        set { if (value) IsGraphView = false; }
+    }
+
+    /// <summary>Opens one node for editing. Set by the window that owns the dialog, so this stays free of any
+    /// reference to a view.</summary>
+    public Func<ConversationRowViewModel, ConversationNodeRowViewModel, Task>? ShowNodeDialogAsync { get; set; }
+
+    /// <summary>Invoked with the node whose box was clicked on the graph.</summary>
+    [RelayCommand]
+    private async Task EditNode(ConversationNodeRowViewModel? node)
+    {
+        if (node is null || SelectedConversation is null || ShowNodeDialogAsync is null) return;
+        await ShowNodeDialogAsync(SelectedConversation, node);
     }
 
     protected override string TypeName => EditorStrings.Get(EditorStrings.ConversationEditor_TypeName);

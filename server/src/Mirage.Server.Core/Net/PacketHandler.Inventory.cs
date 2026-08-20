@@ -351,7 +351,7 @@ public sealed partial class PacketHandler
         // the world. Same rule HandleShopBarter follows.
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum > 0)
-            _shop.Buy(index, shopNum, p.SalesSlot);
+            _shop.Buy(index, shopNum, p.SalesSlot, p.Quantity);
         else
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
     }

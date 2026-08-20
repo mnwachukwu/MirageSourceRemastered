@@ -207,6 +207,52 @@ public sealed class EditorConnection : IDisposable
     public Task<EditorAccountPacket?> SaveAccountAsync(EditorSaveAccountPacket save, CancellationToken ct = default)
         => RequestBulkAsync<EditorAccountPacket>(PacketNames.EditorAccount, save, ct);
 
+    /// <summary>Renames one character, answering with what came of it. A rename can be refused — the name is
+    /// taken, the character is logged in — so the reply is the notice rather than the record, and the caller
+    /// re-reads the account once it knows the rename landed.</summary>
+    public Task<EditorNoticePacket?> RenameCharAsync(string login, int slot, string name, CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorRenameCharPacket { Login = login, Slot = slot, Name = name }, ct);
+
+    /// <summary>Puts an item in a character's bag. <paramref name="quantity"/> is the stack size for a
+    /// currency item and is ignored for anything else.</summary>
+    public Task<EditorNoticePacket?> GiveItemAsync(string login, int slot, int itemNum, int quantity,
+        CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorGiveItemPacket { Login = login, Slot = slot, ItemNum = itemNum, Quantity = quantity }, ct);
+
+    /// <summary>Takes a stack out of one of a character's bag slots. <paramref name="quantity"/> 0 means all
+    /// of it, which is the only thing a non-stacking item can mean.</summary>
+    public Task<EditorNoticePacket?> TakeItemAsync(string login, int slot, int invSlot, int quantity,
+        CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorTakeItemPacket { Login = login, Slot = slot, InvSlot = invSlot, Quantity = quantity }, ct);
+
+    /// <summary>Teaches a character a spell. The class, level and INT gates a scroll enforces do not apply.</summary>
+    public Task<EditorNoticePacket?> LearnSpellAsync(string login, int slot, int spellNum, CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorLearnSpellPacket { Login = login, Slot = slot, SpellNum = spellNum }, ct);
+
+    public Task<EditorNoticePacket?> ForgetSpellAsync(string login, int slot, int spellSlot, CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorForgetSpellPacket { Login = login, Slot = slot, SpellSlot = spellSlot }, ct);
+
+    /// <summary>Puts an item in the account vault. No character slot — the bank is account-shared.</summary>
+    public Task<EditorNoticePacket?> BankGiveAsync(string login, int itemNum, int quantity, CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorBankGivePacket { Login = login, ItemNum = itemNum, Quantity = quantity }, ct);
+
+    public Task<EditorNoticePacket?> BankTakeAsync(string login, int bankSlot, int quantity, CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorBankTakePacket { Login = login, BankSlot = bankSlot, Quantity = quantity }, ct);
+
+    /// <summary>Puts one quest of a character's log into a state. <see cref="QuestStatus.NotStarted"/> takes
+    /// it out of the log, which is what that state means.</summary>
+    public Task<EditorNoticePacket?> SetQuestStatusAsync(string login, int slot, int questNum, QuestStatus status,
+        CancellationToken ct = default)
+        => RequestBulkAsync<EditorNoticePacket>(PacketNames.EditorNotice,
+            new EditorSetQuestStatusPacket { Login = login, Slot = slot, QuestNum = questNum, Status = status }, ct);
+
     private async Task<T?> RequestBulkAsync<T>(string responseCmd, IPacket request,
                                                 CancellationToken ct) where T : class, IPacket
     {
@@ -404,6 +450,7 @@ public sealed class EditorConnection : IDisposable
             EditorAllMapGroupsPacket => PacketNames.EditorAllMapGroups,
             EditorAccountListPacket => PacketNames.EditorAccountList,
             EditorAccountPacket => PacketNames.EditorAccount,
+            EditorNoticePacket => PacketNames.EditorNotice,
             _ => "",
         };
         if (bulkCmd != "")

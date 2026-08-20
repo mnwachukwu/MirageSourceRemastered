@@ -140,7 +140,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ClassEditor = new ClassEditorViewModel(data, conn);
         QuestEditor = new QuestEditorViewModel(data, conn);
         ConversationEditor = new ConversationEditorViewModel(data, conn);
-        AccountEditor = new AccountEditorViewModel(conn);
+        AccountEditor = new AccountEditorViewModel(data, conn);
 
         // Every editor's "what refers to this?" panel, wired once all of them exist — the scans read across
         // collections, so none of them can be hooked up before the last editor is constructed.

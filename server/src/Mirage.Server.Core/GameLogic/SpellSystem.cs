@@ -41,6 +41,39 @@ public sealed class SpellSystem : GameSystem
         return false;
     }
 
+    /// <summary>Why a spell cannot be learned, or <see cref="Ok"/>.</summary>
+    public enum LearnResult
+    {
+        Ok = 0,
+        WrongClass,
+        LevelTooLow,
+        IntTooLow,
+        BookFull,
+        AlreadyKnown,
+    }
+
+    /// <summary>
+    /// Whether <paramref name="p"/> may learn <paramref name="spell"/>, in the order the refusals are worth
+    /// reporting. The scroll path and the editor's account browser both call this, so there is ONE answer to
+    /// "may this character have this spell" — an operator handing a spell over is handing over a thing, and
+    /// what can be used with it is the game's decision, exactly as it is for gear.
+    /// </summary>
+    /// <param name="cls">The character's class, for the affinity head-start on the INT requirement.</param>
+    public static LearnResult CanLearn(PlayerRecord p, int spellNum, SpellRecord spell, ClassRecord cls)
+    {
+        if (!ClassGate.Allows(spell.AllowedClasses, p.Class)) return LearnResult.WrongClass;
+        // The SPELL's own level gate, distinct from the scroll's: a scroll is a delivery mechanism and could
+        // be handed out early, while the spell on it is tied to a tier. INT decides WHO may learn it, this
+        // decides WHEN.
+        if (spell.LevelReq > p.Level) return LearnResult.LevelTooLow;
+        if (CombatFormulas.GetSpellIntRequirement(spell, cls.Int) > p.Int) return LearnResult.IntTooLow;
+        // Known before full: a full book already holding this spell needs no slot, so "your book is full"
+        // would name the wrong reason.
+        if (HasSpell(p, spellNum)) return LearnResult.AlreadyKnown;
+        if (FindOpenSpellSlot(p) == 0) return LearnResult.BookFull;
+        return LearnResult.Ok;
+    }
+
     // ── CastSpell ────────────────────────────────────────────────────────────
     //
     // Gate order (each step exits early on failure):

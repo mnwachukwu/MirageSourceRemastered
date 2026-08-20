@@ -20,13 +20,16 @@ public sealed record ShopBarterPacket : IPacket
     [JsonPropertyName("barterSlot")] public int BarterSlot { get; init; }
 }
 
-/// <summary>C→S: buy one entry from the open shop's SALES list. <paramref name="SalesSlot"/> is 1-based to
-/// match <see cref="ShopBarterPacket.BarterSlot"/> — the client sends its display index + 1.</summary>
+/// <summary>C→S: buy from the open shop's SALES list. <see cref="SalesSlot"/> is 1-based to match
+/// <see cref="ShopBarterPacket.BarterSlot"/> — the client sends its display index + 1. <see cref="Quantity"/>
+/// applies to stackables (currency) and is clamped by the server to what the purse covers; anything else is
+/// one piece however many are asked for. The server prices it — the client never proposes a value.</summary>
 public sealed record ShopBuyPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBuy;
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
     [JsonPropertyName("salesSlot")] public int SalesSlot { get; init; }
+    [JsonPropertyName("quantity")] public int Quantity { get; init; }
 }
 
 /// <summary>C→S: sell one inventory slot to the open shop. <see cref="Quantity"/> applies to stackables

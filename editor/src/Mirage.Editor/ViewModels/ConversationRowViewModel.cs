@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Mirage.Editor.Controls;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Models;
 using Mirage.Shared;
@@ -30,6 +31,30 @@ public sealed partial class ConversationRowViewModel : ObservableObject
 
     public ObservableCollection<ConversationNodeRowViewModel> Nodes { get; } = [];
     public bool HasNoNodes => Nodes.Count == 0;
+
+    /// <summary>Raised whenever the shape of the conversation changes — a node added, removed or retitled, a
+    /// choice repointed, a different root picked. The graph derives every position from it, so the canvas
+    /// redraws off this rather than off any one property.</summary>
+    public event Action? GraphChanged;
+
+    private void RaiseGraphChanged() => GraphChanged?.Invoke();
+
+    /// <summary>The nodes as the layout sees them: an id and where each choice goes. A hand-off reports the
+    /// way it leaves rather than a next node — the runtime ignores that field once an action is set and
+    /// hands the player to the shop or the quest list, so a link drawn from it would picture a branch that
+    /// never happens.</summary>
+    public IReadOnlyList<ConversationGraphNode> GraphNodes() =>
+    [
+        .. Nodes.Select(n => new ConversationGraphNode(n.NodeId, [.. n.Choices.Select(BranchFor)])),
+    ];
+
+    private static ConversationGraphBranch BranchFor(ConversationChoiceRowViewModel choice) => choice.Action switch
+    {
+        ConversationAction.OpenShop => new ConversationGraphBranch(0, ConversationEndKind.OpensShop),
+        ConversationAction.OpenQuests => new ConversationGraphBranch(0, ConversationEndKind.OpensQuests),
+        // A target naming no node is a goodbye, which the layout decides — it holds the id index.
+        _ => new ConversationGraphBranch(choice.NextNodeId, ConversationEndKind.None),
+    };
 
     // The next stable node id to hand out (monotonic; never reuses a deleted id).
     private int _nextNodeId = 1;
@@ -136,6 +161,9 @@ public sealed partial class ConversationRowViewModel : ObservableObject
         if (_loading) return;
         if (e.PropertyName == nameof(ConversationNodeRowViewModel.Header))
             RefreshNodeEntries();   // a node's text changed → its picker label changed
+        // A choice's label or target reaches here as the node's own dirty raise, which is the only signal
+        // that a branch was repointed.
+        else if (e.PropertyName == nameof(ConversationNodeRowViewModel.IsDirty)) RaiseGraphChanged();
         OnPropertyChanged(nameof(IsDirty));
     }
 
@@ -145,6 +173,7 @@ public sealed partial class ConversationRowViewModel : ObservableObject
         OnPropertyChanged(nameof(RootNodeEntries));
         OnPropertyChanged(nameof(SelectedRootNode));
         foreach (var n in Nodes) n.NotifyEntriesChanged();
+        RaiseGraphChanged();
     }
 
     private void MarkDirty()
@@ -167,6 +196,7 @@ public sealed partial class ConversationRowViewModel : ObservableObject
     partial void OnRootNodeIdChanged(int value)
     {
         OnPropertyChanged(nameof(SelectedRootNode));
+        RaiseGraphChanged();   // a different opening node re-roots the whole picture
         MarkDirty();
     }
 

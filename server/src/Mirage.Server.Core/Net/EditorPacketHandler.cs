@@ -170,6 +170,30 @@ public sealed partial class EditorPacketHandler
                 case EditorSaveAccountPacket p:
                     HandleEditorSaveAccount(editorIndex, p);
                     break;
+                case EditorRenameCharPacket p:
+                    HandleEditorRenameChar(editorIndex, p);
+                    break;
+                case EditorGiveItemPacket p:
+                    HandleEditorGiveItem(editorIndex, p);
+                    break;
+                case EditorTakeItemPacket p:
+                    HandleEditorTakeItem(editorIndex, p);
+                    break;
+                case EditorLearnSpellPacket p:
+                    HandleEditorLearnSpell(editorIndex, p);
+                    break;
+                case EditorForgetSpellPacket p:
+                    HandleEditorForgetSpell(editorIndex, p);
+                    break;
+                case EditorBankGivePacket p:
+                    HandleEditorBankGive(editorIndex, p);
+                    break;
+                case EditorBankTakePacket p:
+                    HandleEditorBankTake(editorIndex, p);
+                    break;
+                case EditorSetQuestStatusPacket p:
+                    HandleEditorSetQuestStatus(editorIndex, p);
+                    break;
             }
         }
         catch (Exception ex)
@@ -213,6 +237,7 @@ public sealed partial class EditorPacketHandler
 
         session.Login = username;
         session.AdminLevel = access;
+        session.Locale = locale;
         session.IsAuthenticated = true;
 
         _dispatcher.SendToEditor(editorIndex, new EditorLoginResponsePacket

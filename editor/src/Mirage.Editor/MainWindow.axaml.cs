@@ -190,6 +190,9 @@ public partial class MainWindow : FAAppWindow
             vm.MapEditor.ConfirmAsync = async msg =>
                 await new ConfirmDialog(msg).ShowDialog<bool>(this);
 
+            vm.ConversationEditor.ShowNodeDialogAsync = async (conversation, node) =>
+                await new ConversationNodeDialog(conversation, node).ShowDialog(this);
+
             vm.ShowAlertAsync = async msg =>
                 await new ConfirmDialog(msg, alertOnly: true).ShowDialog<bool>(this);
 

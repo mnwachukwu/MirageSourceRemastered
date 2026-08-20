@@ -833,6 +833,103 @@ public class SeedIntegrityTests
         });
     }
 
+    /// <summary>
+    /// Every hostile is on a side, and there are only two of them.
+    ///
+    /// <para>An attack-on-sight mob picks a fight with any hostile in range that is neither its own kind nor
+    /// a same-group ally, scanning the whole 3×3 map neighbourhood. <c>Group</c> 0 means "allied with my own
+    /// kind only", so an ungrouped roster is one where every warband fights whichever one is camped next
+    /// door — and nothing says so until two of them are placed near each other.</para>
+    ///
+    /// <para>Two numbers world-wide rather than a set per area: monstrous and humanoid are world-wide facts,
+    /// and a number reused between two areas that TOUCH would silently ally them across the seam.</para>
+    /// </summary>
+    [Test]
+    public void EveryHostileNpc_IsOnOneOfTwoSides()
+    {
+        RequireSeed();
+        var hostile = _npcs.Where(n => n.Value.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
+            .ToDictionary(k => k.Key, v => v.Value);
+        Assume.That(hostile, Is.Not.Empty);
+
+        var sides = hostile.Values.Select(n => n.Group).Distinct().OrderBy(g => g).ToList();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, npc) in hostile.OrderBy(k => k.Key))
+            {
+                Assert.That(npc.Group, Is.Not.Zero,
+                    $"npc{num} \"{npc.TrimmedName}\" attacks on sight but is on no side, so it will pick "
+                    + "fights with every other kind of hostile that comes near it");
+            }
+            Assert.That(sides, Has.Count.EqualTo(2),
+                "the world runs on exactly two sides, monstrous and humanoid: " + string.Join(", ", sides));
+        });
+    }
+
+    /// <summary>A side means nothing on an NPC the hostility scan never looks at — it skips Friendly,
+    /// Stationary and Guard outright — and a guard wearing one reads as a guard that has taken a side.</summary>
+    [Test]
+    public void NothingElse_CarriesASide()
+    {
+        RequireSeed();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, npc) in _npcs.OrderBy(k => k.Key))
+            {
+                if (npc.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked) continue;
+                Assert.That(npc.Group, Is.Zero,
+                    $"npc{num} \"{npc.TrimmedName}\" is {npc.Behavior} and carries group {npc.Group}");
+            }
+        });
+    }
+
+    /// <summary>Two mobs drawn the same way are on the same side. What a mob IS drawn as is what it is, and
+    /// that is how the roster picks a side in the first place — so this catches a hand edit that put one orc
+    /// with the companies without restating the sprite table a third time.</summary>
+    [Test]
+    public void MobsDrawnTheSameWay_AreOnTheSameSide()
+    {
+        RequireSeed();
+        var bySprite = _npcs.Values
+            .Where(n => n.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
+            .GroupBy(n => n.Sprite);
+
+        Assert.Multiple(() =>
+        {
+            foreach (var row in bySprite)
+            {
+                var sides = row.Select(n => n.Group).Distinct().ToList();
+                Assert.That(sides, Has.Count.EqualTo(1),
+                    $"sprite row {row.Key} is drawn for both sides: "
+                    + string.Join(", ", row.Select(n => $"{n.TrimmedName}={n.Group}")));
+            }
+        });
+    }
+
+    /// <summary>Every class opens on exactly <see cref="Constants.PlayerBaseStatTotal"/> across the four
+    /// stats. It is the number the whole progression system is measured from: a level's stat budget is that
+    /// total plus three per level since, the NPC virtual level inverts the same arithmetic, and the account
+    /// editor calls a character sheet impossible when it holds more than its level allows.
+    ///
+    /// <para>A class authored one point over would put every character it ever creates over budget from the
+    /// moment of creation, and one point under would quietly hand its players a permanently smaller sheet.
+    /// Neither shows up anywhere at runtime — the class simply loads.</para></summary>
+    [Test]
+    public void EveryClass_OpensOnTheBaseStatTotal()
+    {
+        RequireSeed();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, cls) in _classes.OrderBy(k => k.Key))
+            {
+                Assert.That(cls.Str + cls.Def + cls.Spd + cls.Int, Is.EqualTo(Constants.PlayerBaseStatTotal),
+                    $"class{num} \"{cls.TrimmedName}\" opens on STR {cls.Str} / DEF {cls.Def} / SPD {cls.Spd} "
+                    + $"/ INT {cls.Int}, which is not the {Constants.PlayerBaseStatTotal} every level's stat "
+                    + "budget is measured from");
+            }
+        });
+    }
+
     /// <summary>Every class must be able to hurt something on the day it is created — a granted WEAPON or a
     /// granted SubHp spell, since those are the only two things that deal damage.
     ///

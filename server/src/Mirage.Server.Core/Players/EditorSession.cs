@@ -16,6 +16,10 @@ public sealed class EditorSession
     /// <summary>Whether credentials have been accepted. Connected but unauthenticated is a real state —
     /// the socket is open while the login is still in flight.</summary>
     public bool IsAuthenticated { get; set; }
+    /// <summary>The language this editor asked for at login. A notice the server sends back is resolved in
+    /// it, the same as the login message: the rules being reported are the game's, and the editor has no
+    /// vocabulary for them.</summary>
+    public string Locale { get; set; } = "";
     /// <summary>Whether the slot is in use; this is what <see cref="EditorSessionManager.FindOpenSlot"/> tests.</summary>
     public bool IsConnected { get; set; }
 }

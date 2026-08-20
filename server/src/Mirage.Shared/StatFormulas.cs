@@ -252,6 +252,20 @@ public static class StatFormulas
         return (int)Math.Max(Math.Round(favoredHp, MidpointRounding.AwayFromZero), NpcMaxHpFloor) + Math.Max(extraHp, 0);
     }
 
+    /// <summary>The most stat value a character of <paramref name="level"/> may hold: the class's opening
+    /// allotment plus every point levelling has granted since.  The inverse of <see cref="NpcLevel"/>.</summary>
+    public static int PointBudgetForLevel(int level) =>
+        Constants.PlayerBaseStatTotal + Constants.PointsPerLevel * (Math.Max(level, 1) - 1);
+
+    /// <summary>Everything a character sheet holds against that budget — the four stats plus the points
+    /// not yet spent.  A death drain can leave it under budget; nothing legitimate puts it over.</summary>
+    public static int PointsHeld(int str, int def, int spd, int @int, int points) =>
+        Math.Max(str, 0) + Math.Max(def, 0) + Math.Max(spd, 0) + Math.Max(@int, 0) + Math.Max(points, 0);
+
+    /// <summary>Whether a character sheet is one the game itself could have produced.</summary>
+    public static bool IsWithinPointBudget(int level, int str, int def, int spd, int @int, int points) =>
+        PointsHeld(str, def, spd, @int, points) <= PointBudgetForLevel(level);
+
     /// <summary>An NPC's player-faithful virtual level, inferred from its point spread exactly as a player's
     /// level relates to theirs: an authored class starts at <see cref="Constants.PlayerBaseStatTotal"/> and each
     /// level grants <see cref="Constants.PointsPerLevel"/> more, so level = (statSum - 20)/3 + 1.  ALL FOUR stats

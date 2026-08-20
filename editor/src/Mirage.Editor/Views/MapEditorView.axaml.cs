@@ -79,7 +79,6 @@ public partial class MapEditorView : LocalizedUserControl
     /// this view. Re-run on a language change; these are set in code rather than bound.</summary>
     protected override void ApplyStrings()
     {
-        _refsHeader.Text = EditorStrings.Get(EditorStrings.References_Header);
         // Left panel
         _mapsFilterBox.PlaceholderText = EditorStrings.Get(EditorStrings.Common_Filter);
 

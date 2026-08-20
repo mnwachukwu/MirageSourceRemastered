@@ -272,15 +272,42 @@ public sealed class QuestSystem : GameSystem
         return pq is { Status: QuestStatus.Done } && pq.PeriodKey == PeriodKeyFor(q.Cadence);
     }
 
-    private bool RequirementsMet(int index, QuestRecord q)
+    /// <summary>Why a character could not hold a quest, or <see cref="Ok"/>.</summary>
+    public enum HoldResult
     {
-        var p = _pm[index].Char;
-        if (p.Level < q.ReqLevel) return false;
-        if (p.Str < q.ReqStr || p.Def < q.ReqDef || p.Spd < q.ReqSpd || p.Int < q.ReqInt) return false;
-        if (!ClassGate.Allows(q.AllowedClasses, p.Class)) return false;
-        if (q.PrereqQuest > 0 && !IsDone(index, q.PrereqQuest)) return false;
-        return true;
+        Ok = 0,
+        LevelTooLow,
+        StatTooLow,
+        WrongClass,
+        PrereqNotDone,
     }
+
+    /// <summary>
+    /// Whether <paramref name="p"/> meets what <paramref name="q"/> asks of them — the accept requirements,
+    /// and nothing about whether they already hold it.
+    ///
+    /// <para>Takes the RECORD rather than a player slot so the editor's account browser can ask it of a
+    /// character who is nowhere near one, and shares the answer with the accept path so an operator cannot
+    /// put a quest somewhere the game would not.</para>
+    /// </summary>
+    public static HoldResult CanHold(PlayerRecord p, QuestRecord q)
+    {
+        if (p.Level < q.ReqLevel) return HoldResult.LevelTooLow;
+        if (p.Str < q.ReqStr || p.Def < q.ReqDef || p.Spd < q.ReqSpd || p.Int < q.ReqInt) return HoldResult.StatTooLow;
+        if (!ClassGate.Allows(q.AllowedClasses, p.Class)) return HoldResult.WrongClass;
+        if (q.PrereqQuest > 0 && FindQuest(p, q.PrereqQuest) is not { Status: QuestStatus.Done })
+            return HoldResult.PrereqNotDone;
+        return HoldResult.Ok;
+    }
+
+    /// <summary>That character's row for a quest, or null when it is not in their log.</summary>
+    public static PlayerQuest? FindQuest(PlayerRecord p, int questNum)
+    {
+        foreach (var pq in p.Quests) if (pq.QuestNum == questNum) return pq;
+        return null;
+    }
+
+    private bool RequirementsMet(int index, QuestRecord q) => CanHold(_pm[index].Char, q) == HoldResult.Ok;
 
     private int CountInProgress(int index)
     {
@@ -297,11 +324,7 @@ public sealed class QuestSystem : GameSystem
     private bool QuestExists(int questNum) =>
         SlotValidation.IsValidQuestNum(questNum, _world.Limits.Quests) && _world.Quests[questNum].TrimmedName.Length > 0;
 
-    private PlayerQuest? Find(int index, int questNum)
-    {
-        foreach (var pq in _pm[index].Char.Quests) if (pq.QuestNum == questNum) return pq;
-        return null;
-    }
+    private PlayerQuest? Find(int index, int questNum) => FindQuest(_pm[index].Char, questNum);
 
     /// <summary>Are all of a quest's objectives complete for this player? (A quest with zero objectives counts
     /// as complete — a talk / turn-in-only quest.)</summary>

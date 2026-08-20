@@ -5,6 +5,7 @@ using Mirage.Server.Core.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
@@ -83,10 +84,12 @@ public sealed class ShopSystem : GameSystem
     // the price comes from ItemRecord.Price, which is what let a shopfront be authored by picking
     // items instead of hand-writing a give→get row each (see ShopRecord.SalesItem).
 
-    /// <summary>Buy one unit of a sales-list entry for its <see cref="ItemRecord.Price"/>.
+    /// <summary>Buy from a sales-list entry at its <see cref="ItemRecord.Price"/>.
+    /// <para><paramref name="quantity"/> applies to currency-style stacks and is clamped to what the purse
+    /// covers; anything else is one piece however many are asked for.</para>
     /// <para>Refuses unless the shop is open for this player, is a Store, the entry is priced, the purse
     /// covers it, and the bag has room — in that order, so the player gets the most specific message.</para></summary>
-    public void Buy(int index, int shopNum, int salesSlot)
+    public void Buy(int index, int shopNum, int salesSlot, int quantity = 1)
     {
         if (!_pm[index].IsPlaying) return;
         if (shopNum <= 0 || shopNum > _world.Limits.Shops) return;
@@ -115,7 +118,16 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        if (ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex) < price)
+        // Currency-style stacks are bought by the handful — a caster buys reagents in dozens, not one click
+        // at a time. Everything else is one indivisible piece, so an amount on it means nothing.
+        bool stacks = item.Type == ItemType.Currency;
+        int want = stacks ? Math.Max(quantity, 1) : 1;
+
+        // Clamped rather than refused, the same way a partial repair is: the client already offers only what
+        // the purse covers, so this is the guard against a packet that asked for more.
+        long purse = ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex);
+        int amount = (int)Math.Min(want, purse / price);
+        if (amount <= 0)
         {
             SendMsg(index, ServerStrings.ShopSystem_InsufficientGold, GameColor.BrightRed);
             return;
@@ -127,10 +139,37 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        _items.TakeItem(index, Constants.GoldItemIndex, price);
-        _items.GiveItem(index, itemNum, 1);
-        SendMsg(index, ServerStrings.ShopSystem_Bought, GameColor.Yellow,
-            ("ItemName", item.TrimmedName), ("Gold", price));
+        if (stacks) amount = Math.Min(amount, StackHeadroom(p, itemNum));
+        if (amount <= 0)
+        {
+            SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
+            return;
+        }
+
+        long cost = (long)price * amount;
+        _items.TakeItem(index, Constants.GoldItemIndex, (int)cost);
+        _items.GiveItem(index, itemNum, amount);
+
+        if (amount > 1)
+        {
+            SendMsg(index, ServerStrings.ShopSystem_BoughtMany, GameColor.Yellow,
+                ("Amount", amount), ("ItemName", item.TrimmedName), ("Gold", cost));
+        }
+        else
+        {
+            SendMsg(index, ServerStrings.ShopSystem_Bought, GameColor.Yellow,
+                ("ItemName", item.TrimmedName), ("Gold", cost));
+        }
+    }
+
+    /// <summary>How much more of <paramref name="itemNum"/> the player's existing stack can take. A stack
+    /// counts in a plain int, and reagents cost a single gold each, so a deep purse is the one thing that
+    /// could run one past its end.</summary>
+    private static int StackHeadroom(PlayerRecord p, int itemNum)
+    {
+        for (int i = 1; i <= Constants.MaxInv; i++)
+            if (p.Inv[i].Num == itemNum) return int.MaxValue - p.Inv[i].Quantity;
+        return int.MaxValue;
     }
 
     /// <summary>Sell one inventory slot to the open shop for
@@ -189,7 +228,10 @@ public sealed class ShopSystem : GameSystem
         _items.TakeItem(index, itemNum, amount);
         if (gold > 0) _items.GiveItem(index, Constants.GoldItemIndex, (int)Math.Min(gold, int.MaxValue));
 
-        if (gold > 0)
+        if (gold > 0 && amount > 1)
+            SendMsg(index, ServerStrings.ShopSystem_SoldMany, GameColor.Yellow,
+                ("Amount", amount), ("ItemName", item.TrimmedName), ("Gold", gold));
+        else if (gold > 0)
             SendMsg(index, ServerStrings.ShopSystem_Sold, GameColor.Yellow,
                 ("ItemName", item.TrimmedName), ("Gold", gold));
         else
