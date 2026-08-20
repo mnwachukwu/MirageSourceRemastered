@@ -100,16 +100,14 @@ jobs:
   # runner can ever surface: every path the persistence and localization loaders build is a place
   # that difference could bite.
   #
-  # ALL FIVE suites run here, on all three platforms. Nothing about the client's CODE is
-  # Windows-bound: MonoGame.Framework.DesktopGL is cross-platform by design, and no test in
-  # Mirage.Client.Shell.Tests constructs a GraphicsDevice or loads a piece of content.
+  # ALL FIVE suites run here, on all three platforms, and so does a build of the shipped client.
+  # Nothing about the client's CODE is Windows-bound: MonoGame.Framework.DesktopGL is cross-platform by
+  # design, and no test in Mirage.Client.Shell.Tests constructs a GraphicsDevice or loads an asset.
   #
-  # What IS Windows-bound is compiling the one .fx shader — the effect compiler is SharpDX.D3DCompiler
-  # plus libmojoshader_64.dll, and MonoGame's own answer off Windows is Wine. That is a CONTENT step,
-  # not a code one, so the suite skips it with EnableMGCBItems=false: the MonoGame targets gate the
-  # whole content chain on that property, and the project declares no explicit MonoGameContentReference.
-  # The fonts and textures would in fact build anywhere (the mgcb tool ships freetype, FreeImage and
-  # nvtt for Linux and macOS); only the shader would not.
+  # What IS Windows-bound is compiling the CONTENT, for two unrelated reasons — the effect compiler
+  # ships no Linux or macOS build, and four of the five spritefonts are drawn from Tahoma. Neither
+  # reaches this job: the compiled content is committed to the tree, so no build here compiles any.
+  # See docs/architecture.md, "Why compiled content is committed".
   #
   # Windows is in the matrix as well, even though the build job re-runs these. A minute of duplicated
   # work buys a row per platform that either is or is not green, rather than one row that is green
@@ -135,7 +133,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Build.props') }}
@@ -187,7 +185,7 @@ jobs:
           global-json-file: global.json
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'Directory.Build.props', '**/dotnet-tools.json') }}
