@@ -5,7 +5,7 @@
   "size": 1,
   "spawnSecs": 25,
   "behavior": "AttackWhenAttacked",
-  "group": 0,
+  "group": 1,
   "range": 5,
   "str": 11,
   "def": 8,
