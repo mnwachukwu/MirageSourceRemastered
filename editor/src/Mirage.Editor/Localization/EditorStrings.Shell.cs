@@ -272,6 +272,8 @@ public static partial class EditorStrings
 
     // ── ConfirmDialog ─────────────────────────────────────────────────────────
     public const string ConfirmDialog_OkButton = nameof(ConfirmDialog_OkButton);
+    public const string ConfirmDialog_Title = nameof(ConfirmDialog_Title);         // "Confirm"
+    public const string ConfirmDialog_AlertTitle = nameof(ConfirmDialog_AlertTitle); // "Notice"
 
     // ── PushChangesDialog ─────────────────────────────────────────────────────
     public const string PushChangesDialog_Title = nameof(PushChangesDialog_Title);

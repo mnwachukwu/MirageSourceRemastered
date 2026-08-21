@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Mirage.Editor.Localization;
 using Mirage.Editor.ViewModels;
 
@@ -7,10 +8,23 @@ namespace Mirage.Editor.Views;
 /// <summary>Modal reference sheet for the map editor's mouse and keyboard controls.</summary>
 public partial class HelpDialog : Window
 {
+    // The sheet has no buttons, so there is no IsCancel button to carry Esc the way the other
+    // dialogs do. Closes on Esc here instead.
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            Close();
+            return;
+        }
+        base.OnKeyDown(e);
+    }
+
     public HelpDialog()
     {
         InitializeComponent();
-        Title = EditorStrings.Get(EditorStrings.HelpDialog_Title);
+        Title = EditorStrings.TitleFor(EditorStrings.HelpDialog_Title);
         _header.Text = EditorStrings.Get(EditorStrings.HelpDialog_Header);
         _controlsHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_ControlsHeader);
         _selectionHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_SelectionHeader);

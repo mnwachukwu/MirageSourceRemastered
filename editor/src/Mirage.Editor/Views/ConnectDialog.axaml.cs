@@ -10,7 +10,7 @@ public partial class ConnectDialog : Window
     public ConnectDialog()
     {
         InitializeComponent();
-        Title = EditorStrings.Get(EditorStrings.ConnectDialog_Title);
+        Title = EditorStrings.TitleFor(EditorStrings.ConnectDialog_Title);
         _usernameLabel.Text = EditorStrings.Get(EditorStrings.ConnectDialog_UsernameLabel);
         _passwordLabel.Text = EditorStrings.Get(EditorStrings.ConnectDialog_PasswordLabel);
         _hostLabel.Text = EditorStrings.Get(EditorStrings.ConnectDialog_HostLabel);

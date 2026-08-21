@@ -15,13 +15,23 @@ public partial class ConfirmDialog : Window
     /// <param name="alertOnly">Hide the cancel button, leaving an acknowledge-only notice.</param>
     public ConfirmDialog(string message, string? confirmText = null, bool alertOnly = false) : this()
     {
+        Title = EditorStrings.TitleFor(alertOnly
+            ? EditorStrings.ConfirmDialog_AlertTitle
+            : EditorStrings.ConfirmDialog_Title);
         this.FindControl<TextBlock>("MessageBlock")!.Text = message;
         var confirmBtn = this.FindControl<Button>("ConfirmButton")!;
         confirmBtn.Content = confirmText ?? EditorStrings.Get(EditorStrings.ConfirmDialog_OkButton);
         confirmBtn.Click += (_, _) => Close(true);
+        confirmBtn.IsDefault = true;
         var cancelBtn = this.FindControl<Button>("CancelButton")!;
         cancelBtn.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
         cancelBtn.Click += (_, _) => Close(false);
-        if (alertOnly) cancelBtn.IsVisible = false;
+        cancelBtn.IsCancel = true;
+        // A notice has no Cancel to carry Esc, so the one remaining button answers both keys.
+        if (alertOnly)
+        {
+            cancelBtn.IsVisible = false;
+            confirmBtn.IsCancel = true;
+        }
     }
 }

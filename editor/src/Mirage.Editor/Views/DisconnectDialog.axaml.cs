@@ -11,7 +11,7 @@ public partial class DisconnectDialog : Window
     public DisconnectDialog()
     {
         InitializeComponent();
-        Title = EditorStrings.Get(EditorStrings.DisconnectDialog_Title);
+        Title = EditorStrings.TitleFor(EditorStrings.DisconnectDialog_Title);
         _headerBlock.Text = EditorStrings.Get(EditorStrings.DisconnectDialog_Header);
         _abandonBtn.Content = EditorStrings.Get(EditorStrings.DisconnectDialog_AbandonButton);
         _reconnectBtn.Content = EditorStrings.Get(EditorStrings.DisconnectDialog_ReconnectButton);

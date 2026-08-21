@@ -10,7 +10,7 @@ public partial class PushChangesDialog : Window
     public PushChangesDialog()
     {
         InitializeComponent();
-        Title = EditorStrings.Get(EditorStrings.PushChangesDialog_Title);
+        Title = EditorStrings.TitleFor(EditorStrings.PushChangesDialog_Title);
         _cancelBtn.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
     }
 }

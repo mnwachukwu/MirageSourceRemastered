@@ -54,7 +54,7 @@
          form edits the conversation live, exactly as the text view does, and Discard is what undoes it. -->
     <DockPanel Grid.Row="3" Margin="0,12,0,0">
       <Button Name="DeleteButton" DockPanel.Dock="Left" Classes="danger" HorizontalAlignment="Left"/>
-      <Button Name="CloseButton" Classes="primary" HorizontalAlignment="Right" IsDefault="True"/>
+      <Button Name="CloseButton" Classes="primary" HorizontalAlignment="Right" IsDefault="True" IsCancel="True"/>
     </DockPanel>
   </Grid>
 </Window>

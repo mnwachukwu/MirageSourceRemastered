@@ -1,3 +1,4 @@
+using Mirage.Shared;
 using Mirage.Shared.Localization;
 
 namespace Mirage.Editor.Localization;
@@ -98,4 +99,11 @@ public static partial class EditorStrings
     /// <summary>Looks up <paramref name="key"/> then substitutes named placeholders.</summary>
     public static string Format(string key, params (string Key, object? Value)[] args)
         => StringLoader.Format(Get(key), args);
+
+    /// <summary>A window caption: the app's name, then what the window is for. Every dialog title goes
+    /// through here so a taskbar entry or an alt-tab thumbnail names the app that raised it.</summary>
+    public static string WindowTitle(string text) => $"{Constants.GameName} — {text}";
+
+    /// <summary>The same caption from a string key.</summary>
+    public static string TitleFor(string key) => WindowTitle(Get(key));
 }

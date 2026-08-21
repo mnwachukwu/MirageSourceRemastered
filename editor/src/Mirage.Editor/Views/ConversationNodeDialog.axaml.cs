@@ -18,7 +18,7 @@ public partial class ConversationNodeDialog : Window
         : this()
     {
         DataContext = node;
-        Title = EditorStrings.Format(EditorStrings.ConversationEditor_NodeDialogTitle, ("Id", node.NodeId));
+        Title = EditorStrings.WindowTitle(EditorStrings.Format(EditorStrings.ConversationEditor_NodeDialogTitle, ("Id", node.NodeId)));
 
         var deleteBtn = this.FindControl<Button>("DeleteButton")!;
         deleteBtn.Content = EditorStrings.Get(EditorStrings.ConversationEditor_DeleteNode);
