@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Mirage.Shared\Mirage.Shared.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Shared\Mirage.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

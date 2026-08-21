@@ -1,13 +1,16 @@
 namespace Mirage.Shared.Records;
 
 /// <summary>A group of maps sharing a <see cref="Name"/> + map-like fallback properties, and optionally a
-/// contestable TERRITORY. Index-keyed on disk (<c>map_groups/mapgroup{Index}.json</c>), with
+/// contestable TERRITORY. Index-keyed on disk (<c>map_groups/map_group{Index}.json</c>), with
 /// NON-unique names (like maps). A map references its group via <see cref="MapRecord.MapGroup"/>; a map's OWN
 /// property always wins and the group fills in only what the map leaves unset (see <see cref="MapGroupResolve"/>).
 /// A territory = a group with <see cref="Territory"/> = true plus a runtime <see cref="ControllingGuild"/>.</summary>
 public sealed class MapGroupRecord
 {
-    /// <summary>Group id (>= 1); also the on-disk slot (<c>map_groups/mapgroup{Index}.json</c>).</summary>
+    /// <summary>Filename stem inside <c>map_groups/</c>; the trailing number is the <see cref="Index"/>.</summary>
+    public const string FileStem = "map_group";
+
+    /// <summary>Group id (>= 1); also the on-disk slot (<c>map_groups/map_group{Index}.json</c>).</summary>
     public int Index { get; set; }
     /// <summary>Group name — an identifier (like a Map Name); NON-unique. It does not override map names; it
     /// slots into the display chain between a map's DisplayName and its raw Name.</summary>

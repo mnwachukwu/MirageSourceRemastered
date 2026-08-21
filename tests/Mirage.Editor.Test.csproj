@@ -3,16 +3,19 @@
   <!-- Runs the editor suite on its own — the test-side mirror of Mirage.Editor.Publish.csproj.
        See Mirage.Server.Test.csproj for why these area drivers exist.
 
-         dotnet msbuild editor/Mirage.Editor.Test.csproj /t:TestAll -->
+         dotnet msbuild tests/Mirage.Editor.Test.csproj /t:TestAll -->
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <_EditorTests>$(MSBuildThisFileDirectory)../tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj</_EditorTests>
+    <_EditorTests>$(MSBuildThisFileDirectory)src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj</_EditorTests>
   </PropertyGroup>
 
   <Target Name="BuildSuite">
     <MSBuild Projects="$(_EditorTests)" Targets="Restore" />
-    <MSBuild Projects="$(_EditorTests)" Targets="Build" />
+    <!-- The extra global property forces Build to re-evaluate each suite. Sharing Restore's evaluation
+         leaves a never-restored suite compiling with no package assets: no copied dependencies and no
+         runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly. -->
+    <MSBuild Projects="$(_EditorTests)" Targets="Build" Properties="_AfterRestore=true" />
   </Target>
 
   <Target Name="TestAll" DependsOnTargets="BuildSuite">

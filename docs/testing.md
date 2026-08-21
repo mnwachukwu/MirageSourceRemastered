@@ -2,7 +2,7 @@
 
 What the suites cover, how to run one, and why the cross-platform matrix exists.
 
-The five test suites are one **NUnit** project per source portion, each named for the code it exercises; the root `Mirage.slnx` groups them under a `/Tests/` solution folder.
+The five test suites are one **NUnit** project per source portion, each named for the code it exercises; the root `Mirage.slnx` groups them under a `/Tests/src/` solution folder, with the drivers that run them in `/Tests/` above.
 
 | Test project | Exercises | Runs on |
 |---|---|---|
@@ -12,19 +12,37 @@ The five test suites are one **NUnit** project per source portion, each named fo
 | `Mirage.Server.Shell.Tests` | `Mirage.Server.Shell` — the management window | all three platforms |
 | `Mirage.Client.Shell.Tests` | `Mirage.Client.Shell` — input, panels, HUD | all three platforms |
 
-Around 1,950 tests across the five. The count is left approximate on purpose — an exact one here is a
-number nothing updates and everything eventually contradicts.
+**Why core and shell are tested apart.** The reference only ever points one way: `Mirage.Client.Shell`
+references `Mirage.Client.Core`, and `Mirage.Server.Shell` and `Mirage.Server.Host` each reference
+`Mirage.Server.Core`. No core references a shell. That is what makes a shell swappable — MonoGame enters
+the client only through `Mirage.Client.Shell`, and Avalonia reaches the server only through
+`Mirage.Server.Shell` and the `Mirage.Ui` theme beneath it, so a different renderer, or a server run with
+no management window, changes nothing underneath. The split suites are how that stays true: a core suite
+is compiled with no shell on its reference path, so core logic that reached for one would fail to build
+here rather than quietly bind the core to a single front end. Note the server shell sits *beside* the
+host on `Mirage.Server.Core` rather than wrapping it — neither references the other.
+
+**The two sides are named asymmetrically, and it is worth knowing before you go looking.** The client
+spells out both halves — `Mirage.Client.Core.Tests` and `Mirage.Client.Shell.Tests`. The server names
+only its shell, `Mirage.Server.Shell.Tests`, and puts everything else in a bare `Mirage.Server.Tests`:
+`Mirage.Server.Core`, `Mirage.Server.Host` **and** `Mirage.Shared`, three projects in one suite.
+
+So **there is no `Mirage.Server.Core.Tests`, no `Mirage.Server.Host.Tests` and no `Mirage.Shared.Tests`.**
+`Mirage.Server.Tests` is the counterpart of `Mirage.Client.Core.Tests` by role, not by name. `Mirage.Shared`
+is tested from the server side because the server is where its formulas, records and protocol types are
+exercised hardest; the client suites reach the same code through their own paths.
 
 | Scope | Command |
 |---|---|
-| **Everything, one shot** | `dotnet msbuild Mirage.Test.csproj -t:TestAll` |
+| **Everything, one shot** | `dotnet msbuild tests/Mirage.Test.csproj -t:TestAll` |
 | Everything (built-in) | `dotnet test Mirage.slnx` |
-| One area | `dotnet msbuild client/Mirage.Client.Test.csproj -t:TestAll` (or `server/Mirage.Server.Test.csproj` / `editor/Mirage.Editor.Test.csproj`) |
-| One project | `dotnet test tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj` |
+| One area | `dotnet msbuild tests/Mirage.Client.Test.csproj -t:TestAll` (or `tests/Mirage.Server.Test.csproj` / `tests/Mirage.Editor.Test.csproj`) |
+| One project | `dotnet test tests/src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj` |
 
-**Where the suites live, and why the drivers exist.** All five sit under `tests/`, out of the
+**Where the suites live, and why the drivers exist.** All five sit under `tests/src/`, out of the
 `src/` trees they exercise, and each is named for what it covers rather than for where its subject
-happens to be. Each area then gets a driver — `Mirage.Server.Test.csproj`, `Mirage.Client.Test.csproj`,
+happens to be. The drivers sit one level up in `tests/`, so the folder reads as four entry points
+over a directory of suites. Each area gets a driver — `Mirage.Server.Test.csproj`, `Mirage.Client.Test.csproj`,
 `Mirage.Editor.Test.csproj` — mirroring the publish profiles exactly: publishing the server is
 `Mirage.Server.Publish.csproj`, so testing it is `Mirage.Server.Test.csproj`, and neither asks you to
 remember a path.
@@ -44,7 +62,7 @@ project root is the csproj and a handful of directories rather than seventy loos
 carry no namespace: everything stays in `Mirage.Server.Tests` and friends, because a folder is not a
 namespace in C# and renaming them would be churn no reader benefits from.
 
-`Mirage.Test.csproj` runs every suite and the documentation checks, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. The six exit codes have to concatenate to `000000`. A bare `dotnet msbuild Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
+`Mirage.Test.csproj` runs every suite and the documentation checks, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. The six exit codes have to concatenate to `000000`. A bare `dotnet msbuild tests/Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
 
 > Building or testing while the game is running fails to copy the shared DLLs — close the running app first.
 

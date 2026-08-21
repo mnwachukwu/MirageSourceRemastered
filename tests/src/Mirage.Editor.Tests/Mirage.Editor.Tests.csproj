@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\editor\src\Mirage.Editor\Mirage.Editor.csproj" />
+    <ProjectReference Include="..\..\..\editor\src\Mirage.Editor\Mirage.Editor.csproj" />
   </ItemGroup>
 
   <!-- Hands the editor's source path to LocalizationConventionTests. Reflection can tell us a type's
@@ -25,12 +25,11 @@
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>EditorSourceRoot</_Parameter1>
       <!-- Baked in at build time because the test reads the editor's SOURCE, not its assembly, and a
-           test binary has no idea where the repository is. This is the one path here that a
-           ProjectReference rewrite does not fix for you — when the suites moved from
-           editor/src/Mirage.Editor.Tests/ to tests/, the reference updated and this did not, and
-           two tests failed with "Editor source root not found". They fail loudly rather than
-           scanning zero files and passing, which is the only reason it was caught. -->
-      <_Parameter2>$(MSBuildThisFileDirectory)..\..\editor\src\Mirage.Editor</_Parameter2>
+           test binary has no idea where the repository is. It is a separate literal from the
+           ProjectReference above, so relocating either project means editing both. The two tests
+           that use it fail loudly with "Editor source root not found" rather than scanning zero
+           files and passing. -->
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\..\editor\src\Mirage.Editor</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 

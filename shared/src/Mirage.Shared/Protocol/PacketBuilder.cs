@@ -303,6 +303,7 @@ public static class PacketBuilder
             VitalAmount = item.VitalAmount,
             SpellNum = item.SpellNum,
             Power = item.Power,
+            LevelReq = item.LevelReq,
             AllowedClasses = item.AllowedClasses is null ? null : new List<short>(item.AllowedClasses),
             NonTradeable = item.NonTradeable,
             NonListable = item.NonListable,
@@ -310,6 +311,90 @@ public static class PacketBuilder
             DestroyOnDrop = item.DestroyOnDrop,
             NonJunkable = item.NonJunkable,
             Price = item.Price,
+        };
+
+    // ── Spell ────────────────────────────────────────────────────────────────
+
+    /// <summary>The one place a <see cref="SpellRecord"/> becomes an <see cref="UpdateSpellPacket"/> —
+    /// used for the single-spell editor response, the bulk editor list and the post-save broadcast alike,
+    /// so a field added to the record reaches all three by editing this.</summary>
+    public static UpdateSpellPacket UpdateSpell(int spellNum, SpellRecord spell) =>
+        new()
+        {
+            SpellNum = spellNum,
+            Name = spell.Name,
+            // Copied, not aliased: a packet outlives this call and the record stays editable.
+            AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
+            Type = spell.Type,
+            VitalAmount = spell.VitalAmount,
+            ItemNum = spell.ItemNum,
+            ItemQuantity = spell.ItemQuantity,
+            IntReq = spell.IntReq,
+            LevelReq = spell.LevelReq,
+        };
+
+    // ── Npc / Shop / Class ───────────────────────────────────────────────────
+
+    /// <summary>The one place an <see cref="NpcRecord"/> becomes an <see cref="UpdateNpcPacket"/>.
+    /// <paramref name="keeperShopKind"/> is derived from the world (0 none / 1 store / 2 inn), so it is
+    /// passed in rather than read off the record.</summary>
+    public static UpdateNpcPacket UpdateNpc(int npcNum, NpcRecord npc, int keeperShopKind) =>
+        new()
+        {
+            NpcNum = npcNum,
+            Name = npc.Name,
+            AttackSay = npc.AttackSay,
+            Sprite = npc.Sprite,
+            Size = npc.EffectiveSize,
+            SpawnSecs = npc.SpawnSecs,
+            Behavior = npc.Behavior,
+            Group = npc.Group,
+            Range = npc.Range,
+            // Copied, not aliased: a packet outlives this call and the record stays editable.
+            Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
+            Str = npc.Str,
+            Def = npc.Def,
+            Spd = npc.Spd,
+            Int = npc.Int,
+            ExtraHp = npc.ExtraHp,
+            IsBoss = npc.IsBoss,
+            EmitsLight = npc.EmitsLight,
+            Light = npc.Light,
+            KeeperShop = keeperShopKind,
+        };
+
+    /// <summary>The one place a <see cref="ShopRecord"/> becomes an <see cref="UpdateShopPacket"/>.</summary>
+    public static UpdateShopPacket UpdateShop(int shopNum, ShopRecord shop) =>
+        new()
+        {
+            ShopNum = shopNum,
+            Name = shop.Name,
+            FixesItems = shop.FixesItems,
+            ShopType = shop.ShopType,
+            AllowBanking = shop.AllowBanking,
+            Keeper = shop.Keeper,
+            Barters = shop.BarterItem
+                .Select(t => new EditorSaveShopPacket.BarterEntry(
+                    t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
+                .ToArray(),
+            Sales = [.. shop.SalesItem],
+        };
+
+    /// <summary>The one place a <see cref="ClassRecord"/> becomes an <see cref="UpdateClassPacket"/>.</summary>
+    public static UpdateClassPacket UpdateClass(int classNum, ClassRecord cls) =>
+        new()
+        {
+            ClassNum = classNum,
+            Name = cls.Name,
+            Description = cls.Description,
+            SpriteMale = cls.SpriteMale,
+            SpriteFemale = cls.SpriteFemale,
+            Str = cls.Str,
+            Def = cls.Def,
+            Spd = cls.Spd,
+            Int = cls.Int,
+            StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
+            StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
         };
 
     // ── Chat ─────────────────────────────────────────────────────────────────

@@ -94,9 +94,9 @@
   </Target>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\server\src\Mirage.Shared\Mirage.Shared.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Shared\Mirage.Shared.csproj" />
     <ProjectReference Include="..\Mirage.Client.Core\Mirage.Client.Core.csproj" />
-    <ProjectReference Include="..\..\..\server\src\Mirage.Updates\Mirage.Updates.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Updates\Mirage.Updates.csproj" />
   </ItemGroup>
 
   <!-- Localization string files. -->

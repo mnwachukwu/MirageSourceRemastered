@@ -16,9 +16,9 @@
 
   <!-- Tests the server as a whole (logic core + host), not split by project. -->
   <ItemGroup>
-    <ProjectReference Include="..\..\server\src\Mirage.Server.Core\Mirage.Server.Core.csproj" />
-    <ProjectReference Include="..\..\server\src\Mirage.Server.Host\Mirage.Server.Host.csproj" />
-    <ProjectReference Include="..\..\server\src\Mirage.Updates\Mirage.Updates.csproj" />
+    <ProjectReference Include="..\..\..\server\src\Mirage.Server.Core\Mirage.Server.Core.csproj" />
+    <ProjectReference Include="..\..\..\server\src\Mirage.Server.Host\Mirage.Server.Host.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Updates\Mirage.Updates.csproj" />
   </ItemGroup>
 
   <!-- Baked in at build time for the checks that read repository FILES rather than the assembly -
@@ -29,7 +29,7 @@
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>RepoRoot</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\..</_Parameter2>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\..</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 

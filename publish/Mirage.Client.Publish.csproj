@@ -11,121 +11,125 @@
          release, and release assets are a flat namespace. The CHANNEL is what separates the apps -
          Velopack names its feed releases.{channel}.json with no pack id in it, so all three apps on
          channel "win" would write one filename three times. See _Channel in each target below. -->
-    <AppInstallerDir>$(InstallerRoot)editor/</AppInstallerDir>
-    <!-- Velopack identity, derived from $(GameName) (see Directory.Build.props). _PackId = the per-user
-         install-folder name (%LocalAppData%\$(_PackId)) and the prefix of every artifact vpk emits;
-         it equals the friendly slug, so vpk's Setup.exe needs no rename below. _PackTitle = the visible
-         shortcut / "Apps & features" name. -->
-    <_PackId>$(GameNameSlug)-Editor</_PackId>
-    <_PackTitle>$(GameName) Editor</_PackTitle>
-    <!-- Its own app's icon — see the note in Mirage.Client.Publish.csproj. -->
-    <_InstallerIcon>$(RepoRoot)assets/icons/editor.ico</_InstallerIcon>
-    <_Csproj>$(MSBuildThisFileDirectory)src/Mirage.Editor/Mirage.Editor.csproj</_Csproj>
+    <AppInstallerDir>$(InstallerRoot)client/</AppInstallerDir>
+    <!-- Velopack identity, both derived from $(GameName) (see Directory.Build.props). _PackId = the
+         per-user install-folder name (%LocalAppData%\$(_PackId)) and the prefix of every artifact vpk
+         emits; it equals the friendly slug, so vpk's Setup.exe needs no rename below. _PackTitle = the
+         visible shortcut / "Apps & features" name. -->
+    <_PackId>$(GameNameSlug)</_PackId>
+    <_PackTitle>$(GameName)</_PackTitle>
+    <!-- The installer wears its own app's icon rather than a shared installer mark: three
+         identically-badged Setup.exe files in a downloads folder tell you nothing, and the download
+         page lists all three side by side. This sets the icon on Setup.exe and on the shortcuts it
+         creates; the icon inside the executable is a separate, compile-time thing (ApplicationIcon
+         in the app's own csproj), which happens to be the same file. -->
+    <_InstallerIcon>$(RepoRoot)assets/icons/client.ico</_InstallerIcon>
+    <_Csproj>$(RepoRoot)client/src/Mirage.Client.Shell/Mirage.Client.Shell.csproj</_Csproj>
   </PropertyGroup>
 
   <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->
 
-  <Target Name="PublishEditor_Win">
-    <Message Text="── Publishing Editor / win-x64 ──" Importance="High" />
+  <Target Name="PublishClient_Win">
+    <Message Text="── Publishing Client / win-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=win-x64 --nologo" />
   </Target>
 
-  <Target Name="PackageEditor_Win" DependsOnTargets="PublishEditor_Win">
-    <Message Text="── Packaging Editor / win-x64 (.exe installer) ──" Importance="High" />
+  <Target Name="PackageClient_Win" DependsOnTargets="PublishClient_Win">
+    <Message Text="── Packaging Client / win-x64 (.exe installer) ──" Importance="High" />
     <PropertyGroup>
-      <_Channel>editor-win</_Channel>
+      <_Channel>client-win</_Channel>
     </PropertyGroup>
     <MakeDir Directories="$(AppInstallerDir)" />
-    <Exec Command="dotnet tool run vpk pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)editor/win-x64&quot; --mainExe $(GameNameSlug)-Editor.exe --runtime win-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
+    <Exec Command="dotnet tool run vpk pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)client/win-x64&quot; --mainExe $(GameNameSlug).exe --runtime win-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
           WorkingDirectory="$(RepoRoot)" />
     <!-- vpk already emits the friendly $(_PackId)-$(_Channel)-Setup.exe (packId = the slug), so no Setup rename is needed.
          Only the portable bundle needs vpk's "-Portable" tag dropped. -->
     <ItemGroup>
-      <_EditorPortable Include="$(AppInstallerDir)$(_PackId)-*-Portable.zip" />
+      <_ClientPortable Include="$(AppInstallerDir)$(_PackId)-*-Portable.zip" />
     </ItemGroup>
-    <Move SourceFiles="@(_EditorPortable)"
+    <Move SourceFiles="@(_ClientPortable)"
           DestinationFiles="$(AppInstallerDir)$(_PackId)-$(_Channel).zip" />
   </Target>
 
-  <Target Name="PublishAll_Win" DependsOnTargets="PackageEditor_Win">
-    <Message Text="═══ Editor / Windows complete ═══" Importance="High" />
+  <Target Name="PublishAll_Win" DependsOnTargets="PackageClient_Win">
+    <Message Text="═══ Client / Windows complete ═══" Importance="High" />
   </Target>
 
   <!-- ═══════════════════════════════════════ LINUX ═════════════════════════════════════════ -->
 
-  <Target Name="PublishEditor_Linux">
-    <Message Text="── Publishing Editor / linux-x64 ──" Importance="High" />
+  <Target Name="PublishClient_Linux">
+    <Message Text="── Publishing Client / linux-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=linux-x64 --nologo" />
   </Target>
 
-  <Target Name="PackageEditor_Linux" DependsOnTargets="PublishEditor_Linux">
-    <Message Text="── Packaging Editor / linux-x64 (AppImage) ──" Importance="High" />
+  <Target Name="PackageClient_Linux" DependsOnTargets="PublishClient_Linux">
+    <Message Text="── Packaging Client / linux-x64 (AppImage) ──" Importance="High" />
     <PropertyGroup>
-      <_Channel>editor-linux</_Channel>
+      <_Channel>client-linux</_Channel>
     </PropertyGroup>
     <MakeDir Directories="$(AppInstallerDir)" />
     <!-- [linux] cross-compiles a Linux bundle from the Windows host; the Windows target omits the
          directive and uses a bare 'vpk pack' (a directive applies only when target OS != host OS).
          macOS cannot be cross-built, so its leg hand-rolls a .app.tar.gz instead of using vpk. -->
-    <Exec Command="dotnet tool run vpk [linux] pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)editor/linux-x64&quot; --mainExe $(GameNameSlug)-Editor --runtime linux-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
+    <Exec Command="dotnet tool run vpk [linux] pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)client/linux-x64&quot; --mainExe $(GameNameSlug) --runtime linux-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
           WorkingDirectory="$(RepoRoot)" />
     <!-- vpk names the AppImage "{PackId}-{Channel}.AppImage" itself once the channel is not the
          platform default, which ours no longer are. It used to emit a bare "{PackId}.AppImage" and
          this target renamed it; that rename now matches nothing, so it is gone. -->
   </Target>
 
-  <Target Name="PublishAll_Linux" DependsOnTargets="PackageEditor_Linux">
-    <Message Text="═══ Editor / Linux complete ═══" Importance="High" />
+  <Target Name="PublishAll_Linux" DependsOnTargets="PackageClient_Linux">
+    <Message Text="═══ Client / Linux complete ═══" Importance="High" />
   </Target>
 
   <!-- ═══════════════════════════════════════ MACOS ═════════════════════════════════════════ -->
 
-  <Target Name="PublishEditor_Osx">
-    <Message Text="── Publishing Editor / osx-x64 ──" Importance="High" />
+  <Target Name="PublishClient_Osx">
+    <Message Text="── Publishing Client / osx-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=osx-x64 --nologo" />
   </Target>
 
-  <Target Name="PackageEditor_Osx" DependsOnTargets="PublishEditor_Osx">
-    <Message Text="── Packaging Editor / osx-x64 (.app.tar.gz) ──" Importance="High" />
+  <Target Name="PackageClient_Osx" DependsOnTargets="PublishClient_Osx">
+    <Message Text="── Packaging Client / osx-x64 (.app.tar.gz) ──" Importance="High" />
     <PropertyGroup>
-      <_Channel>editor-osx</_Channel>
-      <_AppBundleName>$(GameNameSlug)-Editor.app</_AppBundleName>
+      <_Channel>client-osx</_Channel>
+      <_AppBundleName>$(GameNameSlug).app</_AppBundleName>
       <_AppBundle>$(DistRoot)$(_AppBundleName)</_AppBundle>
     </PropertyGroup>
     <!-- Stage the .app bundle, tar it, then remove the staging dir (it's only an intermediate). -->
     <RemoveDir Directories="$(_AppBundle)" />
     <MakeDir Directories="$(_AppBundle)/Contents/MacOS;$(_AppBundle)/Contents/Resources;$(AppInstallerDir)" />
     <ItemGroup>
-      <_OsxFiles Include="$(DistRoot)editor/osx-x64/**/*" />
+      <_OsxFiles Include="$(DistRoot)client/osx-x64/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(_OsxFiles)"
           DestinationFolder="$(_AppBundle)/Contents/MacOS/%(RecursiveDir)" />
     <!-- The name has to match CFBundleIconFile in installer/Info.plist, minus the extension. -->
-    <Copy SourceFiles="$(RepoRoot)assets/icons/editor.icns"
+    <Copy SourceFiles="$(RepoRoot)assets/icons/client.icns"
           DestinationFiles="$(_AppBundle)/Contents/Resources/AppIcon.icns" />
     <!-- Generate Info.plist from the template, substituting the $(GameName)-derived values so the bundle
          name / executable / version track Directory.Build.props (no separate macOS touchpoint to maintain). -->
     <PropertyGroup>
-      <_Plist>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)installer/Info.plist'))</_Plist>
+      <_Plist>$([System.IO.File]::ReadAllText('$(RepoRoot)client/installer/Info.plist'))</_Plist>
       <_Plist>$(_Plist.Replace('@EXECUTABLE@', '$(_PackId)'))</_Plist>
       <_Plist>$(_Plist.Replace('@DISPLAYNAME@', '$(_PackTitle)'))</_Plist>
       <_Plist>$(_Plist.Replace('@VERSION@', '$(Version)'))</_Plist>
     </PropertyGroup>
     <WriteLinesToFile File="$(_AppBundle)/Contents/Info.plist" Lines="$(_Plist)" Overwrite="true" />
-    <Exec Command="tar -czf &quot;$(AppInstallerDir)$(GameNameSlug)-Editor-$(_Channel).app.tar.gz&quot; -C &quot;$(DistRoot)&quot; $(_AppBundleName)"
+    <Exec Command="tar -czf &quot;$(AppInstallerDir)$(GameNameSlug)-$(_Channel).app.tar.gz&quot; -C &quot;$(DistRoot)&quot; $(_AppBundleName)"
           WorkingDirectory="$(RepoRoot)" />
     <RemoveDir Directories="$(_AppBundle)" />
   </Target>
 
-  <Target Name="PublishAll_Osx" DependsOnTargets="PackageEditor_Osx">
-    <Message Text="═══ Editor / macOS complete ═══" Importance="High" />
+  <Target Name="PublishAll_Osx" DependsOnTargets="PackageClient_Osx">
+    <Message Text="═══ Client / macOS complete ═══" Importance="High" />
   </Target>
 
   <!-- ══════════════════════════════════════ ALL PLATFORMS ══════════════════════════════════ -->
 
   <Target Name="PublishAll" DependsOnTargets="PublishAll_Win;PublishAll_Linux;PublishAll_Osx">
     <Message Text="═══════════════════════════════════════════════════" Importance="High" />
-    <Message Text="  Editor publish complete — all platforms           " Importance="High" />
+    <Message Text="  Client publish complete — all platforms           " Importance="High" />
     <Message Text="═══════════════════════════════════════════════════" Importance="High" />
   </Target>
 

@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.Build.NoTargets/3.7.0" DefaultTargets="TestAll">
 
   <!-- Thin delegator — the test-side mirror of Mirage.Publish.csproj.
-       Right-click → Build (or `dotnet msbuild Mirage.Test.csproj /t:TestAll`, or a bare
-       `dotnet msbuild Mirage.Test.csproj`) runs all five suites in one shot and fails if any fails.
-       Lives in the /Tests/ solution folder alongside the suites it drives. -->
+       Right-click → Build (or `dotnet msbuild tests/Mirage.Test.csproj /t:TestAll`, or a bare
+       `dotnet msbuild tests/Mirage.Test.csproj`) runs all five suites in one shot and fails if any fails.
+       Lives in tests/, one level above the suites it drives. -->
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <_ServerTests>$(MSBuildThisFileDirectory)tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj</_ServerTests>
-    <_ClientCoreTests>$(MSBuildThisFileDirectory)tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
-    <_ClientShellTests>$(MSBuildThisFileDirectory)tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
-    <_EditorTests>$(MSBuildThisFileDirectory)tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj</_EditorTests>
-    <_ServerShellTests>$(MSBuildThisFileDirectory)tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
+    <_ServerTests>$(MSBuildThisFileDirectory)src/Mirage.Server.Tests/Mirage.Server.Tests.csproj</_ServerTests>
+    <_ClientCoreTests>$(MSBuildThisFileDirectory)src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
+    <_ClientShellTests>$(MSBuildThisFileDirectory)src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
+    <_EditorTests>$(MSBuildThisFileDirectory)src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj</_EditorTests>
+    <_ServerShellTests>$(MSBuildThisFileDirectory)src/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
     <_AllTests>$(_ServerTests);$(_ClientCoreTests);$(_ClientShellTests);$(_EditorTests);$(_ServerShellTests)</_AllTests>
   </PropertyGroup>
 
@@ -33,7 +33,10 @@
        second agent building the tree concurrently; do not re-attribute flakiness here without evidence. -->
   <Target Name="BuildSuites">
     <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" />
-    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" />
+    <!-- The extra global property forces Build to re-evaluate each suite. Sharing Restore's evaluation
+         leaves a never-restored suite compiling with no package assets: no copied dependencies and no
+         runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly. -->
+    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" Properties="_AfterRestore=true" />
   </Target>
 
   <Target Name="TestAll" DependsOnTargets="BuildSuites">
@@ -74,7 +77,7 @@
              Text="node not found — the repository checks did NOT run. CI still runs them." />
     <Exec Condition="'$(_NodeExit)' == '0'"
           Command="node .github/checks/check-seed-counts.mjs &amp;&amp; node .github/checks/check-readme-facts.mjs &amp;&amp; node .github/checks/check-doc-links.mjs &amp;&amp; node .github/checks/check-prebuilt-content.mjs"
-          WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="true">
+          WorkingDirectory="$(RepoRoot)" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_DocsExit" />
     </Exec>
 

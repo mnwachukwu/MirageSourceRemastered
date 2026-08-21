@@ -6,6 +6,9 @@
 [Ll]ogs/
 out/
 publish/
+# …except the top-level publish/, which holds the packaging orchestrators. It is source, and
+# it collides exactly with the name `dotnet publish` gives its output folder.
+!/publish/
 dist/
 
 # ── Visual Studio ─────────────────────────────────────────────────────────────

@@ -34,7 +34,11 @@ I don't know why I did this.
 
 `Mirage.Shared` is referenced by all three solutions, replacing VB6's duplicated `modTypes.bas` definitions and the server/client divergence they caused. Every formula that both the client and the server must agree on — damage, requirements, prices, vitals — lives there and is evaluated from the same code on both sides.
 
-On disk, that is three top-level folders — `server/`, `client/`, `editor/` — each holding its own `src/` and a satellite `.slnx`, with the root `Mirage.slnx` tying all twenty-one projects together. The other thirteen are the five test suites and the publish/test orchestration projects, one per deliverable plus a root that runs them all.
+On disk, every area is a top-level folder holding its projects in `src/` — `shared/`, `server/`, `client/`, `editor/` and `tests/` — and `server/`, `client/` and `editor/` each carry a satellite `.slnx`. The root `Mirage.slnx` ties all twenty-two projects together. The other thirteen are the five test suites in `tests/src/` and the orchestration projects that drive them: a test driver per deliverable in `tests/` and a publish driver per deliverable in `publish/`, each with a root sibling that runs them all.
+
+The suites split the way the code does: a **core** and a **shell** get separate suites wherever the shell can be swapped. `Mirage.Client.Core` carries no MonoGame and `Mirage.Server.Core` no Avalonia, and neither points back at a shell — the renderer and the management window are both replaceable, and separate suites are what keeps that so. A core suite builds without a shell on its reference path, so logic that reached for one would fail to compile rather than quietly tie the core to one front end.
+
+**The two sides are not named symmetrically.** The client spells out both halves — `Mirage.Client.Core.Tests` and `Mirage.Client.Shell.Tests`. The server names only the shell, `Mirage.Server.Shell.Tests`, and leaves a bare `Mirage.Server.Tests` covering `Mirage.Server.Core`, `Mirage.Server.Host` *and* `Mirage.Shared` together. There is no `Mirage.Server.Core.Tests` to find. See [Testing](docs/testing.md).
 
 Some things people expect to find here live **outside** this repository, because they write into it
 rather than build with it: the content generators that produced the seed, the scripts that draw the

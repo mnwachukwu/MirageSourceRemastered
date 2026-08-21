@@ -239,7 +239,7 @@ public sealed class EditorDataService
         return result;
     }
 
-    // MapGroups are directory-scanned (only the mapgroup{N}.json files that exist), NOT padded with blank
+    // MapGroups are directory-scanned (only the map_group{N}.json files that exist), NOT padded with blank
     // files like the record editors — the server stores them sparsely too. Sized to the editor slot cap.
     private static async Task<MapGroupRecord[]> LoadAllMapGroupsAsync(string dataPath)
     {
@@ -248,10 +248,10 @@ public sealed class EditorDataService
         for (int i = 1; i <= RecordLimits.Default.MapGroups; i++) result[i] = new MapGroupRecord { Index = i };
 
         if (!Directory.Exists(dir)) return result;
-        foreach (var file in Directory.EnumerateFiles(dir, "mapgroup*.json"))
+        foreach (var file in Directory.EnumerateFiles(dir, $"{MapGroupRecord.FileStem}*.json"))
         {
-            var nameNoExt = Path.GetFileNameWithoutExtension(file);   // "mapgroup12"
-            if (int.TryParse(nameNoExt["mapgroup".Length..], out int num) && num >= 1 && num <= RecordLimits.Default.MapGroups)
+            var nameNoExt = Path.GetFileNameWithoutExtension(file);   // "map_group12"
+            if (int.TryParse(nameNoExt[MapGroupRecord.FileStem.Length..], out int num) && num >= 1 && num <= RecordLimits.Default.MapGroups)
             {
                 var g = await LoadJsonAsync<MapGroupRecord>(file);
                 if (g is null) continue;
@@ -405,7 +405,7 @@ public sealed class EditorDataService
     {
         OfflineMapGroups[index] = record;
         _mapGroupEntries = null;
-        await WriteJsonAsync(Path.Combine(EditorPaths.Data, "map_groups", $"mapgroup{index}.json"), record);
+        await WriteJsonAsync(Path.Combine(EditorPaths.Data, "map_groups", $"{MapGroupRecord.FileStem}{index}.json"), record);
         RaiseEntriesInvalidated();
     }
 

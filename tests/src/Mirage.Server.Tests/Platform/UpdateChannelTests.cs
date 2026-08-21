@@ -36,9 +36,9 @@ public class UpdateChannelTests
     // The publish project for each app, and the app it packages.
     private static readonly (string Path, UpdatableApp App)[] PublishProjects =
     [
-        (Path.Combine("client", "Mirage.Client.Publish.csproj"), UpdatableApp.Client),
-        (Path.Combine("editor", "Mirage.Editor.Publish.csproj"), UpdatableApp.Editor),
-        (Path.Combine("server", "Mirage.Server.Publish.csproj"), UpdatableApp.Server),
+        (Path.Combine("publish", "Mirage.Client.Publish.csproj"), UpdatableApp.Client),
+        (Path.Combine("publish", "Mirage.Editor.Publish.csproj"), UpdatableApp.Editor),
+        (Path.Combine("publish", "Mirage.Server.Publish.csproj"), UpdatableApp.Server),
     ];
 
     private static List<string> ChannelsIn(string csprojPath) =>

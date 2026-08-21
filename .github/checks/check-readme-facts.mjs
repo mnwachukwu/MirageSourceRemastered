@@ -58,13 +58,13 @@ facts.push({
 
 facts.push({
   what: 'level ceiling',
-  actual: constant('server/src/Mirage.Shared/Constants.cs', 'MaxLevel'),
+  actual: constant('shared/src/Mirage.Shared/Constants.cs', 'MaxLevel'),
   phrase: n => `${n} levels`,
 });
 
 // The framework every project targets. Read from Mirage.Shared rather than a props file, because that
 // is the one project everything else references.
-const csproj = readFileSync(join(root, 'server/src/Mirage.Shared/Mirage.Shared.csproj'), 'utf8');
+const csproj = readFileSync(join(root, 'shared/src/Mirage.Shared/Mirage.Shared.csproj'), 'utf8');
 const tfm = csproj.match(/<TargetFramework>net([0-9.]+)<\/TargetFramework>/);
 facts.push({
   what: 'target framework',
@@ -72,10 +72,10 @@ facts.push({
   phrase: v => `.NET ${v}`,
 });
 
-// How many test suites sit under tests/. The number is prose in two documents and in three comments in
+// How many test suites sit under tests/src/. The number is prose in two documents and in three comments in
 // the CI workflow, and nothing but this ties any of them to the folder they describe.
-const suites = readdirSync(join(root, 'tests'), { withFileTypes: true })
-  .filter(e => e.isDirectory() && existsSync(join(root, 'tests', e.name, `${e.name}.csproj`)))
+const suites = readdirSync(join(root, 'tests', 'src'), { withFileTypes: true })
+  .filter(e => e.isDirectory() && existsSync(join(root, 'tests', 'src', e.name, `${e.name}.csproj`)))
   .length;
 facts.push({
   what: 'test suites',

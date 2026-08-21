@@ -81,7 +81,7 @@ public sealed class JsonPersistenceService : IPersistenceService
     private string SpellFile(int num) => Path.Combine(SpellsPath, $"spell{num}.json");
     private string ClassFile(int num) => Path.Combine(ClassesPath, $"class{num}.json");
     private string GuildFile(int num) => Path.Combine(GuildsPath, $"guild{num}.json");
-    private string MapGroupFile(int num) => Path.Combine(MapGroupsPath, $"mapgroup{num}.json");
+    private string MapGroupFile(int num) => Path.Combine(MapGroupsPath, $"{MapGroupRecord.FileStem}{num}.json");
     private string SeasonFile(int num) => Path.Combine(SeasonsPath, $"season{num}.json");
     private string MarketListingFile(int id) => Path.Combine(MarketListingsPath, $"listing{id}.json");
     private string MarketSalesFile => Path.Combine(MarketListingsPath, "sales.json");
@@ -649,15 +649,16 @@ public sealed class JsonPersistenceService : IPersistenceService
         return Task.CompletedTask;
     }
 
-    // Map groups mirror guilds exactly: UNBOUNDED, load every mapgroup{N}.json present (keyed by its N).
+    // Map groups mirror guilds exactly: UNBOUNDED, load every map_group{N}.json present (keyed by its N).
     public async Task<Dictionary<int, MapGroupRecord>> LoadAllMapGroupsAsync()
     {
         var result = new Dictionary<int, MapGroupRecord>();
         if (!Directory.Exists(MapGroupsPath)) return result;
-        foreach (string path in Directory.EnumerateFiles(MapGroupsPath, "mapgroup*.json"))
+        foreach (string path in Directory.EnumerateFiles(MapGroupsPath, $"{MapGroupRecord.FileStem}*.json"))
         {
-            string stem = Path.GetFileNameWithoutExtension(path);   // "mapgroup{N}"
-            if (stem.Length <= 8 || !int.TryParse(stem.AsSpan(8), out int index) || index < 1) continue;
+            string stem = Path.GetFileNameWithoutExtension(path);   // "map_group{N}"
+            if (stem.Length <= MapGroupRecord.FileStem.Length ||
+                !int.TryParse(stem.AsSpan(MapGroupRecord.FileStem.Length), out int index) || index < 1) continue;
             try
             {
                 string json = await File.ReadAllTextAsync(path);

@@ -7,10 +7,10 @@
        Why an area driver exists at all when `dotnet test <project>` is one line: this is the name a
        reader already knows. Publishing the server is Mirage.Server.Publish.csproj, so testing it is
        Mirage.Server.Test.csproj, and neither requires remembering where the suite happens to live.
-       The suites moved to /tests/ once already; that move edited these four drivers and nothing that
-       calls them.
+       These four drivers are the only files that name where a suite lives, so relocating one edits
+       them and nothing that calls them.
 
-         dotnet msbuild server/Mirage.Server.Test.csproj /t:TestAll
+         dotnet msbuild tests/Mirage.Server.Test.csproj /t:TestAll
 
        Two suites. Mirage.Server.Tests covers Mirage.Shared as well as the server itself — the shared
        protocol types, records and formulas have no suite of their own and are exercised from here.
@@ -19,8 +19,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <_ServerTests>$(MSBuildThisFileDirectory)../tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj</_ServerTests>
-    <_ServerShellTests>$(MSBuildThisFileDirectory)../tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
+    <_ServerTests>$(MSBuildThisFileDirectory)src/Mirage.Server.Tests/Mirage.Server.Tests.csproj</_ServerTests>
+    <_ServerShellTests>$(MSBuildThisFileDirectory)src/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
     <_AllTests>$(_ServerTests);$(_ServerShellTests)</_AllTests>
   </PropertyGroup>
 
@@ -30,7 +30,10 @@
        Routing the build through the task puts it in this build's own scheduler instead. -->
   <Target Name="BuildSuites">
     <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" />
-    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" />
+    <!-- The extra global property forces Build to re-evaluate each suite. Sharing Restore's evaluation
+         leaves a never-restored suite compiling with no package assets: no copied dependencies and no
+         runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly. -->
+    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" Properties="_AfterRestore=true" />
   </Target>
 
   <Target Name="TestAll" DependsOnTargets="BuildSuites">

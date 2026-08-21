@@ -295,10 +295,18 @@ public static class Tooltip
         for (int i = 0; i < _lines.Count; i++)
         {
             var ln = _lines[i];
-            string labelText = ln.Label + ": ";
-            sb.DrawString(font, labelText, new Vector2(cx, cy), LabelColor);
-            float labelW = font.MeasureString(labelText).X;
-            sb.DrawString(font, ln.Value, new Vector2(cx + labelW, cy), ln.Color);
+            // No value means the line is a heading: label alone, no colon. Matches the width pass above.
+            if (ln.Value.Length == 0)
+            {
+                sb.DrawString(font, ln.Label, new Vector2(cx, cy), LabelColor);
+            }
+            else
+            {
+                string labelText = ln.Label + ": ";
+                sb.DrawString(font, labelText, new Vector2(cx, cy), LabelColor);
+                float labelW = font.MeasureString(labelText).X;
+                sb.DrawString(font, ln.Value, new Vector2(cx + labelW, cy), ln.Color);
+            }
             cy += (int)lineH + LineGap;
         }
     }

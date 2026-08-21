@@ -3,7 +3,7 @@
   <!-- Runs both client suites — the test-side mirror of Mirage.Client.Publish.csproj.
        See Mirage.Server.Test.csproj for why these area drivers exist.
 
-         dotnet msbuild client/Mirage.Client.Test.csproj /t:TestAll
+         dotnet msbuild tests/Mirage.Client.Test.csproj /t:TestAll
 
        Two suites, and they are not interchangeable. Mirage.Client.Core.Tests covers game state and
        logic and takes no MonoGame dependency, which is why CI can run it on Linux and macOS.
@@ -13,14 +13,17 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <_ClientCoreTests>$(MSBuildThisFileDirectory)../tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
-    <_ClientShellTests>$(MSBuildThisFileDirectory)../tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
+    <_ClientCoreTests>$(MSBuildThisFileDirectory)src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
+    <_ClientShellTests>$(MSBuildThisFileDirectory)src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
     <_AllTests>$(_ClientCoreTests);$(_ClientShellTests)</_AllTests>
   </PropertyGroup>
 
   <Target Name="BuildSuites">
     <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" />
-    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" />
+    <!-- The extra global property forces Build to re-evaluate each suite. Sharing Restore's evaluation
+         leaves a never-restored suite compiling with no package assets: no copied dependencies and no
+         runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly. -->
+    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" Properties="_AfterRestore=true" />
   </Target>
 
   <Target Name="TestAll" DependsOnTargets="BuildSuites">

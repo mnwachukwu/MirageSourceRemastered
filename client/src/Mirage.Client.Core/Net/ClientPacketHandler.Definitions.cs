@@ -188,6 +188,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 ItemNum = s.ItemNum,
                 ItemQuantity = s.ItemQuantity,
                 IntReq = s.IntReq,
+                LevelReq = s.LevelReq,
             };
         }
     }
@@ -272,6 +273,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             ItemNum = p.ItemNum,
             ItemQuantity = p.ItemQuantity,
             IntReq = p.IntReq,
+            LevelReq = p.LevelReq,
         };
     }
 

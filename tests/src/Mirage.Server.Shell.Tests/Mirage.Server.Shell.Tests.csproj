@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\server\src\Mirage.Server.Shell\Mirage.Server.Shell.csproj" />
+    <ProjectReference Include="..\..\..\server\src\Mirage.Server.Shell\Mirage.Server.Shell.csproj" />
   </ItemGroup>
 
   <!-- Baked in for the checks that read repository FILES: ShellCommandCoverageTests reads the console
@@ -24,7 +24,7 @@
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>RepoRoot</_Parameter1>
-      <_Parameter2>$(MSBuildThisFileDirectory)..\..</_Parameter2>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\..</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 

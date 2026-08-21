@@ -20,11 +20,11 @@
     <_PackTitle>$(GameName) Server</_PackTitle>
     <!-- Its own app's icon — see the note in Mirage.Client.Publish.csproj. -->
     <_InstallerIcon>$(RepoRoot)assets/icons/server.ico</_InstallerIcon>
-    <_Csproj>$(MSBuildThisFileDirectory)src/Mirage.Server.Host/Mirage.Server.Host.csproj</_Csproj>
+    <_Csproj>$(RepoRoot)server/src/Mirage.Server.Host/Mirage.Server.Host.csproj</_Csproj>
     <!-- The shell is a SECOND exe in this package, not a fourth app: one installer, two exes.
          mainExe is the WINDOW: it is what the shortcut launches and what an operator expects from a
          double-click. The headless CLI ships beside it as "-Server-Console" for a service manager. -->
-    <_ShellCsproj>$(MSBuildThisFileDirectory)src/Mirage.Server.Shell/Mirage.Server.Shell.csproj</_ShellCsproj>
+    <_ShellCsproj>$(RepoRoot)server/src/Mirage.Server.Shell/Mirage.Server.Shell.csproj</_ShellCsproj>
   </PropertyGroup>
 
   <!-- DebugType=none covers MANAGED symbols only. Avalonia's SkiaSharp and HarfBuzz ship NATIVE .pdb
@@ -59,6 +59,15 @@
     <Error Condition="'@(_ShellPayload)' == ''"
            Text="The shell published nothing into $(DistRoot)server-shell/$(_Rid)/. The installer would ship without it." />
     <Copy SourceFiles="@(_ShellPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/%(RecursiveDir)" />
+    <!-- Staging only. Once its contents are in the payload it has no reader, and leaving it behind puts
+         a second server-looking folder next to dist/client and dist/editor that nothing ships.
+         The parent goes only once the last runtime has cleared out of it, so a multi-RID publish does
+         not delete a leg that has not been copied yet. -->
+    <RemoveDir Directories="$(DistRoot)server-shell/$(_Rid)" />
+    <ItemGroup>
+      <_ShellStagingLeft Include="$(DistRoot)server-shell/**/*" />
+    </ItemGroup>
+    <RemoveDir Directories="$(DistRoot)server-shell" Condition="'@(_ShellStagingLeft)' == ''" />
   </Target>
 
   <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->
@@ -156,7 +165,7 @@
     <!-- Generate Info.plist from the template, substituting the $(GameName)-derived values so the bundle
          name / executable / version track Directory.Build.props (no separate macOS touchpoint to maintain). -->
     <PropertyGroup>
-      <_Plist>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)installer/Info.plist'))</_Plist>
+      <_Plist>$([System.IO.File]::ReadAllText('$(RepoRoot)server/installer/Info.plist'))</_Plist>
       <_Plist>$(_Plist.Replace('@EXECUTABLE@', '$(_PackId)'))</_Plist>
       <_Plist>$(_Plist.Replace('@DISPLAYNAME@', '$(_PackTitle)'))</_Plist>
       <_Plist>$(_Plist.Replace('@VERSION@', '$(Version)'))</_Plist>

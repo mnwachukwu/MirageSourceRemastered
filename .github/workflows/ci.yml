@@ -143,21 +143,21 @@ jobs:
       # off for the one suite that would otherwise trigger it. No tool manifests are restored: with
       # EnableMGCBItems off nothing needs mgcb, and nothing here publishes, so vpk is not wanted either.
       - name: Test — server and shared
-        run: dotnet test tests/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo
+        run: dotnet test tests/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo
 
       - name: Test — server shell
-        run: dotnet test tests/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj -c Release --nologo
+        run: dotnet test tests/src/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj -c Release --nologo
 
       - name: Test — client core
-        run: dotnet test tests/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj -c Release --nologo
+        run: dotnet test tests/src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj -c Release --nologo
 
       # Nothing special is needed: the client compiles no content, so this suite reaches no native
       # tooling. No test in it builds a GraphicsDevice or loads an asset either.
       - name: Test — client shell
-        run: dotnet test tests/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj -c Release --nologo
+        run: dotnet test tests/src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj -c Release --nologo
 
       - name: Test — editor
-        run: dotnet test tests/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj -c Release --nologo
+        run: dotnet test tests/src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj -c Release --nologo
 
       # The suites above reach the client only as a project reference. This builds the SHIPPED thing on
       # each platform — apphost and all — which is the check on what the README promises: that a
@@ -217,7 +217,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          declared=$(dotnet msbuild Mirage.Publish.csproj -getProperty:Version -v:q | tr -d '[:space:]')
+          declared=$(dotnet msbuild publish/Mirage.Publish.csproj -getProperty:Version -v:q | tr -d '[:space:]')
           tagged="${GITHUB_REF_NAME#v}"
           echo "Directory.Build.props says $declared, the tag says $tagged"
           if [ "$declared" != "$tagged" ]; then
@@ -239,7 +239,7 @@ jobs:
       # directions at once.
       - name: Publish and package all platforms
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        run: dotnet msbuild Mirage.Publish.csproj /t:PublishAll -v:minimal
+        run: dotnet msbuild publish/Mirage.Publish.csproj /t:PublishAll -v:minimal
 
       - name: Show what was produced
         if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'

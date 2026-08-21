@@ -18,11 +18,11 @@ dotnet publish editor/src/Mirage.Editor/Mirage.Editor.csproj /p:PublishProfile=o
 
 Publish everything at once with Velopack installers:
 ```sh
-msbuild Mirage.Publish.csproj -t:PublishAll         # all apps, all platforms
-msbuild Mirage.Publish.csproj -t:PublishAll_Win     # all apps, Windows only
-msbuild Mirage.Publish.csproj -t:PublishAll_Linux
-msbuild Mirage.Publish.csproj -t:PublishAll_Osx
-msbuild server/Mirage.Server.Publish.csproj -t:PublishAll   # one app, all platforms
+msbuild publish/Mirage.Publish.csproj -t:PublishAll         # all apps, all platforms
+msbuild publish/Mirage.Publish.csproj -t:PublishAll_Win     # all apps, Windows only
+msbuild publish/Mirage.Publish.csproj -t:PublishAll_Linux
+msbuild publish/Mirage.Publish.csproj -t:PublishAll_Osx
+msbuild publish/Mirage.Server.Publish.csproj -t:PublishAll   # one app, all platforms
 ```
 
 Packaging runs **only for an explicit `-t:PublishAll*` target**. A plain `dotnet build` — of a publish project, or of `Mirage.slnx` — prints a one-line reminder and packages nothing. It used to package on every build, so an ordinary solution build ran nine `dotnet publish` passes plus `vpk`/`mgcb`/`tar`, taking 127s instead of ~9s. In Visual Studio, right-click → **Build** on a publish project therefore no longer packages; use the explicit target.
@@ -77,7 +77,7 @@ git tag -f v1.0.0 && git push --force origin v1.0.0
 
 ## Output naming
 
-`GameName` and its slug `GameNameSlug` in [`Directory.Build.props`](../Directory.Build.props) drive all executable and installer filenames. The same string is declared as `Constants.GameName` in [`Mirage.Shared/Constants.cs`](../server/src/Mirage.Shared/Constants.cs) for in-game UI (window title, chat, HUD). **Keep the two in sync manually** — renaming the game requires updating both.
+`GameName` and its slug `GameNameSlug` in [`Directory.Build.props`](../Directory.Build.props) drive all executable and installer filenames. The same string is declared as `Constants.GameName` in [`Mirage.Shared/Constants.cs`](../shared/src/Mirage.Shared/Constants.cs) for in-game UI (window title, chat, HUD). **Keep the two in sync manually** — renaming the game requires updating both.
 
 ## Platform support
 

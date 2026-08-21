@@ -337,28 +337,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.NpcNum;
         if (!SlotValidation.IsValidNpcNum(n, _world.Limits.Npcs)) return;
-        var npc = _world.Npcs[n];
-        _dispatcher.SendToEditor(editorIndex, new UpdateNpcPacket
-        {
-            NpcNum = n,
-            Name = npc.Name,
-            AttackSay = npc.AttackSay,
-            Sprite = npc.Sprite,
-            Size = npc.EffectiveSize,
-            SpawnSecs = npc.SpawnSecs,
-            Behavior = npc.Behavior,
-            Group = npc.Group,
-            Range = npc.Range,
-            Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
-            Str = npc.Str,
-            Def = npc.Def,
-            Spd = npc.Spd,
-            Int = npc.Int,
-            ExtraHp = npc.ExtraHp,
-            IsBoss = npc.IsBoss,
-            EmitsLight = npc.EmitsLight,
-            Light = npc.Light,
-        });
+        _dispatcher.SendToEditor(editorIndex, BuildUpdateNpc(n));
     }
 
     private void HandleEditorRequestShop(int editorIndex, EditorRequestShopPacket p)
@@ -366,21 +345,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.ShopNum;
         if (!SlotValidation.IsValidShopNum(n, _world.Limits.Shops)) return;
-        var shop = _world.Shops[n];
-        _dispatcher.SendToEditor(editorIndex, new UpdateShopPacket
-        {
-            ShopNum = n,
-            Name = shop.Name,
-            FixesItems = shop.FixesItems,
-            ShopType = shop.ShopType,
-            AllowBanking = shop.AllowBanking,
-            Keeper = shop.Keeper,
-            Barters = shop.BarterItem
-                .Select(t => new EditorSaveShopPacket.BarterEntry(
-                    t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
-                .ToArray(),
-            Sales = [.. shop.SalesItem],
-        });
+        _dispatcher.SendToEditor(editorIndex, PacketBuilder.UpdateShop(n, _world.Shops[n]));
     }
 
     private void HandleEditorRequestSpell(int editorIndex, EditorRequestSpellPacket p)
@@ -388,18 +353,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.SpellNum;
         if (!SlotValidation.IsValidSpellNum(n, _world.Limits.Spells)) return;
-        var spell = _world.Spells[n];
-        _dispatcher.SendToEditor(editorIndex, new UpdateSpellPacket
-        {
-            SpellNum = n,
-            Name = spell.Name,
-            AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
-            Type = spell.Type,
-            VitalAmount = spell.VitalAmount,
-            ItemNum = spell.ItemNum,
-            ItemQuantity = spell.ItemQuantity,
-            IntReq = spell.IntReq,
-        });
+        _dispatcher.SendToEditor(editorIndex, PacketBuilder.UpdateSpell(n, _world.Spells[n]));
     }
 
     private void HandleEditorRequestMap(int editorIndex, EditorRequestMapPacket p)
@@ -415,21 +369,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         int n = p.ClassNum;
         if (!SlotValidation.IsValidClassNum(n)) return;
-        var cls = _world.Classes[n];
-        _dispatcher.SendToEditor(editorIndex, new UpdateClassPacket
-        {
-            ClassNum = n,
-            Name = cls.Name,
-            Description = cls.Description,
-            SpriteMale = cls.SpriteMale,
-            SpriteFemale = cls.SpriteFemale,
-            Str = cls.Str,
-            Def = cls.Def,
-            Spd = cls.Spd,
-            Int = cls.Int,
-            StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
-            StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
-        });
+        _dispatcher.SendToEditor(editorIndex, PacketBuilder.UpdateClass(n, _world.Classes[n]));
     }
 
     private void HandleEditorRequestAllItems(int editorIndex, EditorRequestAllItemsPacket _)
@@ -448,22 +388,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllNpcsPacket
         {
-            Npcs = Enumerable.Range(1, _world.Limits.Npcs).Select(n =>
-            {
-                var npc = _world.Npcs[n];
-                return new UpdateNpcPacket
-                {
-                    NpcNum = n, Name = npc.Name, AttackSay = npc.AttackSay,
-                    Sprite = npc.Sprite, Size = npc.EffectiveSize, SpawnSecs = npc.SpawnSecs,
-                    Behavior = npc.Behavior, Group = npc.Group, Range = npc.Range,
-                    Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
-                    Str = npc.Str, Def = npc.Def, Spd = npc.Spd, Int = npc.Int,
-                    ExtraHp = npc.ExtraHp,
-                    IsBoss = npc.IsBoss,
-                    EmitsLight = npc.EmitsLight,
-                    Light = npc.Light,
-                };
-            }).ToArray(),
+            Npcs = Enumerable.Range(1, _world.Limits.Npcs).Select(BuildUpdateNpc).ToArray(),
         });
     }
 
@@ -472,20 +397,8 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllShopsPacket
         {
-            Shops = Enumerable.Range(1, _world.Limits.Shops).Select(n =>
-            {
-                var shop = _world.Shops[n];
-                return new UpdateShopPacket
-                {
-                    ShopNum = n, Name = shop.Name, FixesItems = shop.FixesItems,
-                    ShopType = shop.ShopType, AllowBanking = shop.AllowBanking,
-                    Keeper = shop.Keeper,
-                    Barters = shop.BarterItem
-                        .Select(t => new EditorSaveShopPacket.BarterEntry(
-                            t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
-                        .ToArray(),
-                };
-            }).ToArray(),
+            Shops = Enumerable.Range(1, _world.Limits.Shops)
+                .Select(n => PacketBuilder.UpdateShop(n, _world.Shops[n])).ToArray(),
         });
     }
 
@@ -494,18 +407,8 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllSpellsPacket
         {
-            Spells = Enumerable.Range(1, _world.Limits.Spells).Select(n =>
-            {
-                var spell = _world.Spells[n];
-                return new UpdateSpellPacket
-                {
-                    SpellNum = n, Name = spell.Name,
-                    AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
-                    Type = spell.Type,
-                    VitalAmount = spell.VitalAmount, ItemNum = spell.ItemNum,
-                    ItemQuantity = spell.ItemQuantity, IntReq = spell.IntReq,
-                };
-            }).ToArray(),
+            Spells = Enumerable.Range(1, _world.Limits.Spells)
+                .Select(n => PacketBuilder.UpdateSpell(n, _world.Spells[n])).ToArray(),
         });
     }
 
@@ -514,18 +417,8 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         _dispatcher.SendToEditor(editorIndex, new EditorAllClassesPacket
         {
-            Classes = Enumerable.Range(1, Constants.MaxClasses).Select(n =>
-            {
-                var cls = _world.Classes[n];
-                return new UpdateClassPacket
-                {
-                    ClassNum = n, Name = cls.Name, Description = cls.Description,
-                    SpriteMale = cls.SpriteMale, SpriteFemale = cls.SpriteFemale,
-                    Str = cls.Str, Def = cls.Def, Spd = cls.Spd, Int = cls.Int,
-                    StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
-                    StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
-                };
-            }).ToArray(),
+            Classes = Enumerable.Range(1, Constants.MaxClasses)
+                .Select(n => PacketBuilder.UpdateClass(n, _world.Classes[n])).ToArray(),
         });
     }
 
@@ -561,20 +454,7 @@ public sealed partial class EditorPacketHandler
         cls.Normalize();
 
         _bg.Run(_persistence.SaveClassAsync(n, cls), nameof(IPersistenceService.SaveClassAsync));
-        _dispatcher.SendToAll(new UpdateClassPacket
-        {
-            ClassNum = n,
-            Name = cls.Name,
-            Description = cls.Description,
-            SpriteMale = cls.SpriteMale,
-            SpriteFemale = cls.SpriteFemale,
-            Str = cls.Str,
-            Def = cls.Def,
-            Spd = cls.Spd,
-            Int = cls.Int,
-            StartingItems = cls.StartingItems is null ? null : new List<ClassStartingItem>(cls.StartingItems),
-            StartingSpells = cls.StartingSpells is null ? null : new List<int>(cls.StartingSpells),
-        });
+        _dispatcher.SendToAll(PacketBuilder.UpdateClass(n, cls));
         _logger.LogInformation("Editor saved class #{Num}.", n);
     }
 
@@ -667,29 +547,7 @@ public sealed partial class EditorPacketHandler
     // routing + menu label without a reconnect. Reused by the shop-keeper-change re-broadcast below.
     private UpdateNpcPacket BuildUpdateNpc(int npcNum)
     {
-        var npc = _world.Npcs[npcNum];
-        return new UpdateNpcPacket
-        {
-            NpcNum = npcNum,
-            Name = npc.Name,
-            AttackSay = npc.AttackSay,
-            Sprite = npc.Sprite,
-            Size = npc.EffectiveSize,
-            SpawnSecs = npc.SpawnSecs,
-            Behavior = npc.Behavior,
-            Group = npc.Group,
-            Range = npc.Range,
-            Drops = npc.Drops is null ? null : new List<NpcDrop>(npc.Drops),
-            Str = npc.Str,
-            Def = npc.Def,
-            Spd = npc.Spd,
-            Int = npc.Int,
-            ExtraHp = npc.ExtraHp,
-            IsBoss = npc.IsBoss,
-            EmitsLight = npc.EmitsLight,
-            Light = npc.Light,
-            KeeperShop = _world.KeeperShopKind(npcNum),
-        };
+        return PacketBuilder.UpdateNpc(npcNum, _world.Npcs[npcNum], _world.KeeperShopKind(npcNum));
     }
 
     private void HandleEditorSaveShop(int editorIndex, EditorSaveShopPacket p)
@@ -732,20 +590,7 @@ public sealed partial class EditorPacketHandler
         shop.Normalize(_world.Limits.Items);
 
         _bg.Run(_persistence.SaveShopAsync(n, shop), nameof(IPersistenceService.SaveShopAsync));
-        _dispatcher.SendToAll(new UpdateShopPacket
-        {
-            ShopNum = n,
-            Name = shop.Name,
-            FixesItems = shop.FixesItems,
-            ShopType = shop.ShopType,
-            AllowBanking = shop.AllowBanking,
-            Keeper = shop.Keeper,
-            Barters = shop.BarterItem
-                .Select(t => new EditorSaveShopPacket.BarterEntry(
-                    t.GiveItem, t.GiveQuantity, t.GetItem, t.GetQuantity))
-                .ToArray(),
-            Sales = [.. shop.SalesItem]
-        });
+        _dispatcher.SendToAll(PacketBuilder.UpdateShop(n, shop));
 
         // A keeper reassignment (or a Store↔Inn flip on the same keeper) changes which NPC shows the $
         // vendor glyph and what its melee/right-click interact opens (and the menu label). Re-broadcast the
@@ -967,17 +812,7 @@ public sealed partial class EditorPacketHandler
         spell.Normalize();
 
         _bg.Run(_persistence.SaveSpellAsync(n, spell), nameof(IPersistenceService.SaveSpellAsync));
-        _dispatcher.SendToAll(new UpdateSpellPacket
-        {
-            SpellNum = n,
-            Name = spell.Name,
-            AllowedClasses = spell.AllowedClasses is null ? null : new List<short>(spell.AllowedClasses),
-            Type = spell.Type,
-            VitalAmount = spell.VitalAmount,
-            ItemNum = spell.ItemNum,
-            ItemQuantity = spell.ItemQuantity,
-            IntReq = spell.IntReq,
-        });
+        _dispatcher.SendToAll(PacketBuilder.UpdateSpell(n, spell));
         _logger.LogInformation("Editor saved spell #{Num}.", n);
     }
 

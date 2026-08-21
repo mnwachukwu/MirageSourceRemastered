@@ -10,9 +10,9 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <_ServerProj>$(MSBuildThisFileDirectory)server/Mirage.Server.Publish.csproj</_ServerProj>
-    <_ClientProj>$(MSBuildThisFileDirectory)client/Mirage.Client.Publish.csproj</_ClientProj>
-    <_EditorProj>$(MSBuildThisFileDirectory)editor/Mirage.Editor.Publish.csproj</_EditorProj>
+    <_ServerProj>$(MSBuildThisFileDirectory)Mirage.Server.Publish.csproj</_ServerProj>
+    <_ClientProj>$(MSBuildThisFileDirectory)Mirage.Client.Publish.csproj</_ClientProj>
+    <_EditorProj>$(MSBuildThisFileDirectory)Mirage.Editor.Publish.csproj</_EditorProj>
   </PropertyGroup>
 
   <Target Name="PublishAll">

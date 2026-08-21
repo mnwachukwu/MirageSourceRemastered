@@ -1,3 +1,4 @@
+using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 using System.Text.Json;
@@ -38,14 +39,14 @@ public class MapGroupIndexTests
     public void EveryMapGroupFile_AgreesWithItsFilename()
     {
         string? dir = MapGroupsDir();
-        if (dir is null) Assert.Ignore("The tracked seed carries no map_groups; the five in the live world are untracked.");
+        if (dir is null) Assert.Ignore("The tracked seed carries no map_groups.");
 
         var problems = new List<string>();
         int checked_ = 0;
-        foreach (string path in Directory.GetFiles(dir!, "mapgroup*.json"))
+        foreach (string path in Directory.GetFiles(dir!, $"{MapGroupRecord.FileStem}*.json"))
         {
             string stem = Path.GetFileNameWithoutExtension(path);
-            if (!int.TryParse(stem.AsSpan("mapgroup".Length), out int fromName)) continue;
+            if (!int.TryParse(stem.AsSpan(MapGroupRecord.FileStem.Length), out int fromName)) continue;
 
             using var doc = JsonDocument.Parse(File.ReadAllText(path));
             if (!doc.RootElement.TryGetProperty("index", out var idx)) continue;

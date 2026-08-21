@@ -25,11 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\server\src\Mirage.Shared\Mirage.Shared.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Shared\Mirage.Shared.csproj" />
     <!-- The palette and type ramp, shared with the server shell so the two cannot drift into
          separate looks. Brings FluentAvalonia with it. -->
-    <ProjectReference Include="..\..\..\server\src\Mirage.Ui\Mirage.Ui.csproj" />
-    <ProjectReference Include="..\..\..\server\src\Mirage.Updates\Mirage.Updates.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Ui\Mirage.Ui.csproj" />
+    <ProjectReference Include="..\..\..\shared\src\Mirage.Updates\Mirage.Updates.csproj" />
   </ItemGroup>
 
   <!-- Localization string files. -->
