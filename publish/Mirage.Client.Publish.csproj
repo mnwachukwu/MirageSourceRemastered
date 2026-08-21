@@ -116,8 +116,12 @@
       <_Plist>$(_Plist.Replace('@VERSION@', '$(Version)'))</_Plist>
     </PropertyGroup>
     <WriteLinesToFile File="$(_AppBundle)/Contents/Info.plist" Lines="$(_Plist)" Overwrite="true" />
-    <Exec Command="tar -czf &quot;$(AppInstallerDir)$(GameNameSlug)-$(_Channel).app.tar.gz&quot; -C &quot;$(DistRoot)&quot; $(_AppBundleName)"
-          WorkingDirectory="$(RepoRoot)" />
+    <!-- Run from dist/ with relative paths only. An absolute Windows path carries a drive colon,
+         which GNU tar reads as a host:path remote spec and tries to resolve as a hostname; the bsdtar
+         in System32 takes it literally. Which one answers to `tar` depends on PATH order, so neither
+         side of that is something to depend on. -->
+    <Exec Command="tar -czf installers/client/$(GameNameSlug)-$(_Channel).app.tar.gz $(_AppBundleName)"
+          WorkingDirectory="$(DistRoot)" />
     <RemoveDir Directories="$(_AppBundle)" />
   </Target>
 
