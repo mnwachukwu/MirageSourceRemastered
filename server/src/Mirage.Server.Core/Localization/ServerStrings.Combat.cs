@@ -32,6 +32,10 @@ public static partial class ServerStrings
     public const string CombatSystem_NpcBlocked = nameof(CombatSystem_NpcBlocked);
     public const string CombatSystem_NpcBlockedSpell = nameof(CombatSystem_NpcBlockedSpell);
     public const string CombatSystem_NpcDodged = nameof(CombatSystem_NpcDodged);
+    public const string CombatSystem_YourAttackMissed = nameof(CombatSystem_YourAttackMissed);
+    public const string CombatSystem_AttackerMissed = nameof(CombatSystem_AttackerMissed);
+    public const string CombatSystem_YourSpellMissed = nameof(CombatSystem_YourSpellMissed);
+    public const string CombatSystem_AttackerSpellMissed = nameof(CombatSystem_AttackerSpellMissed);
     public const string CombatSystem_AdminCannotAttack = nameof(CombatSystem_AdminCannotAttack);
     public const string CombatSystem_TargetIsAdmin = nameof(CombatSystem_TargetIsAdmin);
     public const string CombatSystem_SafeZone = nameof(CombatSystem_SafeZone);

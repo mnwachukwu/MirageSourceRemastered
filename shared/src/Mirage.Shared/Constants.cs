@@ -693,6 +693,7 @@ public static class Constants
     public const double WeatherReducedRegenMultiplier = 0.5;  // Heat Wave + Snow: vital regen magnitude
     public const int WeatherHeatWaveSpCostMultiplier = 2;    // Heat Wave: block/crit/dodge/run stamina cost
     public const long WeatherHeavyWindCooldownMultiplier = 2;    // Heavy Wind: attack + cast cooldown doubled
+    public const int WeatherHeavyWindMissChancePercent = 10;   // Heavy Wind: attacks and casts torn off course, attacker-side, before any block/dodge
     // Per-weather EXP reward multiplier (compounds with Night + party). Clear = 1.0.
     public const double WeatherRainExpMultiplier = 1.05;
     public const double WeatherHeatWaveExpMultiplier = 1.15;

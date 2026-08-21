@@ -389,12 +389,10 @@ public sealed partial class NpcAiSystem : GameSystem
     private int NpcRunSpDrain(int map) =>
         Constants.NpcRunSpDrainPerTile * (_world.WeatherOn(map) == WeatherType.HeatWave ? Constants.WeatherHeatWaveSpCostMultiplier : 1);
 
-    /// <summary>Whether an NPC may RUN right now: it needs stamina (SP > 0) AND the map must not be under Heavy
-    /// Wind, which forces everyone — players (see MovementSystem.PlayerMove) and NPCs alike — down to a walk.  Every
-    /// chase/kite run-vs-walk decision routes through this so the wind restriction is applied uniformly.</summary>
+    /// <summary>Whether an NPC may RUN right now: it needs stamina (SP > 0).  Every chase/kite run-vs-walk
+    /// decision routes through this, so the reservoir rule is applied uniformly.</summary>
     private bool NpcCanRun(int mapNum, MapNpcRecord mn)
     {
-        if (_world.WeatherOn(mapNum) == WeatherType.HeavyWind) return false;   // wind grounds everyone to a walk
         if (mn.Sp <= 0)
         {
             mn.RunReservoirLow = true;   // just drained — must rebuild a reservoir before sprinting again

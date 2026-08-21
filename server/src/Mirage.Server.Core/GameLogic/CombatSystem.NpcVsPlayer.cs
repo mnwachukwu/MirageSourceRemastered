@@ -113,6 +113,16 @@ public sealed partial class CombatSystem : GameSystem
         BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
         var vp = _pm[victimIndex].Char;
 
+        // A swing that reaches a target costs the beat whatever it resolves to — see HandleAttack.
+        mapNpc.AttackTimer = now;
+
+        if (WindTearsItAway(mapNum))
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_AttackerMissed, GameColor.BrightCyan, ("AttackerName", npcRec.TrimmedName));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.Miss);
+            return;
+        }
+
         if (CanPlayerBlock(vp))
         {
             int shieldSlot = vp.ShieldSlot;
@@ -238,6 +248,16 @@ public sealed partial class CombatSystem : GameSystem
         BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
         var vp = _pm[victimIndex].Char;
 
+        // A swing that reaches a target costs the beat whatever it resolves to — see HandleAttack.
+        mapNpc.AttackTimer = now;
+
+        if (WindTearsItAway(mapNum))
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_AttackerMissed, GameColor.BrightCyan, ("AttackerName", npcRec.TrimmedName));
+            BroadcastCombatText(vp.Map, isNpc: false, index: victimIndex, CombatTextKind.Miss);
+            return;
+        }
+
         if (CanPlayerBlock(vp))
         {
             int shieldSlot = vp.ShieldSlot;
@@ -300,6 +320,15 @@ public sealed partial class CombatSystem : GameSystem
         MarkNpcCombat(mapNpc, now);
         MarkPlayerCombat(victimIndex, now, asAttacker: false);
         BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
+
+        if (WindTearsItAway(mapNum))
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_AttackerSpellMissed, GameColor.BrightCyan, ("AttackerName", npcRec.TrimmedName));
+            BroadcastCombatText(mapNum, isNpc: true, index: npcSlot, CombatTextKind.Miss, mapNpc.X, mapNpc.Y);
+            mapNpc.Mp -= mpCost;
+            mapNpc.AttackTimer = now;
+            return;
+        }
 
         // Spell magnitude MIRRORS NPC melee: a symmetric +-10% Vary around NpcSpellBaseMagnitude(Int) (the same
         // Vary as P-DMG).  Full magnitude every cast — the trivial pool-fraction mpCost (computed above) lets the

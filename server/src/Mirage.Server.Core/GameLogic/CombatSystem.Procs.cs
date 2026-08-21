@@ -23,6 +23,13 @@ public sealed partial class CombatSystem : GameSystem
     /// <summary>Heavy Wind prevents all stamina-based combat procs (block/dodge/crit) from occurring.</summary>
     private bool StaminaProcsAllowed(int map) => _world.WeatherOn(map) != WeatherType.HeavyWind;
 
+    /// <summary>Whether the weather tears this attack or cast off course. Rolled on the ATTACKER's map and
+    /// checked BEFORE any block, dodge or crit, so a blown swing drains the defender nothing — it never
+    /// arrived. That ordering is what keeps it separate from the proc cascade rather than a fourth branch
+    /// of it, and it is why a miss floats its own text instead of reusing Block or Dodge.</summary>
+    public bool WindTearsItAway(int attackerMap) =>
+        WeatherEffects.MissChancePercent(_world.WeatherOn(attackerMap)) > CombatFormulas.RollPercent();
+
     /// <summary>Shield equipped + SP gate + not Heavy Wind + RNG roll vs PlayerBlockChancePerMille.</summary>
     private bool CanPlayerBlock(PlayerRecord p) =>
         p.Sp > 0 && p.ShieldSlot > 0 && StaminaProcsAllowed(p.Map)

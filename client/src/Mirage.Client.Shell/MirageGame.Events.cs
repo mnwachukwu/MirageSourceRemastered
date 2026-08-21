@@ -528,8 +528,14 @@ public sealed partial class MirageGame : Game
             }
             else
             {
-                text = ClientStrings.Get(p.Kind == CombatTextKind.Block
-                    ? ClientStrings.Combat_Blocked : ClientStrings.Combat_Dodged);
+                // The three no-damage outcomes share a colour and a phrasing pattern — one glance says
+                // "nothing landed", and the word says why.
+                text = ClientStrings.Get(p.Kind switch
+                {
+                    CombatTextKind.Block => ClientStrings.Combat_Blocked,
+                    CombatTextKind.Miss => ClientStrings.Combat_Missed,
+                    _ => ClientStrings.Combat_Dodged,
+                });
                 color = UiHelper.FloatBlockColor;
             }
             int mapNum = p.MapNum, lx, ly;

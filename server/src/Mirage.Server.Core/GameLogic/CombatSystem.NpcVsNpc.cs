@@ -69,6 +69,12 @@ public sealed partial class CombatSystem : GameSystem
         // victim's SP, float Blocked/Dodged over it, flip its aggro onto the attacker, and eat the swing.
         // Mirrors EngageNpc (player melee) and TryNpcNegateMagicCore (NPC-vs-NPC magic).
         bool tryBlock = Rng.Next(2) == 0;
+        if (WindTearsItAway(attackerMap))
+        {
+            BroadcastCombatText(victimMap, isNpc: true, index: victimSlot, CombatTextKind.Miss, victimMn.X, victimMn.Y);
+            return;
+        }
+
         if (tryBlock && CanNpcBlock(victimMn, victimMap))
         {
             victimMn.Sp = Math.Max(victimMn.Sp - NpcSpBlockOrCrit(victimNpc, victimMap), 0);
@@ -249,6 +255,14 @@ public sealed partial class CombatSystem : GameSystem
         MarkNpcCombat(attackerMn, now);
         MarkNpcCombat(victimMn, now);
         var victimNpc = _world.Npcs[victimMn.Num];
+
+        if (WindTearsItAway(attackerMap))
+        {
+            BroadcastCombatText(attackerMap, isNpc: true, index: attackerSlot, CombatTextKind.Miss, attackerMn.X, attackerMn.Y);
+            attackerMn.Mp -= mpCost;
+            attackerMn.AttackTimer = now;
+            return;
+        }
 
         // Power roll — identical to NpcCastSpellOnPlayer: a symmetric +-10% Vary around NpcSpellBaseMagnitude(Int)
         // (the SAME Vary as NPC melee).  Full magnitude every cast; the trivial pool-fraction mpCost (above) keeps

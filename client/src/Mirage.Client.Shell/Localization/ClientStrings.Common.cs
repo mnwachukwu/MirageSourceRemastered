@@ -65,6 +65,7 @@ public static partial class ClientStrings
     // Floating combat text (Block/Dodge over an entity; vital labels reuse Stats_*).
     public const string Combat_Blocked = nameof(Combat_Blocked);
     public const string Combat_Dodged = nameof(Combat_Dodged);
+    public const string Combat_Missed = nameof(Combat_Missed);
     public const string Combat_LevelUp = nameof(Combat_LevelUp);
     public const string Combat_EnterCombat = nameof(Combat_EnterCombat);
     public const string Combat_EndCombat = nameof(Combat_EndCombat);

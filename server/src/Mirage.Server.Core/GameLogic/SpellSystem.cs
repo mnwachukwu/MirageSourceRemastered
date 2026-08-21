@@ -191,6 +191,18 @@ public sealed class SpellSystem : GameSystem
         if (Environment.TickCount64 < sp.AttackTimer + Constants.SpellCastCooldownMs * windMult)
             return;
 
+        // 7b. The wind can tear the spell apart as it leaves the caster's hands. Rolled BEFORE the target is
+        // resolved, because the failure is the caster's — nothing reaches the target to be blocked or dodged.
+        // Charged and put on cooldown like a landed cast: the mana and reagents are spent either way.
+        if (_combat.WindTearsItAway(p.Map))
+        {
+            SpendCastCost(index, mpCost, spell, reagentCost);
+            sp.AttackTimer = Environment.TickCount64;
+            SendMsg(index, ServerStrings.CombatSystem_YourSpellMissed, GameColor.BrightCyan, ChatChannel.System);
+            _combat.BroadcastCombatText(p.Map, isNpc: false, index: index, CombatTextKind.Miss);
+            return;
+        }
+
         // 7. GiveItem — give to targeted player if one is set, otherwise give to caster.  Ctrl+Cast (forceSelf)
         // always delivers to the caster: skip the "can't give to an NPC" rejection and force self as the
         // recipient, leaving the selected target untouched.

@@ -54,6 +54,7 @@
   "Stats_Points": "Puntos",
   "Combat_Blocked": "¡Bloqueado!!",
   "Combat_Dodged": "¡Evadido!!",
+  "Combat_Missed": "¡Fallado!!",
   "Combat_LevelUp": "¡Subiste de nivel!!",
   "Combat_EnterCombat": "Entras en combate",
   "Combat_EndCombat": "Fin del combate",

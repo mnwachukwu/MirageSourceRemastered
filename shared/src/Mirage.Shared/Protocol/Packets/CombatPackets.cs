@@ -126,7 +126,7 @@ public sealed record BloodUpdatePacket : IPacket
 }
 
 /// <summary>Kind of no-damage combat outcome floated by <see cref="CombatTextPacket"/>. 0 = unset sentinel.</summary>
-public enum CombatTextKind { None = 0, Block = 1, Dodge = 2, ZeroHit = 3 }
+public enum CombatTextKind { None = 0, Block = 1, Dodge = 2, ZeroHit = 3, Miss = 4 }
 
 /// <summary>Which vital a <see cref="CombatTextKind.ZeroHit"/> float labels (melee = Hp; Sub spells pick
 /// by type). Values match the client VitalType ordering (Hp=0, Mp=1, Sp=2).</summary>

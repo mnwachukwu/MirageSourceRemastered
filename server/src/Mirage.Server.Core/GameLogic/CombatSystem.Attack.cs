@@ -34,7 +34,18 @@ public sealed partial class CombatSystem : GameSystem
             _dispatcher.SendTo(index, new PlayerAttackPacket { Index = index, InCombat = true });
             AssignPlayerTarget(index, i);
             var vp = _pm[i].Char;
-            if (CanPlayerBlock(vp))
+            // A swing that reaches a target costs the beat whatever it resolves to — blocked, dodged,
+            // torn off course, mitigated to nothing, or landed. Stamped here rather than in each branch so
+            // no outcome can be added later that forgets to pay.
+            _pm[index].AttackTimer = now;
+
+            if (WindTearsItAway(ap.Map))
+            {
+                SendMsg(index, ServerStrings.CombatSystem_YourAttackMissed, GameColor.BrightCyan);
+                SendMsg(i, ServerStrings.CombatSystem_AttackerMissed, GameColor.BrightCyan, ("AttackerName", ap.TrimmedName));
+                BroadcastCombatText(vp.Map, isNpc: false, index: i, CombatTextKind.Miss);
+            }
+            else if (CanPlayerBlock(vp))
             {
                 int shieldSlot = vp.ShieldSlot;  // always > 0 — CanPlayerBlock requires it
                 string shieldName = _world.Items[vp.Inv[shieldSlot].Num].TrimmedName;
@@ -141,6 +152,17 @@ public sealed partial class CombatSystem : GameSystem
         MarkNpcCombat(mapNpcR, now);
         _dispatcher.SendTo(index, new PlayerAttackPacket { Index = index, InCombat = true });
         AssignNpcTarget(index, mapNum, mapNpcR, npcSlot);
+
+        // A swing that reaches a target costs the beat whatever it resolves to — see HandleAttack.
+        _pm[index].AttackTimer = now;
+
+        if (WindTearsItAway(ap.Map))
+        {
+            SendMsg(index, ServerStrings.CombatSystem_YourAttackMissed, GameColor.BrightCyan);
+            BroadcastCombatText(mapNum, isNpc: true, index: npcSlot, CombatTextKind.Miss, mapNpcR.X, mapNpcR.Y);
+            AlertNpc(mapNum, npcSlot, mapNpcR, index);
+            return;
+        }
 
         bool tryBlock = Rng.Next(2) == 0;
         if (tryBlock && CanNpcBlock(mapNpcR, mapNum))

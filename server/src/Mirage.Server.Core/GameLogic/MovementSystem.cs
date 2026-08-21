@@ -63,10 +63,6 @@ public sealed class MovementSystem : GameSystem
         // No SP left — force walking pace.
         if (movement == MovementType.Running && p.Sp <= 0)
             movement = MovementType.Walking;
-        // Heavy Wind blocks running entirely.
-        if (movement == MovementType.Running && _world.WeatherOn(p.Map) == WeatherType.HeavyWind)
-            movement = MovementType.Walking;
-
         // WHEN, not only where. Everything below decides whether the destination is legal; this decides
         // whether it is legal YET. Charged AFTER both downgrades above, so a client that keeps claiming
         // Running on an empty SP bar is billed the walking pace the server is actually moving it at.
