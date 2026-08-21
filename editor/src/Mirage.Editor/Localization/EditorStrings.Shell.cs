@@ -20,6 +20,11 @@ public static partial class EditorStrings
     public const string Common_Discard = nameof(Common_Discard);            // "Discard"
     public const string Common_DiscardAll = nameof(Common_DiscardAll);         // "Discard All"
     public const string Common_SaveAll = nameof(Common_SaveAll);            // "Save All"
+    public const string Common_Copy = nameof(Common_Copy);                  // "Copy"
+    public const string Common_CopyTooltip = nameof(Common_CopyTooltip);
+    public const string Common_CopyNeedsSelection = nameof(Common_CopyNeedsSelection);
+    public const string Common_CopyNeedsRecord = nameof(Common_CopyNeedsRecord);
+
     public const string Common_Notes = nameof(Common_Notes);              // "Notes"
     public const string Common_RetainOnAltClick = nameof(Common_RetainOnAltClick);   // "Retain values for Alt+Click"
     public const string Common_FilterByName = nameof(Common_FilterByName);       // "Filter by name…"
@@ -32,11 +37,33 @@ public static partial class EditorStrings
     public const string Common_AddRow = nameof(Common_AddRow);             // "+ Add row" (dynamic table add button)
     public const string Common_NoRowsHint = nameof(Common_NoRowsHint);         // "No rows yet - click + to add." (empty-table hint)
 
+    // ── Auto-save ─────────────────────────────────────────────────────────────
+    public const string AutoSave_Menu = nameof(AutoSave_Menu);
+    public const string AutoSave_ConfigureItem = nameof(AutoSave_ConfigureItem);
+    public const string AutoSave_DisabledOnline = nameof(AutoSave_DisabledOnline);
+    public const string AutoSave_DialogTitle = nameof(AutoSave_DialogTitle);
+    public const string AutoSave_DialogIntro = nameof(AutoSave_DialogIntro);
+    public const string AutoSave_OfflineOnlyNotice = nameof(AutoSave_OfflineOnlyNotice);
+    public const string AutoSave_ColumnEditor = nameof(AutoSave_ColumnEditor);
+    public const string AutoSave_ColumnEnabled = nameof(AutoSave_ColumnEnabled);
+    public const string AutoSave_ColumnInterval = nameof(AutoSave_ColumnInterval);
+    public const string AutoSave_ColumnReach = nameof(AutoSave_ColumnReach);
+    public const string AutoSave_ReachOpenRecord = nameof(AutoSave_ReachOpenRecord);
+    public const string AutoSave_ReachAllDirty = nameof(AutoSave_ReachAllDirty);
+    public const string AutoSave_IntervalMinutes = nameof(AutoSave_IntervalMinutes);
+    public const string AutoSave_Saved = nameof(AutoSave_Saved);
+    public const string AutoSave_RecordCount = nameof(AutoSave_RecordCount);
+    public const string AutoSave_Failed = nameof(AutoSave_Failed);
+
     // ── MainWindow ────────────────────────────────────────────────────────────
     public const string MainWindow_Title = nameof(MainWindow_Title);
     public const string MainWindow_LanguageMenu = nameof(MainWindow_LanguageMenu);
     public const string MainWindow_HelpMenu = nameof(MainWindow_HelpMenu);
     public const string MainWindow_HelpMapEditor = nameof(MainWindow_HelpMapEditor);
+    public const string MainWindow_HelpAbout = nameof(MainWindow_HelpAbout);
+    public const string About_Title = nameof(About_Title);
+    public const string About_Version = nameof(About_Version);
+    public const string About_CreatorDeveloper = nameof(About_CreatorDeveloper);
     public const string MainWindow_ExportMenu = nameof(MainWindow_ExportMenu);
     public const string MainWindow_DisconnectButton = nameof(MainWindow_DisconnectButton);
     public const string MainWindow_Section_Maps = nameof(MainWindow_Section_Maps);

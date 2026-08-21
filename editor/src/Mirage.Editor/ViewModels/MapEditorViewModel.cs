@@ -13,7 +13,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 namespace Mirage.Editor.ViewModels;
 
-public sealed partial class MapEditorViewModel : ObservableObject
+public sealed partial class MapEditorViewModel : ObservableObject, IAutoSaveTarget
 {
     private readonly EditorDataService _data;
     private readonly EditorConnection _conn;

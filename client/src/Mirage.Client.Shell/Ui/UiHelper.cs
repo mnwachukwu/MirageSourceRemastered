@@ -45,6 +45,25 @@ public static class UiHelper
     private static CursorRequest _requestedCursor = CursorRequest.Arrow;
     private static CursorRequest _committedCursor = CursorRequest.Arrow;
 
+    /// <summary>Hand a URL to the OS-default browser (ShellExecute / open / xdg-open). Failures are
+    /// swallowed: no browser configured is not something the game can do anything about, and a crash
+    /// on a decorative link would be far worse than the link doing nothing.</summary>
+    public static void OpenUrl(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // No browser configured / shell rejected.
+        }
+    }
+
     public static void RequestHandCursor() => RequestCursor(CursorRequest.Hand);
     public static void RequestResizeNwseCursor() => RequestCursor(CursorRequest.ResizeNwse);
     /// <summary>Horizontal resize cursor — requested while hovering/dragging a table column divider.</summary>

@@ -254,7 +254,11 @@ public sealed class EditorDataService
             if (int.TryParse(nameNoExt["mapgroup".Length..], out int num) && num >= 1 && num <= RecordLimits.Default.MapGroups)
             {
                 var g = await LoadJsonAsync<MapGroupRecord>(file);
-                if (g is not null) result[num] = g;
+                if (g is null) continue;
+                // The filename decides which group this is; the record's own Index is a denormalized copy
+                // for code holding a group detached from its key. Stamped here so the two cannot disagree.
+                g.Index = num;
+                result[num] = g;
             }
         }
         return result;

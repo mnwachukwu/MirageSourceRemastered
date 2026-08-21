@@ -70,6 +70,59 @@ public class LevelRequirementTests
         });
     }
 
+    // ── What a buyer is shown before paying ──────────────────────────────────
+    // The shop confirm and any other acquisition screen ask ItemRecord for one number. A scroll's own is
+    // always zero, so asking the item alone reports "no requirement" on the single purchase whose
+    // requirement is easiest to miss — and the buyer finds out from a refusal after the gold is gone.
+
+    [Test]
+    public void EffectiveLevelReq_OfEquipment_IsTheItemsOwn()
+    {
+        var sword = new ItemRecord { Type = ItemType.Weapon, LevelReq = 40 };
+
+        Assert.That(ItemRecord.EffectiveLevelReq(sword, null), Is.EqualTo(40));
+    }
+
+    [Test]
+    public void EffectiveLevelReq_OfAScroll_ComesFromTheSpellItTeaches()
+    {
+        var scroll = new ItemRecord { Type = ItemType.Spell, SpellNum = 7 };
+        var taught = new SpellRecord { LevelReq = 100 };
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(scroll.LevelReq, Is.Zero, "a scroll carries no level of its own");
+            Assert.That(ItemRecord.EffectiveLevelReq(scroll, taught), Is.EqualTo(100));
+        });
+    }
+
+    /// <summary>A scroll whose spell is unknown to the reader (an out-of-range number, or a client that has
+    /// not been sent that definition) reports no gate rather than guessing one.</summary>
+    [Test]
+    public void EffectiveLevelReq_OfAScrollWithNoSpell_IsZero()
+    {
+        var scroll = new ItemRecord { Type = ItemType.Spell, SpellNum = 7 };
+
+        Assert.That(ItemRecord.EffectiveLevelReq(scroll, null), Is.Zero);
+    }
+
+    /// <summary>The spell is consulted only for a scroll. A potion handed the wrong spell must not start
+    /// reporting that spell's level.</summary>
+    [Test]
+    public void EffectiveLevelReq_IgnoresASpellOnAnythingButAScroll()
+    {
+        var potion = new ItemRecord { Type = ItemType.PotionAddHp, LevelReq = 0 };
+        var unrelated = new SpellRecord { LevelReq = 200 };
+
+        Assert.That(ItemRecord.EffectiveLevelReq(potion, unrelated), Is.Zero);
+    }
+
+    [Test]
+    public void EffectiveLevelReq_OfNothing_IsZero()
+    {
+        Assert.That(ItemRecord.EffectiveLevelReq(null, null), Is.Zero);
+    }
+
     /// <summary>Dropping the scroll case must not loosen the real gate: learning is still refused below the
     /// SPELL's level, which is enforced where the scroll is used rather than on the item record.</summary>
     [Test]

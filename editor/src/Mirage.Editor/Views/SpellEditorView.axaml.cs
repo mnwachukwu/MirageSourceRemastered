@@ -63,6 +63,7 @@ public partial class SpellEditorView : LocalizedUserControl
         _fmtRangeHeader.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_RangeHeader);
         _fmtRangeFormula.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_RangeFormula);
         _fmtRangeNote.Text = EditorStrings.Get(EditorStrings.SpellEditor_Formula_RangeNote);
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveBtn.Content = EditorStrings.Get(EditorStrings.SpellEditor_SaveSpellButton);

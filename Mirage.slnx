@@ -5,6 +5,7 @@
     <Project Path="server/src/Mirage.Server.Host/Mirage.Server.Host.csproj" />
     <Project Path="server/src/Mirage.Server.Shell/Mirage.Server.Shell.csproj" />
     <Project Path="server/src/Mirage.Ui/Mirage.Ui.csproj" />
+    <Project Path="server/src/Mirage.Updates/Mirage.Updates.csproj" />
   </Folder>
   <Folder Name="/Client/">
     <Project Path="client/src/Mirage.Client.Core/Mirage.Client.Core.csproj" />

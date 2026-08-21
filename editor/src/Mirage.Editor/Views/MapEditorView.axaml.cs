@@ -179,6 +179,7 @@ public partial class MapEditorView : LocalizedUserControl
         ToolTip.SetTip(_btnRedo, EditorStrings.Get(EditorStrings.MapEditor_RedoTooltip));
         _btnBack.Content = EditorStrings.Get(EditorStrings.MapEditor_BackButton);
         _btnForward.Content = EditorStrings.Get(EditorStrings.MapEditor_ForwardButton);
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _btnDiscardMap.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _btnDiscardAll.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _btnSaveMap.Content = EditorStrings.Get(EditorStrings.MapEditor_SaveMapButton);

@@ -29,9 +29,19 @@
                       Command="{Binding MapEditor.ExportWorldCommand}"
                       IsEnabled="{Binding MapEditor.HasSelectedMap}"/>
           </MenuItem>
+          <MenuItem x:Name="_autoSaveMenu">
+            <!-- Caption and enablement both follow the connection: auto-save is offline only, so while
+                 connected the item says so rather than opening a window that cannot be acted on. -->
+            <MenuItem x:Name="_autoSaveConfigureItem"
+                      Header="{Binding AutoSaveMenuItemLabel}"
+                      IsEnabled="{Binding !IsOnline}"
+                      Click="AutoSaveConfigure_Click"/>
+          </MenuItem>
           <MenuItem x:Name="_languageMenu" />
           <MenuItem x:Name="_helpMenu">
             <MenuItem x:Name="_helpMapEditorItem" Click="HelpMapControls_Click"/>
+            <Separator/>
+            <MenuItem x:Name="_helpAboutItem" Click="HelpAbout_Click"/>
           </MenuItem>
         </Menu>
         <StackPanel Orientation="Horizontal" Spacing="8">

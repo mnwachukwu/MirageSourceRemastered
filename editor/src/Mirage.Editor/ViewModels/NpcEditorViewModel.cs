@@ -84,6 +84,20 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.NpcEditor_TypeNamePlural);
     protected override int GetIndex(NpcRowViewModel vm) => vm.Index;
     protected override bool GetIsDirty(NpcRowViewModel vm) => vm.IsDirty;
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(NpcRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(NpcRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(NpcRowViewModel source, NpcRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(NpcRowViewModel vm) => vm.ClearDirty();
 
     public async Task EagerLoadAllAsync(CancellationToken ct)

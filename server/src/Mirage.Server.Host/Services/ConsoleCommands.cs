@@ -9,6 +9,7 @@ using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
+using Mirage.Updates;
 
 namespace Mirage.Server.Host.Services;
 
@@ -43,6 +44,9 @@ namespace Mirage.Server.Host.Services;
 /// Server:
 ///   /shutdown                   — request graceful shutdown
 ///   /help                       — list commands
+///   /credits                    — who made this
+///   /update                     — report whether a newer build exists; never applies it, because
+///                                 applying restarts the process and drops every player
 ///
 /// <para>The world-level commands live in <see cref="ConsoleCommands"/>'s .World partial, which also
 /// explains which of the in-game admin commands are deliberately absent and why.</para>
@@ -188,6 +192,14 @@ public sealed partial class ConsoleCommands : IHostedService
         {
             case "/help":
                 System.Console.WriteLine(ServerStrings.Get(ServerStrings.Console_Help));
+                break;
+
+            case "/credits":
+                CmdCredits();
+                break;
+
+            case "/update":
+                _ = CmdCheckForUpdateAsync();
                 break;
 
             case "/who":
@@ -512,5 +524,40 @@ public sealed partial class ConsoleCommands : IHostedService
         _bg.Run(_persistence.RefreshBanListAsync(), nameof(IPersistenceService.RefreshBanListAsync));
         System.Console.WriteLine(ServerStrings.Get(ServerStrings.AdminCommand_BanListRefreshed));
         _logger.LogInformation("Console refreshed ban list from disk.");
+    }
+
+    /// <summary>Report whether a newer server build has been released.
+    ///
+    /// <para>Checks only — it never downloads or applies. Applying an update restarts the process, and a
+    /// restart disconnects every player on the server; that is an operator's deliberate act, not
+    /// something a console command should do as a side effect of asking a question.</para>
+    ///
+    /// <para>Says nothing useful on macOS, where no update feed is published at all, and says so rather
+    /// than reporting "up to date" — those are different answers.</para></summary>
+    private async Task CmdCheckForUpdateAsync()
+    {
+        if (!UpdateFeed.IsSupportedOnThisPlatform)
+        {
+            System.Console.WriteLine(UpdateFeed.UnsupportedReason);
+            return;
+        }
+
+        System.Console.WriteLine(ServerStrings.Get(ServerStrings.Console_UpdateChecking));
+        string? available = await AppUpdates.CheckAsync(UpdatableApp.Server);
+        System.Console.WriteLine(available is null
+            ? ServerStrings.Get(ServerStrings.Console_UpdateNone)
+            : ServerStrings.Format(ServerStrings.Console_UpdateAvailable, ("Version", available)));
+        if (available is not null) _logger.LogInformation("Server update available: {Version}", available);
+    }
+
+    /// <summary>Who made this. The name, studio and URL come from <see cref="Credits"/>, the same place
+    /// the client's credits screen and both About dialogs read from; only the role caption is localized,
+    /// since a name and a domain are the same in every language.</summary>
+    private static void CmdCredits()
+    {
+        System.Console.WriteLine($"{Constants.GameName}");
+        System.Console.WriteLine($"  {ServerStrings.Get(ServerStrings.Credits_CreatorDeveloper)}: {Credits.Author}");
+        System.Console.WriteLine($"  {Credits.Studio} - {Credits.SiteUrl}");
+        System.Console.WriteLine($"  {Credits.CopyrightLine(DateTime.Now.Year)}");
     }
 }

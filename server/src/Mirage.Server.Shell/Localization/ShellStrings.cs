@@ -21,6 +21,17 @@ public static class ShellStrings
 
     public const string Window_Title = nameof(Window_Title);                     // "{GameName} Server"
     public const string Tab_Server = nameof(Tab_Server);
+    public const string Commands_Server = nameof(Commands_Server);
+    public const string Commands_Update = nameof(Commands_Update);
+    public const string Commands_Credits = nameof(Commands_Credits);
+    public const string Commands_Shutdown = nameof(Commands_Shutdown);
+    public const string Help_Menu = nameof(Help_Menu);
+    public const string Help_About = nameof(Help_About);
+    public const string About_Title = nameof(About_Title);
+    public const string About_Version = nameof(About_Version);
+    public const string About_CreatorDeveloper = nameof(About_CreatorDeveloper);
+    public const string About_Close = nameof(About_Close);
+    public const string About_UpdateAvailable = nameof(About_UpdateAvailable);
     public const string Tab_Console = nameof(Tab_Console);
 
     // ── The server dashboard ──────────────────────────────────────────────────

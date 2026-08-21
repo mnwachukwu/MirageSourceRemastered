@@ -523,6 +523,11 @@
             BorderBrush="{DynamicResource MirageLineBrush}" BorderThickness="0,1,0,0">
       <DockPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+          <Button x:Name="_copyBtn"
+                  ToolTip.Tip="{Binding CopyTooltip}"
+                  ToolTip.ShowOnDisabled="True"
+                  Command="{Binding CopyCommand}"
+                  IsEnabled="{Binding CanCopy}"/>
           <Button x:Name="_discardBtn"
                   Command="{Binding DiscardCommand}"
                   IsEnabled="{Binding IsSelectedDirty}"

@@ -6,8 +6,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <DistRoot>$(RepoRoot)dist/</DistRoot>
     <InstallerRoot>$(RepoRoot)dist/installers/</InstallerRoot>
-    <!-- Each app packs into its own installer subfolder so Velopack's per-channel
-         release repository (RELEASES/*.nupkg) doesn't collide with the other apps. -->
+    <!-- Each app packs into its own installer subfolder to keep a local build readable. That folder
+         is NOT what prevents a collision: CI attaches every file under installers/ to one GitHub
+         release, and release assets are a flat namespace. The CHANNEL is what separates the apps -
+         Velopack names its feed releases.{channel}.json with no pack id in it, so all three apps on
+         channel "win" would write one filename three times. See _Channel in each target below. -->
     <AppInstallerDir>$(InstallerRoot)client/</AppInstallerDir>
     <!-- Velopack identity, both derived from $(GameName) (see Directory.Build.props). _PackId = the
          per-user install-folder name (%LocalAppData%\$(_PackId)) and the prefix of every artifact vpk
@@ -34,7 +37,7 @@
   <Target Name="PackageClient_Win" DependsOnTargets="PublishClient_Win">
     <Message Text="── Packaging Client / win-x64 (.exe installer) ──" Importance="High" />
     <PropertyGroup>
-      <_Channel>win</_Channel>
+      <_Channel>client-win</_Channel>
     </PropertyGroup>
     <MakeDir Directories="$(AppInstallerDir)" />
     <Exec Command="dotnet tool run vpk pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)client/win-x64&quot; --mainExe $(GameNameSlug).exe --runtime win-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
@@ -46,10 +49,6 @@
     </ItemGroup>
     <Move SourceFiles="@(_ClientPortable)"
           DestinationFiles="$(AppInstallerDir)$(_PackId)-$(_Channel).zip" />
-    <ItemGroup>
-      <_ClientWinFeed Include="$(AppInstallerDir)*.nupkg;$(AppInstallerDir)releases.*.json;$(AppInstallerDir)assets.*.json;$(AppInstallerDir)RELEASES*" />
-    </ItemGroup>
-    <Delete Files="@(_ClientWinFeed)" />
   </Target>
 
   <Target Name="PublishAll_Win" DependsOnTargets="PackageClient_Win">
@@ -66,7 +65,7 @@
   <Target Name="PackageClient_Linux" DependsOnTargets="PublishClient_Linux">
     <Message Text="── Packaging Client / linux-x64 (AppImage) ──" Importance="High" />
     <PropertyGroup>
-      <_Channel>linux</_Channel>
+      <_Channel>client-linux</_Channel>
     </PropertyGroup>
     <MakeDir Directories="$(AppInstallerDir)" />
     <!-- [linux] cross-compiles a Linux bundle from the Windows host; the Windows target omits the
@@ -74,16 +73,9 @@
          macOS cannot be cross-built, so its leg hand-rolls a .app.tar.gz instead of using vpk. -->
     <Exec Command="dotnet tool run vpk [linux] pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)client/linux-x64&quot; --mainExe $(GameNameSlug) --runtime linux-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
           WorkingDirectory="$(RepoRoot)" />
-    <!-- vpk emits $(_PackId).AppImage (no channel token); rename to add the runtime token. Exact match (no wildcard) so the renamed file isn't re-matched on a rebuild. -->
-    <ItemGroup>
-      <_ClientAppImage Include="$(AppInstallerDir)$(_PackId).AppImage" />
-    </ItemGroup>
-    <Move SourceFiles="@(_ClientAppImage)"
-          DestinationFiles="$(AppInstallerDir)$(_PackId)-$(_Channel).AppImage" />
-    <ItemGroup>
-      <_ClientLinuxFeed Include="$(AppInstallerDir)*.nupkg;$(AppInstallerDir)releases.*.json;$(AppInstallerDir)assets.*.json;$(AppInstallerDir)RELEASES*" />
-    </ItemGroup>
-    <Delete Files="@(_ClientLinuxFeed)" />
+    <!-- vpk names the AppImage "{PackId}-{Channel}.AppImage" itself once the channel is not the
+         platform default, which ours no longer are. It used to emit a bare "{PackId}.AppImage" and
+         this target renamed it; that rename now matches nothing, so it is gone. -->
   </Target>
 
   <Target Name="PublishAll_Linux" DependsOnTargets="PackageClient_Linux">
@@ -100,7 +92,7 @@
   <Target Name="PackageClient_Osx" DependsOnTargets="PublishClient_Osx">
     <Message Text="── Packaging Client / osx-x64 (.app.tar.gz) ──" Importance="High" />
     <PropertyGroup>
-      <_Channel>osx</_Channel>
+      <_Channel>client-osx</_Channel>
       <_AppBundleName>$(GameNameSlug).app</_AppBundleName>
       <_AppBundle>$(DistRoot)$(_AppBundleName)</_AppBundle>
     </PropertyGroup>

@@ -1,4 +1,6 @@
 using Avalonia;
+using Mirage.Shared;
+using Mirage.Updates;
 using Velopack;
 
 namespace Mirage.Editor;
@@ -11,6 +13,12 @@ sealed class Program
     public static void Main(string[] args)
     {
         VelopackApp.Build().Run();
+
+        // Look for a newer build in the background and stage it for the next launch. Fire-and-forget:
+        // nothing should wait on GitHub to open an editor, and AppUpdates swallows every failure.
+        // Does nothing on macOS or a portable copy.
+        _ = AppUpdates.StageForNextLaunchAsync(UpdatableApp.Editor);
+
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

@@ -268,6 +268,8 @@ public static partial class EditorStrings
     public const string EntityEditor_Saved = nameof(EntityEditor_Saved);
     public const string EntityEditor_SaveFailed = nameof(EntityEditor_SaveFailed);
     public const string EntityEditor_SaveAllSaved = nameof(EntityEditor_SaveAllSaved);
+    public const string EntityEditor_Copied = nameof(EntityEditor_Copied);
+    public const string EntityEditor_NoEmptySlot = nameof(EntityEditor_NoEmptySlot);
     public const string EntityEditor_NoDirty = nameof(EntityEditor_NoDirty);
     public const string EntityEditor_Discarded = nameof(EntityEditor_Discarded);
     public const string EntityEditor_DiscardFailed = nameof(EntityEditor_DiscardFailed);

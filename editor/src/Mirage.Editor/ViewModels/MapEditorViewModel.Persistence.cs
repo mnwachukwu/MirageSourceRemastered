@@ -92,6 +92,44 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
     }
 
+    // ── Auto-save ─────────────────────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public int DirtyCount => Maps.Count(m => m.IsDirty);
+
+    /// <inheritdoc />
+    public string OpenRecordName => SelectedMap?.Record.Name ?? "";
+
+    /// <summary>Write dirty maps to disk on the auto-save schedule.
+    ///
+    /// <para>Skipped while a paint batch is open. A drag is one edit as far as undo is concerned, and a
+    /// tick landing mid-stroke would persist half of it — recoverable, but the file on disk would hold a
+    /// state the author never stopped at.</para>
+    ///
+    /// <para>The revision bump is the same one a manual save does, and it has to be: clients decide
+    /// whether their cached tiles are stale by comparing it, so a save that did not bump would leave them
+    /// showing the map as it was.</para></summary>
+    public async Task<int> AutoSaveAsync(AutoSaveReach reach)
+    {
+        if (_batchOpen) return 0;
+
+        var targets = reach == AutoSaveReach.OpenRecord
+            ? (SelectedMap is { IsDirty: true } open ? [open] : new List<MapRowViewModel>())
+            : Maps.Where(m => m.IsDirty).ToList();
+        if (targets.Count == 0) return 0;
+
+        int saved = 0;
+        foreach (var vm in targets)
+        {
+            vm.BumpRevision();
+            await _data.SaveOfflineMapAsync(vm.Index, vm.Record);
+            vm.ClearDirty();
+            saved++;
+        }
+        NotifyMapDirtyState();
+        return saved;
+    }
+
     // ── Export to PNG (clean map art: base Ground+Fringe, no grid or overlays) ──
 
     public bool HasSelectedMap => SelectedMap is not null;

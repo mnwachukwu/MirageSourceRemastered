@@ -219,6 +219,8 @@ public static partial class EditorStrings
     public const string MapEditor_ConfirmClearLights = nameof(MapEditor_ConfirmClearLights);
     public const string MapEditorStatus_SavedCount = nameof(MapEditorStatus_SavedCount);
     public const string MapEditorStatus_MapSaved = nameof(MapEditorStatus_MapSaved);
+    public const string MapEditorStatus_MapCopied = nameof(MapEditorStatus_MapCopied);
+    public const string MapEditorStatus_NoEmptyMapSlot = nameof(MapEditorStatus_NoEmptyMapSlot);
     public const string MapEditorStatus_SaveFailed = nameof(MapEditorStatus_SaveFailed);
     public const string MapEditorStatus_SaveError = nameof(MapEditorStatus_SaveError);
     public const string MapEditorStatus_MapDiscarded = nameof(MapEditorStatus_MapDiscarded);

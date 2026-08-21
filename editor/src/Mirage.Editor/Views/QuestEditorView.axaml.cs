@@ -54,6 +54,7 @@ public partial class QuestEditorView : LocalizedUserControl
         _addRewardBtn.Content = EditorStrings.Get(EditorStrings.Common_AddRow);
         _noRepeatRewardsHint.Text = EditorStrings.Get(EditorStrings.Common_NoRowsHint);
         _addRepeatRewardBtn.Content = EditorStrings.Get(EditorStrings.Common_AddRow);
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveBtn.Content = EditorStrings.Get(EditorStrings.QuestEditor_SaveQuestButton);

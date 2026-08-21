@@ -120,6 +120,19 @@ public sealed partial class SpellRowViewModel : ObservableObject
     }
 
     /// <summary>Refill from an on-disk record (offline load or discard). Leaves the row clean.</summary>
+    /// <summary>Fill from a record and leave the row DIRTY and loaded — the copy path, where the new
+    /// record exists only in memory until a save persists it.
+    /// <para>Marking it LOADED matters online: an unloaded row lazy-fetches when selected, and that fetch
+    /// would land after the copy and overwrite it with the empty slot the server still holds.</para></summary>
+    public void CopyFromRecord(SpellRecord r)
+    {
+        LoadFromRecord(r);
+        IsLoaded = true;
+        MarkDirty();
+        OnPropertyChanged(nameof(IsLoaded));
+        OnPropertyChanged(nameof(DisplayName));
+    }
+
     public void LoadFromRecord(SpellRecord r)
     {
         _loading = true;

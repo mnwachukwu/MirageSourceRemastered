@@ -286,7 +286,8 @@ public static class HotkeyBarPanel
             {
                 int inv = FindInvSlot(state, hk.Num);
                 Tooltip.NotifyHoverItem(TooltipScope, (TooltipScope, slot), item,
-                    inv > 0 ? me.Inv[inv] : null, me, state.Classes, itemsTex, input.MousePosition);
+                    inv > 0 ? me.Inv[inv] : null, me, state.Classes, itemsTex, input.MousePosition,
+                    state.SpellDefs, state.Items, state.Weather);
             }
         }
         else if (hk.Kind == HotkeyKind.Spell && hk.Num > 0 && hk.Num < state.SpellDefs.Length)

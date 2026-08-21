@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Ui;
+using Mirage.Shared;
 
 namespace Mirage.Client.Shell.Screens;
 
@@ -12,6 +13,18 @@ public sealed class CreditsScreen : IGameScreen
     private readonly ShellContext _ctx;
     private readonly Button _cancelBtn;
     private InputState _input = new();
+
+    /// <summary>The studio name, as a link to the site.
+    ///
+    /// <para>Stock <see cref="Link"/> styling — bracketed, grey, brightening on hover — because that is
+    /// what a link looks like everywhere else in this client ([Mail], [Options], [Help]). Drawn bare and
+    /// in the same colour as the copyright line beside it, it reads as more of the sentence.</para>
+    ///
+    /// <para>Its box is measured and positioned in <see cref="Draw"/>: it sits immediately after the
+    /// copyright prefix, so its left edge depends on the rendered width of text in whatever font and
+    /// language are current. Update click-tests the box Draw last set, which costs the first frame and
+    /// nothing after it.</para></summary>
+    private readonly Link _siteLink = new() { Label = Credits.Studio };
     // The close button's caption is captured in the constructor, so a language switch made while
     // this screen is showing would leave it stale. The credit lines themselves are fetched inline
     // at draw time and need no refresh.
@@ -45,6 +58,7 @@ public sealed class CreditsScreen : IGameScreen
             _labelsGeneration = ClientStrings.Generation;
             RefreshLabels();
         }
+        if (_siteLink.IsClicked(input)) UiHelper.OpenUrl(Credits.SiteUrl);
         if (_cancelBtn.IsClicked(input)) _ctx.Screens.Replace(new MainMenuScreen(_ctx));
     }
 
@@ -77,12 +91,23 @@ public sealed class CreditsScreen : IGameScreen
 
         // ── C# Implementation ─────────────────────────────────────────────────
         sb.DrawString(font, ClientStrings.Get(ClientStrings.Credits_SectionCSharp), new Vector2(lx, Dlg.Y + 180), Color.Gold);
-        sb.DrawString(font, ClientStrings.Get(ClientStrings.Credits_Programming), new Vector2(lx, Dlg.Y + 196), UiHelper.DlgLabelColor);
-        sb.DrawString(font, "Matt Nwachukwu", new Vector2(lx, Dlg.Y + 212), Color.LightPink);
-        sb.DrawString(font, "(Silver / Vandestelka)", new Vector2(lx, Dlg.Y + 224), Color.LightPink);
+        sb.DrawString(font, ClientStrings.Get(ClientStrings.Credits_CreatorDeveloper), new Vector2(lx, Dlg.Y + 196), UiHelper.DlgLabelColor);
+        sb.DrawString(font, Credits.Author, new Vector2(lx, Dlg.Y + 212), Color.LightPink);
+        sb.DrawString(font, Credits.AuthorHandles, new Vector2(lx, Dlg.Y + 224), Color.LightPink);
 
         // ── Copyright ─────────────────────────────────────────────────────────
-        sb.DrawString(font, "Copyright (c) 2026 Pluperfect Development", new Vector2(lx, Dlg.Y + 244), Color.LightPink);
+        // Drawn in two pieces so the studio half can be a link: the prefix, then the link box placed at
+        // exactly the prefix's rendered width.
+        string prefix = $"Copyright (c) {Credits.CopyrightYears(DateTime.Now.Year)} ";
+        float copyrightY = Dlg.Y + 244;
+        sb.DrawString(font, prefix, new Vector2(lx, copyrightY), Color.LightPink);
+
+        // Measured off DisplayText, so the brackets are inside the clickable box rather than beside it.
+        var linkSize = font.MeasureString(_siteLink.DisplayText);
+        _siteLink.Bounds = new Rectangle(
+            (int)(lx + font.MeasureString(prefix).X), (int)copyrightY,
+            (int)linkSize.X, (int)linkSize.Y);
+        _siteLink.Draw(sb, font, _input);
 
         _cancelBtn.Draw(sb, font, _input);
     }

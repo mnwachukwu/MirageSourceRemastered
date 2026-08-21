@@ -724,7 +724,11 @@
   "Management_LinesDropped":      "... {Count} linha(s) perdida(s); esta ligação não estava a acompanhar.",
 
   "Console_Prompt":               "Console do servidor {GameName} - digite /help para ver os comandos.",
-  "Console_Help":                 "Jogadores: /who  /kick <nome> [minutos]  /ban <nome>  /mute <nome> [minutos]  /refreshbanlist  /setaccess <nível> <nome>  /moderation  /unban <conta>  /unkick <conta>  /unmute <conta>\nMundo: /tod <fase>  /weather <tipo>  /motd <texto>  /respawn <mapa>  /mapreport\nGuildas: /startwar  /advancewar  /endwar  /guildreset [day|week|season]\nServidor: /shutdown  /help",
+  "Console_Help":                 "Jogadores: /who  /kick <nome> [minutos]  /ban <nome>  /mute <nome> [minutos]  /refreshbanlist  /setaccess <nível> <nome>  /moderation  /unban <conta>  /unkick <conta>  /unmute <conta>\nMundo: /tod <fase>  /weather <tipo>  /motd <texto>  /respawn <mapa>  /mapreport\nGuildas: /startwar  /advancewar  /endwar  /guildreset [day|week|season]\nServidor: /shutdown  /help  /credits  /update",
+  "Credits_CreatorDeveloper": "Criador / Desenvolvedor",
+  "Console_UpdateChecking": "Procurando uma versao mais recente...",
+  "Console_UpdateNone": "Esta e a versao mais recente.",
+  "Console_UpdateAvailable": "Atualizacao disponivel: {Version}. Pare o servidor e execute o novo instalador para aplica-la.",
   "Console_Shutdown":             "Encerramento solicitado.",
   "Console_UnknownCommand":       "Comando desconhecido: {Cmd}  (digite /help para a lista)",
   "Console_WhoTotal":             "  Total on-line: {Count}",

@@ -1,0 +1,23 @@
+{
+  "index": 1,
+  "name": "Fenn\u0027s Landing",
+  "displayName": "Fenn\u0027s Landing",
+  "music": 5,
+  "moral": "Safe",
+  "alwaysLit": true,
+  "bootMap": 0,
+  "bootX": 0,
+  "bootY": 0,
+  "greetingSpeaker": "",
+  "joinSay": "",
+  "leaveSay": "",
+  "territory": false,
+  "controllingGuild": 0,
+  "pendingIncome": 0,
+  "incomeThisWeek": 0,
+  "previousWeekIncome": 0,
+  "lastWeekRollDate": "0001-01-01",
+  "weeksHeld": 0,
+  "challengers": [],
+  "defenderAbandoned": false
+}

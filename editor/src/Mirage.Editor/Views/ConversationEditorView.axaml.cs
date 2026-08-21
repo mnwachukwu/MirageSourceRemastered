@@ -33,6 +33,7 @@ public partial class ConversationEditorView : LocalizedUserControl
         _noNodesHint.Text = EditorStrings.Get(EditorStrings.Common_NoRowsHint);
         _addNodeBtn.Content = EditorStrings.Get(EditorStrings.Common_AddRow);
         _addGraphNodeBtn.Content = EditorStrings.Get(EditorStrings.Common_AddRow);
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveBtn.Content = EditorStrings.Get(EditorStrings.ConversationEditor_SaveButton);

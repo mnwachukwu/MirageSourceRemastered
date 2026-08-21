@@ -78,6 +78,7 @@ public static partial class ClientStrings
     public const string Tooltip_Quantity = nameof(Tooltip_Quantity);
     public const string Tooltip_ClassReq = nameof(Tooltip_ClassReq);
     public const string Tooltip_LevelReq = nameof(Tooltip_LevelReq);
+    public const string Tooltip_Teaches = nameof(Tooltip_Teaches);
     public const string Tooltip_MpCost = nameof(Tooltip_MpCost);
     // Action bar
     public const string HotkeyBar_EmptyHint = nameof(HotkeyBar_EmptyHint);

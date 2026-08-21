@@ -662,7 +662,12 @@ public sealed class JsonPersistenceService : IPersistenceService
             {
                 string json = await File.ReadAllTextAsync(path);
                 var group = JsonSerializer.Deserialize<MapGroupRecord>(json, Options);
-                if (group is not null) result[index] = group;
+                if (group is null) continue;
+                // The FILENAME is the authority on which group this is. Index is a denormalized copy the
+                // record carries so the guild and territory code can identify a group it holds a reference
+                // to, detached from any key — stamping it here keeps the two from ever disagreeing.
+                group.Index = index;
+                result[index] = group;
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to load {File}", path); }
         }

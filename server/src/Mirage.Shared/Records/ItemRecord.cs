@@ -151,6 +151,13 @@ public sealed class ItemRecord
     /// is level 4 is a puzzle nobody asked for.</para></summary>
     public static bool UsesLevelReq(ItemType type) => IsEquipment(type) || IsPotion(type);
 
+    /// <summary>The item's level gate; for a spell scroll, the gate on the spell it teaches.</summary>
+    public static int EffectiveLevelReq(ItemRecord? item, SpellRecord? taughtSpell)
+    {
+        if (item is { LevelReq: > 0 }) return item.LevelReq;
+        return item?.Type == ItemType.Spell ? taughtSpell?.LevelReq ?? 0 : 0;
+    }
+
     /// <summary>Zero every field that does not apply to the current <see cref="Type"/>, so the record
     /// carries only properties it actually has. Call on any path that writes an item — the editor's save
     /// and the server's handler for an editor save packet both do, the latter because the server is

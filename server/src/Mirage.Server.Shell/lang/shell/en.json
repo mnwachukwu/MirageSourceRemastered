@@ -3,6 +3,17 @@
 
   "Window_Title": "{GameName} Server",
   "Tab_Server": "State",
+  "Commands_Server": "Server",
+  "Commands_Update": "Report whether a newer build has been released. Never applies it — that restarts the server and disconnects everyone.",
+  "Commands_Credits": "Print who made this and where to find them.",
+  "Commands_Shutdown": "Ask the server to shut down gracefully, saving as it goes.",
+  "Help_Menu": "Help",
+  "Help_About": "About",
+  "About_Title": "About {GameName}",
+  "About_Version": "Version {Version}",
+  "About_CreatorDeveloper": "Creator / Developer",
+  "About_Close": "Close",
+  "About_UpdateAvailable": "Version {Version} — an update is available",
   "Tab_Console": "Console",
 
   "Server_Blurb": "What the server is doing right now. Anything shown here that can be changed, can be changed here.",

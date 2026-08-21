@@ -642,6 +642,12 @@
                   Padding="8,3" FontSize="11"/>
         </StackPanel>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+          <Button x:Name="_copyBtn"
+                  ToolTip.Tip="{Binding CopyMapTooltip}"
+                  ToolTip.ShowOnDisabled="True"
+                  Command="{Binding CopyMapCommand}"
+                  IsEnabled="{Binding CanCopyMap}"
+                  Padding="10,3" FontSize="11"/>
           <Button x:Name="_btnDiscardMap" Classes="danger"
                   Command="{Binding DiscardMapCommand}"
                   IsEnabled="{Binding IsSelectedMapDirty}"

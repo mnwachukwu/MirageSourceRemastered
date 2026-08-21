@@ -112,4 +112,5 @@ public static partial class ClientStrings
     public const string Credits_GuiArt = nameof(Credits_GuiArt);
     public const string Credits_GuiArtNote = nameof(Credits_GuiArtNote);
     public const string Credits_SectionCSharp = nameof(Credits_SectionCSharp);
+    public const string Credits_CreatorDeveloper = nameof(Credits_CreatorDeveloper);
 }

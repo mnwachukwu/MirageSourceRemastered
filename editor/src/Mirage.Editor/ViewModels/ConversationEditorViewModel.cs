@@ -60,6 +60,23 @@ public sealed partial class ConversationEditorViewModel : EditorViewModelBase<Co
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.ConversationEditor_TypeNamePlural);
     protected override int GetIndex(ConversationRowViewModel vm) => vm.Index;
     protected override bool GetIsDirty(ConversationRowViewModel vm) => vm.IsDirty;
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(ConversationRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(ConversationRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(ConversationRowViewModel source, ConversationRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        // The resolver picks the FIRST non-empty conversation whose SpeakerNpc matches, so a verbatim copy
+        // would either be dead or hijack the NPC depending on slot order. The copy arrives unattached.
+        rec.SpeakerNpc = 0;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(ConversationRowViewModel vm) => vm.ClearDirty();
 
     public async Task EagerLoadAllAsync(CancellationToken ct)

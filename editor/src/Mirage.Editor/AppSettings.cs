@@ -51,6 +51,11 @@ public sealed class AppSettings
     public double MapGroupEditorLeftWidth { get; set; } = 200;
     public double MapGroupEditorRightWidth { get; set; } = 220;
 
+    /// <summary>Per-editor auto-save, keyed by the section id ("Maps", "Items", …). A section missing
+    /// from the map is off with the defaults; Accounts never appears, because those records are the
+    /// server's and are saved one deliberate press at a time.</summary>
+    public Dictionary<string, AutoSaveSetting> AutoSave { get; set; } = [];
+
     private static AppSettings? _instance;
     public static AppSettings Current => _instance ??= Load();
 

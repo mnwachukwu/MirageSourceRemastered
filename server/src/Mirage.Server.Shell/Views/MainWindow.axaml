@@ -14,6 +14,19 @@
   <!-- The tabs stay BELOW the title bar. Putting them in it is the fashionable choice and was tried;
        it reads as a browser rather than as a tool, and the title bar only exists on Windows, so the two
        platforms would have diverged on layout and not just on the frame. -->
+  <Grid>
+
+  <!-- Help sits on the tab strip's own row rather than in a bar of its own: one menu does not earn a
+       strip, and the row is already there with nothing in its right half. -->
+  <Menu HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,14,0"
+        Background="Transparent" ZIndex="1">
+    <!-- Bound, not assigned in code-behind: this window hand-writes InitializeComponent as
+         AvaloniaXamlLoader.Load, which builds the tree but leaves every x:Name backing field null. -->
+    <MenuItem Header="{Binding HelpMenuHeader}">
+      <MenuItem Header="{Binding HelpAboutHeader}" Click="HelpAbout_Click"/>
+    </MenuItem>
+  </Menu>
+
   <TabControl Margin="8">
 
     <!-- ── Console ──────────────────────────────────────────────────────────
@@ -810,4 +823,6 @@
     </TabItem>
 
   </TabControl>
+
+  </Grid>
 </ui:FAAppWindow>

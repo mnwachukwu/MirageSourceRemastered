@@ -48,6 +48,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private SectionViewModel? _selectedSection;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ConnectionStatus))]
+    [NotifyPropertyChangedFor(nameof(AutoSaveMenuItemLabel))]
     private bool _isOnline;
 
     /// <summary>The one word inside the toolbar badge. Derived rather than assigned at each transition:
@@ -302,13 +303,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void OnLanguageChanged()
     {
         foreach (var s in Sections) s.NotifyDisplayNameChanged();
+        NotifyAutoSaveMenuChanged();
         OnPropertyChanged(nameof(ConnectionStatus));
         OnPropertyChanged(nameof(RailToggleTooltip));
     }
 
     // Maps the stable section id to its localized nav label key. Logic (switch/lookup) keeps using
     // the id; only the displayed label is localized.
-    private static string SectionLabelKey(string id) => id switch
+    internal static string SectionLabelKey(string id) => id switch
     {
         "Maps" => EditorStrings.MainWindow_Section_Maps,
         "MapGroups" => EditorStrings.MainWindow_Section_MapGroups,

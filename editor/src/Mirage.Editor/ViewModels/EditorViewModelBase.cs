@@ -21,7 +21,7 @@ namespace Mirage.Editor.ViewModels;
 /// </summary>
 /// <typeparam name="TRow">The per-record row view-model type; must raise <c>PropertyChanged</c>
 /// for <c>"IsDirty"</c> so the aggregate dirty flags stay live.</typeparam>
-public abstract partial class EditorViewModelBase<TRow> : ObservableObject
+public abstract partial class EditorViewModelBase<TRow> : ObservableObject, IAutoSaveTarget
     where TRow : class, INotifyPropertyChanged
 {
     protected readonly EditorDataService _data;
@@ -144,6 +144,75 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject
     /// <summary>Every row holding unsaved edits — used by the quit-time push/save prompt.</summary>
     public IEnumerable<TRow> GetDirty() => Items.Where(GetIsDirty);
 
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>The record's name, as authored. Empty for an unused slot.</summary>
+    protected abstract string GetName(TRow row);
+
+    /// <summary>Whether the slot holds no record, so a copy may land in it — the same rule the list
+    /// already uses to label a slot "(empty)".</summary>
+    protected virtual bool IsEmptyRow(TRow row) => string.IsNullOrWhiteSpace(GetName(row));
+    /// <summary>Whether the row's full definition has been fetched. Always true offline.</summary>
+    protected abstract bool GetIsLoaded(TRow row);
+    /// <summary>Write a copy of <paramref name="source"/> into <paramref name="target"/>, applying this
+    /// record type's copy rules — the renamed name, and any reference the type cannot share.</summary>
+    protected abstract void CopyInto(TRow source, TRow target);
+
+    /// <summary>The lowest-numbered unused slot, or null when every slot holds a record.</summary>
+    private TRow? FirstEmptyRow() => Items.FirstOrDefault(IsEmptyRow);
+
+    /// <summary>Whether Copy can run: a real record is open, and there is somewhere to put the copy.
+    /// An empty slot is not copyable — duplicating one would just consume another slot to hold a second
+    /// nothing, named " (Copy)".</summary>
+    public bool CanCopy => Selected is { } row && !IsEmptyRow(row) && FirstEmptyRow() is not null;
+
+    /// <summary>Why Copy is unavailable, for the tooltip on the disabled button. Empty when it is
+    /// available, so the button falls back to describing what it does.</summary>
+    public string CopyBlockedReason
+    {
+        get
+        {
+            if (Selected is not { } row) return EditorStrings.Get(EditorStrings.Common_CopyNeedsSelection);
+            if (IsEmptyRow(row)) return EditorStrings.Get(EditorStrings.Common_CopyNeedsRecord);
+            if (FirstEmptyRow() is null)
+                return EditorStrings.Format(EditorStrings.EntityEditor_NoEmptySlot,
+                    ("EntityTypePlural", TypeNamePlural));
+            return "";
+        }
+    }
+
+    /// <summary>What the Copy button says on hover: the reason it cannot run, or what it does.</summary>
+    public string CopyTooltip =>
+        CopyBlockedReason is { Length: > 0 } why ? why : EditorStrings.Get(EditorStrings.Common_CopyTooltip);
+
+    /// <summary>Duplicate the open record into the first unused slot and select it, ready to edit.
+    /// <para>The copy is DIRTY and lives only in memory until a save persists it — the same as any other
+    /// edit, so an unwanted copy is a Discard away rather than a file to delete.</para></summary>
+    [RelayCommand]
+    private async Task CopyAsync()
+    {
+        if (Selected is null) return;
+        var source = Selected;
+
+        // Online a row can be a name-only placeholder until it is fetched; copying one would duplicate a
+        // blank and quietly lose everything the slot actually holds.
+        if (_data.IsOnline && !GetIsLoaded(source)) await LoadEntityAsync(source);
+
+        var target = FirstEmptyRow();
+        if (target is null)
+        {
+            StatusMessage = EditorStrings.Format(EditorStrings.EntityEditor_NoEmptySlot,
+                ("EntityTypePlural", TypeNamePlural));
+            return;
+        }
+
+        CopyInto(source, target);
+        SetSelected(target);
+        NotifyDirtyState();
+        StatusMessage = EditorStrings.Format(EditorStrings.EntityEditor_Copied,
+            ("EntityType", TypeName), ("From", GetIndex(source)), ("To", GetIndex(target)));
+    }
+
     /// <summary>Write every dirty row straight to disk, bypassing the online path entirely.
     /// Used when saving a whole offline session at once.</summary>
     public async Task SaveAllOfflineAsync()
@@ -154,6 +223,39 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject
             ClearDirtyState(vm);
         }
         NotifyDirtyState();
+    }
+
+    // ── Auto-save ─────────────────────────────────────────────────────────────
+
+    /// <inheritdoc />
+    public int DirtyCount => Items.Count(GetIsDirty);
+
+    /// <inheritdoc />
+    public string OpenRecordName => Selected is { } row ? GetName(row) : "";
+
+    /// <inheritdoc />
+    public async Task<int> AutoSaveAsync(AutoSaveReach reach)
+    {
+        if (reach == AutoSaveReach.OpenRecord)
+        {
+            if (Selected is not { } row || !GetIsDirty(row)) return 0;
+            await SaveOfflineAsync(row);
+            ClearDirtyState(row);
+            NotifyDirtyState();
+            AfterSave(row);
+            return 1;
+        }
+
+        var dirty = Items.Where(GetIsDirty).ToList();
+        if (dirty.Count == 0) return 0;
+        foreach (var row in dirty)
+        {
+            await SaveOfflineAsync(row);
+            ClearDirtyState(row);
+            AfterSave(row);
+        }
+        NotifyDirtyState();
+        return dirty.Count;
     }
 
     // ── Dirty-state computed properties ───────────────────────────────────────
@@ -168,6 +270,9 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject
     {
         OnPropertyChanged(nameof(IsSelectedDirty));
         OnPropertyChanged(nameof(HasAnyDirty));
+        // Copy depends on the selection and on a free slot still existing, and both move here.
+        OnPropertyChanged(nameof(CanCopy));
+        OnPropertyChanged(nameof(CopyTooltip));
     }
 
     /// <summary>Subscribe to <see cref="Items"/> so dirty state and the filtered view follow row

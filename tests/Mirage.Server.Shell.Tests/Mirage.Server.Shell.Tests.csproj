@@ -18,4 +18,14 @@
     <ProjectReference Include="..\..\server\src\Mirage.Server.Shell\Mirage.Server.Shell.csproj" />
   </ItemGroup>
 
+  <!-- Baked in for the checks that read repository FILES: ShellCommandCoverageTests reads the console
+       dispatcher sources. Walking up from AppContext.BaseDirectory works only from the normal output
+       path, so a redirected build would skip the check instead of running it. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RepoRoot</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

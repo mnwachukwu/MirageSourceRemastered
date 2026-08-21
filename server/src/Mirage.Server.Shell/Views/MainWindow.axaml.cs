@@ -31,6 +31,12 @@ public sealed partial class MainWindow : FAAppWindow
         };
     }
 
+    private async void HelpAbout_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var dlg = new AboutDialog();
+        await dlg.ShowDialog(this);
+    }
+
     /// <summary>Keeps the console pinned to its newest line — unless the operator is holding a
     /// selection, in which case scrolling would drag the view out from under what they are trying to
     /// copy. That is the whole reason to check: the pane is worth following only while nobody is

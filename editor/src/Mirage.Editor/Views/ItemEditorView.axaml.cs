@@ -68,6 +68,7 @@ public partial class ItemEditorView : LocalizedUserControl
         _notesCurrencyHeader.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_CurrencyHeader);
         _notesCurrencyDesc.Text = EditorStrings.Get(EditorStrings.ItemEditor_Notes_CurrencyDesc);
 
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveBtn.Content = EditorStrings.Get(EditorStrings.ItemEditor_SaveItemButton);

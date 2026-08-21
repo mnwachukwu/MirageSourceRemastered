@@ -54,6 +54,17 @@ public sealed partial class MapRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsDirty));
     }
 
+    /// <summary>Take a copied record and leave the row DIRTY and loaded — the copy path, where the new
+    /// map exists only in memory until a save persists it.
+    /// <para>Marking it LOADED matters online: an unloaded row lazy-fetches when selected, and that fetch
+    /// would land after the copy and overwrite it with the empty slot the server still holds.</para></summary>
+    public void CopyFromRecord(MapRecord r)
+    {
+        UpdateRecord(r);
+        IsLoaded = true;
+        OnPropertyChanged(nameof(IsLoaded));
+    }
+
     // Loads full record data without marking dirty (used for lazy fetch).
     /// <summary>Fill in the full record from a lazy fetch, leaving the row clean.</summary>
     public void LoadRecord(MapRecord r)

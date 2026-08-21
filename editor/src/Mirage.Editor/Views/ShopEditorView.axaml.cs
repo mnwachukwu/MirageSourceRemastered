@@ -43,6 +43,7 @@ public partial class ShopEditorView : LocalizedUserControl
         _colSalesPrice.Text = EditorStrings.Get(EditorStrings.ShopEditor_SalesColPrice);
         _noSalesHint.Text = EditorStrings.Get(EditorStrings.Common_NoRowsHint);
         _addSaleBtn.Content = EditorStrings.Get(EditorStrings.Common_AddRow);
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveBtn.Content = EditorStrings.Get(EditorStrings.ShopEditor_SaveShopButton);

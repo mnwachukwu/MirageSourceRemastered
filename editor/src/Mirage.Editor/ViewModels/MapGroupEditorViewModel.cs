@@ -61,6 +61,23 @@ public sealed partial class MapGroupEditorViewModel : EditorViewModelBase<MapGro
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.MapGroupEditor_TypeNamePlural);
     protected override int GetIndex(MapGroupRowViewModel vm) => vm.Index;
     protected override bool GetIsDirty(MapGroupRowViewModel vm) => vm.IsDirty;
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(MapGroupRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(MapGroupRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(MapGroupRowViewModel source, MapGroupRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        // The only record that stores its own slot number; carrying the source number over would leave the
+        // copy disagreeing with the slot it lives in.
+        rec.Index = target.Index;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(MapGroupRowViewModel vm) => vm.ClearDirty();
 
     public async Task EagerLoadAllAsync(CancellationToken ct)

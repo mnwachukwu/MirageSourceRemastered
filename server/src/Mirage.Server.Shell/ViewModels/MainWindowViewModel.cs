@@ -92,6 +92,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// engine name; see <see cref="ServerConfig.GameName"/>.</summary>
     public string Title => ShellStrings.Format(ShellStrings.Window_Title, ("GameName", GameName));
     public string ConsoleTabHeader => ShellStrings.Get(ShellStrings.Tab_Console);
+    public string HelpMenuHeader => ShellStrings.Get(ShellStrings.Help_Menu);
+    public string HelpAboutHeader => ShellStrings.Get(ShellStrings.Help_About);
     public string ConfigurationTabHeader => ShellStrings.Get(ShellStrings.Tab_Configuration);
     public string CommandsTabHeader => ShellStrings.Get(ShellStrings.Tab_Commands);
     public string CommandsBlurb => ShellStrings.Get(ShellStrings.Commands_Blurb);
@@ -624,9 +626,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// offer a value the server would refuse.</summary>
     private void BuildCommands()
     {
+        CommandGroups = BuildCommandGroups(Send);
+        OnPropertyChanged(nameof(CommandGroups));
+    }
+
+    /// <summary>The command forms themselves, independent of any window. Takes the send action rather
+    /// than reaching for one, so the list can be built and inspected without a settings file, a
+    /// connection, or a running server behind it.</summary>
+    public static IReadOnlyList<CommandGroup> BuildCommandGroups(Action<string> Send)
+    {
         static string[] Names<T>() where T : struct, Enum => Enum.GetNames<T>();
 
-        CommandGroups =
+        return
         [
             new CommandGroup(ShellStrings.Get(ShellStrings.Commands_Players),
             [
@@ -664,8 +675,17 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 new ShellCommand("/guildreset", ShellStrings.Get(ShellStrings.Commands_GuildReset), Send,
                     CommandParameter.Choice("scope", Names<SettlementScope>())),
             ]),
+            // The tab doubles as the list of what the console accepts, so a command being reachable
+            // another way is not a reason to leave it out. /shutdown is also available as the Stop
+            // button on the Console tab; here it asks first, the same as the other destructive ones.
+            new CommandGroup(ShellStrings.Get(ShellStrings.Commands_Server),
+            [
+                new ShellCommand("/update", ShellStrings.Get(ShellStrings.Commands_Update), Send),
+                new ShellCommand("/credits", ShellStrings.Get(ShellStrings.Commands_Credits), Send),
+                new ShellCommand("/shutdown", ShellStrings.Get(ShellStrings.Commands_Shutdown), Send)
+                    { NeedsConfirmation = true },
+            ]),
         ];
-        OnPropertyChanged(nameof(CommandGroups));
     }
 
     // ── Connection ────────────────────────────────────────────────────────────

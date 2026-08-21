@@ -1,7 +1,7 @@
 {
   "name": "The Gravebound Fen 1",
   "displayName": "The Gravebound Fen, Respite",
-  "revision": 6,
+  "revision": 7,
   "up": 28,
   "down": 0,
   "left": 26,
@@ -483,25 +483,29 @@
         "ground": [
           145,
           134
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           141
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           141
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           148
-        ]
+        ],
+        "type": "Blocked"
       }
     ],
     [
@@ -549,26 +553,30 @@
         "ground": [
           145,
           136
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           143
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           143,
           135
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           149
-        ]
+        ],
+        "type": "Blocked"
       }
     ],
     [
@@ -633,13 +641,15 @@
           145,
           0,
           135
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           149
-        ]
+        ],
+        "type": "Blocked"
       }
     ],
     [
@@ -687,26 +697,30 @@
         "ground": [
           145,
           134
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           141
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           141,
           135
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           149
-        ]
+        ],
+        "type": "Blocked"
       }
     ],
     [
@@ -754,25 +768,29 @@
         "ground": [
           145,
           136
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           143
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           143
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           145,
           150
-        ]
+        ],
+        "type": "Blocked"
       }
     ],
     [

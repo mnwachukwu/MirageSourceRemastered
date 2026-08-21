@@ -214,6 +214,19 @@ public sealed partial class ConversationRowViewModel : ObservableObject
         // The node pickers are self-sourced (not from the editor caches), so they don't refresh here.
     }
 
+    /// <summary>Fill from a record and leave the row DIRTY and loaded — the copy path, where the new
+    /// record exists only in memory until a save persists it.
+    /// <para>Marking it LOADED matters online: an unloaded row lazy-fetches when selected, and that fetch
+    /// would land after the copy and overwrite it with the empty slot the server still holds.</para></summary>
+    public void CopyFromRecord(ConversationRecord r)
+    {
+        LoadFromRecord(r);
+        IsLoaded = true;
+        MarkDirty();
+        OnPropertyChanged(nameof(IsLoaded));
+        OnPropertyChanged(nameof(DisplayName));
+    }
+
     public void LoadFromRecord(ConversationRecord r)
     {
         _loading = true;

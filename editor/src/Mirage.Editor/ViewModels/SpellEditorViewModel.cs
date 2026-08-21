@@ -133,6 +133,20 @@ public sealed partial class SpellEditorViewModel : EditorViewModelBase<SpellRowV
     /// <inheritdoc/>
     protected override bool GetIsDirty(SpellRowViewModel vm) => vm.IsDirty;
     /// <inheritdoc/>
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(SpellRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(SpellRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(SpellRowViewModel source, SpellRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(SpellRowViewModel vm) => vm.ClearDirty();
 
     /// <summary>Pre-fill every placeholder row from one bulk server response, so browsing the list after

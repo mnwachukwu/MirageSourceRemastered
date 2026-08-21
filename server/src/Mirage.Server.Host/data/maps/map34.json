@@ -1,7 +1,7 @@
 {
   "name": "The Gravebound Fen 8",
   "displayName": "The Gravebound Fen, Abandoned House",
-  "revision": 4,
+  "revision": 5,
   "up": 0,
   "down": 0,
   "left": 0,
@@ -520,8 +520,8 @@
         ],
         "type": "Warp",
         "warpMap": 32,
-        "warpX": 3,
-        "warpY": 1
+        "warpX": 13,
+        "warpY": 3
       }
     ],
     [
@@ -591,8 +591,8 @@
         ],
         "type": "Warp",
         "warpMap": 32,
-        "warpX": 3,
-        "warpY": 1
+        "warpX": 13,
+        "warpY": 3
       }
     ],
     [
@@ -658,8 +658,8 @@
         ],
         "type": "Warp",
         "warpMap": 32,
-        "warpX": 3,
-        "warpY": 1
+        "warpX": 13,
+        "warpY": 3
       }
     ],
     [

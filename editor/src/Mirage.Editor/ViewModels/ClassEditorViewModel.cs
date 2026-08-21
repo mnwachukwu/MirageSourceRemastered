@@ -89,6 +89,20 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
     /// <inheritdoc/>
     protected override bool GetIsDirty(ClassRowViewModel vm) => vm.IsDirty;
     /// <inheritdoc/>
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(ClassRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(ClassRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(ClassRowViewModel source, ClassRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(ClassRowViewModel vm) => vm.ClearDirty();
 
     /// <summary>Pre-fill every placeholder row from one bulk server response, so browsing the list after

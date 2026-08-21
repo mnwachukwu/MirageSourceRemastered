@@ -33,6 +33,7 @@
     <!-- The palette, the type ramp, and FluentAvalonia transitively. Shared with the editor so the two
          cannot drift into separate looks. -->
     <ProjectReference Include="..\Mirage.Ui\Mirage.Ui.csproj" />
+    <ProjectReference Include="..\Mirage.Updates\Mirage.Updates.csproj" />
   </ItemGroup>
 
   <!-- NESTED under lang/shell/, not lang/. The shell and the server ship into ONE directory and both

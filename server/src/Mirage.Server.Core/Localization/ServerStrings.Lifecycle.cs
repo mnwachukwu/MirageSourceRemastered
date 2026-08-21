@@ -61,6 +61,10 @@ public static partial class ServerStrings
     // ── Console commands ──────────────────────────────────────────────────────
     public const string Console_Prompt = nameof(Console_Prompt);
     public const string Console_Help = nameof(Console_Help);
+    public const string Credits_CreatorDeveloper = nameof(Credits_CreatorDeveloper);
+    public const string Console_UpdateChecking = nameof(Console_UpdateChecking);
+    public const string Console_UpdateNone = nameof(Console_UpdateNone);
+    public const string Console_UpdateAvailable = nameof(Console_UpdateAvailable);
     public const string Console_Shutdown = nameof(Console_Shutdown);
     public const string Console_UnknownCommand = nameof(Console_UnknownCommand);
     public const string Console_WhoTotal = nameof(Console_WhoTotal);

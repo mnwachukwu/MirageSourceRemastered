@@ -67,6 +67,24 @@ public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowV
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.QuestEditor_TypeNamePlural);
     protected override int GetIndex(QuestRowViewModel vm) => vm.Index;
     protected override bool GetIsDirty(QuestRowViewModel vm) => vm.IsDirty;
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(QuestRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(QuestRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(QuestRowViewModel source, QuestRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        // Giver and turn-in are resolved by scanning for the NPC, so a duplicate claim would leave one of
+        // the two quests unreachable. The copy arrives unattached.
+        rec.GiverNpc = 0;
+        rec.TurnInNpc = 0;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(QuestRowViewModel vm) => vm.ClearDirty();
 
     public async Task EagerLoadAllAsync(CancellationToken ct)

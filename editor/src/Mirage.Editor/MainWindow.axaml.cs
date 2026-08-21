@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using FluentAvalonia.UI.Windowing;
 using Mirage.Editor.Localization;
@@ -42,6 +43,7 @@ public partial class MainWindow : FAAppWindow
         if (settings.WindowMaximized) WindowState = WindowState.Maximized;
 
         Opened += OnWindowOpened;
+        StartAutoSaveTicker();
         Closing += OnWindowClosing;
     }
 
@@ -52,6 +54,7 @@ public partial class MainWindow : FAAppWindow
         Title = $"{Constants.GameName} — {EditorStrings.Get(EditorStrings.MainWindow_Title)}";
         _helpMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMenu);
         _helpMapEditorItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMapEditor);
+        _helpAboutItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpAbout);
         _languageMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_LanguageMenu);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
         _exportMapItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportMapButton);
@@ -60,8 +63,42 @@ public partial class MainWindow : FAAppWindow
         ToolTip.SetTip(_exportMapItem, EditorStrings.Get(EditorStrings.MapEditor_ExportMapTooltip));
         ToolTip.SetTip(_exportAreaItem, EditorStrings.Get(EditorStrings.MapEditor_ExportAreaTooltip));
         ToolTip.SetTip(_exportWorldItem, EditorStrings.Get(EditorStrings.MapEditor_ExportWorldTooltip));
+        _autoSaveMenu.Header = EditorStrings.Get(EditorStrings.AutoSave_Menu);
         _connectBtn.Content = EditorStrings.Get(EditorStrings.Common_Connect);
         _disconnectBtn.Content = EditorStrings.Get(EditorStrings.MainWindow_DisconnectButton);
+    }
+
+    /// <summary>How often the auto-save schedule is checked. Not the save interval — the shortest one on
+    /// offer is five minutes, and this only has to be fine enough that a due save is not noticeably late.</summary>
+    private static readonly TimeSpan AutoSaveTickInterval = TimeSpan.FromSeconds(30);
+    private DispatcherTimer? _autoSaveTimer;
+
+    /// <summary>Start the one app-wide auto-save ticker. One timer for every editor, with the per-editor
+    /// schedules kept as last-saved stamps in the view-model — so an editor whose section is not showing
+    /// still reaches its interval and still gets written.</summary>
+    private void StartAutoSaveTicker()
+    {
+        _autoSaveTimer = new DispatcherTimer { Interval = AutoSaveTickInterval };
+        _autoSaveTimer.Tick += async (_, _) =>
+        {
+            if (DataContext is MainWindowViewModel vm) await vm.AutoSaveTickAsync(DateTime.Now);
+        };
+        _autoSaveTimer.Start();
+    }
+
+    private async void AutoSaveConfigure_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        // The menu item is already disabled while connected; this is the second line of defence, since a
+        // dialog that cannot be acted on is worse than no dialog at all.
+        if (vm.IsOnline) return;
+        var dlgVm = new AutoSaveDialogViewModel(vm.IsOnline);
+        var dlg = new AutoSaveDialog { DataContext = dlgVm };
+        // A confirmed change restarts every schedule, so a freshly enabled editor waits a full interval
+        // instead of firing on the next 30-second tick.
+        dlgVm.Confirmed += () => { vm.ResetAutoSaveSchedule(); dlg.Close(); };
+        dlgVm.Canceled += () => dlg.Close();
+        await dlg.ShowDialog(this);
     }
 
     /// <summary>Rebuild the language menu from the locale files found on disk, with the active one
@@ -236,6 +273,12 @@ public partial class MainWindow : FAAppWindow
     private async void HelpMapControls_Click(object? sender, RoutedEventArgs e)
     {
         var dlg = new HelpDialog();
+        await dlg.ShowDialog(this);
+    }
+
+    private async void HelpAbout_Click(object? sender, RoutedEventArgs e)
+    {
+        var dlg = new AboutDialog();
         await dlg.ShowDialog(this);
     }
 }

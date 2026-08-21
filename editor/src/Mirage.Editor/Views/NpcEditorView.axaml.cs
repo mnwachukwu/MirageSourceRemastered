@@ -131,6 +131,7 @@ public partial class NpcEditorView : LocalizedUserControl
         _fmtChancesDodge.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_ChancesDodge);
         _fmtChancesNote.Text = EditorStrings.Get(EditorStrings.NpcEditor_Formula_ChancesNote);
 
+        _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);
         _discardAllBtn.Content = EditorStrings.Get(EditorStrings.Common_DiscardAll);
         _saveNpcBtn.Content = EditorStrings.Get(EditorStrings.NpcEditor_SaveNpcButton);

@@ -3,6 +3,17 @@
 
   "Window_Title": "Servidor de {GameName}",
   "Tab_Server": "Estado",
+  "Commands_Server": "Servidor",
+  "Commands_Update": "Informa se há uma versão mais recente. Nunca a aplica: isso reinicia o servidor e desconecta todos.",
+  "Commands_Credits": "Mostra quem fez isto e onde encontrá-lo.",
+  "Commands_Shutdown": "Pede ao servidor que desligue de forma ordenada, salvando ao sair.",
+  "Help_Menu": "Ajuda",
+  "Help_About": "Sobre",
+  "About_Title": "Sobre {GameName}",
+  "About_Version": "Versão {Version}",
+  "About_CreatorDeveloper": "Criador / Desenvolvedor",
+  "About_Close": "Fechar",
+  "About_UpdateAvailable": "Versão {Version} — há uma atualização disponível",
   "Tab_Console": "Consola",
 
   "Server_Blurb": "O que o servidor está a fazer neste momento. Tudo o que aparece aqui e pode ser mudado, muda-se aqui.",

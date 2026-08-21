@@ -89,6 +89,20 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.ItemEditor_TypeNamePlural);
     protected override int GetIndex(ItemRowViewModel vm) => vm.Index;
     protected override bool GetIsDirty(ItemRowViewModel vm) => vm.IsDirty;
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(ItemRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(ItemRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(ItemRowViewModel source, ItemRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(ItemRowViewModel vm) => vm.ClearDirty();
 
     public async Task EagerLoadAllAsync(CancellationToken ct)

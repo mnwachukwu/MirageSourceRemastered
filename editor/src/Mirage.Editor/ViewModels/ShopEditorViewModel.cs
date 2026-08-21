@@ -33,6 +33,23 @@ public sealed partial class ShopEditorViewModel : EditorViewModelBase<ShopRowVie
     /// <inheritdoc/>
     protected override bool GetIsDirty(ShopRowViewModel vm) => vm.IsDirty;
     /// <inheritdoc/>
+    // ── Copy ──────────────────────────────────────────────────────────────────
+
+    /// <summary>An unused slot, by the same rule the list already labels one: it has no name.</summary>
+    protected override string GetName(ShopRowViewModel row) => row.Name;
+
+    protected override bool GetIsLoaded(ShopRowViewModel row) => row.IsLoaded;
+
+    protected override void CopyInto(ShopRowViewModel source, ShopRowViewModel target)
+    {
+        var rec = source.ToRecord();
+        rec.Name += RecordCopy.Suffix;
+        // The keeper is a side-mapping the server resolves by SCANNING for the NPC, so two shops naming
+        // the same keeper means one of them silently never opens. The copy arrives unattached.
+        rec.Keeper = 0;
+        target.CopyFromRecord(rec);
+    }
+
     protected override void ClearDirtyState(ShopRowViewModel vm) => vm.ClearDirty();
 
     /// <summary>Pre-fill every placeholder row from one bulk server response, so browsing the list after

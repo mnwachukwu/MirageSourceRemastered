@@ -16,7 +16,16 @@ namespace Mirage.Client.Shell.Panels;
 /// <summary>The shop panel: buy for gold, barter item-for-item, sell, and the repair (fix-item) flow.</summary>
 public sealed class ShopPanel : IGamePanel
 {
-    private readonly DraggablePanel _panel = new(new Rectangle(20, 20, 360, 250), minH: 142);
+    // The list view fits in very little, but the acquisition confirm is the tallest thing this panel
+    // draws and it grew: a spell scroll stacks level, what it teaches, MP cost, reagent cost, how often
+    // the reagent depletes, an effectiveness preview, then the quantity and total rows. That is ten
+    // 18px lines under the name-and-icon header and above the buttons, and a minimum that predates them
+    // lets the panel be dragged down to where the confirm is cut off mid-sentence.
+    private const int ConfirmLines = 10;
+    private const int ConfirmChrome = 118;   // title bar, the icon/name header, the button row, padding
+    private const int PanelMinH = ConfirmLines * 18 + ConfirmChrome;   // 298
+
+    private readonly DraggablePanel _panel = new(new Rectangle(20, 20, 360, 320), minH: PanelMinH);
 
     public bool IsOpen { get; private set; }
     public Rectangle Bounds => _panel.Bounds;
@@ -720,7 +729,8 @@ public sealed class ShopPanel : IGamePanel
         if (item is null) return;
         var slot = new PlayerInvSlot { Num = itemNum, Quantity = 1, Dur = item.Durability };
         Tooltip.NotifyHoverItem(TooltipScope, (TooltipScope, "buy", itemNum), item, slot,
-            state.Me, state.Classes, itemsTex, _input.MousePosition);
+            state.Me, state.Classes, itemsTex, _input.MousePosition,
+            state.SpellDefs, state.Items, state.Weather);
     }
 
     private void NotifySellSlotHover(ClientState state, Texture2D? itemsTex)
@@ -740,7 +750,8 @@ public sealed class ShopPanel : IGamePanel
         var item = state.Items[slot.Num];
         if (item is null) return;
         Tooltip.NotifyHoverItem(TooltipScope, (TooltipScope, list, slotIdx, slot.Num), item, slot,
-            state.Me, state.Classes, itemsTex, _input.MousePosition);
+            state.Me, state.Classes, itemsTex, _input.MousePosition,
+            state.SpellDefs, state.Items, state.Weather);
     }
 
     private void DrawRepairConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
@@ -853,11 +864,13 @@ public sealed class ShopPanel : IGamePanel
         // The level gate, directly under the name: this is the last screen before gold changes hands, and
         // buying a piece you cannot wear for another eighty levels is the one mistake the confirm exists to
         // catch. Red when unmet, and shown either way so the number is never a surprise on equip.
-        if (get is { LevelReq: > 0 })
+        // A scroll's gate lives on the spell it teaches — see ItemRecord.EffectiveLevelReq.
+        int levelReq = ItemRecord.EffectiveLevelReq(get, spell);
+        if (levelReq > 0)
         {
-            bool meetsLevel = me is not null && me.Level >= get.LevelReq;
+            bool meetsLevel = me is not null && me.Level >= levelReq;
             UiHelper.DrawLabel(sb, font,
-                ClientStrings.Format(ClientStrings.ShopPanel_LevelReq, ("Level", get.LevelReq)),
+                ClientStrings.Format(ClientStrings.ShopPanel_LevelReq, ("Level", levelReq)),
                 new Vector2(c.X + 8, textY), meetsLevel ? Color.LightGreen : Color.OrangeRed, c.Width - 16);
             textY += 18;
         }

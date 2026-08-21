@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Mirage.Shared\Mirage.Shared.csproj" />
     <ProjectReference Include="..\Mirage.Server.Core\Mirage.Server.Core.csproj" />
+    <ProjectReference Include="..\Mirage.Updates\Mirage.Updates.csproj" />
   </ItemGroup>
 
   <!-- Seed data — not auto-copied; manually place data/ next to the exe before first run. -->
