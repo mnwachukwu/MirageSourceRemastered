@@ -13,7 +13,7 @@
   "int": 352,
   "extraHp": 500000,
   "isBoss": false,
-  "emitsLight": false,
+  "emitsLight": true,
   "light": {
     "rgb": 11834985,
     "radius": 3,

@@ -106,7 +106,7 @@ public class RenderPerfBaselineTests
     {
         var frame = new RenderFrame();
         var camera = new Camera();
-        camera.Update(8, 6, 0f, 0f, state.NeighborMaps);
+        camera.Update(8, 6, 0f, 0f, state.NeighborMapNums);
 
         void OneFrame()
         {
@@ -162,7 +162,7 @@ public class RenderPerfBaselineTests
         var state = BusyState(30, 10, 25);
         var frame = new RenderFrame();
         var camera = new Camera();
-        camera.Update(8, 6, 0f, 0f, state.NeighborMaps);
+        camera.Update(8, 6, 0f, 0f, state.NeighborMapNums);
 
         // Cold: the very first frame grows the command lists from empty.
         GC.Collect();

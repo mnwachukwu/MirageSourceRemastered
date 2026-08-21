@@ -76,7 +76,7 @@
   "HelpDialog_Ctrl_ZoomButtonsDesc": "Dézoomer / zoomer / revenir à 100 %",
   "HelpDialog_Ctrl_AnimPreview": "▶ Aperçu animé",
   "HelpDialog_Ctrl_AnimPreviewDesc": "Activer l'aperçu des tuiles animées à 250 ms",
-  "HelpDialog_Ctrl_SaveMap": "Enregistrer la carte / Tout enregistrer",
+  "HelpDialog_Ctrl_SaveMap": "Enregistrer la carte (Ctrl+S) / Tout enregistrer (Ctrl+Shift+S)",
   "HelpDialog_Ctrl_SaveMapDesc": "Écrire sur disque la carte sélectionnée (ou toutes les cartes modifiées)",
   "HelpDialog_Ctrl_DiscardMap": "Abandonner / Tout abandonner",
   "HelpDialog_Ctrl_DiscardMapDesc": "Recharger depuis le disque la carte sélectionnée (ou toutes les cartes modifiées), en perdant les changements non enregistrés",

@@ -380,7 +380,8 @@
               <Button x:Name="_reloadBtn" Command="{Binding ReloadCommand}"
                       IsEnabled="{Binding HasSelection}"/>
               <Button x:Name="_saveBtn" Classes="primary" Command="{Binding SaveCommand}"
-                      IsEnabled="{Binding CanSave}"/>
+                      IsEnabled="{Binding CanSave}"
+                      HotKey="Ctrl+S" ToolTip.Tip="Ctrl+S"/>
             </StackPanel>
             <!-- Says WHY the greyed-out Save is greyed out; the red line on the offending character says
                  which one. -->

@@ -653,10 +653,12 @@
           <Button x:Name="_btnSaveMap" Classes="primary"
                   Command="{Binding SaveMapCommand}"
                   IsEnabled="{Binding IsSelectedMapDirty}"
+                  HotKey="Ctrl+S" ToolTip.Tip="Ctrl+S"
                   Padding="10,3" FontSize="11"/>
           <Button x:Name="_btnSaveAll" Classes="primary"
                   Command="{Binding SaveAllCommand}"
                   IsEnabled="{Binding HasAnyDirtyMap}"
+                  HotKey="Ctrl+Shift+S" ToolTip.Tip="Ctrl+Shift+S"
                   Padding="10,3" FontSize="11"/>
         </StackPanel>
         <Border/>

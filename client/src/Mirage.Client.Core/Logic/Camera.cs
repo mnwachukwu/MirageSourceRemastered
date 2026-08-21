@@ -1,16 +1,16 @@
 using Mirage.Shared;
-using Mirage.Shared.Records;
 
 namespace Mirage.Client.Core.Logic;
 
 /// <summary>
 /// Centers the viewport on the local player within the seamless 3×3 map world.
-/// The camera follows the player but clamps to the extent of the loaded grid: it
-/// stops scrolling in a direction only when the entire row/column on that side is
-/// empty.  So a column that holds a map only diagonally (e.g. the left column when
-/// just an up-left map exists) is still reachable — empty cells in it simply render
-/// black.  With no neighbors loaded at all the camera locks to the center map,
-/// reproducing the original single-map view exactly (screenX = localX * PicX).
+/// The camera follows the player but clamps to the extent of the world that EXISTS
+/// around them: it stops scrolling in a direction only when the entire row/column on
+/// that side holds no map.  So a column that holds a map only diagonally (e.g. the
+/// left column when just an up-left map exists) is still reachable — empty cells in
+/// it simply render black.  Where nothing surrounds the center map at all the camera
+/// locks to it, reproducing the original single-map view exactly
+/// (screenX = localX * PicX) — which is what a one-room interior looks like.
 /// </summary>
 public sealed class Camera
 {
@@ -25,11 +25,22 @@ public sealed class Camera
 
     /// <summary>
     /// Recompute the camera from the local player's position on the center map.
-    /// <paramref name="grid"/> is the 3×3 cell grid ([col,row], center [1,1]).  Scrolling
-    /// in a direction is allowed as long as that side's row/column holds any map at all;
-    /// it clamps only when the whole row/column is empty.
+    /// <paramref name="neighborMapNums"/> is the 3×3 cell grid of map NUMBERS ([col,row], center [1,1]);
+    /// a cell holds 0 where the world has no map. Scrolling in a direction is allowed as long as that
+    /// side's row/column names any map at all; it clamps only when the whole row/column is empty.
+    ///
+    /// <para><b>Map NUMBERS, not loaded map records, and that distinction is the whole point.</b> The
+    /// numbers for all eight neighbours arrive together in one batch the moment the server describes the
+    /// new surroundings; each map's DATA then resolves separately, from disk cache or over the wire, over
+    /// however many frames that takes. Clamping on what has finished loading makes the camera's reach grow
+    /// one arrival at a time, so a warp into a town wide enough to scroll snaps the view repeatedly as its
+    /// neighbours land — worst where the destination's clamping differs from the origin's, which is exactly
+    /// a single-room interior opening onto open ground. Clamping on what EXISTS settles the bounds once.</para>
+    ///
+    /// <para>A cell that is named but not yet loaded renders black, which is the same thing that already
+    /// happens for a diagonal-only neighbour — an accepted, momentary state rather than a new one.</para>
     /// </summary>
-    public void Update(int playerLocalX, int playerLocalY, float xOffset, float yOffset, MapRecord?[,] grid)
+    public void Update(int playerLocalX, int playerLocalY, float xOffset, float yOffset, int[,] neighborMapNums)
     {
         // Center map sits at grid (1,1) → world tile origin (MapTilesX, MapTilesY).
         float pwx = (WorldCoordHelper.MapTilesX + playerLocalX) * Constants.PicX + xOffset;
@@ -38,10 +49,10 @@ public sealed class Camera
         float camX = pwx - ViewW / 2f;
         float camY = pwy - ViewH / 2f;
 
-        bool hasLeftCol = grid[0, 0] is not null || grid[0, 1] is not null || grid[0, 2] is not null;
-        bool hasRightCol = grid[2, 0] is not null || grid[2, 1] is not null || grid[2, 2] is not null;
-        bool hasTopRow = grid[0, 0] is not null || grid[1, 0] is not null || grid[2, 0] is not null;
-        bool hasBotRow = grid[0, 2] is not null || grid[1, 2] is not null || grid[2, 2] is not null;
+        bool hasLeftCol = neighborMapNums[0, 0] > 0 || neighborMapNums[0, 1] > 0 || neighborMapNums[0, 2] > 0;
+        bool hasRightCol = neighborMapNums[2, 0] > 0 || neighborMapNums[2, 1] > 0 || neighborMapNums[2, 2] > 0;
+        bool hasTopRow = neighborMapNums[0, 0] > 0 || neighborMapNums[1, 0] > 0 || neighborMapNums[2, 0] > 0;
+        bool hasBotRow = neighborMapNums[0, 2] > 0 || neighborMapNums[1, 2] > 0 || neighborMapNums[2, 2] > 0;
 
         // Scroll bounds reach the grid edge when that side has any map, else the center edge.
         float minCamX = hasLeftCol ? 0f : MapPxW;

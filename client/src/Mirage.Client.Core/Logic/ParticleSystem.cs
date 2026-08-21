@@ -57,11 +57,23 @@ public sealed class ParticleSystem
     public void ClearAll() => _count = 0;
 
     /// <summary>Re-anchor every particle by the seamless-map seam-cross pixel offset so world-anchored FX
-    /// stay pinned to their world spot instead of jumping when the observable area shifts.</summary>
+    /// stay pinned to their world spot instead of jumping when the observable area shifts.
+    ///
+    /// <para><b>The homing target moves with the particle, and must.</b> These coordinates are relative to
+    /// the 3x3 grid's own origin, which a seam cross re-anchors onto a different centre map — so BOTH ends
+    /// of a projectile's flight are expressed in a space that just slid by a whole map, 16 tiles across or
+    /// 12 down. Carrying the position without the target leaves a bolt correctly placed and aimed 512 pixels
+    /// from its victim, which reads in play as a spell flying off in a random direction.</para></summary>
     public void ShiftAll(float dx, float dy)
     {
         var span = _pool.AsSpan(0, _count);
-        for (int i = 0; i < span.Length; i++) { span[i].X += dx; span[i].Y += dy; }
+        for (int i = 0; i < span.Length; i++)
+        {
+            span[i].X += dx;
+            span[i].Y += dy;
+            span[i].Tx += dx;
+            span[i].Ty += dy;
+        }
     }
 
     /// <summary>Reserve a pooled slot. Returns false (no spawn) when the bounded pool is full.</summary>

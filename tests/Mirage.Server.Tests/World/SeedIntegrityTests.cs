@@ -908,6 +908,32 @@ public class SeedIntegrityTests
         });
     }
 
+    /// <summary>
+    /// Everyone who LIVES here carries a light.
+    ///
+    /// <para>The bestiary lights its hostiles — every one that has hands for a torch — so a world where the
+    /// townsfolk and wardens are dark is one whose only night-time glow belongs to the things hunting you.
+    /// A town reads as abandoned and a warden becomes something that runs at you out of the black.</para>
+    ///
+    /// <para>This is guarded because the gap was invisible: friendlies and guards come from a different
+    /// generator than the mobs, and that one simply never mentioned light, so every one of them defaulted
+    /// dark and nothing anywhere said so.</para>
+    /// </summary>
+    [Test]
+    public void EverythingThatLivesHere_CarriesALight()
+    {
+        RequireSeed();
+        Assert.Multiple(() =>
+        {
+            foreach (var (num, npc) in _npcs.OrderBy(k => k.Key))
+            {
+                if (npc.Behavior is not (NpcBehavior.Friendly or NpcBehavior.Guard)) continue;
+                Assert.That(npc.EmitsLight, Is.True,
+                    $"npc{num} \"{npc.TrimmedName}\" is {npc.Behavior} and stands in the dark");
+            }
+        });
+    }
+
     /// <summary>Every mob on a CREATURE row is on the same side. Each of these rows draws one family — the
     /// wolves, the birdmen, the gravebound, the orcs, the birds — and a family fights as one, so a lone orc
     /// carrying a company's number is a mis-set group. The human rows say nothing either way: a company, a

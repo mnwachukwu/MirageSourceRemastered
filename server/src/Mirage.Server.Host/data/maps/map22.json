@@ -1,11 +1,11 @@
 {
-  "name": "The Gravebound Fen 2",
+  "name": "The Poacher\u0027s Hedge 2",
   "displayName": "",
-  "revision": 4,
+  "revision": 8,
   "up": 21,
   "down": 23,
   "left": 18,
-  "right": 0,
+  "right": 25,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,
@@ -861,75 +861,17 @@
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -975,23 +917,31 @@
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1037,8 +987,89 @@
       },
       {
         "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
           2
         ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1067,21 +1098,33 @@
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       }
     ]
   ],
-  "npcs": [],
+  "npcs": [
+    {
+      "npc": 52
+    },
+    {
+      "npc": 52
+    },
+    {
+      "npc": 6
+    },
+    {
+      "npc": 6
+    }
+  ],
   "lights": []
 }

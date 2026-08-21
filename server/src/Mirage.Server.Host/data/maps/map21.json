@@ -1,11 +1,11 @@
 {
-  "name": "The Gravebound Fen 1",
+  "name": "The Poacher\u0027s Hedge 1",
   "displayName": "",
-  "revision": 4,
+  "revision": 9,
   "up": 0,
   "down": 22,
   "left": 20,
-  "right": 0,
+  "right": 24,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,
@@ -787,80 +787,24 @@
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -906,28 +850,38 @@
     [
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -968,8 +922,38 @@
     [
       {
         "ground": [
-          2
-        ]
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1005,6 +989,43 @@
         "ground": [
           2
         ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1013,13 +1034,38 @@
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          2
-        ]
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1028,6 +1074,22 @@
       }
     ]
   ],
-  "npcs": [],
+  "npcs": [
+    {
+      "npc": 5
+    },
+    {
+      "npc": 5
+    },
+    {
+      "npc": 25
+    },
+    {
+      "npc": 25
+    },
+    {
+      "npc": 6
+    }
+  ],
   "lights": []
 }

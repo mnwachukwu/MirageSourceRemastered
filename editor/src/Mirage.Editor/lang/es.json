@@ -76,7 +76,7 @@
   "HelpDialog_Ctrl_ZoomButtonsDesc": "Alejar / acercar / volver al 100 %",
   "HelpDialog_Ctrl_AnimPreview": "▶ Vista previa animada",
   "HelpDialog_Ctrl_AnimPreviewDesc": "Activar la vista previa de tiles animados a 250 ms",
-  "HelpDialog_Ctrl_SaveMap": "Guardar mapa / Guardar todo",
+  "HelpDialog_Ctrl_SaveMap": "Guardar mapa (Ctrl+S) / Guardar todo (Ctrl+Shift+S)",
   "HelpDialog_Ctrl_SaveMapDesc": "Escribir en disco el mapa seleccionado (o todos los mapas con cambios)",
   "HelpDialog_Ctrl_DiscardMap": "Descartar / Descartar todo",
   "HelpDialog_Ctrl_DiscardMapDesc": "Recargar desde el disco el mapa seleccionado (o todos los mapas con cambios), perdiendo lo no guardado",

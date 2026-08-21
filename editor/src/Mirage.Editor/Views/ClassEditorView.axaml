@@ -411,10 +411,12 @@
           <Button x:Name="_saveClassButton"
                   Command="{Binding SaveCommand}"
                   IsEnabled="{Binding IsSelectedDirty}"
+                  HotKey="Ctrl+S" ToolTip.Tip="Ctrl+S"
                   Classes="primary"/>
           <Button x:Name="_saveAllButton"
                   Command="{Binding SaveAllCommand}"
                   IsEnabled="{Binding HasAnyDirty}"
+                  HotKey="Ctrl+Shift+S" ToolTip.Tip="Ctrl+Shift+S"
                   Classes="primary"/>
         </StackPanel>
         <TextBlock Text="{Binding StatusMessage}"

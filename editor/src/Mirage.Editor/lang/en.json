@@ -76,7 +76,7 @@
   "HelpDialog_Ctrl_ZoomButtonsDesc": "Zoom out / in / reset to 100 %",
   "HelpDialog_Ctrl_AnimPreview": "▶ Anim Preview",
   "HelpDialog_Ctrl_AnimPreviewDesc": "Toggle 250 ms animated tile preview",
-  "HelpDialog_Ctrl_SaveMap": "Save Map / Save All",
+  "HelpDialog_Ctrl_SaveMap": "Save Map (Ctrl+S) / Save All (Ctrl+Shift+S)",
   "HelpDialog_Ctrl_SaveMapDesc": "Write the selected map (or all dirty maps) to disk",
   "HelpDialog_Ctrl_DiscardMap": "Discard / Discard All",
   "HelpDialog_Ctrl_DiscardMapDesc": "Reload the selected map (or all dirty maps) from disk, discarding unsaved changes",
