@@ -143,6 +143,8 @@
   "ShopPanel_BuyHowMany": "Buy item:",
   "ShopPanel_SellHowMany": "Sell item:",
   "ShopPanel_EachPrice": "{Item} - {Gold} gold each",
+  "ShopPanel_BarterHowMany": "Trade how many times:",
+  "ShopPanel_PerHelping": "{Give} for {Get}, each time",
   "ShopPanel_SalesRow": "{Item} - {Gold} gold",
   "ShopPanel_SellRow": "{Item} - {Gold} gold",
   "ShopPanel_SellItemLabel": "Sell this item?",

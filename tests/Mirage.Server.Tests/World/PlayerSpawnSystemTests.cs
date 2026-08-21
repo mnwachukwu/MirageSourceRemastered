@@ -73,7 +73,7 @@ public class PlayerSpawnSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(p.SpawnMap, Is.EqualTo(0), "spawn is not set away from an Inn");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "no gold is charged");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(100), "no gold is charged");
         });
     }
 
@@ -85,7 +85,7 @@ public class PlayerSpawnSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(p.SpawnMap, Is.EqualTo(0), "spawn is not set when too poor");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(4), "no gold is charged");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(4), "no gold is charged");
         });
     }
 
@@ -100,7 +100,7 @@ public class PlayerSpawnSystemTests
             Assert.That(p.SpawnMap, Is.EqualTo(Map));
             Assert.That(p.SpawnX, Is.EqualTo(7));
             Assert.That(p.SpawnY, Is.EqualTo(8));
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100 - Constants.SpawnCostMinimum),
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(100 - Constants.SpawnCostMinimum),
                 "charged the level-1 floor cost");
         });
     }
@@ -111,11 +111,11 @@ public class PlayerSpawnSystemTests
     {
         var (w1, s1, p1) = Setup(level: 1, gold: 100_000, ShopType.Inn);
         s1.ConfirmSetSpawn(Idx);
-        long chargedL1 = 100_000 - ItemSystem.HasItem(p1, w1.Items, Gold);
+        long chargedL1 = 100_000 - ItemSystem.CountItem(p1, w1.Items, Gold);
 
         var (w20, s20, p20) = Setup(level: 20, gold: 100_000, ShopType.Inn);
         s20.ConfirmSetSpawn(Idx);
-        long chargedL20 = 100_000 - ItemSystem.HasItem(p20, w20.Items, Gold);
+        long chargedL20 = 100_000 - ItemSystem.CountItem(p20, w20.Items, Gold);
 
         Assert.That(chargedL20, Is.GreaterThan(chargedL1), "the set-spawn cost scales up with level");
     }

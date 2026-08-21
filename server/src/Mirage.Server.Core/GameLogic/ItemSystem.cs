@@ -72,15 +72,62 @@ public sealed partial class ItemSystem : GameSystem
         return 0;
     }
 
-    public static long HasItem(PlayerRecord p, ItemRecord[] items, int itemNum)
+    /// <summary>Room for <paramref name="getItem"/> once the payment has been handed over. Every exchange
+    /// here takes before it gives, so the slots the payment vacates are part of the room the goods arrive
+    /// into: two gems for three hats with two slots free WORKS, because paying leaves four. Counting the
+    /// room first and the payment never would refuse trades that are perfectly possible — and a vendor is
+    /// how a full bag gets emptied, so that refusal lands exactly when it is least wanted.</summary>
+    public static long RoomAfterPaying(PlayerRecord p, ItemRecord[] items, int getItem, int giveItem, long giveCount)
+    {
+        long room = CountOpenInvSlots(p, items, getItem);
+        if (room >= int.MaxValue) return room;   // a stack already open takes any amount
+        return room + FreedByPaying(p, items, giveItem, giveCount);
+    }
+
+    /// <summary>How many slots handing over <paramref name="count"/> of an item empties. A slot-per-copy item
+    /// frees one per copy; a currency frees its single slot only if the whole pile goes.</summary>
+    private static long FreedByPaying(PlayerRecord p, ItemRecord[] items, int itemNum, long count)
+    {
+        if (count <= 0 || itemNum <= 0 || itemNum >= items.Length) return 0;
+        if (items[itemNum].Type != ItemType.Currency) return count;
+        return CountItem(p, items, itemNum) <= count ? 1 : 0;
+    }
+
+    /// <summary>How many of <paramref name="itemNum"/> the bag holds, counted the way the item stacks: a
+    /// currency carries its amount inside its slots, everything else spends a slot each. Sums across the
+    /// whole bag rather than stopping at the first match — a treasure gem takes a slot apiece, so five of
+    /// them are five slots and answering "1" makes every quantity test against them fail.</summary>
+    public static long CountItem(PlayerRecord p, ItemRecord[] items, int itemNum)
     {
         if (itemNum <= 0 || itemNum >= items.Length) return 0;
+        bool stacks = items[itemNum].Type == ItemType.Currency;
+        long total = 0;
         for (int i = 1; i <= Constants.MaxInv; i++)
         {
             if (p.Inv[i].Num != itemNum) continue;
-            return items[itemNum].Type == ItemType.Currency ? p.Inv[i].Quantity : 1;
+            total += stacks ? p.Inv[i].Quantity : 1;
         }
-        return 0;
+        return total;
+    }
+
+    /// <summary>Whether the bag holds any at all — the same question <see cref="CountItem"/> answers,
+    /// asked of callers that only need a yes.</summary>
+    public static bool HasItem(PlayerRecord p, ItemRecord[] items, int itemNum) =>
+        CountItem(p, items, itemNum) > 0;
+
+    /// <summary>How many more of <paramref name="itemNum"/> the bag could take. A currency needs one slot
+    /// however much is poured into it, so an existing stack means there is always room; everything else
+    /// spends a slot per copy, and the answer is how many are free.</summary>
+    public static int CountOpenInvSlots(PlayerRecord p, ItemRecord[] items, int itemNum)
+    {
+        if (itemNum <= 0 || itemNum >= items.Length) return 0;
+        int free = 0;
+        for (int i = 1; i <= Constants.MaxInv; i++)
+        {
+            if (p.Inv[i].Num == itemNum && items[itemNum].Type == ItemType.Currency) return int.MaxValue;
+            if (p.Inv[i].Num == 0) free++;
+        }
+        return items[itemNum].Type == ItemType.Currency ? (free > 0 ? int.MaxValue : 0) : free;
     }
 
     /// <summary>Would every unclaimed item attachment in <paramref name="stacks"/> fit in <paramref name="p"/>'s bag
@@ -134,6 +181,38 @@ public sealed partial class ItemSystem : GameSystem
     // ── Give / take items ─────────────────────────────────────────────────────
 
     public void GiveItem(int index, int itemNum, int value) => TryGiveItem(index, itemNum, value);
+
+    /// <summary>Give <paramref name="count"/> of an item, however that item is held: a currency takes the
+    /// whole amount into one stack, everything else takes a slot per copy.
+    /// <para><see cref="GiveItem"/> adds its value to a SINGLE slot, which is what a stack wants and what a
+    /// gem does not — three gems handed over that way become one slot claiming a quantity of three, a shape
+    /// nothing else in the game reads. Returns how many actually landed, which is fewer than asked when the
+    /// bag fills.</para></summary>
+    public int GiveItems(int index, int itemNum, int count)
+    {
+        if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > _world.Limits.Items || count <= 0) return 0;
+        if (_world.Items[itemNum].Type == ItemType.Currency)
+            return TryGiveItem(index, itemNum, count) ? count : 0;
+
+        int placed = 0;
+        while (placed < count && TryGiveItem(index, itemNum, 1)) placed++;
+        return placed;
+    }
+
+    /// <summary>Take <paramref name="count"/> of an item, however that item is held: a currency loses that
+    /// much off its stack, everything else loses that many whole slots.
+    /// <para><see cref="TakeItem"/> clears ONE slot per call for a non-stacking item — right for drinking a
+    /// potion, wrong for a barter row that asks for two gems. This is the loop that difference needs.</para></summary>
+    public void TakeItems(int index, int itemNum, int count)
+    {
+        if (!_pm[index].IsPlaying || itemNum <= 0 || itemNum > _world.Limits.Items || count <= 0) return;
+        if (_world.Items[itemNum].Type == ItemType.Currency)
+        {
+            TakeItem(index, itemNum, count);
+            return;
+        }
+        for (int i = 0; i < count; i++) TakeItem(index, itemNum, 0);
+    }
 
     /// <summary>Give an item, returning false (after an InventoryFull message) when the bag can't take it,
     /// so callers that must not lose the item (e.g. mail-attachment claim) can leave it for a later retry.

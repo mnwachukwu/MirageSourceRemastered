@@ -45,7 +45,7 @@ public sealed class PlayerSpawnSystem : GameSystem
         }
 
         long cost = EconomyFormulas.InnSpawnCost(vp.Level);
-        long gold = ItemSystem.HasItem(vp, _world.Items, Constants.GoldItemIndex);
+        long gold = ItemSystem.CountItem(vp, _world.Items, Constants.GoldItemIndex);
         if (gold < cost)
         {
             SendMsg(index, ServerStrings.PlayerSpawnSystem_InsufficientGold, GameColor.BrightRed, ("Cost", $"{cost:N0}"));

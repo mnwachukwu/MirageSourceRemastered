@@ -157,7 +157,7 @@ public sealed partial class GuildSystem : GameSystem
         if (!sp.IsPlaying) return;
         if (GuildOf(sp) is not { } guild) { Notify(index, ServerStrings.Guild_NotInOne); return; }
         if (amount <= 0) return;   // the client validates; a non-positive amount is ignored
-        if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.GoldItemIndex) < amount)
+        if (ItemSystem.CountItem(sp.Char, _world.Items, Constants.GoldItemIndex) < amount)
         {
             Notify(index, ServerStrings.Guild_DonateNeedGold, ("Amount", amount));
             return;
@@ -182,7 +182,7 @@ public sealed partial class GuildSystem : GameSystem
         if (!sp.IsPlaying) return;
         if (GuildOf(sp) is not { } guild) { Notify(index, ServerStrings.Guild_NotInOne); return; }
         if (amount <= 0) return;   // the client validates; a non-positive amount is ignored
-        if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.ValorItemIndex) < amount)
+        if (ItemSystem.CountItem(sp.Char, _world.Items, Constants.ValorItemIndex) < amount)
         {
             Notify(index, ServerStrings.Guild_DonateNeedValor, ("Amount", amount));
             return;

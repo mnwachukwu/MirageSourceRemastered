@@ -262,7 +262,10 @@ public sealed partial class ItemSystem : GameSystem
     /// item, and not the shared beat.</summary>
     private bool ApplyAddPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital vital)
     {
-        if (GetVital(p, vital) >= GetVitalMax(p, vital))
+        // The same rule the client reads before starting its drinking sweep, so a refused sip looks
+        // refused on both sides rather than graying a slot the server would still have served.
+        if (!StatFormulas.PotionWouldDoSomething(item.Type, item.VitalAmount,
+                                                 p.Hp, p.MaxHp, p.Mp, p.MaxMp, p.Sp, p.MaxSp))
         {
             SendMsg(index, ServerStrings.ItemSystem_VitalFull, GameColor.BrightRed, ("Vital", VitalName(vital)));
             return false;

@@ -46,18 +46,22 @@ public sealed partial class NpcAiSystem : GameSystem
 
     /// <summary>
     /// Whether this NPC keeps itself engaged purely by PURSUING (so it never lets a fleeing target go),
-    /// versus only while actually trading blows.  AoS hounds anyone relentlessly.  A Guard hounds only
-    /// criminals — a PK player or an active PvP aggressor — and the moment its quarry is neither it
-    /// "yields" like an AWA mob: combat is no longer refreshed by the chase, so it lapses and the guard
-    /// returns to its post.  AWA never pursues relentlessly, so breaking contact for the combat window
-    /// lets a player bail out of the fight.  This is the single rule for refreshing pursuit combat.
+    /// versus only while actually trading blows.
+    ///
+    /// <para>Only a GUARD does, and only against criminals — a PK player or an active PvP aggressor.
+    /// The moment its quarry is neither, it yields: combat stops being refreshed by the chase, so it
+    /// lapses and the guard returns to its post.</para>
+    ///
+    /// <para>Every other behavior, AttackOnSight included, refreshes combat only by FIGHTING. Breaking
+    /// contact for the combat window therefore ends any ordinary chase, on one clock, whatever it was
+    /// that attacked you — a hostile mob lets go on the same terms as one that only ever retaliated.
+    /// This is the single rule for refreshing pursuit combat.</para>
     /// </summary>
     private bool IsRelentlessPursuit(NpcRecord npc, int target, long now)
     {
         long nowUtc = NowUtc;
         return npc.Behavior switch
         {
-            NpcBehavior.AttackOnSight => true,
             NpcBehavior.Guard => (_pm[target].Char.IsPk(nowUtc) && _pm[target].PkGraceUntilUtc <= nowUtc)
                                  || _pm[target].PvpAttackerUntil > now,
             _ => false,

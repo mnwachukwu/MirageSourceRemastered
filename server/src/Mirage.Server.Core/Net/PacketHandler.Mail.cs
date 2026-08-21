@@ -154,7 +154,7 @@ public sealed partial class PacketHandler
         }
         long cost = (multi ? EconomyFormulas.MailSendCost(0) * recipients.Count
                            : EconomyFormulas.MailSendCost(attachCount, attachedValue)) * bodyMult;
-        if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.GoldItemIndex) < cost)
+        if (ItemSystem.CountItem(sp.Char, _world.Items, Constants.GoldItemIndex) < cost)
         {
             MailMsg(index, ServerStrings.Mail_CannotAfford, GameColor.BrightRed, ("Cost", cost));
             return;
@@ -213,7 +213,7 @@ public sealed partial class PacketHandler
         var m = sp.Mail.FirstOrDefault(x => x.Id == p.Id);
         if (m is null || m.CodPrice <= 0) return;                                   // not a live CoD
         if (NowUtc < m.DeliverAt) return;        // still in transit
-        if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.GoldItemIndex) < m.CodPrice)
+        if (ItemSystem.CountItem(sp.Char, _world.Items, Constants.GoldItemIndex) < m.CodPrice)
         {
             MailMsg(index, ServerStrings.Mail_CannotAffordCod, GameColor.BrightRed, ("Cost", m.CodPrice));
             return;

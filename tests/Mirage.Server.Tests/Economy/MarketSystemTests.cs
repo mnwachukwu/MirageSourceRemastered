@@ -156,7 +156,7 @@ public class MarketSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(world.MarketListings, Is.Empty, "the listing is removed once sold");
-            Assert.That(ItemSystem.HasItem(buyer.Char, world.Items, Gold), Is.EqualTo(500), "the buyer is charged the price");
+            Assert.That(ItemSystem.CountItem(buyer.Char, world.Items, Gold), Is.EqualTo(500), "the buyer is charged the price");
             Assert.That(buyer.Mail, Has.Count.EqualTo(1), "the goods are delivered to the buyer as mail");
             Assert.That(buyer.Mail[0].Attachments[0].ItemNum, Is.EqualTo(Sword));
             Assert.That(buyer.Mail[0].Attachments[0].Dur, Is.EqualTo(40), "with the seller's worn durability");
@@ -200,7 +200,7 @@ public class MarketSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(world.MarketListings, Has.Count.EqualTo(1), "the listing survives a failed buy");
-            Assert.That(ItemSystem.HasItem(buyer.Char, world.Items, Gold), Is.EqualTo(100), "no gold is taken");
+            Assert.That(ItemSystem.CountItem(buyer.Char, world.Items, Gold), Is.EqualTo(100), "no gold is taken");
         });
     }
 
@@ -257,7 +257,7 @@ public class MarketSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(buyer.Char, world.Items, Gold), Is.EqualTo(1000 - 600), "charged 300 units * 2/unit = 600 exactly");
+            Assert.That(ItemSystem.CountItem(buyer.Char, world.Items, Gold), Is.EqualTo(1000 - 600), "charged 300 units * 2/unit = 600 exactly");
             Assert.That(world.MarketListings, Has.Count.EqualTo(1), "the listing survives, reduced");
             Assert.That(listing.Quantity, Is.EqualTo(700), "700 units remain");
             Assert.That(listing.Price, Is.EqualTo(2), "the per-unit price is unchanged");

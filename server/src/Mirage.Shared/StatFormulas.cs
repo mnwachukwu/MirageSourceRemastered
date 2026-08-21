@@ -140,6 +140,23 @@ public static class StatFormulas
     public static int SubPotionDrain(int vitalAmount, int current, bool isHp) =>
         Math.Max(0, Math.Min(vitalAmount, current - (isHp ? 1 : 0)));
 
+    /// <summary>Whether drinking would actually change anything — a full bar for an Add* potion, nothing
+    /// left to spend for a Sub*. A sip that would do nothing costs neither the item nor the drinking
+    /// clock, so the server reads this before spending either and the client reads it before starting
+    /// its own sweep. One copy, because a client that guessed differently would either gray a usable
+    /// slot or leave a dead one lit.</summary>
+    public static bool PotionWouldDoSomething(ItemType type, int vitalAmount,
+                                              int hp, int maxHp, int mp, int maxMp, int sp, int maxSp) => type switch
+    {
+        ItemType.PotionAddHp => hp < maxHp,
+        ItemType.PotionAddMp => mp < maxMp,
+        ItemType.PotionAddSp => sp < maxSp,
+        ItemType.PotionSubHp => SubPotionDrain(vitalAmount, hp, isHp: true) > 0,
+        ItemType.PotionSubMp => SubPotionDrain(vitalAmount, mp, isHp: false) > 0,
+        ItemType.PotionSubSp => SubPotionDrain(vitalAmount, sp, isHp: false) > 0,
+        _ => true,   // not a potion: nothing here has an opinion about it
+    };
+
     /// <summary>What a Sub* potion pays into ONE of the other two vitals: the fraction of its own pool
     /// that was actually drained, times <see cref="Constants.SubPotionExchangePercent"/>%, applied to the
     /// RECEIVING pool.  Shared by the server's item-use path and the client's tooltip so the number a

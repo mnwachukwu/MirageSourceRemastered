@@ -125,7 +125,7 @@ public class BankSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(sp.Bank[5].Num, Is.EqualTo(0), "the bank slot is emptied");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(400), "the gold is now in the bag");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(400), "the gold is now in the bag");
         });
     }
 

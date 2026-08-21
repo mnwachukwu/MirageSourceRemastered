@@ -275,12 +275,28 @@ public sealed partial class GameplayScreen : IGameScreen
     }
 
     /// <summary>Charges the clock the slot's contents answer to. A spell's beat is stamped by the cast
-    /// itself, so only drinking is recorded here.</summary>
+    /// itself, so only drinking is recorded here.
+    ///
+    /// <para>A sip the server will refuse — a full bar, a vital with nothing left to give — starts no
+    /// clock, because the server does not start its own either: it stamps only when the potion was
+    /// actually spent. Stamping here regardless would gray the slot for two seconds over a drink that
+    /// never happened, and block the next press while the server was still willing.</para></summary>
     private void StartHotkeyCooldown(int slot, long nowMs)
     {
         var me = _ctx.State.Me;
         if (me?.Hotkeys is null || slot < 1 || slot >= me.Hotkeys.Length) return;
-        if (IsPotion(me.Hotkeys[slot].Num)) me.PotionTimer = nowMs;
+        int itemNum = me.Hotkeys[slot].Num;
+        if (IsPotion(itemNum) && PotionWouldDoSomething(itemNum)) me.PotionTimer = nowMs;
+    }
+
+    /// <summary>Whether drinking this would change anything, read through the same shared rule the server
+    /// applies — see <see cref="StatFormulas.PotionWouldDoSomething"/>.</summary>
+    private bool PotionWouldDoSomething(int itemNum)
+    {
+        if (_ctx.State.Me is not { } me) return false;
+        var item = itemNum > 0 && itemNum < _ctx.State.Items.Length ? _ctx.State.Items[itemNum] : null;
+        return item is not null && StatFormulas.PotionWouldDoSomething(
+            item.Type, item.VitalAmount, me.Hp, me.MaxHp, me.Mp, me.MaxMp, me.Sp, me.MaxSp);
     }
 
     /// <summary>How much of the clock a bound slot answers to is still to run, 1→0. A potion reads the

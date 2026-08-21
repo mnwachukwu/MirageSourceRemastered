@@ -70,7 +70,7 @@ public sealed partial class GuildSystem : GameSystem
             Notify(index, ServerStrings.Guild_NameTaken);
             return;
         }
-        if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.GoldItemIndex) < Constants.GuildCreationCost)
+        if (ItemSystem.CountItem(sp.Char, _world.Items, Constants.GoldItemIndex) < Constants.GuildCreationCost)
         {
             Notify(index, ServerStrings.Guild_NeedGold, ("Cost", Constants.GuildCreationCost));
             return;

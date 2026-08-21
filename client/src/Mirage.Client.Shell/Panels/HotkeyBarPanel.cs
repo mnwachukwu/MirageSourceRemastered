@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Core.State;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
+using Mirage.Client.Shell.Logic;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
 using Mirage.Shared.Records;
@@ -35,6 +36,10 @@ public static class HotkeyBarPanel
     // The key badge sits in the box's bottom-right corner, on its own dark plate so a digit stays legible
     // over a busy icon.
     private const int BadgeW = 11, BadgeH = 11;
+
+    // How many the bag holds, in the opposite corner from the key badge so the two can never crowd each
+    // other. Its plate is sized to the digits rather than fixed: a stack of gold runs to four of them.
+    private const int CountPadX = 2;
 
     // Cooldown sweep: a fan of thin spokes from the box center, since SpriteBatch draws quads and a
     // genuine pie wedge would need geometry. 48 spokes over a 32px box leaves no visible gaps.
@@ -126,6 +131,7 @@ public static class HotkeyBarPanel
             }
 
             UiHelper.DrawBorder(sb, box, UiHelper.UiControlBorder);
+            if (hk.IsBound && hk.Kind == HotkeyKind.Item) DrawHeldCount(sb, font, box, state, hk.Num);
             DrawKeyBadge(sb, font, box, slot, gamepadActive);
         }
 
@@ -175,6 +181,24 @@ public static class HotkeyBarPanel
 
     private static Color Multiply(Color c, Color tint) =>
         new(c.R * tint.R / 255, c.G * tint.G / 255, c.B * tint.B / 255, c.A);
+
+    /// <summary>How many of a bound item the bag holds, in the box's top-left corner — the corner the key
+    /// badge does not use. Drawn whenever the player holds any, including the last one: running down to a
+    /// single potion is exactly when the number earns its place. At zero the slot is already grayed, and a
+    /// count there would only repeat what the dimming says.</summary>
+    private static void DrawHeldCount(SpriteBatch sb, SpriteFont font, Rectangle box, ClientState state, int itemNum)
+    {
+        int held = InventoryQuery.HeldCount(state, itemNum);
+        if (held <= 0) return;
+
+        string label = held.ToString();
+        var size = font.MeasureString(label);
+        var plate = new Rectangle(box.X + 1, box.Y + 1, (int)size.X + CountPadX * 2, BadgeH);
+        UiHelper.DrawFilledRect(sb, plate, BadgePlate);
+        sb.DrawString(font, label,
+            new Vector2(plate.X + CountPadX, plate.Y + (plate.Height - size.Y) / 2f),
+            Color.White);
+    }
 
     private static void DrawKeyBadge(SpriteBatch sb, SpriteFont font, Rectangle box, int slot, bool gamepadActive)
     {

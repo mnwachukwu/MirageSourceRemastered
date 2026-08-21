@@ -179,7 +179,7 @@ public sealed class MarketSystem : GameSystem
             return;
         }
 
-        if (ItemSystem.HasItem(sp.Char, _world.Items, Constants.GoldItemIndex) < cost)
+        if (ItemSystem.CountItem(sp.Char, _world.Items, Constants.GoldItemIndex) < cost)
         {
             SendMsg(index, ServerStrings.Market_NotEnoughGold, GameColor.BrightRed);
             return;

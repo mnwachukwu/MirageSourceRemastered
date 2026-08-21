@@ -127,7 +127,7 @@ public class MailSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Gold), Is.EqualTo(500), "gold lands in the bag");
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Gold), Is.EqualTo(500), "gold lands in the bag");
             Assert.That(sp.Mail[0].Attachments[0].Claimed, Is.True, "the stack is marked claimed");
         });
     }
@@ -164,7 +164,7 @@ public class MailSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Armor), Is.EqualTo(0), "the item was not given");
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Armor), Is.EqualTo(0), "the item was not given");
             Assert.That(sp.Mail[0].Attachments[0].Claimed, Is.False, "so the attachment stays claimable (not eaten)");
         });
     }
@@ -195,10 +195,10 @@ public class MailSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Gold), Is.EqualTo(300), "gold stacked onto the pile");
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Gold), Is.EqualTo(300), "gold stacked onto the pile");
             Assert.That(sp.Mail[0].Attachments[0].Claimed, Is.True, "the gold stack is claimed");
             Assert.That(sp.Mail[0].Attachments[1].Claimed, Is.False, "the item that couldn't fit stays claimable");
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Armor), Is.EqualTo(0));
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Armor), Is.EqualTo(0));
         });
     }
 
@@ -266,7 +266,7 @@ public class MailSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Gold), Is.EqualTo(0), "nothing is credited while in transit");
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Gold), Is.EqualTo(0), "nothing is credited while in transit");
             Assert.That(sp.Mail[0].Attachments[0].Claimed, Is.False, "the stack stays unclaimed");
         });
     }
@@ -284,7 +284,7 @@ public class MailSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Gold), Is.EqualTo(500), "a matured message claims normally");
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Gold), Is.EqualTo(500), "a matured message claims normally");
             Assert.That(sp.Mail[0].Attachments[0].Claimed, Is.True);
         });
     }
@@ -308,7 +308,7 @@ public class MailSystemTests
         });
 
         mail.Claim(Idx, 1);
-        Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Gold), Is.EqualTo(100), "instant mail is claimable right away");
+        Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Gold), Is.EqualTo(100), "instant mail is claimable right away");
     }
 
     // Delete is gated on maturity: an in-transit message can't be deleted until it's delivered.

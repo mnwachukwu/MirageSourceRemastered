@@ -210,11 +210,13 @@ public sealed class ClientPacketSender
 
     // ── Shop ─────────────────────────────────────────────────────────────────
 
-    public void SendShopBarter(int shopNum, int barterSlot)
-        => _transport.Send(new ShopBarterPacket { ShopNum = shopNum, BarterSlot = barterSlot });
+    /// <summary>Trade against one barter row. <paramref name="multiples"/> applies the row that many times —
+    /// it is a rate, not a single swap — and the server refuses outright if the payout would not fit.</summary>
+    public void SendShopBarter(int shopNum, int barterSlot, int multiples = 1)
+        => _transport.Send(new ShopBarterPacket { ShopNum = shopNum, BarterSlot = barterSlot, Multiples = multiples });
 
-    /// <summary>Buy from the open shop. <paramref name="quantity"/> applies to stackables (currency); the
-    /// server clamps it to what the purse covers and prices it.</summary>
+    /// <summary>Buy from the open shop. <paramref name="quantity"/> applies to anything; the server clamps
+    /// it to what the purse covers, refuses if the bag cannot take all of it, and prices it.</summary>
     public void SendShopBuy(int shopNum, int salesSlot, int quantity = 1)
         => _transport.Send(new ShopBuyPacket { ShopNum = shopNum, SalesSlot = salesSlot, Quantity = quantity });
 

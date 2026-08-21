@@ -337,7 +337,7 @@ public sealed partial class PacketHandler
         if (_pm[index].Char.Dead) return;  // a corpse can't barter at a shop
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum > 0)
-            _shop.Barter(index, shopNum, p.BarterSlot);
+            _shop.Barter(index, shopNum, p.BarterSlot, p.Multiples);
         else
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
     }

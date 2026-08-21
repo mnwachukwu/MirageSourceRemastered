@@ -113,9 +113,11 @@ public sealed partial class NpcAiSystem : GameSystem
             {
                 mn.WasInCombat = false;
                 mn.CombatExpiresAt = 0;  // reset so stale expiry doesn't short-circuit future target propagation
-                // AttackWhenAttacked NPCs disengage when combat expires. CombatExpiresAt is already 0 here,
-                // so RunAggressiveAi can't detect expiry — handle the target drop now instead.
-                if (npc.Behavior == NpcBehavior.AttackWhenAttacked && mn.Target > 0)
+                // AttackOnSight and AttackWhenAttacked both disengage when combat expires: neither
+                // refreshes the timer by chasing (see IsRelentlessPursuit), so a target that breaks
+                // contact for the window is let go. CombatExpiresAt is already 0 here, so
+                // RunAggressiveAi can't detect expiry — handle the target drop now instead.
+                if (mn.Target > 0 && npc.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
                 {
                     mn.Target = 0;
                     SendToMap(_world, mapNum, new NpcTargetPacket { MapNum = mapNum, NpcSlot = slot, HasTarget = false });
@@ -141,12 +143,11 @@ public sealed partial class NpcAiSystem : GameSystem
                     SendToMap(_world, mapNum, new NpcTargetPacket { MapNum = mapNum, NpcSlot = slot, HasTarget = mn.Target != 0 });
                 }
                 mn.LastAttackSayNpcTarget = 0;
-                // LastReachedTargetMs intentionally NOT reset here — for AoS NPCs (the only behavior
-                // that checks it) the target persists across combat-expire by design, so the give-up
-                // clock must persist too.  Resetting it would let an AoS pinned at an unreachable
-                // target with no mana cheese the clock: combat-expire would fire every 10s and wipe
-                // the timer before it could ever trigger.  Acquisition (TryAcquire*, AlertNpc, etc.)
-                // calls MarkReachedTarget so a fresh target always starts with a fresh clock.
+                // LastReachedTargetMs is left as it lies. Every target — player and NPC alike — has
+                // been dropped by this point, and acquisition (TryAcquire*, AlertNpc, ...) calls
+                // MarkReachedTarget, so the next lock starts on a fresh clock whatever this holds.
+                // It feeds the unreachable give-up gate, which is a shorter fuse for a mob that
+                // cannot act at all rather than a second copy of this one.
                 ResetNativeNpc(mn, mapNum, slot, npc);
             }
 

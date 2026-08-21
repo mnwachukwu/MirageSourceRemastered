@@ -13,11 +13,16 @@ public sealed record OpenInnPacket : IPacket
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
 }
 
+/// <summary>C→S: trade against one row of the open shop's BARTER table.</summary>
 public sealed record ShopBarterPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.ShopBarter;
     [JsonPropertyName("shopNum")] public int ShopNum { get; init; }
     [JsonPropertyName("barterSlot")] public int BarterSlot { get; init; }
+    /// <summary>How many times to apply the row, which is a RATE rather than a single swap: five teeth
+    /// against a two-teeth row buys two helpings and leaves one behind. 0 and 1 both mean once. The server
+    /// refuses outright — never trims — when the bag cannot take the whole payout.</summary>
+    [JsonPropertyName("multiples")] public int Multiples { get; init; } = 1;
 }
 
 /// <summary>C→S: buy from the open shop's SALES list. <see cref="SalesSlot"/> is 1-based to match

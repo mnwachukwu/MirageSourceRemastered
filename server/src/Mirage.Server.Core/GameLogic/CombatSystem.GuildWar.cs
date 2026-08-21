@@ -263,7 +263,7 @@ public sealed partial class CombatSystem : GameSystem
         var p = _pm[index].Char;
         int tier = CasterTierLevel(index);
         if (tier <= 0) return 0;
-        long held = ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex);
+        long held = ItemSystem.CountItem(p, _world.Items, Constants.CastingReagentItemIndex);
         if (held <= 0) return 0;
         int loss = CombatFormulas.CasterDeathReagentLoss(tier, wearPercent);
         return held < loss ? (int)held : loss;   // never destroy more reagents than they hold

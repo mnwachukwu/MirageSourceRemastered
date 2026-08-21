@@ -112,7 +112,7 @@ public class ItemFormulaTests
         var items = BuildItems();
         p.Inv[3].Num = Gold;
         p.Inv[3].Quantity = 250;
-        Assert.That(ItemSystem.HasItem(p, items, Gold), Is.EqualTo(250));
+        Assert.That(ItemSystem.CountItem(p, items, Gold), Is.EqualTo(250));
     }
 
     [Test]
@@ -122,12 +122,12 @@ public class ItemFormulaTests
         var items = BuildItems();
         p.Inv[3].Num = Wep;
         p.Inv[3].Quantity = 999;  // Value ignored for non-currency
-        Assert.That(ItemSystem.HasItem(p, items, Wep), Is.EqualTo(1));
+        Assert.That(ItemSystem.CountItem(p, items, Wep), Is.EqualTo(1));
     }
 
     [Test]
     public void HasItem_Absent_ReturnsZero()
-        => Assert.That(ItemSystem.HasItem(new PlayerRecord(), BuildItems(), Wep), Is.EqualTo(0));
+        => Assert.That(ItemSystem.CountItem(new PlayerRecord(), BuildItems(), Wep), Is.EqualTo(0));
 
     // ── SortKey (canonical ordering; internal static → reflection) ─────────────
 

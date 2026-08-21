@@ -163,7 +163,7 @@ public class QuestSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(sp.Char.Quests[0].Status, Is.EqualTo(QuestStatus.Done));
-            Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(250), "gold rewarded");
+            Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(250), "gold rewarded");
             Assert.That(Enumerable.Range(1, Constants.MaxInv).Any(i => sp.Char.Inv[i].Num == Sword), Is.True, "item rewarded into the bag");
             Assert.That(sp.Char.Exp, Is.EqualTo(expBefore + 10), "exp rewarded");
         });
@@ -368,13 +368,13 @@ public class QuestSystemTests
         quests.Accept(1, 1);
         Kill(objectives, Rat, 1);
         quests.TurnIn(1, 1);
-        Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(1000), "first completion pays main");
+        Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(1000), "first completion pays main");
 
         sp.Char.Quests[0].PeriodKey = "1999-01-01";   // simulate the period rolling over
         quests.Accept(1, 1);
         Kill(objectives, Rat, 1);
         quests.TurnIn(1, 1);
-        Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(1100), "subsequent completion pays repeat (+100)");
+        Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(1100), "subsequent completion pays repeat (+100)");
     }
 
     [Test]
@@ -405,7 +405,7 @@ public class QuestSystemTests
         quests.Accept(1, 1);
         Kill(objectives, Rat, 1);
         quests.TurnIn(1, 1);
-        Assert.That(ItemSystem.HasItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(1100),
+        Assert.That(ItemSystem.CountItem(sp.Char, world.Items, Constants.GoldItemIndex), Is.EqualTo(1100),
             "abandon + re-run still pays repeat (+100), not a fresh main (no farming)");
     }
 

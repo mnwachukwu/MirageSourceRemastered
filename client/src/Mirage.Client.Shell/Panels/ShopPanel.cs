@@ -5,6 +5,7 @@ using Mirage.Client.Core.Net;
 using Mirage.Client.Core.State;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
+using Mirage.Client.Shell.Logic;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
@@ -63,9 +64,13 @@ public sealed class ShopPanel : IGamePanel
         || _viewState is ViewState.ConfirmingRepair or ViewState.ConfirmingBarter
                       or ViewState.ConfirmingBuy or ViewState.ConfirmingSell;
 
-    /// <summary>How many to buy or sell, for the stackable items where that is a question. A currency item is
-    /// bought and sold by the handful — a caster stocks reagents in dozens — and every other item is one
-    /// indivisible piece, so those go straight to the confirm card instead.</summary>
+    /// <summary>How many to buy, sell or trade for. Anything can be dealt in by the handful — a caster stocks
+    /// reagents in dozens, an outfitter clears five identical helmets, a forager cashes in a pocket of teeth —
+    /// so this opens whenever more than one is actually available. When only one is, there is nothing to
+    /// choose between and the plain confirm card takes over instead.
+    /// <para>Its cap is the client's copy of the server's own limits, so it never offers an amount that would
+    /// come back refused: what the purse covers AND what the bag can hold for a purchase, the identical-copy
+    /// group for a sale, and what can be both paid and received for a barter row.</para></summary>
     private readonly NumberPromptDialog _prompt = new();
 
     // ── The three storefronts ─────────────────────────────────────────────────
@@ -266,7 +271,7 @@ public sealed class ShopPanel : IGamePanel
                 if (_barterBtn.IsClicked(input) && _barterList.SelectedIndex >= 0)
                 {
                     _pendingBarterSlot = _barterList.SelectedIndex + 1;
-                    _viewState = ViewState.ConfirmingBarter;
+                    if (!BeginBulkBarter(state, sender)) _viewState = ViewState.ConfirmingBarter;
                 }
                 break;
 
@@ -601,17 +606,55 @@ public sealed class ShopPanel : IGamePanel
         int itemNum = _pendingBuySlot >= 1 && _pendingBuySlot <= state.ActiveSales.Length
             ? state.ActiveSales[_pendingBuySlot - 1] : 0;
         var item = itemNum > 0 && itemNum <= state.Limits.Items ? state.Items[itemNum] : null;
-        if (item?.Type != ItemType.Currency || item.Price <= 0) return false;
+        if (item is null || item.Price <= 0) return false;
 
+        // Capped by BOTH limits, because the server treats them differently: it would clamp an
+        // unaffordable ask down but REFUSE one the bag cannot hold, so offering more than fits would
+        // hand the player a button that only ever fails.
         int affordable = (int)Math.Min(int.MaxValue, state.PlayerGold() / item.Price);
+        int max = Math.Min(affordable, InventoryQuery.RoomFor(state, itemNum));
         if (affordable <= 0) return false;   // the confirm card says why, in its own words
+        if (max <= 1) return false;          // one at a time is the plain confirm, not a prompt
 
         int slot = _pendingBuySlot;
         _prompt.Open(
             ClientStrings.Get(ClientStrings.ShopPanel_BuyHowMany),
             EachLine(item.Name, item.Price),
-            affordable,
+            max,
             amount => sender.SendShopBuy(state.ActiveShopNum, slot, amount));
+        return true;
+    }
+
+    /// <summary>Asks how many helpings of a barter row to take. A row is a RATE: five teeth against a
+    /// two-teeth row is two helpings with one left over. Capped by what the bag can both PAY and RECEIVE,
+    /// since the server refuses a payout that would not fit rather than trimming it.</summary>
+    private bool BeginBulkBarter(ClientState state, ClientPacketSender sender)
+    {
+        if (_pendingBarterSlot < 1 || _pendingBarterSlot > state.ActiveBarters.Length) return false;
+        var row = state.ActiveBarters[_pendingBarterSlot - 1];
+        if (row.GiveItem <= 0 || row.GetItem <= 0 || row.GiveQuantity <= 0 || row.GetQuantity <= 0) return false;
+
+        int canPay = InventoryQuery.HeldCount(state, row.GiveItem) / row.GiveQuantity;
+
+        // The payment is part of the room: a helping frees GiveQuantity slots and fills GetQuantity, so only
+        // the DIFFERENCE has to be found up front. A row that gives back no more than it takes always fits,
+        // however full the bag is — which is the same arithmetic the server does before refusing.
+        int netPerHelping = row.GetQuantity - row.GiveQuantity;
+        int canHold = netPerHelping <= 0
+            ? canPay
+            : InventoryQuery.RoomFor(state, row.GetItem) / netPerHelping;
+        int max = Math.Min(canPay, canHold);
+        if (max <= 1) return false;   // a single helping is the plain confirm card
+
+        int slot = _pendingBarterSlot;
+        var give = row.GiveItem <= state.Limits.Items ? state.Items[row.GiveItem] : null;
+        _prompt.Open(
+            ClientStrings.Get(ClientStrings.ShopPanel_BarterHowMany),
+            ClientStrings.Format(ClientStrings.ShopPanel_PerHelping,
+                ("Give", $"{give?.Name?.TrimEnd() ?? "?"} x{row.GiveQuantity}"),
+                ("Get", $"{(row.GetItem <= state.Limits.Items ? state.Items[row.GetItem]?.Name?.TrimEnd() : null) ?? "?"} x{row.GetQuantity}")),
+            max,
+            amount => sender.SendShopBarter(state.ActiveShopNum, slot, amount));
         return true;
     }
 
@@ -621,14 +664,22 @@ public sealed class ShopPanel : IGamePanel
     {
         var inv = state.Me?.Inv?[_pendingSellSlot];
         var item = inv is not null && inv.Num > 0 && inv.Num <= state.Limits.Items ? state.Items[inv.Num] : null;
-        if (item?.Type != ItemType.Currency) return false;
+        if (item is null) return false;
 
-        int held = Math.Max(inv!.Quantity, 1);
+        // A stack sells by amount; everything else sells by the slot, and only alongside copies that are
+        // INDISTINGUISHABLE from this one — same item, same durability. That is the rule the shop applies,
+        // and it is what lets worn gear be sold in bulk at all without a pristine piece going with the
+        // battered ones. Every copy in the group prices the same, so one "each" line describes them all.
+        int held = item.Type == ItemType.Currency
+            ? Math.Max(inv!.Quantity, 1)
+            : InventoryQuery.IdenticalSaleableCount(state, _pendingSellSlot);
+        if (held <= 1) return false;   // nothing to choose between; the plain confirm card says it
+
         int slot = _pendingSellSlot;
-        // No spell to price against: a scroll is its own item type, never a currency stack.
+        // No spell to price against: a scroll is its own item type, never one of these groups.
         _prompt.Open(
             ClientStrings.Get(ClientStrings.ShopPanel_SellHowMany),
-            EachLine(item.Name, EconomyFormulas.ItemSellValue(item, inv.Dur)),
+            EachLine(item.Name, EconomyFormulas.ItemSellValue(item, inv!.Dur)),
             held,
             amount => { sender.SendShopSell(slot, amount); _sellDirty = true; });
         return true;

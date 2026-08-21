@@ -33,7 +33,7 @@ public sealed class ShopSystem : GameSystem
     /// hand back its "get" stack. An ordinary purchase is just a row whose give side is the currency item.
     /// <para>Refuses unless the shop is open for this player, is a Store, the player holds enough, and the
     /// bag has room — checked in that order so the player gets the most specific message.</para></summary>
-    public void Barter(int index, int shopNum, int barterSlot)
+    public void Barter(int index, int shopNum, int barterSlot, int multiples = 1)
     {
         if (!_pm[index].IsPlaying) return;
         if (shopNum <= 0 || shopNum > _world.Limits.Shops) return;
@@ -62,20 +62,32 @@ public sealed class ShopSystem : GameSystem
         // editor and the shop-save handler both keep quantities >= 1, so this only guards legacy/bad data.
         if (row.GiveItem <= 0 || row.GetItem <= 0 || row.GiveQuantity <= 0 || row.GetQuantity <= 0) return;
 
-        if (ItemSystem.HasItem(p, _world.Items, row.GiveItem) < row.GiveQuantity)
+        // The row is a RATE, and this is how many times to apply it. Five teeth against a two-teeth row
+        // buys two helpings and leaves a tooth: the remainder stays in the bag rather than being rounded
+        // into the trade.
+        int want = Math.Max(multiples, 1);
+        long affordable = ItemSystem.CountItem(p, _world.Items, row.GiveItem) / row.GiveQuantity;
+        if (want > affordable)
         {
             SendMsg(index, ServerStrings.ShopSystem_NotEnoughTrade, GameColor.BrightRed);
             return;
         }
 
-        if (ItemSystem.FindOpenInvSlot(p, _world.Items, row.GetItem) == 0)
+        // REFUSED, not trimmed to fit. Handing over three teeth for nine hats and delivering eight would
+        // charge the full price for a short measure, so a trade that cannot be paid out whole does not
+        // happen at all — ask for two.
+        long incoming = (long)row.GetQuantity * want;
+        long payment = (long)row.GiveQuantity * want;
+        if (ItemSystem.RoomAfterPaying(p, _world.Items, row.GetItem, row.GiveItem, payment) < incoming)
         {
             SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
             return;
         }
 
-        _items.TakeItem(index, row.GiveItem, row.GiveQuantity);
-        _items.GiveItem(index, row.GetItem, row.GetQuantity);
+        // Counted rather than cleared-once on both sides: a row asking for two gems has to cost two, and a
+        // row paying three has to arrive as three slots.
+        _items.TakeItems(index, row.GiveItem, row.GiveQuantity * want);
+        _items.GiveItems(index, row.GetItem, (int)incoming);
         SendMsg(index, ServerStrings.ShopSystem_TradedWith, GameColor.Yellow, ("ShopName", shop.TrimmedName));
     }
 
@@ -85,10 +97,15 @@ public sealed class ShopSystem : GameSystem
     // items instead of hand-writing a give→get row each (see ShopRecord.SalesItem).
 
     /// <summary>Buy from a sales-list entry at its <see cref="ItemRecord.Price"/>.
-    /// <para><paramref name="quantity"/> applies to currency-style stacks and is clamped to what the purse
-    /// covers; anything else is one piece however many are asked for.</para>
+    /// <para><paramref name="quantity"/> applies to anything: a currency pours into one stack, everything
+    /// else takes a slot per copy.</para>
+    /// <para>The two limits are deliberately different. GOLD CLAMPS — asking for more than the purse covers
+    /// buys as many as it does, and nothing is charged for what was not received. ROOM REFUSES — a bag that
+    /// can take eight of the twenty asked for buys none, because taking the money for twenty and handing
+    /// over eight is the one outcome a purchase must never have.</para>
     /// <para>Refuses unless the shop is open for this player, is a Store, the entry is priced, the purse
-    /// covers it, and the bag has room — in that order, so the player gets the most specific message.</para></summary>
+    /// covers at least one, and the bag has room for all of them — in that order, so the player gets the
+    /// most specific message.</para></summary>
     public void Buy(int index, int shopNum, int salesSlot, int quantity = 1)
     {
         if (!_pm[index].IsPlaying) return;
@@ -118,14 +135,15 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        // Currency-style stacks are bought by the handful — a caster buys reagents in dozens, not one click
-        // at a time. Everything else is one indivisible piece, so an amount on it means nothing.
+        // Bought by the handful whatever it is — a caster buys reagents in dozens and an outfitter buys
+        // arrows by the score, and neither wants to click twenty times. A currency pours into one stack;
+        // everything else takes a slot per copy, which is what the room check below is counting.
         bool stacks = item.Type == ItemType.Currency;
-        int want = stacks ? Math.Max(quantity, 1) : 1;
+        int want = Math.Max(quantity, 1);
 
-        // Clamped rather than refused, the same way a partial repair is: the client already offers only what
-        // the purse covers, so this is the guard against a packet that asked for more.
-        long purse = ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex);
+        // Gold is CLAMPED: buying as much as the purse covers is the useful answer, and nobody is charged
+        // for what they did not receive.
+        long purse = ItemSystem.CountItem(p, _world.Items, Constants.GoldItemIndex);
         int amount = (int)Math.Min(want, purse / price);
         if (amount <= 0)
         {
@@ -133,14 +151,15 @@ public sealed class ShopSystem : GameSystem
             return;
         }
 
-        if (ItemSystem.FindOpenInvSlot(p, _world.Items, itemNum) == 0)
+        // Room is REFUSED, not trimmed. Trimming would take the money for twenty and hand over eight,
+        // which is the one outcome a purchase must never have.
+        if (ItemSystem.RoomAfterPaying(p, _world.Items, itemNum, Constants.GoldItemIndex, (long)price * amount) < amount)
         {
             SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
             return;
         }
 
-        if (stacks) amount = Math.Min(amount, StackHeadroom(p, itemNum));
-        if (amount <= 0)
+        if (stacks && StackHeadroom(p, itemNum) < amount)
         {
             SendMsg(index, ServerStrings.Common_InventoryFull, GameColor.BrightRed);
             return;
@@ -148,7 +167,7 @@ public sealed class ShopSystem : GameSystem
 
         long cost = (long)price * amount;
         _items.TakeItem(index, Constants.GoldItemIndex, (int)cost);
-        _items.GiveItem(index, itemNum, amount);
+        _items.GiveItems(index, itemNum, amount);
 
         if (amount > 1)
         {
@@ -160,6 +179,25 @@ public sealed class ShopSystem : GameSystem
             SendMsg(index, ServerStrings.ShopSystem_Bought, GameColor.Yellow,
                 ("ItemName", item.TrimmedName), ("Gold", cost));
         }
+    }
+
+    /// <summary>The bag slots holding a copy INDISTINGUISHABLE from the one at <paramref name="invSlot"/> —
+    /// same item, same durability — with the clicked slot first and the rest in bag order, and anything
+    /// currently worn left out of it.
+    /// <para>This is the set a bulk sale is allowed to draw from. Every member prices the same, so the total
+    /// is one multiplication rather than a per-slot sum, and no copy can be handed over by surprise: sell
+    /// five of a pristine helmet and the battered one on the next row is not among them.</para></summary>
+    private static List<int> IdenticalSaleableSlots(PlayerRecord p, int invSlot, int itemNum)
+    {
+        int dur = p.Inv[invSlot].Dur;
+        var slots = new List<int> { invSlot };
+        for (int i = 1; i <= Constants.MaxInv; i++)
+        {
+            if (i == invSlot || p.Inv[i].Num != itemNum || p.Inv[i].Dur != dur) continue;
+            if (p.WeaponSlot == i || p.ArmorSlot == i || p.HelmetSlot == i || p.ShieldSlot == i) continue;
+            slots.Add(i);
+        }
+        return slots;
     }
 
     /// <summary>How much more of <paramref name="itemNum"/> the player's existing stack can take. A stack
@@ -216,16 +254,22 @@ public sealed class ShopSystem : GameSystem
         }
 
         // Currency-style stacks sell by amount (0 or an oversized ask means the whole stack, matching
-        // RemoveFromSlot); everything else is one indivisible piece and carries its own durability.
+        // RemoveFromSlot). Everything else sells by the SLOT, and only alongside copies that are identical
+        // to it — same item, same durability — because ItemSellValue prices on condition and a bulk sale
+        // that mixed conditions would either misprice the pile or quietly hand over the good one. Grouping
+        // on durability is also what lets worn gear be sold in bulk at all: five helmets straight off the
+        // same drop table sell together, a battered one keeps its own price.
         bool stacks = item.Type == ItemType.Currency;
-        int have = stacks ? Math.Max(p.Inv[invSlot].Quantity, 1) : 1;
-        int amount = stacks ? (quantity <= 0 || quantity > have ? have : quantity) : 1;
+        var group = stacks ? [] : IdenticalSaleableSlots(p, invSlot, itemNum);
+        int have = stacks ? Math.Max(p.Inv[invSlot].Quantity, 1) : group.Count;
+        int amount = quantity <= 0 || quantity > have ? have : quantity;
 
         var spell = item.Type == ItemType.Spell && item.SpellNum > 0 && item.SpellNum <= _world.Limits.Spells
             ? _world.Spells[item.SpellNum] : null;
         long gold = (long)EconomyFormulas.ItemSellValue(item, p.Inv[invSlot].Dur, spell) * amount;
 
-        _items.TakeItem(index, itemNum, amount);
+        if (stacks) _items.TakeItem(index, itemNum, amount);
+        else for (int i = 0; i < amount; i++) _items.RemoveFromSlot(index, group[i], 0);
         if (gold > 0) _items.GiveItem(index, Constants.GoldItemIndex, (int)Math.Min(gold, int.MaxValue));
 
         if (gold > 0 && amount > 1)
@@ -296,7 +340,7 @@ public sealed class ShopSystem : GameSystem
         // guild-war vault-repair sink, so both price durability the same way).
         int goldNeeded = EconomyFormulas.RepairCost(durNeeded, item);
 
-        long playerGold = ItemSystem.HasItem(p, _world.Items, Constants.GoldItemIndex);
+        long playerGold = ItemSystem.CountItem(p, _world.Items, Constants.GoldItemIndex);
 
         // How many points the purse actually covers. Asked exactly rather than as gold/ratePerPoint —
         // the rate is a floored display figure, and dividing by it can name a point count that costs a

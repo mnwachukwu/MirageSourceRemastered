@@ -43,7 +43,7 @@ public class ItemSystemStateTests
         Assert.Multiple(() =>
         {
             Assert.That(p.Inv[1].Quantity, Is.EqualTo(150), "currency stacks into a single slot");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(150));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(150));
         });
     }
 
@@ -65,7 +65,7 @@ public class ItemSystemStateTests
         world.Items[Armor].Type = ItemType.Armor;
         for (int i = 1; i <= Constants.MaxInv; i++) p.Inv[i].Num = Sword;
         items.GiveItem(Idx, Armor, 0);
-        Assert.That(ItemSystem.HasItem(p, world.Items, Armor), Is.EqualTo(0), "a full bag rejects the item");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Armor), Is.EqualTo(0), "a full bag rejects the item");
     }
 
     [Test]
@@ -79,7 +79,7 @@ public class ItemSystemStateTests
         Assert.Multiple(() =>
         {
             Assert.That(ok, Is.False, "a full bag reports failure instead of silently dropping the item");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Armor), Is.EqualTo(0));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Armor), Is.EqualTo(0));
         });
     }
 
@@ -179,8 +179,8 @@ public class ItemSystemStateTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Armor), Is.EqualTo(1), "the top item is picked first");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "the bottom item is left behind");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Armor), Is.EqualTo(1), "the top item is picked first");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "the bottom item is left behind");
             Assert.That(world.MapItems[Map].Exists(m => m.Num == Sword), Is.True, "the bottom item stays on the ground");
             Assert.That(world.MapItems[Map].Exists(m => m.Num == Armor), Is.False, "the picked item is removed from the map");
         });
@@ -205,15 +205,15 @@ public class ItemSystemStateTests
         items.PlayerMapGetItem(Idx);
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Armor), Is.EqualTo(1), "the ground drop is picked");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "the fringe drop is out of reach from the ground");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Armor), Is.EqualTo(1), "the ground drop is picked");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "the fringe drop is out of reach from the ground");
             Assert.That(world.MapItems[Map].Exists(m => m.Num == Sword), Is.True, "the fringe drop stays on the bridge");
         });
 
         // Step up onto the bridge → the fringe sword is now reachable.
         p.Layer = WorldLayer.Fringe;
         items.PlayerMapGetItem(Idx);
-        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1), "on the fringe, the bridge drop is picked");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(1), "on the fringe, the bridge drop is picked");
     }
 
     // Two-plane world (§1b): a tile-defined Item authored on the FringeAttr spawns a FRINGE map item; a Ground

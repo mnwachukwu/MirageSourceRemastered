@@ -81,8 +81,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(150), "the price is taken");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1), "the item is received");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(150), "the price is taken");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(1), "the item is received");
         });
     }
 
@@ -100,8 +100,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "nothing is taken");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "nothing is received");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(100), "nothing is taken");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "nothing is received");
         });
     }
 
@@ -130,8 +130,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(25));
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(25), "75 of 100 spent");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Reagent), Is.EqualTo(25));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(25), "75 of 100 spent");
         });
     }
 
@@ -147,7 +147,7 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(20), "stacked, not a second slot");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Reagent), Is.EqualTo(20), "stacked, not a second slot");
             Assert.That(p.Inv[3].Num, Is.Zero);
         });
     }
@@ -164,8 +164,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(6), "32 gold buys six at five");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(2), "the remainder is left alone");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Reagent), Is.EqualTo(6), "32 gold buys six at five");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(2), "the remainder is left alone");
         });
     }
 
@@ -179,15 +179,16 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.Zero);
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(4));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Reagent), Is.Zero);
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(4));
         });
     }
 
-    /// <summary>An amount on a sword means nothing: it is one piece, with its own durability, and a bag slot
-    /// of its own. A packet asking for ten must not hand over ten or charge for them.</summary>
+    /// <summary>An amount applies to a sword as much as to a stack — it just costs a bag slot per copy
+    /// rather than deepening one. Ten swords are ten slots and ten prices; see BulkTradeTests for the
+    /// limits that bound it.</summary>
     [Test]
-    public void Buy_AnAmountOfSomethingThatDoesNotStack_StillBuysOne()
+    public void Buy_AnAmountOfSomethingThatDoesNotStack_BuysThatMany()
     {
         var (world, shop, p) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
@@ -200,8 +201,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1));
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(900), "charged once");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(10));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.Zero, "charged for ten");
         });
     }
 
@@ -216,8 +217,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Reagent), Is.EqualTo(1));
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(93));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Reagent), Is.EqualTo(1));
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(93));
         });
     }
 
@@ -235,7 +236,7 @@ public class ShopSystemTests
 
         shop.Buy(Idx, ShopNum, 1);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "a 0-price entry is not free stock");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "a 0-price entry is not free stock");
     }
 
     [Test]
@@ -250,7 +251,7 @@ public class ShopSystemTests
 
         shop.Buy(Idx, ShopNum, 1);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0));
+        Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0));
     }
 
     // ── Sell ─────────────────────────────────────────────────────────────────────
@@ -272,8 +273,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "the item leaves the bag");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(expected), "paid at the sell rate");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "the item leaves the bag");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(expected), "paid at the sell rate");
             Assert.That(expected, Is.GreaterThan(0), "the fixture item should be worth something");
         });
     }
@@ -299,7 +300,7 @@ public class ShopSystemTests
         p.Inv[1].Dur = 50;
         shop.Sell(Idx, 1, 0);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(worn));
+        Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(worn));
     }
 
     /// <summary>A worthless item still sells. The vendor doubles as the way to empty a bag, and a slot
@@ -319,8 +320,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "the slot clears");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(0), "and pays nothing");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "the slot clears");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(0), "and pays nothing");
         });
     }
 
@@ -341,8 +342,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Potion), Is.EqualTo(1), "treasure stays in the bag");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(0), "and pays nothing");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Potion), Is.EqualTo(1), "treasure stays in the bag");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(0), "and pays nothing");
         });
     }
 
@@ -362,7 +363,7 @@ public class ShopSystemTests
 
         shop.Sell(Idx, 1, 0);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1), "equipped gear is not sold out from under you");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(1), "equipped gear is not sold out from under you");
     }
 
     [Test]
@@ -378,7 +379,7 @@ public class ShopSystemTests
 
         shop.Sell(Idx, 1, 0);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1));
+        Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(1));
     }
 
     // ── Trade ────────────────────────────────────────────────────────────────────
@@ -404,8 +405,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(0), "the price is taken");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(1), "the traded item is received");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(0), "the price is taken");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(1), "the traded item is received");
         });
     }
 
@@ -422,8 +423,8 @@ public class ShopSystemTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(50), "nothing is taken");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "nothing is received");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(50), "nothing is taken");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "nothing is received");
         });
     }
 
@@ -438,7 +439,7 @@ public class ShopSystemTests
 
         shop.Barter(Idx, ShopNum, 1);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "an Inn is not a trading store");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(100), "an Inn is not a trading store");
     }
 
     // A misconfigured slot (zero quantity) must not mint a free item — the explicit guard.
@@ -453,7 +454,7 @@ public class ShopSystemTests
 
         shop.Barter(Idx, ShopNum, 1);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Sword), Is.EqualTo(0), "a zero-quantity trade hands out nothing");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Sword), Is.EqualTo(0), "a zero-quantity trade hands out nothing");
     }
 
     // ── FixItem ──────────────────────────────────────────────────────────────────
@@ -495,7 +496,7 @@ public class ShopSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(p.Inv[2].Dur, Is.EqualTo(100), "restored to max durability");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(purse - cost),
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(purse - cost),
                 "exactly the quoted full-repair cost is deducted");
         });
     }
@@ -519,7 +520,7 @@ public class ShopSystemTests
         {
             Assert.That(expectedPoints, Is.GreaterThan(0).And.LessThan(60), "the case must actually be partial");
             Assert.That(p.Inv[2].Dur, Is.EqualTo(40 + expectedPoints), "restores the points the gold covers");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(purse - expectedCost),
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(purse - expectedCost),
                 "spends what those points cost");
             Assert.That(expectedCost, Is.LessThanOrEqualTo(purse), "a partial repair never costs more than the purse");
         });
@@ -540,7 +541,7 @@ public class ShopSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(p.Inv[2].Dur, Is.EqualTo(40), "no repair");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(broke), "no gold spent");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(broke), "no gold spent");
         });
     }
 
@@ -552,7 +553,7 @@ public class ShopSystemTests
 
         shop.FixItem(Idx, invSlot: 2);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "a pristine item costs nothing");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(100), "a pristine item costs nothing");
     }
 
     [Test]
@@ -567,7 +568,7 @@ public class ShopSystemTests
 
         shop.FixItem(Idx, invSlot: 2);
 
-        Assert.That(ItemSystem.HasItem(p, world.Items, Gold), Is.EqualTo(100), "a potion can't be repaired");
+        Assert.That(ItemSystem.CountItem(p, world.Items, Gold), Is.EqualTo(100), "a potion can't be repaired");
     }
 
     // ── Harness ──────────────────────────────────────────────────────────────────

@@ -127,7 +127,7 @@ public sealed partial class GuildSystem : GameSystem
     {
         long cost = GuildQuests.AcquireCost(guild.Level);
         if (cost <= 0) return true;
-        if (ItemSystem.HasItem(_pm[index].Char, _world.Items, Constants.GoldItemIndex) < cost)
+        if (ItemSystem.CountItem(_pm[index].Char, _world.Items, Constants.GoldItemIndex) < cost)
         {
             Notify(index, ServerStrings.Guild_QuestNeedGold, ("Cost", cost));
             return false;

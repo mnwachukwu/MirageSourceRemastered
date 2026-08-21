@@ -216,7 +216,7 @@ public class LevelRequirementTests
         Assert.Multiple(() =>
         {
             Assert.That(p.Hp, Is.EqualTo(before), "an under-level potion must not heal");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Potion), Is.GreaterThan(0), "nor be consumed");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Potion), Is.GreaterThan(0), "nor be consumed");
         });
     }
 
@@ -246,7 +246,7 @@ public class LevelRequirementTests
         items.GiveItem(Idx, Coin, 500);
 
         Assert.That(world.Items[Coin].LevelReq, Is.EqualTo(0));
-        Assert.That(ItemSystem.HasItem(p, world.Items, Coin), Is.EqualTo(500));
+        Assert.That(ItemSystem.CountItem(p, world.Items, Coin), Is.EqualTo(500));
     }
 
     // ── Learning from a scroll ───────────────────────────────────────────────
@@ -271,7 +271,7 @@ public class LevelRequirementTests
         Assert.Multiple(() =>
         {
             Assert.That(SpellSystem.HasSpell(p, 1), Is.False, "an under-level spell is not learned");
-            Assert.That(ItemSystem.HasItem(p, world.Items, Scroll), Is.GreaterThan(0), "and the scroll survives");
+            Assert.That(ItemSystem.CountItem(p, world.Items, Scroll), Is.GreaterThan(0), "and the scroll survives");
         });
     }
 

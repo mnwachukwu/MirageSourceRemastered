@@ -160,7 +160,7 @@ public sealed class SpellSystem : GameSystem
             // pouch cast, any more than a weapon at 0 durability can swing. The arena waiver is free by
             // rule rather than by roll, so it needs no pouch.
             int reagentsNeeded = CombatFormulas.ReagentCostPerCast(exactReagents);
-            if (ItemSystem.HasItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentsNeeded)
+            if (ItemSystem.CountItem(p, _world.Items, Constants.CastingReagentItemIndex) < reagentsNeeded)
             {
                 SendMsg(index, ServerStrings.SpellSystem_NotEnoughReagents, GameColor.BrightRed, ChatChannel.System,
                     ("Count", reagentsNeeded), ("Reagent", _world.Items[Constants.CastingReagentItemIndex].TrimmedName));

@@ -214,9 +214,9 @@ public class EditorBagEditTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(ItemSystem.HasItem(p, items, Potion), Is.EqualTo(1));
+            Assert.That(ItemSystem.CountItem(p, items, Potion), Is.EqualTo(1));
             Assert.That(ItemSystem.TakeFromInventory(p, items, 1, 0).ItemNum, Is.EqualTo(Potion));
-            Assert.That(ItemSystem.HasItem(p, items, Potion), Is.Zero);
+            Assert.That(ItemSystem.CountItem(p, items, Potion), Is.Zero);
         });
     }
 }
