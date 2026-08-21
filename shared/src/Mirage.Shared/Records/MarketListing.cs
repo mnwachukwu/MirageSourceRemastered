@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Mirage.Shared.Records;
 
 /// <summary>One live marketplace listing: a single item stack a seller has put up for a fixed gold price,
@@ -5,7 +7,16 @@ namespace Mirage.Shared.Records;
 /// so keep it a plain POCO. Player-to-player sales ride the delayed mail path (see MailMessage/MailSystem).</summary>
 public sealed class MarketListing
 {
-    /// <summary>Stable global id (1-based), used to buy / cancel a specific listing.</summary>
+    /// <summary>Filename stem inside <c>market/</c>; the trailing number is the <see cref="Id"/>.</summary>
+    public const string FileStem = "listing";
+
+    /// <summary>Stable global id (1-based), used to buy / cancel a specific listing. In memory only — the
+    /// market code holds a listing detached from any key and quotes its id back to a buyer.
+    ///
+    /// <para>NOT serialized. The number lives in the filename, <c>market/listing{Id}.json</c>, and the
+    /// loader fills this in from it, so a file copied to another slot cannot claim an id that is not
+    /// its own.</para></summary>
+    [JsonIgnore]
     public int Id { get; set; }
     /// <summary>Seller account login — the sale payout and any cancellation return go here.</summary>
     public string Seller { get; set; } = "";

@@ -39,7 +39,7 @@
   <Target Name="TestAll" DependsOnTargets="BuildSuites">
     <!-- ContinueOnError, as in the aggregate: a red Server suite should not hide the Shell result. -->
     <Message Text="── Server ──" Importance="High" />
-    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo --filter &quot;TestCategory!=Content&quot;" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_ServerExit" />
     </Exec>
     <Message Text="── Server.Shell ──" Importance="High" />

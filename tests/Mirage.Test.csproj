@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.Build.NoTargets/3.7.0" DefaultTargets="TestAll">
 
   <!-- Thin delegator — the test-side mirror of Mirage.Publish.csproj.
-       Right-click → Build (or `dotnet msbuild tests/Mirage.Test.csproj /t:TestAll`, or a bare
-       `dotnet msbuild tests/Mirage.Test.csproj`) runs all five suites in one shot and fails if any fails.
+       Right-click → Build (or `dotnet msbuild tests/Mirage.Test.csproj -t:TestAll`, or a bare
+       `dotnet msbuild tests/Mirage.Test.csproj`) runs all six suites in one shot and fails if any fails.
        Lives in tests/, one level above the suites it drives. -->
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <_SharedTests>$(MSBuildThisFileDirectory)src/Mirage.Shared.Tests/Mirage.Shared.Tests.csproj</_SharedTests>
     <_ServerTests>$(MSBuildThisFileDirectory)src/Mirage.Server.Tests/Mirage.Server.Tests.csproj</_ServerTests>
     <_ClientCoreTests>$(MSBuildThisFileDirectory)src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj</_ClientCoreTests>
     <_ClientShellTests>$(MSBuildThisFileDirectory)src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj</_ClientShellTests>
     <_EditorTests>$(MSBuildThisFileDirectory)src/Mirage.Editor.Tests/Mirage.Editor.Tests.csproj</_EditorTests>
     <_ServerShellTests>$(MSBuildThisFileDirectory)src/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj</_ServerShellTests>
-    <_AllTests>$(_ServerTests);$(_ClientCoreTests);$(_ClientShellTests);$(_EditorTests);$(_ServerShellTests)</_AllTests>
+    <_AllTests>$(_SharedTests);$(_ServerTests);$(_ClientCoreTests);$(_ClientShellTests);$(_EditorTests);$(_ServerShellTests)</_AllTests>
   </PropertyGroup>
 
   <!-- Build the suites through the MSBuild task rather than letting each `dotnet test` build its own.
@@ -41,9 +42,13 @@
 
   <Target Name="TestAll" DependsOnTargets="BuildSuites">
     <!-- ContinueOnError so one red suite doesn't hide the rest; each exit code is captured, then the
-         run fails at the end if any suite returned non-zero (all-pass concatenates to "00000"). -->
+         run fails at the end if any suite returned non-zero (all-pass concatenates to "000000"). -->
+    <Message Text="── Shared ──" Importance="High" />
+    <Exec Command="dotnet test &quot;$(_SharedTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_SharedExit" />
+    </Exec>
     <Message Text="── Server ──" Importance="High" />
-    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo" ContinueOnError="true">
+    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo --filter &quot;TestCategory!=Content&quot;" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_ServerExit" />
     </Exec>
     <Message Text="── Client.Core ──" Importance="High" />
@@ -70,6 +75,11 @@
          locally and failing on push. Skipped with a warning where node is absent, so a green local
          run without it is not a silent pass. -->
     <Message Text="── Checks ──" Importance="High" />
+    <!-- The guards that read committed artifacts rather than exercise code: the seed against the engine's
+         rules, then the four documentation checks below. Kept out of the unit pass above by category. -->
+    <Exec Command="dotnet test &quot;$(_ServerTests)&quot; --no-build --configuration $(Configuration) --nologo --filter &quot;TestCategory=Content&quot;" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="_ContentExit" />
+    </Exec>
     <Exec Command="node --version" ContinueOnError="true" StandardOutputImportance="low">
       <Output TaskParameter="ExitCode" PropertyName="_NodeExit" />
     </Exec>
@@ -81,8 +91,8 @@
       <Output TaskParameter="ExitCode" PropertyName="_DocsExit" />
     </Exec>
 
-    <Error Condition="'$(_ServerExit)$(_ClientCoreExit)$(_ClientShellExit)$(_EditorExit)$(_ServerShellExit)$(_DocsExit)' != '000000'"
-           Text="Test suites failed — Server=$(_ServerExit) Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit) Editor=$(_EditorExit) Server.Shell=$(_ServerShellExit) Docs=$(_DocsExit)." />
+    <Error Condition="'$(_SharedExit)$(_ServerExit)$(_ClientCoreExit)$(_ClientShellExit)$(_EditorExit)$(_ServerShellExit)$(_ContentExit)$(_DocsExit)' != '00000000'"
+           Text="Test suites failed — Shared=$(_SharedExit) Server=$(_ServerExit) Client.Core=$(_ClientCoreExit) Client.Shell=$(_ClientShellExit) Editor=$(_EditorExit) Server.Shell=$(_ServerShellExit) Content=$(_ContentExit) Docs=$(_DocsExit)." />
     <Message Text="═══ All test suites passed ═══" Importance="High" />
   </Target>
 

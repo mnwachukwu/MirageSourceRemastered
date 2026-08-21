@@ -18,11 +18,13 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/Mirage.Test.csproj" />
+    <Project Path="tests/Mirage.Shared.Test.csproj" />
     <Project Path="tests/Mirage.Server.Test.csproj" />
     <Project Path="tests/Mirage.Client.Test.csproj" />
     <Project Path="tests/Mirage.Editor.Test.csproj" />
   </Folder>
   <Folder Name="/Tests/src/">
+    <Project Path="tests/src/Mirage.Shared.Tests/Mirage.Shared.Tests.csproj" />
     <Project Path="tests/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj" />
     <Project Path="tests/src/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj" />
     <Project Path="tests/src/Mirage.Client.Core.Tests/Mirage.Client.Core.Tests.csproj" />

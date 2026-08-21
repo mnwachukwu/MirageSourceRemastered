@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Mirage.Shared.Records;
 
 /// <summary>
@@ -15,6 +17,15 @@ namespace Mirage.Shared.Records;
 /// </summary>
 public sealed class TradeJournal
 {
+    /// <summary>Filename stem inside <c>trades/</c>; the trailing number is the <see cref="Id"/>.</summary>
+    public const string FileStem = "journal";
+
+    /// <summary>Sequence number for this journal. In memory only — the next id is taken from the highest
+    /// loaded, and a journal is quoted by id in the audit log.
+    ///
+    /// <para>NOT serialized. The number lives in the filename, <c>trades/journal{Id}.json</c>, and the
+    /// loader fills this in from it.</para></summary>
+    [JsonIgnore]
     public int Id { get; set; }
 
     public string ALogin { get; set; } = "";

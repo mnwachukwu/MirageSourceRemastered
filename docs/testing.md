@@ -2,11 +2,14 @@
 
 What the suites cover, how to run one, and why the cross-platform matrix exists.
 
-The five test suites are one **NUnit** project per source portion, each named for the code it exercises; the root `Mirage.slnx` groups them under a `/Tests/src/` solution folder, with the drivers that run them in `/Tests/` above.
+The six test suites are one **NUnit** project per source portion, each named for the code it exercises; the root `Mirage.slnx` groups them under a `/Tests/src/` solution folder, with the drivers that run them in `/Tests/` above.
+
+Eleven of the solution's twenty-four projects are testing — the six suites plus five drivers — against nine that are the game itself. That ratio is what the rest of this page is about: the suites are split so a shell can be swapped without the core noticing, and each split costs a project.
 
 | Test project | Exercises | Runs on |
 |---|---|---|
-| `Mirage.Server.Tests` | `Mirage.Server.Core` + `Mirage.Server.Host` + `Mirage.Shared` | all three platforms |
+| `Mirage.Shared.Tests` | `Mirage.Shared` + `Mirage.Ui` + `Mirage.Updates` | all three platforms |
+| `Mirage.Server.Tests` | `Mirage.Server.Core` + `Mirage.Server.Host` | all three platforms |
 | `Mirage.Client.Core.Tests` | `Mirage.Client.Core` — the shell-agnostic core | all three platforms |
 | `Mirage.Editor.Tests` | `Mirage.Editor` | all three platforms |
 | `Mirage.Server.Shell.Tests` | `Mirage.Server.Shell` — the management window | all three platforms |
@@ -27,10 +30,13 @@ spells out both halves — `Mirage.Client.Core.Tests` and `Mirage.Client.Shell.T
 only its shell, `Mirage.Server.Shell.Tests`, and puts everything else in a bare `Mirage.Server.Tests`:
 `Mirage.Server.Core`, `Mirage.Server.Host` **and** `Mirage.Shared`, three projects in one suite.
 
-So **there is no `Mirage.Server.Core.Tests`, no `Mirage.Server.Host.Tests` and no `Mirage.Shared.Tests`.**
-`Mirage.Server.Tests` is the counterpart of `Mirage.Client.Core.Tests` by role, not by name. `Mirage.Shared`
-is tested from the server side because the server is where its formulas, records and protocol types are
-exercised hardest; the client suites reach the same code through their own paths.
+So **there is no `Mirage.Server.Core.Tests` and no `Mirage.Server.Host.Tests`.** `Mirage.Server.Tests` is
+the counterpart of `Mirage.Client.Core.Tests` by role, not by name.
+
+**`shared/` is the one area whose suite covers three projects.** `Mirage.Shared.Tests` holds the formulas,
+records, protocol and security helpers, the `Mirage.Ui` theme dictionaries and the `Mirage.Updates` feed
+resolution. It is the only suite that references no server, client or editor, so it runs without any
+application built — which is why CI runs it first.
 
 | Scope | Command |
 |---|---|
@@ -39,13 +45,13 @@ exercised hardest; the client suites reach the same code through their own paths
 | One area | `dotnet msbuild tests/Mirage.Client.Test.csproj -t:TestAll` (or `tests/Mirage.Server.Test.csproj` / `tests/Mirage.Editor.Test.csproj`) |
 | One project | `dotnet test tests/src/Mirage.Client.Shell.Tests/Mirage.Client.Shell.Tests.csproj` |
 
-**Where the suites live, and why the drivers exist.** All five sit under `tests/src/`, out of the
+**Where the suites live, and why the drivers exist.** All six sit under `tests/src/`, out of the
 `src/` trees they exercise, and each is named for what it covers rather than for where its subject
-happens to be. The drivers sit one level up in `tests/`, so the folder reads as four entry points
-over a directory of suites. Each area gets a driver — `Mirage.Server.Test.csproj`, `Mirage.Client.Test.csproj`,
-`Mirage.Editor.Test.csproj` — mirroring the publish profiles exactly: publishing the server is
-`Mirage.Server.Publish.csproj`, so testing it is `Mirage.Server.Test.csproj`, and neither asks you to
-remember a path.
+happens to be. The drivers sit one level up in `tests/`, so the folder reads as five entry points
+over a directory of suites. Each area gets a driver — `Mirage.Shared.Test.csproj`, `Mirage.Server.Test.csproj`,
+`Mirage.Client.Test.csproj`, `Mirage.Editor.Test.csproj` — mirroring the publish profiles: publishing the
+server is `Mirage.Server.Publish.csproj`, so testing it is `Mirage.Server.Test.csproj`, and neither asks
+you to remember a path. `shared/` has no publish profile, because nothing ships it on its own.
 
 Two areas hold two suites each, and the driver names both: the server driver runs `Mirage.Server.Tests`
 and `Mirage.Server.Shell.Tests`, the client driver runs `Mirage.Client.Core.Tests` and
@@ -62,11 +68,39 @@ project root is the csproj and a handful of directories rather than seventy loos
 carry no namespace: everything stays in `Mirage.Server.Tests` and friends, because a folder is not a
 namespace in C# and renaming them would be churn no reader benefits from.
 
-`Mirage.Test.csproj` runs every suite and the documentation checks, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. The six exit codes have to concatenate to `000000`. A bare `dotnet msbuild tests/Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
+`Mirage.Test.csproj` runs every suite and the documentation checks, **keeps going after a failure** so one red suite doesn't hide the rest, then reports a per-suite breakdown. The seven exit codes have to concatenate to `0000000`. A bare `dotnet msbuild tests/Mirage.Test.csproj` runs `TestAll` by default, as does a Visual Studio right-click → **Build**; uncheck it in Configuration Manager to keep it out of `Ctrl+Shift+B`.
 
 > Building or testing while the game is running fails to copy the shared DLLs — close the running app first.
 
-**Current coverage.** All five suites are real; the placeholder smoke tests are gone. Roughly 34,000 lines of tests across 200 files, weighted toward the server, where most of the rules live.
+## No suite reads authored content
+
+**Unit tests build their own fixtures.** Anything that needs records, a world or a data directory writes
+one into a temp folder and deletes it afterwards; nothing under `tests/src/` asserts against
+`server/src/Mirage.Server.Host/data`. Real content changes for content reasons, and a test that reads it
+fails for reasons that have nothing to do with the code it names.
+
+The one thing that *does* read the shipped seed is a **content guard**, and it says so: those fixtures
+carry `[Category("Content")]`, and every unit run filters them out with `--filter "TestCategory!=Content"`.
+They run instead in the aggregate's `── Checks ──` block, beside the documentation checks — the other
+guards that read committed artifacts rather than exercise code — and as their own CI step.
+
+| | Runs in | Reads |
+|---|---|---|
+| The six suites | every driver, a solution build, `dotnet test` | their own temp fixtures |
+| `[Category("Content")]` | the Checks block, and one CI step | `server/src/Mirage.Server.Host/data` |
+
+**Why the guard is kept rather than converted.** It holds the seed to the engine's own rules — drop tables
+naming real items, scrolls teaching real spells, quest chains that can be walked in order, prices that
+survive a regeneration. Rebuilt on synthetic data those assertions become tautologies: you would author
+the fixture to satisfy the rule you are checking. Its value is that the content is *authored elsewhere*,
+by generators outside this repository that no test can reach, and it has already caught a renamed field
+that would have zeroed every gold drop and a regeneration that silently wiped all 558 prices.
+
+An empty read there is a **failure**, not a skip. The seed is tracked — 1,172 files in every checkout — so
+"no seed found" means the folder was emptied or the loader stopped matching its filenames. A guard that
+skips is a guard that has quietly stopped guarding.
+
+**Current coverage.** All six suites are real; the placeholder smoke tests are gone. Roughly 34,000 lines of tests across 200 files, weighted toward the server, where most of the rules live.
 
 What they actually pin, by kind:
 

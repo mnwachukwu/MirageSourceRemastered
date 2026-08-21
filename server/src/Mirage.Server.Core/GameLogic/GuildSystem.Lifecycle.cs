@@ -20,8 +20,13 @@ public sealed partial class GuildSystem : GameSystem
 
     /// <summary>Delete a guild's file, serialized after any pending saves for that id — so a still-in-
     /// flight save can't resurrect a just-disbanded guild.</summary>
-    private void DeleteGuild(int index) =>
-        ChainGuildWrite(index, () => _persistence.DeleteGuildAsync(index));
+    // Snapshots on the game thread, like every other guild write, so the background write never sees a
+    // half-applied record.
+    private void RetireGuild(int index, GuildRecord guild)
+    {
+        var snapshot = guild.Clone();
+        ChainGuildWrite(index, () => _persistence.RetireGuildAsync(index, snapshot));
+    }
 
     // Chain an off-thread file op after any prior write to this guild id (save or delete).
     private void ChainGuildWrite(int index, Func<Task> op)
@@ -163,7 +168,7 @@ public sealed partial class GuildSystem : GameSystem
         }
 
         _world.Guilds.Remove(id);
-        DeleteGuild(id);
+        RetireGuild(id, guild);
 
         // Clear the (sole) member's account membership.
         sp.Guild = 0;

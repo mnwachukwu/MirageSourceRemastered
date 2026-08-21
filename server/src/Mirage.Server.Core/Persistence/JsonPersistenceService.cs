@@ -80,13 +80,13 @@ public sealed class JsonPersistenceService : IPersistenceService
     private string ShopFile(int num) => Path.Combine(ShopsPath, $"shop{num}.json");
     private string SpellFile(int num) => Path.Combine(SpellsPath, $"spell{num}.json");
     private string ClassFile(int num) => Path.Combine(ClassesPath, $"class{num}.json");
-    private string GuildFile(int num) => Path.Combine(GuildsPath, $"guild{num}.json");
+    private string GuildFile(int num) => Path.Combine(GuildsPath, $"{GuildRecord.FileStem}{num}.json");
     private string MapGroupFile(int num) => Path.Combine(MapGroupsPath, $"{MapGroupRecord.FileStem}{num}.json");
     private string SeasonFile(int num) => Path.Combine(SeasonsPath, $"season{num}.json");
-    private string MarketListingFile(int id) => Path.Combine(MarketListingsPath, $"listing{id}.json");
+    private string MarketListingFile(int id) => Path.Combine(MarketListingsPath, $"{MarketListing.FileStem}{id}.json");
     private string MarketSalesFile => Path.Combine(MarketListingsPath, "sales.json");
     private string TradeJournalsPath => Path.Combine(_dataPath, "trades");
-    private string TradeJournalFile(int id) => Path.Combine(TradeJournalsPath, $"journal{id}.json");
+    private string TradeJournalFile(int id) => Path.Combine(TradeJournalsPath, $"{TradeJournal.FileStem}{id}.json");
 
     // ── Account ───────────────────────────────────────────────────────────────
 
@@ -534,15 +534,23 @@ public sealed class JsonPersistenceService : IPersistenceService
     {
         var result = new Dictionary<int, GuildRecord>();
         if (!Directory.Exists(GuildsPath)) return result;
-        foreach (string path in Directory.EnumerateFiles(GuildsPath, "guild*.json"))
+        foreach (string path in Directory.EnumerateFiles(GuildsPath, $"{GuildRecord.FileStem}*.json"))
         {
             string stem = Path.GetFileNameWithoutExtension(path);   // "guild{N}"
-            if (stem.Length <= 5 || !int.TryParse(stem.AsSpan(5), out int index) || index < 1) continue;
+            if (stem.Length <= GuildRecord.FileStem.Length ||
+                !int.TryParse(stem.AsSpan(GuildRecord.FileStem.Length), out int index) || index < 1) continue;
             try
             {
                 string json = await File.ReadAllTextAsync(path);
                 var guild = JsonSerializer.Deserialize<GuildRecord>(json, Options);
-                if (guild is not null) result[index] = guild;
+                if (guild is null) continue;
+                // A retired number: the guild disbanded, and its file stays so the number is never
+                // reissued. The record is kept for the history, but it is not a live guild.
+                if (guild.Disbanded) continue;
+                // The FILENAME is the authority on which guild this is; Index is the in-memory copy the
+                // guild and territory code reads off a record it holds detached from any key.
+                guild.Index = index;
+                result[index] = guild;
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to load {File}", path); }
         }
@@ -555,12 +563,31 @@ public sealed class JsonPersistenceService : IPersistenceService
         await File.WriteAllTextAsync(GuildFile(num), JsonSerializer.Serialize(guild, Options));
     }
 
-    public Task DeleteGuildAsync(int num)
+    public async Task RetireGuildAsync(int num, GuildRecord guild)
     {
-        if (num < 1) return Task.CompletedTask;
-        string path = GuildFile(num);
-        if (File.Exists(path)) File.Delete(path);
-        return Task.CompletedTask;
+        if (num < 1) return;
+        guild.Disbanded = true;
+        await File.WriteAllTextAsync(GuildFile(num), JsonSerializer.Serialize(guild, Options));
+    }
+
+    /// <summary>Read off the folder, so the mark survives a restart with no counter to keep in step with
+    /// it. Retired numbers count: their file is still there. A stem that does not parse is ignored,
+    /// exactly as the loader ignores it.</summary>
+    public Task<int> HighestGuildNumberAsync()
+    {
+        int highest = 0;
+        if (!Directory.Exists(GuildsPath)) return Task.FromResult(0);
+        foreach (string path in Directory.EnumerateFiles(GuildsPath, $"{GuildRecord.FileStem}*.json"))
+        {
+            string stem = Path.GetFileNameWithoutExtension(path);
+            if (stem.Length > GuildRecord.FileStem.Length
+                && int.TryParse(stem.AsSpan(GuildRecord.FileStem.Length), out int num)
+                && num > highest)
+            {
+                highest = num;
+            }
+        }
+        return Task.FromResult(highest);
     }
 
     // Marketplace listings mirror guilds: UNBOUNDED, load every listing{N}.json present (keyed by its id).
@@ -568,15 +595,19 @@ public sealed class JsonPersistenceService : IPersistenceService
     {
         var result = new Dictionary<int, MarketListing>();
         if (!Directory.Exists(MarketListingsPath)) return result;
-        foreach (string path in Directory.EnumerateFiles(MarketListingsPath, "listing*.json"))
+        foreach (string path in Directory.EnumerateFiles(MarketListingsPath, $"{MarketListing.FileStem}*.json"))
         {
             string stem = Path.GetFileNameWithoutExtension(path);   // "listing{N}"
-            if (stem.Length <= 7 || !int.TryParse(stem.AsSpan(7), out int id) || id < 1) continue;
+            if (stem.Length <= MarketListing.FileStem.Length ||
+                !int.TryParse(stem.AsSpan(MarketListing.FileStem.Length), out int id) || id < 1) continue;
             try
             {
                 string json = await File.ReadAllTextAsync(path);
                 var listing = JsonSerializer.Deserialize<MarketListing>(json, Options);
-                if (listing is not null) result[id] = listing;
+                if (listing is null) continue;
+                // The FILENAME is the authority on which listing this is.
+                listing.Id = id;
+                result[id] = listing;
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to load {File}", path); }
         }
@@ -620,13 +651,20 @@ public sealed class JsonPersistenceService : IPersistenceService
     {
         var result = new List<TradeJournal>();
         if (!Directory.Exists(TradeJournalsPath)) return result;
-        foreach (string path in Directory.EnumerateFiles(TradeJournalsPath, "journal*.json"))
+        foreach (string path in Directory.EnumerateFiles(TradeJournalsPath, $"{TradeJournal.FileStem}*.json"))
         {
+            string stem = Path.GetFileNameWithoutExtension(path);   // "journal{N}"
+            if (stem.Length <= TradeJournal.FileStem.Length ||
+                !int.TryParse(stem.AsSpan(TradeJournal.FileStem.Length), out int id) || id < 1) continue;
             try
             {
                 string json = await File.ReadAllTextAsync(path);
                 var journal = JsonSerializer.Deserialize<TradeJournal>(json, Options);
-                if (journal is not null) result.Add(journal);
+                if (journal is null) continue;
+                // The FILENAME is the authority on which journal this is; the next id is taken from the
+                // highest loaded, so a record disagreeing with its name would skew the sequence.
+                journal.Id = id;
+                result.Add(journal);
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to load {File}", path); }
         }

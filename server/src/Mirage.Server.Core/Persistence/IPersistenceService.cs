@@ -70,7 +70,16 @@ public interface IPersistenceService
     // ── Guilds ────────────────────────────────────────────────────────────────
     Task<Dictionary<int, GuildRecord>> LoadAllGuildsAsync();
     Task SaveGuildAsync(int num, GuildRecord guild);
-    Task DeleteGuildAsync(int num);
+
+    /// <summary>Write a disbanded guild back with <see cref="GuildRecord.Disbanded"/> set, RETIRING its
+    /// number. The record is preserved in full and the file stays put, so the number is never handed out
+    /// again — an account, a territory's controller and a war all reference a guild by number, and
+    /// reissuing one would silently re-point whatever still holds it at a different guild.</summary>
+    Task RetireGuildAsync(int num, GuildRecord guild);
+
+    /// <summary>The largest guild number ever issued, retired ones included. Read once at boot; the next
+    /// guild takes this plus one.</summary>
+    Task<int> HighestGuildNumberAsync();
 
     // ── Map groups ──────────────────────────────────────────────────────────────
     Task<Dictionary<int, MapGroupRecord>> LoadAllMapGroupsAsync();

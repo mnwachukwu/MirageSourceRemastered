@@ -16,11 +16,13 @@ namespace Mirage.Server.Tests;
 /// 558 item files WITHOUT prices, so regenerating the armory for any reason silently zeroes every price
 /// unless <c>seed-prices</c> is run after it. Neither errors. Both are caught below.</para>
 ///
-/// <para><b>An absent or empty seed is a SKIP, not a failure.</b> <c>data/</c> is the shipped default
-/// configuration and is deliberately allowed to be empty — a fresh clone boots an empty world and pads
-/// blank maps. A fixture that failed on that would make the suite red for anyone who has not populated
-/// it, which is the fastest way to get a fixture deleted.</para></summary>
+/// <para><b>This is a content guard, not a unit test, and it is marked <c>[Category("Content")]</c> to
+/// keep it out of every unit run.</b> It asserts nothing about code: it reads the shipped seed and holds
+/// it to the engine's rules. The seed is tracked — 1,172 files present in every checkout — so an empty
+/// read is a failure here, not a skip. Unit tests use their own fixtures; nothing else in the suites
+/// reads authored content.</para></summary>
 [TestFixture]
+[Category("Content")]
 public class SeedIntegrityTests
 {
     /// <summary>Must MIRROR <c>JsonPersistenceService.Options</c>. The point of this fixture is to read the
@@ -88,8 +90,10 @@ public class SeedIntegrityTests
 
     private static void RequireSeed()
     {
-        if (_items.Count == 0)
-            Assert.Ignore("No seed authored in server/src/Mirage.Server.Host/data — nothing to check.");
+        Assert.That(_items, Is.Not.Empty,
+            "No seed loaded from server/src/Mirage.Server.Host/data. It is tracked, so an empty read "
+            + "means the folder was emptied or the loader stopped matching its filenames — either way "
+            + "this guard has nothing left to check and says so rather than passing.");
     }
 
     // ── The seed is canonical on disk ─────────────────────────────────────────
@@ -199,7 +203,7 @@ public class SeedIntegrityTests
     {
         RequireSeed();
         var gear = _items.Values.Where(i => ItemRecord.IsEquipment(i.Type)).ToArray();
-        if (gear.Length == 0) Assert.Ignore("no equipment authored");
+        Assert.That(gear, Is.Not.Empty, "the seed authors no equipment — nothing left to hold to the tier curve");
 
         // The curve lives in gen-items (sqrt of level x bulk) and is unreachable from here, so what is
         // pinned is its SHAPE: a higher tier is sturdier, and within a tier a heavier piece is sturdier
@@ -240,7 +244,7 @@ public class SeedIntegrityTests
         // Treasure is typed None and priced by hand — the one item family whose worth is authored rather
         // than derived, and therefore the one nothing else can check.
         var treasure = _items.Where(kv => kv.Value.Type == ItemType.None && kv.Value.Price > 0).ToArray();
-        if (treasure.Length == 0) Assert.Ignore("no treasure authored");
+        Assert.That(treasure, Is.Not.Empty, "the seed authors no treasure");
 
         Assert.Multiple(() =>
         {
@@ -270,7 +274,7 @@ public class SeedIntegrityTests
         var goldLines = _npcs.SelectMany(kv => (kv.Value.Drops ?? []).Select(d => (Npc: kv.Value, Drop: d)))
                              .Where(x => x.Drop.ItemNum == Constants.GoldItemIndex)
                              .ToArray();
-        if (goldLines.Length == 0) Assert.Ignore("no gold drops authored");
+        Assert.That(goldLines, Is.Not.Empty, "no NPC drops gold — a renamed field reads exactly like this");
 
         Assert.Multiple(() =>
         {
@@ -289,7 +293,7 @@ public class SeedIntegrityTests
     private static void RequireConversations()
     {
         RequireSeed();
-        if (_conversations.Count == 0) Assert.Ignore("no conversations authored");
+        Assert.That(_conversations, Is.Not.Empty, "the seed authors no conversations");
     }
 
     /// <summary>A conversation names its NPC by number, and an unresolvable number is not an error
@@ -443,7 +447,7 @@ public class SeedIntegrityTests
     private static void RequireQuests()
     {
         RequireSeed();
-        if (_quests.Count == 0) Assert.Ignore("no quests authored");
+        Assert.That(_quests, Is.Not.Empty, "the seed authors no quests");
     }
 
     /// <summary>Expected gold-equivalent per kill off an NPC's authored drop table — the same figure
@@ -497,7 +501,7 @@ public class SeedIntegrityTests
     public void EveryQuestGiver_CanActuallyBeAskedForIt()
     {
         RequireQuests();
-        if (_conversations.Count == 0) Assert.Ignore("no conversations authored to check against");
+        Assert.That(_conversations, Is.Not.Empty, "the seed authors no conversations to check against");
 
         bool OffersQuests(int npcNum) =>
             _conversations.Values.Any(c => c.TrimmedName.Length > 0 && c.SpeakerNpc == npcNum
@@ -635,7 +639,7 @@ public class SeedIntegrityTests
     public void EveryAuthoredReference_NamesAnNpcThatExists()
     {
         RequireSeed();
-        if (_npcs.Count == 0) Assert.Ignore("no npcs authored");
+        Assert.That(_npcs, Is.Not.Empty, "the seed authors no NPCs");
 
         Assert.Multiple(() =>
         {
@@ -667,7 +671,7 @@ public class SeedIntegrityTests
             .Concat(_shops.Values.Where(s => s.Keeper > 0).Select(s => s.Keeper))
             .Concat(_quests.Values.Where(q => q.GiverNpc > 0).Select(q => q.GiverNpc))
             .Distinct().Where(_npcs.ContainsKey).ToArray();
-        if (carriers.Length == 0) Assert.Ignore("no content carriers authored");
+        Assert.That(carriers, Is.Not.Empty, "no NPC carries content — the roster lost its townsfolk");
 
         Assert.Multiple(() =>
         {
@@ -694,7 +698,7 @@ public class SeedIntegrityTests
     {
         RequireSeed();
         var guards = _npcs.Where(kv => kv.Value.Behavior == NpcBehavior.Guard).ToArray();
-        if (guards.Length == 0) Assert.Ignore("no guards authored");
+        Assert.That(guards, Is.Not.Empty, "the roster authors no guards");
 
         Assert.Multiple(() =>
         {
@@ -724,7 +728,7 @@ public class SeedIntegrityTests
     private static void RequireShops()
     {
         RequireSeed();
-        if (_shops.Count == 0) Assert.Ignore("no shops authored");
+        Assert.That(_shops, Is.Not.Empty, "the seed authors no shops");
     }
 
     /// <summary>The companion to <see cref="EveryQuestGiver_CanActuallyBeAskedForIt"/>, and the reason
@@ -736,7 +740,7 @@ public class SeedIntegrityTests
     public void EveryShopKeeper_CanActuallyBeAskedToOpenIt()
     {
         RequireShops();
-        if (_conversations.Count == 0) Assert.Ignore("no conversations authored to check against");
+        Assert.That(_conversations, Is.Not.Empty, "the seed authors no conversations to check against");
 
         Assert.Multiple(() =>
         {
@@ -802,7 +806,7 @@ public class SeedIntegrityTests
         var treasures = _items.Where(kv => kv.Value.NonJunkable && kv.Value.Price > 0
                                         && kv.Key != Constants.GoldItemIndex && kv.Key != Constants.ValorItemIndex)
                               .Select(kv => kv.Key).ToArray();
-        if (treasures.Length == 0) Assert.Ignore("no treasure authored");
+        Assert.That(treasures, Is.Not.Empty, "the seed authors no treasure");
 
         var bought = _shops.Values.SelectMany(s => s.BarterItem).Select(t => t.GiveItem).ToHashSet();
         Assert.Multiple(() =>

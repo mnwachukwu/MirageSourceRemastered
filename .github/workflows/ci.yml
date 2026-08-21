@@ -142,8 +142,19 @@ jobs:
       # Named individually rather than through Mirage.Test.csproj, so the content build can be turned
       # off for the one suite that would otherwise trigger it. No tool manifests are restored: with
       # EnableMGCBItems off nothing needs mgcb, and nothing here publishes, so vpk is not wanted either.
-      - name: Test — server and shared
-        run: dotnet test tests/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo
+      # First because it needs no application built: Mirage.Shared, Mirage.Ui and Mirage.Updates
+      # reference no server, client or editor, so a break here is a break in what everything else sits on.
+      - name: Test — shared
+        run: dotnet test tests/src/Mirage.Shared.Tests/Mirage.Shared.Tests.csproj -c Release --nologo
+
+      - name: Test — server
+        run: dotnet test tests/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo --filter "TestCategory!=Content"
+
+      # The seed held to the engine's rules. Its own step because it exercises no code: it reads the
+      # committed world, which is what the generators outside this repository write and nothing else
+      # here can reach. A unit run never touches it.
+      - name: Check — seed content
+        run: dotnet test tests/src/Mirage.Server.Tests/Mirage.Server.Tests.csproj -c Release --nologo --filter "TestCategory=Content"
 
       - name: Test — server shell
         run: dotnet test tests/src/Mirage.Server.Shell.Tests/Mirage.Server.Shell.Tests.csproj -c Release --nologo
@@ -226,8 +237,8 @@ jobs:
           fi
 
       # This runs the tests as well as compiling. Mirage.Test.csproj is a solution member whose Build
-      # target is TestAll, so a solution build drives all five suites plus the documentation checks and
-      # fails if any of them does — the six exit codes have to concatenate to "000000". That is the
+      # target is TestAll, so a solution build drives all six suites plus the documentation checks and
+      # fails if any of them does — the seven exit codes have to concatenate to "0000000". That is the
       # repository's own convention; asking for the tests separately here would just run them twice.
       - name: Build and test
         run: dotnet build Mirage.slnx -c Release --no-restore --nologo

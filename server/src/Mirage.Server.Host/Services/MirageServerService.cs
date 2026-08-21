@@ -250,6 +250,8 @@ public sealed class MirageServerService : IHostedService
         // Guilds — runtime-created and unbounded; load every guild file present into the sparse map.
         var guilds = await _persistence.LoadAllGuildsAsync();
         foreach (var (index, guild) in guilds) _world.Guilds[index] = guild;
+        // Retired numbers are not in that map, so the high-water mark comes off the folders instead.
+        _world.HighestGuildNumber = await _persistence.HighestGuildNumberAsync();
         // Re-register every still-active guild quest with the objective kernel — in-memory registrations don't
         // survive a restart (the quests themselves persisted on the guild records).
         _guilds.ReTrackActiveQuests();

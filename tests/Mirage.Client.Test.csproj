@@ -9,7 +9,7 @@
        logic and takes no MonoGame dependency, which is why CI can run it on Linux and macOS.
        Mirage.Client.Shell.Tests covers input, panels and the HUD, so it pulls MonoGame in and needs
        the content pipeline — five spritefonts and a shader — built first. That is the whole reason
-       the cross-platform matrix runs four suites and not all five; see docs/testing.md. -->
+       the cross-platform matrix treats it separately; see docs/testing.md. -->
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

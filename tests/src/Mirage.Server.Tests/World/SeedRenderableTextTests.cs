@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Mirage.Server.Tests;
@@ -30,15 +31,8 @@ public class SeedRenderableTextTests
         (c >= ' ' && c <= '~') || (c >= '¡' && c <= 'ÿ')
         || c == 'Œ' || c == 'œ' || c == '\n' || c == '\r' || c == '\t';
 
-    private static string SeedDir()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "server", "src")))
-            dir = dir.Parent;
-        return dir is null
-            ? ""
-            : Path.Combine(dir.FullName, "server", "src", "Mirage.Server.Host", "data");
-    }
+    private static string SeedDir() =>
+        Path.Combine(RepoRoot(), "server", "src", "Mirage.Server.Host", "data");
 
     private static void Collect(JsonElement el, string where, List<string> bad)
     {
@@ -65,13 +59,12 @@ public class SeedRenderableTextTests
 
     private static string Trim(string s) => s.Length <= 60 ? s : s[..57] + "...";
 
-    private static string RepoRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !Directory.Exists(Path.Combine(dir.FullName, "server", "src")))
-            dir = dir.Parent;
-        return dir?.FullName ?? "";
-    }
+    /// <summary>Baked in at build time rather than walked up from the output directory, so a redirected
+    /// build fails here instead of quietly finding nothing and checking nothing.</summary>
+    private static string RepoRoot() =>
+        typeof(SeedRenderableTextTests).Assembly
+            .GetCustomAttributes<AssemblyMetadataAttribute>()
+            .First(a => a.Key == "RepoRoot").Value!;
 
     /// <summary>The two string tables the CLIENT draws: its own UI text, and every line the server
     /// sends it. Both go through the same SpriteFonts as the seed.
@@ -83,7 +76,7 @@ public class SeedRenderableTextTests
     public void EveryClientFacingLangString_IsDrawableByTheClientFont()
     {
         string root = RepoRoot();
-        if (root.Length == 0) Assert.Ignore("repository root not found");
+        Assert.That(Directory.Exists(root), Is.True, $"repository root not found: {root}");
 
         string[] dirs =
         [
@@ -111,11 +104,14 @@ public class SeedRenderableTextTests
             + string.Join("\n  ", bad.Take(20)));
     }
 
+    /// <summary>A content guard rather than a unit test — it reads the shipped seed, so it carries the
+    /// Content category and runs with the other checks instead of in a unit pass.</summary>
     [Test]
+    [Category("Content")]
     public void EverySeedString_IsDrawableByTheClientFont()
     {
         string seed = SeedDir();
-        if (!Directory.Exists(seed)) Assert.Ignore("seed folder not found");
+        Assert.That(Directory.Exists(seed), Is.True, $"the tracked seed is missing: {seed}");
 
         var bad = new List<string>();
         foreach (string collection in Collections)

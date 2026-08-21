@@ -29,6 +29,12 @@ public sealed class GameWorld
     // MapBlood), each entry backed by guilds/guild{Index}.json. There is no fixed slot array.
     public Dictionary<int, GuildRecord> Guilds { get; } = new();
 
+    /// <summary>The largest guild number ever issued, retired ones included. Seeded from disk at boot and
+    /// bumped on every creation, so a number is spoken for permanently. A disbanded guild keeps its file,
+    /// flagged <see cref="Records.GuildRecord.Disbanded"/> — see
+    /// <see cref="Persistence.IPersistenceService.RetireGuildAsync"/>.</summary>
+    public int HighestGuildNumber { get; set; }
+
     // Player marketplace listings, keyed by global listing id; loaded at boot, mutated by MarketSystem on the
     // game thread. Unbounded like Guilds (the per-seller cap bounds each account's share).
     public Dictionary<int, MarketListing> MarketListings { get; } = new();

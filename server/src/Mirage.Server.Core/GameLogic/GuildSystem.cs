@@ -82,13 +82,10 @@ public sealed partial class GuildSystem : GameSystem
 
     /// <summary>A fresh, unused guild id. Guilds are unbounded, so this is simply one past the
     /// highest live id (ids are never reused, keeping them stable across a disband).</summary>
-    private int AllocateGuildIndex()
-    {
-        int max = 0;
-        foreach (int id in _world.Guilds.Keys)
-            if (id > max) max = id;
-        return max + 1;
-    }
+    /// <summary>The next guild number, taken from the high-water mark rather than from the live guilds:
+    /// a disbanded guild's number is retired, and the highest one disbanding must not hand its number to
+    /// the next guild founded. Accounts, territory controllers and wars all reference a guild by number.</summary>
+    private int AllocateGuildIndex() => ++_world.HighestGuildNumber;
 
     // ── Persistence ───────────────────────────────────────────────────────────────
 

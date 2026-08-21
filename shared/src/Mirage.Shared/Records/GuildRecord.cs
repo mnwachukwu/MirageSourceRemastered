@@ -10,7 +10,24 @@ namespace Mirage.Shared.Records;
 public sealed class GuildRecord
 {
     // ── Identity ─────────────────────────────────────────────────────────────
-    /// <summary>Guild id (>= 1); also the on-disk slot (<c>guilds/guild{Index}.json</c>).</summary>
+    /// <summary>Filename stem inside <c>guilds/</c>; the trailing number is the <see cref="Index"/>.</summary>
+    public const string FileStem = "guild";
+
+    /// <summary>Set when the guild disbands. The record is KEPT — name, roster, war and territory history
+    /// and all — and its file stays where it was, which is what retires the number: nothing still holding
+    /// it can be re-pointed at a guild founded later.
+    ///
+    /// <para>A disbanded guild is not loaded into the live map, so it takes part in nothing and its name
+    /// is free again.</para></summary>
+    public bool Disbanded { get; set; }
+
+    /// <summary>Guild id (>= 1). In memory only — the guild and territory code holds a guild detached from
+    /// any dictionary key and asks it which one it is.
+    ///
+    /// <para>NOT serialized. The number lives in the filename, <c>guilds/guild{Index}.json</c>, and the
+    /// loader fills this in from it, so a file copied into another slot cannot claim a number that is not
+    /// its own.</para></summary>
+    [JsonIgnore]
     public int Index { get; set; }
     /// <summary>Unique, player-chosen name (bounded by <see cref="Constants.NameLength"/>).</summary>
     public string Name { get; set; } = "";

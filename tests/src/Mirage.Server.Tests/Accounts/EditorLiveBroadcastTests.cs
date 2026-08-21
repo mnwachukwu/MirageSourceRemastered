@@ -415,7 +415,8 @@ public class EditorLiveBroadcastTests
         public Task SaveConversationAsync(int num, ConversationRecord conversation) => Task.CompletedTask;
         public Task<Dictionary<int, GuildRecord>> LoadAllGuildsAsync() => Task.FromResult(new Dictionary<int, GuildRecord>());
         public Task SaveGuildAsync(int num, GuildRecord guild) => Task.CompletedTask;
-        public Task DeleteGuildAsync(int num) => Task.CompletedTask;
+        public Task RetireGuildAsync(int num, GuildRecord guild) => Task.CompletedTask;
+        public Task<int> HighestGuildNumberAsync() => Task.FromResult(0);
         public Task<Dictionary<int, MapGroupRecord>> LoadAllMapGroupsAsync() => Task.FromResult(new Dictionary<int, MapGroupRecord>());
         public Task SaveSeasonArchiveAsync(int season, SeasonArchive archive) => Task.CompletedTask;
         public Task<List<SeasonArchive>> LoadAllSeasonArchivesAsync() => Task.FromResult(new List<SeasonArchive>());

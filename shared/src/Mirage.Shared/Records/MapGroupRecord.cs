@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Mirage.Shared.Records;
 
 /// <summary>A group of maps sharing a <see cref="Name"/> + map-like fallback properties, and optionally a
@@ -10,7 +12,14 @@ public sealed class MapGroupRecord
     /// <summary>Filename stem inside <c>map_groups/</c>; the trailing number is the <see cref="Index"/>.</summary>
     public const string FileStem = "map_group";
 
-    /// <summary>Group id (>= 1); also the on-disk slot (<c>map_groups/map_group{Index}.json</c>).</summary>
+    /// <summary>Group id (>= 1). In memory only — the guild, territory and combat code holds a group
+    /// detached from any dictionary key and asks it which one it is.
+    ///
+    /// <para>NOT serialized. The number lives in the filename, <c>map_groups/map_group{Index}.json</c>,
+    /// and the loaders fill this in from it; every other record keys off its filename the same way and
+    /// stores no id of its own. Writing it as well would let a copied file claim a number that is not its
+    /// own, and a group believed to be one it is not scores territory for the wrong guild.</para></summary>
+    [JsonIgnore]
     public int Index { get; set; }
     /// <summary>Group name — an identifier (like a Map Name); NON-unique. It does not override map names; it
     /// slots into the display chain between a map's DisplayName and its raw Name.</summary>
