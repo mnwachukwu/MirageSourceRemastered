@@ -40,7 +40,7 @@
       <_Channel>client-win</_Channel>
     </PropertyGroup>
     <MakeDir Directories="$(AppInstallerDir)" />
-    <Exec Command="dotnet tool run vpk pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)client/win-x64&quot; --mainExe $(GameNameSlug).exe --runtime win-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
+    <Exec Command="dotnet tool run vpk pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packAuthors &quot;$(GameAuthor)&quot; --packDir &quot;$(DistRoot)client/win-x64&quot; --mainExe $(GameNameSlug).exe --runtime win-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
           WorkingDirectory="$(RepoRoot)" />
     <!-- vpk already emits the friendly $(_PackId)-$(_Channel)-Setup.exe (packId = the slug), so no Setup rename is needed.
          Only the portable bundle needs vpk's "-Portable" tag dropped. -->
@@ -71,7 +71,7 @@
     <!-- [linux] cross-compiles a Linux bundle from the Windows host; the Windows target omits the
          directive and uses a bare 'vpk pack' (a directive applies only when target OS != host OS).
          macOS cannot be cross-built, so its leg hand-rolls a .app.tar.gz instead of using vpk. -->
-    <Exec Command="dotnet tool run vpk [linux] pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packDir &quot;$(DistRoot)client/linux-x64&quot; --mainExe $(GameNameSlug) --runtime linux-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
+    <Exec Command="dotnet tool run vpk [linux] pack --packId $(_PackId) --packVersion $(Version) --packTitle &quot;$(_PackTitle)&quot; --packAuthors &quot;$(GameAuthor)&quot; --packDir &quot;$(DistRoot)client/linux-x64&quot; --mainExe $(GameNameSlug) --runtime linux-x64 --channel $(_Channel) --icon &quot;$(_InstallerIcon)&quot; --outputDir &quot;$(AppInstallerDir)&quot;"
           WorkingDirectory="$(RepoRoot)" />
     <!-- vpk names the AppImage "{PackId}-{Channel}.AppImage" itself once the channel is not the
          platform default, which ours no longer are. It used to emit a bare "{PackId}.AppImage" and

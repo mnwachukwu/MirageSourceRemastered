@@ -9,6 +9,7 @@
   <PropertyGroup>
     <GameName>Mirage Source Remastered</GameName>
     <GameNameSlug>$(GameName.Replace(' ', '-'))</GameNameSlug>
+    <GameAuthor>Matt Nwachukwu</GameAuthor>
   </PropertyGroup>
 
   <PropertyGroup>
