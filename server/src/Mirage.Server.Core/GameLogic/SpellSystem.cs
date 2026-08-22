@@ -98,6 +98,9 @@ public sealed class SpellSystem : GameSystem
     {
         if (!_pm[index].IsPlaying) return;
         if (_pm[index].Char.Dead) return;  // a corpse can't cast
+        // Every spell, not only the harmful ones: an observer that could still heal or buff would be taking
+        // part in the fight it is there to watch. Same throttled line the swing gets, so both read alike.
+        if (_pm[index].GodMode) { _combat.SayGodModeRefusal(index); return; }
         if (!SlotValidation.IsValidSpellSlot(spellSlot)) return;
 
         var sp = _pm[index];
@@ -349,6 +352,21 @@ public sealed class SpellSystem : GameSystem
                 {
                     SendMsg(index, ServerStrings.SpellSystem_NoLineOfSight, GameColor.BrightRed, ChatChannel.System);
                     return;
+                }
+
+                // The PvP exemption is about taking part at all, so it gates every spell aimed at another
+                // player rather than only the harmful ones: an administrator neither harms nor helps, and
+                // nobody reaches an administrator either. Sub spells re-read the same block below for the
+                // rest of its cases (safe zone, level, party), which admin short-circuits ahead of.
+                if (n != index)
+                {
+                    var adminBlock = _combat.GetPvpBlock(index, n);
+                    if (adminBlock is PvpBlock.AttackerAdmin or PvpBlock.VictimAdmin)
+                    {
+                        var (adminKey, adminArgs) = CombatSystem.PvpBlockMessage(adminBlock, tp.TrimmedName);
+                        SendMsg(index, adminKey, CombatSystem.PvpBlockColor(adminBlock), ChatChannel.System, adminArgs);
+                        return;
+                    }
                 }
 
                 // Bug fix: Add spells bypass pvpOk — they reach any same-map player.

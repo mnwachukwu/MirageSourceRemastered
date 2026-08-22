@@ -57,6 +57,7 @@ public static partial class ClientStrings
     public const string HelpText_Cmd_Respawn = nameof(HelpText_Cmd_Respawn);
     public const string HelpText_Cmd_Motd = nameof(HelpText_Cmd_Motd);
     public const string HelpText_Cmd_RefreshBanList = nameof(HelpText_Cmd_RefreshBanList);
+    public const string HelpText_Cmd_GodMode = nameof(HelpText_Cmd_GodMode);
     public const string HelpText_Cmd_WarpMeTo = nameof(HelpText_Cmd_WarpMeTo);
     public const string HelpText_Cmd_WarpToMe = nameof(HelpText_Cmd_WarpToMe);
     public const string HelpText_Cmd_Tod = nameof(HelpText_Cmd_Tod);

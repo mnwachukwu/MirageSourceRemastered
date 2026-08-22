@@ -218,7 +218,7 @@ public sealed class JoinLeaveSystem : GameSystem
         // Own data — only on the join/warp handshake (sets the client's initial position/sprite).
         // A seamless crossing already knows its own position client-side, so its re-sync omits this
         // to avoid overwriting the client's predicted move (which would rubber-band under latency).
-        _dispatcher.SendTo(index, PacketBuilder.PlayerData(index, p, p.Map, _pm[index].PkGraceUntilUtc, _pm[index].AggressorUntilUtcNow));
+        _dispatcher.SendTo(index, PacketBuilder.PlayerData(index, p, p.Map, _pm[index].PkGraceUntilUtc, _pm[index].AggressorUntilUtcNow, godMode: _pm[index].GodMode));
         SendRegionSync(index);
     }
 
@@ -251,7 +251,7 @@ public sealed class JoinLeaveSystem : GameSystem
             if (_world.IsObserving(i, p.Map))
             {
                 _dispatcher.SendTo(i, PacketBuilder.JoinMap(index));
-                _dispatcher.SendTo(i, PacketBuilder.PlayerData(index, p, p.Map, _pm[index].PkGraceUntilUtc, _pm[index].AggressorUntilUtcNow));
+                _dispatcher.SendTo(i, PacketBuilder.PlayerData(index, p, p.Map, _pm[index].PkGraceUntilUtc, _pm[index].AggressorUntilUtcNow, godMode: _pm[index].GodMode));
                 _dispatcher.SendTo(i, PacketBuilder.SendHp(index, p.Hp, p.MaxHp, msSinceCombat: joinerMsSinceCombat));
                 _dispatcher.SendTo(i, PacketBuilder.SendMp(index, p.Mp, p.MaxMp));
                 _dispatcher.SendTo(i, PacketBuilder.SendSp(index, p.Sp, p.MaxSp));
@@ -261,7 +261,7 @@ public sealed class JoinLeaveSystem : GameSystem
             if (_world.IsObserving(index, ep.Map))
             {
                 _dispatcher.SendTo(index, PacketBuilder.JoinMap(i));
-                _dispatcher.SendTo(index, PacketBuilder.PlayerData(i, ep, ep.Map, _pm[i].PkGraceUntilUtc, _pm[i].AggressorUntilUtcNow));
+                _dispatcher.SendTo(index, PacketBuilder.PlayerData(i, ep, ep.Map, _pm[i].PkGraceUntilUtc, _pm[i].AggressorUntilUtcNow, godMode: _pm[i].GodMode));
                 _dispatcher.SendTo(index, PacketBuilder.SendHp(i, ep.Hp, ep.MaxHp, msSinceCombat: existingMsSinceCombat));
                 _dispatcher.SendTo(index, PacketBuilder.SendMp(i, ep.Mp, ep.MaxMp));
                 _dispatcher.SendTo(index, PacketBuilder.SendSp(i, ep.Sp, ep.MaxSp));
@@ -554,6 +554,7 @@ public sealed class JoinLeaveSystem : GameSystem
 
         sp.InGame = false;
         sp.IsGhost = false;
+        sp.GodMode = false;
 
         if (_pm.GetTotalMapPlayers(mapNum) == 0)
             _world.PlayersOnMap[mapNum] = false;

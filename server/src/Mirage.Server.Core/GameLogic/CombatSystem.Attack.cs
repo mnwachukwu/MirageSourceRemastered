@@ -18,6 +18,9 @@ public sealed partial class CombatSystem : GameSystem
     {
         if (!_pm[index].IsPlaying) return;
         if (_pm[index].Char.Dead) return;  // a corpse can't attack (covers player-vs-player and player-vs-NPC)
+        // An observer swings at nothing: no packet, no beat, no whiff. Said out loud, or the key would
+        // simply feel broken.
+        if (_pm[index].GodMode) { SayGodModeRefusal(index); return; }
         var ap = _pm[index].Char;
         long now = Environment.TickCount64;
 

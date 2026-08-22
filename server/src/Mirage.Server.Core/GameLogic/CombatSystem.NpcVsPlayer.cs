@@ -42,6 +42,7 @@ public sealed partial class CombatSystem : GameSystem
         if (!_pm[victimIndex].IsPlaying) return false;
         if (_pm[victimIndex].GettingMap) return false;
         if (_pm[victimIndex].Char.Dead) return false;  // a corpse can't be attacked/damaged/killed; this gate is above MarkPlayerCombat so it also blocks the combat re-stamp
+        if (_pm[victimIndex].GodMode) return false;    // an observer is not there to be swung at
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
         long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
         if (now <= mapNpc.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
@@ -309,6 +310,7 @@ public sealed partial class CombatSystem : GameSystem
         if (!_pm[victimIndex].IsPlaying) return;
         if (_pm[victimIndex].GettingMap) return;
         if (_pm[victimIndex].Char.Dead) return;  // a corpse can't be attacked/damaged/killed; above MarkPlayerCombat so no combat re-stamp
+        if (_pm[victimIndex].GodMode) return;    // an observer is not there to be cast at
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return;
         // NPC cast cost is the same trivial pool-fraction as the player's (GetSubHpSpellMpCost = round(maxMp/20)).
         // NPCs pay no reagent, and in-combat MP regen out-paces this drain, so a caster SUSTAINS its spell attack
@@ -404,9 +406,10 @@ public sealed partial class CombatSystem : GameSystem
     /// noun to "spell" in the messages so spell hits read as spells, not swings.</summary>
     private void ApplyNpcDamageToPlayer(int mapNum, NpcRecord npcRec, int victimIndex, int damage, bool wasCrit, bool isSpell)
     {
-        // Belt-and-suspenders: the single shared NPC→player damage chokepoint never touches a corpse, so no
-        // future caller (DoT/AoE/trap) can re-enter the lethal branch and re-escalate the respawn penalty/timer.
+        // Belt-and-suspenders: the single shared NPC→player damage chokepoint never touches a corpse or an
+        // observer, so no future caller (DoT/AoE/trap) can reach either through a path that skipped the gates.
         if (_pm[victimIndex].Char.Dead) return;
+        if (_pm[victimIndex].GodMode) return;
         // NPC-vs-player damage disfavor: on-level mobs are +20% HP (favor) AND hit players softer, so PvE fights
         // stay impactful without spiking a squishy build down.  PvE-only (player→NPC / NPC→NPC stay full mirror),
         // applied here post-mitigation.  Guard on damage>0 so a fully-phased-out hit stays 0.  The kill-EXP danger

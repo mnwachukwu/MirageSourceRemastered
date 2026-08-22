@@ -46,6 +46,10 @@ public sealed record SendPlayerDataPacket : IPacket
     [JsonPropertyName("graceUntilUtc")] public long GraceUntilUtc { get; init; }
     // 0 = not an aggressor. Otherwise UTC seconds when the aggressor flag lapses.
     [JsonPropertyName("aggressorUntilUtc")] public long AggressorUntilUtc { get; init; }
+    // Observer mode, for the overhead name only. Nullable on the same rule as the guild fields below:
+    // combat and movement broadcasts leave it out and the client keeps its cached value, so a name cannot
+    // flicker back to its access colour on the next hit somebody else takes nearby.
+    [JsonPropertyName("god")] public bool? GodMode { get; init; }
     // Guild display fields — nullable so ordinary broadcasts (combat/PK/movement) omit them and the
     // client keeps its cached value; only guild-aware broadcasts carry them. GuildId 0 = guildless.
     [JsonPropertyName("gid")] public int? GuildId { get; init; }

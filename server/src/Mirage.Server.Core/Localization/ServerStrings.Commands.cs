@@ -29,6 +29,8 @@ public static partial class ServerStrings
     public const string AdminCommand_WarAdvanced = nameof(AdminCommand_WarAdvanced);
     public const string AdminCommand_WarEnded = nameof(AdminCommand_WarEnded);
     public const string AdminCommand_NoWarInProgress = nameof(AdminCommand_NoWarInProgress);
+    public const string AdminCommand_GodModeOn = nameof(AdminCommand_GodModeOn);
+    public const string AdminCommand_GodModeOff = nameof(AdminCommand_GodModeOff);
     public const string AdminCommand_WarpedToPlayer = nameof(AdminCommand_WarpedToPlayer);
     public const string AdminCommand_WarpedToTarget = nameof(AdminCommand_WarpedToTarget);
     public const string AdminCommand_CannotWarpSelf = nameof(AdminCommand_CannotWarpSelf);

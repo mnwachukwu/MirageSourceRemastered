@@ -71,6 +71,7 @@ public sealed class HelpPanel : IGamePanel
         new("/mapreport",                  ClientStrings.HelpText_Cmd_MapReport,     AdminLevel.Mapper),
         new("/respawn",                    ClientStrings.HelpText_Cmd_Respawn,       AdminLevel.Mapper),
         new("/motd text",                  ClientStrings.HelpText_Cmd_Motd,          AdminLevel.Mapper),
+        new("/godmode",                    ClientStrings.HelpText_Cmd_GodMode,       AdminLevel.Developer),
         new("/warpmeto name",              ClientStrings.HelpText_Cmd_WarpMeTo,      AdminLevel.Developer),
         new("/warptome name",             ClientStrings.HelpText_Cmd_WarpToMe,      AdminLevel.Developer),
         new("/tod day|dusk|night|dawn",   ClientStrings.HelpText_Cmd_Tod,           AdminLevel.Developer),

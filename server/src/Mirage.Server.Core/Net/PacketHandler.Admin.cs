@@ -44,6 +44,37 @@ public sealed partial class PacketHandler
     //  Admin handlers
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /// <summary><c>/godmode</c> — flip the sender in or out of observer mode: passes through every
+    /// obstacle, spends no stamina, cannot act on anything and cannot be acted on. Toggled rather than set,
+    /// so the one command both enters and leaves.
+    /// <para>Combat state is dropped on the way in. Entering mid-fight would otherwise leave the fight
+    /// marked on a player nothing can reach, holding the combat bar up and blocking logout until it
+    /// expired.</para></summary>
+    private void HandleGodMode(int index)
+    {
+        if (!_pm[index].IsPlaying) return;
+        if (_pm[index].Char.Access < AdminLevel.Developer)
+        {
+            HackingAttempt(index, "Admin Cloning");
+            return;
+        }
+
+        var sp = _pm[index];
+        sp.GodMode = !sp.GodMode;
+        if (sp.GodMode)
+        {
+            sp.CombatExpiresAt = 0;
+            sp.Target = 0;
+            sp.TargetType = 0;
+        }
+
+        _dispatcher.SendLocalizedChatTo(index,
+            sp.GodMode ? ServerStrings.AdminCommand_GodModeOn : ServerStrings.AdminCommand_GodModeOff,
+            new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice));
+        _logger.LogInformation("{Name} turned god mode {State}.",
+            _pm[index].Char.Name.Trim(), sp.GodMode ? "on" : "off");
+    }
+
     private void HandleWarpMeTo(int index, WarpMeToPacket p)
     {
         if (!_pm[index].IsPlaying) return;

@@ -33,6 +33,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
         player.PkExpiryUtc = p.PkExpiryUtc;
         player.PkGraceUntilUtc = p.GraceUntilUtc;
         player.AggressorUntilUtc = p.AggressorUntilUtc;
+        // Nullable on the wire for the same reason the guild fields below are: absent means unchanged.
+        if (p.GodMode.HasValue) player.GodMode = p.GodMode.Value;
         // Guild fields are nullable on the wire: only guild-aware broadcasts carry them, so a null
         // means "unchanged" — keep the cached value rather than wiping it on an ordinary broadcast.
         if (p.GuildId.HasValue) player.GuildId = p.GuildId.Value;

@@ -154,6 +154,10 @@ public sealed class PlayerRecord
     // this to drive the flashing-red name during the 30 s window.
     [JsonIgnore] public long AggressorUntilUtc { get; set; }
 
+    /// <summary>Observer mode, as the CLIENT knows it: set from the wire so the overhead name renders grey.
+    /// The server keeps its own copy on ServerPlayer, which is the one every rule reads.</summary>
+    [JsonIgnore] public bool GodMode { get; set; }
+
     // Guild display (client-only; wire-fed by SendPlayerData's nullable guild fields, never persisted —
     // guild membership persists per-account on AccountRecord, not on the character). GuildId 0 = guildless.
     [JsonIgnore] public int GuildId { get; set; }

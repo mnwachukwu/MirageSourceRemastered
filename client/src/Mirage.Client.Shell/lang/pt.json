@@ -601,6 +601,7 @@
   "HelpText_Cmd_Motd": "definir a mensagem do dia",
   "HelpText_Cmd_RefreshBanList": "recarregar banlist.json do disco",
   "HelpText_Cmd_WarpMeTo": "teleportar você até um jogador",
+  "HelpText_Cmd_GodMode":  "Alterna o modo observador: atravessa tudo, corrida ilimitada, sem dano causado ou recebido, sem atrair inimigos.",
   "HelpText_Cmd_WarpToMe": "trazer um jogador até você",
   "HelpText_Cmd_Tod": "pular para uma fase do dia",
   "HelpText_Cmd_Weather": "mudar o clima",

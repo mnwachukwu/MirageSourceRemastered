@@ -14,6 +14,13 @@ public sealed record WarpToMePacket : IPacket
     [JsonPropertyName("target")] public string Target { get; init; } = "";
 }
 
+/// <summary>Toggle the sender's observer mode. Carries nothing: the server owns the state, so a client
+/// cannot ask to be put into it, only to flip it.</summary>
+public sealed record GodModePacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.GodMode;
+}
+
 public sealed record WarpToPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.WarpTo;

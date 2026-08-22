@@ -505,6 +505,9 @@ public sealed class ClientPacketSender
     public void SendWarpToMe(string target)
         => _transport.Send(new WarpToMePacket { Target = target });
 
+    public void SendGodMode()
+        => _transport.Send(new GodModePacket());
+
     public void SendWarpTo(short mapNum)
         => _transport.Send(new WarpToPacket { MapNum = mapNum });
 

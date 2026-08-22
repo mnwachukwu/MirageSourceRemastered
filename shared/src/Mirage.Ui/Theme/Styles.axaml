@@ -327,6 +327,16 @@
     <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark1Brush}"/>
   </Style>
 
+  <!-- ── Editor action bar ─────────────────────────────────────────────────── -->
+
+  <!-- The strip along the bottom of an editor: copy / discard / save and friends. Sized here so every
+       editor's row reads as one row; a button that needs a different size still says so on itself, since
+       a local value beats a style setter. -->
+  <Style Selector="Border.actionBar Button">
+    <Setter Property="Padding" Value="10,3"/>
+    <Setter Property="FontSize" Value="11"/>
+  </Style>
+
   <!-- ── Tooltips ──────────────────────────────────────────────────────────── -->
 
   <!-- Anchored to the control, not to the cursor. Avalonia places a tooltip at the pointer with a 20px

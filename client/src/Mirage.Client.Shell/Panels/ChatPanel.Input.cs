@@ -622,6 +622,10 @@ public sealed partial class ChatPanel
                 if (state.Me.Access < AdminLevel.Creator) goto default;
                 OnToggleModeration?.Invoke();
                 break;
+            case "godmode":
+                if (state.Me.Access < AdminLevel.Developer) goto default;
+                sender.SendGodMode();
+                break;
             case "warpmeto":
                 if (state.Me.Access < AdminLevel.Developer) goto default;
                 if (parts.Length > 1) sender.SendWarpMeTo(parts[1]);

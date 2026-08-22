@@ -38,7 +38,11 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             if (!_pm[i].IsPlaying) continue;
             if (_pm[i].Char.Dead) continue;  // never acquire a corpse: it would re-lock every idle beat and re-run the death path
+            if (_pm[i].GodMode) continue;    // nor an observer, which nothing can see and nothing can reach
             var p = _pm[i].Char;
+            // Beneath its notice: a mob far enough under the player does not start anything. Struck, it
+            // still retaliates through AlertNpc, which is a different path entirely.
+            if (p.Level - StatFormulas.NpcLevel(npc) > Constants.NpcAggroIgnoreLevelGap) continue;
             var gp = WorldCoordHelper.GridPosition(grid, p.Map);
             if (gp is null) continue;  // defensive: observer that left the area mid-tick
             var (pwx, pwy) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, p.X, p.Y);
@@ -72,6 +76,7 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             if (!_pm[i].IsPlaying) continue;
             if (_pm[i].Char.Dead) continue;  // a dead PK player is still PK (death doesn't clear PkExpiryUtc) — don't guard-target the corpse
+            if (_pm[i].GodMode) continue;    // nor an observer, whatever its PK history says
             var p = _pm[i].Char;
             var gp = WorldCoordHelper.GridPosition(grid, p.Map);
             if (gp is null) continue;

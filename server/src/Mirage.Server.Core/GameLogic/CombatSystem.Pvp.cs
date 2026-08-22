@@ -100,6 +100,8 @@ public sealed partial class CombatSystem : GameSystem
         if (!_pm[attacker].IsPlaying || !_pm[victim].IsPlaying) return false;
         if (_pm[victim].Char.Hp <= 0) return false;
         if (_pm[victim].GettingMap) return false;
+        // Observer mode on either side: one cannot raise a hand, the other cannot be reached.
+        if (_pm[attacker].GodMode || _pm[victim].GodMode) return false;
 
         var ap = _pm[attacker].Char;
         var vp = _pm[victim].Char;
@@ -152,6 +154,7 @@ public sealed partial class CombatSystem : GameSystem
     public void ApplyPlayerDamage(int attacker, int victim, int dmg, bool isCrit = false)
     {
         if (!_pm[attacker].IsPlaying || !_pm[victim].IsPlaying || dmg < 0) return;
+        if (_pm[attacker].GodMode || _pm[victim].GodMode) return;   // nothing an observer does or receives lands
         BreakGraceForCombat(attacker, involvesPlayerOrGuard: true);
         ExecutePlayerDamage(attacker, victim, dmg, weapName: "", isCrit: isCrit);
     }

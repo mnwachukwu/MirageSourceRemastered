@@ -901,7 +901,9 @@ public static class RenderCommandBuilder
 
         long nowUtcForGrace = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         bool showAsPk = p.IsPk(nowUtcForGrace) && p.PkGraceUntilUtc <= nowUtcForGrace;
-        int nameColor = PlayerNameColor.For(showAsPk, p.Access);
+        // Observer mode reads as a bystander: grey overhead, whatever the access colour would have been.
+        // Only the world name — chat and the HUD keep PlayerNameColor so an admin stays identifiable there.
+        int nameColor = p.GodMode ? GameColor.Gray : PlayerNameColor.For(showAsPk, p.Access);
         // Aggressor flash: when the player has thrown the first hit at a clean target inside
         // the 30 s aggressor window (and isn't yet a solid-red PKer), alternate the name color
         // between BrightRed and Yellow at ~1.25 Hz so observers see a clearly-flashing warning

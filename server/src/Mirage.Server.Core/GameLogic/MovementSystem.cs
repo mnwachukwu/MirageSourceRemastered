@@ -60,8 +60,8 @@ public sealed class MovementSystem : GameSystem
         var p = _pm[index].Char;
         p.Dir = dir;
 
-        // No SP left — force walking pace.
-        if (movement == MovementType.Running && p.Sp <= 0)
+        // No SP left — force walking pace. An observer has no stamina clock, so it never downgrades.
+        if (movement == MovementType.Running && p.Sp <= 0 && !_pm[index].GodMode)
             movement = MovementType.Walking;
         // WHEN, not only where. Everything below decides whether the destination is legal; this decides
         // whether it is legal YET. Charged AFTER both downgrades above, so a client that keeps claiming
@@ -152,7 +152,7 @@ public sealed class MovementSystem : GameSystem
                 break;
         }
 
-        if (stepped && movement == MovementType.Running)
+        if (stepped && movement == MovementType.Running && !_pm[index].GodMode)
         {
             // Shield doubles run-stamina drain — wearing a shield trades mobility for the
             // magic-mit chip + physical block. Positional tradeoff: shield up = better defense
@@ -595,7 +595,16 @@ public sealed class MovementSystem : GameSystem
         if (gp is null) return false;
         var (destWX, destWY) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, x, y);
         if (!LayerLogic.CanEnter(new ServerTileView(_world, grid), destWX, destWY, 1, mover.Layer, dir, out newLayer))
-            return false;
+        {
+            // A deck edge holds nobody in observer mode either; the plane it is already on is kept, since
+            // there is no legal transition to read one from.
+            if (!_pm[index].GodMode) return false;
+            newLayer = mover.Layer;
+        }
+
+        // Walls, closed doors, setup walls, NPCs and other players are all passed through. The layer above
+        // still resolves normally, so decks and ramps read the same as they do for anyone else.
+        if (_pm[index].GodMode) return true;
 
         // Tile attribute at the RESULTING layer: a fringe railing (Blocked on FringeAttr) stops a
         // fringe-layer walker but not someone underneath.  Door state is per (tile, layer) — open flag AND

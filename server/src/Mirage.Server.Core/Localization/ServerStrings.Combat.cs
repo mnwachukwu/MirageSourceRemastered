@@ -34,6 +34,7 @@ public static partial class ServerStrings
     public const string CombatSystem_NpcDodged = nameof(CombatSystem_NpcDodged);
     public const string CombatSystem_YourAttackMissed = nameof(CombatSystem_YourAttackMissed);
     public const string CombatSystem_AttackerMissed = nameof(CombatSystem_AttackerMissed);
+    public const string CombatSystem_GodModeInert = nameof(CombatSystem_GodModeInert);
     public const string CombatSystem_YourSpellMissed = nameof(CombatSystem_YourSpellMissed);
     public const string CombatSystem_AttackerSpellMissed = nameof(CombatSystem_AttackerSpellMissed);
     public const string CombatSystem_AdminCannotAttack = nameof(CombatSystem_AdminCannotAttack);

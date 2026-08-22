@@ -587,6 +587,9 @@ public sealed partial class PacketHandler
                 case WarpMeToPacket p:
                     HandleWarpMeTo(index, p);
                     break;
+                case GodModePacket:
+                    HandleGodMode(index);
+                    break;
                 case WarpToMePacket p:
                     HandleWarpToMe(index, p);
                     break;

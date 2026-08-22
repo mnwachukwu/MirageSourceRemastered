@@ -197,6 +197,18 @@ public static class Constants
     // outer tiers of the on-target strength readout in PacketHandler (levelDiff >= 5 / <= -5).
     public const int NpcStrengthTierGap = 5;
 
+    // How far under a player an attack-on-sight NPC has to be before it stops starting fights. The test is
+    // STRICT: a virtual level (StatFormulas.NpcLevel) MORE than this far below the player's is beneath its
+    // notice, so a mob exactly this far under still comes for them and the tier below it is the quiet one.
+    //
+    // Same value as NpcStrengthTierGap and the same "no contest" idea, kept separate because they are tuned
+    // for different things — one is what a zone FEELS like to walk back through, the other is flavor text —
+    // and because the kill feed's test is inclusive where this one is not.
+    //
+    // Unprovoked acquisition only. A mob that is struck still fights back however far beneath the player it
+    // is, so a revisited zone goes quiet without going inert.
+    public const int NpcAggroIgnoreLevelGap = 5;
+
     // PK flag — duration applied/extended on each fresh kill, and the per-death reduction
     // when a flagged player is killed (2 deaths fully clear a single fresh flag).
     public const long PkFlagDurationSeconds = 3600;

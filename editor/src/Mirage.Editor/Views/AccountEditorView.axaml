@@ -373,7 +373,7 @@
         </ScrollViewer>
 
         <!-- ── Footer: status line and actions ── -->
-        <Border Grid.Row="1" Background="{DynamicResource MirageSurfaceBrush}" Padding="8,6"
+        <Border Classes="actionBar" Grid.Row="1" Background="{DynamicResource MirageSurfaceBrush}" Padding="8,6"
                 BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="0,1,0,0">
           <DockPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">

@@ -172,6 +172,7 @@ public static class PacketNames
     // ── C→S: admin ──────────────────────────────────────────────────────────
     public const string WarpMeTo = "warpmeto";
     public const string WarpToMe = "warptome";
+    public const string GodMode = "godmode";
     public const string WarpTo = "warpto";
     public const string SetSprite = "setsprite";
     public const string MapRespawn = "maprespawn";

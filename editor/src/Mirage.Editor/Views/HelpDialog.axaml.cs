@@ -75,15 +75,12 @@ public partial class HelpDialog : Window
         _selActionSelectionDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ActionSelectionDesc);
         _selCtrlCSelection.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlCSelection);
         _selCtrlCSelectionDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlCSelectionDesc);
-        // These two rows were repurposed when Ctrl+C/V stopped switching actions: the "CtrlCPlace" row now
-        // documents the Delete action (Ctrl+Shift+3) and the "CtrlVSelection" row the mode hotkeys (Ctrl+1/2/3).
-        // Only their strings changed — the x:Names are kept to avoid churning the grid layout + wiring.
-        _selCtrlCPlace.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlCPlace);
-        _selCtrlCPlaceDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlCPlaceDesc);
+        _selActionDelete.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ActionDelete);
+        _selActionDeleteDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ActionDeleteDesc);
         _selCtrlXSelection.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlXSelection);
         _selCtrlXSelectionDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlXSelectionDesc);
-        _selCtrlVSelection.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlVSelection);
-        _selCtrlVSelectionDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlVSelectionDesc);
+        _selModeKeys.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ModeKeys);
+        _selModeKeysDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ModeKeysDesc);
         _selClickPlace.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ClickPlace);
         _selClickPlaceDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_ClickPlaceDesc);
         _selCtrlShiftClick.Text = EditorStrings.Get(EditorStrings.HelpDialog_Sel_CtrlShiftClick);

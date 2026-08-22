@@ -350,6 +350,7 @@ public static class PacketSerializer
                 // Admin
                 PacketNames.WarpMeTo => JsonSerializer.Deserialize<WarpMeToPacket>(line, Options),
                 PacketNames.WarpToMe => JsonSerializer.Deserialize<WarpToMePacket>(line, Options),
+                PacketNames.GodMode => JsonSerializer.Deserialize<GodModePacket>(line, Options),
                 PacketNames.WarpTo => JsonSerializer.Deserialize<WarpToPacket>(line, Options),
                 PacketNames.SetSprite => JsonSerializer.Deserialize<SetSpritePacket>(line, Options),
                 PacketNames.SetAccess => JsonSerializer.Deserialize<SetAccessPacket>(line, Options),

@@ -73,6 +73,19 @@ public sealed partial class CombatSystem : GameSystem
         SendToMap(_world, mapNum,
             new CombatTextPacket { IsNpc = isNpc, Index = index, MapNum = mapNum, Kind = kind, X = x, Y = y, Vital = vital });
 
+    /// <summary>Says why nothing happened, at most once every <see cref="GodModeNoticeIntervalMs"/>. Attack
+    /// and cast are both held-key inputs, so an unthrottled line would bury the chat log the moment an
+    /// observer leant on a key.</summary>
+    public void SayGodModeRefusal(int index)
+    {
+        long now = Environment.TickCount64;
+        if (now < _pm[index].GodModeNoticeAt) return;
+        _pm[index].GodModeNoticeAt = now + GodModeNoticeIntervalMs;
+        SendMsg(index, ServerStrings.CombatSystem_GodModeInert, GameColor.BrightRed, ChatChannel.System);
+    }
+
+    private const long GodModeNoticeIntervalMs = 5_000;
+
     public void MarkPlayerCombat(int index, long now, bool asAttacker)
     {
         bool wasInCombat = _pm[index].IsInCombat(now);

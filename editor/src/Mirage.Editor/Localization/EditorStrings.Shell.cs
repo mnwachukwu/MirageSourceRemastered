@@ -276,12 +276,12 @@ public static partial class EditorStrings
     public const string HelpDialog_Sel_ActionSelectionDesc = nameof(HelpDialog_Sel_ActionSelectionDesc);
     public const string HelpDialog_Sel_CtrlCSelection = nameof(HelpDialog_Sel_CtrlCSelection);
     public const string HelpDialog_Sel_CtrlCSelectionDesc = nameof(HelpDialog_Sel_CtrlCSelectionDesc);
-    public const string HelpDialog_Sel_CtrlCPlace = nameof(HelpDialog_Sel_CtrlCPlace);
-    public const string HelpDialog_Sel_CtrlCPlaceDesc = nameof(HelpDialog_Sel_CtrlCPlaceDesc);
+    public const string HelpDialog_Sel_ActionDelete = nameof(HelpDialog_Sel_ActionDelete);
+    public const string HelpDialog_Sel_ActionDeleteDesc = nameof(HelpDialog_Sel_ActionDeleteDesc);
     public const string HelpDialog_Sel_CtrlXSelection = nameof(HelpDialog_Sel_CtrlXSelection);
     public const string HelpDialog_Sel_CtrlXSelectionDesc = nameof(HelpDialog_Sel_CtrlXSelectionDesc);
-    public const string HelpDialog_Sel_CtrlVSelection = nameof(HelpDialog_Sel_CtrlVSelection);
-    public const string HelpDialog_Sel_CtrlVSelectionDesc = nameof(HelpDialog_Sel_CtrlVSelectionDesc);
+    public const string HelpDialog_Sel_ModeKeys = nameof(HelpDialog_Sel_ModeKeys);
+    public const string HelpDialog_Sel_ModeKeysDesc = nameof(HelpDialog_Sel_ModeKeysDesc);
     public const string HelpDialog_Sel_ClickPlace = nameof(HelpDialog_Sel_ClickPlace);
     public const string HelpDialog_Sel_ClickPlaceDesc = nameof(HelpDialog_Sel_ClickPlaceDesc);
     public const string HelpDialog_Sel_CtrlShiftClick = nameof(HelpDialog_Sel_CtrlShiftClick);

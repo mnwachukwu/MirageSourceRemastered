@@ -186,6 +186,15 @@ public sealed class ServerPlayer
 
     public void ClearActiveShop() => SetActiveShop(0, 0, 0);
 
+    /// <summary>Observer mode: this player passes through everything, spends no stamina, cannot act on
+    /// anyone and cannot be acted on. TRANSIENT — cleared when the character leaves, so it is never
+    /// something an account carries back in with it.</summary>
+    public bool GodMode { get; set; }
+
+    /// <summary>When the "nothing happens in observer mode" line may be sent again. Attack and cast are both
+    /// held-key inputs, so the refusal is throttled rather than printed per attempt.</summary>
+    public long GodModeNoticeAt { get; set; }
+
     /// <summary>The shop/inn this player currently has open, re-validated to still be within r=5 of the keeper
     /// NPC that opened it (and that the keeper still keeps it) — else 0. A shop is reachable only while
     /// standing by its keeper, never by occupying a particular map.</summary>
