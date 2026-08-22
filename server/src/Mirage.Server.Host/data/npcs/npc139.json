@@ -1,6 +1,6 @@
 {
   "name": "Vesk the Unsunk",
-  "attackSay": "Everything here costs you something to cast. That\u0027s the honest part.",
+  "attackSay": "Everything here costs you something to cast. That's the honest part.",
   "sprite": 30,
   "size": 1,
   "spawnSecs": 60,

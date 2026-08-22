@@ -23,7 +23,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "(She keeps working. After a while she speaks without stopping.)\n\n\u0022It went out with the forge. I was pumping then. I have not been told to stop.\u0022",
+      "text": "(She keeps working. After a while she speaks without stopping.)\n\n\"It went out with the forge. I was pumping then. I have not been told to stop.\"",
       "choices": [
         {
           "label": "Who would tell you to stop?",
@@ -31,7 +31,7 @@
           "action": "None"
         },
         {
-          "label": "I\u0027ll leave you to it.",
+          "label": "I'll leave you to it.",
           "nextNodeId": 0,
           "action": "None"
         }
@@ -40,7 +40,7 @@
     {
       "id": 3,
       "speaker": "",
-      "text": "\u0022The Legate.\u0022\n\n(You wait. She does not add anything, and the rhythm of the bellows does not change.)",
+      "text": "\"The Legate.\"\n\n(You wait. She does not add anything, and the rhythm of the bellows does not change.)",
       "choices": [
         {
           "label": "Leave quietly.",

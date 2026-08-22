@@ -31,7 +31,7 @@ public sealed class BankSystem : GameSystem
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum <= 0 || _world.Shops[shopNum].ShopType != ShopType.Inn || !_world.Shops[shopNum].AllowBanking)
         {
-            SendMsg(index, ServerStrings.BankSystem_NoBankHere, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.BankSystem_NotNearBank, GameColor.BrightRed);
             return;
         }
         SendFullBank(index);
@@ -45,7 +45,7 @@ public sealed class BankSystem : GameSystem
         if (!SlotValidation.IsValidInvSlot(invSlot)) return;
         if (!IsAtBankingInn(index))
         {
-            SendMsg(index, ServerStrings.BankSystem_NoBankHere, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.BankSystem_NotNearBank, GameColor.BrightRed);
             return;
         }
 
@@ -123,7 +123,7 @@ public sealed class BankSystem : GameSystem
         if (!SlotValidation.IsValidBankSlot(bankSlot)) return;
         if (!IsAtBankingInn(index))
         {
-            SendMsg(index, ServerStrings.BankSystem_NoBankHere, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.BankSystem_NotNearBank, GameColor.BrightRed);
             return;
         }
 
@@ -185,7 +185,7 @@ public sealed class BankSystem : GameSystem
         if (amount < 0) return;
         if (!IsAtBankingInn(index))
         {
-            SendMsg(index, ServerStrings.BankSystem_NoBankHere, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.BankSystem_NotNearBank, GameColor.BrightRed);
             return;
         }
 
@@ -239,7 +239,7 @@ public sealed class BankSystem : GameSystem
         if (amount < 0) return;
         if (!IsAtBankingInn(index))
         {
-            SendMsg(index, ServerStrings.BankSystem_NoBankHere, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.BankSystem_NotNearBank, GameColor.BrightRed);
             return;
         }
 
@@ -295,7 +295,7 @@ public sealed class BankSystem : GameSystem
         if (!_pm[index].IsPlaying) return;
         if (!IsAtBankingInn(index))
         {
-            SendMsg(index, ServerStrings.BankSystem_NoBankHere, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.BankSystem_NotNearBank, GameColor.BrightRed);
             return;
         }
 

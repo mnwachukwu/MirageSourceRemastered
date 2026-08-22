@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Legate of nothing, commander of no one. The title outlived the office and I\u0027ve not had the heart to drop it.\n\nBut I still know what needs doing, and you look like someone who does things.",
+      "text": "Legate of nothing, commander of no one. The title outlived the office and I've not had the heart to drop it.\n\nBut I still know what needs doing, and you look like someone who does things.",
       "choices": [
         {
           "label": "What needs doing?",
@@ -33,7 +33,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "I held the Throne\u0027s ledger. Every legion, every ordinal, every soul the Kiln spent and what it bought.\n\nIt balances. That\u0027s what I can\u0027t put down. Everything the Kiln burned, it burned for a reason, and the reasons are all written in my hand, and they were all good reasons, and here we are.",
+      "text": "I held the Throne's ledger. Every legion, every ordinal, every soul the Kiln spent and what it bought.\n\nIt balances. That's what I can't put down. Everything the Kiln burned, it burned for a reason, and the reasons are all written in my hand, and they were all good reasons, and here we are.",
       "choices": [
         {
           "label": "What needs doing?",
@@ -63,7 +63,7 @@
           "action": "OpenQuests"
         },
         {
-          "label": "That\u0027s enough.",
+          "label": "That's enough.",
           "nextNodeId": 0,
           "action": "None"
         }

@@ -40,7 +40,7 @@ public sealed class PlayerSpawnSystem : GameSystem
         int shopNum = sp.ActiveShop(_world, index);
         if (shopNum <= 0 || _world.Shops[shopNum].ShopType != ShopType.Inn)
         {
-            SendMsg(index, ServerStrings.PlayerSpawnSystem_NoInn, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.PlayerSpawnSystem_NotNearInn, GameColor.BrightRed);
             return;
         }
 

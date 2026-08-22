@@ -72,6 +72,7 @@ public sealed partial class CombatSystem : GameSystem
         if (WindTearsItAway(attackerMap))
         {
             BroadcastCombatText(victimMap, isNpc: true, index: victimSlot, CombatTextKind.Miss, victimMn.X, victimMn.Y);
+            AlertNpcFromNpc(victimMap, victimSlot, victimMn, aSpawnMap, aSpawnSlot);
             return;
         }
 

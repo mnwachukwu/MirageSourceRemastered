@@ -6,10 +6,10 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Plate, mail, helm, shield. And a bucket of rivets, if you\u0027re the sort who asks.\n\nI\u0027ll mend what you\u0027re wearing while you stand in it, if you don\u0027t mind the noise.",
+      "text": "Plate, mail, helm, shield. And a bucket of rivets, if you're the sort who asks.\n\nI'll mend what you're wearing while you stand in it, if you don't mind the noise.",
       "choices": [
         {
-          "label": "Let\u0027s see it.",
+          "label": "Let's see it.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -28,10 +28,10 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "Some. Not the way you\u0027d like.\n\nA good plate turns a bad blow into a worse bruise. It won\u0027t turn a bad blow into nothing - nothing that lands on you lands for nothing, and anyone who tells you different is selling worse iron than mine.",
+      "text": "Some. Not the way you'd like.\n\nA good plate turns a bad blow into a worse bruise. It won't turn a bad blow into nothing - nothing that lands on you lands for nothing, and anyone who tells you different is selling worse iron than mine.",
       "choices": [
         {
-          "label": "Let\u0027s see it.",
+          "label": "Let's see it.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },

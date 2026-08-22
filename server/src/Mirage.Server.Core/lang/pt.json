@@ -202,7 +202,7 @@
   "Mail_CodReturnedSubject":     "Entrega devolvida",
   "Mail_CodReturnedBody":        "{Name} não pagou o seu envio com pagamento na entrega em 3 dias. Seus itens estão anexados.",
   "Market_Sender":               "Mercado",
-  "Market_NotAtInn":             "Você só pode usar o mercado em uma estalagem.",
+  "Market_NotNearInn":           "Você não está perto o bastante de uma estalagem para usar o mercado.",
   "Market_BadPrice":             "Informe um preço válido.",
   "Market_TooManyListings":      "Você já tem o número máximo de anúncios.",
   "Market_CannotList":           "Esse item não pode ser anunciado.",
@@ -438,10 +438,10 @@
 
   "MapGreeting_JoinSay":        "{Speaker} diz: '{JoinSay}'",
   "MapGreeting_LeaveSay":       "{Speaker} diz: '{LeaveSay}'",
-  "ShopSystem_NotAtShop":      "Você não está nesta loja.",
+  "ShopSystem_NotNearShop":    "Você não está perto o bastante para negociar nesta loja.",
   "ShopSystem_NotEnoughTrade": "Você não tem o bastante desse item para negociar.",
   "ShopSystem_TradedWith":     "Você negociou com {ShopName}.",
-  "ShopSystem_NoRepairShop":   "Não há oficina de conserto aqui.",
+  "ShopSystem_NotNearRepairShop": "Você não está perto o bastante de uma oficina de conserto.",
   "ShopSystem_NoRepairType":   "Esta loja não conserta itens.",
   "ShopSystem_NoItemInSlot":   "Não há item nesse espaço.",
   "ShopSystem_CannotRepair":   "Esse item não pode ser consertado.",
@@ -458,7 +458,7 @@
   "ShopSystem_CannotSell":     "{ItemName} não pode ser vendido aqui.",
   "ShopSystem_UnequipFirst":   "Tire {ItemName} antes de vendê-lo.",
 
-  "BankSystem_NoBankHere":   "Você não pode acessar o banco aqui.",
+  "BankSystem_NotNearBank":  "Você não está perto o bastante para usar o banco.",
   "BankSystem_BankFull":     "Seu armazém está cheio.",
   "BankSystem_UnequipFirst": "Desequipe o item antes de depositá-lo.",
   "BankSystem_DepositPartial":  "Só {Moved} de {Requested} depositados. O armazém está cheio.",
@@ -548,7 +548,7 @@
   "PartySystem_InviteExpiredSelf":   "Seu convite de grupo para {PartnerName} expirou.",
   "PartySystem_InviteExpiredOther":  "O convite de grupo de {InviterName} expirou.",
 
-  "PlayerSpawnSystem_NoInn":          "Não há estalagem aqui.",
+  "PlayerSpawnSystem_NotNearInn":     "Você não está perto o bastante para usar a estalagem.",
   "PlayerSpawnSystem_InsufficientGold":"Você precisa de {Cost} de ouro para definir o seu ponto de retorno aqui.",
   "PlayerSpawnSystem_SpawnSet":       "Seu ponto de retorno foi definido. Você vai renascer aqui quando morrer.",
 
@@ -556,7 +556,7 @@
 
   "RegenerationSystem_CombatEnded": "O calor da batalha se dissipa.",
 
-  "PacketHandler_NoShopHere":        "Não há loja aqui.",
+  "PacketHandler_NotNearShop":       "Você não está perto o bastante para abrir a loja.",
   "PacketHandler_CannotLogoutCombat":"Você não pode sair enquanto está em combate.",
   "PacketHandler_StudyCombat":       "Você não pode estudar no calor do combate!",
   "PacketHandler_ForgotSpell":       "Você esqueceu {Spell}.",

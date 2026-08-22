@@ -202,7 +202,7 @@
   "Mail_CodReturnedSubject":     "Entrega devuelta",
   "Mail_CodReturnedBody":        "{Name} no pagó tu envío contra entrega en 3 días. Tus objetos están adjuntos.",
   "Market_Sender":               "Mercado",
-  "Market_NotAtInn":             "Solo puedes usar el mercado en una posada.",
+  "Market_NotNearInn":           "No estás lo bastante cerca de una posada para usar el mercado.",
   "Market_BadPrice":             "Escribe un precio válido.",
   "Market_TooManyListings":      "Ya tienes el número máximo de anuncios.",
   "Market_CannotList":           "Ese objeto no se puede anunciar.",
@@ -438,10 +438,10 @@
 
   "MapGreeting_JoinSay":        "{Speaker} dice: '{JoinSay}'",
   "MapGreeting_LeaveSay":       "{Speaker} dice: '{LeaveSay}'",
-  "ShopSystem_NotAtShop":      "No estás en esta tienda.",
+  "ShopSystem_NotNearShop":    "No estás lo bastante cerca para comerciar en esta tienda.",
   "ShopSystem_NotEnoughTrade": "No tienes suficiente de ese objeto para comerciar.",
   "ShopSystem_TradedWith":     "Comerciaste con {ShopName}.",
-  "ShopSystem_NoRepairShop":   "Aquí no hay taller de reparación.",
+  "ShopSystem_NotNearRepairShop": "No estás lo bastante cerca de un taller de reparación.",
   "ShopSystem_NoRepairType":   "Esta tienda no repara objetos.",
   "ShopSystem_NoItemInSlot":   "No hay ningún objeto en ese espacio.",
   "ShopSystem_CannotRepair":   "Ese objeto no se puede reparar.",
@@ -458,7 +458,7 @@
   "ShopSystem_CannotSell":     "{ItemName} no se puede vender aquí.",
   "ShopSystem_UnequipFirst":   "Quítate {ItemName} antes de venderlo.",
 
-  "BankSystem_NoBankHere":   "Aquí no puedes entrar al banco.",
+  "BankSystem_NotNearBank":  "No estás lo bastante cerca para usar el banco.",
   "BankSystem_BankFull":     "Tu almacén está lleno.",
   "BankSystem_UnequipFirst": "Desequipa el objeto antes de depositarlo.",
   "BankSystem_DepositPartial":  "Solo {Moved} de {Requested} depositados. El almacén está lleno.",
@@ -548,7 +548,7 @@
   "PartySystem_InviteExpiredSelf":   "Tu invitación de grupo a {PartnerName} expiró.",
   "PartySystem_InviteExpiredOther":  "La invitación de grupo de {InviterName} expiró.",
 
-  "PlayerSpawnSystem_NoInn":          "Aquí no hay posada.",
+  "PlayerSpawnSystem_NotNearInn":     "No estás lo bastante cerca para usar la posada.",
   "PlayerSpawnSystem_InsufficientGold":"Necesitas {Cost} de oro para fijar aquí tu punto de reaparición.",
   "PlayerSpawnSystem_SpawnSet":       "Tu punto de reaparición ha sido fijado. Reaparecerás aquí cuando mueras.",
 
@@ -556,7 +556,7 @@
 
   "RegenerationSystem_CombatEnded": "El fragor de la batalla se apaga.",
 
-  "PacketHandler_NoShopHere":        "Aquí no hay tienda.",
+  "PacketHandler_NotNearShop":       "No estás lo bastante cerca para abrir la tienda.",
   "PacketHandler_CannotLogoutCombat":"No puedes cerrar sesión mientras estás en combate.",
   "PacketHandler_StudyCombat":       "¡No puedes estudiar en pleno combate!",
   "PacketHandler_ForgotSpell":       "Has olvidado {Spell}.",

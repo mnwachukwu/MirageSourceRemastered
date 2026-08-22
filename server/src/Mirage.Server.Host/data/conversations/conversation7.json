@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "No. He\u0027s right, and he\u0027s useless, which are different failures.\n\nA thing coming at you does not care which of us you studied under. It cares how much of it is left. I sell the arithmetic.",
+      "text": "No. He's right, and he's useless, which are different failures.\n\nA thing coming at you does not care which of us you studied under. It cares how much of it is left. I sell the arithmetic.",
       "choices": [
         {
           "label": "Show me.",
@@ -36,7 +36,7 @@
           "action": "OpenShop"
         },
         {
-          "label": "I\u0027ll think on it.",
+          "label": "I'll think on it.",
           "nextNodeId": 0,
           "action": "None"
         }

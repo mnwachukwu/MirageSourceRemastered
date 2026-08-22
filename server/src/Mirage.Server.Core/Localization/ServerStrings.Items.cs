@@ -6,10 +6,10 @@ namespace Mirage.Server.Core.Localization;
 public static partial class ServerStrings
 {
     // ── ShopSystem ────────────────────────────────────────────────────────────
-    public const string ShopSystem_NotAtShop = nameof(ShopSystem_NotAtShop);
+    public const string ShopSystem_NotNearShop = nameof(ShopSystem_NotNearShop);
     public const string ShopSystem_NotEnoughTrade = nameof(ShopSystem_NotEnoughTrade);
     public const string ShopSystem_TradedWith = nameof(ShopSystem_TradedWith);
-    public const string ShopSystem_NoRepairShop = nameof(ShopSystem_NoRepairShop);
+    public const string ShopSystem_NotNearRepairShop = nameof(ShopSystem_NotNearRepairShop);
     public const string ShopSystem_NoRepairType = nameof(ShopSystem_NoRepairType);
     public const string ShopSystem_NoItemInSlot = nameof(ShopSystem_NoItemInSlot);
     public const string ShopSystem_CannotRepair = nameof(ShopSystem_CannotRepair);
@@ -27,7 +27,7 @@ public static partial class ServerStrings
     public const string ShopSystem_UnequipFirst = nameof(ShopSystem_UnequipFirst);
 
     // ── BankSystem ────────────────────────────────────────────────────────────
-    public const string BankSystem_NoBankHere = nameof(BankSystem_NoBankHere);
+    public const string BankSystem_NotNearBank = nameof(BankSystem_NotNearBank);
     public const string BankSystem_BankFull = nameof(BankSystem_BankFull);
     public const string BankSystem_UnequipFirst = nameof(BankSystem_UnequipFirst);
     public const string BankSystem_DepositPartial = nameof(BankSystem_DepositPartial);

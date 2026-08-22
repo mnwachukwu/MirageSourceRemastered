@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Sit if you like. I don\u0027t get up for anyone any more and I\u0027ve stopped apologizing for it.",
+      "text": "Sit if you like. I don't get up for anyone any more and I've stopped apologizing for it.",
       "choices": [
         {
           "label": "What did you do, before?",
@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "Ferried. Not the old man\u0027s boat - a smaller one, upriver, before the water got opinions.\n\nI knew every reed bank between here and the Tollman\u0027s crossing. They are all still there. I am simply no longer the shape that gets into a boat.",
+      "text": "Ferried. Not the old man's boat - a smaller one, upriver, before the water got opinions.\n\nI knew every reed bank between here and the Tollman's crossing. They are all still there. I am simply no longer the shape that gets into a boat.",
       "choices": [
         {
           "label": "Any advice?",
@@ -53,7 +53,7 @@
           "action": "None"
         },
         {
-          "label": "I\u0027ll remember that.",
+          "label": "I'll remember that.",
           "nextNodeId": 0,
           "action": "None"
         }

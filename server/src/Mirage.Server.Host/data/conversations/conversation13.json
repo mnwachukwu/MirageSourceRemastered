@@ -6,10 +6,10 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Sit. No - you\u0027re fine. I can tell from here, I\u0027ve had the practice.\n\nHealing, mana, vigor. Bigger measures than you\u0027ll find inland, because down here things hit harder and you\u0027re further from anyone who cares.",
+      "text": "Sit. No - you're fine. I can tell from here, I've had the practice.\n\nHealing, mana, vigor. Bigger measures than you'll find inland, because down here things hit harder and you're further from anyone who cares.",
       "choices": [
         {
-          "label": "I\u0027ll take a measure.",
+          "label": "I'll take a measure.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -19,7 +19,7 @@
           "action": "None"
         },
         {
-          "label": "I\u0027m fine.",
+          "label": "I'm fine.",
           "nextNodeId": 0,
           "action": "None"
         }
@@ -28,15 +28,15 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "Nothing, any more. There\u0027s no one left to have granted it and no one left to take it back, so I\u0027ve kept it.\n\nI was studying drowning. Properly, I mean - what the body does, how long it takes, whether it can be walked back. Then the Reach gave me rather more material than I\u0027d asked for and I stopped enjoying the work.",
+      "text": "Nothing, any more. There's no one left to have granted it and no one left to take it back, so I've kept it.\n\nI was studying drowning. Properly, I mean - what the body does, how long it takes, whether it can be walked back. Then the Reach gave me rather more material than I'd asked for and I stopped enjoying the work.",
       "choices": [
         {
-          "label": "I\u0027ll take a measure.",
+          "label": "I'll take a measure.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
         {
-          "label": "I\u0027m sorry.",
+          "label": "I'm sorry.",
           "nextNodeId": 0,
           "action": "None"
         }

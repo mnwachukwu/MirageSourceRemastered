@@ -56,7 +56,7 @@ public sealed class MarketSystem : GameSystem
         if (!_pm[index].IsPlaying) return;
         if (!IsAtInn(index))
         {
-            SendMsg(index, ServerStrings.Market_NotAtInn, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.Market_NotNearInn, GameColor.BrightRed);
             return;
         }
         _pm[index].ViewingMarket = true;   // now a live-broadcast recipient until they close the panel
@@ -70,7 +70,7 @@ public sealed class MarketSystem : GameSystem
         if (!_pm[index].IsPlaying) return;
         if (!IsAtInn(index))
         {
-            SendMsg(index, ServerStrings.Market_NotAtInn, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.Market_NotNearInn, GameColor.BrightRed);
             return;
         }
         _pm[index].ViewingMarket = true;
@@ -91,7 +91,7 @@ public sealed class MarketSystem : GameSystem
         if (!sp.IsPlaying) return;
         if (!IsAtInn(index))
         {
-            SendMsg(index, ServerStrings.Market_NotAtInn, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.Market_NotNearInn, GameColor.BrightRed);
             return;
         }
         if (!SlotValidation.IsValidInvSlot(invSlot)) return;
@@ -152,7 +152,7 @@ public sealed class MarketSystem : GameSystem
         if (!sp.IsPlaying) return;
         if (!IsAtInn(index))
         {
-            SendMsg(index, ServerStrings.Market_NotAtInn, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.Market_NotNearInn, GameColor.BrightRed);
             return;
         }
         if (!_world.MarketListings.TryGetValue(listingId, out var listing))
@@ -228,7 +228,7 @@ public sealed class MarketSystem : GameSystem
         if (!sp.IsPlaying) return;
         if (!IsAtInn(index))
         {
-            SendMsg(index, ServerStrings.Market_NotAtInn, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.Market_NotNearInn, GameColor.BrightRed);
             return;
         }
         if (!_world.MarketListings.TryGetValue(listingId, out var listing))

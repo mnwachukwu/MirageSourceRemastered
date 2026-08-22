@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "You\u0027re new. Nobody\u0027s new here. Where did you even come FROM?",
+      "text": "You're new. Nobody's new here. Where did you even come FROM?",
       "choices": [
         {
           "label": "A long way down.",
@@ -65,7 +65,7 @@
       "text": "Then I will. Not yet - Ost would skin me and there is the cut to walk.\n\nBut I have decided, and I am telling you so that somebody outside this town knows I decided it.",
       "choices": [
         {
-          "label": "I\u0027ll remember.",
+          "label": "I'll remember.",
           "nextNodeId": 0,
           "action": "None"
         }

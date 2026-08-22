@@ -8,7 +8,7 @@ public static partial class ServerStrings
 {
     // ── Marketplace ─────────────────────────────────────────────────────────────
     public const string Market_Sender = nameof(Market_Sender);
-    public const string Market_NotAtInn = nameof(Market_NotAtInn);
+    public const string Market_NotNearInn = nameof(Market_NotNearInn);
     public const string Market_BadPrice = nameof(Market_BadPrice);
     public const string Market_TooManyListings = nameof(Market_TooManyListings);
     public const string Market_CannotList = nameof(Market_CannotList);

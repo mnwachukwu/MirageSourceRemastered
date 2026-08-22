@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Salt eats everything. That\u0027s my whole trade in three words.\n\nBuy new, or bring me what the sea\u0027s been chewing and I\u0027ll see what\u0027s left under it.",
+      "text": "Salt eats everything. That's my whole trade in three words.\n\nBuy new, or bring me what the sea's been chewing and I'll see what's left under it.",
       "choices": [
         {
           "label": "Show me.",
@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "There isn\u0027t anything better. There\u0027s only iron that hasn\u0027t been in the water yet.\n\nThe drowned carry coral through their armor and it holds - grows into the gaps and stops the rot. I\u0027ve tried it. You can\u0027t forge it, you can only be dead long enough to grow it.",
+      "text": "There isn't anything better. There's only iron that hasn't been in the water yet.\n\nThe drowned carry coral through their armor and it holds - grows into the gaps and stops the rot. I've tried it. You can't forge it, you can only be dead long enough to grow it.",
       "choices": [
         {
           "label": "Show me.",

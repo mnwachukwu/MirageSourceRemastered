@@ -6,10 +6,10 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Third of us. Grip, Coin, me. Same trade, same lack of questions, worse weather.\n\nWhat have you got that\u0027s no use to anyone?",
+      "text": "Third of us. Grip, Coin, me. Same trade, same lack of questions, worse weather.\n\nWhat have you got that's no use to anyone?",
       "choices": [
         {
-          "label": "Let\u0027s trade.",
+          "label": "Let's trade.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -28,10 +28,10 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "There\u0027ll always be three of us. Wherever people carry things they can\u0027t explain, someone turns up who won\u0027t ask.\n\nThe old man\u0027s boat is how it moves. When he stops running it, we\u0027ll be three strangers with three boxes and nothing between us.",
+      "text": "There'll always be three of us. Wherever people carry things they can't explain, someone turns up who won't ask.\n\nThe old man's boat is how it moves. When he stops running it, we'll be three strangers with three boxes and nothing between us.",
       "choices": [
         {
-          "label": "Let\u0027s trade.",
+          "label": "Let's trade.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },

@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "No name. I gave it up, which is the only reason I\u0027m still standing here.\n\nI sell the taking half. Come close, if you\u0027re coming.",
+      "text": "No name. I gave it up, which is the only reason I'm still standing here.\n\nI sell the taking half. Come close, if you're coming.",
       "choices": [
         {
           "label": "Show me.",
@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "To the fire, in place of the rest of me. It took the name and it left the body, and it has never once come back to renegotiate.\n\nSo yes: I know exactly what a taking-word costs, because I paid the largest one there is and I got change. Don\u0027t buy them casually.",
+      "text": "To the fire, in place of the rest of me. It took the name and it left the body, and it has never once come back to renegotiate.\n\nSo yes: I know exactly what a taking-word costs, because I paid the largest one there is and I got change. Don't buy them casually.",
       "choices": [
         {
           "label": "Show me.",
@@ -36,7 +36,7 @@
           "action": "OpenShop"
         },
         {
-          "label": "...I\u0027ll be careful.",
+          "label": "...I'll be careful.",
           "nextNodeId": 0,
           "action": "None"
         }

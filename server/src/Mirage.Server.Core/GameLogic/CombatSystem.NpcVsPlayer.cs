@@ -113,8 +113,19 @@ public sealed partial class CombatSystem : GameSystem
         BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
         var vp = _pm[victimIndex].Char;
 
-        // A swing that reaches a target costs the beat whatever it resolves to — see HandleAttack.
+        // A swing that reaches a target costs the beat, strikes the pose, counts as reach and shows the
+        // swoosh — whatever it then resolves to (see HandleAttack). Reach is closing the distance to swing,
+        // which a defended swing did as much as a landed one, and the give-up clock runs off it.
         mapNpc.AttackTimer = now;
+        mapNpc.Attacking = true;
+        mapNpc.MarkReachedTarget(now);
+        // The swing is an EVENT addressed by the attacker's universal identity (GetSpawnIdentity = home slot
+        // for a native, spawn slot for a guest), so observers spawn the crescent swoosh + sparks for guests
+        // exactly as for natives.  The Attacking flag in a guest's state packet drives only the sprite POSE,
+        // not the one-shot FX — same event-parity pattern as the NPC cast bolt.
+        var (swingMap, swingSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
+        if (swingSlot > 0)
+            SendToMap(_world, mapNum, new NpcAttackPacket { MapNum = swingMap, NpcSlot = swingSlot });
 
         if (WindTearsItAway(mapNum))
         {
@@ -157,17 +168,6 @@ public sealed partial class CombatSystem : GameSystem
         {
             damage = CombatFormulas.ResolveNpcVsPlayerDamage(CombatFormulas.Vary(CombatFormulas.NpcMeleeBaseDamage(npcRec.Str)), prot, npcRec.IsBoss);
         }
-
-        mapNpc.AttackTimer = now;
-        mapNpc.Attacking = true;
-        mapNpc.MarkReachedTarget(now);  // melee landed — physical reach
-        // Broadcast the swing as an EVENT addressed by the attacker's universal identity (GetSpawnIdentity =
-        // home slot for a native, spawn slot for a guest) so observers spawn the crescent swoosh + sparks for
-        // guests exactly as for natives.  The Attacking flag in a guest's state packet drives only the sprite
-        // POSE, not the one-shot FX — same event-parity pattern as the NPC cast bolt.
-        var (swingMap, swingSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
-        if (swingSlot > 0)
-            SendToMap(_world, mapNum, new NpcAttackPacket { MapNum = swingMap, NpcSlot = swingSlot });
 
         ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: false);
     }
@@ -324,9 +324,9 @@ public sealed partial class CombatSystem : GameSystem
         if (WindTearsItAway(mapNum))
         {
             SendMsg(victimIndex, ServerStrings.CombatSystem_AttackerSpellMissed, GameColor.BrightCyan, ("AttackerName", npcRec.TrimmedName));
-            BroadcastCombatText(mapNum, isNpc: true, index: npcSlot, CombatTextKind.Miss, mapNpc.X, mapNpc.Y);
-            mapNpc.Mp -= mpCost;
-            mapNpc.AttackTimer = now;
+            // Over the TARGET, like a block or a dodge — and charged the same, bolt included.
+            BroadcastCombatText(_pm[victimIndex].Char.Map, isNpc: false, index: victimIndex, CombatTextKind.Miss);
+            ChargeNpcCast(mapNum, npcSlot, mapNpc, victimIndex, mpCost, now);
             return;
         }
 
@@ -367,30 +367,34 @@ public sealed partial class CombatSystem : GameSystem
             damage = CombatFormulas.ResolveNpcVsPlayerDamage(magnitude, prot, npcRec.IsBoss);
         }
 
-        mapNpc.Mp -= mpCost;
-        // Unified cooldown beat with NPC melee: AttackTimer gates both the swing (via CanNpcAttackPlayer)
-        // and the cast-decision roll (via TryNpcMagicAction).  After a cast the NPC waits NpcAttackCooldownMs
-        // before swinging AND SpellCastCooldownMs before casting again — the same 1-second beat the player
-        // has between any combat actions.
-        mapNpc.AttackTimer = now;
-        mapNpc.Attacking = true;
-        mapNpc.MarkReachedTarget(now);  // cast counts as reach — any damage action keeps the AoS give-up clock alive
-        // Identify the caster by its universal (SpawnMap, SpawnSlot) — for a native that's its home map+slot;
-        // for a guest it's the home identity (not the transient list index), so the observer can resolve it.
-        var (casterMap, casterSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
-        if (casterSlot > 0)
-        {
-            SendToMap(_world, mapNum, new NpcCastPacket
-            {
-                MapNum = casterMap, NpcSlot = casterSlot,
-                TargetType = 0, Target = victimIndex, TargetMap = _pm[victimIndex].Char.Map,
-            });
-        }
+        ChargeNpcCast(mapNum, npcSlot, mapNpc, victimIndex, mpCost, now);
 
         // A blocked/dodged spell already showed the Block/Dodge float + its message; skip the damage path
         // so it doesn't also fire the zero-damage "didn't phase" taunt (reserved for truly over-mitigated hits).
         if (!negated)
             ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: true);
+    }
+
+    /// <summary>Spends the mana, stamps the beat and broadcasts the bolt for one NPC cast — everything a cast
+    /// pays whatever it resolves to, so a torn cast costs exactly what a landed one does.
+    /// <para>AttackTimer gates both the swing (via <see cref="CanNpcAttackPlayer"/>) and the cast-decision roll
+    /// (via TryNpcMagicAction): after a cast the NPC waits NpcAttackCooldownMs before swinging AND
+    /// SpellCastCooldownMs before casting again — the same 1-second beat the player has between any combat
+    /// actions. The caster rides its universal (SpawnMap, SpawnSlot) — for a native that's its home map+slot;
+    /// for a guest it's the home identity, not the transient list index, so the observer can resolve it.</para></summary>
+    private void ChargeNpcCast(int mapNum, int npcSlot, MapNpcRecord mapNpc, int victimIndex, int mpCost, long now)
+    {
+        mapNpc.Mp -= mpCost;
+        mapNpc.AttackTimer = now;
+        mapNpc.Attacking = true;
+        mapNpc.MarkReachedTarget(now);  // cast counts as reach — any damage action keeps the AoS give-up clock alive
+        var (casterMap, casterSlot) = mapNpc.GetSpawnIdentity(mapNum, npcSlot);
+        if (casterSlot <= 0) return;
+        SendToMap(_world, mapNum, new NpcCastPacket
+        {
+            MapNum = casterMap, NpcSlot = casterSlot,
+            TargetType = 0, Target = victimIndex, TargetMap = _pm[victimIndex].Char.Map,
+        });
     }
 
     /// <summary>Shared damage-application body for both NPC melee (<see cref="NpcAttackPlayer"/>)

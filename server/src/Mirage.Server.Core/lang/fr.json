@@ -202,7 +202,7 @@
   "Mail_CodReturnedSubject":     "Livraison retournée",
   "Mail_CodReturnedBody":        "{Name} n'a pas payé votre envoi contre paiement en trois jours. Vos objets sont joints.",
   "Market_Sender":               "Marché",
-  "Market_NotAtInn":             "Vous ne pouvez utiliser le marché que dans une auberge.",
+  "Market_NotNearInn":           "Vous n'êtes pas assez près d'une auberge pour utiliser le marché.",
   "Market_BadPrice":             "Entrez un prix valide.",
   "Market_TooManyListings":      "Vous avez déjà le nombre maximal d'annonces.",
   "Market_CannotList":           "Cet objet ne peut pas être mis en vente.",
@@ -438,10 +438,10 @@
 
   "MapGreeting_JoinSay":        "{Speaker} dit : '{JoinSay}'",
   "MapGreeting_LeaveSay":       "{Speaker} dit : '{LeaveSay}'",
-  "ShopSystem_NotAtShop":      "Vous n'êtes pas à cette boutique.",
+  "ShopSystem_NotNearShop":    "Vous n'êtes pas assez près pour commercer dans cette boutique.",
   "ShopSystem_NotEnoughTrade": "Vous n'avez pas assez de cet objet pour l'échanger.",
   "ShopSystem_TradedWith":     "Vous avez commercé avec {ShopName}.",
-  "ShopSystem_NoRepairShop":   "Il n'y a pas d'atelier de réparation ici.",
+  "ShopSystem_NotNearRepairShop": "Vous n'êtes pas assez près d'un atelier de réparation.",
   "ShopSystem_NoRepairType":   "Cette boutique ne répare pas les objets.",
   "ShopSystem_NoItemInSlot":   "Il n'y a aucun objet dans cet emplacement.",
   "ShopSystem_CannotRepair":   "Cet objet ne peut pas être réparé.",
@@ -458,7 +458,7 @@
   "ShopSystem_CannotSell":     "{ItemName} ne peut pas être vendu ici.",
   "ShopSystem_UnequipFirst":   "Retirez {ItemName} avant de le vendre.",
 
-  "BankSystem_NoBankHere":   "Vous ne pouvez pas accéder à la banque ici.",
+  "BankSystem_NotNearBank":  "Vous n'êtes pas assez près pour utiliser la banque.",
   "BankSystem_BankFull":     "Votre coffre est plein.",
   "BankSystem_UnequipFirst": "Déséquipez l'objet avant de le déposer.",
   "BankSystem_DepositPartial":  "Seulement {Moved} sur {Requested} déposés. Le coffre est plein.",
@@ -548,7 +548,7 @@
   "PartySystem_InviteExpiredSelf":   "Votre invitation de groupe à {PartnerName} a expiré.",
   "PartySystem_InviteExpiredOther":  "L'invitation de groupe de {InviterName} a expiré.",
 
-  "PlayerSpawnSystem_NoInn":          "Il n'y a pas d'auberge ici.",
+  "PlayerSpawnSystem_NotNearInn":     "Vous n'êtes pas assez près pour utiliser l'auberge.",
   "PlayerSpawnSystem_InsufficientGold":"Il vous faut {Cost} or pour établir votre point de retour ici.",
   "PlayerSpawnSystem_SpawnSet":       "Votre point de retour a été établi. Vous réapparaîtrez ici à votre mort.",
 
@@ -556,7 +556,7 @@
 
   "RegenerationSystem_CombatEnded": "L'ardeur du combat retombe.",
 
-  "PacketHandler_NoShopHere":        "Il n'y a pas de boutique ici.",
+  "PacketHandler_NotNearShop":       "Vous n'êtes pas assez près pour ouvrir la boutique.",
   "PacketHandler_CannotLogoutCombat":"Vous ne pouvez pas vous déconnecter en plein combat.",
   "PacketHandler_StudyCombat":       "Vous ne pouvez pas étudier en pleine bataille!",
   "PacketHandler_ForgotSpell":       "Vous avez oublié {Spell}.",

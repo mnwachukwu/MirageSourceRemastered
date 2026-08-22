@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Mending words. Knitting words. The kind you say over someone who is still worth saying words over.\n\nI don\u0027t teach the other kind. Ashell does, two doors down, and we don\u0027t speak.",
+      "text": "Mending words. Knitting words. The kind you say over someone who is still worth saying words over.\n\nI don't teach the other kind. Ashell does, two doors down, and we don't speak.",
       "choices": [
         {
           "label": "Show me what you have.",
@@ -14,7 +14,7 @@
           "action": "OpenShop"
         },
         {
-          "label": "Why don\u0027t you speak?",
+          "label": "Why don't you speak?",
           "nextNodeId": 2,
           "action": "None"
         },

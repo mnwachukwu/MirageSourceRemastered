@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Want to hear a joke? Maud says I\u0027m not to tell it to customers but you\u0027re not a customer, you\u0027re an adventurer.",
+      "text": "Want to hear a joke? Maud says I'm not to tell it to customers but you're not a customer, you're an adventurer.",
       "choices": [
         {
           "label": "Go on then.",
@@ -23,15 +23,15 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "How many bandits does it take to hold a causeway?\n\n...Fewer, once you\u0027ve been through. That\u0027s the joke. Maud says it\u0027s not a joke, it\u0027s just a fact said in a joke voice.",
+      "text": "How many bandits does it take to hold a causeway?\n\n...Fewer, once you've been through. That's the joke. Maud says it's not a joke, it's just a fact said in a joke voice.",
       "choices": [
         {
-          "label": "It\u0027s not bad.",
+          "label": "It's not bad.",
           "nextNodeId": 3,
           "action": "None"
         },
         {
-          "label": "That\u0027s terrible.",
+          "label": "That's terrible.",
           "nextNodeId": 4,
           "action": "None"
         }
@@ -40,7 +40,7 @@
     {
       "id": 3,
       "speaker": "",
-      "text": "Ha! I\u0027m telling her you said that.",
+      "text": "Ha! I'm telling her you said that.",
       "choices": [
         {
           "label": "Do that.",
@@ -52,7 +52,7 @@
     {
       "id": 4,
       "speaker": "",
-      "text": "That\u0027s what she said.\n\nI\u0027ll get a better one. I\u0027ve got all week - I\u0027m not allowed past the second stilt.",
+      "text": "That's what she said.\n\nI'll get a better one. I've got all week - I'm not allowed past the second stilt.",
       "choices": [
         {
           "label": "Keep working on it.",

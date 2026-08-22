@@ -9,12 +9,12 @@
       "text": "Do you want to hear the one about the drowned legionary?\n\nHalyard has heard it. Halyard has heard it a number of times.",
       "choices": [
         {
-          "label": "Let\u0027s hear it.",
+          "label": "Let's hear it.",
           "nextNodeId": 2,
           "action": "None"
         },
         {
-          "label": "I\u0027ll spare you.",
+          "label": "I'll spare you.",
           "nextNodeId": 0,
           "action": "None"
         }
@@ -23,15 +23,15 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "A drowned legionary walks into the Deck.\n\nThat\u0027s it. That\u0027s the whole joke - he walks into the Deck. Everyone screams. Two people fall off the rail.",
+      "text": "A drowned legionary walks into the Deck.\n\nThat's it. That's the whole joke - he walks into the Deck. Everyone screams. Two people fall off the rail.",
       "choices": [
         {
-          "label": "...That happened, didn\u0027t it.",
+          "label": "...That happened, didn't it.",
           "nextNodeId": 3,
           "action": "None"
         },
         {
-          "label": "That\u0027s not a joke.",
+          "label": "That's not a joke.",
           "nextNodeId": 4,
           "action": "None"
         }
@@ -43,7 +43,7 @@
       "text": "Last spring. We got him back off the boards eventually.\n\nI have found that if you tell a bad thing as a joke often enough it stops being a bad thing and starts being a bad joke. That is the entire method.",
       "choices": [
         {
-          "label": "That\u0027s one way through it.",
+          "label": "That's one way through it.",
           "nextNodeId": 0,
           "action": "None"
         }

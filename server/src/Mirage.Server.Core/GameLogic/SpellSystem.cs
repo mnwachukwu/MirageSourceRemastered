@@ -191,18 +191,6 @@ public sealed class SpellSystem : GameSystem
         if (Environment.TickCount64 < sp.AttackTimer + Constants.SpellCastCooldownMs * windMult)
             return;
 
-        // 7b. The wind can tear the spell apart as it leaves the caster's hands. Rolled BEFORE the target is
-        // resolved, because the failure is the caster's — nothing reaches the target to be blocked or dodged.
-        // Charged and put on cooldown like a landed cast: the mana and reagents are spent either way.
-        if (_combat.WindTearsItAway(p.Map))
-        {
-            SpendCastCost(index, mpCost, spell, reagentCost);
-            sp.AttackTimer = Environment.TickCount64;
-            SendMsg(index, ServerStrings.CombatSystem_YourSpellMissed, GameColor.BrightCyan, ChatChannel.System);
-            _combat.BroadcastCombatText(p.Map, isNpc: false, index: index, CombatTextKind.Miss);
-            return;
-        }
-
         // 7. GiveItem — give to targeted player if one is set, otherwise give to caster.  Ctrl+Cast (forceSelf)
         // always delivers to the caster: skip the "can't give to an NPC" rejection and force self as the
         // recipient, leaving the selected target untouched.
@@ -244,15 +232,18 @@ public sealed class SpellSystem : GameSystem
             int slot = ItemSystem.FindOpenInvSlot(targetChar, _world.Items, spell.ItemNum);
             if (slot > 0)
             {
-                _items.GiveItem(targetIdx, spell.ItemNum, spell.ItemQuantity);
-                SpendCastCost(index, mpCost, spell, reagentCost);
-                sp.AttackTimer = Environment.TickCount64;
+                // Bolt first, delivery second: the wind takes a committed cast in flight, so the
+                // projectile has to be away before it does.
                 SendToMap(_world, p.Map, new PlayerCastPacket
                 {
                     Index = index, SpellNum = spellNum,
                     TargetType = (byte)(targetIdx == index ? 2 : 0), // self, or a player recipient
                     Target = targetIdx, TargetMap = targetChar.Map,
                 });
+                if (!WindTakesTheSpell(index, targetChar.Map, isNpc: false, targetIndex: targetIdx))
+                    _items.GiveItem(targetIdx, spell.ItemNum, spell.ItemQuantity);
+                SpendCastCost(index, mpCost, spell, reagentCost);
+                sp.AttackTimer = Environment.TickCount64;
             }
             else
             {
@@ -329,7 +320,8 @@ public sealed class SpellSystem : GameSystem
             long nowSelf = Environment.TickCount64;
             inCombat = sp.IsInCombat(nowSelf);
             BroadcastCastFx(index, p.Map, spellNum, inCombat, fxTarget);
-            ApplyAddSpellToCaster(index, p, spell, mapNum);
+            if (!WindTakesTheSpell(index, p.Map, isNpc: false, targetIndex: index))
+                ApplyAddSpellToCaster(index, p, spell, mapNum);
             SpendCastCost(index, mpCost, spell, reagentCost);
             casted = true;
             if (inCombat) _combat.MarkPlayerCombat(index, nowSelf, asAttacker: false);
@@ -377,46 +369,49 @@ public sealed class SpellSystem : GameSystem
                     inCombat = _pm[n].IsInCombat(nowAdd);
                     BroadcastCastFx(index, p.Map, spellNum, inCombat, fxTarget);
                     var observers = _world.MapObservers[tMap];
-                    switch (spell.Type)
+                    if (!WindTakesTheSpell(index, tMap, isNpc: false, targetIndex: n))
                     {
-                        case SpellType.AddHp:
+                        switch (spell.Type)
                         {
-                            var (amount, wasCrit) = RollSpellEffect(index, p, spell,
-                                critSelfKey: ServerStrings.CombatSystem_SpellSurge,
-                                critOtherKey: ServerStrings.CombatSystem_SpellSurgeOnYou,
-                                critOtherArgs: [("PlayerName", p.TrimmedName)],
-                                otherIndex: n, critOtherColor: GameColor.BrightCyan);
-                            int delta = Math.Min(amount, Math.Max(0, tp.MaxHp - tp.Hp));
-                            tp.Hp += delta;
-                            _dispatcher.SendToObservers(observers, PacketBuilder.SendHp(n, tp.Hp, tp.MaxHp, showFloat: true, isCrit: wasCrit));
-                            if (delta > 0) SendRestoredPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalHp);
-                            break;
-                        }
-                        case SpellType.AddMp:
-                        {
-                            var (amount, _) = RollSpellEffect(index, p, spell,
-                                critSelfKey: ServerStrings.CombatSystem_SpellSurge,
-                                critOtherKey: ServerStrings.CombatSystem_SpellSurgeOnYou,
-                                critOtherArgs: [("PlayerName", p.TrimmedName)],
-                                otherIndex: n, critOtherColor: GameColor.BrightCyan);
-                            int delta = Math.Min(amount, Math.Max(0, tp.MaxMp - tp.Mp));
-                            tp.Mp += delta;
-                            _dispatcher.SendToObservers(observers, PacketBuilder.SendMp(n, tp.Mp, tp.MaxMp, showFloat: true));
-                            if (delta > 0) SendRestoredPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalMp);
-                            break;
-                        }
-                        case SpellType.AddSp:
-                        {
-                            var (amount, _) = RollSpellEffect(index, p, spell,
-                                critSelfKey: ServerStrings.CombatSystem_SpellSurge,
-                                critOtherKey: ServerStrings.CombatSystem_SpellSurgeOnYou,
-                                critOtherArgs: [("PlayerName", p.TrimmedName)],
-                                otherIndex: n, critOtherColor: GameColor.BrightCyan);
-                            int delta = Math.Min(CombatFormulas.ScaleMpEffectToSp(amount, tp.MaxMp, tp.MaxSp), Math.Max(0, tp.MaxSp - tp.Sp));
-                            tp.Sp += delta;
-                            _dispatcher.SendToObservers(observers, PacketBuilder.SendSp(n, tp.Sp, tp.MaxSp, showFloat: true));
-                            if (delta > 0) SendRestoredPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalSp);
-                            break;
+                            case SpellType.AddHp:
+                            {
+                                var (amount, wasCrit) = RollSpellEffect(index, p, spell,
+                                    critSelfKey: ServerStrings.CombatSystem_SpellSurge,
+                                    critOtherKey: ServerStrings.CombatSystem_SpellSurgeOnYou,
+                                    critOtherArgs: [("PlayerName", p.TrimmedName)],
+                                    otherIndex: n, critOtherColor: GameColor.BrightCyan);
+                                int delta = Math.Min(amount, Math.Max(0, tp.MaxHp - tp.Hp));
+                                tp.Hp += delta;
+                                _dispatcher.SendToObservers(observers, PacketBuilder.SendHp(n, tp.Hp, tp.MaxHp, showFloat: true, isCrit: wasCrit));
+                                if (delta > 0) SendRestoredPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalHp);
+                                break;
+                            }
+                            case SpellType.AddMp:
+                            {
+                                var (amount, _) = RollSpellEffect(index, p, spell,
+                                    critSelfKey: ServerStrings.CombatSystem_SpellSurge,
+                                    critOtherKey: ServerStrings.CombatSystem_SpellSurgeOnYou,
+                                    critOtherArgs: [("PlayerName", p.TrimmedName)],
+                                    otherIndex: n, critOtherColor: GameColor.BrightCyan);
+                                int delta = Math.Min(amount, Math.Max(0, tp.MaxMp - tp.Mp));
+                                tp.Mp += delta;
+                                _dispatcher.SendToObservers(observers, PacketBuilder.SendMp(n, tp.Mp, tp.MaxMp, showFloat: true));
+                                if (delta > 0) SendRestoredPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalMp);
+                                break;
+                            }
+                            case SpellType.AddSp:
+                            {
+                                var (amount, _) = RollSpellEffect(index, p, spell,
+                                    critSelfKey: ServerStrings.CombatSystem_SpellSurge,
+                                    critOtherKey: ServerStrings.CombatSystem_SpellSurgeOnYou,
+                                    critOtherArgs: [("PlayerName", p.TrimmedName)],
+                                    otherIndex: n, critOtherColor: GameColor.BrightCyan);
+                                int delta = Math.Min(CombatFormulas.ScaleMpEffectToSp(amount, tp.MaxMp, tp.MaxSp), Math.Max(0, tp.MaxSp - tp.Sp));
+                                tp.Sp += delta;
+                                _dispatcher.SendToObservers(observers, PacketBuilder.SendSp(n, tp.Sp, tp.MaxSp, showFloat: true));
+                                if (delta > 0) SendRestoredPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalSp);
+                                break;
+                            }
                         }
                     }
                     SpendCastCost(index, mpCost, spell, reagentCost);
@@ -451,66 +446,69 @@ public sealed class SpellSystem : GameSystem
                             // PvP allowed + committed: emit the bolt now, before the damage switch below sends
                             // its number/death, so the client defers them onto the projectile's arrival.
                             BroadcastCastFx(index, p.Map, spellNum, inCombat, fxTarget);
-                            switch (spell.Type)
+                            if (!WindTakesTheSpell(index, tMap, isNpc: false, targetIndex: n))
                             {
-                                case SpellType.SubHp:
+                                switch (spell.Type)
                                 {
-                                    var (amount, wasCrit) = RollSpellEffect(index, p, spell,
-                                        critSelfKey: ServerStrings.CombatSystem_SpellForce,
-                                        critOtherKey: ServerStrings.CombatSystem_SpellForceOnYou,
-                                        critOtherArgs: [("PlayerName", p.TrimmedName)],
-                                        otherIndex: n);
-                                    if (_combat.TryPlayerNegateMagicFromPlayer(index, n)) break;   // shield blocks / no-shield dodges the spell (mirror of melee)
-                                    int damage = CombatFormulas.ResolveDamage(amount, _combat.GetPlayerProtection(n, _pm[index].Char.Map), CombatFormulas.PvpDamageMultiplier);
-                                    if (damage > 0)
+                                    case SpellType.SubHp:
                                     {
-                                        _combat.ApplyPlayerDamage(index, n, damage, isCrit: wasCrit);
+                                        var (amount, wasCrit) = RollSpellEffect(index, p, spell,
+                                            critSelfKey: ServerStrings.CombatSystem_SpellForce,
+                                            critOtherKey: ServerStrings.CombatSystem_SpellForceOnYou,
+                                            critOtherArgs: [("PlayerName", p.TrimmedName)],
+                                            otherIndex: n);
+                                        if (_combat.TryPlayerNegateMagicFromPlayer(index, n)) break;   // shield blocks / no-shield dodges the spell (mirror of melee)
+                                        int damage = CombatFormulas.ResolveDamage(amount, _combat.GetPlayerProtection(n, _pm[index].Char.Map), CombatFormulas.PvpDamageMultiplier);
+                                        if (damage > 0)
+                                        {
+                                            _combat.ApplyPlayerDamage(index, n, damage, isCrit: wasCrit);
+                                        }
+                                        else
+                                        {
+                                            SendMsg(index, ServerStrings.CombatSystem_SpellTooWeak, GameColor.BrightRed, ("TargetName", tp.TrimmedName));
+                                            SendMsg(n, ServerStrings.CombatSystem_SpellNoPhase, GameColor.BrightBlue, ("AttackerName", p.TrimmedName));
+                                            _combat.BroadcastCombatText(tMap, isNpc: false, index: n, CombatTextKind.ZeroHit);
+                                        }
+                                        break;
                                     }
-                                    else
+                                    case SpellType.SubMp:
                                     {
-                                        SendMsg(index, ServerStrings.CombatSystem_SpellTooWeak, GameColor.BrightRed, ("TargetName", tp.TrimmedName));
-                                        SendMsg(n, ServerStrings.CombatSystem_SpellNoPhase, GameColor.BrightBlue, ("AttackerName", p.TrimmedName));
-                                        _combat.BroadcastCombatText(tMap, isNpc: false, index: n, CombatTextKind.ZeroHit);
-                                    }
-                                    break;
-                                }
-                                case SpellType.SubMp:
-                                {
-                                    var (amount, _) = RollSpellEffect(index, p, spell, critSelfKey: ServerStrings.CombatSystem_SpellForce);
-                                    if (_combat.TryPlayerNegateMagicFromPlayer(index, n)) break;   // shield blocks / no-shield dodges the spell (mirror of melee)
-                                    int drain = CombatFormulas.ResolveDamage(amount, _combat.GetPlayerProtection(n, _pm[index].Char.Map));
-                                    if (drain > 0)
-                                    {
-                                        int delta = Math.Min(drain, tp.Mp);
-                                        tp.Mp -= delta;
-                                        SendToMap(_world, tMap, PacketBuilder.SendMp(n, tp.Mp, tp.MaxMp, showFloat: true));
-                                        if (delta > 0) SendDrainedPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalMp);
-                                    }
-                                    else
-                                    {
-                                        _combat.BroadcastCombatText(tMap, isNpc: false, index: n, CombatTextKind.ZeroHit, vital: CombatVital.Mp);
-                                    }
+                                        var (amount, _) = RollSpellEffect(index, p, spell, critSelfKey: ServerStrings.CombatSystem_SpellForce);
+                                        if (_combat.TryPlayerNegateMagicFromPlayer(index, n)) break;   // shield blocks / no-shield dodges the spell (mirror of melee)
+                                        int drain = CombatFormulas.ResolveDamage(amount, _combat.GetPlayerProtection(n, _pm[index].Char.Map));
+                                        if (drain > 0)
+                                        {
+                                            int delta = Math.Min(drain, tp.Mp);
+                                            tp.Mp -= delta;
+                                            SendToMap(_world, tMap, PacketBuilder.SendMp(n, tp.Mp, tp.MaxMp, showFloat: true));
+                                            if (delta > 0) SendDrainedPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalMp);
+                                        }
+                                        else
+                                        {
+                                            _combat.BroadcastCombatText(tMap, isNpc: false, index: n, CombatTextKind.ZeroHit, vital: CombatVital.Mp);
+                                        }
 
-                                    break;
-                                }
-                                case SpellType.SubSp:
-                                {
-                                    var (amount, _) = RollSpellEffect(index, p, spell, critSelfKey: ServerStrings.CombatSystem_SpellForce);
-                                    if (_combat.TryPlayerNegateMagicFromPlayer(index, n)) break;   // shield blocks / no-shield dodges the spell (mirror of melee)
-                                    int drain = CombatFormulas.ScaleMpEffectToSp(CombatFormulas.ResolveDamage(amount, _combat.GetPlayerProtection(n, _pm[index].Char.Map)), tp.MaxMp, tp.MaxSp);
-                                    if (drain > 0)
-                                    {
-                                        int delta = Math.Min(drain, tp.Sp);
-                                        tp.Sp -= delta;
-                                        SendToMap(_world, tMap, PacketBuilder.SendSp(n, tp.Sp, tp.MaxSp, showFloat: true));
-                                        if (delta > 0) SendDrainedPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalSp);
+                                        break;
                                     }
-                                    else
+                                    case SpellType.SubSp:
                                     {
-                                        _combat.BroadcastCombatText(tMap, isNpc: false, index: n, CombatTextKind.ZeroHit, vital: CombatVital.Sp);
-                                    }
+                                        var (amount, _) = RollSpellEffect(index, p, spell, critSelfKey: ServerStrings.CombatSystem_SpellForce);
+                                        if (_combat.TryPlayerNegateMagicFromPlayer(index, n)) break;   // shield blocks / no-shield dodges the spell (mirror of melee)
+                                        int drain = CombatFormulas.ScaleMpEffectToSp(CombatFormulas.ResolveDamage(amount, _combat.GetPlayerProtection(n, _pm[index].Char.Map)), tp.MaxMp, tp.MaxSp);
+                                        if (drain > 0)
+                                        {
+                                            int delta = Math.Min(drain, tp.Sp);
+                                            tp.Sp -= delta;
+                                            SendToMap(_world, tMap, PacketBuilder.SendSp(n, tp.Sp, tp.MaxSp, showFloat: true));
+                                            if (delta > 0) SendDrainedPlayerMsgs(index, n, p, tp, delta, ServerStrings.CombatSystem_VitalSp);
+                                        }
+                                        else
+                                        {
+                                            _combat.BroadcastCombatText(tMap, isNpc: false, index: n, CombatTextKind.ZeroHit, vital: CombatVital.Sp);
+                                        }
 
-                                    break;
+                                        break;
+                                    }
                                 }
                             }
 
@@ -595,6 +593,22 @@ public sealed class SpellSystem : GameSystem
             TargetType = t.TargetType, Target = t.Target, TargetMap = t.TargetMap,
             SpawnMap = t.SpawnMap, SpawnSlot = t.SpawnSlot,
         });
+
+    /// <summary>Rolls the wind against a cast that is already committed and away. Called immediately after
+    /// the cast-FX broadcast and in place of the effect, so a torn spell keeps full parity with one that was
+    /// blocked or dodged: the projectile still flies, the fizzle floats over the TARGET, the fight is already
+    /// marked, and the caller still charges the cast.</summary>
+    private bool WindTakesTheSpell(int index, int targetMap, bool isNpc, int targetIndex, int x = 0, int y = 0)
+    {
+        if (!_combat.WindTearsItAway(_pm[index].Char.Map)) return false;
+        SendMsg(index, ServerStrings.CombatSystem_YourSpellMissed, GameColor.BrightCyan);
+        // A player on the receiving end reads it from their side, the way a melee miss messages both.
+        if (!isNpc && targetIndex != index)
+            SendMsg(targetIndex, ServerStrings.CombatSystem_AttackerSpellMissed, GameColor.BrightCyan,
+                    ("AttackerName", _pm[index].Char.TrimmedName));
+        _combat.BroadcastCombatText(targetMap, isNpc, targetIndex, CombatTextKind.Miss, x, y);
+        return true;
+    }
 
     /// <summary>The shared kernel for every Add/Sub spell. Computes
     /// <c>raw = caster.Int / 3 + spell.VitalAmount</c> (via <see cref="CombatFormulas.RawSpellPower"/>),
@@ -824,6 +838,13 @@ public sealed class SpellSystem : GameSystem
         // Cast is committed (target valid + not friendly): emit the projectile FX now — before the damage
         // switch below sends its number/death — so the client can defer them onto the bolt's arrival.
         BroadcastCastFx(index, p.Map, spellNum, inCombat, fxTarget);
+        if (WindTakesTheSpell(index, mapNum, isNpc: true, targetIndex: npcSlot, mapNpc.X, mapNpc.Y))
+        {
+            // Parity with a blocked or dodged spell: the cast registered, so the NPC reacts.
+            _combat.AlertNpc(mapNum, npcSlot, mapNpc, index);
+            SpendCastCost(index, mpCost, spell, reagentCost);
+            return true;
+        }
         // NPC-cast crit lines go to the casting player only (no other recipient), so the key alone
         // suffices — RollSpellEffect resolves it per recipient via SendMsg.
         string magicAddCritKey = ServerStrings.CombatSystem_SpellSurge;

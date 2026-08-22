@@ -339,7 +339,7 @@ public sealed partial class PacketHandler
         if (shopNum > 0)
             _shop.Barter(index, shopNum, p.BarterSlot, p.Multiples);
         else
-            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NotNearShop, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
     }
 
     private void HandleShopBuy(int index, ShopBuyPacket p)
@@ -353,7 +353,7 @@ public sealed partial class PacketHandler
         if (shopNum > 0)
             _shop.Buy(index, shopNum, p.SalesSlot, p.Quantity);
         else
-            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NoShopHere, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.PacketHandler_NotNearShop, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
     }
 
     private void HandleShopSell(int index, ShopSellPacket p)

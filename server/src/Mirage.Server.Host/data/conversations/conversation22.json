@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "An ordinal is a number in a sequence. That\u0027s all we ever were - the Throne counted us out and expected us back in order.\n\nI kept the mending half of the litany. Come and be mended.",
+      "text": "An ordinal is a number in a sequence. That's all we ever were - the Throne counted us out and expected us back in order.\n\nI kept the mending half of the litany. Come and be mended.",
       "choices": [
         {
           "label": "Show me the litany.",
@@ -14,7 +14,7 @@
           "action": "OpenShop"
         },
         {
-          "label": "Where\u0027s the other half?",
+          "label": "Where's the other half?",
           "nextNodeId": 2,
           "action": "None"
         },

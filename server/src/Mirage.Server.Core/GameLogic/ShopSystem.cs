@@ -45,13 +45,13 @@ public sealed class ShopSystem : GameSystem
 
         if (_pm[index].ActiveShop(_world, index) != shopNum)
         {
-            SendMsg(index, ServerStrings.ShopSystem_NotAtShop, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.ShopSystem_NotNearShop, GameColor.BrightRed);
             return;
         }
 
         if (shop.ShopType != ShopType.Store)
         {
-            SendMsg(index, ServerStrings.ShopSystem_NotAtShop, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.ShopSystem_NotNearShop, GameColor.BrightRed);
             return;
         }
 
@@ -118,7 +118,7 @@ public sealed class ShopSystem : GameSystem
 
         if (_pm[index].ActiveShop(_world, index) != shopNum || shop.ShopType != ShopType.Store)
         {
-            SendMsg(index, ServerStrings.ShopSystem_NotAtShop, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.ShopSystem_NotNearShop, GameColor.BrightRed);
             return;
         }
 
@@ -227,7 +227,7 @@ public sealed class ShopSystem : GameSystem
         int shopNum = _pm[index].ActiveShop(_world, index);
         if (shopNum <= 0 || _world.Shops[shopNum].ShopType != ShopType.Store)
         {
-            SendMsg(index, ServerStrings.ShopSystem_NotAtShop, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.ShopSystem_NotNearShop, GameColor.BrightRed);
             return;
         }
 
@@ -298,14 +298,14 @@ public sealed class ShopSystem : GameSystem
 
         if (shopNum <= 0)
         {
-            SendMsg(index, ServerStrings.ShopSystem_NoRepairShop, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.ShopSystem_NotNearRepairShop, GameColor.BrightRed);
             return;
         }
 
         var shop = _world.Shops[shopNum];
         if (shop.ShopType != ShopType.Store)
         {
-            SendMsg(index, ServerStrings.ShopSystem_NoRepairShop, GameColor.BrightRed);
+            SendMsg(index, ServerStrings.ShopSystem_NotNearRepairShop, GameColor.BrightRed);
             return;
         }
 

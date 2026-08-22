@@ -6,10 +6,10 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Cold in here, isn\u0027t it. That\u0027s the point - it\u0027s the only cold room left and I fought for it.\n\nBed, box, and the board. Sleep while the walls still hold.",
+      "text": "Cold in here, isn't it. That's the point - it's the only cold room left and I fought for it.\n\nBed, box, and the board. Sleep while the walls still hold.",
       "choices": [
         {
-          "label": "What\u0027s on offer?",
+          "label": "What's on offer?",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -33,10 +33,10 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "This forge went out. Just once, just here, and nobody\u0027s been able to explain it or repeat it.\n\nEverything else in the Kiln has been burning without fuel for longer than there have been people to notice. This one stopped. We built a town in the gap.",
+      "text": "This forge went out. Just once, just here, and nobody's been able to explain it or repeat it.\n\nEverything else in the Kiln has been burning without fuel for longer than there have been people to notice. This one stopped. We built a town in the gap.",
       "choices": [
         {
-          "label": "What\u0027s on offer?",
+          "label": "What's on offer?",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -55,15 +55,15 @@
     {
       "id": 3,
       "speaker": "",
-      "text": "Eight. You\u0027ve probably met most of us by now.\n\nThere were forty when I was small. I don\u0027t say that for pity - I say it because you\u0027ll hear the Emberguard called an army and I want you to know what an army costs here.",
+      "text": "Eight. You've probably met most of us by now.\n\nThere were forty when I was small. I don't say that for pity - I say it because you'll hear the Emberguard called an army and I want you to know what an army costs here.",
       "choices": [
         {
-          "label": "What\u0027s on offer?",
+          "label": "What's on offer?",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
         {
-          "label": "I\u0027m sorry.",
+          "label": "I'm sorry.",
           "nextNodeId": 0,
           "action": "None"
         }

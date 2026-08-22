@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Marshal Corrin. Yes - the same rank as the thing in the trench.\n\nOrun held it before me. He still answers to it, in his way, which is why I\u0027d rather you didn\u0027t use it too loudly near the water.",
+      "text": "Marshal Corrin. Yes - the same rank as the thing in the trench.\n\nOrun held it before me. He still answers to it, in his way, which is why I'd rather you didn't use it too loudly near the water.",
       "choices": [
         {
           "label": "What needs doing?",
@@ -33,7 +33,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "He\u0027s still doing the job. That\u0027s the horror of it - he patrols his route, he relieves his sentries, he turns back anything that doesn\u0027t belong.\n\nWe don\u0027t belong any more. So he turns us back. There\u0027s no malice in it at all, and I\u0027d sleep better if there were.",
+      "text": "He's still doing the job. That's the horror of it - he patrols his route, he relieves his sentries, he turns back anything that doesn't belong.\n\nWe don't belong any more. So he turns us back. There's no malice in it at all, and I'd sleep better if there were.",
       "choices": [
         {
           "label": "What needs doing?",
@@ -63,7 +63,7 @@
           "action": "OpenQuests"
         },
         {
-          "label": "I\u0027ve heard enough.",
+          "label": "I've heard enough.",
           "nextNodeId": 0,
           "action": "None"
         }

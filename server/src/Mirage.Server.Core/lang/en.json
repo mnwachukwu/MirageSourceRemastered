@@ -202,7 +202,7 @@
   "Mail_CodReturnedSubject":     "CoD Returned",
   "Mail_CodReturnedBody":        "{Name} did not pay your Collect-on-Delivery mail within 3 days. Your items are attached.",
   "Market_Sender":               "Marketplace",
-  "Market_NotAtInn":             "You can only use the marketplace at an inn.",
+  "Market_NotNearInn":           "Not close enough to an inn to use the marketplace.",
   "Market_BadPrice":             "Enter a valid price.",
   "Market_TooManyListings":      "You already have the maximum number of listings.",
   "Market_CannotList":           "That item cannot be listed.",
@@ -438,10 +438,10 @@
 
   "MapGreeting_JoinSay":        "{Speaker} says, '{JoinSay}'",
   "MapGreeting_LeaveSay":       "{Speaker} says, '{LeaveSay}'",
-  "ShopSystem_NotAtShop":      "You are not at this shop.",
+  "ShopSystem_NotNearShop":    "Not close enough to trade at this shop.",
   "ShopSystem_NotEnoughTrade": "You do not have enough of that item to trade.",
   "ShopSystem_TradedWith":     "You traded with {ShopName}.",
-  "ShopSystem_NoRepairShop":   "There is no repair shop here.",
+  "ShopSystem_NotNearRepairShop": "Not close enough to a repair shop.",
   "ShopSystem_NoRepairType":   "This shop doesn't repair items.",
   "ShopSystem_NoItemInSlot":   "There is no item in that slot.",
   "ShopSystem_CannotRepair":   "That item cannot be repaired.",
@@ -458,7 +458,7 @@
   "ShopSystem_CannotSell":     "{ItemName} cannot be sold here.",
   "ShopSystem_UnequipFirst":   "Take off {ItemName} before selling it.",
 
-  "BankSystem_NoBankHere":   "You cannot access the bank here.",
+  "BankSystem_NotNearBank":  "Not close enough to use the bank.",
   "BankSystem_BankFull":     "Your bank is full.",
   "BankSystem_UnequipFirst": "Unequip the item before depositing it.",
   "BankSystem_DepositPartial":  "Only {Moved} of {Requested} deposited. The bank is full.",
@@ -548,7 +548,7 @@
   "PartySystem_InviteExpiredSelf":   "Your party invite to {PartnerName} expired.",
   "PartySystem_InviteExpiredOther":  "{InviterName}'s party invite expired.",
 
-  "PlayerSpawnSystem_NoInn":          "There is no inn here.",
+  "PlayerSpawnSystem_NotNearInn":     "Not close enough to use the inn.",
   "PlayerSpawnSystem_InsufficientGold":"You need {Cost} gold to set your spawn here.",
   "PlayerSpawnSystem_SpawnSet":       "Your spawn point has been set. You will respawn here when you die.",
 
@@ -556,7 +556,7 @@
 
   "RegenerationSystem_CombatEnded": "The heat of battle fades.",
 
-  "PacketHandler_NoShopHere":        "There is no shop here.",
+  "PacketHandler_NotNearShop":       "Not close enough to open the shop.",
   "PacketHandler_CannotLogoutCombat":"You cannot logout while in combat.",
   "PacketHandler_StudyCombat":       "You can't study in the heat of combat!",
   "PacketHandler_ForgotSpell":       "You have forgotten {Spell}.",

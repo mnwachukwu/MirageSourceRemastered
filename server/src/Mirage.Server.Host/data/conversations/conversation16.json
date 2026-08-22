@@ -6,10 +6,10 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Grip\u0027s cousin. Same trade, wetter stock.\n\nHe told me you\u0027d turn up eventually. Show me the things you can\u0027t use.",
+      "text": "Grip's cousin. Same trade, wetter stock.\n\nHe told me you'd turn up eventually. Show me the things you can't use.",
       "choices": [
         {
-          "label": "Let\u0027s trade.",
+          "label": "Let's trade.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -28,10 +28,10 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "There\u0027s a boat. Sometimes. The old man runs it when he\u0027s able and there\u0027s no schedule to speak of.\n\nSo yes - what you sell me here can be in the Landing by the next moon, and what you sold him there is probably in my box already. Small world. Smaller than it was.",
+      "text": "There's a boat. Sometimes. The old man runs it when he's able and there's no schedule to speak of.\n\nSo yes - what you sell me here can be in the Landing by the next moon, and what you sold him there is probably in my box already. Small world. Smaller than it was.",
       "choices": [
         {
-          "label": "Let\u0027s trade.",
+          "label": "Let's trade.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },

@@ -6,10 +6,10 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "You\u0027ve got that look. Pockets heavy, story thin.\n\nDon\u0027t tell me the story. Show me the pockets.",
+      "text": "You've got that look. Pockets heavy, story thin.\n\nDon't tell me the story. Show me the pockets.",
       "choices": [
         {
-          "label": "Let\u0027s trade.",
+          "label": "Let's trade.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },
@@ -28,10 +28,10 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "People downriver who don\u0027t ask either. A ring is a ring, friend. It doesn\u0027t remember whose finger.\n\nBring me the pretty useless things - the ones you can\u0027t wear, can\u0027t drink and can\u0027t swing. Those are the ones I want, and nobody else in the Landing will give you a copper for them.",
+      "text": "People downriver who don't ask either. A ring is a ring, friend. It doesn't remember whose finger.\n\nBring me the pretty useless things - the ones you can't wear, can't drink and can't swing. Those are the ones I want, and nobody else in the Landing will give you a copper for them.",
       "choices": [
         {
-          "label": "Let\u0027s trade.",
+          "label": "Let's trade.",
           "nextNodeId": 0,
           "action": "OpenShop"
         },

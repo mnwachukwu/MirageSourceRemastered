@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "They call me that because I came back up. It\u0027s meant kindly and it isn\u0027t.\n\nI sell taking-words. I learned them from something that was using them on me.",
+      "text": "They call me that because I came back up. It's meant kindly and it isn't.\n\nI sell taking-words. I learned them from something that was using them on me.",
       "choices": [
         {
           "label": "Show me.",
@@ -28,7 +28,7 @@
     {
       "id": 2,
       "speaker": "",
-      "text": "The trench. Three days. I don\u0027t know how - I\u0027ve stopped asking, because the only answer that fits is one I\u0027d rather not have.\n\nWhat I brought back was the grammar. Down there, taking isn\u0027t cruelty. It\u0027s just how anything moves from one thing to another. I find that more frightening than teeth.",
+      "text": "The trench. Three days. I don't know how - I've stopped asking, because the only answer that fits is one I'd rather not have.\n\nWhat I brought back was the grammar. Down there, taking isn't cruelty. It's just how anything moves from one thing to another. I find that more frightening than teeth.",
       "choices": [
         {
           "label": "Show me.",
@@ -36,7 +36,7 @@
           "action": "OpenShop"
         },
         {
-          "label": "I\u0027ll leave you.",
+          "label": "I'll leave you.",
           "nextNodeId": 0,
           "action": "None"
         }

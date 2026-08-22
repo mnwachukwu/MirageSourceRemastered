@@ -1,6 +1,6 @@
 {
   "name": "The Unburnt",
-  "attackSay": "Everything here costs you something to cast. That\u0027s the honest part.",
+  "attackSay": "Everything here costs you something to cast. That's the honest part.",
   "sprite": 37,
   "size": 1,
   "spawnSecs": 60,

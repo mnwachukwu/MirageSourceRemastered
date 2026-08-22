@@ -63,7 +63,7 @@ public static partial class ServerStrings
     public const string PartySystem_InviteExpiredOther = nameof(PartySystem_InviteExpiredOther);
 
     // ── PlayerSpawnSystem ─────────────────────────────────────────────────────
-    public const string PlayerSpawnSystem_NoInn = nameof(PlayerSpawnSystem_NoInn);
+    public const string PlayerSpawnSystem_NotNearInn = nameof(PlayerSpawnSystem_NotNearInn);
     public const string PlayerSpawnSystem_InsufficientGold = nameof(PlayerSpawnSystem_InsufficientGold);
     public const string PlayerSpawnSystem_SpawnSet = nameof(PlayerSpawnSystem_SpawnSet);
 
@@ -74,7 +74,7 @@ public static partial class ServerStrings
     public const string RegenerationSystem_CombatEnded = nameof(RegenerationSystem_CombatEnded);
 
     // ── PacketHandler ─────────────────────────────────────────────────────────
-    public const string PacketHandler_NoShopHere = nameof(PacketHandler_NoShopHere);
+    public const string PacketHandler_NotNearShop = nameof(PacketHandler_NotNearShop);
     public const string PacketHandler_CannotLogoutCombat = nameof(PacketHandler_CannotLogoutCombat);
     public const string PacketHandler_StudyCombat = nameof(PacketHandler_StudyCombat);
     public const string PacketHandler_ForgotSpell = nameof(PacketHandler_ForgotSpell);

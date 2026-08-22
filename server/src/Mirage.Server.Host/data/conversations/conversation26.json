@@ -6,7 +6,7 @@
     {
       "id": 1,
       "speaker": "",
-      "text": "Don\u0027t move - I\u0027m getting your height. There. You\u0027re the first new thing this month.\n\nI write down what\u0027s left. It\u0027s not much of a trade but it\u0027s the only one that gets harder the longer you\u0027re good at it.",
+      "text": "Don't move - I'm getting your height. There. You're the first new thing this month.\n\nI write down what's left. It's not much of a trade but it's the only one that gets harder the longer you're good at it.",
       "choices": [
         {
           "label": "What have you written down?",
@@ -19,7 +19,7 @@
           "action": "None"
         },
         {
-          "label": "What\u0027s between the three places?",
+          "label": "What's between the three places?",
           "nextNodeId": 4,
           "action": "None"
         },
@@ -41,7 +41,7 @@
           "action": "None"
         },
         {
-          "label": "What\u0027s between them?",
+          "label": "What's between them?",
           "nextNodeId": 4,
           "action": "None"
         },
@@ -55,10 +55,10 @@
     {
       "id": 3,
       "speaker": "",
-      "text": "Because there\u0027s less of it each year, and because the things I\u0027d most like to write down are the things nobody survived to tell me.\n\nI have a very good account of the Kiln\u0027s ledgers and almost nothing about what it was like to live there. The record leans towards the people who kept records. That\u0027s a flaw and I can\u0027t fix it.",
+      "text": "Because there's less of it each year, and because the things I'd most like to write down are the things nobody survived to tell me.\n\nI have a very good account of the Kiln's ledgers and almost nothing about what it was like to live there. The record leans towards the people who kept records. That's a flaw and I can't fix it.",
       "choices": [
         {
-          "label": "What\u0027s between the three places?",
+          "label": "What's between the three places?",
           "nextNodeId": 4,
           "action": "None"
         },
@@ -72,7 +72,7 @@
     {
       "id": 4,
       "speaker": "",
-      "text": "Road. In the sense that there is ground, and it goes.\n\nBut nobody has walked it and come back with anything I could write. It isn\u0027t that the middle is dangerous - the Ferryman\u0027s crossed worse. It\u0027s that the middle is *unwritten*. Everything I have is the near country, the deep water and the fire. Between them my pages are blank, and blank isn\u0027t the same as empty.",
+      "text": "Road. In the sense that there is ground, and it goes.\n\nBut nobody has walked it and come back with anything I could write. It isn't that the middle is dangerous - the Ferryman's crossed worse. It's that the middle is *unwritten*. Everything I have is the near country, the deep water and the fire. Between them my pages are blank, and blank isn't the same as empty.",
       "choices": [
         {
           "label": "Someone should map it.",
@@ -89,10 +89,10 @@
     {
       "id": 5,
       "speaker": "",
-      "text": "Someone should. I\u0027d read it twice.\n\nUntil then: the Landing, the Deck, the Forge. Three places worth knowing, and a great deal of paper waiting for whoever\u0027s willing to find out what goes in the middle.",
+      "text": "Someone should. I'd read it twice.\n\nUntil then: the Landing, the Deck, the Forge. Three places worth knowing, and a great deal of paper waiting for whoever's willing to find out what goes in the middle.",
       "choices": [
         {
-          "label": "I\u0027ll see what I find.",
+          "label": "I'll see what I find.",
           "nextNodeId": 0,
           "action": "None"
         }
