@@ -25,9 +25,24 @@
 
   <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->
 
+  <!-- The authored world, shipped as seed/ and never as data/. An install therefore cannot overwrite a
+       world an operator already has: putting it into play is a deliberate copy, which the README spells
+       out. Globbed rather than listed, so content added since the last release ships without an edit here.
+
+       Runs after the publish, because _CleanPayload empties the folder first. -->
+  <Target Name="_CopySeedIntoPayload">
+    <ItemGroup>
+      <_SeedPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/data/**/*" />
+    </ItemGroup>
+    <Error Condition="'@(_SeedPayload)' == ''"
+           Text="No seed data found under server/src/Mirage.Server.Host/data/. The installer would ship without a world to start from." />
+    <Copy SourceFiles="@(_SeedPayload)" DestinationFolder="$(DistRoot)editor/$(_Rid)/seed/%(RecursiveDir)" />
+  </Target>
+
   <Target Name="PublishEditor_Win">
     <Message Text="── Publishing Editor / win-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=win-x64 --nologo" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopySeedIntoPayload" Properties="_Rid=win-x64" />
   </Target>
 
   <Target Name="PackageEditor_Win" DependsOnTargets="PublishEditor_Win">
@@ -56,6 +71,7 @@
   <Target Name="PublishEditor_Linux">
     <Message Text="── Publishing Editor / linux-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=linux-x64 --nologo" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopySeedIntoPayload" Properties="_Rid=linux-x64" />
   </Target>
 
   <Target Name="PackageEditor_Linux" DependsOnTargets="PublishEditor_Linux">
@@ -83,6 +99,7 @@
   <Target Name="PublishEditor_Osx">
     <Message Text="── Publishing Editor / osx-x64 ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_Csproj)&quot; /p:PublishProfile=osx-x64 --nologo" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopySeedIntoPayload" Properties="_Rid=osx-x64" />
   </Target>
 
   <Target Name="PackageEditor_Osx" DependsOnTargets="PublishEditor_Osx">

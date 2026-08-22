@@ -95,6 +95,13 @@ var host = Host.CreateDefaultBuilder(args)
         string dataDir = serverConfig.DataDir is { Length: > 0 } configured
             ? configured
             : ctx.Configuration["DataDir"] ?? Path.Combine(AppContext.BaseDirectory, "data");
+        // A first run on a machine with no world gets the shipped one. Absence of data/ is the only
+        // trigger — an empty data/ is somebody's blank canvas and is left exactly as found. Honours a
+        // configured DataDir too, so an operator who points elsewhere is seeded there and not beside the exe.
+        int seeded = SeedDeploy.SeedIfDataAbsent(Path.Combine(AppContext.BaseDirectory, "seed"), dataDir);
+        if (seeded > 0)
+            Log.Information("No world at {DataDir}; laid down the shipped seed ({Count} files).", dataDir, seeded);
+
         string logsDir = ctx.Configuration["LogsDir"] ?? Path.Combine(AppContext.BaseDirectory, "logs");
 
         Serilog.ILogger chatSerilogLogger = new Serilog.LoggerConfiguration()

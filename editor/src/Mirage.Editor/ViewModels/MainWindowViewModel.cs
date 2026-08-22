@@ -227,6 +227,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // the editor is bricked behind a panel with no way to reach the error.
         try
         {
+            // Before the load, not after: a machine with no world of its own gets the shipped one first, or
+            // this first run would read an empty store and only find the content on the NEXT launch.
+            await Task.Run(() =>
+            {
+                int seeded = EditorPaths.SeedData();
+                if (seeded > 0) EditorLog.Info("No world at {DataDir}; laid down the shipped seed ({Count} files).",
+                                               EditorPaths.Data, seeded);
+            });
+
             LoadingStatus = EditorStrings.Get(EditorStrings.MainWindow_LoadingData);
             await _data.LoadOfflineAsync();
             // Populate the editable assets dir with the bundled defaults (if-missing) before first load.

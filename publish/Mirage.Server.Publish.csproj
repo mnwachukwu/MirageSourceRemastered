@@ -70,6 +70,20 @@
     <RemoveDir Directories="$(DistRoot)server-shell" Condition="'@(_ShellStagingLeft)' == ''" />
   </Target>
 
+  <!-- The authored world, shipped as seed/ and never as data/. An install therefore cannot overwrite a
+       world an operator already has: putting it into play is a deliberate copy, which the README spells
+       out. Globbed rather than listed, so content added since the last release ships without an edit here.
+
+       Runs after the publish, because _CleanPayload empties the folder first. -->
+  <Target Name="_CopySeedIntoPayload">
+    <ItemGroup>
+      <_SeedPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/data/**/*" />
+    </ItemGroup>
+    <Error Condition="'@(_SeedPayload)' == ''"
+           Text="No seed data found under server/src/Mirage.Server.Host/data/. The installer would ship without a world to start from." />
+    <Copy SourceFiles="@(_SeedPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/seed/%(RecursiveDir)" />
+  </Target>
+
   <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->
 
   <Target Name="PublishServer_Win">
@@ -79,6 +93,7 @@
     <Message Text="── Publishing Server Shell / win-x64 (same folder) ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_ShellCsproj)&quot; /p:PublishProfile=win-x64 --nologo" />
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopyShellIntoPayload" Properties="_Rid=win-x64" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopySeedIntoPayload" Properties="_Rid=win-x64" />
   </Target>
 
   <Target Name="PackageServer_Win" DependsOnTargets="PublishServer_Win;_StripPublishPdbs">
@@ -111,6 +126,7 @@
     <Message Text="── Publishing Server Shell / linux-x64 (same folder) ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_ShellCsproj)&quot; /p:PublishProfile=linux-x64 --nologo" />
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopyShellIntoPayload" Properties="_Rid=linux-x64" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopySeedIntoPayload" Properties="_Rid=linux-x64" />
   </Target>
 
   <Target Name="PackageServer_Linux" DependsOnTargets="PublishServer_Linux;_StripPublishPdbs">
@@ -142,6 +158,7 @@
     <Message Text="── Publishing Server Shell / osx-x64 (same folder) ──" Importance="High" />
     <Exec Command="dotnet publish &quot;$(_ShellCsproj)&quot; /p:PublishProfile=osx-x64 --nologo" />
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopyShellIntoPayload" Properties="_Rid=osx-x64" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="_CopySeedIntoPayload" Properties="_Rid=osx-x64" />
   </Target>
 
   <Target Name="PackageServer_Osx" DependsOnTargets="PublishServer_Osx;_StripPublishPdbs">

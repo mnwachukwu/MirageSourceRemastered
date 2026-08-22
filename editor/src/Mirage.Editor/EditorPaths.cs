@@ -59,6 +59,18 @@ internal static class EditorPaths
     // the seed source for the editable assets dir.
     private static string BundledAssets => Path.Combine(AppContext.BaseDirectory, "assets", "graphics");
 
+    // The shipped world, next to the executable. Never read as a data dir itself — it is only ever a
+    // source to copy from, once, into a machine that has no world of its own.
+    private static string BundledSeed => Path.Combine(AppContext.BaseDirectory, "seed");
+
+    /// <summary>Lays the shipped world into the data dir on a machine that has none. Absence of the
+    /// directory is the only trigger; an empty one is left alone. See <see cref="SeedDeploy"/>.</summary>
+    public static int SeedData()
+    {
+        try { return SeedDeploy.SeedIfDataAbsent(BundledSeed, Data); }
+        catch { return 0; }   // an editor that cannot seed still opens, on an empty world
+    }
+
     /// <summary>
     /// Ensures the editable assets dir holds the bundled defaults. Copies each bundled file that is
     /// missing at the destination (per-file, if-missing): populates on first run, fills in new
