@@ -183,6 +183,7 @@ public static partial class EditorStrings
     public const string MapEditorStatus_Filled = nameof(MapEditorStatus_Filled);
     public const string MapEditorStatus_AssetsReloaded = nameof(MapEditorStatus_AssetsReloaded);
     public const string MapEditorStatus_ClearedLayer = nameof(MapEditorStatus_ClearedLayer);
+    public const string MapEditorStatus_TileRenderFailed = nameof(MapEditorStatus_TileRenderFailed);
     public const string MapEditorStatus_ClearedAttributes = nameof(MapEditorStatus_ClearedAttributes);
     public const string MapEditorStatus_AutoLinked = nameof(MapEditorStatus_AutoLinked);
     public const string MapEditorStatus_AutoLinkedConflict = nameof(MapEditorStatus_AutoLinkedConflict);

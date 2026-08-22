@@ -137,6 +137,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (warp.MapId <= 0) return;
         var target = RowFor(warp.MapId);
+        EditorLog.Info("Warp-tile navigation to map {Map} at {X},{Y}.", warp.MapId, warp.X, warp.Y);
         if (target is null || target == SelectedMap) return;
         SelectedMap = target;
     }

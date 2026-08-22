@@ -1,11 +1,11 @@
 {
   "name": "The Gravebound Fen 5",
   "displayName": "",
-  "revision": 5,
+  "revision": 7,
   "up": 32,
   "down": 30,
   "left": 28,
-  "right": 0,
+  "right": 39,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,
@@ -971,18 +971,24 @@
       },
       {
         "ground": [
-          145
-        ]
+          145,
+          134
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          145
-        ]
+          145,
+          141
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          145
-        ]
+          145,
+          148
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1039,18 +1045,24 @@
       },
       {
         "ground": [
-          145
-        ]
+          145,
+          135
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          145
-        ]
+          145,
+          142
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [

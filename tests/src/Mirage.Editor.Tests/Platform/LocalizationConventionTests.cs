@@ -86,15 +86,17 @@ public class LocalizationConventionTests
         //   *RowViewModel    - the list re-raises FilteredItems, which re-reads every row's DisplayName
         //   *DialogViewModel - dialogs are built fresh per open
         //   SectionViewModel - MainWindowViewModel.OnLanguageChanged re-raises each section's label
-        //   AutoSave*Option  - combo items built by AutoSaveDialogViewModel, so they inherit the
-        //                      fresh-per-open rule above; the scan sees them as their own classes
+        //   *Option          - combo items built by a *DialogViewModel (auto-save, logging), so they
+        //                      inherit the fresh-per-open rule above; the scan sees them as their own
+        //                      classes. Named one by one rather than matched on the suffix, so a new
+        //                      one stays a decision
         //   AutoSaveMessages - status lines, which are deliberately NOT re-localized: each is a record
         //                      of something that already happened, in the language it happened in
         static bool RefreshedByOwner(string cls) =>
             cls.EndsWith("RowViewModel", StringComparison.Ordinal)
             || cls.EndsWith("DialogViewModel", StringComparison.Ordinal)
             || cls is "SectionViewModel" or "AutoSaveIntervalOption" or "AutoSaveReachOption"
-                   or "AutoSaveMessages";
+                   or "LogLevelOption" or "LogRetentionOption" or "AutoSaveMessages";
 
         var uses = new HashSet<string>(StringComparer.Ordinal);
         var hooked = new HashSet<string>(StringComparer.Ordinal);

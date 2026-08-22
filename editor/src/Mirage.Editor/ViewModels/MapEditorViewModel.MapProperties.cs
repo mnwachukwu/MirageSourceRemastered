@@ -300,6 +300,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
     /// mutate the underlying <c>MapRecord</c> without going through the individual properties.
     /// <para>Also rebuilds the map's NPC-spawn rows, which are derived from the record rather than
     /// bound to it.</para></summary>
+    /// <summary>Runs after every property above has been re-raised. The view uses it to settle controls that
+    /// hold their own edit state, which a property notification alone does not reach.</summary>
+    public Action? MapPropertiesRefreshed { get; set; }
+
     private void NotifyMapProperties()
     {
         OnPropertyChanged(nameof(MapName));
@@ -339,6 +343,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(NeighborMapUpRight));
         OnPropertyChanged(nameof(NeighborMapDownLeft));
         OnPropertyChanged(nameof(NeighborMapDownRight));
+        MapPropertiesRefreshed?.Invoke();
     }
 
     /// <summary>Bridges a <see cref="MapRowViewModel"/> edit into this view model. Only the

@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using FluentAvalonia.UI.Windowing;
 using Mirage.Editor.Localization;
+using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using Mirage.Editor.Views;
 using Mirage.Shared;
@@ -54,6 +55,7 @@ public partial class MainWindow : FAAppWindow
         Title = $"{Constants.GameName} — {EditorStrings.Get(EditorStrings.MainWindow_Title)}";
         _helpMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMenu);
         _helpMapEditorItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMapEditor);
+        _helpLoggingItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpLogging);
         _helpAboutItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpAbout);
         _languageMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_LanguageMenu);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
@@ -273,6 +275,29 @@ public partial class MainWindow : FAAppWindow
     private async void HelpMapControls_Click(object? sender, RoutedEventArgs e)
     {
         var dlg = new HelpDialog();
+        await dlg.ShowDialog(this);
+    }
+
+    /// <summary>Capture level and retention. A confirmed change is applied to the live sink at once and
+    /// persisted, so the next thing logged is already at the new level.</summary>
+    private async void HelpLogging_Click(object? sender, RoutedEventArgs e)
+    {
+        var dlgVm = new LoggingDialogViewModel(AppSettings.Current.Logging);
+        var dlg = new LoggingDialog { DataContext = dlgVm };
+        dlgVm.RevealFolderAsync = async path =>
+            await Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(path));
+        dlgVm.Confirmed += () =>
+        {
+            var setting = dlgVm.ToSetting();
+            AppSettings.Current.Logging = setting;
+            AppSettings.Current.Save();
+            EditorLog.Reconfigure(setting);
+            EditorLog.Info("Logging reconfigured: level {Level}, retention {Retention}.",
+                setting.Level, setting.Retention);
+            dlg.Close();
+        };
+        dlgVm.Canceled += () => dlg.Close();
+        EditorLog.Debug("Logging configuration opened.");
         await dlg.ShowDialog(this);
     }
 

@@ -373,12 +373,13 @@ public sealed partial class TileGridControl : Control
 
             _rtbRetryCount = 0;
         }
-        catch
+        catch (Exception ex)
         {
             _tileCache?.Dispose();
             _tileCache = null;
             _rtbRetryCount++;
             _tileCacheDirty = true;
+            TileCacheRenderFailed?.Invoke(ex);
         }
     }
 

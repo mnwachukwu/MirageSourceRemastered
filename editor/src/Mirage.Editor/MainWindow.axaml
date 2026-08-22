@@ -41,6 +41,7 @@
           <MenuItem x:Name="_helpMenu">
             <MenuItem x:Name="_helpMapEditorItem" Click="HelpMapControls_Click"/>
             <Separator/>
+            <MenuItem x:Name="_helpLoggingItem" Click="HelpLogging_Click"/>
             <MenuItem x:Name="_helpAboutItem" Click="HelpAbout_Click"/>
           </MenuItem>
         </Menu>

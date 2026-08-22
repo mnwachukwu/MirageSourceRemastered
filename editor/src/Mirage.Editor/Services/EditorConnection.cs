@@ -77,6 +77,7 @@ public sealed class EditorConnection : IDisposable
         _closingDeliberately = false;
         Endpoint = $"{host}:{port}";
         Login = username;
+        EditorLog.Info("Connecting to {Endpoint} as {Login}.", Endpoint, username);
         _client = new TcpClient();
         await _client.ConnectAsync(host, port, ct);
 
@@ -89,6 +90,7 @@ public sealed class EditorConnection : IDisposable
         }
         catch (AuthenticationException ex)
         {
+            EditorLog.Error(ex, "TLS handshake with {Endpoint} failed.", Endpoint);
             await DisconnectAsync();
             throw pinned.Translate(ex);
         }
@@ -160,6 +162,7 @@ public sealed class EditorConnection : IDisposable
     public async Task SendSaveAsync(IPacket packet)
     {
         if (_writer is null) throw new InvalidOperationException("Not connected.");
+        EditorLog.Info("Sending {Packet} to {Endpoint}.", packet.Cmd, Endpoint);
         await _writer.WriteAsync(PacketSerializer.Serialize(packet));
     }
 
@@ -260,10 +263,15 @@ public sealed class EditorConnection : IDisposable
         // One waiter per response command. A second request for the same one displaces the first, so the
         // displaced caller is released rather than left awaiting a slot nothing points at any more.
         var tcs = new TaskCompletionSource<IPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
-        if (_pendingBulk.TryGetValue(responseCmd, out var displacedBulk)) displacedBulk.TrySetCanceled();
+        if (_pendingBulk.TryGetValue(responseCmd, out var displacedBulk))
+        {
+            EditorLog.Debug("Bulk request {Response} displaced an earlier waiter.", responseCmd);
+            displacedBulk.TrySetCanceled();
+        }
         _pendingBulk[responseCmd] = tcs;
         try
         {
+            EditorLog.Debug("Bulk request {Request}, awaiting {Response}.", request.Cmd, responseCmd);
             await _writer.WriteAsync(PacketSerializer.Serialize(request));
             using var reg = ct.Register(() =>
             {
@@ -333,10 +341,15 @@ public sealed class EditorConnection : IDisposable
 
         // One waiter per (command, record). As in RequestBulkAsync, a displaced caller is released.
         var tcs = new TaskCompletionSource<IPacket>(TaskCreationOptions.RunContinuationsAsynchronously);
-        if (_pending.TryGetValue((responseCmd, num), out var displaced)) displaced.TrySetCanceled();
+        if (_pending.TryGetValue((responseCmd, num), out var displaced))
+        {
+            EditorLog.Debug("Request {Response} #{Num} displaced an earlier waiter.", responseCmd, num);
+            displaced.TrySetCanceled();
+        }
         _pending[(responseCmd, num)] = tcs;
         try
         {
+            EditorLog.Debug("Request {Request} #{Num}, awaiting {Response}.", request.Cmd, num, responseCmd);
             await _writer.WriteAsync(PacketSerializer.Serialize(request));
             using var reg = ct.Register(() =>
             {

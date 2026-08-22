@@ -327,4 +327,17 @@
     <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorDark1Brush}"/>
   </Style>
 
+  <!-- ── Tooltips ──────────────────────────────────────────────────────────── -->
+
+  <!-- Anchored to the control, not to the cursor. Avalonia places a tooltip at the pointer with a 20px
+       downward offset; against the bottom of a window there is no room below, the popup flips upward
+       onto the control, and since it is a plain hit-testable Popup it takes the click aimed at the
+       control underneath. Anchoring keeps the popup outside the control's own bounds whichever side it
+       ends up on, and the offset goes to zero because Top would otherwise push it back down over the
+       control. One of the few global rules here: the stock behaviour is wrong for anything clickable. -->
+  <Style Selector=":is(Control)">
+    <Setter Property="ToolTip.Placement" Value="Top"/>
+    <Setter Property="ToolTip.VerticalOffset" Value="0"/>
+  </Style>
+
 </Styles>

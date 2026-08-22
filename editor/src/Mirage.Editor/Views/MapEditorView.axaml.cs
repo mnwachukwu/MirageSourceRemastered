@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using Mirage.Editor;
 using Mirage.Editor.Controls;
 using Mirage.Editor.Localization;
+using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using Mirage.Shared;
 
@@ -62,6 +63,11 @@ public partial class MapEditorView : LocalizedUserControl
 
     // ── Animation preview timer ───────────────────────────────────────────────
     private DispatcherTimer? _animTimer;
+
+    // The view-model and grid this view is currently answering for. Held so the named handlers can be
+    // removed on detach and so they never touch a grid belonging to a view that has been replaced.
+    private MapEditorViewModel? _wiredVm;
+    private TileGridControl? _wiredGrid;
 
     // Snapshotted properties-panel scroll offset captured the moment before the
     // SelectedMap changes, so that BringIntoView calls triggered by the cascade
@@ -296,6 +302,16 @@ public partial class MapEditorView : LocalizedUserControl
             root.RemoveHandler(KeyDownEvent, OnGlobalKeyDown);
             root.RemoveHandler(KeyUpEvent, OnGlobalKeyUp);
         }
+        if (_wiredVm is { } vm)
+        {
+            vm.PropertyChanging -= OnViewModelPropertyChanging;
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
+            _wiredVm = null;
+        }
+        _wiredGrid = null;
+        _animTimer?.Stop();
+        _animTimer = null;
+
         SavePanelState();
         AppSettings.Current.Save();
     }
@@ -526,40 +542,75 @@ public partial class MapEditorView : LocalizedUserControl
         vm.InvalidateTileGrid = (x, y) => grid.InvalidateTileAt(x, y);
         vm.InvalidateAllTiles = () => grid.InvalidateMapRender();
 
-        vm.PropertyChanging += (_, pe) =>
+        // A cached-render failure degrades the map to blank until the next edit rebuilds it. Say so, with the
+        // reason, so a blank grid reads as a reported fault instead of a hang.
+        grid.TileCacheRenderFailed += ex =>
         {
-            if (pe.PropertyName == nameof(MapEditorViewModel.SelectedMap))
-                _savedPropertiesOffset = PropertiesScrollViewer.Offset;
+            EditorLog.Error(ex, "The cached map render failed; the grid is blank until the next edit rebuilds it.");
+            vm.StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_TileRenderFailed, ("Error", ex.Message));
         };
 
-        vm.PropertyChanged += (_, pe) =>
+        // Every box that captions a record reference: an empty selection must not keep text typed against
+        // whichever record was loaded before.
+        vm.MapPropertiesRefreshed = () =>
         {
-            if (pe.PropertyName == nameof(MapEditorViewModel.IsAnimPreview))
-            {
-                ApplyAnimPreview(vm.IsAnimPreview, grid);
-                AppSettings.Current.MapEditorAnimPreview = vm.IsAnimPreview;   // persisted on unload Save()
-            }
-            if (pe.PropertyName == nameof(MapEditorViewModel.IsDoorPreview))
-                grid.SetDoorPreview(vm.IsDoorPreview);
-            if (pe.PropertyName == nameof(MapEditorViewModel.IsNightPreview))
-                grid.SetNightPreview(vm.IsNightPreview);
-            if (pe.PropertyName == nameof(MapEditorViewModel.SelectedMap) && vm.SelectedMap is not null)
-            {
-                ScrollToActiveMap(vm.MapZoom);
-                if (_savedPropertiesOffset is { } saved)
-                {
-                    // Restore after layout/binding settles so BringIntoView calls
-                    // dispatched during property propagation are overridden.
-                    Dispatcher.UIThread.Post(
-                        () => PropertiesScrollViewer.Offset = saved,
-                        DispatcherPriority.Loaded);
-                    _savedPropertiesOffset = null;
-                }
-            }
+            _searchUpMap.ResyncTextToSelection();
+            _searchDown.ResyncTextToSelection();
+            _searchLeft.ResyncTextToSelection();
+            _searchRight.ResyncTextToSelection();
+            _searchBootMap.ResyncTextToSelection();
+            _searchMapGroup.ResyncTextToSelection();
         };
 
-        // Apply the persisted anim-preview default now that PropertyChanged is wired, so ON starts the timer.
+        // The section host builds a fresh view on every switch while the view-model lives on. Named
+        // handlers so OnDetachedFromLogicalTree can take them off again; anonymous ones would accumulate
+        // on the view-model, one per switch.
+        _wiredVm = vm;
+        _wiredGrid = grid;
+        vm.PropertyChanging += OnViewModelPropertyChanging;
+        vm.PropertyChanged += OnViewModelPropertyChanged;
+
+        // Each preview is pushed to the grid outright, not left to the property notification. The
+        // view-model carries the persisted values already, so an assignment equal to what is there raises
+        // nothing, and the toggle would read ON over a grid doing nothing.
         vm.IsAnimPreview = settings.MapEditorAnimPreview;
+        ApplyAnimPreview(vm.IsAnimPreview, grid);
+        grid.SetDoorPreview(vm.IsDoorPreview);
+        grid.SetNightPreview(vm.IsNightPreview);
+    }
+
+    private void OnViewModelPropertyChanging(object? sender, System.ComponentModel.PropertyChangingEventArgs pe)
+    {
+        if (pe.PropertyName == nameof(MapEditorViewModel.SelectedMap))
+            _savedPropertiesOffset = PropertiesScrollViewer.Offset;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs pe)
+    {
+        if (_wiredVm is not { } vm || _wiredGrid is not { } grid) return;
+
+        if (pe.PropertyName == nameof(MapEditorViewModel.IsAnimPreview))
+        {
+            ApplyAnimPreview(vm.IsAnimPreview, grid);
+            AppSettings.Current.MapEditorAnimPreview = vm.IsAnimPreview;   // persisted on unload Save()
+        }
+        if (pe.PropertyName == nameof(MapEditorViewModel.IsDoorPreview))
+            grid.SetDoorPreview(vm.IsDoorPreview);
+        if (pe.PropertyName == nameof(MapEditorViewModel.IsNightPreview))
+            grid.SetNightPreview(vm.IsNightPreview);
+        if (pe.PropertyName == nameof(MapEditorViewModel.SelectedMap) && vm.SelectedMap is not null)
+        {
+            ScrollToActiveMap(vm.MapZoom);
+            if (_savedPropertiesOffset is { } saved)
+            {
+                // Restore after layout/binding settles so BringIntoView calls
+                // dispatched during property propagation are overridden.
+                Dispatcher.UIThread.Post(
+                    () => PropertiesScrollViewer.Offset = saved,
+                    DispatcherPriority.Loaded);
+                _savedPropertiesOffset = null;
+            }
+        }
     }
 
     // ── Animation preview ─────────────────────────────────────────────────────

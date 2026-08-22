@@ -391,6 +391,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         // (OnSelectedMapChanged → LoadMapAsync) and its own connected properties fill in.
         int id = NeighborTargetId(cell);
         var row = RowFor(id);
+        EditorLog.Info("Neighbor-cell navigation to map {Map} ({Cell}).", id, cell);
         if (row is not null && row != SelectedMap) SelectedMap = row;
     }
 

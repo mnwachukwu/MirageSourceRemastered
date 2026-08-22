@@ -187,6 +187,7 @@ public sealed class EditorDataService
     public async Task LoadOfflineAsync()
     {
         var dataPath = EditorPaths.Data;
+        EditorLog.Info("Loading the offline data set from {Path}.", dataPath);
         OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", RecordLimits.Default.Items);
         OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", RecordLimits.Default.Npcs);
         OfflineShops = await LoadAllFromDirAsync<ShopRecord>(Path.Combine(dataPath, "shops"), "shop", RecordLimits.Default.Shops);
@@ -197,6 +198,9 @@ public sealed class EditorDataService
         OfflineMaps = await LoadAllMapsAsync(dataPath);
         OfflineMapGroups = await LoadAllMapGroupsAsync(dataPath);
         ClearEntryCache();
+        EditorLog.Info("Offline data set loaded: {Items} items, {Npcs} npcs, {Maps} maps, {Groups} map groups.",
+            OfflineItems.Count(r => r is not null), OfflineNpcs.Count(r => r is not null),
+            OfflineMaps.Count(r => r is not null), OfflineMapGroups.Length);
     }
 
     private static async Task<T[]> LoadAllFromDirAsync<T>(string dir, string prefix, int max) where T : new()
@@ -516,8 +520,17 @@ public sealed class EditorDataService
         var dir = Path.GetDirectoryName(path);
         if (dir is not null) Directory.CreateDirectory(dir);
         var tmp = path + ".tmp";
-        await using (var fs = File.Create(tmp))
-            await JsonSerializer.SerializeAsync(fs, value, JsonOpts);
-        File.Move(tmp, path, overwrite: true);
+        try
+        {
+            await using (var fs = File.Create(tmp))
+                await JsonSerializer.SerializeAsync(fs, value, JsonOpts);
+            File.Move(tmp, path, overwrite: true);
+            EditorLog.Info("Wrote {Record} to {Path}.", typeof(T).Name, path);
+        }
+        catch (Exception ex)
+        {
+            EditorLog.Error(ex, "Failed writing {Record} to {Path}.", typeof(T).Name, path);
+            throw;
+        }
     }
 }

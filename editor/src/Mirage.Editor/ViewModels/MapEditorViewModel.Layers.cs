@@ -198,6 +198,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private async Task ClearLayerAsync()
     {
         if (SelectedMap is null) return;
+        EditorLog.Info("Clear layer {Layer} requested on map {Map}; awaiting confirmation.",
+            SelectedLayerLabel, SelectedMap.Index);
         if (ConfirmAsync is not null &&
             !await ConfirmAsync(EditorStrings.Format(EditorStrings.MapEditor_ConfirmClearLayer,
                 ("Layer", SelectedLayerLabel))))
@@ -207,6 +209,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
         var map = SelectedMap.Record;
         int idx = SelectedLayerArrayIndex;
+        EditorLog.Info("Clearing layer {Layer} on map {Map}.", SelectedLayerLabel, SelectedMap.Index);
         BeginBatch();
         for (int y = 0; y <= Constants.MaxMapY; y++)
         {
@@ -224,6 +227,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
 
         CommitBatch();
+        EditorLog.Info("Cleared layer {Layer} on map {Map}.", SelectedLayerLabel, SelectedMap.Index);
         StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_ClearedLayer,
             ("Layer", SelectedLayerLabel));
     }
@@ -232,6 +236,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private async Task ClearAttributesAsync()
     {
         if (SelectedMap is null) return;
+        EditorLog.Info("Clear attributes requested on map {Map}; awaiting confirmation.", SelectedMap.Index);
         if (ConfirmAsync is not null &&
             !await ConfirmAsync(EditorStrings.Get(EditorStrings.MapEditor_ConfirmClearAttrs)))
         {

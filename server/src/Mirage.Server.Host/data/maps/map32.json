@@ -1,11 +1,11 @@
 {
   "name": "The Gravebound Fen 6",
   "displayName": "",
-  "revision": 7,
+  "revision": 8,
   "up": 0,
   "down": 31,
   "left": 29,
-  "right": 0,
+  "right": 40,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,

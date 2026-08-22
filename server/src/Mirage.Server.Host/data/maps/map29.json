@@ -1,7 +1,7 @@
 {
   "name": "The Gravebound Fen 3",
   "displayName": "",
-  "revision": 6,
+  "revision": 7,
   "up": 0,
   "down": 28,
   "left": 24,
@@ -105,6 +105,7 @@
       {
         "ground": [
           145,
+          149,
           143
         ],
         "type": "Blocked"
@@ -190,8 +191,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -252,8 +255,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -314,8 +319,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -376,8 +383,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -438,8 +447,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -500,8 +511,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -562,8 +575,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -624,8 +639,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -686,8 +703,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          149
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -748,8 +767,10 @@
     [
       {
         "ground": [
-          145
-        ]
+          145,
+          150
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [

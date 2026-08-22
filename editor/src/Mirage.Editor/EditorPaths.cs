@@ -34,6 +34,11 @@ internal static class EditorPaths
     /// <summary>The editor's per-user config dir (holds its appsettings.json).</summary>
     public static string Config => Paths.Config();
 
+    /// <summary>The editor's log files. Under the DATA dir rather than config: logs are bulky and belong to
+    /// the machine they were produced on, so on Windows they stay in %LocalAppData% and out of the roaming
+    /// profile.</summary>
+    public static string Logs => Paths.Data("logs");
+
     /// <summary>
     /// Authored game data (maps, items, npcs, …). Operator-configurable via the DataDir setting;
     /// defaults to the per-user data dir so writes succeed even from a read-only AppImage/.app. A

@@ -368,6 +368,10 @@ public sealed partial class TileGridControl : Control
     private bool _tileCacheDirty = true;
     private int _rtbRetryCount;
 
+    /// <summary>Raised when the cached map render throws. The map keeps working and the next edit retries;
+    /// this exists so the failure reaches the status bar rather than being swallowed.</summary>
+    public event Action<Exception>? TileCacheRenderFailed;
+
     private bool _animPreviewMode;
     private int _animFrame;   // advances one per preview tick; animated stacks pick their frame from it
     private bool _doorPreviewMode;  // when on, Key tiles render in their open state (topmost ground hidden)
@@ -431,6 +435,10 @@ public sealed partial class TileGridControl : Control
     public void InvalidateTileAt(int x, int y)
     {
         _tileCacheDirty = true;
+        // An edit is a fresh opportunity, not a continuation of whatever failed before. The retry budget
+        // exists to stop a doomed rebuild running on every frame; letting it carry across user actions is
+        // what turns a transient RTB failure into a map that never draws again.
+        _rtbRetryCount = 0;
         InvalidateVisual();
     }
 

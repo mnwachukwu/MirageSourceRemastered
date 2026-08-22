@@ -119,6 +119,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         if (targets.Count == 0) return 0;
 
         int saved = 0;
+        EditorLog.Info("Auto-save writing {Count} dirty map(s), reach {Reach}.", targets.Count, reach);
         foreach (var vm in targets)
         {
             vm.BumpRevision();

@@ -71,6 +71,8 @@ public sealed class TilePaletteControl : Control
     private void RebuildCache(Bitmap bmp, int cols, int rows, int totalTiles)
     {
         _cacheDirty = false;
+        // Three consecutive failures stop the rebuild running on every frame; a new sheet clears the budget
+        // (TileBitmapProperty above), so a transient failure costs a redraw rather than the palette.
         if (_rtbRetryCount >= 3) return;
 
         var size = new PixelSize(cols * TileW, rows * TileH);

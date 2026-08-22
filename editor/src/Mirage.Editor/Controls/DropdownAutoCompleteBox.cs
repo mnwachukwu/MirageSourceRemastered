@@ -43,6 +43,13 @@ public class DropdownAutoCompleteBox : AutoCompleteBox
             handledEventsToo: true);
     }
 
+    /// <summary>Makes the text box agree with an empty selection, discarding anything typed into it. The map
+    /// properties panel calls this on every record load; a filled selection captions itself and is left alone.</summary>
+    public void ResyncTextToSelection()
+    {
+        if (SelectedItem is null) Text = string.Empty;
+    }
+
     /// <summary>Watches <c>SelectedItem</c> so the text box doesn't keep a stale caption after the
     /// selection is cleared — either by a binding reset or by the author picking "(none)".</summary>
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
