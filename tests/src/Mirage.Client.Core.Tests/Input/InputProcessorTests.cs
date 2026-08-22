@@ -323,6 +323,80 @@ public class InputProcessorTests
         InputProcessor.Process(new InputSnapshot { Move = Direction.Down, Attack = true, PickUp = true }, s, sender, 0);
         Assert.That(t.Sent, Is.Empty);
     }
+
+    // ── God mode ──────────────────────────────────────────────────────────────
+    // The server exempts an observer in CanPlayerWalkOnTile, but the client decides whether a move packet is
+    // sent at all — a step the prediction refuses never reaches that exemption. Each obstacle is therefore
+    // stepped into twice, ordinary and god mode, so the PAIR proves the exemption and not a missing obstacle.
+
+    [Test]
+    public void GodMode_PassesThroughWhatBlocksAnOrdinaryPlayer()
+    {
+        (string What, Action<ClientState> Place)[] obstacles =
+        [
+            ("a wall", s => s.Map.Tile[5, 6].Type = TileType.Blocked),
+            ("a closed door", s =>
+            {
+                s.Map.Tile[5, 6].Type = TileType.Key;
+                s.TempTile[5, 6, (int)WorldLayer.Ground] = false;
+            }),
+            ("another player", s =>
+            {
+                var o = s.Players[2];
+                o.Name = "Blocker";
+                o.Map = 1;
+                o.X = 5;
+                o.Y = 6;
+            }),
+            ("an NPC", s =>
+            {
+                s.MapNpcs[1].Num = 3;
+                s.MapNpcs[1].X = 5;
+                s.MapNpcs[1].Y = 6;
+            }),
+        ];
+
+        Assert.Multiple(() =>
+        {
+            foreach (var (what, place) in obstacles)
+            {
+                Assert.That(StepsSouth(place, godMode: false), Is.False, $"{what} blocks an ordinary player");
+                Assert.That(StepsSouth(place, godMode: true), Is.True, $"god mode walks through {what}");
+            }
+        });
+    }
+
+    // Sprinting costs SP and the CLIENT picks the movement type it asks for, so an empty bar downgrades the
+    // request to a walk unless the server's cost exemption is mirrored here.
+    [Test]
+    public void GodMode_SprintsOnAnEmptyStaminaBar()
+    {
+        static MovementType? Sprint(bool godMode)
+        {
+            var (s, t, sender) = Setup(5, 5);
+            s.Me.GodMode = godMode;
+            s.Me.Sp = 0;
+            InputProcessor.Process(new InputSnapshot { Move = Direction.Down, Running = true }, s, sender, 0);
+            return t.Sent.OfType<PlayerMovePacket>().SingleOrDefault()?.Movement;
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Sprint(godMode: false), Is.EqualTo(MovementType.Walking), "an empty bar downgrades an ordinary sprint");
+            Assert.That(Sprint(godMode: true), Is.EqualTo(MovementType.Running), "god mode keeps running on nothing");
+        });
+    }
+
+    // One step south into a freshly placed obstacle. True only when the client both predicted the step AND
+    // sent it — a prediction that moves the sprite without telling the server would rubber-band.
+    private static bool StepsSouth(Action<ClientState> placeObstacle, bool godMode)
+    {
+        var (s, t, sender) = Setup(5, 5);
+        s.Me.GodMode = godMode;
+        placeObstacle(s);
+        InputProcessor.Process(new InputSnapshot { Move = Direction.Down }, s, sender, 0);
+        return s.Me.Y == 6 && t.Sent.OfType<PlayerMovePacket>().Count() == 1;
+    }
 }
 
 /// <summary>Captures every packet the sender hands to the transport, so a test can assert what was sent.</summary>

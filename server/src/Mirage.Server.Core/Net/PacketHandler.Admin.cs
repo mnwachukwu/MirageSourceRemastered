@@ -68,6 +68,12 @@ public sealed partial class PacketHandler
             sp.TargetType = 0;
         }
 
+        // The flag rides on SendPlayerData, which otherwise only carries it at join — so without this the
+        // toggle reaches nobody: the mover's own prediction keeps refusing blocked steps and every client
+        // keeps drawing the name in its normal color.
+        SendToMap(sp.Char.Map, PacketBuilder.PlayerData(index, sp.Char, sp.Char.Map,
+            sp.PkGraceUntilUtc, sp.AggressorUntilUtcNow, godMode: sp.GodMode));
+
         _dispatcher.SendLocalizedChatTo(index,
             sp.GodMode ? ServerStrings.AdminCommand_GodModeOn : ServerStrings.AdminCommand_GodModeOff,
             new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice));

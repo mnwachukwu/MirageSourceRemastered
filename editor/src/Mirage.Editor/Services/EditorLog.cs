@@ -18,12 +18,20 @@ public static class EditorLog
 {
     private static readonly LoggingLevelSwitch LevelSwitch = new(LogEventLevel.Information);
     private static Logger? _logger;
-    private static DispatcherTimer? _stallWatchdog;
-    private static long _lastTickMs;
+    private static DispatcherTimer? _heartbeat;
+    private static System.Threading.Timer? _stallObserver;
+    private static long _lastHeartbeatMs;
+    private static int _blockReported;
 
-    /// <summary>How late a watchdog tick has to be before it counts as a stall. The timer asks for one
+    /// <summary>How late a heartbeat tick has to be before it counts as a stall. The timer asks for one
     /// second; anything past this means the UI thread was busy or blocked in between.</summary>
     private const long StallThresholdMs = 1_500;
+
+    /// <summary>How stale the heartbeat has to get before the off-thread observer calls the UI thread
+    /// blocked. Looser than <see cref="StallThresholdMs"/>: the observer runs on its own clock and can
+    /// sample just before a due heartbeat, so a tighter bound would report ordinary jitter.</summary>
+    private const long BlockedThresholdMs = 3_000;
+
     private static readonly TimeSpan WatchdogInterval = TimeSpan.FromSeconds(1);
 
     /// <summary>Where the log files are written. Shown in the configuration window.</summary>
@@ -68,8 +76,10 @@ public static class EditorLog
     public static void Shutdown(string reason)
     {
         Info("Session ending: {Reason}", reason);
-        _stallWatchdog?.Stop();
-        _stallWatchdog = null;
+        _heartbeat?.Stop();
+        _heartbeat = null;
+        _stallObserver?.Dispose();
+        _stallObserver = null;
         _logger?.Dispose();
         _logger = null;
     }
@@ -98,30 +108,48 @@ public static class EditorLog
 
     // ── UI-thread stall watchdog ──────────────────────────────────────────────
 
-    /// <summary>Starts the one-second heartbeat that reports a UI thread which stopped answering. A tick
-    /// that arrives late by more than <see cref="StallThresholdMs"/> means nothing else ran in between:
-    /// the gap is the freeze, and its size is how long the window was unresponsive.
-    /// <para>Timed on the dispatcher deliberately — a background timer would prove nothing about the
-    /// thread that draws and handles input.</para></summary>
+    /// <summary>Starts the watchdog that reports a UI thread which stopped answering.
+    ///
+    /// <para>It takes two timers, because one cannot see both failures. A dispatcher timer stamps a heartbeat
+    /// and measures how late its own tick was: that catches a thread which was BUSY, and reports the size of
+    /// the gap once it comes back. A thread-pool timer watches that stamp go stale: that catches a thread which
+    /// is BLOCKED, and reports while it is still stuck — which the dispatcher timer cannot do, because its tick
+    /// needs the very thread it is measuring, so a freeze that never lifts logs nothing at all.</para></summary>
     public static void StartStallWatchdog()
     {
-        if (_stallWatchdog is not null) return;
-        _lastTickMs = Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000);
-        _stallWatchdog = new DispatcherTimer(DispatcherPriority.Background) { Interval = WatchdogInterval };
-        _stallWatchdog.Tick += (_, _) =>
+        if (_heartbeat is not null) return;
+        Volatile.Write(ref _lastHeartbeatMs, NowMs());
+
+        _heartbeat = new DispatcherTimer(DispatcherPriority.Background) { Interval = WatchdogInterval };
+        _heartbeat.Tick += (_, _) =>
         {
-            long now = Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000);
-            long gap = now - _lastTickMs;
-            _lastTickMs = now;
-            if (gap >= StallThresholdMs)
+            long now = NowMs();
+            long gap = now - Volatile.Read(ref _lastHeartbeatMs);
+            Volatile.Write(ref _lastHeartbeatMs, now);
+
+            if (Interlocked.Exchange(ref _blockReported, 0) == 1)
+                Warn("UI thread is answering again, after {Gap} ms blocked.", gap);
+            else if (gap >= StallThresholdMs)
                 Warn("UI thread stalled for {Gap} ms (heartbeat expected every {Interval} ms).",
                      gap, (long)WatchdogInterval.TotalMilliseconds);
             else
                 Verbose("Heartbeat: {Gap} ms.", gap);
         };
-        _stallWatchdog.Start();
-        Info("UI-thread stall watchdog started (threshold {Threshold} ms).", StallThresholdMs);
+        _heartbeat.Start();
+
+        _stallObserver = new System.Threading.Timer(_ =>
+        {
+            if (NowMs() - Volatile.Read(ref _lastHeartbeatMs) < BlockedThresholdMs) return;
+            if (Interlocked.Exchange(ref _blockReported, 1) == 1) return;   // one report per freeze
+            Error("UI thread has not answered for {Threshold} ms and is still not answering. Capture a stack " +
+                  "with: dotnet-stack report --process-id {Pid}", BlockedThresholdMs, Environment.ProcessId);
+        }, null, WatchdogInterval, WatchdogInterval);
+
+        Info("UI-thread stall watchdog started (stall {Stall} ms, blocked {Blocked} ms).",
+             StallThresholdMs, BlockedThresholdMs);
     }
+
+    private static long NowMs() => Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000);
 
     // ── Session header ────────────────────────────────────────────────────────
 

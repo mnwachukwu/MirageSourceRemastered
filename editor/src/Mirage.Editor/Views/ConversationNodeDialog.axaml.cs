@@ -25,11 +25,11 @@ public partial class ConversationNodeDialog : Window
         deleteBtn.Click += (_, _) =>
         {
             conversation.RemoveNodeCommand.Execute(node);
-            Close();
+            this.CloseDeferred();
         };
 
         var closeBtn = this.FindControl<Button>("CloseButton")!;
         closeBtn.Content = EditorStrings.Get(EditorStrings.Common_Close);
-        closeBtn.Click += (_, _) => Close();
+        closeBtn.Click += (_, _) => this.CloseDeferred();
     }
 }

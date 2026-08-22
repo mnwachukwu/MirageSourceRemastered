@@ -11,6 +11,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using SkiaSharp;
 using System.Globalization;
+using Side = Mirage.Editor.Controls.AttributeBorderGeometry.Side;
 
 namespace Mirage.Editor.Controls;
 
@@ -485,8 +486,10 @@ public sealed partial class TileGridControl : Control
     private static TileType NeighborAttr(MapRecord map, int x, int y, WorldLayer layer) =>
         x >= 0 && x < GridCols && y >= 0 && y < GridRows ? DisplayAttr(map.Tile[x, y], layer).Type : TileType.Walkable;
 
-    // Draws a border on each edge of a tile where the adjacent tile has a different attribute type (on the active
-    // layer — a ramp counts on both), producing an outline around contiguous blocks rather than per-tile boxes.
+    // Fills a band inside each edge of a tile where the adjacent tile has a different attribute type (on the
+    // active layer — a ramp counts on both), producing an outline around contiguous blocks rather than per-tile
+    // boxes.  Each band sits inside the cell that owns it, so where two attributes meet, both keep their own
+    // side of the shared grid line — see AttributeBorderGeometry.
     private static void RenderAttributeBorders(DrawingContext ctx, MapRecord map, Point pixOff, WorldLayer attrLayer)
     {
         for (int x = 0; x < GridCols; x++)
@@ -495,22 +498,22 @@ public sealed partial class TileGridControl : Control
             {
                 var attr = DisplayAttr(map.Tile[x, y], attrLayer).Type;
                 var pen = AttributeBorderPen(attr);
-                if (pen is null) continue;
+                if (pen?.Brush is not { } brush) continue;
+                double t = pen.Thickness;
 
                 double px = pixOff.X + x * TileW;
                 double py = pixOff.Y + y * TileH;
 
-                if (NeighborAttr(map, x, y - 1, attrLayer) != attr)
-                    ctx.DrawLine(pen, new Point(px, py), new Point(px + TileW, py));
-                if (NeighborAttr(map, x, y + 1, attrLayer) != attr)
-                    ctx.DrawLine(pen, new Point(px, py + TileH), new Point(px + TileW, py + TileH));
-                if (NeighborAttr(map, x - 1, y, attrLayer) != attr)
-                    ctx.DrawLine(pen, new Point(px, py), new Point(px, py + TileH));
-                if (NeighborAttr(map, x + 1, y, attrLayer) != attr)
-                    ctx.DrawLine(pen, new Point(px + TileW, py), new Point(px + TileW, py + TileH));
+                if (NeighborAttr(map, x, y - 1, attrLayer) != attr) FillBand(ctx, brush, px, py, Side.Top, t);
+                if (NeighborAttr(map, x, y + 1, attrLayer) != attr) FillBand(ctx, brush, px, py, Side.Bottom, t);
+                if (NeighborAttr(map, x - 1, y, attrLayer) != attr) FillBand(ctx, brush, px, py, Side.Left, t);
+                if (NeighborAttr(map, x + 1, y, attrLayer) != attr) FillBand(ctx, brush, px, py, Side.Right, t);
             }
         }
     }
+
+    private static void FillBand(DrawingContext ctx, IBrush brush, double px, double py, Side side, double thickness) =>
+        ctx.FillRectangle(brush, AttributeBorderGeometry.Band(px, py, TileW, TileH, side, thickness));
 
     // Draws each placed light as a colored bulb dot plus a faint reach ring (radius in tiles → px).
     // Visible only in Light Sources mode; mirrors RenderAttributeBorders' per-cell overlay pattern.  Filtered to

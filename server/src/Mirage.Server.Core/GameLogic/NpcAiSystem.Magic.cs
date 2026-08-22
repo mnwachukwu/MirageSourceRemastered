@@ -51,7 +51,11 @@ public sealed partial class NpcAiSystem : GameSystem
         var victimLayer = npcVictimMn?.Layer ?? _pm[playerVictimIdx].Char.Layer;
         bool layerConnects = LayerLogic.LayerConnects(new ServerTileView(_world, castGrid), npcWX, npcWY, mn.Layer, tgtWX, tgtWY, victimLayer);
 
-        bool inMelee = layerConnects && WorldCoordHelper.IsWorldAdjacent(npcWX, npcWY, tgtWX, tgtWY);
+        int casterSize = npc.EffectiveSize;
+        int victimSize = npcVictimMn is not null ? _world.Npcs[npcVictimMn.Num].EffectiveSize : 1;
+        // Edge to edge, matching the melee gate: an oversize body is pinned when its EDGE touches, not when its
+        // anchor sits one tile off — which for a size-3 caster never happens, so it never counted itself pinned.
+        bool inMelee = layerConnects && WorldCoordHelper.AreFootprintsAdjacent(npcWX, npcWY, casterSize, tgtWX, tgtWY, victimSize);
 
         // Any tick we're NOT in melee resets the bail-out counter — the NPC successfully broke
         // off (even briefly), so retreat attempts start over fresh next time it's pinned.
@@ -95,8 +99,6 @@ public sealed partial class NpcAiSystem : GameSystem
 
         // Compute spell-range + LoS once — used both for the "cast at range" path and the
         // "hold at range during cooldown / between-roll" path below.
-        int casterSize = npc.EffectiveSize;
-        int victimSize = npcVictimMn is not null ? _world.Npcs[npcVictimMn.Num].EffectiveSize : 1;
         bool inSpellRange = WorldCoordHelper.IsInSpellRange(npcWX, npcWY, casterSize, tgtWX, tgtWY, victimSize);
         bool hasLoS = false;
         if (inSpellRange && layerConnects)

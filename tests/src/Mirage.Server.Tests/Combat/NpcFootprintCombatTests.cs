@@ -150,6 +150,71 @@ public class NpcFootprintCombatTests
             "a size-1 NPC still melees any Manhattan-1 neighbor regardless of facing");
     }
 
+    // ── NPC vs NPC reach (both sides can be oversize) ─────────────────────────
+    // Unlike the player gate, neither side here is guaranteed size 1. Two size-3 bodies whose edges touch sit
+    // three tiles apart anchor to anchor, so an anchor-distance gate refuses the swing while the pathing keeps
+    // trying to close — which is what made them shuffle around each other instead of fighting.
+
+    [Test]
+    public void Size3Npcs_TouchingEdges_CanAttackEachOther()
+    {
+        var (combat, world, _) = NewCombat();
+        world.Npcs[1].Size = 3;
+        world.Npcs[2].Size = 3;
+        var a = PlaceNpc(world, 1, 1, 5, 5);   // x 5..7, y 5..7
+        var b = PlaceNpc(world, 2, 2, 8, 5);   // x 8..10, y 5..7 — its left edge against a's right edge
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(WorldCoordHelper.WorldManhattan(5, 5, 8, 5), Is.EqualTo(3),
+                "a touching pair is 3 apart by anchor — the distance the old gate measured");
+            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b), Is.True, "touching edges are in reach");
+            Assert.That(combat.CanNpcAttackNpc(Map, b, Map, a), Is.True, "and reach reads the same from either body");
+        });
+    }
+
+    [Test]
+    public void Size3Npcs_WithAClearTileBetween_StillCannotAttack()
+    {
+        var (combat, world, _) = NewCombat();
+        world.Npcs[1].Size = 3;
+        world.Npcs[2].Size = 3;
+        var a = PlaceNpc(world, 1, 1, 5, 5);   // x 5..7
+        var b = PlaceNpc(world, 2, 2, 9, 5);   // x 9..11 — column 8 is empty between them
+
+        Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b), Is.False, "one clear tile of gap is out of reach");
+    }
+
+    [Test]
+    public void Size3Npcs_MeetingOnlyAtACorner_CannotAttack()
+    {
+        var (combat, world, _) = NewCombat();
+        world.Npcs[1].Size = 3;
+        world.Npcs[2].Size = 3;
+        var a = PlaceNpc(world, 1, 1, 5, 5);   // x 5..7, y 5..7
+        var b = PlaceNpc(world, 2, 2, 8, 8);   // x 8..10, y 8..10 — corner to corner only
+
+        Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b), Is.False, "melee is cardinal — a diagonal corner is not reach");
+    }
+
+    [Test]
+    public void Size1Npcs_ReachIsUnchanged()
+    {
+        var (combat, world, _) = NewCombat();
+        world.Npcs[1].Size = 1;
+        world.Npcs[2].Size = 1;
+        world.Npcs[3].Size = 1;
+        var a = PlaceNpc(world, 1, 1, 5, 5);
+        var neighbor = PlaceNpc(world, 2, 2, 5, 6);
+        var twoAway = PlaceNpc(world, 3, 3, 5, 7);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, neighbor), Is.True, "the classic one-tile neighbor");
+            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, twoAway), Is.False, "two tiles is still out of reach");
+        });
+    }
+
     // ── Cross-seam movement (the straddle enabler) ────────────────────────────
     [Test]
     public void Size2Npc_CanStepTowardSeam_LeadingEdgeValidatedOnNeighbor()

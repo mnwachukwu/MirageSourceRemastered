@@ -28,7 +28,12 @@ public sealed partial class CombatSystem : GameSystem
         var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, attackerMn.X, attackerMn.Y);
         var vw = WorldCoordHelper.ToWorldRelative(_world.Maps, attackerMap, victimMap, victimMn.X, victimMn.Y);
         if (vw is null) return false;
-        if (WorldCoordHelper.WorldManhattan(aWX, aWY, vw.Value.worldX, vw.Value.worldY) != 1) return false;
+        // Edge to edge, since either side may be oversize: two size-3 bodies touching sit 3 tiles apart anchor
+        // to anchor. Both sides are footprints here, unlike the player gate where the attacker is always size 1.
+        int attackerSize = _world.Npcs[attackerMn.Num].EffectiveSize;
+        int victimSize = _world.Npcs[victimMn.Num].EffectiveSize;
+        if (!WorldCoordHelper.AreFootprintsAdjacent(aWX, aWY, attackerSize, vw.Value.worldX, vw.Value.worldY, victimSize))
+            return false;
         // Two-layer connect: the attacker and the adjacent victim connect across layers only where a ramp bridges
         // them — a guard on the ground can't hit a mob up on the bridge (or vice-versa) unless one is on a ramp.
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);

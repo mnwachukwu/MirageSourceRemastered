@@ -79,6 +79,8 @@ public static class InputProcessor
             // CanEnter false => walking off a deck edge (fringe footprint doesn't fit): treat as blocked.
             bool blocked = !LayerLogic.CanEnter(new ClientTileView(state), WorldCoordHelper.MapTilesX + nx,
                                                  WorldCoordHelper.MapTilesY + ny, 1, me.Layer, dir.Value, out newLayer);
+            // A deck edge resolves no legal transition, so god mode keeps the plane it is already on.
+            if (blocked && me.GodMode) newLayer = me.Layer;
             if (!blocked)
             {
                 // Tile attribute at the RESULTING layer (a fringe railing blocks a fringe walker, not one below).
@@ -115,6 +117,11 @@ public static class InputProcessor
             // mirroring the server so a predicted step onto a big NPC's body is never rubber-banded.
             if (!blocked && state.IsTileNpcBlocked(state.CenterMapNum, nx, ny, newLayer))
                 blocked = true;
+
+            // God mode walks through walls, closed doors, NPCs and other players, matching the server's
+            // CanPlayerWalkOnTile. The prediction has to agree: a step it refuses sends no move packet at
+            // all, so the server-side exemption is never reached.
+            if (me.GodMode) blocked = false;
 
             if (blocked)
             {
@@ -157,7 +164,7 @@ public static class InputProcessor
             // confirms it, while a self move-correction (rejection) reverts us via a reload.
             int fromMap = state.CenterMapNum;
             int fromRev = state.Map.Revision;
-            var crossMovement = (input.Running && me.Sp > 0) ? MovementType.Running : MovementType.Walking;
+            var crossMovement = (input.Running && (me.Sp > 0 || me.GodMode)) ? MovementType.Running : MovementType.Walking;
             me.Dir = dir.Value;
             sender.SendPlayerMove(dir.Value, crossMovement);
 
@@ -181,7 +188,7 @@ public static class InputProcessor
             return;
         }
 
-        var movement = (input.Running && me.Sp > 0) ? MovementType.Running : MovementType.Walking;
+        var movement = (input.Running && (me.Sp > 0 || me.GodMode)) ? MovementType.Running : MovementType.Walking;
         sender.SendPlayerMove(dir.Value, movement);
         me.PredictMove(dir.Value, nx, ny, movement, newLayer);
     }
@@ -209,7 +216,12 @@ public static class InputProcessor
         int destWX = col * WorldCoordHelper.MapTilesX + dx;
         int destWY = row * WorldCoordHelper.MapTilesY + dy;
         if (!LayerLogic.CanEnter(new ClientTileView(state), destWX, destWY, 1, me.Layer, dir, out newLayer))
-            return true;
+        {
+            if (!me.GodMode) return true;
+            newLayer = me.Layer;
+        }
+        // Same pass-through as the in-map step: nothing on the far tile holds an observer.
+        if (me.GodMode) return false;
         var attrType = LayerLogic.AttrFor(map.Tile[dx, dy], newLayer).Type;
         if (attrType == TileType.Blocked) return true;
         if (attrType == TileType.Key && !state.NeighborTempTiles[col, row][dx, dy, (int)newLayer]) return true; // locked door on the resolved layer

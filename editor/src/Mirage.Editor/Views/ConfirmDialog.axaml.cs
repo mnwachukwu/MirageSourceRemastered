@@ -21,11 +21,11 @@ public partial class ConfirmDialog : Window
         this.FindControl<TextBlock>("MessageBlock")!.Text = message;
         var confirmBtn = this.FindControl<Button>("ConfirmButton")!;
         confirmBtn.Content = confirmText ?? EditorStrings.Get(EditorStrings.ConfirmDialog_OkButton);
-        confirmBtn.Click += (_, _) => Close(true);
+        confirmBtn.Click += (_, _) => this.CloseDeferred(true);
         confirmBtn.IsDefault = true;
         var cancelBtn = this.FindControl<Button>("CancelButton")!;
         cancelBtn.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
-        cancelBtn.Click += (_, _) => Close(false);
+        cancelBtn.Click += (_, _) => this.CloseDeferred(false);
         cancelBtn.IsCancel = true;
         // A notice has no Cancel to carry Esc, so the one remaining button answers both keys.
         if (alertOnly)

@@ -132,4 +132,60 @@ public class WorldCoordHelperFootprintTests
         // Shift B one further (anchor 8 → near edge col 8) → gap 6 → OUT.
         Assert.That(WorldCoordHelper.IsInSpellRange(0, 0, 3, 8, 0, 3), Is.False);
     }
+
+    // ── Edge-to-edge melee adjacency ──────────────────────────────────────────
+
+    /// <summary>Size 1 on both sides has to stay exactly the anchor rule it generalizes, or the oversize fix
+    /// quietly moves every ordinary mob's reach with it.</summary>
+    [Test]
+    public void AreFootprintsAdjacent_Size1_IsExactlyIsWorldAdjacent()
+    {
+        const int ax = 8, ay = 8;
+        for (int dy = -3; dy <= 3; dy++)
+        {
+            for (int dx = -3; dx <= 3; dx++)
+            {
+                Assert.That(WorldCoordHelper.AreFootprintsAdjacent(ax, ay, 1, ax + dx, ay + dy, 1),
+                    Is.EqualTo(WorldCoordHelper.IsWorldAdjacent(ax, ay, ax + dx, ay + dy)),
+                    $"offset ({dx},{dy})");
+            }
+        }
+    }
+
+    /// <summary>Two size-3 bodies standing face to face are THREE tiles apart anchor to anchor — the distance an
+    /// anchor-based gate reads as far away, which is why they could never reach each other.</summary>
+    [Test]
+    public void AreFootprintsAdjacent_Size3_ReachesOnlyWhereTheEdgesTouch()
+    {
+        const int ax = 4, ay = 6, size = 3;   // A spans x 4..6
+        Assert.Multiple(() =>
+        {
+            Assert.That(WorldCoordHelper.AreFootprintsAdjacent(ax, ay, size, ax + 2, ay, size), Is.False,
+                "anchors 2 apart means the bodies overlap — not a reach case at all");
+            Assert.That(WorldCoordHelper.AreFootprintsAdjacent(ax, ay, size, ax + 3, ay, size), Is.True,
+                "anchors 3 apart is edge to edge at size 3 — the touching case");
+            Assert.That(WorldCoordHelper.AreFootprintsAdjacent(ax, ay, size, ax + 4, ay, size), Is.False,
+                "anchors 4 apart leaves one clear tile between the bodies");
+        });
+    }
+
+    [Test]
+    public void AreFootprintsAdjacent_MixedSizes_ReadsTheSameFromEitherBody()
+    {
+        // A size-3 body at (4,6) spans x 4..6 / y 6..8; a size-1 body at (7,7) sits against its right edge.
+        Assert.Multiple(() =>
+        {
+            Assert.That(WorldCoordHelper.AreFootprintsAdjacent(4, 6, 3, 7, 7, 1), Is.True);
+            Assert.That(WorldCoordHelper.AreFootprintsAdjacent(7, 7, 1, 4, 6, 3), Is.True,
+                "symmetric, so neither body can reach one the other cannot reach back");
+        });
+    }
+
+    [Test]
+    public void AreFootprintsAdjacent_DiagonalCornerContact_IsNotReach()
+    {
+        // A spans x 4..6 / y 6..8; B's top-left corner meets A's bottom-right corner and nothing else.
+        Assert.That(WorldCoordHelper.AreFootprintsAdjacent(4, 6, 3, 7, 9, 3), Is.False,
+            "melee is cardinal — corner contact is not reach");
+    }
 }

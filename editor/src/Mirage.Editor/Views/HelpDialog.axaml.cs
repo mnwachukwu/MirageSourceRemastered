@@ -15,7 +15,7 @@ public partial class HelpDialog : Window
         if (e.Key == Key.Escape)
         {
             e.Handled = true;
-            Close();
+            this.CloseDeferred();
             return;
         }
         base.OnKeyDown(e);

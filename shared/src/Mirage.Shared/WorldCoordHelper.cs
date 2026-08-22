@@ -167,6 +167,18 @@ public static class WorldCoordHelper
     public static bool FootprintsOverlap(int aX, int aY, int aSize, int bX, int bY, int bSize)
         => RectAxisGap(aX, aSize, bX, bSize) == 0 && RectAxisGap(aY, aSize, bY, bSize) == 0;
 
+    /// <summary>True when two SxS footprints (top-left anchors A and B) touch orthogonally — one tile of gap on
+    /// one axis while the spans overlap on the other.  This is melee reach measured EDGE to EDGE: two size-3
+    /// bodies standing face to face sit 3 tiles apart anchor to anchor, so an anchor-distance test reads them as
+    /// far apart and neither can ever swing.  Symmetric in A and B, so reach is the same read from either body.
+    /// Size 1 on both sides is exactly <see cref="IsWorldAdjacent"/> — diagonals excluded.</summary>
+    public static bool AreFootprintsAdjacent(int aX, int aY, int aSize, int bX, int bY, int bSize)
+    {
+        int dx = RectAxisGap(aX, aSize, bX, bSize);
+        int dy = RectAxisGap(aY, aSize, bY, bSize);
+        return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
+    }
+
     /// <summary>The run of <paramref name="size"/> world tiles immediately beyond a footprint's leading
     /// edge in <paramref name="dir"/> - the tiles a size-S body would step INTO (movement validation) or
     /// STRIKE (melee) when facing/moving that way.  Anchor is the footprint's top-left tile.  For size 1

@@ -49,5 +49,5 @@ public partial class AboutDialog : Window
         catch { /* no browser configured / launcher refused */ }
     }
 
-    private void Close_Click(object? sender, RoutedEventArgs e) => Close();
+    private void Close_Click(object? sender, RoutedEventArgs e) => this.CloseDeferred();
 }
