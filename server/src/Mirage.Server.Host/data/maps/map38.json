@@ -1,7 +1,7 @@
 {
   "name": "The Kiln Road 1",
   "displayName": "",
-  "revision": 8,
+  "revision": 9,
   "up": 39,
   "down": 0,
   "left": 30,
@@ -1105,7 +1105,7 @@
       "npc": 16
     },
     {
-      "npc": 36
+      "npc": 44
     }
   ],
   "lights": []

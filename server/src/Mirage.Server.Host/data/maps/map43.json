@@ -1,11 +1,11 @@
 {
   "name": "The Kiln Road 6",
   "displayName": "",
-  "revision": 9,
+  "revision": 11,
   "up": 42,
   "down": 0,
   "left": 38,
-  "right": 0,
+  "right": 55,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,
@@ -1109,7 +1109,7 @@
       "npc": 17
     },
     {
-      "npc": 16
+      "npc": 17
     }
   ],
   "lights": []

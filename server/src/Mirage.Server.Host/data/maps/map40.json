@@ -1,7 +1,7 @@
 {
   "name": "The Kiln Road 3",
   "displayName": "",
-  "revision": 12,
+  "revision": 13,
   "up": 0,
   "down": 39,
   "left": 32,
@@ -1101,6 +1101,9 @@
   "npcs": [
     {
       "npc": 39
+    },
+    {
+      "npc": 44
     },
     {
       "npc": 44

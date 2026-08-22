@@ -1,11 +1,11 @@
 {
   "name": "The Kiln Road 5",
   "displayName": "",
-  "revision": 6,
+  "revision": 9,
   "up": 41,
   "down": 43,
   "left": 39,
-  "right": 0,
+  "right": 54,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,
@@ -972,8 +972,10 @@
     [
       {
         "ground": [
-          282
-        ]
+          282,
+          154
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -1040,7 +1042,10 @@
       "npc": 44
     },
     {
-      "npc": 36
+      "npc": 16
+    },
+    {
+      "npc": 16
     }
   ],
   "lights": []

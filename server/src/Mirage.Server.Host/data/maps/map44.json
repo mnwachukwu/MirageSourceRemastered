@@ -1,7 +1,7 @@
 {
   "name": "The Kiln Road 7",
   "displayName": "The Kiln Road, Sunken Path",
-  "revision": 8,
+  "revision": 9,
   "up": 0,
   "down": 0,
   "left": 45,
@@ -1143,10 +1143,7 @@
   ],
   "npcs": [
     {
-      "npc": 44
-    },
-    {
-      "npc": 44
+      "npc": 36
     }
   ],
   "lights": [
