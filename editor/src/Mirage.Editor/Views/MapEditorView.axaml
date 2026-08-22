@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
+             xmlns:mui="using:Mirage.Ui.Controls"
+             Grid.IsSharedSizeScope="True"
              x:Class="Mirage.Editor.Views.MapEditorView">
 
   <Grid RowDefinitions="*,Auto,Auto">
@@ -769,33 +771,33 @@
       <StackPanel Spacing="10" Width="260">
         <TextBlock x:Name="_warpTitle" FontSize="14" FontWeight="Bold"/>
         <StackPanel Spacing="8">
-          <Grid ColumnDefinitions="95,*">
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_warpMapLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox x:Name="_searchWarpMap" Grid.Column="1"
                              ItemsSource="{Binding MapEntries}"
                              SelectedItem="{Binding SelectedWarpMapEntry, Mode=TwoWay}"
                              ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                              FilterMode="Custom" MinimumPrefixLength="0"/>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_warpXLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding WarpX}"
                            Minimum="1" Maximum="15" FormatString="0"/>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_warpYLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding WarpY}"
                            Minimum="1" Maximum="11" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
           <!-- Two-plane world: which logical layer the warp delivers onto (Ground / the Fringe deck). -->
-          <Grid ColumnDefinitions="95,*">
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_warpLayerLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                       ItemsSource="{Binding AttributeLayers}" ItemTemplate="{StaticResource VocabularyItem}"
                       SelectedItem="{Binding WarpDestLayer, Mode=TwoWay}"/>
-          </Grid>
+          </mui:FormRow>
         </StackPanel>
         <CheckBox x:Name="_warpRetainCheck" IsChecked="{Binding WarpRetain}" Margin="0,4,0,0"/>
         <TextBlock Text="{Binding DialogError}"
@@ -817,7 +819,7 @@
             Padding="20" CornerRadius="8">
       <StackPanel Spacing="10" Width="280">
         <TextBlock x:Name="_npcSpawnTitle" FontSize="14" FontWeight="Bold"/>
-        <Grid ColumnDefinitions="60,*">
+        <mui:FormRow LabelWidth="60">
           <TextBlock x:Name="_npcSpawnSlotLabel" Grid.Column="0" VerticalAlignment="Center"/>
           <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
                     ItemsSource="{Binding NpcSpawnChoices}"
@@ -828,7 +830,7 @@
               </DataTemplate>
             </ComboBox.ItemTemplate>
           </ComboBox>
-        </Grid>
+        </mui:FormRow>
         <TextBlock Text="{Binding DialogError}"
                    Foreground="#FF6666" FontSize="11" TextWrapping="Wrap"
                    IsVisible="{Binding DialogError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
@@ -848,26 +850,26 @@
       <StackPanel Spacing="10" Width="260">
         <TextBlock x:Name="_itemTitle" FontSize="14" FontWeight="Bold"/>
         <StackPanel Spacing="8">
-          <Grid ColumnDefinitions="95,*">
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_itemItemLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox x:Name="_searchItemSpawn" Grid.Column="1"
                              ItemsSource="{Binding ItemEntries}"
                              SelectedItem="{Binding SelectedItemTileEntry, Mode=TwoWay}"
                              ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                              FilterMode="Custom" MinimumPrefixLength="0"/>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_itemQuantityLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding ItemTileQuantity}"
                            Minimum="1" Maximum="{Binding ItemTileQuantityMax}" FormatString="0"/>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_itemRespawnLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown x:Name="_itemRespawnInput" Grid.Column="1"
                            Value="{Binding ItemTileRespawnSeconds}"
                            Minimum="0" Maximum="32767" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
         </StackPanel>
         <CheckBox x:Name="_itemRetainCheck" IsChecked="{Binding ItemRetain}" Margin="0,4,0,0"/>
         <TextBlock Text="{Binding DialogError}"
@@ -890,28 +892,28 @@
       <StackPanel Spacing="10" Width="300">
         <TextBlock x:Name="_lightTitle" FontSize="14" FontWeight="Bold"/>
         <StackPanel Spacing="8">
-          <Grid ColumnDefinitions="95,*">
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_lightColorLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="6">
               <ColorPicker Grid.Column="0" Color="{Binding LightColor, Mode=TwoWay}"/>
               <TextBox Grid.Column="1" Text="{Binding LightColorHex, Mode=TwoWay}" VerticalAlignment="Center"/>
             </Grid>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_lightRadiusLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" Value="{Binding LightRadius}"
                            Minimum="0.5" Maximum="15" Increment="0.5" FormatString="0.0"/>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_lightIntensityLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1" Value="{Binding LightIntensity}"
                            Minimum="0" Maximum="100" Increment="5" FormatString="0"/>
-          </Grid>
-          <Grid ColumnDefinitions="95,*">
+          </mui:FormRow>
+          <mui:FormRow LabelWidth="95">
             <TextBlock x:Name="_lightFlickerLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1" ItemsSource="{Binding FlickerStyles}" ItemTemplate="{StaticResource VocabularyItem}"
                       SelectedItem="{Binding LightFlicker}" HorizontalAlignment="Stretch"/>
-          </Grid>
+          </mui:FormRow>
         </StackPanel>
         <CheckBox x:Name="_lightRetainCheck" IsChecked="{Binding LightRetain}" Margin="0,4,0,0"/>
         <TextBlock Text="{Binding DialogError}"
@@ -1036,16 +1038,16 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Grid ColumnDefinitions="70,*" ColumnSpacing="8" IsVisible="{Binding GroundStyleEnabled}">
+        <mui:FormRow LabelWidth="70" ColumnSpacing="8" IsVisible="{Binding GroundStyleEnabled}">
           <TextBlock x:Name="_animGroundStyleLabel" Grid.Column="0" VerticalAlignment="Center"/>
           <ComboBox Grid.Column="1" ItemsSource="{Binding AnimStyles}" ItemTemplate="{StaticResource VocabularyItem}" SelectedItem="{Binding GroundAnimStyle}"
                     HorizontalAlignment="Stretch"/>
-        </Grid>
-        <Grid ColumnDefinitions="70,*" ColumnSpacing="8" IsVisible="{Binding FringeStyleEnabled}">
+        </mui:FormRow>
+        <mui:FormRow LabelWidth="70" ColumnSpacing="8" IsVisible="{Binding FringeStyleEnabled}">
           <TextBlock x:Name="_animFringeStyleLabel" Grid.Column="0" VerticalAlignment="Center"/>
           <ComboBox Grid.Column="1" ItemsSource="{Binding AnimStyles}" ItemTemplate="{StaticResource VocabularyItem}" SelectedItem="{Binding FringeAnimStyle}"
                     HorizontalAlignment="Stretch"/>
-        </Grid>
+        </mui:FormRow>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
           <Button x:Name="_animCancel"  Command="{Binding CancelAnimCommand}"/>
           <Button x:Name="_animConfirm" Command="{Binding ConfirmAnimCommand}" IsDefault="True"/>

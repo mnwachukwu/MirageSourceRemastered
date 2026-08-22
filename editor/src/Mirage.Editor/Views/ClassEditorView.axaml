@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
+             xmlns:mui="using:Mirage.Ui.Controls"
+             Grid.IsSharedSizeScope="True"
              x:Class="Mirage.Editor.Views.ClassEditorView">
 
   <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
@@ -61,24 +63,24 @@
 
           <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <TextBox   Grid.Column="1" Text="{Binding SelectedClass.Name}" />
-          </Grid>
+          </mui:FormRow>
 
           <!-- The character-create screen shows this under the class list, on ONE line. Wrapping here
                is for the author's benefit while typing; the screen truncates and reveals on hover. -->
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_descLabel" Grid.Column="0" VerticalAlignment="Top" Margin="0,4,0,0"/>
             <TextBox x:Name="_descBox" Grid.Column="1"
                      Text="{Binding SelectedClass.Description}"
                      AcceptsReturn="False" TextWrapping="Wrap" MaxLength="120"/>
-          </Grid>
+          </mui:FormRow>
 
           <!-- One sprite per sex: the create screen previews whichever the player picked, and the choice
                is copied onto the character, so editing these restyles who is CREATED next, not who
                already plays this class. -->
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spriteMaleLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding SpriteEntries}"
@@ -100,9 +102,9 @@
                 </DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spriteFemaleLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding SpriteEntries}"
@@ -124,65 +126,65 @@
                 </DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_strLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedClass.Str}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_intLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedClass.Int}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_defLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedClass.Def}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spdLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedClass.Spd}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
           <Separator Margin="0,4,0,2" Background="{DynamicResource MirageLineSoftBrush}"/>
 
           <!-- Vital previews: theoretical fresh Lv.1 character of this class (playerStat = classStat) -->
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_maxHpLabel" Grid.Column="0" VerticalAlignment="Center"
                        Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedClass.LevelOneMaxHp}"
                        VerticalAlignment="Center"
                        Foreground="#88AAFF" FontWeight="SemiBold"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_maxMpLabel" Grid.Column="0" VerticalAlignment="Center"
                        Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedClass.LevelOneMaxMp}"
                        VerticalAlignment="Center"
                        Foreground="#88AAFF" FontWeight="SemiBold"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_maxSpLabel" Grid.Column="0" VerticalAlignment="Center"
                        Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedClass.LevelOneMaxSp}"
                        VerticalAlignment="Center"
                        Foreground="#88AAFF" FontWeight="SemiBold"/>
-          </Grid>
+          </mui:FormRow>
 
           <TextBlock x:Name="_startingStatsNote"
                      FontSize="11" Foreground="#6B6491" Margin="130,0,0,4"/>

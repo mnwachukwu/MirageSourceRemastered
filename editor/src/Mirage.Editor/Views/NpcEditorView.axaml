@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
+             xmlns:mui="using:Mirage.Ui.Controls"
+             Grid.IsSharedSizeScope="True"
              x:Class="Mirage.Editor.Views.NpcEditorView">
 
   <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
@@ -73,17 +75,17 @@
 
           <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_nameLabel"      Grid.Column="0" VerticalAlignment="Center"/>
             <TextBox   Grid.Column="1" Text="{Binding SelectedNpc.Name}" />
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_attackSayLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <TextBox   Grid.Column="1" Text="{Binding SelectedNpc.AttackSay}" />
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spriteLabel"    Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding SpriteEntries}"
@@ -105,30 +107,30 @@
                 </DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_sizeLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding NpcSizes}"
                       SelectedItem="{Binding SelectedNpcSize}"
                       HorizontalAlignment="Stretch"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spawnSecsLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.SpawnSecs}"
                            Minimum="0" Maximum="9999" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_behaviorLabel"  Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox  Grid.Column="1"
                        ItemsSource="{Binding Behaviors}"
                        SelectedItem="{Binding SelectedNpc.Behavior}"
                        HorizontalAlignment="Stretch"/>
-          </Grid>
+          </mui:FormRow>
 
           <!-- Boss flag — an author classification (not derived from HP/size); gives guild quests a compressed
                kill count for this NPC so "kill hundreds of bosses" can't happen. See NpcRecord.IsBoss. -->
@@ -145,45 +147,45 @@
 
               <!-- Light config — visible only while Emits Light is checked -->
               <StackPanel IsVisible="{Binding SelectedNpc.LightBlockVisible}" Spacing="6">
-                <Grid ColumnDefinitions="130,*">
+                <mui:FormRow LabelWidth="130">
                   <TextBlock x:Name="_lightColorLabel" Grid.Column="0" VerticalAlignment="Center"/>
                   <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="6">
                     <ColorPicker Grid.Column="0" Color="{Binding SelectedNpc.LightColor, Mode=TwoWay}"/>
                     <TextBox Grid.Column="1" Text="{Binding SelectedNpc.LightColorHex, Mode=TwoWay}" VerticalAlignment="Center"/>
                   </Grid>
-                </Grid>
-                <Grid ColumnDefinitions="130,*">
+                </mui:FormRow>
+                <mui:FormRow LabelWidth="130">
                   <TextBlock x:Name="_lightRadiusLabel" Grid.Column="0" VerticalAlignment="Center"/>
                   <NumericUpDown Grid.Column="1" Value="{Binding SelectedNpc.LightRadius}"
                                  Minimum="0.5" Maximum="15" Increment="0.5" FormatString="0.0"/>
-                </Grid>
-                <Grid ColumnDefinitions="130,*">
+                </mui:FormRow>
+                <mui:FormRow LabelWidth="130">
                   <TextBlock x:Name="_lightIntensityLabel" Grid.Column="0" VerticalAlignment="Center"/>
                   <NumericUpDown Grid.Column="1" Value="{Binding SelectedNpc.LightIntensity}"
                                  Minimum="0" Maximum="100" Increment="5" FormatString="0"/>
-                </Grid>
-                <Grid ColumnDefinitions="130,*">
+                </mui:FormRow>
+                <mui:FormRow LabelWidth="130">
                   <TextBlock x:Name="_lightFlickerLabel" Grid.Column="0" VerticalAlignment="Center"/>
                   <ComboBox Grid.Column="1" ItemsSource="{Binding FlickerStyles}" ItemTemplate="{StaticResource VocabularyItem}"
                             SelectedItem="{Binding SelectedNpc.LightFlicker}" HorizontalAlignment="Stretch"/>
-                </Grid>
+                </mui:FormRow>
               </StackPanel>
             </StackPanel>
           </Border>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_groupLabel"     Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.Group}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_rangeLabel"     Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.Range}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
     <!-- Drop table. A child table like the quest editor's rewards: every line is an item, a
          quantity (currency only) and a chance, and each rolls INDEPENDENTLY on a kill — which is
@@ -196,11 +198,11 @@
     <Border BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,8,0,0">
       <StackPanel Spacing="4">
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_dropTableLabel" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold"/>
             <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.DropYieldText}"
                        Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
-          </Grid>
+          </mui:FormRow>
 
           <!-- Column headers: three unlabeled number boxes in a row is a guessing game, and quantity
                only applies to currency, which is impossible to infer from a disabled spinner alone. -->
@@ -247,63 +249,63 @@
       </StackPanel>
     </Border>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_strLabel"       Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.Str}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_intLabel"      Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.Int}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_defLabel"       Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.Def}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spdLabel"     Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.Spd}"
                            Minimum="0" Maximum="255" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_extraHpLabel"  Grid.Column="0" VerticalAlignment="Center"/>
             <NumericUpDown Grid.Column="1"
                            Value="{Binding SelectedNpc.ExtraHp}"
                            Minimum="0" Maximum="1000000" Increment="10" FormatString="0"/>
-          </Grid>
+          </mui:FormRow>
           <TextBlock x:Name="_extraHpNote" Foreground="#8B84AE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 
           <Separator Margin="0,4,0,2" Background="{DynamicResource MirageLineSoftBrush}"/>
 
           <!-- Stat-budget preview — raw total + Total Level (all stats incl SPD) and Combat Level (Str+Def+Int
                only) so designers can size the whole NPC AND its combat toughness against the player curve. -->
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_totalStatsLabel" Grid.Column="0" VerticalAlignment="Center"
                        Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedNpc.StatTotal}"
                        VerticalAlignment="Center"
                        Foreground="#CCCCFF" FontWeight="SemiBold"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="130,*">
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_equivLevelLabel" Grid.Column="0" VerticalAlignment="Center"
                        Foreground="#8B84AE" FontStyle="Italic"/>
             <TextBlock Grid.Column="1"
                        Text="{Binding SelectedNpc.Level}"
                        VerticalAlignment="Center"
                        Foreground="#CCCCFF" FontWeight="SemiBold"/>
-          </Grid>
+          </mui:FormRow>
 
           <TextBlock x:Name="_levelNote" Foreground="#8B84AE" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2"/>
 

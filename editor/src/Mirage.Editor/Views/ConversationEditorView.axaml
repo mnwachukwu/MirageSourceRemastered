@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
+             xmlns:mui="using:Mirage.Ui.Controls"
+             Grid.IsSharedSizeScope="True"
              x:Class="Mirage.Editor.Views.ConversationEditorView">
 
   <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
@@ -62,21 +64,21 @@
         <StackPanel Grid.Row="0" Margin="16,16,16,0" Spacing="8">
           <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>
 
-          <Grid ColumnDefinitions="110,*">
+          <mui:FormRow LabelWidth="110">
             <TextBlock x:Name="_nameLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <TextBox   Grid.Column="1" Text="{Binding SelectedConversation.Name}" />
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="110,*">
+          <mui:FormRow LabelWidth="110">
             <TextBlock x:Name="_speakerLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox Grid.Column="1"
                              ItemsSource="{Binding SelectedConversation.NpcEntries}"
                              SelectedItem="{Binding SelectedConversation.SelectedSpeaker, Mode=TwoWay}"
                              ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                              FilterMode="Custom" MinimumPrefixLength="0"/>
-          </Grid>
+          </mui:FormRow>
 
-          <Grid ColumnDefinitions="110,*">
+          <mui:FormRow LabelWidth="110">
             <TextBlock x:Name="_rootLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox Grid.Column="1"
                              ItemsSource="{Binding SelectedConversation.RootNodeEntries}"
@@ -84,7 +86,7 @@
                              ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                              FilterMode="Custom" MinimumPrefixLength="0"
                              PlaceholderText="{Binding SelectedConversation.RootNodePlaceholder}"/>
-          </Grid>
+          </mui:FormRow>
 
           <!-- The same nodes, two ways to read them: the branching picture, or a stack of cards. -->
           <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">

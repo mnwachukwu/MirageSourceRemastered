@@ -3,6 +3,8 @@
              xmlns:proto="using:Mirage.Shared.Protocol.Packets"
              xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
+             xmlns:mui="using:Mirage.Ui.Controls"
+             Grid.IsSharedSizeScope="True"
              x:Class="Mirage.Editor.Views.AccountEditorView">
 
   <!-- The only ONLINE-ONLY section. Accounts live on the server, so there is nothing to show against a
@@ -14,7 +16,7 @@
                Foreground="{DynamicResource MirageMutedBrush}" TextWrapping="Wrap"
                IsVisible="{Binding IsOffline}"/>
 
-    <Grid Grid.Row="1" ColumnDefinitions="300,*" IsVisible="{Binding !IsOffline}">
+    <mui:FormRow Grid.Row="1" LabelWidth="300" IsVisible="{Binding !IsOffline}">
 
       <!-- ── Browser ── -->
       <DockPanel Grid.Column="0" Background="{DynamicResource MirageBgAltBrush}">
@@ -395,6 +397,6 @@
           </DockPanel>
         </Border>
       </Grid>
-    </Grid>
+    </mui:FormRow>
   </Grid>
 </UserControl>
