@@ -65,6 +65,7 @@
   "Tooltip_Drains": "Drena",
   "Tooltip_Quantity": "Quantidade",
   "Tooltip_ClassReq": "Classe exigida",
+  "NumberPrompt_OverMax": "Isso é mais do que você pode levar. O máximo é {Max}.",
   "Tooltip_LevelReq": "Nível requerido",
   "Tooltip_Teaches": "Ensina: {SpellName}",
   "Tooltip_MpCost": "Custo de PM",

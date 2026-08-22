@@ -86,10 +86,24 @@ public sealed partial class CombatSystem : GameSystem
         AttackNpc(attacker, mapNum, _world.MapNpcs[mapNum, npcSlot], npcSlot, dmg, isCrit);
     }
 
+    /// <summary>Gate, strike, stamp — for a caller holding nothing but an intent to hit. A caller that has
+    /// already passed <see cref="CanAttackNpc"/> and already stamped the beat wants <see cref="StrikeNpc"/>
+    /// instead.</summary>
     public void AttackNpc(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, bool isCrit = false)
     {
         if (!CanAttackNpc(attacker, mapNum, mapNpc, npcSlot, out _)) return;
+        StrikeNpc(attacker, mapNum, mapNpc, npcSlot, dmg, isCrit);
+        _pm[attacker].AttackTimer = Environment.TickCount64;
+    }
 
+    /// <summary>Lands a melee hit whose gate has already been checked and whose beat has already been paid.
+    ///
+    /// <para>Separate from <see cref="AttackNpc"/> because the cooldown is BOTH a gate and a consequence of
+    /// swinging. The swing path stamps it up front so every outcome pays it, which puts the attacker on
+    /// cooldown before the damage is applied — so a second reading of <see cref="CanAttackNpc"/> here would
+    /// refuse the very hit that stamp was made for, and the swing would land nothing.</para></summary>
+    private void StrikeNpc(int attacker, int mapNum, MapNpcRecord mapNpc, int npcSlot, int dmg, bool isCrit)
+    {
         var ap = _pm[attacker].Char;
         int weapNum = ap.WeaponSlot > 0 ? ap.Inv[ap.WeaponSlot].Num : 0;
         string weap = weapNum > 0 ? _world.Items[weapNum].TrimmedName : "";
@@ -97,7 +111,6 @@ public sealed partial class CombatSystem : GameSystem
         bool isGuard = _world.Npcs[mapNpc.Num].Behavior == NpcBehavior.Guard;
         BreakGraceForCombat(attacker, involvesPlayerOrGuard: isGuard);
         ExecuteNpcDamage(attacker, mapNum, mapNpc, npcSlot, dmg, weap, isCrit);
-        _pm[attacker].AttackTimer = Environment.TickCount64;
     }
 
     /// <summary>Apply pre-computed spell damage to an NPC without adjacency or behavior checks.

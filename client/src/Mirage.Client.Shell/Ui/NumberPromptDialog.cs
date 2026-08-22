@@ -39,16 +39,30 @@ public sealed class NumberPromptDialog
     private int _max;
     private Action<int>? _onConfirm;
 
+    // Whether an over-max entry is refused rather than quietly reduced, and the line shown when it is.
+    private bool _rejectOverMax;
+    private string? _warning;
+
     /// <summary>Open the dialog. <paramref name="actionLabel"/> is the top line (e.g.
     /// "Deposit item:"), <paramref name="subjectLabel"/> the second line (e.g. the item name).
     /// <paramref name="max"/> is shown in the "Amount (max N):" prompt and clamps the entered
     /// value; values outside 1..max silently cancel on confirm (existing convention).</summary>
-    public void Open(string actionLabel, string subjectLabel, int max, Action<int> onConfirm)
+    /// <param name="rejectOverMax">Refuse an entry above <paramref name="max"/> and say so, instead of
+    /// silently sending <paramref name="max"/>.
+    /// <para>Which mode a site wants follows from what its maximum MEANS. A cap on what EXISTS — the coins
+    /// in the vault, the copies in the bag — clamps: "sell 100" of a stack of five plainly means all five,
+    /// and substituting it answers the question asked. A cap on what FITS — bag room on a purchase or a
+    /// barter — rejects: buying thirty-three potions is not buying fifty, and quietly doing the smaller
+    /// one answers a question nobody asked.</para></param>
+    public void Open(string actionLabel, string subjectLabel, int max, Action<int> onConfirm,
+                     bool rejectOverMax = false)
     {
         _actionLabel = actionLabel;
         _subjectLabel = subjectLabel;
         _max = max;
         _onConfirm = onConfirm;
+        _rejectOverMax = rejectOverMax;
+        _warning = null;
         _amountField.SetText("1");
         IsOpen = true;
     }
@@ -57,6 +71,7 @@ public sealed class NumberPromptDialog
     {
         IsOpen = false;
         _onConfirm = null;
+        _warning = null;
     }
 
     public void Update(InputState input, Rectangle hostBounds, long nowMs)
@@ -69,12 +84,20 @@ public sealed class NumberPromptDialog
 
         if (_confirmBtn.IsClicked(input))
         {
-            // Clamp (not reject) when the user enters more than they have. Entering 20 when 10
-            // are available sends 10, so the request flows through the same partial-move path as
-            // server-side capacity clamping. Rejecting would also trip server hacking detection
-            // on Drop currency, which validates Value > inv.Value.
+            // Clamp (not reject) is the default: entering 20 when 10 are available sends 10, so the
+            // request flows through the same partial-move path as server-side capacity clamping, and
+            // rejecting would trip server hacking detection on Drop currency, which validates
+            // Value > inv.Value. A caller that opts into rejection gets told instead, because there the
+            // smaller number is a different request rather than a lesser one.
             if (int.TryParse(_amountField.Text, out int amt) && amt >= 1)
+            {
+                if (_rejectOverMax && amt > _max)
+                {
+                    _warning = ClientStrings.Format(ClientStrings.NumberPrompt_OverMax, ("Max", _max));
+                    return;
+                }
                 _onConfirm?.Invoke(Math.Min(amt, _max));
+            }
             Close();
             return;
         }
@@ -113,6 +136,13 @@ public sealed class NumberPromptDialog
         UiHelper.DrawLabel(sb, font, _subjectLabel, new Vector2(hostBounds.X + TextX, textY), Color.White, hostBounds.Width - TextInset);
         textY += AmountPromptGap;
         UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.BankPanel_AmountPrompt, ("Max", _max)), new Vector2(hostBounds.X + TextX, textY), Color.Yellow, hostBounds.Width - TextInset);
+
+        // Sits under the maximum it refers to, so the number and the objection to it read together.
+        if (_warning is not null)
+        {
+            textY += LineGap;
+            UiHelper.DrawLabel(sb, font, _warning, new Vector2(hostBounds.X + TextX, textY), Color.OrangeRed, hostBounds.Width - TextInset);
+        }
 
         _amountField.Draw(sb, font, _amountFieldRect, focused: true, nowMs);
         _confirmBtn.Draw(sb, font, _input);

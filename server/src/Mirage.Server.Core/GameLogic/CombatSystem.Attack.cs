@@ -203,7 +203,7 @@ public sealed partial class CombatSystem : GameSystem
 
         if (damage > 0)
         {
-            AttackNpc(index, mapNum, mapNpcR, npcSlot, damage, isCrit: wasCrit);
+            StrikeNpc(index, mapNum, mapNpcR, npcSlot, damage, isCrit: wasCrit);
         }
         else
         {

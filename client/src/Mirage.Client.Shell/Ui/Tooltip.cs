@@ -335,26 +335,40 @@ public static class Tooltip
         string mp = ClientStrings.Get(ClientStrings.Stats_Mp);
         string sp = ClientStrings.Get(ClientStrings.Stats_Sp);
 
+        // What the item DOES prints here; what it COSTS you to qualify prints after. The stat gate is
+        // captured rather than added, so it can join the level and class gates in the block below.
+        string? statReqLabel = null;
+        string statReqValue = "";
+        bool meetsStatReq = false;
+
         switch (item.Type)
         {
             case ItemType.Weapon when item.Power > 0:
                 int weaponStrReq = CombatFormulas.GearStatRequirement(item.Power, classStr);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_StrReq), UiHelper.FormatRequirement(item.Power, weaponStrReq), meStr >= weaponStrReq ? GoodColor : WarnColor));
+                statReqLabel = ClientStrings.Get(ClientStrings.Tooltip_StrReq);
+                statReqValue = UiHelper.FormatRequirement(item.Power, weaponStrReq);
+                meetsStatReq = meStr >= weaponStrReq;
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_PDmg), $"+{CombatFormulas.WeaponContribution(item.Power, meStr)}", ValueColor));
                 break;
             case ItemType.Armor when item.Power > 0:
                 int armorDefReq = CombatFormulas.GearStatRequirement(item.Power, classDef);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Power, armorDefReq), meDef >= armorDefReq ? GoodColor : WarnColor));
+                statReqLabel = ClientStrings.Get(ClientStrings.Tooltip_DefReq);
+                statReqValue = UiHelper.FormatRequirement(item.Power, armorDefReq);
+                meetsStatReq = meDef >= armorDefReq;
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Power, meDef)}", ValueColor));
                 break;
             case ItemType.Helmet when item.Power > 0:
                 int helmetDefReq = CombatFormulas.GearStatRequirement(item.Power, classDef);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Power, helmetDefReq), meDef >= helmetDefReq ? GoodColor : WarnColor));
+                statReqLabel = ClientStrings.Get(ClientStrings.Tooltip_DefReq);
+                statReqValue = UiHelper.FormatRequirement(item.Power, helmetDefReq);
+                meetsStatReq = meDef >= helmetDefReq;
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.GearMitigation(item.Power, meDef)}", ValueColor));
                 break;
             case ItemType.Shield when item.Power > 0:
                 int shieldDefReq = CombatFormulas.GearStatRequirement(item.Power, classDef);
-                _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_DefReq), UiHelper.FormatRequirement(item.Power, shieldDefReq), meDef >= shieldDefReq ? GoodColor : WarnColor));
+                statReqLabel = ClientStrings.Get(ClientStrings.Tooltip_DefReq);
+                statReqValue = UiHelper.FormatRequirement(item.Power, shieldDefReq);
+                meetsStatReq = meDef >= shieldDefReq;
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Stats_Mit), $"+{CombatFormulas.ShieldMitigation(item.Power, meDef)}", ValueColor));
                 break;
             case ItemType.PotionAddHp when item.VitalAmount > 0:
@@ -380,8 +394,18 @@ public static class Tooltip
                 break;
         }
 
-        // An equipment class gate may name several classes; they render as one comma-joined line, green
-        // when the wearer is among them.
+        // The gates, in one order everywhere they are shown: level, then stat, then class. A class gate may
+        // name several classes and renders as one comma-joined line.
+        if (item.LevelReq > 0)
+        {
+            bool meetsLevel = me is not null && me.Level >= item.LevelReq;
+            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_LevelReq),
+                item.LevelReq.ToString(), meetsLevel ? GoodColor : WarnColor));
+        }
+
+        if (statReqLabel is not null)
+            _lines.Add(new Line(statReqLabel, statReqValue, meetsStatReq ? GoodColor : WarnColor));
+
         if (isEquip && ClassGate.IsRestricted(item.AllowedClasses))
         {
             string names = ClassGate.Describe(item.AllowedClasses, classes);
@@ -390,15 +414,6 @@ public static class Tooltip
                 bool meetsClass = me != null && ClassGate.Allows(item.AllowedClasses, me.Class);
                 _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_ClassReq), names, meetsClass ? GoodColor : WarnColor));
             }
-        }
-
-        // Level gate, last because it is the one requirement that resolves itself just by playing — a red
-        // STR line means respec or find something lighter, a red level line means come back later.
-        if (item.LevelReq > 0)
-        {
-            bool meetsLevel = me is not null && me.Level >= item.LevelReq;
-            _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_LevelReq),
-                item.LevelReq.ToString(), meetsLevel ? GoodColor : WarnColor));
         }
 
         // ── The spell half of a scroll ────────────────────────────────────────
@@ -505,17 +520,18 @@ public static class Tooltip
             _lines.Add(new Line(effectLabel, $"+{amount}", ValueColor));
         }
 
-        bool meetsInt = me?.Int >= intReq;
-        _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_IntReq), UiHelper.FormatRequirement(CombatFormulas.RawSpellRequirement(spell), intReq), meetsInt ? GoodColor : WarnColor));
-
-        // Checked on learn AND on every cast, so it belongs on the tooltip beside the INT line rather
-        // than only in the shop: a delevel can put a spell you already know out of reach.
+        // Level, stat, class — the same order the item tooltip reads in, after the effect above. Level is
+        // checked on learn AND on every cast, so it belongs here rather than only in the shop: a delevel can
+        // put a spell you already know out of reach.
         if (spell.LevelReq > 0)
         {
             bool meetsLevel = me is not null && me.Level >= spell.LevelReq;
             _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_LevelReq),
                 spell.LevelReq.ToString(), meetsLevel ? GoodColor : WarnColor));
         }
+
+        bool meetsInt = me?.Int >= intReq;
+        _lines.Add(new Line(ClientStrings.Get(ClientStrings.Tooltip_IntReq), UiHelper.FormatRequirement(CombatFormulas.RawSpellRequirement(spell), intReq), meetsInt ? GoodColor : WarnColor));
 
         if (ClassGate.IsRestricted(spell.AllowedClasses))
         {

@@ -626,11 +626,14 @@ public sealed class ShopPanel : IGamePanel
         if (max <= 1) return false;          // one at a time is the plain confirm, not a prompt
 
         int slot = _pendingBuySlot;
+        // Refused rather than reduced: asking for fifty with room for thirty-three is a question about
+        // fifty, and quietly buying thirty-three answers a question nobody asked.
         _prompt.Open(
             ClientStrings.Get(ClientStrings.ShopPanel_BuyHowMany),
             EachLine(item.Name, item.Price),
             max,
-            amount => sender.SendShopBuy(state.ActiveShopNum, slot, amount));
+            amount => sender.SendShopBuy(state.ActiveShopNum, slot, amount),
+            rejectOverMax: true);
         return true;
     }
 
@@ -663,7 +666,8 @@ public sealed class ShopPanel : IGamePanel
                 ("Give", $"{give?.Name?.TrimEnd() ?? "?"} x{row.GiveQuantity}"),
                 ("Get", $"{(row.GetItem <= state.Limits.Items ? state.Items[row.GetItem]?.Name?.TrimEnd() : null) ?? "?"} x{row.GetQuantity}")),
             max,
-            amount => sender.SendShopBarter(state.ActiveShopNum, slot, amount));
+            amount => sender.SendShopBarter(state.ActiveShopNum, slot, amount),
+            rejectOverMax: true);
         return true;
     }
 
@@ -861,20 +865,6 @@ public sealed class ShopPanel : IGamePanel
             ? state.Classes[me.Class] : null;
         int classInt = myClass?.Int ?? 0;
 
-        // The level gate, directly under the name: this is the last screen before gold changes hands, and
-        // buying a piece you cannot wear for another eighty levels is the one mistake the confirm exists to
-        // catch. Red when unmet, and shown either way so the number is never a surprise on equip.
-        // A scroll's gate lives on the spell it teaches — see ItemRecord.EffectiveLevelReq.
-        int levelReq = ItemRecord.EffectiveLevelReq(get, spell);
-        if (levelReq > 0)
-        {
-            bool meetsLevel = me is not null && me.Level >= levelReq;
-            UiHelper.DrawLabel(sb, font,
-                ClientStrings.Format(ClientStrings.ShopPanel_LevelReq, ("Level", levelReq)),
-                new Vector2(c.X + 8, textY), meetsLevel ? Color.LightGreen : Color.OrangeRed, c.Width - 16);
-            textY += 18;
-        }
-
         if (spell is not null)
         {
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_TeachesSpell, ("SpellName", spell.Name?.Trim() ?? "?")), new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
@@ -940,6 +930,43 @@ public sealed class ShopPanel : IGamePanel
             textY += 18;
         }
 
+        // Contribution preview — DMG for weapons, MIT for armor/helmet/shield (one universal axis).
+        // Computed against the local player's CURRENT stats, so the same item shows different numbers as
+        // Str/Def grow — matches the inventory/equip-card readout. Its own pass, ahead of every gate:
+        // what the piece gives you is what the screen is for.
+        if (isEquip && get!.Power > 0)
+        {
+            int meStr = me?.Str ?? 0;
+            int meDef = me?.Def ?? 0;
+            string mit = ClientStrings.Get(ClientStrings.Stats_Mit);
+            string contribText = get.Type switch
+            {
+                ItemType.Weapon => $"{ClientStrings.Get(ClientStrings.Stats_PDmg)}: +{CombatFormulas.WeaponContribution(get.Power, meStr)}",
+                ItemType.Armor or ItemType.Helmet => $"{mit}: +{CombatFormulas.GearMitigation(get.Power, meDef)}",
+                ItemType.Shield => $"{mit}: +{CombatFormulas.ShieldMitigation(get.Power, meDef)}",
+                _ => "",
+            };
+            if (contribText.Length > 0)
+            {
+                UiHelper.DrawLabel(sb, font, contribText, new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
+                textY += 18;
+            }
+        }
+
+        // The gates, in the order every surface shows them: level, then stat, then class. Level is stated
+        // whether or not it is met — this is the last screen before gold changes hands, and a piece you
+        // cannot wear for another eighty levels is the mistake the confirm exists to catch. A scroll's gate
+        // lives on the spell it teaches, see ItemRecord.EffectiveLevelReq.
+        int levelReq = ItemRecord.EffectiveLevelReq(get, spell);
+        if (levelReq > 0)
+        {
+            bool meetsLevel = me is not null && me.Level >= levelReq;
+            UiHelper.DrawLabel(sb, font,
+                ClientStrings.Format(ClientStrings.ShopPanel_LevelReq, ("Level", levelReq)),
+                new Vector2(c.X + 8, textY), meetsLevel ? Color.LightGreen : Color.OrangeRed, c.Width - 16);
+            textY += 18;
+        }
+
         bool meetsStat = true;
         if (isEquip && get!.Power > 0)
         {
@@ -956,25 +983,6 @@ public sealed class ShopPanel : IGamePanel
             var color = meetsStat ? Color.LightGreen : Color.OrangeRed;
             UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.ShopPanel_StatRequirement, ("Stat", label), ("Value", UiHelper.FormatRequirement(get.Power, statReq))), new Vector2(c.X + 8, textY), color, c.Width - 16);
             textY += 18;
-
-            // Contribution preview — DMG for weapons, MIT for armor/helmet/shield (one universal axis).
-            // Computed against the local player's CURRENT stats, so the same item shows different
-            // numbers as Str/Def grow — matches the inventory/equip-card readout.
-            int meStr = me?.Str ?? 0;
-            int meDef = me?.Def ?? 0;
-            string mit = ClientStrings.Get(ClientStrings.Stats_Mit);
-            string contribText = get.Type switch
-            {
-                ItemType.Weapon => $"{ClientStrings.Get(ClientStrings.Stats_PDmg)}: +{CombatFormulas.WeaponContribution(get.Power, meStr)}",
-                ItemType.Armor or ItemType.Helmet => $"{mit}: +{CombatFormulas.GearMitigation(get.Power, meDef)}",
-                ItemType.Shield => $"{mit}: +{CombatFormulas.ShieldMitigation(get.Power, meDef)}",
-                _ => "",
-            };
-            if (contribText.Length > 0)
-            {
-                UiHelper.DrawLabel(sb, font, contribText, new Vector2(c.X + 8, textY), Color.Cyan, c.Width - 16);
-                textY += 18;
-            }
         }
 
         // Equipment carries a class gate of its own, and the server enforces it on equip. Stated here as
