@@ -23,15 +23,22 @@ public sealed class RecentWorldViewModel(string path, Func<string, Task> open)
 
     public IAsyncRelayCommand OpenCommand { get; } = new AsyncRelayCommand(() => open(path));
 
+    // Both separators on every platform. The list is a settings file that travels, and the running OS is
+    // no guide to which slash the path it holds was written with.
+    private static readonly char[] Separators = ['\\', '/'];
+
     private static string Shorten(string path, int max)
     {
         if (path.Length <= max) return path;
 
-        string leaf = System.IO.Path.GetFileName(path.TrimEnd(
-            System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar));
+        string trimmed = path.TrimEnd(Separators);
+        int cut = trimmed.LastIndexOfAny(Separators);
+        string leaf = cut < 0 ? trimmed : trimmed[(cut + 1)..];
+        char separator = cut < 0 ? System.IO.Path.DirectorySeparatorChar : trimmed[cut];
+
         // The leaf alone can be longer than the budget, in which case there is no head to keep.
         int head = max - leaf.Length - 4;
         return head < 4 ? string.Concat("...", leaf[Math.Max(0, leaf.Length - max + 3)..])
-                        : $"{path[..head]}...{System.IO.Path.DirectorySeparatorChar}{leaf}";
+                        : $"{path[..head]}...{separator}{leaf}";
     }
 }

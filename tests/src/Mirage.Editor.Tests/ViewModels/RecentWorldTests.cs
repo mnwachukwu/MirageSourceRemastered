@@ -27,16 +27,18 @@ public class RecentWorldTests
         });
     }
 
-    [Test]
-    public void ALongPath_IsShortenedButKeepsItsFolder()
+    /// <summary>Both separators are handled on every platform. The recent list is a settings file that
+    /// travels, so the running OS says nothing about which slash the path it holds was written with.</summary>
+    [TestCase(@"D:\Repos\MirageSourceRemastered\server\src\Mirage.Server.Host\data\brightwater", @"D:\Repos")]
+    [TestCase("/home/matt/repos/MirageSourceRemastered/server/src/Mirage.Server.Host/data/brightwater", "/home/matt")]
+    public void ALongPath_IsShortenedButKeepsItsFolder(string path, string root)
     {
-        string path = @"D:\Repos\MirageSourceRemastered\server\src\Mirage.Server.Host\data\brightwater";
         var row = Row(path);
 
         Assert.Multiple(() =>
         {
             Assert.That(row.DisplayPath, Does.EndWith("brightwater"), "the folder is what names the world");
-            Assert.That(row.DisplayPath, Does.StartWith(@"D:\Repos"), "the root tells two checkouts apart");
+            Assert.That(row.DisplayPath, Does.StartWith(root), "the root tells two checkouts apart");
             Assert.That(row.DisplayPath, Does.Contain("..."));
             Assert.That(row.DisplayPath, Has.Length.LessThanOrEqualTo(48));
             Assert.That(row.Path, Is.EqualTo(path), "the whole path is still there for the tooltip");
@@ -57,10 +59,11 @@ public class RecentWorldTests
         });
     }
 
-    [Test]
-    public void ATrailingSeparator_DoesNotCostTheFolderName()
+    [TestCase(@"D:\Repos\MirageSourceRemastered\server\src\Mirage.Server.Host\data\brightwater\")]
+    [TestCase("/home/matt/repos/MirageSourceRemastered/server/src/Mirage.Server.Host/data/brightwater/")]
+    public void ATrailingSeparator_DoesNotCostTheFolderName(string path)
     {
-        var row = Row(@"D:\Repos\MirageSourceRemastered\server\src\Mirage.Server.Host\data\brightwater\");
+        var row = Row(path);
 
         Assert.That(row.DisplayPath, Does.EndWith("brightwater"));
     }
