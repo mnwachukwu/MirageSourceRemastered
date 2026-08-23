@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Mirage.Editor.Views.WorldSettingsDialog"
+        Width="460" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+  <DockPanel Margin="20" Grid.IsSharedSizeScope="True">
+
+    <TextBlock DockPanel.Dock="Top" Text="{Binding Intro}"
+               TextWrapping="Wrap" Margin="0,0,0,12"
+               Foreground="{DynamicResource MirageMutedBrush}" FontSize="12"/>
+
+    <Border DockPanel.Dock="Top" Margin="0,0,0,12" Padding="10,8" CornerRadius="4"
+            IsVisible="{Binding !IsConfigurable}"
+            Background="{DynamicResource MirageBgAltBrush}"
+            BorderBrush="{DynamicResource MirageBadBrush}" BorderThickness="1,0,0,0">
+      <TextBlock Text="{Binding OfflineOnlyNotice}" TextWrapping="Wrap"
+                 Foreground="{DynamicResource MirageBadBrush}" FontSize="12"/>
+    </Border>
+
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                HorizontalAlignment="Right" Spacing="8" Margin="0,14,0,0">
+      <Button x:Name="_cancelBtn" Command="{Binding CancelCommand}" IsCancel="True"/>
+      <Button x:Name="_confirmBtn" Command="{Binding ConfirmCommand}"
+              IsEnabled="{Binding IsConfigurable}"
+              IsDefault="True" Classes="primary"/>
+    </StackPanel>
+
+    <ItemsControl ItemsSource="{Binding Rows}" IsEnabled="{Binding IsConfigurable}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Grid Margin="0,3">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto" SharedSizeGroup="WorldLimitValue"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center"/>
+            <NumericUpDown Grid.Column="1" Width="140" Margin="8,0"
+                           Minimum="1" Maximum="100000" Increment="100"
+                           FormatString="0"
+                           Value="{Binding Value}"/>
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+  </DockPanel>
+</Window>

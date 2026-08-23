@@ -87,6 +87,7 @@ var host = Host.CreateDefaultBuilder(args)
         // Player / editor session managers (1-based arrays)
         services.AddSingleton<PlayerManager>();
         services.AddSingleton<EditorSessionManager>();
+        services.AddSingleton<EditorLockRegistry>();
 
         // ── Persistence ───────────────────────────────────────────────────────
         // serverconfig.json wins, because that is where an operator sets it from the shell. The

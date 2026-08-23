@@ -21,21 +21,28 @@ I don't know why I did this.
 
 ## Project Structure
 
-| VB6 | C# |
-|---|---|
-| `server/` | `Mirage.Shared` — protocol types, records, and the formulas both sides evaluate |
-| | `Mirage.Server.Core` — game logic (no transport dependency) |
-| | `Mirage.Server.Host` — TCP, DI, entry point; runs headless |
-| | `Mirage.Server.Shell` — optional Avalonia front end for the same server |
-| | `Mirage.Ui` — the Avalonia theme both desktop apps share |
-| | `Mirage.Updates` — the GitHub update check all three apps run |
-| `client/` (includes editor forms) | `Mirage.Client.Core` — game state and logic, no MonoGame dependency |
-| | `Mirage.Client.Shell` — MonoGame rendering, input and audio |
-| | `Mirage.Editor` — standalone Avalonia editor |
+VB6 kept its source in `client/` and `server/`, with the editor forms — `frmItemEditor`, `frmNpcEditor`,
+`frmShopEditor`, `frmSpellEditor` — sitting among the client's. The rewrite has four source folders,
+because the two it adds are the parts VB6 had nowhere to put: code both sides must agree on, and the
+editor.
+
+| VB6 | C# | |
+|---|---|---|
+| `server/` | `server/src/` | `Mirage.Server.Core` — game logic, no transport dependency |
+| | | `Mirage.Server.Host` — TCP, DI, entry point; runs headless |
+| | | `Mirage.Server.Shell` — optional Avalonia front end for the same server |
+| `client/` | `client/src/` | `Mirage.Client.Core` — game state and logic, no MonoGame dependency |
+| | | `Mirage.Client.Shell` — MonoGame rendering, input and audio |
+| `client/` (editor forms) | `editor/src/` | `Mirage.Editor` — Avalonia editor, offline against a world folder or live against a running server |
+| — | `shared/src/` | `Mirage.Shared` — protocol types, records, and the formulas both sides evaluate |
+| | | `Mirage.Ui` — the theme and shared controls the two Avalonia apps use |
+| | | `Mirage.Updates` — the GitHub update check every app runs |
 
 `Mirage.Shared` is referenced by all three solutions, replacing VB6's duplicated `modTypes.bas` definitions and the server/client divergence they caused. Every formula that both the client and the server must agree on — damage, requirements, prices, vitals — lives there and is evaluated from the same code on both sides.
 
-On disk, every area is a top-level folder holding its projects in `src/` — `shared/`, `server/`, `client/`, `editor/` and `tests/` — and `server/`, `client/` and `editor/` each carry a satellite `.slnx`.
+`server/`, `client/` and `editor/` each carry a satellite `.slnx` for working on one area alone. The rest
+of the tree is not source: `tests/` holds the suites in `src/` and their drivers above, `publish/` holds
+the packaging drivers, and `assets/`, `docs/`, `tools/` and `.github/checks/` hold what is neither.
 
 The root `Mirage.slnx` ties all twenty-four projects together, and the split is lopsided on purpose: **nine of the twenty-four are the game. The other fifteen exist to test and publish those nine.**
 
@@ -91,6 +98,12 @@ dotnet run --project server/src/Mirage.Server.Host
 dotnet run --project client/src/Mirage.Client.Shell
 dotnet run --project editor/src/Mirage.Editor
 ```
+
+The editor opens on nothing and says so. A world is a folder, and it edits one wherever it lives — so
+either **World → Open World…** and point it at a world of your own or at
+`server/src/Mirage.Server.Host/data/`, or connect to a running server and edit that world live. An
+installed editor ships a copy of the seed as `seed/` beside its executable and starts the picker there;
+running from source there is no such copy, so the first Open is yours to aim.
 
 > **Importing VB6 world data:** [MirageSourceRemasteredConverter](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public) turns an original VB6 server directory into this JSON format in one pass — all binary `.dat` maps and INI data files, with account passwords hashed on the way through and the source files never modified, so a run costs nothing if the result is not what you wanted. See [Authoring tools](#authoring-tools).
 

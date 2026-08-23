@@ -37,6 +37,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     /// <c>CanExecute</c> returned when nothing was selected — i.e. permanently disabled.</para></summary>
     partial void OnSelectedMapChanged(MapRowViewModel? oldValue, MapRowViewModel? newValue)
     {
+        OnPropertyChanged(nameof(IsSelectedLocked));
         // Browser-style history: a normal switch records where we came from and forks the trail.
         // Back/Forward drive SelectedMap themselves, and set _isNavigatingHistory so their own
         // writes don't re-push what they just popped.

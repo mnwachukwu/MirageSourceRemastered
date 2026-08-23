@@ -63,6 +63,7 @@ public sealed partial class QuestEditorViewModel : EditorViewModelBase<QuestRowV
             RebuildClassSelection();
     }
 
+    protected override string SectionId => "Quests";
     protected override string TypeName => EditorStrings.Get(EditorStrings.QuestEditor_TypeName);
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.QuestEditor_TypeNamePlural);
     protected override int GetIndex(QuestRowViewModel vm) => vm.Index;

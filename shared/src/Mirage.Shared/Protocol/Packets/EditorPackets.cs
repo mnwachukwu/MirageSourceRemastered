@@ -56,6 +56,54 @@ public sealed record EditorRequestMapGroupPacket : IPacket
     [JsonPropertyName("groupNum")] public int GroupNum { get; init; }
 }
 
+/// <summary>Asks the server to send <see cref="EditorDataPacket"/> again. The same payload the session is
+/// given at login, so an editor left open while the world changed can catch up without reconnecting.</summary>
+public sealed record EditorRequestDataPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorRequestData;
+}
+
+// ── Record locks ─────────────────────────────────────────────────────────────
+// Two editors saving the same record is the one way work is silently lost: both read the same version, both
+// write, and the second wins without either being told.
+//
+// A lock is taken the moment a record is DIRTIED, not when it is opened. Reading costs nothing and locks
+// nothing, so browsing never shuts anybody out and the table only ever names people who actually have
+// changes in hand. It is given up when those changes are saved or discarded, and everything a session holds
+// falls away when it disconnects — a crashed editor cannot wedge a record shut.
+
+/// <summary>Claims a record. Refused only when another session already holds it; re-claiming one you hold
+/// is not an error.</summary>
+public sealed record EditorLockPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorLock;
+    /// <summary>The section id the editor uses — "Maps", "Items", "NPCs" and so on.</summary>
+    [JsonPropertyName("section")] public string Section { get; init; } = "";
+    [JsonPropertyName("num")] public int Num { get; init; }
+}
+
+/// <summary>Gives a record back. Ignored unless the asking session is the holder.</summary>
+public sealed record EditorUnlockPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorUnlock;
+    [JsonPropertyName("section")] public string Section { get; init; } = "";
+    [JsonPropertyName("num")] public int Num { get; init; }
+}
+
+/// <summary>The whole lock table, sent to every editor whenever it changes. A table rather than a delta so a
+/// session that connects mid-flight, or misses a message, still ends up agreeing with the server.</summary>
+public sealed record EditorLocksPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorLocks;
+    /// <summary><paramref name="Login"/> is the account holding it, which is what a reader is shown.</summary>
+    public sealed record Held(
+        [property: JsonPropertyName("section")] string Section,
+        [property: JsonPropertyName("num")] int Num,
+        [property: JsonPropertyName("login")] string Login);
+
+    [JsonPropertyName("locks")] public Held[] Locks { get; init; } = [];
+}
+
 public sealed record EditorRequestAllItemsPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorRequestAllItems;
@@ -505,4 +553,30 @@ public sealed record EditorAllConversationsPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorAllConversations;
     [JsonPropertyName("conversations")] public UpdateConversationPacket[] Conversations { get; init; } = [];
+}
+
+// -- Whole-world map fetch ---------------------------------------------------
+// Every other record type answers a "give me all of them" in one packet, which maps cannot: a thousand of
+// them at a couple of kilobytes each is a frame nothing should be asked to hold. So maps are asked for a
+// slice at a time, which also gives the caller something honest to show a progress bar.
+
+/// <summary>Asks for maps <c>Start</c> through <c>Start + Count - 1</c>. The server clamps
+/// <see cref="Count"/> to its own chunk ceiling, so a caller that asks for everything at once gets a
+/// smaller answer rather than an error.</summary>
+public sealed record EditorRequestAllMapsPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorRequestAllMaps;
+    [JsonPropertyName("start")] public int Start { get; init; } = 1;
+    [JsonPropertyName("count")] public int Count { get; init; }
+}
+
+/// <summary>One slice of the world's maps. <see cref="Total"/> is the server's map ceiling, which is how a
+/// caller learns when to stop asking.</summary>
+public sealed record EditorAllMapsPacket : IPacket
+{
+    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorAllMaps;
+    [JsonPropertyName("start")] public int Start { get; init; }
+    [JsonPropertyName("total")] public int Total { get; init; }
+    /// <summary>Each carries its own MapNum, so the slice stays readable out of order.</summary>
+    [JsonPropertyName("maps")] public SendMapPacket[] Maps { get; init; } = [];
 }

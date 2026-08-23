@@ -106,6 +106,10 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject, IAut
     }
 
     /// <summary>Singular display name of the record type ("Item", "NPC"), used in status messages.</summary>
+    /// <summary>Stable id for this section, matching the server's lock table and the nav rail. NOT
+    /// <see cref="TypeName"/>, which is localized and would key the table differently per language.</summary>
+    protected abstract string SectionId { get; }
+
     protected abstract string TypeName { get; }
     /// <summary>Plural display name; defaults to <see cref="TypeName"/> + "s". Override for irregular plurals.</summary>
     protected virtual string TypeNamePlural => TypeName + "s";
@@ -273,6 +277,8 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject, IAut
         // Copy depends on the selection and on a free slot still existing, and both move here.
         OnPropertyChanged(nameof(CanCopy));
         OnPropertyChanged(nameof(CopyTooltip));
+        // Selection moves through here too, and whether the panel is live depends on which row it is.
+        OnPropertyChanged(nameof(IsSelectedLocked));
     }
 
     /// <summary>Subscribe to <see cref="Items"/> so dirty state and the filtered view follow row
@@ -320,8 +326,51 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject, IAut
 
     private void OnRowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == "IsDirty")
-            NotifyDirtyState();
+        if (e.PropertyName != "IsDirty") return;
+        NotifyDirtyState();
+        // A record is claimed when it goes dirty and given back when it comes clean, which is what makes the
+        // table name only people with changes in hand. Offline there is nobody to tell.
+        if (sender is TRow row && Locks is not null && _conn.IsConnected)
+        {
+            int num = GetIndex(row);
+            _ = GetIsDirty(row)
+                ? _conn.SendLockAsync(SectionId, num)
+                : _conn.SendUnlockAsync(SectionId, num);
+        }
+    }
+
+    /// <summary>The shared lock table, assigned once by the shell. Null offline.</summary>
+    public EditorLockState? Locks { get; set; }
+
+    /// <summary>Takes a record the server pushed after somebody else saved it, so this session's copy can
+    /// never be the older one. Safe to apply blind: only the holder of a record can save it, and a row this
+    /// session has dirtied is one it holds — so a push and local changes cannot both exist.</summary>
+    public void ApplyLiveRecord(int num, IPacket pkt)
+    {
+        var row = Items.FirstOrDefault(r => GetIndex(r) == num);
+        if (row is null || GetIsDirty(row)) return;
+        ApplyServerResponse(row, pkt);
+        ClearDirtyState(row);
+    }
+
+    /// <summary>Whether the record on screen is held by somebody else. Bound to the detail panel, so the
+    /// fields go dead rather than letting somebody type into a save that will be refused.</summary>
+    public bool IsSelectedLocked =>
+        Selected is ILockableRow { LockedByOther: true };
+
+    /// <summary>Re-reads every row's lock indicator from the table. Called when the server sends a new one.</summary>
+    public void RefreshLockState()
+    {
+        if (Locks is null) return;
+        foreach (var row in Items)
+        {
+            if (row is not ILockableRow lockable) continue;
+            int num = GetIndex(row);
+            string? holder = Locks.HolderOf(SectionId, num);
+            lockable.LockHolder = holder ?? "";
+            lockable.LockedByOther = Locks.IsHeldByOther(SectionId, num);
+        }
+        OnPropertyChanged(nameof(IsSelectedLocked));
     }
 
     // ── Load / Save / Discard ─────────────────────────────────────────────────

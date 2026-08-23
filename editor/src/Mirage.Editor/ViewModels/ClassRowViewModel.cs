@@ -15,8 +15,13 @@ namespace Mirage.Editor.ViewModels;
 /// would have at level 1, so a designer can see the consequences of a stat spread while typing it.
 /// Editing a stat re-raises only the previews that stat actually feeds.</para>
 /// </summary>
-public sealed partial class ClassRowViewModel : ObservableObject
+public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     /// <summary>1-based class slot number.</summary>
     public int Index { get; }
     /// <summary>Whether the full definition has been fetched; false for a placeholder row awaiting load.</summary>

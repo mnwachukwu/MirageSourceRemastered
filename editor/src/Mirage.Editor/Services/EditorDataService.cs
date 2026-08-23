@@ -184,57 +184,92 @@ public sealed class EditorDataService
 
     // ── Offline load ──────────────────────────────────────────────────────────
 
+    /// <summary>Drops every offline record. What closing a world means: nothing is open, so nothing is
+    /// listed. Left in place, the next world's lists would open showing the last one's records.</summary>
+    public void ClearOffline()
+    {
+        OfflineItems = [];
+        OfflineNpcs = [];
+        OfflineShops = [];
+        OfflineSpells = [];
+        OfflineClasses = [];
+        OfflineQuests = [];
+        OfflineConversations = [];
+        OfflineMaps = [];
+        OfflineMapGroups = [];
+        Limits = RecordLimits.Default;
+        ClearEntryCache();
+        RaiseEntriesInvalidated();
+    }
+
     public async Task LoadOfflineAsync()
     {
+        // No world open means no records, and no path to read them from: EditorPaths.Data is empty, so
+        // every Path.Combine below would resolve against the working directory.
+        if (!EditorPaths.HasWorld)
+        {
+            ClearOffline();
+            return;
+        }
+
         var dataPath = EditorPaths.Data;
         EditorLog.Info("Loading the offline data set from {Path}.", dataPath);
-        OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", RecordLimits.Default.Items);
-        OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", RecordLimits.Default.Npcs);
-        OfflineShops = await LoadAllFromDirAsync<ShopRecord>(Path.Combine(dataPath, "shops"), "shop", RecordLimits.Default.Shops);
-        OfflineSpells = await LoadAllFromDirAsync<SpellRecord>(Path.Combine(dataPath, "spells"), "spell", RecordLimits.Default.Spells);
+        Limits = await LoadManifestAsync(dataPath);
+        OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", Limits.Items);
+        OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", Limits.Npcs);
+        OfflineShops = await LoadAllFromDirAsync<ShopRecord>(Path.Combine(dataPath, "shops"), "shop", Limits.Shops);
+        OfflineSpells = await LoadAllFromDirAsync<SpellRecord>(Path.Combine(dataPath, "spells"), "spell", Limits.Spells);
         OfflineClasses = await LoadAllFromDirAsync<ClassRecord>(Path.Combine(dataPath, "classes"), "class", Constants.MaxClasses);
-        OfflineQuests = await LoadAllFromDirAsync<QuestRecord>(Path.Combine(dataPath, "quests"), "quest", RecordLimits.Default.Quests);
-        OfflineConversations = await LoadAllFromDirAsync<ConversationRecord>(Path.Combine(dataPath, "conversations"), "conversation", RecordLimits.Default.Conversations);
-        OfflineMaps = await LoadAllMapsAsync(dataPath);
-        OfflineMapGroups = await LoadAllMapGroupsAsync(dataPath);
+        OfflineQuests = await LoadAllFromDirAsync<QuestRecord>(Path.Combine(dataPath, "quests"), "quest", Limits.Quests);
+        OfflineConversations = await LoadAllFromDirAsync<ConversationRecord>(Path.Combine(dataPath, "conversations"), "conversation", Limits.Conversations);
+        OfflineMaps = await LoadAllMapsAsync(dataPath, Limits.Maps);
+        OfflineMapGroups = await LoadAllMapGroupsAsync(dataPath, Limits.MapGroups);
         ClearEntryCache();
         EditorLog.Info("Offline data set loaded: {Items} items, {Npcs} npcs, {Maps} maps, {Groups} map groups.",
             OfflineItems.Count(r => r is not null), OfflineNpcs.Count(r => r is not null),
             OfflineMaps.Count(r => r is not null), OfflineMapGroups.Length);
     }
 
+    /// <summary>What the folder says its record ceilings are. A world with no manifest runs on the stock
+    /// sizes.</summary>
+    public static async Task<RecordLimits> LoadManifestAsync(string worldPath)
+    {
+        var manifest = await LoadJsonAsync<WorldManifest>(Path.Combine(worldPath, WorldManifest.FileName));
+        return manifest?.Records ?? RecordLimits.Default;
+    }
+
+    /// <summary>Writes the folder its record ceilings.</summary>
+    public static Task SaveManifestAsync(string worldPath, RecordLimits limits) =>
+        WriteJsonAsync(Path.Combine(worldPath, WorldManifest.FileName), new WorldManifest { Records = limits });
+
+    // A slot with no file is a blank record, not a missing one, so nothing is written to fill the gap: a
+    // world is however many files an author made, and opening one leaves the folder as it was found.
     private static async Task<T[]> LoadAllFromDirAsync<T>(string dir, string prefix, int max) where T : new()
     {
         var result = new T[max + 1];
         for (int i = 0; i <= max; i++) result[i] = new T();
-        Directory.CreateDirectory(dir);
+        if (!Directory.Exists(dir)) return result;
         for (int i = 1; i <= max; i++)
         {
             string path = Path.Combine(dir, $"{prefix}{i}.json");
-            if (File.Exists(path))
-            {
-                var record = await LoadJsonAsync<T>(path);
-                if (record is not null) result[i] = record;
-            }
-            else
-            {
-                await WriteJsonAsync(path, result[i]);
-            }
+            if (!File.Exists(path)) continue;
+            var record = await LoadJsonAsync<T>(path);
+            if (record is not null) result[i] = record;
         }
         return result;
     }
 
-    private static async Task<MapRecord[]> LoadAllMapsAsync(string dataPath)
+    private static async Task<MapRecord[]> LoadAllMapsAsync(string dataPath, int max)
     {
         var mapsDir = Path.Combine(dataPath, "maps");
-        var result = new MapRecord[RecordLimits.Default.Maps + 1];
-        for (int i = 1; i <= RecordLimits.Default.Maps; i++) result[i] = new MapRecord();
+        var result = new MapRecord[max + 1];
+        for (int i = 1; i <= max; i++) result[i] = new MapRecord();
 
         if (!Directory.Exists(mapsDir)) return result;
         foreach (var file in Directory.EnumerateFiles(mapsDir, "map*.json"))
         {
             var nameNoExt = Path.GetFileNameWithoutExtension(file);
-            if (int.TryParse(nameNoExt[3..], out int num) && num >= 1 && num <= RecordLimits.Default.Maps)
+            if (int.TryParse(nameNoExt[3..], out int num) && num >= 1 && num <= max)
             {
                 var map = await LoadJsonAsync<MapRecord>(file);
                 if (map is not null) result[num] = map;
@@ -245,17 +280,17 @@ public sealed class EditorDataService
 
     // MapGroups are directory-scanned (only the map_group{N}.json files that exist), NOT padded with blank
     // files like the record editors — the server stores them sparsely too. Sized to the editor slot cap.
-    private static async Task<MapGroupRecord[]> LoadAllMapGroupsAsync(string dataPath)
+    private static async Task<MapGroupRecord[]> LoadAllMapGroupsAsync(string dataPath, int max)
     {
         var dir = Path.Combine(dataPath, "map_groups");
-        var result = new MapGroupRecord[RecordLimits.Default.MapGroups + 1];
-        for (int i = 1; i <= RecordLimits.Default.MapGroups; i++) result[i] = new MapGroupRecord { Index = i };
+        var result = new MapGroupRecord[max + 1];
+        for (int i = 1; i <= max; i++) result[i] = new MapGroupRecord { Index = i };
 
         if (!Directory.Exists(dir)) return result;
         foreach (var file in Directory.EnumerateFiles(dir, $"{MapGroupRecord.FileStem}*.json"))
         {
             var nameNoExt = Path.GetFileNameWithoutExtension(file);   // "map_group12"
-            if (int.TryParse(nameNoExt[MapGroupRecord.FileStem.Length..], out int num) && num >= 1 && num <= RecordLimits.Default.MapGroups)
+            if (int.TryParse(nameNoExt[MapGroupRecord.FileStem.Length..], out int num) && num >= 1 && num <= max)
             {
                 var g = await LoadJsonAsync<MapGroupRecord>(file);
                 if (g is null) continue;
@@ -461,6 +496,7 @@ public sealed class EditorDataService
                 BootX = map.BootX,
                 BootY = map.BootY,
                 Indoors = map.Indoors,
+                AlwaysLit = map.AlwaysLit,
                 AlwaysDark = map.AlwaysDark,
                 GreetingSpeaker = map.GreetingSpeaker,
                 JoinSay = map.JoinSay,
@@ -490,6 +526,7 @@ public sealed class EditorDataService
             BootX = pkt.BootX,
             BootY = pkt.BootY,
             Indoors = pkt.Indoors,
+            AlwaysLit = pkt.AlwaysLit,
             AlwaysDark = pkt.AlwaysDark,
             GreetingSpeaker = pkt.GreetingSpeaker,
             JoinSay = pkt.JoinSay,

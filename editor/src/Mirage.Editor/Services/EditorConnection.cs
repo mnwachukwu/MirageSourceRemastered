@@ -168,6 +168,26 @@ public sealed class EditorConnection : IDisposable
 
     // ── Bulk fetch (all records of a type in one round-trip) ─────────────────
 
+    /// <summary>Claims a record, sent the moment it is dirtied. Fire and forget: the server answers with
+    /// the whole table, which arrives as a live packet rather than as a reply to this.</summary>
+    public async Task SendLockAsync(string section, int num)
+    {
+        if (_writer is null) return;
+        await _writer.WriteAsync(PacketSerializer.Serialize(new EditorLockPacket { Section = section, Num = num }));
+    }
+
+    /// <summary>Gives a record back, on save or discard.</summary>
+    public async Task SendUnlockAsync(string section, int num)
+    {
+        if (_writer is null) return;
+        await _writer.WriteAsync(PacketSerializer.Serialize(new EditorUnlockPacket { Section = section, Num = num }));
+    }
+
+    /// <summary>Re-asks for the session's name indexes — the payload login hands over. What makes an online
+    /// refresh possible without dropping the connection.</summary>
+    public Task<EditorDataPacket?> RequestDataAsync(CancellationToken ct = default)
+        => RequestBulkAsync<EditorDataPacket>(PacketNames.EditorData, new EditorRequestDataPacket(), ct);
+
     public Task<EditorAllItemsPacket?> RequestAllItemsAsync(CancellationToken ct = default)
         => RequestBulkAsync<EditorAllItemsPacket>(PacketNames.EditorAllItems, new EditorRequestAllItemsPacket(), ct);
 
@@ -191,6 +211,12 @@ public sealed class EditorConnection : IDisposable
 
     public Task<EditorAllMapGroupsPacket?> RequestAllMapGroupsAsync(CancellationToken ct = default)
         => RequestBulkAsync<EditorAllMapGroupsPacket>(PacketNames.EditorAllMapGroups, new EditorRequestAllMapGroupsPacket(), ct);
+
+    /// <summary>Asks for one slice of the world's maps. The server clamps the count to its own chunk
+    /// ceiling, so a short answer is normal and the caller reads the next slice from where this one ends.</summary>
+    public Task<EditorAllMapsPacket?> RequestAllMapsAsync(int start, int count, CancellationToken ct = default)
+        => RequestBulkAsync<EditorAllMapsPacket>(PacketNames.EditorAllMaps,
+            new EditorRequestAllMapsPacket { Start = start, Count = count }, ct);
 
     // ── Accounts (Creator only) ───────────────────────────────────────────────
     // These reuse the bulk channel because each is a single request answered by a single reply, keyed by
@@ -453,6 +479,9 @@ public sealed class EditorConnection : IDisposable
         // Bulk responses
         var bulkCmd = packet switch
         {
+            // Login reads its copy straight off the stream before this loop runs, so routing it here only
+            // ever catches the one a refresh asked for.
+            EditorDataPacket => PacketNames.EditorData,
             EditorAllItemsPacket => PacketNames.EditorAllItems,
             EditorAllNpcsPacket => PacketNames.EditorAllNpcs,
             EditorAllShopsPacket => PacketNames.EditorAllShops,

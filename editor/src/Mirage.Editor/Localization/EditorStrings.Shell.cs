@@ -343,6 +343,57 @@ public static partial class EditorStrings
     public const string PushChangesDialog_Pushing = nameof(PushChangesDialog_Pushing);
     public const string PushChangesDialog_Error = nameof(PushChangesDialog_Error);
 
+    // ── Data / Refresh ────────────────────────────────────────────────────────
+    public const string MainWindow_DataMenu = nameof(MainWindow_DataMenu);
+    public const string MainWindow_DataRefresh = nameof(MainWindow_DataRefresh);
+    public const string Refresh_ServerSilent = nameof(Refresh_ServerSilent);
+    public const string World_NotFound = nameof(World_NotFound);
+    public const string World_Open = nameof(World_Open);
+    public const string World_Close = nameof(World_Close);
+    public const string World_Recent = nameof(World_Recent);
+    public const string World_Menu = nameof(World_Menu);
+    public const string World_EmptyTitle = nameof(World_EmptyTitle);
+    public const string World_EmptyHint = nameof(World_EmptyHint);
+    public const string World_ReopenLast = nameof(World_ReopenLast);
+    public const string World_Settings = nameof(World_Settings);
+    public const string World_Download = nameof(World_Download);
+    public const string World_Upload = nameof(World_Upload);
+    public const string WorldSettings_DialogTitle = nameof(WorldSettings_DialogTitle);
+    public const string WorldSettings_Intro = nameof(WorldSettings_Intro);
+    public const string WorldSettings_OfflineOnlyNotice = nameof(WorldSettings_OfflineOnlyNotice);
+    public const string WorldTransfer_DownloadTitle = nameof(WorldTransfer_DownloadTitle);
+    public const string WorldTransfer_UploadTitle = nameof(WorldTransfer_UploadTitle);
+    public const string WorldTransfer_NeedsConnection = nameof(WorldTransfer_NeedsConnection);
+    public const string WorldTransfer_PickDownloadFolder = nameof(WorldTransfer_PickDownloadFolder);
+    public const string WorldTransfer_PickUploadFolder = nameof(WorldTransfer_PickUploadFolder);
+    public const string WorldTransfer_TargetNotEmpty = nameof(WorldTransfer_TargetNotEmpty);
+    public const string WorldTransfer_Reading = nameof(WorldTransfer_Reading);
+    public const string WorldTransfer_ReadingMaps = nameof(WorldTransfer_ReadingMaps);
+    public const string WorldTransfer_Writing = nameof(WorldTransfer_Writing);
+    public const string WorldTransfer_DownloadDone = nameof(WorldTransfer_DownloadDone);
+    public const string WorldTransfer_Failed = nameof(WorldTransfer_Failed);
+    public const string WorldTransfer_Comparing = nameof(WorldTransfer_Comparing);
+    public const string WorldTransfer_NoChanges = nameof(WorldTransfer_NoChanges);
+    public const string WorldTransfer_Summary = nameof(WorldTransfer_Summary);
+    public const string WorldTransfer_BackupAdvice = nameof(WorldTransfer_BackupAdvice);
+    public const string WorldTransfer_RemovalsWarning = nameof(WorldTransfer_RemovalsWarning);
+    public const string WorldTransfer_IncludeRemovals = nameof(WorldTransfer_IncludeRemovals);
+    public const string WorldTransfer_Apply = nameof(WorldTransfer_Apply);
+    public const string WorldTransfer_Applying = nameof(WorldTransfer_Applying);
+    public const string WorldTransfer_Applied = nameof(WorldTransfer_Applied);
+    public const string WorldTransfer_KindAdded = nameof(WorldTransfer_KindAdded);
+    public const string WorldTransfer_KindChanged = nameof(WorldTransfer_KindChanged);
+    public const string WorldTransfer_KindRemoved = nameof(WorldTransfer_KindRemoved);
+    public const string WorldTransfer_OverCeiling = nameof(WorldTransfer_OverCeiling);
+    public const string WorldTransfer_Unnamed = nameof(WorldTransfer_Unnamed);
+    public const string Refresh_FromDisk = nameof(Refresh_FromDisk);
+    public const string Refresh_FromServer = nameof(Refresh_FromServer);
+    public const string Refresh_SectionMoved = nameof(Refresh_SectionMoved);
+    public const string Refresh_Changed = nameof(Refresh_Changed);
+    public const string Refresh_NothingMoved = nameof(Refresh_NothingMoved);
+    public const string Refresh_SameCount = nameof(Refresh_SameCount);
+    public const string Refresh_Skipped = nameof(Refresh_Skipped);
+
     // ── Status / Connection ───────────────────────────────────────────────────
     public const string Status_Offline = nameof(Status_Offline);
     public const string Status_Online = nameof(Status_Online);

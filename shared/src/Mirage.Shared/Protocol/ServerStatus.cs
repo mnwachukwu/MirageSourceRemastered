@@ -30,6 +30,11 @@ public sealed record ServerStatus
 
     public IReadOnlyList<PlayerSummary> Players { get; init; } = [];
 
+    /// <summary>Connected editor sessions. Reported apart from <see cref="Players"/> because an editor holds
+    /// no character: it has no level, no class and no map, and a row that leaves those blank in a player list
+    /// says less than a list of its own.</summary>
+    public IReadOnlyList<EditorSummary> Editors { get; init; } = [];
+
     /// <summary>How hard the machine is working for this world. Rides the same snapshot because a load
     /// report and a dashboard want the same numbers at the same moment.</summary>
     public LoadSummary Load { get; init; } = new();
@@ -66,6 +71,22 @@ public sealed record LoadSummary
     /// <summary>Cores the machine has. Without it a reader cannot tell whether 12% of the process means
     /// one saturated thread or twelve idle ones.</summary>
     public int ProcessorCount { get; init; }
+}
+
+/// <summary>
+/// One connected editor session.
+///
+/// <para><see cref="Holding"/> is what the session has open with unsaved changes — the thing an operator
+/// actually wants before ending it, because those edits go with the connection.</para>
+/// </summary>
+public sealed record EditorSummary
+{
+    public int Slot { get; init; }
+    /// <summary>Account name, or empty while the login is still in flight.</summary>
+    public string Login { get; init; } = "";
+    public string Access { get; init; } = "";
+    /// <summary>Records held, as "Maps#60" strings. Empty when the session is just reading.</summary>
+    public IReadOnlyList<string> Holding { get; init; } = [];
 }
 
 /// <summary>One online player, in the terms a dashboard row needs. <see cref="Login"/> is carried

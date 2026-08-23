@@ -57,7 +57,11 @@ public sealed partial class MapEditorViewModel : ObservableObject
         SelectedMap = null;
         Maps.Clear();
         for (int i = 1; i < _data.OfflineMaps.Length; i++)
-            Maps.Add(new MapRowViewModel(i, _data.OfflineMaps[i]));
+        {
+            var row = new MapRowViewModel(i, _data.OfflineMaps[i]);
+            WatchForLocks(row);
+            Maps.Add(row);
+        }
         StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_LoadedOffline,
             ("Count", Maps.Count));
     }
@@ -68,7 +72,11 @@ public sealed partial class MapEditorViewModel : ObservableObject
         SelectedMap = null;
         Maps.Clear();
         foreach (var entry in _data.OnlineMaps)
-            Maps.Add(new MapRowViewModel(entry.Num, new MapRecord { Name = entry.Name }, isLoaded: false));
+        {
+            var row = new MapRowViewModel(entry.Num, new MapRecord { Name = entry.Name }, isLoaded: false);
+            WatchForLocks(row);
+            Maps.Add(row);
+        }
         StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_LoadedOnline,
             ("Count", Maps.Count));
     }

@@ -56,6 +56,7 @@ public sealed partial class ConversationEditorViewModel : EditorViewModelBase<Co
         await ShowNodeDialogAsync(SelectedConversation, node);
     }
 
+    protected override string SectionId => "Conversations";
     protected override string TypeName => EditorStrings.Get(EditorStrings.ConversationEditor_TypeName);
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.ConversationEditor_TypeNamePlural);
     protected override int GetIndex(ConversationRowViewModel vm) => vm.Index;

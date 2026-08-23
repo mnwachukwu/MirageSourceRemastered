@@ -80,6 +80,9 @@ public sealed partial class ConsoleCommands : IHostedService
     private readonly Management.StatusBroadcaster _status;
     // Shared with the in-game Creator commands — see ModerationSystem for why a lift is written once.
     private readonly ModerationSystem _moderation;
+    private readonly EditorSessionManager _editors;
+    private readonly EditorLockRegistry _editorLocks;
+    private readonly EditorPacketHandler _editorHandler;
 
     private Task? _loopTask;
     private CancellationTokenSource? _cts;
@@ -101,11 +104,17 @@ public sealed partial class ConsoleCommands : IHostedService
         GuildTerritorySystem territory,
         Management.StatusBroadcaster status,
         ModerationSystem moderation,
+        EditorSessionManager editors,
+        EditorLockRegistry editorLocks,
+        EditorPacketHandler editorHandler,
         ServerConfig config,
         ILogger<ConsoleCommands> logger)
     {
         _status = status;
         _moderation = moderation;
+        _editors = editors;
+        _editorLocks = editorLocks;
+        _editorHandler = editorHandler;
         _config = config;
         _lifetime = lifetime;
         _pm = pm;
@@ -200,6 +209,15 @@ public sealed partial class ConsoleCommands : IHostedService
 
             case "/update":
                 _ = CmdCheckForUpdateAsync();
+                break;
+
+            case "/editors":
+                // Reads session state — on the game thread, for the same reason /who is.
+                _gameLoop.Post(CmdEditors);
+                break;
+
+            case "/kickeditor":
+                _gameLoop.Post(() => CmdKickEditor(args));
                 break;
 
             case "/who":

@@ -12,7 +12,11 @@
        as "this server has no accounts". -->
   <Grid RowDefinitions="Auto,*">
 
-    <TextBlock Grid.Row="0" x:Name="_offlineNotice" Margin="16"
+    <!-- Spans both rows and centres in them: the browser it replaces is never visible at the same time,
+         and a notice pinned to the top-left of an otherwise empty pane reads as a caption for nothing. -->
+    <TextBlock Grid.Row="0" Grid.RowSpan="2" x:Name="_offlineNotice" Margin="16"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               MaxWidth="360" TextAlignment="Center"
                Foreground="{DynamicResource MirageMutedBrush}" TextWrapping="Wrap"
                IsVisible="{Binding IsOffline}"/>
 
@@ -110,10 +114,13 @@
             <TextBlock Text="{Binding VaultHeader}" FontWeight="SemiBold" Margin="0,6,0,0"/>
             <TextBlock Text="{Binding VaultEmpty}" Foreground="{DynamicResource MirageFaintBrush}"
                        FontStyle="Italic" FontSize="11" IsVisible="{Binding HasNoBank}"/>
+            <!-- Ten rows, then it scrolls. A stocked vault would otherwise push everything below it off
+                 the panel. The row height is pinned so ten of them is what the ceiling measures. -->
+            <ScrollViewer MaxHeight="260" HorizontalScrollBarVisibility="Disabled">
             <ItemsControl ItemsSource="{Binding Bank}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="proto:EditorInvSlot">
-                  <Grid ColumnDefinitions="34,*,60,Auto" Margin="0,0,0,2">
+                  <Grid ColumnDefinitions="34,*,60,Auto" Height="24" Margin="0,0,0,2">
                     <TextBlock Grid.Column="0" Text="{Binding Slot}" FontSize="11" VerticalAlignment="Center"
                                Foreground="{DynamicResource MirageFaintBrush}"/>
                     <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" VerticalAlignment="Center"
@@ -128,6 +135,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+            </ScrollViewer>
             <Grid ColumnDefinitions="*,70,Auto" MaxWidth="480" HorizontalAlignment="Left" Margin="0,4,0,0">
               <controls:DropdownAutoCompleteBox Grid.Column="0"
                                ItemsSource="{Binding ItemEntries}"
@@ -235,10 +243,13 @@
                       <TextBlock Text="{Binding BagEmpty}" FontSize="11" FontStyle="Italic"
                                  IsVisible="{Binding HasNoInv}"
                                  Foreground="{DynamicResource MirageFaintBrush}"/>
+                      <!-- Ten rows, then it scrolls. A full bag would otherwise push the spell book and
+                           the quest log off the panel. -->
+                      <ScrollViewer MaxHeight="260" HorizontalScrollBarVisibility="Disabled">
                       <ItemsControl ItemsSource="{Binding Inv}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate DataType="proto:EditorInvSlot">
-                            <Grid ColumnDefinitions="34,*,70,60,Auto" Margin="0,0,0,2">
+                            <Grid ColumnDefinitions="34,*,70,60,Auto" Height="24" Margin="0,0,0,2">
                               <TextBlock Grid.Column="0" Text="{Binding Slot}" FontSize="11"
                                          VerticalAlignment="Center"
                                          Foreground="{DynamicResource MirageFaintBrush}"/>
@@ -259,6 +270,7 @@
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
+                      </ScrollViewer>
 
                       <Grid ColumnDefinitions="*,70,Auto" Margin="0,4,0,0">
                         <controls:DropdownAutoCompleteBox Grid.Column="0"
@@ -284,10 +296,11 @@
                       <TextBlock Text="{Binding BookEmpty}" FontSize="11" FontStyle="Italic"
                                  IsVisible="{Binding HasNoSpells}"
                                  Foreground="{DynamicResource MirageFaintBrush}"/>
+                      <ScrollViewer MaxHeight="260" HorizontalScrollBarVisibility="Disabled">
                       <ItemsControl ItemsSource="{Binding Spells}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate DataType="proto:EditorSpellSlot">
-                            <Grid ColumnDefinitions="34,*,Auto" Margin="0,0,0,2">
+                            <Grid ColumnDefinitions="34,*,Auto" Height="24" Margin="0,0,0,2">
                               <TextBlock Grid.Column="0" Text="{Binding Slot}" FontSize="11"
                                          VerticalAlignment="Center"
                                          Foreground="{DynamicResource MirageFaintBrush}"/>
@@ -301,6 +314,7 @@
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
+                      </ScrollViewer>
 
                       <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
                         <controls:DropdownAutoCompleteBox Grid.Column="0"
@@ -323,10 +337,11 @@
                       <TextBlock Text="{Binding LogEmpty}" FontSize="11" FontStyle="Italic"
                                  IsVisible="{Binding HasNoQuests}"
                                  Foreground="{DynamicResource MirageFaintBrush}"/>
+                      <ScrollViewer MaxHeight="260" HorizontalScrollBarVisibility="Disabled">
                       <ItemsControl ItemsSource="{Binding Quests}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate DataType="proto:EditorQuestRow">
-                            <Grid ColumnDefinitions="*,110,90,80,Auto" Margin="0,0,0,2">
+                            <Grid ColumnDefinitions="*,110,90,80,Auto" Height="24" Margin="0,0,0,2">
                               <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11"
                                          VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                               <TextBlock Grid.Column="1" Text="{Binding Status}" FontSize="11"
@@ -347,6 +362,7 @@
                           </DataTemplate>
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
+                      </ScrollViewer>
 
                       <!-- One control for both jobs: the state IS the operation, so setting a state on a
                            quest that is not in the log yet is what adds it. -->

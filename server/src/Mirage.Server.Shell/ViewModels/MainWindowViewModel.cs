@@ -271,6 +271,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             Status = null;
             Players.Clear();
+            Editors.Clear();
             PendingBan = "";
             OnPropertyChanged(nameof(HasStatus));
             OnPropertyChanged(nameof(HasPlayers));
@@ -330,6 +331,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         Status = next;
         Players.Clear();
         foreach (var p in next.Players) Players.Add(p);
+        Editors.Clear();
+        foreach (var e in next.Editors) Editors.Add(e);
+        OnPropertyChanged(nameof(HasEditors));
 
         // The pickers show what the server SAYS it is, but only while the operator is not mid-choice —
         // otherwise a snapshot landing between click and commit would snatch the selection back.
@@ -367,6 +371,26 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string OperatorsLabel => ShellStrings.Get(ShellStrings.Server_Operators);
     public string PlayersHeading => ShellStrings.Get(ShellStrings.Server_Players);
     public string PlayersEmpty => ShellStrings.Get(ShellStrings.Server_PlayersEmpty);
+
+    // ── Editors ───────────────────────────────────────────────────────────────
+    // Reported apart from players: an editor session holds no character, so a row of it has nothing to say
+    // in a player's columns. What it DOES have is a list of records it is holding open, which is the thing
+    // an operator wants to see before ending it.
+    public ObservableCollection<EditorSummary> Editors { get; } = [];
+    public bool HasEditors => Editors.Count > 0;
+    public string EditorsHeading => ShellStrings.Get(ShellStrings.Server_Editors);
+    public string EditorsEmpty => ShellStrings.Get(ShellStrings.Server_EditorsEmpty);
+    public string ColSlot => ShellStrings.Get(ShellStrings.Server_ColSlot);
+    public string ColHolding => ShellStrings.Get(ShellStrings.Server_ColHolding);
+    public string DisconnectEditorLabel => ShellStrings.Get(ShellStrings.Server_DisconnectEditor);
+
+    /// <summary>Ends one editor session. Addressed by SLOT rather than by account, because a session that is
+    /// still signing in has no account yet and is exactly the kind an operator may want gone.</summary>
+    [RelayCommand]
+    private void DisconnectEditor(EditorSummary? e)
+    {
+        if (e is not null) Send($"/kickeditor {e.Slot}");
+    }
     public string ColName => ShellStrings.Get(ShellStrings.Server_ColName);
     public string ColAccount => ShellStrings.Get(ShellStrings.Server_ColAccount);
     public string ColLevel => ShellStrings.Get(ShellStrings.Server_ColLevel);

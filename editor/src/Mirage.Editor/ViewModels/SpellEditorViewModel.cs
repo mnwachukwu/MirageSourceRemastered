@@ -126,6 +126,7 @@ public sealed partial class SpellEditorViewModel : EditorViewModelBase<SpellRowV
         if (_data.IsOnline) _data.PatchOnlineSpellName(vm.Index, vm.Name);
     }
 
+    protected override string SectionId => "Spells";
     protected override string TypeName => EditorStrings.Get(EditorStrings.SpellEditor_TypeName);
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.SpellEditor_TypeNamePlural);
     /// <inheritdoc/>

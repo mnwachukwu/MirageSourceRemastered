@@ -26,6 +26,7 @@ public sealed partial class ShopEditorViewModel : EditorViewModelBase<ShopRowVie
         _data.EntriesInvalidated += () => { foreach (var s in Shops) s.NotifyEntriesChanged(); };
     }
 
+    protected override string SectionId => "Shops";
     protected override string TypeName => EditorStrings.Get(EditorStrings.ShopEditor_TypeName);
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.ShopEditor_TypeNamePlural);
     /// <inheritdoc/>

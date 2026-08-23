@@ -1,6 +1,5 @@
 {
   "LanguageName": "English",
-
   "Window_Title": "{GameName} Server",
   "Tab_Server": "State",
   "Commands_Server": "Server",
@@ -15,7 +14,6 @@
   "About_Close": "Close",
   "About_UpdateAvailable": "Version {Version} — an update is available",
   "Tab_Console": "Console",
-
   "Server_Blurb": "What the server is doing right now. Anything shown here that can be changed, can be changed here.",
   "Server_Offline": "Start the server to see what it is doing.",
   "Server_World": "World",
@@ -39,7 +37,6 @@
   "Server_Mute": "Mute",
   "Server_Ban": "Ban",
   "Server_Minutes": "min",
-
   "Tab_Moderation": "Moderation",
   "Mod_Blurb": "Every ban, kick and mute currently in force, with the lift beside it. All three are held against the account, not the character, so lifting one frees every character on it.",
   "Mod_Refresh": "Refresh",
@@ -63,7 +60,6 @@
   "Mod_Offline": "offline",
   "Mod_Scanned": "Swept {Count} account(s).",
   "Mod_NotLoaded": "Nothing gathered yet. Refresh to read the ban list and sweep the accounts.",
-
   "Bench_Open": "Measure this machine",
   "Bench_Title": "Load benchmark",
   "Bench_Blurb": "Copies this server's world to a temporary folder, runs a second server on a free port, and connects fake players to it until the game thread runs out. The world you host is not touched, and no accounts are left behind.",
@@ -102,10 +98,8 @@
   "Bench_Applied": "Player limit set to {Players}. Save on the Configuration tab to keep it.",
   "Bench_Failed": "The benchmark could not run: {Error}",
   "Bench_Unavailable": "The benchmark measures the machine this window is on, so it needs a local server.",
-
   "Tab_Configuration": "Configuration",
   "Tab_Commands": "Commands",
-
   "Commands_Blurb": "Everything the server can be told to do. Each one runs exactly what you would type on the console, so the result appears there.",
   "Commands_Players": "Players",
   "Commands_World": "World",
@@ -113,7 +107,6 @@
   "Commands_Run": "Run",
   "Commands_Confirm": "Confirm",
   "Commands_Cancel": "Cancel",
-
   "Commands_Who": "List everyone online.",
   "Commands_Kick": "Disconnect a player and keep them out for a while.",
   "Commands_Mute": "Stop a player speaking for a while.",
@@ -129,7 +122,6 @@
   "Commands_AdvanceWar": "Push war night into its next phase.",
   "Commands_EndWar": "End war night now.",
   "Commands_GuildReset": "Force a guild settlement.",
-
   "Action_Start": "Start",
   "Action_Stop": "Stop",
   "Action_Send": "Send",
@@ -138,13 +130,11 @@
   "Action_Attach": "Attach",
   "Action_Detach": "Detach",
   "Action_Generate": "Generate",
-
   "State_Stopped": "Stopped",
   "State_Running": "Running",
   "State_Stopping": "Shutting down",
   "State_Detached": "Not attached",
   "State_Attached": "Attached",
-
   "Console_CommandHint": "Type a command, e.g. /who",
   "Console_ServerNotFound": "No server executable at {Path}",
   "Console_StoppingNotice": "Asked the server to shut down. It saves everything still in memory before it exits, so give it up to {Seconds} seconds.",
@@ -154,13 +144,11 @@
   "Console_IdentityChanged": "{Host}:{Port} presented a different certificate than last time. Not attaching.",
   "Console_ConnectionLost": "The connection to the server ended.",
   "Console_ShutdownBlocked": "Not sent. This window cannot start a remote server back up, so use that server's own console if it has to go down.",
-
   "Config_WindowGroup": "This window",
   "Config_WindowGroupHint": "Applies as soon as you change it.",
   "Config_ServerGroup": "This server",
   "Config_ServerGroupHint": "Saved together, and applied the next time the server starts.",
   "Config_SaveScope": "Saves “{Group}” only. Everything above it applies as you change it. Changes take effect the next time the server starts.",
-
   "Connection_Heading": "Connection",
   "Connection_Blurb": "Which server this window drives. This setting belongs to this window, not to any server.",
   "Connection_Local": "The server installed here",
@@ -176,7 +164,6 @@
   "Connection_Token": "Token",
   "Connection_TokenHint": "The token that server was given. Kept in this window's own settings file so you are not retyping it.",
   "Connection_Reveal": "Show",
-
   "Config_DeathPenaltyHeading": "Death penalties",
   "Config_DeathPenaltyBlurb": "What a player loses when they die. Each part is independent, and players under level 10 are spared either way.",
   "Config_DurabilityLoss": "Gear takes damage",
@@ -188,7 +175,6 @@
   "Config_LanguageHeading": "Language",
   "Config_LanguageBlurb": "The language this window, the server console and the log files use. Players are not affected: each one sees the game in the language they chose.",
   "Config_LanguageServerNote": "This window changes straight away. The server console follows the next time it starts.",
-
   "Hosting_Heading": "Port and world folder",
   "Hosting_Blurb": "Where players connect, and where this server keeps its world.",
   "Hosting_GameName": "Game name",
@@ -202,7 +188,6 @@
   "Hosting_UseDefault": "Use default",
   "Hosting_MaxPlayers": "Players at once",
   "Hosting_MaxPlayersHint": "How many people can be in the world at the same time. The right number depends on this machine, so measure it with the benchmark on the State tab rather than guessing.",
-
   "Records_Heading": "Record slots",
   "Records_Blurb": "How many of each kind of record this world has room for. Each one is a numbered slot the editor can author into, and the server creates the empty files on its next start. Lowering a number hides the slots above it; it does not delete the files.",
   "Records_Items": "Items",
@@ -213,7 +198,6 @@
   "Records_Conversations": "Conversations",
   "Records_Maps": "Maps",
   "Records_MapGroups": "Map groups",
-
   "Capacity_Heading": "When the server is full",
   "Capacity_Blurb": "What happens to the next person who tries to join once every slot is taken.",
   "Capacity_Reserved": "Slots kept for staff",
@@ -222,19 +206,16 @@
   "Capacity_QueueDepthHint": "Everyone past this is turned away. Set it to 0 to refuse at the door instead, which is what the server did before it could queue. Waiting costs a connection and nothing else — nobody in the queue is using a slot.",
   "Capacity_Grace": "Hold a place for",
   "Capacity_GraceHint": "Seconds. A player who drops out keeps their place this long, so a network blip does not send them to the back. If their turn comes up while they are away, the slot waits for them too.",
-
   "World_SpawnHeading": "Where players start",
   "World_SpawnBlurb": "The tile a new character is placed on, and where anyone without a purchased spawn point comes back after dying.",
   "World_SpawnMap": "Map",
   "World_SpawnX": "X",
   "World_SpawnY": "Y",
-
   "Schedule_Heading": "War night",
   "Schedule_Blurb": "The weekly territory contest, in this machine's own time.",
   "Schedule_WarNightDay": "Day",
   "Schedule_WarNightHour": "Hour",
   "Schedule_WeekResetNote": "The guild week rolls over the day after, on {Day}. Territory income, season weeks and weekly quests all follow that boundary.",
-
   "Logging_Heading": "Logging",
   "Logging_Blurb": "What the server writes down, and how long it keeps it. Logs go to the logs folder beside the server.",
   "Logging_Level": "Detail",
@@ -246,7 +227,6 @@
   "Logging_NetworkRetention": "Keep packet logs for",
   "Logging_RetentionHint": "Days. A new file is started each day; older ones are deleted past this count.",
   "Logging_Unavailable": "Some of these are not where they are expected in appsettings.json, so they are shown greyed out rather than overwritten. Restore the file's shape to edit them here.",
-
   "Management_Heading": "Remote management",
   "Management_Blurb": "Lets this server's console be reached from another machine, so you can watch it and run commands without being at the box.",
   "Management_Enable": "Allow remote operators",
@@ -260,5 +240,10 @@
   "Config_RestartRequired": "Changes apply the next time the server starts.",
   "Config_Saved": "Saved to {Path}",
   "Config_SaveFailed": "Could not save: {Error}",
-  "Config_LoadFailed": "Could not load the configuration: {Error}"
+  "Config_LoadFailed": "Could not load the configuration: {Error}",
+  "Server_Editors": "Editors",
+  "Server_EditorsEmpty": "No editor is connected.",
+  "Server_ColSlot": "Slot",
+  "Server_ColHolding": "Editing",
+  "Server_DisconnectEditor": "Disconnect"
 }

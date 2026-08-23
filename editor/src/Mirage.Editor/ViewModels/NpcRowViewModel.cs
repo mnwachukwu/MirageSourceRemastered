@@ -16,8 +16,13 @@ namespace Mirage.Editor.ViewModels;
 /// computed through the shared formula classes, so the preview and the running game can never
 /// disagree. Editing any stat re-raises that whole derived set via <see cref="NotifyLevelDerived"/>.</para>
 /// </summary>
-public sealed partial class NpcRowViewModel : ObservableObject
+public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     /// <summary>1-based NPC template number.</summary>
     public int Index { get; }
     /// <summary>Whether the full definition has been fetched; false for a placeholder row awaiting load.</summary>

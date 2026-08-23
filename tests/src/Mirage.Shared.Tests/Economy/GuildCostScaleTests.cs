@@ -82,7 +82,7 @@ public class GuildCostScaleTests
         // the drop tables, and the bestiary moves), this fires to say the guild economy no longer costs
         // what it was meant to cost.
         long incomeAtAnchor = EconomyFormulas.ExpectedGoldPerLevel(AnchorLevel);
-        Assert.That(Constants.GuildCreationCost, Is.EqualTo(incomeAtAnchor).Within(0.20 * incomeAtAnchor),
+        Assert.That(Constants.GuildCreationCost, Is.EqualTo(incomeAtAnchor).Within(20).Percent,
             $"founding a guild ({Constants.GuildCreationCost:N0}) should stay near one level's income at "
             + $"level {AnchorLevel} ({incomeAtAnchor:N0}) — retune the family if the backbone moved");
     }

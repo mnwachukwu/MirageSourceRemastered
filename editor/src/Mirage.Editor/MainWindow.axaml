@@ -6,6 +6,11 @@
         MinWidth="800" MinHeight="500"
         Background="{DynamicResource MirageBgBrush}">
 
+  <!-- InputGesture on the menu item only DRAWS the shortcut; the binding here is what makes the key work. -->
+  <Window.KeyBindings>
+    <KeyBinding Gesture="F5" Command="{Binding RefreshFromSourceCommand}"/>
+  </Window.KeyBindings>
+
   <Grid>
 
   <DockPanel>
@@ -18,6 +23,38 @@
             Padding="10,7">
       <DockPanel>
         <Menu DockPanel.Dock="Right" VerticalAlignment="Center" Background="Transparent">
+          <!-- A world is a folder, opened from wherever it lives. Offline only: connected, the world is
+               the server's. -->
+          <MenuItem x:Name="_worldMenu">
+            <MenuItem x:Name="_worldOpenItem" Command="{Binding OpenWorldCommand}"
+                      IsVisible="{Binding !IsOnline}"/>
+            <MenuItem x:Name="_worldCloseItem" Command="{Binding CloseWorldCommand}"
+                      IsVisible="{Binding !IsOnline}" IsEnabled="{Binding HasWorld}"/>
+            <MenuItem x:Name="_worldSettingsItem" Command="{Binding WorldSettingsCommand}"
+                      IsVisible="{Binding !IsOnline}" IsEnabled="{Binding HasWorld}"/>
+            <Separator IsVisible="{Binding !IsOnline}"/>
+            <!-- The two directions of a whole-world move. Both need a server on the other end. -->
+            <MenuItem x:Name="_worldDownloadItem" Command="{Binding DownloadWorldCommand}"
+                      IsVisible="{Binding IsOnline}"/>
+            <MenuItem x:Name="_worldUploadItem" Command="{Binding UploadWorldCommand}"
+                      IsVisible="{Binding IsOnline}"/>
+            <Separator IsVisible="{Binding IsOnline}"/>
+            <MenuItem x:Name="_worldRecentItem" ItemsSource="{Binding RecentWorlds}"
+                      IsVisible="{Binding !IsOnline}">
+              <!-- Each row carries its own command, so the item binds to itself and never reaches back up
+                   the tree for the window's view-model.
+
+                   The header is the shortened path and the tooltip is the whole one: a menu wide enough
+                   for a real world path is a menu nobody can read, and one that scrolls to fit is worse. -->
+              <MenuItem.Styles>
+                <Style Selector="MenuItem > MenuItem">
+                  <Setter Property="Header" Value="{Binding DisplayPath}"/>
+                  <Setter Property="Command" Value="{Binding OpenCommand}"/>
+                  <Setter Property="ToolTip.Tip" Value="{Binding Path}"/>
+                </Style>
+              </MenuItem.Styles>
+            </MenuItem>
+          </MenuItem>
           <MenuItem x:Name="_exportMenu">
             <MenuItem x:Name="_exportMapItem"
                       Command="{Binding MapEditor.ExportMapCommand}"
@@ -36,6 +73,12 @@
                       Header="{Binding AutoSaveMenuItemLabel}"
                       IsEnabled="{Binding !IsOnline}"
                       Click="AutoSaveConfigure_Click"/>
+          </MenuItem>
+          <MenuItem x:Name="_dataMenu">
+            <MenuItem x:Name="_dataRefreshItem"
+                      Header="{Binding RefreshMenuItemLabel}"
+                      Command="{Binding RefreshFromSourceCommand}"
+                      InputGesture="F5"/>
           </MenuItem>
           <MenuItem x:Name="_languageMenu" />
           <MenuItem x:Name="_helpMenu">
@@ -96,8 +139,11 @@
                 Margin="6,4,6,8" Padding="0,4"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                 Foreground="{DynamicResource MirageFaintBrush}" FontSize="13"/>
+        <!-- With no world open there is nothing for a section to show, so none can be picked: an editor
+             opened here would list the records of whatever was open last. -->
         <ListBox ItemsSource="{Binding Sections}"
                  SelectedItem="{Binding SelectedSection}"
+                 IsEnabled="{Binding !ShowEmptyWorld}"
                  Classes="rail" Classes.collapsed="{Binding IsRailCollapsed}"
                  Background="Transparent"
                  Padding="6,8">
@@ -131,7 +177,24 @@
     </Border>
 
     <!-- ── Content area ── -->
-    <ContentControl Content="{Binding CurrentEditor}" Margin="0" />
+    <!-- Both fill it and exactly one is ever visible, so they share a Grid: a DockPanel gives the fill to
+         its LAST child only, and a sibling here would dock to an edge instead of centring. -->
+    <Grid>
+      <ContentControl Content="{Binding CurrentEditor}" Margin="0" />
+
+      <!-- Nothing is open until something is opened, and the window says which. -->
+      <StackPanel IsVisible="{Binding ShowEmptyWorld}"
+                  HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+        <TextBlock x:Name="_emptyWorldTitle" FontSize="16" FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   Foreground="{DynamicResource MirageMutedBrush}"/>
+        <TextBlock x:Name="_emptyWorldHint" FontSize="12" HorizontalAlignment="Center"
+                   TextWrapping="Wrap" MaxWidth="360" TextAlignment="Center"
+                   Foreground="{DynamicResource MirageFaintBrush}"/>
+        <Button x:Name="_emptyWorldOpen" Command="{Binding OpenWorldCommand}"
+                HorizontalAlignment="Center"/>
+      </StackPanel>
+    </Grid>
 
   </DockPanel>
 

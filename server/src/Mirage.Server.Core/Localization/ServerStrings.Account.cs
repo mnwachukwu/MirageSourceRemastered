@@ -38,6 +38,11 @@ public static partial class ServerStrings
     public const string EditorAuth_InvalidCredentials = nameof(EditorAuth_InvalidCredentials);
     public const string EditorAuth_InsufficientAccess = nameof(EditorAuth_InsufficientAccess);
     public const string EditorAuth_Authenticated = nameof(EditorAuth_Authenticated);
+    public const string EditorLock_HeldByAnother = nameof(EditorLock_HeldByAnother);
+    public const string Console_EditorsTotal = nameof(Console_EditorsTotal);
+    public const string Console_KickEditorUsage = nameof(Console_KickEditorUsage);
+    public const string Console_EditorNotFound = nameof(Console_EditorNotFound);
+    public const string Console_EditorKicked = nameof(Console_EditorKicked);
 
     // ── Editor account browser — what a refused character edit says back ───────
     public const string EditorAccounts_Renamed = nameof(EditorAccounts_Renamed);

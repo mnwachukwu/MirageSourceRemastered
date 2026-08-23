@@ -224,6 +224,9 @@ public static class PacketNames
     public const string EditorRequestMap = "editorreqmap";
     public const string EditorRequestClass = "editorreqclass";
     public const string EditorSaveClass = "editorsaveclass";
+    public const string EditorRequestData = "editorreqdata";
+    public const string EditorLock = "editorlock";
+    public const string EditorUnlock = "editorunlock";
     public const string EditorRequestAllItems = "editorreqallitems";
     public const string EditorRequestAllNpcs = "editorreqallnpcs";
     public const string EditorRequestAllShops = "editorreqallshops";
@@ -234,6 +237,7 @@ public static class PacketNames
     public const string EditorSaveMapGroup = "editorsavemapgroup";
     public const string EditorRequestMapGroup = "editorreqmapgroup";
     public const string EditorRequestAllMapGroups = "editorreqallmapgroups";
+    public const string EditorRequestAllMaps = "editorreqallmaps";
     // Accounts — CREATOR only, and the only editor family that touches a person rather than content.
     public const string EditorRequestAccounts = "editorreqaccounts";
     public const string EditorAccountList = "editoraccountlist";
@@ -249,6 +253,7 @@ public static class PacketNames
     public const string EditorBankTake = "editorbanktake";
     public const string EditorSetQuestStatus = "editorsetqueststatus";
     public const string EditorNotice = "editornotice";
+    public const string EditorLocks = "editorlocks";
 
     // ── S→C: bank ───────────────────────────────────────────────────────────
     public const string SendBank = "sendbank";
@@ -334,6 +339,7 @@ public static class PacketNames
     public const string EditorAllClasses = "editorallclasses";
     public const string UpdateMapGroup = "updatemapgroup";
     public const string EditorAllMapGroups = "editorallmapgroups";
+    public const string EditorAllMaps = "editorallmaps";
 
     // ── S→C: map / world events ───────────────────────────────────────────────
     public const string CheckForMap = "checkformap";

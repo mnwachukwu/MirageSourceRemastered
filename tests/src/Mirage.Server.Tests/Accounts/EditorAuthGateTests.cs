@@ -132,12 +132,13 @@ public class EditorAuthGateTests
         public readonly GameWorld World = new();
         public readonly PlayerManager Pm = new();
         public readonly EditorSessionManager Editors = new();
+        public readonly EditorLockRegistry Locks = new();
         public readonly CapturingDispatcher Dispatcher = new();
         private readonly EditorPacketHandler _handler;
 
         public Harness() =>
             _handler = new EditorPacketHandler(
-                World, Pm, Editors, Dispatcher, persistence: null!, bg: new NoOpBackground(),
+                World, Pm, Editors, Locks, Dispatcher, persistence: null!, bg: new NoOpBackground(),
                 items: null!, joinLeave: null!, quests: null!, spawn: null!,
                 saver: null!, gameLoop: null!,
                 NullLogger<EditorPacketHandler>.Instance);
@@ -163,6 +164,8 @@ public class EditorAuthGateTests
         public readonly List<IPacket> Sent = new();
 
         public void SendToEditor(int editorIndex, IPacket packet) => Sent.Add(packet);
+        public readonly List<IPacket> AllEditors = new();
+        public void SendToAllEditors(IPacket packet) => AllEditors.Add(packet);
         public void SendToAll(IPacket packet) => Sent.Add(packet);
         public void SendTo(int index, IPacket packet) => Sent.Add(packet);
         public void SendToAllBut(int exclude, IPacket packet) => Sent.Add(packet);

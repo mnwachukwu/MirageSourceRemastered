@@ -183,6 +183,7 @@ public class PartySystemTests
         public void SendLocalizedChatToViewportAt(int mapNum, int x, int y, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendLocalizedChatToAdmins(string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendToEditor(int editorIndex, IPacket packet) { }
+        public void SendToAllEditors(IPacket packet) { }
         public void Disconnect(int index) { }
         public void DisconnectEditor(int editorIndex) { }
         public void GracefulDisconnect(int index) { }

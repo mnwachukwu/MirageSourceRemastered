@@ -193,6 +193,50 @@
                                FormatString="0" Increment="5" ParsingNumberStyle="Integer" MinWidth="120"/>
               </StackPanel>
             </StackPanel>
+
+            <!-- ── Editors ──────────────────────────────────────────────────
+                 Its own list, not a row in the player table: an editor session has no character, so every
+                 column there would be blank. What it has instead is what it is holding open. -->
+            <TextBlock Classes="group" Text="{Binding EditorsHeading}"/>
+            <TextBlock Classes="hint" Text="{Binding EditorsEmpty}" IsVisible="{Binding !HasEditors}"/>
+
+            <StackPanel IsVisible="{Binding HasEditors}">
+              <Grid ColumnDefinitions="60,150,90,*,110" Margin="14,0,14,4">
+                <TextBlock Grid.Column="0" Classes="hint" Text="{Binding ColSlot}"/>
+                <TextBlock Grid.Column="1" Classes="hint" Text="{Binding ColAccount}"/>
+                <TextBlock Grid.Column="2" Classes="hint" Text="{Binding ColAccess}"/>
+                <TextBlock Grid.Column="3" Classes="hint" Text="{Binding ColHolding}"/>
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding Editors}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="proto:EditorSummary">
+                    <Border Classes="card">
+                      <Grid ColumnDefinitions="60,150,90,*,110">
+                        <TextBlock Grid.Column="0" Classes="t2" Text="{Binding Slot}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Classes="t1" Text="{Binding Login}" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Classes="t2" Text="{Binding Access}" VerticalAlignment="Center"/>
+                        <!-- Unsaved work goes with the connection, so what it holds is the warning. -->
+                        <ItemsControl Grid.Column="3" ItemsSource="{Binding Holding}" VerticalAlignment="Center">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <TextBlock Classes="t2" Text="{Binding}" Margin="0,0,8,0"/>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Grid.Column="4" HorizontalAlignment="Right"
+                                Content="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).DisconnectEditorLabel}"
+                                Command="{Binding $parent[TabItem].((vm:MainWindowViewModel)DataContext).DisconnectEditorCommand}"
+                                CommandParameter="{Binding}"/>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
           </StackPanel>
         </StackPanel>
       </ScrollViewer>

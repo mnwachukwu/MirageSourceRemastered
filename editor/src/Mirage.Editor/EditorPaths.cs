@@ -40,36 +40,28 @@ internal static class EditorPaths
     public static string Logs => Paths.Data("logs");
 
     /// <summary>
-    /// Authored game data (maps, items, npcs, …). Operator-configurable via the DataDir setting;
-    /// defaults to the per-user data dir so writes succeed even from a read-only AppImage/.app. A
-    /// relative configured path is anchored to the install dir (never the CWD).
+    /// The open world: a directory holding maps/, npcs/, items/ and the rest.
+    ///
+    /// <para>Empty until one is opened. The editor keeps no world of its own and writes none into the
+    /// per-user data dir — a world lives wherever the person editing it put it, and several can sit side by
+    /// side. Only settings, logs and the editable graphics are the editor's own.</para>
     /// </summary>
-    public static string Data
-    {
-        get
-        {
-            string? configured = AppSettings.Current.DataDir;
-            return string.IsNullOrWhiteSpace(configured)
-                ? Paths.Data()
-                : Path.GetFullPath(configured, AppContext.BaseDirectory);
-        }
-    }
+    public static string Data { get; private set; } = "";
+
+    /// <summary>Whether a world is open. Everything that reads records is meaningless until it is.</summary>
+    public static bool HasWorld => Data.Length > 0 && Directory.Exists(Data);
+
+    /// <summary>Points the editor at a world folder, or at nothing when given an empty path.</summary>
+    public static void OpenWorld(string path) =>
+        Data = string.IsNullOrWhiteSpace(path) ? "" : Path.GetFullPath(path);
+
+    /// <summary>The world shipped beside the executable. Not copied anywhere and never opened on its own —
+    /// it is where the folder picker starts, so a first run has something to open.</summary>
+    public static string BundledWorld => Path.Combine(AppContext.BaseDirectory, "seed");
 
     // The bundled default graphics shipped next to the executable (read-only on AppImage/.app);
     // the seed source for the editable assets dir.
     private static string BundledAssets => Path.Combine(AppContext.BaseDirectory, "assets", "graphics");
-
-    // The shipped world, next to the executable. Never read as a data dir itself — it is only ever a
-    // source to copy from, once, into a machine that has no world of its own.
-    private static string BundledSeed => Path.Combine(AppContext.BaseDirectory, "seed");
-
-    /// <summary>Lays the shipped world into the data dir on a machine that has none. Absence of the
-    /// directory is the only trigger; an empty one is left alone. See <see cref="SeedDeploy"/>.</summary>
-    public static int SeedData()
-    {
-        try { return SeedDeploy.SeedIfDataAbsent(BundledSeed, Data); }
-        catch { return 0; }   // an editor that cannot seed still opens, on an empty world
-    }
 
     /// <summary>
     /// Ensures the editable assets dir holds the bundled defaults. Copies each bundled file that is

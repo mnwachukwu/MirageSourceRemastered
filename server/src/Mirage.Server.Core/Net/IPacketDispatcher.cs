@@ -110,6 +110,9 @@ public interface IPacketDispatcher
         params (string Key, object? Value)[] args);
 
     void SendToEditor(int editorIndex, IPacket packet);
+    /// <summary>Every authenticated editor session. Used for the record-lock table, which every editor has
+    /// to agree on for the indicators to mean anything.</summary>
+    void SendToAllEditors(IPacket packet);
     void Disconnect(int index);
     void DisconnectEditor(int editorIndex);
     /// <summary>

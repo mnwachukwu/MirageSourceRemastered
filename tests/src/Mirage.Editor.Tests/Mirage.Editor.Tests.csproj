@@ -10,8 +10,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="NUnit" Version="4.2.2" />
+    <PackageReference Include="NUnit" Version="4.5.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <!-- Builds windows and views on a headless platform, which is the only thing that proves the XAML
+         actually loads: bindings here are reflective and a broken view compiles clean. -->
+    <PackageReference Include="Avalonia.Headless.NUnit" Version="12.0.4" />
   </ItemGroup>
 
   <ItemGroup>

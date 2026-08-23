@@ -16,8 +16,13 @@ namespace Mirage.Editor.ViewModels;
 /// and AddMp are caster-dependent and are quoted against a stand-in instead — see
 /// <see cref="BaseMpCost"/>.</para>
 /// </summary>
-public sealed partial class SpellRowViewModel : ObservableObject
+public sealed partial class SpellRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     /// <summary>1-based spell slot number.</summary>
     public int Index { get; }
     /// <summary>Whether the full definition has been fetched; false for a placeholder row awaiting load.</summary>

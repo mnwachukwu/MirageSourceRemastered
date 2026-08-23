@@ -409,6 +409,13 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         Enqueue(_editors[editorIndex], json);
     }
 
+    public void SendToAllEditors(IPacket packet)
+    {
+        string json = PacketSerializer.Serialize(packet);
+        _logger.LogDebug("[TX all editors] {Line}", json);
+        for (int i = 1; i <= Constants.MaxEditorSessions; i++) Enqueue(_editors[i], json);
+    }
+
     /// <summary>
     /// Closes the underlying TCP socket. The receive-loop task running on that connection will
     /// detect the IOException and exit, then call <see cref="UnregisterPlayerAsync"/>.

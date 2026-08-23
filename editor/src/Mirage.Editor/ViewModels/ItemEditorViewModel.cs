@@ -85,6 +85,7 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
         if (_data.IsOnline) _data.PatchOnlineItem(vm.Index, vm.Name, vm.Type);
     }
 
+    protected override string SectionId => "Items";
     protected override string TypeName => EditorStrings.Get(EditorStrings.ItemEditor_TypeName);
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.ItemEditor_TypeNamePlural);
     protected override int GetIndex(ItemRowViewModel vm) => vm.Index;

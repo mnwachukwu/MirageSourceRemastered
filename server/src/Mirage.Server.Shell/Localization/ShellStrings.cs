@@ -48,6 +48,11 @@ public static class ShellStrings
     public const string Server_Operators = nameof(Server_Operators);
     public const string Server_Players = nameof(Server_Players);
     public const string Server_PlayersEmpty = nameof(Server_PlayersEmpty);
+    public const string Server_Editors = nameof(Server_Editors);
+    public const string Server_EditorsEmpty = nameof(Server_EditorsEmpty);
+    public const string Server_ColSlot = nameof(Server_ColSlot);
+    public const string Server_ColHolding = nameof(Server_ColHolding);
+    public const string Server_DisconnectEditor = nameof(Server_DisconnectEditor);
     public const string Server_ColName = nameof(Server_ColName);
     public const string Server_ColAccount = nameof(Server_ColAccount);
     public const string Server_ColLevel = nameof(Server_ColLevel);

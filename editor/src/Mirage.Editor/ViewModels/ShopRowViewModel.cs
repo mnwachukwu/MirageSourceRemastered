@@ -10,8 +10,13 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 namespace Mirage.Editor.ViewModels;
 
-public sealed partial class ShopRowViewModel : ObservableObject
+public sealed partial class ShopRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     public int Index { get; }
     public bool IsLoaded { get; private set; }
 

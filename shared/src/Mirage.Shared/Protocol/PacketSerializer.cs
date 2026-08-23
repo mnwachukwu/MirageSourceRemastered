@@ -458,6 +458,10 @@ public static class PacketSerializer
                 PacketNames.EditorRequestSpell => JsonSerializer.Deserialize<EditorRequestSpellPacket>(line, Options),
                 PacketNames.EditorRequestMap => JsonSerializer.Deserialize<EditorRequestMapPacket>(line, Options),
                 PacketNames.EditorRequestClass => JsonSerializer.Deserialize<EditorRequestClassPacket>(line, Options),
+                PacketNames.EditorRequestData => JsonSerializer.Deserialize<EditorRequestDataPacket>(line, Options),
+                PacketNames.EditorLock => JsonSerializer.Deserialize<EditorLockPacket>(line, Options),
+                PacketNames.EditorUnlock => JsonSerializer.Deserialize<EditorUnlockPacket>(line, Options),
+                PacketNames.EditorLocks => JsonSerializer.Deserialize<EditorLocksPacket>(line, Options),
                 PacketNames.EditorRequestAllItems => JsonSerializer.Deserialize<EditorRequestAllItemsPacket>(line, Options),
                 PacketNames.EditorRequestAllNpcs => JsonSerializer.Deserialize<EditorRequestAllNpcsPacket>(line, Options),
                 PacketNames.EditorRequestAllShops => JsonSerializer.Deserialize<EditorRequestAllShopsPacket>(line, Options),
@@ -467,6 +471,7 @@ public static class PacketSerializer
                 PacketNames.EditorRequestAllClasses => JsonSerializer.Deserialize<EditorRequestAllClassesPacket>(line, Options),
                 PacketNames.EditorRequestMapGroup => JsonSerializer.Deserialize<EditorRequestMapGroupPacket>(line, Options),
                 PacketNames.EditorRequestAllMapGroups => JsonSerializer.Deserialize<EditorRequestAllMapGroupsPacket>(line, Options),
+                PacketNames.EditorRequestAllMaps => JsonSerializer.Deserialize<EditorRequestAllMapsPacket>(line, Options),
                 PacketNames.EditorRequestAccounts => JsonSerializer.Deserialize<EditorRequestAccountsPacket>(line, Options),
                 PacketNames.EditorAccountList => JsonSerializer.Deserialize<EditorAccountListPacket>(line, Options),
                 PacketNames.EditorRequestAccount => JsonSerializer.Deserialize<EditorRequestAccountPacket>(line, Options),
@@ -502,6 +507,7 @@ public static class PacketSerializer
                 PacketNames.EditorAllClasses => JsonSerializer.Deserialize<EditorAllClassesPacket>(line, Options),
                 PacketNames.UpdateMapGroup => JsonSerializer.Deserialize<UpdateMapGroupPacket>(line, Options),
                 PacketNames.EditorAllMapGroups => JsonSerializer.Deserialize<EditorAllMapGroupsPacket>(line, Options),
+                PacketNames.EditorAllMaps => JsonSerializer.Deserialize<EditorAllMapsPacket>(line, Options),
 
                 _ => null,
             };

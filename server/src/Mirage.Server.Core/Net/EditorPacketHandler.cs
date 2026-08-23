@@ -32,6 +32,7 @@ public sealed partial class EditorPacketHandler
     private readonly GameWorld _world;
     private readonly PlayerManager _pm;
     private readonly EditorSessionManager _editors;
+    private readonly EditorLockRegistry _locks;
     private readonly IPacketDispatcher _dispatcher;
     private readonly IPersistenceService _persistence;
     private readonly IBackgroundPersistence _bg;
@@ -46,7 +47,8 @@ public sealed partial class EditorPacketHandler
     private readonly ILogger<EditorPacketHandler> _logger;
 
     public EditorPacketHandler(
-        GameWorld world, PlayerManager pm, EditorSessionManager editors, IPacketDispatcher dispatcher,
+        GameWorld world, PlayerManager pm, EditorSessionManager editors, EditorLockRegistry locks,
+        IPacketDispatcher dispatcher,
         IPersistenceService persistence, IBackgroundPersistence bg, ItemSystem items,
         JoinLeaveSystem joinLeave, QuestSystem quests, SpawnSystem spawn,
         PlayerSaver saver, GameLoop gameLoop,
@@ -57,6 +59,7 @@ public sealed partial class EditorPacketHandler
         _world = world;
         _pm = pm;
         _editors = editors;
+        _locks = locks;
         _dispatcher = dispatcher;
         _persistence = persistence;
         _bg = bg;
@@ -81,6 +84,15 @@ public sealed partial class EditorPacketHandler
             {
                 case EditorLoginPacket p:
                     HandleEditorLogin(editorIndex, p);
+                    break;
+                case EditorRequestDataPacket:
+                    HandleEditorRequestData(editorIndex);
+                    break;
+                case EditorLockPacket p:
+                    HandleEditorLock(editorIndex, p);
+                    break;
+                case EditorUnlockPacket p:
+                    HandleEditorUnlock(editorIndex, p);
                     break;
                 case EditorRequestItemPacket p:
                     HandleEditorRequestItem(editorIndex, p);
@@ -132,6 +144,9 @@ public sealed partial class EditorPacketHandler
                     break;
                 case EditorRequestAllMapGroupsPacket p:
                     HandleEditorRequestAllMapGroups(editorIndex, p);
+                    break;
+                case EditorRequestAllMapsPacket p:
+                    HandleEditorRequestAllMaps(editorIndex, p);
                     break;
                 case EditorSaveMapGroupPacket p:
                     HandleEditorSaveMapGroup(editorIndex, p);
@@ -244,6 +259,8 @@ public sealed partial class EditorPacketHandler
         { Success = true, Message = ServerStrings.ForLocale(locale, ServerStrings.EditorAuth_Authenticated), AccessLevel = access });
 
         _dispatcher.SendToEditor(editorIndex, BuildEditorDataPacket());
+        // The table as it stands, so a session that joins mid-edit sees the locks already held.
+        _dispatcher.SendToEditor(editorIndex, _locks.Snapshot());
         _logger.LogInformation("Editor session authenticated: {Username}", username);
     }
 
@@ -322,6 +339,60 @@ public sealed partial class EditorPacketHandler
             SpellGates = spellGates,
             NpcSizes = npcSizes,
         };
+    }
+
+    // ── Record locks ─────────────────────────────────────────────────────────
+
+    /// <summary>Claims a record for this session. The editor asks the moment it dirties one, so the table
+    /// only names people with changes in hand. Re-claiming one you already hold is not a conflict.</summary>
+    private void HandleEditorLock(int editorIndex, EditorLockPacket p)
+    {
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
+        var session = _editors.GetSession(editorIndex);
+        if (session is null) return;
+        if (_locks.TryAcquire(p.Section, p.Num, editorIndex, session.Login)) BroadcastLocks();
+    }
+
+    /// <summary>Gives a record back, on save or on discard. Ignored from anyone but the holder.</summary>
+    private void HandleEditorUnlock(int editorIndex, EditorUnlockPacket p)
+    {
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
+        if (_locks.Release(p.Section, p.Num, editorIndex)) BroadcastLocks();
+    }
+
+    /// <summary>Drops everything a session held. Called when its socket goes, so a crashed editor cannot
+    /// leave a record shut forever.</summary>
+    public void OnEditorDisconnected(int editorIndex)
+    {
+        if (_locks.ReleaseAll(editorIndex)) BroadcastLocks();
+    }
+
+    private void BroadcastLocks() => _dispatcher.SendToAllEditors(_locks.Snapshot());
+
+    /// <summary>Refuses a save for a record somebody else is holding. The editor already greys those out, so
+    /// reaching here means a stale client or a hand-rolled one — either way the holder's work wins.</summary>
+    private bool LockedByAnother(int editorIndex, string section, int num)
+    {
+        var session = _editors.GetSession(editorIndex);
+        string? holder = _locks.HolderOf(section, num);
+        if (holder is null || session is null || holder == session.Login) return false;
+        _dispatcher.SendToEditor(editorIndex, new EditorNoticePacket
+        {
+            Message = ServerStrings.ForLocale(session.Locale, ServerStrings.EditorLock_HeldByAnother,
+                                              ("Holder", holder)),
+        });
+        _logger.LogInformation("Editor {Index} tried to save {Section} #{Num}, held by {Holder}.",
+                               editorIndex, section, num, holder);
+        return true;
+    }
+
+    /// <summary>Re-sends the name indexes the session was given at login, so an editor left open while the
+    /// world changed can catch up without reconnecting. Same builder as login: a refresh and a fresh session
+    /// see the same world.</summary>
+    private void HandleEditorRequestData(int editorIndex)
+    {
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
+        _dispatcher.SendToEditor(editorIndex, BuildEditorDataPacket());
     }
 
     private void HandleEditorRequestItem(int editorIndex, EditorRequestItemPacket p)
@@ -427,6 +498,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
         int n = p.ClassNum;
         if (!SlotValidation.IsValidClassNum(n)) return;
+        if (LockedByAnother(editorIndex, "Classes", n)) return;
 
         var cls = _world.Classes[n];
         cls.Name = p.Name;
@@ -455,6 +527,8 @@ public sealed partial class EditorPacketHandler
 
         _bg.Run(_persistence.SaveClassAsync(n, cls), nameof(IPersistenceService.SaveClassAsync));
         _dispatcher.SendToAll(PacketBuilder.UpdateClass(n, cls));
+        // Editors too, or a session that did not make this save keeps showing what it loaded.
+        _dispatcher.SendToAllEditors(PacketBuilder.UpdateClass(n, cls));
         _logger.LogInformation("Editor saved class #{Num}.", n);
     }
 
@@ -464,6 +538,7 @@ public sealed partial class EditorPacketHandler
 
         int n = p.ItemNum;
         if (!SlotValidation.IsValidItemNum(n, _world.Limits.Items)) return;
+        if (LockedByAnother(editorIndex, "Items", n)) return;
 
         var item = _world.Items[n];
         item.Name = p.Name;
@@ -488,6 +563,8 @@ public sealed partial class EditorPacketHandler
 
         _bg.Run(_persistence.SaveItemAsync(n, item), nameof(IPersistenceService.SaveItemAsync));
         _dispatcher.SendToAll(PacketBuilder.UpdateItem(n, item));
+        // Editors too, or a session that did not make this save keeps showing what it loaded.
+        _dispatcher.SendToAllEditors(PacketBuilder.UpdateItem(n, item));
         _logger.LogInformation("Editor saved item #{Num}.", n);
     }
 
@@ -497,6 +574,7 @@ public sealed partial class EditorPacketHandler
 
         int n = p.NpcNum;
         if (!SlotValidation.IsValidNpcNum(n, _world.Limits.Npcs)) return;
+        if (LockedByAnother(editorIndex, "NPCs", n)) return;
 
         var npc = _world.Npcs[n];
         npc.Name = p.Name;
@@ -539,6 +617,8 @@ public sealed partial class EditorPacketHandler
 
         _bg.Run(_persistence.SaveNpcAsync(n, npc), nameof(IPersistenceService.SaveNpcAsync));
         _dispatcher.SendToAll(BuildUpdateNpc(n));
+        // Editors too, or a session that did not make this save keeps showing what it loaded.
+        _dispatcher.SendToAllEditors(BuildUpdateNpc(n));
         _logger.LogInformation("Editor saved npc #{Num}.", n);
     }
 
@@ -556,6 +636,7 @@ public sealed partial class EditorPacketHandler
 
         int n = p.ShopNum;
         if (!SlotValidation.IsValidShopNum(n, _world.Limits.Shops)) return;
+        if (LockedByAnother(editorIndex, "Shops", n)) return;
 
         var shop = _world.Shops[n];
         // Capture the pre-save keeper binding + type: a change to either moves/relabels the $ glyph and the
@@ -591,6 +672,8 @@ public sealed partial class EditorPacketHandler
 
         _bg.Run(_persistence.SaveShopAsync(n, shop), nameof(IPersistenceService.SaveShopAsync));
         _dispatcher.SendToAll(PacketBuilder.UpdateShop(n, shop));
+        // Editors too, or a session that did not make this save keeps showing what it loaded.
+        _dispatcher.SendToAllEditors(PacketBuilder.UpdateShop(n, shop));
 
         // A keeper reassignment (or a Store↔Inn flip on the same keeper) changes which NPC shows the $
         // vendor glyph and what its melee/right-click interact opens (and the menu label). Re-broadcast the
@@ -628,6 +711,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
         int n = p.QuestNum;
         if (!SlotValidation.IsValidQuestNum(n, _world.Limits.Quests)) return;
+        if (LockedByAnother(editorIndex, "Quests", n)) return;
 
         var quest = _world.Quests[n];
         quest.Name = p.Name;
@@ -658,6 +742,7 @@ public sealed partial class EditorPacketHandler
         // can also change who's eligible (requirements) or where the glyph sits (giver/turn-in), so re-push every
         // online player's quest log + eligible set too — mirrors the shop-keeper live-refresh.
         _dispatcher.SendToAll(BuildUpdateQuest(n));
+        _dispatcher.SendToAllEditors(BuildUpdateQuest(n));
         for (int i = 1; i <= _pm.Slots; i++)
             if (_pm[i].IsPlaying) _quests.RefreshEligibility(i);
         _logger.LogInformation("Editor saved quest #{Num}.", n);
@@ -732,6 +817,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Developer)) return;
         int n = p.ConvNum;
         if (!SlotValidation.IsValidConversationNum(n, _world.Limits.Conversations)) return;
+        if (LockedByAnother(editorIndex, "Conversations", n)) return;
 
         var conv = _world.Conversations[n];
         conv.Name = p.Name;
@@ -743,6 +829,7 @@ public sealed partial class EditorPacketHandler
         _bg.Run(_persistence.SaveConversationAsync(n, conv), nameof(IPersistenceService.SaveConversationAsync));
         // Live-refresh: game clients rebuild this conversation's def (the "..." glyph + the panel walk it) — no reconnect.
         _dispatcher.SendToAll(BuildUpdateConversation(n));
+        _dispatcher.SendToAllEditors(BuildUpdateConversation(n));
         _logger.LogInformation("Editor saved conversation #{Num}.", n);
     }
 
@@ -797,6 +884,7 @@ public sealed partial class EditorPacketHandler
 
         int n = p.SpellNum;
         if (!SlotValidation.IsValidSpellNum(n, _world.Limits.Spells)) return;
+        if (LockedByAnother(editorIndex, "Spells", n)) return;
 
         var spell = _world.Spells[n];
         spell.Name = p.Name;
@@ -813,6 +901,8 @@ public sealed partial class EditorPacketHandler
 
         _bg.Run(_persistence.SaveSpellAsync(n, spell), nameof(IPersistenceService.SaveSpellAsync));
         _dispatcher.SendToAll(PacketBuilder.UpdateSpell(n, spell));
+        // Editors too, or a session that did not make this save keeps showing what it loaded.
+        _dispatcher.SendToAllEditors(PacketBuilder.UpdateSpell(n, spell));
         _logger.LogInformation("Editor saved spell #{Num}.", n);
     }
 
@@ -822,6 +912,7 @@ public sealed partial class EditorPacketHandler
 
         int mapNum = p.MapNum;
         if (!SlotValidation.IsValidMapNum(mapNum, _world.Limits.Maps)) return;
+        if (LockedByAnother(editorIndex, "Maps", mapNum)) return;
 
         var src = p.Map;
         var map = _world.Maps[mapNum];
@@ -905,6 +996,8 @@ public sealed partial class EditorPacketHandler
         // cell they observe.  Restricting this to occupants would leave players on adjacent maps using
         // stale neighbor caches — a connection added to the edited map wouldn't be traversable until relog.
         _joinLeave.BroadcastMapRefresh(mapNum);
+        // And every editor, so nobody keeps authoring against the tiles this just replaced.
+        _dispatcher.SendToAllEditors(PacketBuilder.SendMap(mapNum, map, forEditor: true));
 
         _logger.LogInformation("Editor saved map #{MapNum}.", mapNum);
     }
@@ -951,12 +1044,35 @@ public sealed partial class EditorPacketHandler
         });
     }
 
+    // Maps answer a slice at a time: a thousand of them in one frame is a frame nothing should be asked to
+    // hold, and a caller reading slices has something honest to count.
+    private const int MapFetchChunk = 50;
+
+    private void HandleEditorRequestAllMaps(int editorIndex, EditorRequestAllMapsPacket p)
+    {
+        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
+        int total = _world.Limits.Maps;
+        int start = Math.Clamp(p.Start, 1, Math.Max(1, total));
+        int count = Math.Clamp(p.Count, 1, MapFetchChunk);
+        int end = Math.Min(total, start + count - 1);
+        _dispatcher.SendToEditor(editorIndex, new EditorAllMapsPacket
+        {
+            Start = start,
+            Total = total,
+            Maps = start > total
+                ? []
+                : [.. Enumerable.Range(start, end - start + 1)
+                    .Select(n => PacketBuilder.SendMap(n, _world.Maps[n], forEditor: true))],
+        });
+    }
+
     private void HandleEditorSaveMapGroup(int editorIndex, EditorSaveMapGroupPacket p)
     {
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
 
         int n = p.GroupNum;
         if (!SlotValidation.IsValidMapGroupNum(n, _world.Limits.MapGroups)) return;
+        if (LockedByAnother(editorIndex, "MapGroups", n)) return;
 
         // Reuse the existing record so runtime-only state (ControllingGuild) survives an authoring save;
         // create it on first save (groups are a sparse Dictionary, unlike the pre-sized record arrays).
@@ -990,6 +1106,7 @@ public sealed partial class EditorPacketHandler
         // same live record, so they pick it up at once too. Reuses UpdateMapGroupPacket (the editor-fetch shape);
         // game clients handle it in HandleUpdateMapGroup, editors via their request/response flow.
         _dispatcher.SendToAll(BuildUpdateMapGroup(n, group));
+        _dispatcher.SendToAllEditors(BuildUpdateMapGroup(n, group));
 
         _logger.LogInformation("Editor saved map group #{Num}.", n);
     }

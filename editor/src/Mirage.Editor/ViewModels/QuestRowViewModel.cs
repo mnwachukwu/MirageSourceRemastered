@@ -14,8 +14,13 @@ namespace Mirage.Editor.ViewModels;
 /// Reward child lists (empties dropped on save), the requirement/reward scalars, and id↔NamedEntry picker
 /// facades for the giver / turn-in NPC and the PrereqQuest. The class gate is a multi-select instead, so
 /// it has no picker facade here — the editor view-model drives it. Dirty aggregates the child rows.</summary>
-public sealed partial class QuestRowViewModel : ObservableObject
+public sealed partial class QuestRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     // Editor-side safety ceiling for every quest child table (objectives + both reward lists). 255 matches
     // the shared MaxQuestObjectives; the reward lists have no separate shared cap (the server accepts
     // unlimited), so they reuse the same value.

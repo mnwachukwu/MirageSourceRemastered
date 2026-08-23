@@ -18,8 +18,13 @@ namespace Mirage.Editor.ViewModels;
 /// dialogue NODES, and each node owns its own dynamic list of CHOICES. A choice's "next node" picker is
 /// self-referential (the conversation's own nodes). Stable node ids are assigned on add and never reused, so a
 /// choice keeps pointing at the right node across edits. Dirty aggregates the node (and choice) rows.</summary>
-public sealed partial class ConversationRowViewModel : ObservableObject
+public sealed partial class ConversationRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     private const int MaxNodes = Constants.MaxConversationNodes;
 
     public int Index { get; }

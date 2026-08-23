@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
+using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Shared;
@@ -46,12 +47,38 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
     private Timer? _timer;
     private CancellationTokenSource? _cts;
 
-    public StatusBroadcaster(GameWorld world, PlayerManager pm, GameLoop gameLoop, ServerConfig config)
+    private readonly EditorSessionManager _editors;
+    private readonly EditorLockRegistry _editorLocks;
+
+    public StatusBroadcaster(GameWorld world, PlayerManager pm, GameLoop gameLoop, ServerConfig config,
+                             EditorSessionManager editors, EditorLockRegistry editorLocks)
     {
         _world = world;
         _pm = pm;
         _gameLoop = gameLoop;
         _port = config.Port;
+        _editors = editors;
+        _editorLocks = editorLocks;
+    }
+
+    /// <summary>Connected editor sessions, with whatever each is holding. Read on the game thread with the
+    /// rest of the snapshot, so it agrees with the player list it ships beside.</summary>
+    private List<EditorSummary> BuildEditorSummaries()
+    {
+        var list = new List<EditorSummary>();
+        for (int i = 1; i <= Constants.MaxEditorSessions; i++)
+        {
+            var s = _editors.GetSession(i);
+            if (s is null || !s.IsConnected) continue;
+            list.Add(new EditorSummary
+            {
+                Slot = i,
+                Login = s.IsAuthenticated ? s.Login : "",
+                Access = s.IsAuthenticated ? s.AdminLevel.ToString() : "",
+                Holding = _editorLocks.HeldBy(i).Select(h => $"{h.Section}#{h.Num}").ToList(),
+            });
+        }
+        return list;
     }
 
     /// <summary>How many operators are attached. Set by <see cref="ManagementListener"/>, which is the
@@ -138,6 +165,7 @@ public sealed class StatusBroadcaster : IHostedService, IDisposable
             Port = _port,
             Operators = OperatorCount,
             Players = players,
+            Editors = BuildEditorSummaries(),
             Load = SampleLoad(),
         };
     }

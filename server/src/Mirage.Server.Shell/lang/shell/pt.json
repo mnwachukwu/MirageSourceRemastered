@@ -1,6 +1,5 @@
 {
   "LanguageName": "Português",
-
   "Window_Title": "Servidor de {GameName}",
   "Tab_Server": "Estado",
   "Commands_Server": "Servidor",
@@ -15,7 +14,6 @@
   "About_Close": "Fechar",
   "About_UpdateAvailable": "Versão {Version} — há uma atualização disponível",
   "Tab_Console": "Consola",
-
   "Server_Blurb": "O que o servidor está a fazer neste momento. Tudo o que aparece aqui e pode ser mudado, muda-se aqui.",
   "Server_Offline": "Inicie o servidor para ver o que ele está a fazer.",
   "Server_World": "Mundo",
@@ -39,7 +37,6 @@
   "Server_Mute": "Silenciar",
   "Server_Ban": "Banir",
   "Server_Minutes": "min",
-
   "Tab_Moderation": "Moderação",
   "Mod_Blurb": "Todos os banimentos, expulsões e silenciamentos em vigor, com o respetivo levantamento ao lado. Os três aplicam-se à conta e não à personagem, pelo que levantar um liberta todas as suas personagens.",
   "Mod_Refresh": "Atualizar",
@@ -63,7 +60,6 @@
   "Mod_Offline": "sem ligação",
   "Mod_Scanned": "{Count} conta(s) percorrida(s).",
   "Mod_NotLoaded": "Ainda não foi recolhido nada. Atualize para ler a lista de banimentos e percorrer as contas.",
-
   "Bench_Open": "Medir esta máquina",
   "Bench_Title": "Teste de carga",
   "Bench_Blurb": "Copia o mundo deste servidor para uma pasta temporária, executa um segundo servidor numa porta livre e liga-lhe jogadores falsos até a linha de execução do jogo saturar. O mundo que aloja não é tocado e não ficam contas para trás.",
@@ -102,10 +98,8 @@
   "Bench_Applied": "Limite de jogadores definido em {Players}. Guarde no separador Configuração para o manter.",
   "Bench_Failed": "O teste não conseguiu correr: {Error}",
   "Bench_Unavailable": "O teste mede a máquina onde esta janela está, por isso precisa de um servidor local.",
-
   "Tab_Configuration": "Configuração",
   "Tab_Commands": "Comandos",
-
   "Commands_Blurb": "Tudo o que se pode pedir ao servidor. Cada ação executa exatamente o que escreveria na consola, por isso o resultado aparece lá.",
   "Commands_Players": "Jogadores",
   "Commands_World": "Mundo",
@@ -113,7 +107,6 @@
   "Commands_Run": "Executar",
   "Commands_Confirm": "Confirmar",
   "Commands_Cancel": "Cancelar",
-
   "Commands_Who": "Lista todos os jogadores online.",
   "Commands_Kick": "Desliga um jogador e mantém-no fora durante algum tempo.",
   "Commands_Mute": "Impede um jogador de falar durante algum tempo.",
@@ -129,7 +122,6 @@
   "Commands_AdvanceWar": "Passa a noite de guerra para a fase seguinte.",
   "Commands_EndWar": "Termina a noite de guerra agora.",
   "Commands_GuildReset": "Força uma liquidação de guildas.",
-
   "Action_Start": "Iniciar",
   "Action_Stop": "Parar",
   "Action_Send": "Enviar",
@@ -138,13 +130,11 @@
   "Action_Attach": "Ligar",
   "Action_Detach": "Desligar",
   "Action_Generate": "Gerar",
-
   "State_Stopped": "Parado",
   "State_Running": "Em execução",
   "State_Stopping": "A encerrar",
   "State_Detached": "Sem ligação",
   "State_Attached": "Ligado",
-
   "Console_CommandHint": "Escreva um comando, por exemplo /who",
   "Console_ServerNotFound": "Não há nenhum executável do servidor em {Path}",
   "Console_StoppingNotice": "Foi pedido ao servidor que encerrasse. Ele guarda tudo o que tem em memória antes de sair, por isso dê-lhe até {Seconds} segundos.",
@@ -154,13 +144,11 @@
   "Console_IdentityChanged": "{Host}:{Port} apresentou um certificado diferente do da última vez. Não será conectado.",
   "Console_ConnectionLost": "A ligação ao servidor terminou.",
   "Console_ShutdownBlocked": "Não enviado. Esta janela não consegue voltar a iniciar um servidor remoto; use a consola desse servidor se tiver de o desligar.",
-
   "Config_WindowGroup": "Esta janela",
   "Config_WindowGroupHint": "Aplica-se assim que o mudar.",
   "Config_ServerGroup": "Este servidor",
   "Config_ServerGroupHint": "Guardados em conjunto e aplicados no próximo arranque do servidor.",
   "Config_SaveScope": "Guarda apenas «{Group}». Tudo o que está acima aplica-se assim que o altera. As alterações têm efeito no próximo arranque do servidor.",
-
   "Connection_Heading": "Ligação",
   "Connection_Blurb": "Que servidor esta janela comanda. Esta definição pertence à janela, não a nenhum servidor.",
   "Connection_Local": "O servidor instalado aqui",
@@ -176,7 +164,6 @@
   "Connection_Token": "Chave",
   "Connection_TokenHint": "A chave que foi dada a esse servidor. Guardada no ficheiro de definições desta janela para não a reescrever.",
   "Connection_Reveal": "Mostrar",
-
   "Config_DeathPenaltyHeading": "Penalizações por morte",
   "Config_DeathPenaltyBlurb": "O que um jogador perde ao morrer. Cada parte é independente, e os jogadores abaixo do nível 10 ficam isentos de qualquer forma.",
   "Config_DurabilityLoss": "O equipamento sofre danos",
@@ -188,7 +175,6 @@
   "Config_LanguageHeading": "Idioma",
   "Config_LanguageBlurb": "O idioma que esta janela, a consola do servidor e os ficheiros de registo usam. Os jogadores não são afetados: cada um vê o jogo no idioma que escolheu.",
   "Config_LanguageServerNote": "Esta janela muda de imediato. A consola do servidor muda no próximo arranque.",
-
   "Hosting_Heading": "Porta e pasta do mundo",
   "Hosting_Blurb": "Onde os jogadores se ligam, e onde este servidor guarda o seu mundo.",
   "Hosting_GameName": "Nome do jogo",
@@ -202,7 +188,6 @@
   "Hosting_UseDefault": "Usar predefinição",
   "Hosting_MaxPlayers": "Jogadores em simultâneo",
   "Hosting_MaxPlayersHint": "Quantas pessoas podem estar no mundo ao mesmo tempo. O número certo depende desta máquina: meça-o com o teste de carga do separador Estado em vez de o adivinhar.",
-
   "Records_Heading": "Espaços de registos",
   "Records_Blurb": "Quantos registos de cada tipo cabem neste mundo. Cada um é um espaço numerado que o editor pode preencher; o servidor cria os ficheiros vazios no arranque seguinte. Baixar um número esconde os espaços acima, mas não apaga os ficheiros.",
   "Records_Items": "Itens",
@@ -213,7 +198,6 @@
   "Records_Conversations": "Conversas",
   "Records_Maps": "Mapas",
   "Records_MapGroups": "Grupos de mapas",
-
   "Capacity_Heading": "Quando o servidor está cheio",
   "Capacity_Blurb": "O que acontece à próxima pessoa que tenta entrar depois de todos os lugares estarem ocupados.",
   "Capacity_Reserved": "Lugares guardados para a equipa",
@@ -222,19 +206,16 @@
   "Capacity_QueueDepthHint": "Todos os restantes são recusados. Ponha 0 para recusar à porta, que era o que o servidor fazia antes de saber criar fila. Esperar custa uma ligação e mais nada: ninguém na fila ocupa um lugar.",
   "Capacity_Grace": "Guardar o lugar durante",
   "Capacity_GraceHint": "Segundos. Quem cair mantém o lugar durante este tempo, por isso uma falha de rede não o manda para o fim. Se a vez chegar enquanto está ausente, o lugar também espera por ele.",
-
   "World_SpawnHeading": "Onde os jogadores começam",
   "World_SpawnBlurb": "O quadrado onde uma personagem nova aparece, e para onde volta quem não tenha comprado um ponto de reaparecimento.",
   "World_SpawnMap": "Mapa",
   "World_SpawnX": "X",
   "World_SpawnY": "Y",
-
   "Schedule_Heading": "Noite de guerra",
   "Schedule_Blurb": "O confronto semanal por territórios, na hora local desta máquina.",
   "Schedule_WarNightDay": "Dia",
   "Schedule_WarNightHour": "Hora",
   "Schedule_WeekResetNote": "A semana de guilda muda no dia seguinte, {Day}. Os rendimentos de território, as semanas de época e as missões semanais seguem esse limite.",
-
   "Logging_Heading": "Registo",
   "Logging_Blurb": "O que o servidor anota e durante quanto tempo o guarda. Os registos vão para a pasta logs ao lado do servidor.",
   "Logging_Level": "Detalhe",
@@ -246,7 +227,6 @@
   "Logging_NetworkRetention": "Guardar os registos de pacotes",
   "Logging_RetentionHint": "Dias. Começa um ficheiro novo cada dia; os mais antigos são apagados acima desta contagem.",
   "Logging_Unavailable": "Alguns destes não estão onde se espera no appsettings.json, por isso aparecem esbatidos em vez de serem sobrescritos. Reponha a forma do ficheiro para os editar aqui.",
-
   "Management_Heading": "Gestão remota",
   "Management_Blurb": "Permite alcançar a consola deste servidor a partir de outra máquina, para o vigiar e executar comandos sem estar à frente dele.",
   "Management_Enable": "Permitir operadores remotos",
@@ -260,5 +240,10 @@
   "Config_RestartRequired": "As alterações aplicam-se no próximo arranque do servidor.",
   "Config_Saved": "Guardado em {Path}",
   "Config_SaveFailed": "Não foi possível guardar: {Error}",
-  "Config_LoadFailed": "Não foi possível carregar a configuração: {Error}"
+  "Config_LoadFailed": "Não foi possível carregar a configuração: {Error}",
+  "Server_Editors": "Editores",
+  "Server_EditorsEmpty": "Nenhum editor ligado.",
+  "Server_ColSlot": "Posição",
+  "Server_ColHolding": "A editar",
+  "Server_DisconnectEditor": "Desligar"
 }

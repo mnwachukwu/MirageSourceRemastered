@@ -235,7 +235,12 @@ public sealed class TcpConnectionAcceptor : IDisposable
         }
         finally
         {
-            _gameLoop.Post(() => _editors.Disconnect(editorIndex));
+            // Locks go with the socket: a crashed editor must not leave a record shut.
+            _gameLoop.Post(() =>
+            {
+                _editorHandler.OnEditorDisconnected(editorIndex);
+                _editors.Disconnect(editorIndex);
+            });
             await writer.DisposeAsync().ConfigureAwait(false);
             reader.Dispose();
             client.Dispose();

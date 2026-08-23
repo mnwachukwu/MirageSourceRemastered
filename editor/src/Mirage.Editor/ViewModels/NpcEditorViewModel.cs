@@ -80,6 +80,7 @@ public sealed partial class NpcEditorViewModel : EditorViewModelBase<NpcRowViewM
         if (_data.IsOnline) _data.PatchOnlineNpcName(vm.Index, vm.Name);
     }
 
+    protected override string SectionId => "NPCs";
     protected override string TypeName => EditorStrings.Get(EditorStrings.NpcEditor_TypeName);
     protected override string TypeNamePlural => EditorStrings.Get(EditorStrings.NpcEditor_TypeNamePlural);
     protected override int GetIndex(NpcRowViewModel vm) => vm.Index;

@@ -26,6 +26,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly EditorDataService _data;
     private readonly EditorConnection _conn;
     private readonly EditorBitmapCache _bitmaps;
+    /// <summary>Who holds what, as the server last said. Shared by every child editor.</summary>
+    public EditorLockState Locks { get; } = new();
     // Parallel to AllSectionNames: the online/offline reload pair for each child editor, so a mode
     // switch can drive them all without naming each one again.
     private readonly (Action loadOnline, Action loadOffline)[] _editorLoaders;
@@ -49,6 +51,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ConnectionStatus))]
     [NotifyPropertyChangedFor(nameof(AutoSaveMenuItemLabel))]
+    [NotifyPropertyChangedFor(nameof(ShowEmptyWorld))]
     private bool _isOnline;
 
     /// <summary>The one word inside the toolbar badge. Derived rather than assigned at each transition:
@@ -207,6 +210,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
         };
         _conn.OnDisconnected += OnConnectionLost;
         _conn.OnLivePacket += OnLivePacket;
+
+        // Every record editor draws from the one table, and re-reads its rows whenever it moves.
+        foreach (var ed in RecordEditors) ed.Locks = Locks;
+        MapEditor.Locks = Locks;
+        Locks.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var ed in RecordEditors) ed.RefreshLockState();
+            MapEditor.RefreshLockState();
+        });
     }
 
     // A server-pushed live broadcast arrived (not a pending request's response). Fires on the connection's
@@ -215,9 +227,34 @@ public sealed partial class MainWindowViewModel : ObservableObject
     // the resized NPC.
     private void OnLivePacket(IPacket packet)
     {
-        if (packet is UpdateNpcPacket npc)
-            _ = Dispatcher.UIThread.InvokeAsync(() => MapEditor.OnNpcLiveUpdated(npc.NpcNum, npc.Size));
+        if (packet is EditorLocksPacket locks) { Locks.Apply(locks); return; }
+
+        // A record somebody else saved. Applying it is what keeps an online session from ever holding the
+        // older copy, which is why there is no staleness check anywhere: there is no staleness.
+        _ = Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            switch (packet)
+            {
+                case UpdateItemPacket p: ItemEditor.ApplyLiveRecord(p.ItemNum, p); break;
+                case UpdateNpcPacket p:
+                    NpcEditor.ApplyLiveRecord(p.NpcNum, p);
+                    MapEditor.OnNpcLiveUpdated(p.NpcNum, p.Size);
+                    break;
+                case UpdateShopPacket p: ShopEditor.ApplyLiveRecord(p.ShopNum, p); break;
+                case UpdateSpellPacket p: SpellEditor.ApplyLiveRecord(p.SpellNum, p); break;
+                case UpdateClassPacket p: ClassEditor.ApplyLiveRecord(p.ClassNum, p); break;
+                case UpdateQuestPacket p: QuestEditor.ApplyLiveRecord(p.QuestNum, p); break;
+                case UpdateConversationPacket p: ConversationEditor.ApplyLiveRecord(p.ConvNum, p); break;
+                case UpdateMapGroupPacket p: MapGroupEditor.ApplyLiveRecord(p.GroupNum, p); break;
+                case SendMapPacket p: MapEditor.OnMapLivePushed(p); break;
+            }
+        });
     }
+
+    /// <summary>The eight editors that keep a list of records the lock table can name. Maps are held apart:
+    /// the map editor is not one of these and carries its own lock plumbing.</summary>
+    private IEnumerable<dynamic> RecordEditors =>
+        [ItemEditor, NpcEditor, ShopEditor, SpellEditor, ClassEditor, QuestEditor, ConversationEditor, MapGroupEditor];
 
     /// <summary>First-run startup: read the offline data set, seed and load the editable asset folder,
     /// then open the map editor. Always starts offline — connecting is an explicit user action.</summary>
@@ -227,25 +264,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // the editor is bricked behind a panel with no way to reach the error.
         try
         {
-            // Before the load, not after: a machine with no world of its own gets the shipped one first, or
-            // this first run would read an empty store and only find the content on the NEXT launch.
-            await Task.Run(() =>
-            {
-                int seeded = EditorPaths.SeedData();
-                if (seeded > 0) EditorLog.Info("No world at {DataDir}; laid down the shipped seed ({Count} files).",
-                                               EditorPaths.Data, seeded);
-            });
-
-            LoadingStatus = EditorStrings.Get(EditorStrings.MainWindow_LoadingData);
-            await _data.LoadOfflineAsync();
-            // Populate the editable assets dir with the bundled defaults (if-missing) before first load.
+            // Graphics are the editor's own and always load; a world is not, and is opened rather than
+            // assumed. Assets first, so the window is drawable whether or not anything is opened into it.
             LoadingStatus = EditorStrings.Get(EditorStrings.MainWindow_LoadingAssets);
             await Task.Run(EditorPaths.SeedAssets);
             _bitmaps.Load(EditorPaths.Assets);
             ApplyBitmaps();
             MapEditor.ReloadAssetsRequested = ReloadAssets;
-            RefreshEditors(online: false);
-            SelectedSection = _sectionMap["Maps"];
+
+            // No world by default. Opening one is a decision, and starting on whatever was open last would
+            // attach the editor to a world somebody had finished with.
+            var settings = AppSettings.Current;
+            if (settings.ReopenLastWorld && !string.IsNullOrWhiteSpace(settings.LastWorldPath))
+                await OpenWorldAsync(settings.LastWorldPath!, remember: false);
         }
         finally
         {
@@ -361,6 +392,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void OnConnectSuccess(EditorDataPacket pkt, AdminLevel access)
     {
         _data.LoadOnline(pkt, _conn.Hello?.Records);
+        MarkServerSeen(pkt);
+        Locks.MyLogin = _conn.Login;
         RefreshEditors(online: true);
         IsOnline = true;
         ConnectionEndpoint = _conn.Endpoint;
@@ -457,6 +490,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
         // BEFORE the socket is touched. Tearing it down can raise the connection-lost event, and the first
         // thing that handler reads is this flag — leaving it true until afterwards let an ordinary
         // Disconnect open the lost-connection dialog on its own way out.
+        // Every lock this session knew about belongs to a conversation that is over.
+        Locks.Clear();
         IsOnline = false;
         _eagerLoadCts?.Cancel();
         _eagerLoadCts = null;

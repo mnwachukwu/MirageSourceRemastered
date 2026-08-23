@@ -8,9 +8,16 @@ public sealed class AppSettings
     public int DefaultServerPort { get; set; } = 4000;
     public string Language { get; set; } = "en";
 
-    /// <summary>Optional path to the game data dir (maps, items, npcs, …). Null/empty = the per-user
-    /// data dir. A relative path is resolved against the install dir, never the CWD.</summary>
-    public string? DataDir { get; set; }
+    /// <summary>The world folder last opened, so it can be offered again and reopened on request. A world
+    /// is a directory holding maps/, npcs/, items/ and the rest — the editor never keeps one of its own.</summary>
+    public string? LastWorldPath { get; set; }
+
+    /// <summary>Whether to reopen <see cref="LastWorldPath"/> at startup. Off by default: the editor opens
+    /// on nothing and asks, so launching it never silently attaches to a world you had finished with.</summary>
+    public bool ReopenLastWorld { get; set; }
+
+    /// <summary>Worlds opened before, most recent first, for the File menu.</summary>
+    public List<string> RecentWorlds { get; set; } = [];
 
     /// <summary>Optional path to the editable graphics dir (tilesets/sprites/items). Null/empty = the
     /// per-user data dir. A relative path is resolved against the install dir, never the CWD.</summary>

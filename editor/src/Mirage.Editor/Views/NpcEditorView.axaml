@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
+             xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:mui="using:Mirage.Ui.Controls"
              Grid.IsSharedSizeScope="True"
@@ -51,6 +51,10 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="&#x1F512;" FontSize="10" VerticalAlignment="Center"
+                         Foreground="{DynamicResource MirageFaintBrush}"
+                         IsVisible="{Binding LockedByOther}"
+                         ToolTip.Tip="{Binding LockHolder}"/>
               <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                        VerticalAlignment="Center"
                        IsVisible="{Binding IsDirty}"/>
@@ -70,7 +74,8 @@
                  IsVisible="{Binding SelectedNpc, Converter={x:Static ObjectConverters.IsNull}}"
                  Foreground="#6B6491" HorizontalAlignment="Center" VerticalAlignment="Center"
                  FontStyle="Italic"/>
-      <ScrollViewer IsVisible="{Binding SelectedNpc, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <ScrollViewer IsVisible="{Binding SelectedNpc, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    IsEnabled="{Binding !IsSelectedLocked}">
         <StackPanel Margin="16" Spacing="8">
 
           <TextBlock x:Name="_sectionTitle" FontSize="16" FontWeight="Bold" Margin="0,0,0,4"/>

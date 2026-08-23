@@ -57,6 +57,17 @@ public partial class MainWindow : FAAppWindow
         _helpMapEditorItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMapEditor);
         _helpLoggingItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpLogging);
         _helpAboutItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpAbout);
+        _dataMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_DataMenu);
+        _worldMenu.Header = EditorStrings.Get(EditorStrings.World_Menu);
+        _worldOpenItem.Header = EditorStrings.Get(EditorStrings.World_Open);
+        _worldCloseItem.Header = EditorStrings.Get(EditorStrings.World_Close);
+        _worldRecentItem.Header = EditorStrings.Get(EditorStrings.World_Recent);
+        _worldSettingsItem.Header = EditorStrings.Get(EditorStrings.World_Settings);
+        _worldDownloadItem.Header = EditorStrings.Get(EditorStrings.World_Download);
+        _worldUploadItem.Header = EditorStrings.Get(EditorStrings.World_Upload);
+        _emptyWorldTitle.Text = EditorStrings.Get(EditorStrings.World_EmptyTitle);
+        _emptyWorldHint.Text = EditorStrings.Get(EditorStrings.World_EmptyHint);
+        _emptyWorldOpen.Content = EditorStrings.Get(EditorStrings.World_Open);
         _languageMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_LanguageMenu);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
         _exportMapItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportMapButton);
@@ -98,8 +109,8 @@ public partial class MainWindow : FAAppWindow
         var dlg = new AutoSaveDialog { DataContext = dlgVm };
         // A confirmed change restarts every schedule, so a freshly enabled editor waits a full interval
         // instead of firing on the next 30-second tick.
-        dlgVm.Confirmed += () => { vm.ResetAutoSaveSchedule(); dlg.Close(); };
-        dlgVm.Canceled += () => dlg.Close();
+        dlgVm.Confirmed += vm.ResetAutoSaveSchedule;
+        dlg.CloseWhen(h => dlgVm.Confirmed += h, h => dlgVm.Canceled += h);
         await dlg.ShowDialog(this);
     }
 
@@ -211,18 +222,48 @@ public partial class MainWindow : FAAppWindow
 
         if (DataContext is MainWindowViewModel vm)
         {
+            // A world is a directory; the picker opens on the shipped one so a first run has something
+            // to say yes to.
+            vm.PickWorldFolderAsync = async startAt =>
+            {
+                var start = await StorageProvider.TryGetFolderFromPathAsync(startAt);
+                var picked = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    Title = EditorStrings.Get(EditorStrings.World_Open),
+                    AllowMultiple = false,
+                    SuggestedStartLocation = start,
+                });
+                return picked.Count > 0 ? picked[0].TryGetLocalPath() : null;
+            };
+
+            vm.ShowWorldSettingsDialogAsync = async dlgVm =>
+            {
+                var dlg = new WorldSettingsDialog { DataContext = dlgVm };
+                dlg.CloseWhen<RecordLimits>(h => dlgVm.Confirmed += h);
+                dlg.CloseWhen(h => dlgVm.Canceled += h);
+                await dlg.ShowDialog(this);
+            };
+
+            vm.ShowWorldTransferDialogAsync = async dlgVm =>
+            {
+                var dlg = new WorldTransferDialog { DataContext = dlgVm };
+                dlg.CloseWhen(h => dlgVm.Confirmed += h, h => dlgVm.Canceled += h);
+                await dlg.ShowDialog(this);
+            };
+
+            vm.ConfirmAsync = async msg => await new ConfirmDialog(msg).ShowDialog<bool>(this);
+
             vm.ShowConnectDialogAsync = async dlgVm =>
             {
                 var dlg = new ConnectDialog { DataContext = dlgVm };
-                dlgVm.CloseRequested += () => dlg.Close();
+                dlg.CloseWhen(h => dlgVm.CloseRequested += h);
                 await dlg.ShowDialog(this);
             };
 
             vm.ShowPushChangesDialogAsync = async dlgVm =>
             {
                 var dlg = new PushChangesDialog { DataContext = dlgVm };
-                dlgVm.ProceedConfirmed += () => dlg.Close();
-                dlgVm.Canceled += () => dlg.Close();
+                dlg.CloseWhen(h => dlgVm.ProceedConfirmed += h, h => dlgVm.Canceled += h);
                 await dlg.ShowDialog(this);
             };
 
@@ -260,10 +301,10 @@ public partial class MainWindow : FAAppWindow
                 dlgVm.ShowConnectDialogAsync = async connectVm =>
                 {
                     var connectDlg = new ConnectDialog { DataContext = connectVm };
-                    connectVm.CloseRequested += () => connectDlg.Close();
+                    connectDlg.CloseWhen(h => connectVm.CloseRequested += h);
                     await connectDlg.ShowDialog(dlg);
                 };
-                dlgVm.CloseRequested += () => dlg.Close();
+                dlg.CloseWhen(h => dlgVm.CloseRequested += h);
                 // Closing the window IS a decision: carry on offline, which is what the caller does with any
                 // exit that is not a reconnect. Nothing is preserved by refusing the close — the session is
                 // already gone — and a modal with no way out turns an unexpected open into a frozen editor.
@@ -294,9 +335,8 @@ public partial class MainWindow : FAAppWindow
             EditorLog.Reconfigure(setting);
             EditorLog.Info("Logging reconfigured: level {Level}, retention {Retention}.",
                 setting.Level, setting.Retention);
-            dlg.Close();
         };
-        dlgVm.Canceled += () => dlg.Close();
+        dlg.CloseWhen(h => dlgVm.Confirmed += h, h => dlgVm.Canceled += h);
         EditorLog.Debug("Logging configuration opened.");
         await dlg.ShowDialog(this);
     }

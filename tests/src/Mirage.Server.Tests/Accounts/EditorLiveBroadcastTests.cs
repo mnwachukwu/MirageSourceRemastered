@@ -267,6 +267,7 @@ public class EditorLiveBroadcastTests
         public readonly GameWorld World = new();
         public readonly PlayerManager Pm = new();
         public readonly EditorSessionManager Editors = new();
+        public readonly EditorLockRegistry Locks = new();
         public readonly CapturingDispatcher Dispatcher = new();
         public readonly RecordingPersistence Persistence = new();
         private readonly EditorPacketHandler _handler;
@@ -279,7 +280,7 @@ public class EditorLiveBroadcastTests
             Editors.GetSession(Editor)!.IsAuthenticated = true;
             Editors.GetSession(Editor)!.AdminLevel = access;
             _handler = new EditorPacketHandler(
-                World, Pm, Editors, Dispatcher, Persistence, new NoOpBackground(),
+                World, Pm, Editors, Locks, Dispatcher, Persistence, new NoOpBackground(),
                 items: null!, joinLeave: null!, quests: null!, spawn: null!,
                 saver: null!, gameLoop: null!,
                 NullLogger<EditorPacketHandler>.Instance);
@@ -325,6 +326,8 @@ public class EditorLiveBroadcastTests
         public void SendLocalizedChatToViewportAt(int mapNum, int x, int y, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendLocalizedChatToAdmins(string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendToEditor(int editorIndex, IPacket packet) => Direct.Add((editorIndex, packet));
+        public readonly List<IPacket> AllEditors = new();
+        public void SendToAllEditors(IPacket packet) => AllEditors.Add(packet);
         public void Disconnect(int index) { }
         public void DisconnectEditor(int editorIndex) { }
         public void GracefulDisconnect(int index) { }

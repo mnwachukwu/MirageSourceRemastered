@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:Mirage.Editor.Controls"
-             xmlns:vm="using:Mirage.Editor.ViewModels" xmlns:models="using:Mirage.Editor.Models"
+             xmlns:models="using:Mirage.Editor.Models"
              xmlns:mui="using:Mirage.Ui.Controls"
              Grid.IsSharedSizeScope="True"
              x:Class="Mirage.Editor.Views.MapEditorView">
@@ -49,10 +49,14 @@
           <ListBox.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Spacing="4">
+                <TextBlock Text="&#x1F512;" FontSize="10" VerticalAlignment="Center"
+                           Foreground="{DynamicResource MirageFaintBrush}"
+                           IsVisible="{Binding LockedByOther}"
+                           ToolTip.Tip="{Binding LockHolder}"/>
                 <Ellipse Width="7" Height="7" Fill="{DynamicResource MirageWarnBrush}"
                          VerticalAlignment="Center"
                          IsVisible="{Binding IsDirty}"/>
-                <TextBlock Text="{Binding DisplayName}" Padding="4,2" FontSize="11"/>
+                <TextBlock Text="{Binding DisplayName}" Padding="4,2"/>
               </StackPanel>
             </DataTemplate>
           </ListBox.ItemTemplate>

@@ -9,8 +9,13 @@ namespace Mirage.Editor.ViewModels;
 /// each field as an observable property — a map is far too large for that. It holds the whole
 /// <see cref="MapRecord"/> and exposes explicit notify helpers the map editor calls after mutating it.
 /// </summary>
-public sealed partial class MapRowViewModel : ObservableObject
+public sealed partial class MapRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     /// <summary>1-based map number.</summary>
     public int Index { get; }
     /// <summary>Whether the full map has been fetched; false for a placeholder row awaiting lazy load.</summary>

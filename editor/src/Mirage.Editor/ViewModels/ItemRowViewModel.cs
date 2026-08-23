@@ -15,8 +15,13 @@ namespace Mirage.Editor.ViewModels;
 /// derived from <see cref="Type"/> via the rules on <see cref="ItemRecord"/> — so the form shows a
 /// weapon its durability, power and class requirement, and a potion nothing but its amount.</para>
 /// </summary>
-public sealed partial class ItemRowViewModel : ObservableObject
+public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     /// <summary>1-based item slot number.</summary>
     public int Index { get; }
     /// <summary>Whether the full definition has been fetched; false for a placeholder row awaiting load.</summary>

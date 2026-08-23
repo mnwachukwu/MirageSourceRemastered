@@ -9,8 +9,13 @@ namespace Mirage.Editor.ViewModels;
 /// <summary>One MapGroup slot in the MapGroup editor. Holds the authored fields; Moral + the two
 /// environment bools are tri-state (null = "(Inherit)"/don't-provide) so a group can decline to supply a value.
 /// ControllingGuild is runtime state shown read-only and preserved verbatim across a save.</summary>
-public sealed partial class MapGroupRowViewModel : ObservableObject
+public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRow
 {
+    /// <inheritdoc/>
+    [ObservableProperty] private bool _lockedByOther;
+    /// <inheritdoc/>
+    [ObservableProperty] private string _lockHolder = "";
+
     public int Index { get; }
     public bool IsLoaded { get; private set; }
 
