@@ -19,11 +19,15 @@ public static class TileAttrRules
     public static bool UsesKey(TileType type) => type is TileType.Key;
     public static bool UsesDoor(TileType type) => type is TileType.KeyOpen;
     public static bool UsesRamp(TileType type) => type is TileType.LayerRamp;
+    /// <summary>Blocked carries what the wall stops. Every other kind of tile stops nothing, so the two
+    /// fields are only meaningful here.</summary>
+    public static bool UsesBlocked(TileType type) => type is TileType.Blocked;
 
-    /// <summary>Whether this kind of tile carries any authored field at all — Walkable, Blocked and
-    /// NpcAvoid are pure attributes with nothing to configure.</summary>
+    /// <summary>Whether this kind of tile carries any authored field at all — Walkable and NpcAvoid are
+    /// pure attributes with nothing to configure.</summary>
     public static bool UsesAnyField(TileType type) =>
-        UsesWarp(type) || UsesItem(type) || UsesKey(type) || UsesDoor(type) || UsesRamp(type);
+        UsesWarp(type) || UsesItem(type) || UsesKey(type) || UsesDoor(type) || UsesRamp(type)
+        || UsesBlocked(type);
 
     public static void Normalize(TileRecord t)
     {
@@ -32,6 +36,8 @@ public static class TileAttrRules
         if (!UsesKey(t.Type)) { t.KeyItemNum = 0; t.KeyIsConsumed = false; }
         if (!UsesDoor(t.Type)) { t.DoorX = 0; t.DoorY = 0; t.DoorLayer = default; }
         if (!UsesRamp(t.Type)) t.RampGroundSide = default;
+        // Reset to stopping everything, so a tile that is not a wall carries no permission a wall would honour.
+        if (!UsesBlocked(t.Type)) { t.BlocksLight = true; t.BlocksSight = true; }
     }
 
     public static void Normalize(FringeAttr a)
@@ -41,5 +47,6 @@ public static class TileAttrRules
         if (!UsesKey(a.Type)) { a.KeyItemNum = 0; a.KeyIsConsumed = false; }
         if (!UsesDoor(a.Type)) { a.DoorX = 0; a.DoorY = 0; a.DoorLayer = default; }
         if (!UsesRamp(a.Type)) a.RampGroundSide = default;
+        if (!UsesBlocked(a.Type)) { a.BlocksLight = true; a.BlocksSight = true; }
     }
 }

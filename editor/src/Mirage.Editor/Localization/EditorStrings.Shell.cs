@@ -26,7 +26,9 @@ public static partial class EditorStrings
     public const string Common_CopyNeedsRecord = nameof(Common_CopyNeedsRecord);
 
     public const string Common_Notes = nameof(Common_Notes);              // "Notes"
-    public const string Common_RetainOnAltClick = nameof(Common_RetainOnAltClick);   // "Retain values for Alt+Click"
+    public const string Common_RetainOnAltClick = nameof(Common_RetainOnAltClick);
+    public const string Common_FillConnectedRun = nameof(Common_FillConnectedRun);
+    public const string Common_FillConnectedRunTooltip = nameof(Common_FillConnectedRunTooltip);   // "Retain values for Alt+Click"
     public const string Common_FilterByName = nameof(Common_FilterByName);       // "Filter by name…"
     public const string Common_Filter = nameof(Common_Filter);             // "Filter…"
     public const string Common_PhysDmgAbbrev = nameof(Common_PhysDmgAbbrev);      // "P-DMG"

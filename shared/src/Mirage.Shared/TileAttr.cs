@@ -43,6 +43,14 @@ public readonly record struct TileAttr
     /// <summary>Which plane the door sits on, so a ground plate can open a door up on the deck.</summary>
     public WorldLayer DoorLayer { get; init; }
 
+    // ── Blocked: what the wall stops ────────────────────────────────────────────────────────────
+    /// <summary>Whether light stops here. A solid wall does; a railing, a window or a shallow ledge
+    /// does not, and the lamp behind it still lights the ground in front.</summary>
+    public bool BlocksLight { get; init; }
+    /// <summary>Whether sight stops here — spell line-of-sight, and everything that mirrors it. Separate
+    /// from <see cref="BlocksLight"/>: a stained window stops neither, a curtain stops sight alone.</summary>
+    public bool BlocksSight { get; init; }
+
     // ── LayerRamp: the connector between the two planes ─────────────────────────────────────────
     /// <summary>The ground side — the direction you mount the ramp from.</summary>
     public Direction RampGroundSide { get; init; }
@@ -52,5 +60,6 @@ public readonly record struct TileAttr
     public static readonly TileAttr Walkable = new() { Type = TileType.Walkable };
 
     /// <summary>What a ramp reads as from the ground layer: a solid understructure, not a hole.</summary>
-    public static readonly TileAttr Blocked = new() { Type = TileType.Blocked };
+    public static readonly TileAttr Blocked =
+        new() { Type = TileType.Blocked, BlocksLight = true, BlocksSight = true };
 }

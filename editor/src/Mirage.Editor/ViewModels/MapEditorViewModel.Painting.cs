@@ -174,6 +174,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         WarpY = isWarp ? attr.WarpY : (short)0;
                         WarpDestLayer = isWarp ? attr.WarpLayer : WorldLayer.Ground;
                         _pendingTiles.Clear();
+                        // Editing an existing one anchors the connected-run fill; laying a new one
+                        // leaves it inert, since a run grown from open ground would swallow the map.
+                        _runAnchor = isWarp ? (x, y) : null;
+                        OnPropertyChanged(nameof(CanFillRun));
                         if (isWarp)
                         {
                             _pendingTiles.Add((x, y));
@@ -221,6 +225,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         ItemTileQuantity = isItem ? attr.ItemQuantity : (short)0;
                         ItemTileRespawnSeconds = isItem ? attr.ItemRespawnSecs : (short)0;
                         _pendingTiles.Clear();
+                        // Editing an existing one anchors the connected-run fill; laying a new one
+                        // leaves it inert, since a run grown from open ground would swallow the map.
+                        _runAnchor = isItem ? (x, y) : null;
+                        OnPropertyChanged(nameof(CanFillRun));
                         if (isItem)
                         {
                             _pendingTiles.Add((x, y));
@@ -267,6 +275,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         KeyItemNum = isKey ? attr.KeyItemNum : (short)0;
                         KeyTake = isKey && attr.KeyIsConsumed;
                         _pendingTiles.Clear();
+                        // Editing an existing one anchors the connected-run fill; laying a new one
+                        // leaves it inert, since a run grown from open ground would swallow the map.
+                        _runAnchor = isKey ? (x, y) : null;
+                        OnPropertyChanged(nameof(CanFillRun));
                         if (isKey)
                         {
                             _pendingTiles.Add((x, y));
@@ -314,6 +326,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         KeyOpenDoorY = isKeyOpen ? attr.DoorY : (short)0;
                         KeyOpenDoorLayer = isKeyOpen ? attr.DoorLayer : WorldLayer.Ground;
                         _pendingTiles.Clear();
+                        // Editing an existing one anchors the connected-run fill; laying a new one
+                        // leaves it inert, since a run grown from open ground would swallow the map.
+                        _runAnchor = isKeyOpen ? (x, y) : null;
+                        OnPropertyChanged(nameof(CanFillRun));
                         if (isKeyOpen)
                         {
                             _pendingTiles.Add((x, y));
@@ -333,9 +349,63 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     }
                     return;
 
+                case TileType.Blocked:
+                    // A wall carries what it stops, so it opens a dialog like the other authored attributes.
+                    // Alt+Click lays the retained pair straight onto the footprint.
+                    if (altHeld)
+                    {
+                        foreach (var (tx, ty) in footprint)
+                        {
+                            var t = map.Tile[tx, ty];
+                            var cur = ActiveAttrType(t);
+                            if (cur != TileType.Walkable && cur != TileType.Blocked) continue;
+                            var before = Snap(t);
+                            SetActiveAttr(t, new TileAttr
+                            {
+                                Type = TileType.Blocked,
+                                BlocksLight = _retBlocksLight,
+                                BlocksSight = _retBlocksSight,
+                            });
+                            SelectedMap.UpdateRecord(map);
+                            InvalidateTileGrid?.Invoke(tx, ty);
+                            Record(tx, ty, before, Snap(t));
+                        }
+                        return;
+                    }
+                    {
+                        var attr = ActiveAttrData(map.Tile[x, y]);
+                        if (attr.Type != TileType.Blocked)
+                        {
+                            // Laying a wall is instant. Almost every wall stops everything, so declaring
+                            // that each time would be a dialog that only ever gets confirmed.
+                            foreach (var (tx, ty) in footprint)
+                            {
+                                var t = map.Tile[tx, ty];
+                                if (ActiveAttrType(t) != TileType.Walkable) continue;
+                                var before = Snap(t);
+                                SetActiveAttr(t, TileType.Blocked);
+                                SelectedMap.UpdateRecord(map);
+                                InvalidateTileGrid?.Invoke(tx, ty);
+                                Record(tx, ty, before, Snap(t));
+                            }
+                            return;
+                        }
+
+                        // Clicking a wall that is already there is how its exceptions are set.
+                        BlockedBlocksLight = attr.BlocksLight;
+                        BlockedBlocksSight = attr.BlocksSight;
+                        _pendingTiles.Clear();
+                        _pendingTiles.Add((x, y));
+                        _runAnchor = (x, y);
+                        OnPropertyChanged(nameof(CanFillRun));
+                        DialogError = "";
+                        ShowBlockedDialog = true;
+                    }
+                    return;
+
                 default:
-                    // Blocked, NpcAvoid — apply directly to the brush footprint (no dialog), on the ACTIVE plane
-                    // (Ground = inline Type, Fringe = FringeAttr) so you can wall off a bridge with fringe railings.
+                    // NpcAvoid — nothing to author, so it goes straight onto the brush footprint, on the ACTIVE
+                    // plane (Ground = inline Type, Fringe = FringeAttr).
                     foreach (var (tx, ty) in footprint)
                     {
                         var t = map.Tile[tx, ty];

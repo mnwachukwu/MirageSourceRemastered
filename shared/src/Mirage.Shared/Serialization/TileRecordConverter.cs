@@ -55,6 +55,8 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "itemrespawnsecs": tile.ItemRespawnSecs = reader.GetInt16(); break;
                 case "keyitemnum": tile.KeyItemNum = reader.GetInt16(); break;
                 case "keyisconsumed": tile.KeyIsConsumed = reader.GetBoolean(); break;
+                case "blockslight": tile.BlocksLight = reader.GetBoolean(); break;
+                case "blockssight": tile.BlocksSight = reader.GetBoolean(); break;
                 case "doorx": tile.DoorX = reader.GetInt16(); break;
                 case "doory": tile.DoorY = reader.GetInt16(); break;
                 case "doorlayer": tile.DoorLayer = ReadLayer(ref reader); break;
@@ -78,6 +80,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
             value.WarpMap, value.WarpX, value.WarpY, value.WarpLayer,
             value.ItemNum, value.ItemQuantity, value.ItemRespawnSecs,
             value.KeyItemNum, value.KeyIsConsumed,
+            value.BlocksLight, value.BlocksSight,
             value.DoorX, value.DoorY, value.DoorLayer,
             value.RampGroundSide);
         if (value.FringeAttr is { } fa) WriteFringeAttr(writer, fa);
@@ -144,6 +147,8 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
                 case "itemrespawnsecs": fa.ItemRespawnSecs = reader.GetInt16(); break;
                 case "keyitemnum": fa.KeyItemNum = reader.GetInt16(); break;
                 case "keyisconsumed": fa.KeyIsConsumed = reader.GetBoolean(); break;
+                case "blockslight": fa.BlocksLight = reader.GetBoolean(); break;
+                case "blockssight": fa.BlocksSight = reader.GetBoolean(); break;
                 case "doorx": fa.DoorX = reader.GetInt16(); break;
                 case "doory": fa.DoorY = reader.GetInt16(); break;
                 case "doorlayer": fa.DoorLayer = ReadLayer(ref reader); break;
@@ -168,6 +173,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
             fa.WarpMap, fa.WarpX, fa.WarpY, fa.WarpLayer,
             fa.ItemNum, fa.ItemQuantity, fa.ItemRespawnSecs,
             fa.KeyItemNum, fa.KeyIsConsumed,
+            fa.BlocksLight, fa.BlocksSight,
             fa.DoorX, fa.DoorY, fa.DoorLayer,
             fa.RampGroundSide);
         writer.WriteEndObject();
@@ -187,6 +193,7 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         short warpMap, short warpX, short warpY, WorldLayer warpLayer,
         short itemNum, short itemQuantity, short itemRespawnSecs,
         short keyItemNum, bool keyIsConsumed,
+        bool blocksLight, bool blocksSight,
         short doorX, short doorY, WorldLayer doorLayer,
         Direction rampGroundSide)
     {
@@ -218,6 +225,13 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         }
         if (TileAttrRules.UsesRamp(type))
             writer.WriteString("rampGroundSide", rampGroundSide.ToString());
+        // Only what the wall lets THROUGH is written. A wall stops everything, so the ordinary case costs
+        // nothing on disk and a file with neither key reads back as solid.
+        if (TileAttrRules.UsesBlocked(type))
+        {
+            if (!blocksLight) writer.WriteBoolean("blocksLight", false);
+            if (!blocksSight) writer.WriteBoolean("blocksSight", false);
+        }
     }
 
     // Enum readers that take a name or a number, matching ReadTileType — the server writes names, and a

@@ -77,8 +77,11 @@ public static class ClientLineOfSight
             int ly = worldY - row * WorldCoordHelper.MapTilesY;
             var tile = map.Tile[lx, ly];
             if (_blockRamps && tile.FringeAttr is { Type: TileType.LayerRamp }) return true;   // ramp = wall on a cross-layer line
-            var type = LayerLogic.AttrFor(tile, _layer).Type;
-            if (type == TileType.Blocked) return true;
+            var attr = LayerLogic.AttrFor(tile, _layer);
+            var type = attr.Type;
+            // A wall stops sight only if it is authored to. A railing or a window is Blocked to walk
+            // through and clear to see through.
+            if (type == TileType.Blocked) return attr.BlocksSight;
             // Center cell's authoritative door state is in state.TempTile; NeighborTempTiles[1,1]
             // is reset to empty on every seam shift and would falsely report doors closed.
             var doors = (col == 1 && row == 1) ? _state.TempTile : _state.NeighborTempTiles[col, row];

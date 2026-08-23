@@ -39,6 +39,11 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // Data2 = take flag (1 = consume key on use, 0 = keep).  Data3 = 0 (unused).
     [ObservableProperty] private bool _keyTake;
 
+    // Blocked carries what the wall stops: a wall stops everything unless it is authored not to.
+    [ObservableProperty] private bool _showBlockedDialog;
+    [ObservableProperty] private bool _blockedBlocksLight = true;
+    [ObservableProperty] private bool _blockedBlocksSight = true;
+
     [ObservableProperty] private bool _showKeyOpenDialog;
     // Data1/2 = coordinates of the Key (door) tile on the same map.
     [ObservableProperty] private short _keyOpenDoorX;
@@ -55,11 +60,27 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     [ObservableProperty] private string _dialogError = "";
 
+    // ── Connected-run fill ───────────────────────────────────────────────────
+    // Editing one tile of a run — a warp cluster, a wall, a row of plates — usually means editing the run.
+    // Sticky like the retain boxes, and inert unless the click landed on the attribute being authored:
+    // grown from open ground a run would swallow the whole map.
+    [ObservableProperty] private bool _fillRun;
+
+    /// <summary>The clicked tile when it already held the attribute being authored. Null while a dialog is
+    /// laying a new one, which is what makes the fill inert there.</summary>
+    private (int X, int Y)? _runAnchor;
+
+    /// <summary>Whether the open dialog has a run to grow into.</summary>
+    public bool CanFillRun => _runAnchor is not null;
+
     // ── Per-dialog "retain values" checkboxes ────────────────────────────────
-    [ObservableProperty] private bool _warpRetain;
-    [ObservableProperty] private bool _itemRetain;
-    [ObservableProperty] private bool _keyRetain;
-    [ObservableProperty] private bool _keyOpenRetain;
+    // On by default: laying a run of the same attribute is the common job, and Alt+Click is what makes
+    // that quick.
+    [ObservableProperty] private bool _warpRetain = true;
+    [ObservableProperty] private bool _itemRetain = true;
+    [ObservableProperty] private bool _keyRetain = true;
+    [ObservableProperty] private bool _keyOpenRetain = true;
+    [ObservableProperty] private bool _blockedRetain = true;
 
     // ── Retained values (set only by Confirm when *Retain is true; Alt+Click) ──
     // Completely separate from the dialog fields so cancel never corrupts them.
@@ -78,6 +99,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private short _retKeyOpenDoorX, _retKeyOpenDoorY;
     private WorldLayer _retKeyOpenDoorLayer;
 
+    // A wall stops everything until a dialog says otherwise, so these start where a plain wall does.
+    private bool _retBlocksLight = true, _retBlocksSight = true;
+
     // ── Light Sources dialog (Light mode) ─────────────────────────────────────
     [ObservableProperty] private bool _showLightDialog;
     [ObservableProperty] private Color _lightColor = ColorHex.ToColor(LightSpec.Torch.Rgb);
@@ -85,7 +109,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     [ObservableProperty] private double _lightRadius = LightSpec.Torch.Radius;   // tiles
     [ObservableProperty] private FlickerStyle _lightFlicker = LightSpec.Torch.Flicker;
     [ObservableProperty] private int _lightIntensity = 100;                      // percent, 0..100
-    [ObservableProperty] private bool _lightRetain;
+    [ObservableProperty] private bool _lightRetain = true;
     public IEnumerable<FlickerStyle> FlickerStyles { get; } = Enum.GetValues<FlickerStyle>();
 
     // Hex form of LightColor, kept two-way in sync with the color picker (edit either, both update).

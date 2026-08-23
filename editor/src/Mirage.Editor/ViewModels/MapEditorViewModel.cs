@@ -156,8 +156,10 @@ public sealed partial class MapEditorViewModel : ObservableObject, IAutoSaveTarg
         else
             t.SetGroundAttr(attr);
     }
-    // Overload for the many callers that only set a type and no fields.
-    private void SetActiveAttr(TileRecord t, TileType type) => SetActiveAttr(t, new TileAttr { Type = type });
+    // Overload for the many callers that only set a type and no fields. A wall stops everything, which is
+    // what a caller naming only the type means by one.
+    private void SetActiveAttr(TileRecord t, TileType type) =>
+        SetActiveAttr(t, new TileAttr { Type = type, BlocksLight = true, BlocksSight = true });
 
     public string HoveredText => HoveredX >= 0
         ? EditorStrings.Format(EditorStrings.MapEditor_TileCoords, ("X", HoveredX), ("Y", HoveredY))

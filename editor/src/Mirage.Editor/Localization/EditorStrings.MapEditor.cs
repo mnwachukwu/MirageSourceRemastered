@@ -157,6 +157,12 @@ public static partial class EditorStrings
     public const string ItemSpawnDialog_RespawnTooltip = nameof(ItemSpawnDialog_RespawnTooltip);
 
     // ── Key Tile Attribute Dialog ─────────────────────────────────────────────
+    public const string BlockedTileDialog_Title = nameof(BlockedTileDialog_Title);
+    public const string BlockedTileDialog_Description = nameof(BlockedTileDialog_Description);
+    public const string BlockedTileDialog_BlocksLight = nameof(BlockedTileDialog_BlocksLight);
+    public const string BlockedTileDialog_BlocksLightTooltip = nameof(BlockedTileDialog_BlocksLightTooltip);
+    public const string BlockedTileDialog_BlocksSight = nameof(BlockedTileDialog_BlocksSight);
+    public const string BlockedTileDialog_BlocksSightTooltip = nameof(BlockedTileDialog_BlocksSightTooltip);
     public const string KeyTileDialog_Title = nameof(KeyTileDialog_Title);
     public const string KeyTileDialog_Description = nameof(KeyTileDialog_Description);
     public const string KeyTileDialog_KeyItemLabel = nameof(KeyTileDialog_KeyItemLabel);

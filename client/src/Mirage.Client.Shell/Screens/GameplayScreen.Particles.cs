@@ -302,7 +302,9 @@ public sealed partial class GameplayScreen : IGameScreen
         float outerR = cmd.Radius;
         var outerDest = new Rectangle(
             (int)(cx - outerR), (int)(cy - outerR), (int)(outerR * 2f), (int)(outerR * 2f));
-        sb.Draw(outerTex, outerDest, ScaleGlow(core * LightModel.OuterDimFactor, lit));
+        var outerTint = ScaleGlow(core * LightModel.OuterDimFactor, lit);
+        if (cmd.Reach is null) sb.Draw(outerTex, outerDest, outerTint);
+        else DrawOccludedHalo(sb, outerTex, outerDest, outerTint, cmd);
 
         // Inner core — brightness animates both ways per FlickerStyle; size only oscillates up from the base
         // (floored at MinInnerSizeFactor) so the core never shrinks small.
@@ -312,7 +314,51 @@ public sealed partial class GameplayScreen : IGameScreen
         int innerSize = (int)(innerR * 2f * sizeF);
         var innerDest = new Rectangle(
             (int)(cx - innerSize / 2f), (int)(cy - innerSize / 2f), innerSize, innerSize);
-        sb.Draw(innerTex, innerDest, ScaleGlow(core, lit * f));
+        var innerTint = ScaleGlow(core, lit * f);
+        if (cmd.Reach is null) sb.Draw(innerTex, innerDest, innerTint);
+        else DrawOccludedHalo(sb, innerTex, innerDest, innerTint, cmd);
+    }
+
+    /// <summary>
+    /// Draws a halo one tile at a time, skipping the tiles the light cannot reach.
+    ///
+    /// <para>Each tile takes the slice of the halo texture that would have covered it, so the gradient is
+    /// the same one a single sprite would have drawn and the only new edges are at the walls. Additive
+    /// accumulation is unchanged: two lights still sum on a tile they both reach.</para>
+    /// </summary>
+    private static void DrawOccludedHalo(SpriteBatch sb, Texture2D tex, Rectangle dest, Color tint,
+                                         in LightSourceCmd cmd)
+    {
+        var reach = cmd.Reach!;
+        // The halo's own bounds in tiles, relative to the emitter, so only tiles it covers are considered.
+        int firstX = (int)MathF.Floor(dest.Left / (float)Constants.PicX);
+        int lastX = (int)MathF.Ceiling(dest.Right / (float)Constants.PicX) - 1;
+        int firstY = (int)MathF.Floor(dest.Top / (float)Constants.PicY);
+        int lastY = (int)MathF.Ceiling(dest.Bottom / (float)Constants.PicY) - 1;
+
+        for (int ty = firstY; ty <= lastY; ty++)
+        {
+            for (int tx = firstX; tx <= lastX; tx++)
+            {
+                // Screen tile -> world tile: the emitter's world tile is at its own screen tile.
+                int wx = cmd.TileX + tx - (int)MathF.Floor(cmd.ScreenX / Constants.PicX);
+                int wy = cmd.TileY + ty - (int)MathF.Floor(cmd.ScreenY / Constants.PicY);
+                if (wx < 0 || wx >= LightOcclusion.GridW || wy < 0 || wy >= LightOcclusion.GridH) continue;
+                if (!reach[wy * LightOcclusion.GridW + wx]) continue;
+
+                var cell = new Rectangle(tx * Constants.PicX, ty * Constants.PicY, Constants.PicX, Constants.PicY);
+                var slice = Rectangle.Intersect(cell, dest);
+                if (slice.Width <= 0 || slice.Height <= 0) continue;
+
+                // The matching slice of the halo texture, so every tile keeps the gradient it would have had.
+                var src = new Rectangle(
+                    (int)((slice.X - dest.X) / (float)dest.Width * tex.Width),
+                    (int)((slice.Y - dest.Y) / (float)dest.Height * tex.Height),
+                    Math.Max(1, (int)(slice.Width / (float)dest.Width * tex.Width)),
+                    Math.Max(1, (int)(slice.Height / (float)dest.Height * tex.Height)));
+                sb.Draw(tex, slice, src, tint);
+            }
+        }
     }
 
     // Scales a peak light color by an intensity factor, folding brightness into the RGB channels

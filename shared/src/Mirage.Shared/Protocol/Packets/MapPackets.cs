@@ -216,9 +216,16 @@ public sealed record SendMapPacket : IPacket
         [property: JsonPropertyName("dy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short DoorY { get; init; }
         [property: JsonPropertyName("dl"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WorldLayer DoorLayer { get; init; }
         [property: JsonPropertyName("rg"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public Direction RampGroundSide { get; init; }
+        // What the wall lets THROUGH, carried as the exception so an ordinary wall omits both. A Blocked
+        // tile that stops everything sends no fields at all (see FromGround), and the receiving record's
+        // own defaults are already solid.
+        [property: JsonPropertyName("lp"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool LightPasses { get; init; }
+        [property: JsonPropertyName("sp"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool SightPasses { get; init; }
 
-        public static AttrFields? FromGround(TileRecord t) => !TileAttrRules.UsesAnyField(t.Type) ? null : new AttrFields
+        public static AttrFields? FromGround(TileRecord t) =>
+            !TileAttrRules.UsesAnyField(t.Type) || Solid(t.Type, t.BlocksLight, t.BlocksSight) ? null : new AttrFields
         {
+            LightPasses = !t.BlocksLight, SightPasses = !t.BlocksSight,
             WarpMap = t.WarpMap, WarpX = t.WarpX, WarpY = t.WarpY, WarpLayer = t.WarpLayer,
             ItemNum = t.ItemNum, ItemQuantity = t.ItemQuantity, ItemRespawnSecs = t.ItemRespawnSecs,
             KeyItemNum = t.KeyItemNum, KeyIsConsumed = t.KeyIsConsumed,
@@ -226,8 +233,15 @@ public sealed record SendMapPacket : IPacket
             RampGroundSide = t.RampGroundSide,
         };
 
-        public static AttrFields? From(Records.FringeAttr a) => !TileAttrRules.UsesAnyField(a.Type) ? null : new AttrFields
+        // A plain wall carries nothing: every other field is meaningless on it, and both of its own are
+        // at their default.
+        private static bool Solid(TileType type, bool light, bool sight) =>
+            TileAttrRules.UsesBlocked(type) && light && sight;
+
+        public static AttrFields? From(Records.FringeAttr a) =>
+            !TileAttrRules.UsesAnyField(a.Type) || Solid(a.Type, a.BlocksLight, a.BlocksSight) ? null : new AttrFields
         {
+            LightPasses = !a.BlocksLight, SightPasses = !a.BlocksSight,
             WarpMap = a.WarpMap, WarpX = a.WarpX, WarpY = a.WarpY, WarpLayer = a.WarpLayer,
             ItemNum = a.ItemNum, ItemQuantity = a.ItemQuantity, ItemRespawnSecs = a.ItemRespawnSecs,
             KeyItemNum = a.KeyItemNum, KeyIsConsumed = a.KeyIsConsumed,
@@ -242,6 +256,7 @@ public sealed record SendMapPacket : IPacket
             t.KeyItemNum = KeyItemNum; t.KeyIsConsumed = KeyIsConsumed;
             t.DoorX = DoorX; t.DoorY = DoorY; t.DoorLayer = DoorLayer;
             t.RampGroundSide = RampGroundSide;
+            t.BlocksLight = !LightPasses; t.BlocksSight = !SightPasses;
         }
 
         public void ApplyTo(Records.FringeAttr a)
@@ -251,6 +266,7 @@ public sealed record SendMapPacket : IPacket
             a.KeyItemNum = KeyItemNum; a.KeyIsConsumed = KeyIsConsumed;
             a.DoorX = DoorX; a.DoorY = DoorY; a.DoorLayer = DoorLayer;
             a.RampGroundSide = RampGroundSide;
+            a.BlocksLight = !LightPasses; a.BlocksSight = !SightPasses;
         }
     }
 }

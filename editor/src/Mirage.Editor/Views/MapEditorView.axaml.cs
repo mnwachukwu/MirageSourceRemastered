@@ -206,6 +206,8 @@ public partial class MapEditorView : LocalizedUserControl
         _warpYLabel.Text = EditorStrings.Get(EditorStrings.WarpDialog_YLabel);
         _warpLayerLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_LayerHeader);   // reuse the "Layer" string
         _searchWarpMap.PlaceholderText = mapPh;
+        _warpFillRunCheck.Content = EditorStrings.Get(EditorStrings.Common_FillConnectedRun);
+        ToolTip.SetTip(_warpFillRunCheck, EditorStrings.Get(EditorStrings.Common_FillConnectedRunTooltip));
         _warpRetainCheck.Content = EditorStrings.Get(EditorStrings.Common_RetainOnAltClick);
         _warpCancel.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
         _warpConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);
@@ -227,6 +229,8 @@ public partial class MapEditorView : LocalizedUserControl
         ToolTip.SetTip(_itemRespawnLabel, respawnTooltip);
         ToolTip.SetTip(_itemRespawnInput, respawnTooltip);
         _searchItemSpawn.PlaceholderText = itemPh;
+        _itemFillRunCheck.Content = EditorStrings.Get(EditorStrings.Common_FillConnectedRun);
+        ToolTip.SetTip(_itemFillRunCheck, EditorStrings.Get(EditorStrings.Common_FillConnectedRunTooltip));
         _itemRetainCheck.Content = EditorStrings.Get(EditorStrings.Common_RetainOnAltClick);
         _itemCancel.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
         _itemConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);
@@ -242,6 +246,18 @@ public partial class MapEditorView : LocalizedUserControl
         _lightConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);
 
         // Key Tile dialog
+        _blockedTitle.Text = EditorStrings.Get(EditorStrings.BlockedTileDialog_Title);
+        _blockedDesc.Text = EditorStrings.Get(EditorStrings.BlockedTileDialog_Description);
+        _blockedLightCheck.Content = EditorStrings.Get(EditorStrings.BlockedTileDialog_BlocksLight);
+        ToolTip.SetTip(_blockedLightCheck, EditorStrings.Get(EditorStrings.BlockedTileDialog_BlocksLightTooltip));
+        _blockedSightCheck.Content = EditorStrings.Get(EditorStrings.BlockedTileDialog_BlocksSight);
+        ToolTip.SetTip(_blockedSightCheck, EditorStrings.Get(EditorStrings.BlockedTileDialog_BlocksSightTooltip));
+        _blockedFillRunCheck.Content = EditorStrings.Get(EditorStrings.Common_FillConnectedRun);
+        ToolTip.SetTip(_blockedFillRunCheck, EditorStrings.Get(EditorStrings.Common_FillConnectedRunTooltip));
+        _blockedRetainCheck.Content = EditorStrings.Get(EditorStrings.Common_RetainOnAltClick);
+        _blockedCancel.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
+        _blockedConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);
+
         _keyTitle.Text = EditorStrings.Get(EditorStrings.KeyTileDialog_Title);
         _keyDesc.Text = EditorStrings.Get(EditorStrings.KeyTileDialog_Description);
         _keyItemLabel.Text = EditorStrings.Get(EditorStrings.KeyTileDialog_KeyItemLabel);
@@ -249,6 +265,8 @@ public partial class MapEditorView : LocalizedUserControl
         _searchKeyItem.PlaceholderText = itemPh;
         _keyTakeCheck.Content = EditorStrings.Get(EditorStrings.KeyTileDialog_TakeKeyCheckbox);
         ToolTip.SetTip(_keyTakeCheck, EditorStrings.Get(EditorStrings.KeyTileDialog_TakeKeyTooltip));
+        _keyFillRunCheck.Content = EditorStrings.Get(EditorStrings.Common_FillConnectedRun);
+        ToolTip.SetTip(_keyFillRunCheck, EditorStrings.Get(EditorStrings.Common_FillConnectedRunTooltip));
         _keyRetainCheck.Content = EditorStrings.Get(EditorStrings.Common_RetainOnAltClick);
         _keyCancel.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
         _keyConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);
@@ -266,6 +284,8 @@ public partial class MapEditorView : LocalizedUserControl
         ToolTip.SetTip(_keyOpenYLabel, keyOpenYTooltip);
         ToolTip.SetTip(_keyOpenYInput, keyOpenYTooltip);
         _keyOpenLayerLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_LayerHeader);   // reuse the "Layer" string
+        _keyOpenFillRunCheck.Content = EditorStrings.Get(EditorStrings.Common_FillConnectedRun);
+        ToolTip.SetTip(_keyOpenFillRunCheck, EditorStrings.Get(EditorStrings.Common_FillConnectedRunTooltip));
         _keyOpenRetainCheck.Content = EditorStrings.Get(EditorStrings.Common_RetainOnAltClick);
         _keyOpenCancel.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
         _keyOpenConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);

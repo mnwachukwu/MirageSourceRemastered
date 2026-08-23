@@ -114,6 +114,28 @@ public sealed partial class MainWindowViewModel
     {
         EditorLog.Info("Refresh requested ({Source}).", IsOnline ? "server" : "disk");
 
+        // The whole world is replaced under the open editors, so the window is covered while it happens.
+        // Editing a row that is about to be thrown away reads as the editor discarding the work.
+        IsLoading = true;
+        LoadingStatus = EditorStrings.Get(EditorStrings.MainWindow_LoadingData);
+        string? report;
+        try
+        {
+            report = await RereadAsync();
+        }
+        finally
+        {
+            IsLoading = false;
+            LoadingStatus = "";
+        }
+
+        // Reported once the cover is down, so the result is read against the world it describes.
+        if (report is not null && ShowAlertAsync is not null) await ShowAlertAsync(report);
+    }
+
+    /// <summary>Rereads the world and returns what moved, for reporting once the cover is down.</summary>
+    private async Task<string?> RereadAsync()
+    {
         // THE reread, and the whole point of the command. Each editor's LoadOffline()/LoadOnline() refills
         // its rows from a cache filled once at startup or at login. Calling those alone rebuilds the view
         // from the same records and reports, correctly and uselessly, that nothing changed.
@@ -123,9 +145,8 @@ public sealed partial class MainWindowViewModel
             var pkt = await _conn.RequestDataAsync();
             if (pkt is null)
             {
-                if (ShowAlertAsync is not null) await ShowAlertAsync(EditorStrings.Get(EditorStrings.Refresh_ServerSilent));
                 EditorLog.Warn("Refresh: the server did not answer the data request.");
-                return;
+                return EditorStrings.Get(EditorStrings.Refresh_ServerSilent);
             }
             string stamp = ServerStamp(pkt);
             serverMoved = stamp != _lastServerSeen;
@@ -180,6 +201,6 @@ public sealed partial class MainWindowViewModel
         EditorLog.Info("Refresh done: {Changed} changed, {Same} unchanged, {Skipped} skipped.",
                        changed.Count, same.Count, skipped.Count);
 
-        if (ShowAlertAsync is not null) await ShowAlertAsync(sb.ToString().TrimEnd());
+        return sb.ToString().TrimEnd();
     }
 }

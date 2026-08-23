@@ -36,6 +36,11 @@ public sealed class FringeAttr
     public short DoorY { get; set; }
     public WorldLayer DoorLayer { get; set; }
 
+    // Blocked — what the wall stops. Both default TRUE: a wall stops everything unless it says otherwise,
+    // which is also what a map authored without these fields means.
+    public bool BlocksLight { get; set; } = true;
+    public bool BlocksSight { get; set; } = true;
+
     // LayerRamp — the side you mount from. The one field the fringe plane uses that the ground never does.
     public Direction RampGroundSide { get; set; }
 
@@ -56,6 +61,7 @@ public sealed class FringeAttr
             KeyItemNum = a.KeyItemNum, KeyIsConsumed = a.KeyIsConsumed,
             DoorX = a.DoorX, DoorY = a.DoorY, DoorLayer = a.DoorLayer,
             RampGroundSide = a.RampGroundSide,
+            BlocksLight = a.BlocksLight, BlocksSight = a.BlocksSight,
         };
         fa.Normalize();
         return fa;
@@ -70,6 +76,7 @@ public sealed class FringeAttr
         KeyItemNum = KeyItemNum, KeyIsConsumed = KeyIsConsumed,
         DoorX = DoorX, DoorY = DoorY, DoorLayer = DoorLayer,
         RampGroundSide = RampGroundSide,
+        BlocksLight = BlocksLight, BlocksSight = BlocksSight,
     };
 
     public FringeAttr Clone() => (FringeAttr)MemberwiseClone();

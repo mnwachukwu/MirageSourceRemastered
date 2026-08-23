@@ -868,7 +868,7 @@
   "Logging_Retain14": "14 dias",
   "Logging_Retain30": "30 dias",
   "Logging_RetainForever": "Manter tudo",
-  "MainWindow_DataMenu": "Dados",
+  "MainWindow_DataMenu": "Atualizar dados",
   "MainWindow_DataRefresh": "Atualizar a partir da origem (F5)",
   "Refresh_FromDisk": "Recarregado do armazenamento offline.",
   "Refresh_FromServer": "Recarregado do servidor.",
@@ -916,5 +916,13 @@
   "WorldTransfer_KindChanged": "Alterar",
   "WorldTransfer_KindRemoved": "Esvaziar",
   "WorldTransfer_OverCeiling": "{Count} registos desta pasta ficam acima do limite do servidor e não podem ser enviados. Aumente os limites de registos do servidor para os aceitar.",
-  "WorldTransfer_Unnamed": "(sem nome)"
+  "WorldTransfer_Unnamed": "(sem nome)",
+  "BlockedTileDialog_Title": "Bloqueado",
+  "BlockedTileDialog_Description": "Nada atravessa uma casa bloqueada. O que mais ela detém é consigo: uma parede sólida detém tudo, uma guarda ou uma janela não detêm nada.",
+  "BlockedTileDialog_BlocksLight": "Detém a luz",
+  "BlockedTileDialog_BlocksLightTooltip": "Desligado, um candeeiro atrás desta casa continua a iluminar o chão à frente dela.",
+  "BlockedTileDialog_BlocksSight": "Detém a linha de visão",
+  "BlockedTileDialog_BlocksSightTooltip": "Desligado, os feitiços atravessam-na.",
+  "Common_FillConnectedRun": "Aplicar a todo o troço ligado",
+  "Common_FillConnectedRunTooltip": "Cada casa adjacente com este mesmo atributo recebe os mesmos valores. Disponível ao clicar numa que já existe: colocar uma nova não tem troço a seguir."
 }

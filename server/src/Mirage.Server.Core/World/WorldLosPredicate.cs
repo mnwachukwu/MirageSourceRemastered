@@ -38,8 +38,11 @@ internal readonly struct WorldLosPredicate(GameWorld world, MapGrid grid, WorldL
         if (map is null) return true;
         var tile = map.Tile[lx, ly];
         if (_blockRamps && tile.FringeAttr is { Type: TileType.LayerRamp }) return true;   // ramp = wall on a cross-layer line
-        var type = LayerLogic.AttrFor(tile, _layer).Type;
-        if (type == TileType.Blocked) return true;
+        var attr = LayerLogic.AttrFor(tile, _layer);
+        var type = attr.Type;
+        // A wall stops sight only if it is authored to. A railing or a window is Blocked to walk through
+        // and clear to see through.
+        if (type == TileType.Blocked) return attr.BlocksSight;
         if (type == TileType.Key && !_world.TempTiles[mapNum].IsDoorOpen(lx, ly, _layer)) return true;
         return false;
     }

@@ -868,7 +868,7 @@
   "Logging_Retain14": "14 días",
   "Logging_Retain30": "30 días",
   "Logging_RetainForever": "Conservar todo",
-  "MainWindow_DataMenu": "Datos",
+  "MainWindow_DataMenu": "Actualizar datos",
   "MainWindow_DataRefresh": "Actualizar desde el origen (F5)",
   "Refresh_FromDisk": "Recargado desde el almacén sin conexión.",
   "Refresh_FromServer": "Recargado desde el servidor.",
@@ -916,5 +916,13 @@
   "WorldTransfer_KindChanged": "Cambiar",
   "WorldTransfer_KindRemoved": "Vaciar",
   "WorldTransfer_OverCeiling": "{Count} registros de esta carpeta superan el límite del servidor y no se pueden subir. Sube los límites de registros del servidor para aceptarlos.",
-  "WorldTransfer_Unnamed": "(sin nombre)"
+  "WorldTransfer_Unnamed": "(sin nombre)",
+  "BlockedTileDialog_Title": "Bloqueado",
+  "BlockedTileDialog_Description": "Nadie atraviesa una casilla bloqueada. Lo demás que detenga lo decides tú: un muro sólido detiene todo, una barandilla o una ventana no detienen nada.",
+  "BlockedTileDialog_BlocksLight": "Detiene la luz",
+  "BlockedTileDialog_BlocksLightTooltip": "Sin marcar, una lámpara detrás de esta casilla sigue iluminando el suelo delante de ella.",
+  "BlockedTileDialog_BlocksSight": "Detiene la línea de visión",
+  "BlockedTileDialog_BlocksSightTooltip": "Sin marcar, se puede lanzar hechizos a través de ella.",
+  "Common_FillConnectedRun": "Aplicar a todo el tramo conectado",
+  "Common_FillConnectedRunTooltip": "Cada casilla contigua con este mismo atributo recibe los mismos valores. Disponible al pulsar una que ya existe: al colocar una nueva no hay tramo que seguir."
 }

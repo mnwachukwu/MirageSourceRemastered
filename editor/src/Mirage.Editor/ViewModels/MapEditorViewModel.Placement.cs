@@ -17,6 +17,44 @@ namespace Mirage.Editor.ViewModels;
 /// animation — plus the transient per-row NPC placement mode with its live footprint brush.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
+    /// <summary>The tiles a confirmed dialog writes: the brush footprint, or the whole connected run of
+    /// the same attribute when the author asked for one.</summary>
+    private IReadOnlyList<(int X, int Y)> TargetTiles() =>
+        FillRun && _runAnchor is { } anchor ? ContiguousRun(anchor.X, anchor.Y) : _pendingTiles;
+
+    /// <summary>Every tile reachable from (<paramref name="x"/>, <paramref name="y"/>) by orthogonal steps
+    /// across tiles carrying the same attribute on the active plane.
+    ///
+    /// <para>Orthogonal rather than diagonal: two walls meeting at a corner are two walls, and an author
+    /// editing one of them is not asking to edit the other.</para></summary>
+    private List<(int X, int Y)> ContiguousRun(int x, int y)
+    {
+        var run = new List<(int X, int Y)>();
+        if (SelectedMap is null) return run;
+        var map = SelectedMap.Record;
+        var want = ActiveAttrType(map.Tile[x, y]);
+
+        var seen = new bool[Constants.MaxMapX + 1, Constants.MaxMapY + 1];
+        var stack = new Stack<(int X, int Y)>();
+        stack.Push((x, y));
+        seen[x, y] = true;
+        while (stack.Count > 0)
+        {
+            var (cx, cy) = stack.Pop();
+            run.Add((cx, cy));
+            foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+            {
+                int nx = cx + dx, ny = cy + dy;
+                if (nx < 0 || nx > Constants.MaxMapX || ny < 0 || ny > Constants.MaxMapY) continue;
+                if (seen[nx, ny]) continue;
+                if (ActiveAttrType(map.Tile[nx, ny]) != want) continue;
+                seen[nx, ny] = true;
+                stack.Push((nx, ny));
+            }
+        }
+        return run;
+    }
+
     // ── Warp dialog confirm ───────────────────────────────────────────────────
 
     [RelayCommand]
@@ -30,7 +68,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
         DialogError = "";
         BeginBatch();
-        foreach (var (tx, ty) in _pendingTiles)
+        foreach (var (tx, ty) in TargetTiles())
         {
             var before = Snap(SelectedMap.Record.Tile[tx, ty]);
             ApplyWarp(tx, ty);
@@ -53,6 +91,44 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         DialogError = "";
         ShowWarpDialog = false;
+    }
+
+    // ── Blocked dialog confirm ───────────────────────────────────────────────
+
+    [RelayCommand]
+    private void ConfirmBlocked()
+    {
+        if (SelectedMap is null) return;
+        DialogError = "";
+        BeginBatch();
+        foreach (var (tx, ty) in TargetTiles())
+        {
+            var t = SelectedMap.Record.Tile[tx, ty];
+            var before = Snap(t);
+            SetActiveAttr(t, new TileAttr
+            {
+                Type = TileType.Blocked,
+                BlocksLight = BlockedBlocksLight,
+                BlocksSight = BlockedBlocksSight,
+            });
+            SelectedMap.UpdateRecord(SelectedMap.Record);
+            InvalidateTileGrid?.Invoke(tx, ty);
+            Record(tx, ty, before, Snap(t));
+        }
+        CommitBatch();
+        if (BlockedRetain)
+        {
+            _retBlocksLight = BlockedBlocksLight;
+            _retBlocksSight = BlockedBlocksSight;
+        }
+        ShowBlockedDialog = false;
+    }
+
+    [RelayCommand]
+    private void CancelBlocked()
+    {
+        DialogError = "";
+        ShowBlockedDialog = false;
     }
 
     // ── NPC-spawn pin dialog (Attribute mode, NpcSpawn tool) ──────────────────
@@ -79,6 +155,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         var map = SelectedMap.Record;
         // Size-aware validation: the chosen NPC's footprint must fit at every pending tile
         // (on-map, all walkable, no overlap with another placed NPC) before we commit the pin.
+        // A pin is one NPC at one tile, so this is the brush footprint and never a connected run.
         foreach (var (tx, ty) in _pendingTiles)
         {
             var err = MapNpcPlacement.ValidatePin(map, choice.RowIndex, tx, ty, SelectedAttributeLayer, NpcSize);
@@ -225,7 +302,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
         DialogError = "";
         BeginBatch();
-        foreach (var (tx, ty) in _pendingTiles)
+        foreach (var (tx, ty) in TargetTiles())
         {
             var before = Snap(SelectedMap.Record.Tile[tx, ty]);
             ApplyItem(tx, ty);
@@ -262,7 +339,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
         DialogError = "";
         BeginBatch();
-        foreach (var (tx, ty) in _pendingTiles)
+        foreach (var (tx, ty) in TargetTiles())
         {
             var before = Snap(SelectedMap.Record.Tile[tx, ty]);
             ApplyKey(tx, ty);
@@ -292,7 +369,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (SelectedMap is null) return;
         BeginBatch();
-        foreach (var (tx, ty) in _pendingTiles)
+        foreach (var (tx, ty) in TargetTiles())
         {
             var before = Snap(SelectedMap.Record.Tile[tx, ty]);
             ApplyKeyOpen(tx, ty);

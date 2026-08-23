@@ -49,6 +49,11 @@ public sealed class TileRecord
     public short DoorY { get; set; }
     public WorldLayer DoorLayer { get; set; }
 
+    // Blocked — what the wall stops. Both default TRUE: a wall stops everything unless it says otherwise,
+    // which is also what a map authored without these fields means.
+    public bool BlocksLight { get; set; } = true;
+    public bool BlocksSight { get; set; } = true;
+
     // LayerRamp. Authored on the FRINGE attribute in practice — a ramp is a fringe-plane surface — but
     // carried here too so the two attribute sets stay identical and nothing has to special-case which
     // plane it was read from.
@@ -70,6 +75,7 @@ public sealed class TileRecord
         KeyItemNum = a.KeyItemNum; KeyIsConsumed = a.KeyIsConsumed;
         DoorX = a.DoorX; DoorY = a.DoorY; DoorLayer = a.DoorLayer;
         RampGroundSide = a.RampGroundSide;
+        BlocksLight = a.BlocksLight; BlocksSight = a.BlocksSight;
         Normalize();
     }
 
@@ -82,5 +88,6 @@ public sealed class TileRecord
         KeyItemNum = KeyItemNum, KeyIsConsumed = KeyIsConsumed,
         DoorX = DoorX, DoorY = DoorY, DoorLayer = DoorLayer,
         RampGroundSide = RampGroundSide,
+        BlocksLight = BlocksLight, BlocksSight = BlocksSight,
     };
 }

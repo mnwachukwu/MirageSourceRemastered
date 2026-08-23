@@ -803,6 +803,8 @@
                       SelectedItem="{Binding WarpDestLayer, Mode=TwoWay}"/>
           </mui:FormRow>
         </StackPanel>
+        <CheckBox x:Name="_warpFillRunCheck" IsChecked="{Binding FillRun}"
+                  IsEnabled="{Binding CanFillRun}" Margin="0,4,0,0"/>
         <CheckBox x:Name="_warpRetainCheck" IsChecked="{Binding WarpRetain}" Margin="0,4,0,0"/>
         <TextBlock Text="{Binding DialogError}"
                    Foreground="#FF6666" FontSize="11" TextWrapping="Wrap"
@@ -875,6 +877,8 @@
                            Minimum="0" Maximum="32767" FormatString="0"/>
           </mui:FormRow>
         </StackPanel>
+        <CheckBox x:Name="_itemFillRunCheck" IsChecked="{Binding FillRun}"
+                  IsEnabled="{Binding CanFillRun}" Margin="0,4,0,0"/>
         <CheckBox x:Name="_itemRetainCheck" IsChecked="{Binding ItemRetain}" Margin="0,4,0,0"/>
         <TextBlock Text="{Binding DialogError}"
                    Foreground="#FF6666" FontSize="11" TextWrapping="Wrap"
@@ -930,6 +934,33 @@
       </StackPanel>
     </Border>
 
+    <!-- A wall carries what it stops. Both boxes start checked, which is what a plain wall is. -->
+    <Border Grid.Row="0"
+            IsVisible="{Binding ShowBlockedDialog}"
+            Background="#CC000000"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Padding="20" CornerRadius="8">
+      <StackPanel Spacing="10" Width="300">
+        <TextBlock x:Name="_blockedTitle" FontSize="14" FontWeight="Bold"/>
+        <TextBlock x:Name="_blockedDesc" FontSize="11" Foreground="#8B84AE" TextWrapping="Wrap"/>
+        <StackPanel Spacing="8">
+          <CheckBox x:Name="_blockedLightCheck" IsChecked="{Binding BlockedBlocksLight}"/>
+          <CheckBox x:Name="_blockedSightCheck" IsChecked="{Binding BlockedBlocksSight}"/>
+        </StackPanel>
+        <CheckBox x:Name="_blockedFillRunCheck" IsChecked="{Binding FillRun}"
+                  IsEnabled="{Binding CanFillRun}" Margin="0,4,0,0"/>
+        <CheckBox x:Name="_blockedRetainCheck" IsChecked="{Binding BlockedRetain}" Margin="0,4,0,0"/>
+        <TextBlock Text="{Binding DialogError}"
+                   Foreground="#FF6666" FontSize="11" TextWrapping="Wrap"
+                   IsVisible="{Binding DialogError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+          <Button x:Name="_blockedCancel"  Command="{Binding CancelBlockedCommand}"/>
+          <Button x:Name="_blockedConfirm" Command="{Binding ConfirmBlockedCommand}" IsDefault="True"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
     <Border Grid.Row="0"
             IsVisible="{Binding ShowKeyDialog}"
             Background="#CC000000"
@@ -955,6 +986,8 @@
           <CheckBox x:Name="_keyTakeCheck"
                     IsChecked="{Binding KeyTake}"/>
         </StackPanel>
+        <CheckBox x:Name="_keyFillRunCheck" IsChecked="{Binding FillRun}"
+                  IsEnabled="{Binding CanFillRun}" Margin="0,4,0,0"/>
         <CheckBox x:Name="_keyRetainCheck" IsChecked="{Binding KeyRetain}" Margin="0,4,0,0"/>
         <TextBlock Text="{Binding DialogError}"
                    Foreground="#FF6666" FontSize="11" TextWrapping="Wrap"
@@ -1008,6 +1041,8 @@
                       SelectedItem="{Binding KeyOpenDoorLayer, Mode=TwoWay}"/>
           </Grid>
         </StackPanel>
+        <CheckBox x:Name="_keyOpenFillRunCheck" IsChecked="{Binding FillRun}"
+                  IsEnabled="{Binding CanFillRun}" Margin="0,4,0,0"/>
         <CheckBox x:Name="_keyOpenRetainCheck" IsChecked="{Binding KeyOpenRetain}" Margin="0,4,0,0"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
           <Button x:Name="_keyOpenCancel"  Command="{Binding CancelKeyOpenCommand}"/>

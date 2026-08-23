@@ -868,7 +868,7 @@
   "Logging_Retain14": "14 days",
   "Logging_Retain30": "30 days",
   "Logging_RetainForever": "Keep everything",
-  "MainWindow_DataMenu": "Data",
+  "MainWindow_DataMenu": "Refresh Data",
   "MainWindow_DataRefresh": "Refresh from source (F5)",
   "Refresh_FromDisk": "Reloaded from the offline store.",
   "Refresh_FromServer": "Reloaded from the server.",
@@ -916,5 +916,13 @@
   "WorldTransfer_KindChanged": "Change",
   "WorldTransfer_KindRemoved": "Blank",
   "WorldTransfer_OverCeiling": "{Count} records in this folder sit above the server's ceiling and cannot be uploaded. Raise the server's record limits to take them.",
-  "WorldTransfer_Unnamed": "(unnamed)"
+  "WorldTransfer_Unnamed": "(unnamed)",
+  "BlockedTileDialog_Title": "Blocked",
+  "BlockedTileDialog_Description": "Nothing walks through a blocked tile. What else it stops is up to you — a solid wall stops everything, a railing or a window stops neither.",
+  "BlockedTileDialog_BlocksLight": "Blocks light",
+  "BlockedTileDialog_BlocksLightTooltip": "Off, a lamp behind this tile still lights the ground in front of it.",
+  "BlockedTileDialog_BlocksSight": "Blocks line of sight",
+  "BlockedTileDialog_BlocksSightTooltip": "Off, spells can be cast straight through it.",
+  "Common_FillConnectedRun": "Apply to the whole connected run",
+  "Common_FillConnectedRunTooltip": "Every touching tile carrying this same attribute gets the same values. Available when you click one that is already there — laying a new one has no run to follow."
 }

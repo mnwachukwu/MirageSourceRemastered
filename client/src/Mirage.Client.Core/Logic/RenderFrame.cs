@@ -67,7 +67,12 @@ public readonly record struct ContestPointCmd(
 public readonly record struct LightSourceCmd(
     float ScreenX, float ScreenY, float Intensity,
     uint Rgb, float Radius, FlickerStyle Flicker, int Id, float EffectiveDarkness = 0f,
-    WorldLayer Layer = WorldLayer.Ground);
+    WorldLayer Layer = WorldLayer.Ground,
+    /// <summary>The emitter's tile in the 3x3 neighbourhood, which is what its reach mask is centred on.</summary>
+    int TileX = 0, int TileY = 0,
+    /// <summary>Which tiles this light reaches, indexed y * LightOcclusion.GridW + x. Null means every
+    /// tile in range: a light with nothing to hide behind, or a frame built without occlusion.</summary>
+    bool[]? Reach = null);
 
 /// <summary>A map-wide area light for a safe-zone map cell. <see cref="ScreenX"/>/<see cref="ScreenY"/>
 /// is the cell's top-left in screen space; the cell always spans one viewport (ViewW × ViewH). Rendered
@@ -187,6 +192,18 @@ public sealed class RenderFrame
     public List<MapLightCmd> IndoorsMapLights { get; } = new();
     /// <summary>Bright additive FX glow cores, drawn at the post-composite glow seam so they read at night.</summary>
     public List<GlowCmd> Glows { get; } = new();
+
+    // One reach mask per light, handed out by RentReach and kept across frames: a mask is 1728 bools and
+    // rebuilding them every frame would be the only allocation in the render path.
+    private readonly List<bool[]> _reachPool = new();
+    private int _reachUsed;
+
+    /// <summary>A reach mask for one light, cleared and ready to fill.</summary>
+    public bool[] RentReach()
+    {
+        if (_reachUsed == _reachPool.Count) _reachPool.Add(new bool[LightOcclusion.GridW * LightOcclusion.GridH]);
+        return _reachPool[_reachUsed++];
+    }
     public List<TextDrawCmd> Names { get; } = new();
     public List<BarDrawCmd> Bars { get; } = new();
     public List<TargetArrowCmd> TargetArrows { get; } = new();
@@ -219,6 +236,7 @@ public sealed class RenderFrame
         AlwaysDarkMapLights.Clear();
         IndoorsMapLights.Clear();
         Glows.Clear();
+        _reachUsed = 0;
         Names.Clear();
         Bars.Clear();
         TargetArrows.Clear();
