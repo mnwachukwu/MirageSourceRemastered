@@ -330,21 +330,24 @@ public sealed partial class GameplayScreen : IGameScreen
                                          in LightSourceCmd cmd)
     {
         var reach = cmd.Reach!;
+        int r = cmd.ReachRadius;
+        int side = LightOcclusion.MaskSide(r);
         // The halo's own bounds in tiles, relative to the emitter, so only tiles it covers are considered.
         int firstX = (int)MathF.Floor(dest.Left / (float)Constants.PicX);
         int lastX = (int)MathF.Ceiling(dest.Right / (float)Constants.PicX) - 1;
         int firstY = (int)MathF.Floor(dest.Top / (float)Constants.PicY);
         int lastY = (int)MathF.Ceiling(dest.Bottom / (float)Constants.PicY) - 1;
+        int emitterTileX = (int)MathF.Floor(cmd.ScreenX / Constants.PicX);
+        int emitterTileY = (int)MathF.Floor(cmd.ScreenY / Constants.PicY);
 
         for (int ty = firstY; ty <= lastY; ty++)
         {
             for (int tx = firstX; tx <= lastX; tx++)
             {
-                // Screen tile -> world tile: the emitter's world tile is at its own screen tile.
-                int wx = cmd.TileX + tx - (int)MathF.Floor(cmd.ScreenX / Constants.PicX);
-                int wy = cmd.TileY + ty - (int)MathF.Floor(cmd.ScreenY / Constants.PicY);
-                if (wx < 0 || wx >= LightOcclusion.GridW || wy < 0 || wy >= LightOcclusion.GridH) continue;
-                if (!reach[wy * LightOcclusion.GridW + wx]) continue;
+                // Offset from the emitter's own tile, which is what the mask is indexed by.
+                int dx = tx - emitterTileX, dy = ty - emitterTileY;
+                if (dx < -r || dx > r || dy < -r || dy > r) continue;
+                if (!reach[(dy + r) * side + (dx + r)]) continue;
 
                 var cell = new Rectangle(tx * Constants.PicX, ty * Constants.PicY, Constants.PicX, Constants.PicY);
                 var slice = Rectangle.Intersect(cell, dest);

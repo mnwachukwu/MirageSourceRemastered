@@ -360,9 +360,10 @@ public static class RenderCommandBuilder
                     float radiusPx = pl.Light.Radius * Constants.PicX;
                     if (!LightReachesR(screenX, screenY, radiusPx)) continue;
                     float effectiveDark = InAlwaysDark(state, wx, wy) ? 1f : state.GetCurrentDarkness();
+                    var (mapReachR, mapReach) = Reach(state, frame, wx, wy, pl.Layer, pl.Light.Radius);
                     frame.Lights.Add(new LightSourceCmd(screenX, screenY, pl.Light.Intensity, pl.Light.Rgb,
                         radiusPx, pl.Light.Flicker, pl.Id.GetHashCode(), effectiveDark, pl.Layer,
-                        wx, wy, Reach(state, frame, wx, wy, pl.Layer, pl.Light.Radius)));
+                        wx, wy, mapReachR, mapReach));
                 }
             }
         }
@@ -370,12 +371,13 @@ public static class RenderCommandBuilder
 
     /// <summary>Which tiles one light reaches, traced against the walls around it. A wall stops light,
     /// so a torch inside a building does not light the street through its own wall.</summary>
-    private static bool[] Reach(ClientState state, RenderFrame frame, int wx, int wy,
-                                WorldLayer layer, float radiusTiles)
+    private static (int Radius, bool[] Mask) Reach(ClientState state, RenderFrame frame, int wx, int wy,
+                                                   WorldLayer layer, float radiusTiles)
     {
-        var mask = frame.RentReach();
-        LightOcclusion.Fill(state, wx, wy, layer, (int)MathF.Ceiling(radiusTiles), mask);
-        return mask;
+        int r = Math.Max(0, (int)MathF.Ceiling(radiusTiles));
+        var mask = frame.RentReach(LightOcclusion.MaskCells(r));
+        LightOcclusion.Fill(state, wx, wy, layer, r, mask);
+        return (r, mask);
     }
     // True when world tile (wx,wy) sits on an AlwaysDark map — exact cell bounds, no spillover. Mirrors
     // InTownLight: keyed to the map seam so a light-bearer's halo snaps to full-bright the instant it steps
@@ -614,11 +616,12 @@ public static class RenderCommandBuilder
             {
                 float effectiveDark = InAlwaysDark(state, offX + n.X, offY + n.Y) ? 1f : state.GetCurrentDarkness();
                 var lightLayer = SlideRenderLayer(n.Layer, n.PrevLayer, n.XOffset, n.YOffset);
+                var (npcReachR, npcReach) =
+                    Reach(state, frame, offX + n.X, offY + n.Y, lightLayer, radiusPx / Constants.PicX);
                 frame.Lights.Add(new LightSourceCmd(lightOx, lightOy, def.Light.Intensity, def.Light.Rgb,
                     radiusPx, def.Light.Flicker, lightId, effectiveDark,
                     lightLayer,   // torch follows the sprite's slide layer
-                    offX + n.X, offY + n.Y,
-                    Reach(state, frame, offX + n.X, offY + n.Y, lightLayer, radiusPx / Constants.PicX)));
+                    offX + n.X, offY + n.Y, npcReachR, npcReach));
             }
         }
         if (!OnScreenSized(screenX, screenY, spritePx)) return;

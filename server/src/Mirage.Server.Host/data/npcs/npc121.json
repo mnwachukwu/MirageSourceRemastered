@@ -6,7 +6,7 @@
   "spawnSecs": 1500,
   "behavior": "AttackWhenAttacked",
   "group": 3,
-  "range": 11,
+  "range": 6,
   "drops": [
     {
       "itemNum": 1,

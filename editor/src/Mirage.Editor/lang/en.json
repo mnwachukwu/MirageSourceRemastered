@@ -924,5 +924,7 @@
   "BlockedTileDialog_BlocksSight": "Blocks line of sight",
   "BlockedTileDialog_BlocksSightTooltip": "Off, spells can be cast straight through it.",
   "Common_FillConnectedRun": "Apply to the whole connected run",
-  "Common_FillConnectedRunTooltip": "Every touching tile carrying this same attribute gets the same values. Available when you click one that is already there — laying a new one has no run to follow."
+  "Common_FillConnectedRunTooltip": "Every touching tile carrying this same attribute gets the same values. Available when you click one that is already there — laying a new one has no run to follow.",
+  "NpcEditor_RangeWarnTooShort": "This one attacks on sight but only sees {Range} tiles, so it notices nothing until somebody is beside it. {Min} or more is usual.",
+  "NpcEditor_RangeWarnTooFar": "Seeing {Range} tiles puts this one past the {Cap} a player can see up or down, so it can pick a target that never saw it coming."
 }

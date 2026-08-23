@@ -386,6 +386,8 @@ public static partial class EditorStrings
     public const string NpcEditor_DropYieldNone = nameof(NpcEditor_DropYieldNone);
     public const string NpcEditor_DropYield = nameof(NpcEditor_DropYield);
     public const string NpcEditor_DropWarnChanceNoItem = nameof(NpcEditor_DropWarnChanceNoItem);  // chance set, no item
+    public const string NpcEditor_RangeWarnTooShort = nameof(NpcEditor_RangeWarnTooShort);
+    public const string NpcEditor_RangeWarnTooFar = nameof(NpcEditor_RangeWarnTooFar);
     public const string NpcEditor_DropWarnItemNoChance = nameof(NpcEditor_DropWarnItemNoChance);  // item set, 0 chance
     public const string NpcEditor_DropWarnCurrencyQty = nameof(NpcEditor_DropWarnCurrencyQty);     // currency, qty < 1
     public const string NpcEditor_DropWarnNonCurrencyQty = nameof(NpcEditor_DropWarnNonCurrencyQty);  // non-currency, qty > 0

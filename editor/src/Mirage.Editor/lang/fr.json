@@ -924,5 +924,7 @@
   "BlockedTileDialog_BlocksSight": "Arrête la ligne de vue",
   "BlockedTileDialog_BlocksSightTooltip": "Décoché, les sorts la traversent.",
   "Common_FillConnectedRun": "Appliquer à toute la zone connectée",
-  "Common_FillConnectedRunTooltip": "Chaque case adjacente portant ce même attribut reçoit les mêmes valeurs. Disponible quand vous cliquez sur une case existante : en poser une nouvelle ne suit aucune zone."
+  "Common_FillConnectedRunTooltip": "Chaque case adjacente portant ce même attribut reçoit les mêmes valeurs. Disponible quand vous cliquez sur une case existante : en poser une nouvelle ne suit aucune zone.",
+  "NpcEditor_RangeWarnTooShort": "Celui-ci attaque à vue mais ne voit qu'à {Range} cases : il ne remarque rien tant que personne n'est à côté de lui. {Min} ou plus est l'usage.",
+  "NpcEditor_RangeWarnTooFar": "Voir à {Range} cases le porte au-delà des {Cap} qu'un joueur voit vers le haut ou le bas : il peut donc prendre pour cible quelqu'un qui ne l'a jamais vu venir."
 }

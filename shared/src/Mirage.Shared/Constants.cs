@@ -209,6 +209,18 @@ public static class Constants
     // is, so a revisited zone goes quiet without going inert.
     public const int NpcAggroIgnoreLevelGap = 5;
 
+    // What an NPC's sight radius is expected to stay within, in tiles. ADVISORY: Range is a free number,
+    // and an author who wants a mob that notices the whole map may have one.
+    //
+    // Six is the viewport's short half-extent — how far a player can see up or down. Past it, a mob
+    // acquires from somewhere its target cannot see, which is worth being deliberate about rather than
+    // arriving at by accident, so the editor says so.
+    public const int NpcRangeSoftCap = 6;
+
+    // Below this, an NPC that acquires unprovoked notices nothing until somebody is already beside it,
+    // which is almost always a slip rather than a design. Also advisory, and also called out.
+    public const int MinAggressiveNpcRange = 2;
+
     // PK flag — duration applied/extended on each fresh kill, and the per-death reduction
     // when a flagged player is killed (2 deaths fully clear a single fresh flag).
     public const long PkFlagDurationSeconds = 3600;

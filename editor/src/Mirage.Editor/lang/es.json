@@ -924,5 +924,7 @@
   "BlockedTileDialog_BlocksSight": "Detiene la línea de visión",
   "BlockedTileDialog_BlocksSightTooltip": "Sin marcar, se puede lanzar hechizos a través de ella.",
   "Common_FillConnectedRun": "Aplicar a todo el tramo conectado",
-  "Common_FillConnectedRunTooltip": "Cada casilla contigua con este mismo atributo recibe los mismos valores. Disponible al pulsar una que ya existe: al colocar una nueva no hay tramo que seguir."
+  "Common_FillConnectedRunTooltip": "Cada casilla contigua con este mismo atributo recibe los mismos valores. Disponible al pulsar una que ya existe: al colocar una nueva no hay tramo que seguir.",
+  "NpcEditor_RangeWarnTooShort": "Este ataca al ver pero solo alcanza {Range} casillas, así que no nota nada hasta tener a alguien al lado. Lo normal es {Min} o más.",
+  "NpcEditor_RangeWarnTooFar": "Ver {Range} casillas lo lleva más allá de las {Cap} que un jugador alcanza a ver arriba o abajo, así que puede elegir un objetivo que nunca lo vio venir."
 }

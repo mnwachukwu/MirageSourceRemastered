@@ -6,7 +6,7 @@
   "spawnSecs": 120,
   "behavior": "Guard",
   "group": 0,
-  "range": 15,
+  "range": 6,
   "str": 352,
   "def": 274,
   "spd": 156,

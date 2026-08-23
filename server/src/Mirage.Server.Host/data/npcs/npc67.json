@@ -6,7 +6,7 @@
   "spawnSecs": 60,
   "behavior": "AttackOnSight",
   "group": 2,
-  "range": 9,
+  "range": 6,
   "drops": [
     {
       "itemNum": 1,

@@ -924,5 +924,7 @@
   "BlockedTileDialog_BlocksSight": "Detém a linha de visão",
   "BlockedTileDialog_BlocksSightTooltip": "Desligado, os feitiços atravessam-na.",
   "Common_FillConnectedRun": "Aplicar a todo o troço ligado",
-  "Common_FillConnectedRunTooltip": "Cada casa adjacente com este mesmo atributo recebe os mesmos valores. Disponível ao clicar numa que já existe: colocar uma nova não tem troço a seguir."
+  "Common_FillConnectedRunTooltip": "Cada casa adjacente com este mesmo atributo recebe os mesmos valores. Disponível ao clicar numa que já existe: colocar uma nova não tem troço a seguir.",
+  "NpcEditor_RangeWarnTooShort": "Este ataca ao ver mas só alcança {Range} casas, por isso não nota nada até ter alguém ao lado. O normal é {Min} ou mais.",
+  "NpcEditor_RangeWarnTooFar": "Ver {Range} casas leva-o para além das {Cap} que um jogador alcança ver acima ou abaixo, por isso pode escolher um alvo que nunca o viu chegar."
 }

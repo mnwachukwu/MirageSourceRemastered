@@ -36,18 +36,36 @@ public static class LightOcclusion
         return WorldCoordHelper.HasClearSpellLineOfSight(lightWX, lightWY, tileWX, tileWY, probe);
     }
 
-    /// <summary>Fills <paramref name="mask"/> with the reach of one light over the whole neighbourhood,
-    /// indexed <c>y * GridW + x</c>. Tiles beyond <paramref name="radiusTiles"/> are false.</summary>
+    /// <summary>The side of the square a light of this radius reaches over, in tiles.</summary>
+    public static int MaskSide(int radiusTiles) => Math.Max(0, radiusTiles) * 2 + 1;
+
+    /// <summary>How many cells <see cref="Fill"/> needs for a light of this radius.</summary>
+    public static int MaskCells(int radiusTiles) => MaskSide(radiusTiles) * MaskSide(radiusTiles);
+
+    /// <summary>
+    /// Fills <paramref name="mask"/> with one light's reach, indexed
+    /// <c>(dy + r) * MaskSide(r) + (dx + r)</c> for an offset from the light's own tile.
+    ///
+    /// <para>The mask covers the light's square and nothing else, so its size follows the radius rather
+    /// than the world around it. A torch reaching three tiles costs 49 cells whatever the maps are.</para>
+    /// </summary>
     public static void Fill(ClientState state, int lightWX, int lightWY, WorldLayer layer,
                             int radiusTiles, bool[] mask)
     {
-        Array.Clear(mask);
         int r = Math.Max(0, radiusTiles);
-        int x0 = Math.Max(0, lightWX - r), x1 = Math.Min(GridW - 1, lightWX + r);
-        int y0 = Math.Max(0, lightWY - r), y1 = Math.Min(GridH - 1, lightWY + r);
-        for (int y = y0; y <= y1; y++)
-            for (int x = x0; x <= x1; x++)
-                mask[y * GridW + x] = Reaches(state, lightWX, lightWY, layer, x, y);
+        int side = MaskSide(r);
+        Array.Clear(mask, 0, side * side);
+        for (int dy = -r; dy <= r; dy++)
+        {
+            int wy = lightWY + dy;
+            if (wy < 0 || wy >= GridH) continue;
+            for (int dx = -r; dx <= r; dx++)
+            {
+                int wx = lightWX + dx;
+                if (wx < 0 || wx >= GridW) continue;
+                mask[(dy + r) * side + (dx + r)] = Reaches(state, lightWX, lightWY, layer, wx, wy);
+            }
+        }
     }
 
     // A wall is lit from the side facing the light: the line up to (but excluding) the wall must be clear.

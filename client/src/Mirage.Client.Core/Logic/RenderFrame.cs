@@ -70,8 +70,12 @@ public readonly record struct LightSourceCmd(
     WorldLayer Layer = WorldLayer.Ground,
     /// <summary>The emitter's tile in the 3x3 neighbourhood, which is what its reach mask is centred on.</summary>
     int TileX = 0, int TileY = 0,
-    /// <summary>Which tiles this light reaches, indexed y * LightOcclusion.GridW + x. Null means every
-    /// tile in range: a light with nothing to hide behind, or a frame built without occlusion.</summary>
+    /// <summary>How far the reach mask extends from that tile, in tiles.</summary>
+    int ReachRadius = 0,
+    /// <summary>Which tiles this light reaches, over its own square: index
+    /// <c>(dy + ReachRadius) * LightOcclusion.MaskSide(ReachRadius) + (dx + ReachRadius)</c> for an offset
+    /// from the emitter's tile. Null means everything in range — a light with nothing to hide behind, or a
+    /// frame built without occlusion.</summary>
     bool[]? Reach = null);
 
 /// <summary>A map-wide area light for a safe-zone map cell. <see cref="ScreenX"/>/<see cref="ScreenY"/>
@@ -193,15 +197,17 @@ public sealed class RenderFrame
     /// <summary>Bright additive FX glow cores, drawn at the post-composite glow seam so they read at night.</summary>
     public List<GlowCmd> Glows { get; } = new();
 
-    // One reach mask per light, handed out by RentReach and kept across frames: a mask is 1728 bools and
-    // rebuilding them every frame would be the only allocation in the render path.
+    // One reach mask per light, kept across frames: rebuilding them every frame would be the only
+    // allocation in the render path. Each covers its own light's square, so the pool holds small arrays
+    // and grows one only when a wider light asks for it.
     private readonly List<bool[]> _reachPool = new();
     private int _reachUsed;
 
-    /// <summary>A reach mask for one light, cleared and ready to fill.</summary>
-    public bool[] RentReach()
+    /// <summary>A reach mask of at least <paramref name="cells"/> entries, ready to fill.</summary>
+    public bool[] RentReach(int cells)
     {
-        if (_reachUsed == _reachPool.Count) _reachPool.Add(new bool[LightOcclusion.GridW * LightOcclusion.GridH]);
+        if (_reachUsed == _reachPool.Count) _reachPool.Add(new bool[cells]);
+        else if (_reachPool[_reachUsed].Length < cells) _reachPool[_reachUsed] = new bool[cells];
         return _reachPool[_reachUsed++];
     }
     public List<TextDrawCmd> Names { get; } = new();

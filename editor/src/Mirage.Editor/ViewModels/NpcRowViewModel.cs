@@ -36,11 +36,17 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
     [ObservableProperty] private int _size = 1;
     /// <summary>Seconds between despawn and respawn for this template's spawn slots.</summary>
     [ObservableProperty] private int _spawnSecs;
-    [ObservableProperty] private NpcBehavior _behavior;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RangeWarning))]
+    [NotifyPropertyChangedFor(nameof(HasRangeWarning))]
+    private NpcBehavior _behavior;
     /// <summary>Comrade group id — same-group NPCs come to each other's aid (0 = no group).</summary>
     [ObservableProperty] private int _group;
-    /// <summary>Aggro / sight radius in tiles.</summary>
-    [ObservableProperty] private int _range;
+    /// <summary>Aggro / sight radius in tiles, capped at <see cref="Constants.MaxNpcRange"/>.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RangeWarning))]
+    [NotifyPropertyChangedFor(nameof(HasRangeWarning))]
+    private int _range;
     /// <summary>This NPC's drop table — zero or more lines, each rolled independently on a kill. An empty
     /// table means "drops nothing", which is an ordinary state for trash rather than a misconfiguration.</summary>
     public ObservableCollection<NpcDropRowViewModel> Drops { get; } = [];
@@ -150,6 +156,24 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
       : string.Empty;
     /// <summary>Whether to show the drop-configuration warning.</summary>
     public bool HasDropConfigWarning => DropConfigWarning.Length > 0;
+
+    // The same non-blocking guard, for a reach that reads as a slip at either end. Both are advisory:
+    // the record is legal and occasionally deliberate, so this says so and writes it anyway.
+    //
+    // Too far is judged for every behaviour that acquires; too near only for attack-on-sight, since a
+    // Guard watches the whole observable area and never reads its Range, and everything else waits to be
+    // struck.
+    /// <summary>Warning text for a reach that will read as a surprise in play; empty otherwise.</summary>
+    public string RangeWarning =>
+        Range > Constants.NpcRangeSoftCap
+            ? EditorStrings.Format(EditorStrings.NpcEditor_RangeWarnTooFar,
+                ("Range", Range), ("Cap", Constants.NpcRangeSoftCap))
+      : Behavior is NpcBehavior.AttackOnSight && Range < Constants.MinAggressiveNpcRange
+            ? EditorStrings.Format(EditorStrings.NpcEditor_RangeWarnTooShort,
+                ("Range", Range), ("Min", Constants.MinAggressiveNpcRange))
+      : string.Empty;
+    /// <summary>Whether to show the reach warning.</summary>
+    public bool HasRangeWarning => RangeWarning.Length > 0;
 
     /// <summary>Wire the item-picker providers after construction (the editor VM owns the live item
     /// list). Rebuilds the existing rows so any already loaded pick up the picker.</summary>

@@ -36,6 +36,8 @@ public sealed class NpcRecord
     /// <summary>AoS alliance tag: an Attack-on-Sight NPC won't attack another NPC sharing its
     /// non-zero Group (additive with the same-type peace).  0 = ungrouped (original behavior).</summary>
     public int Group { get; set; }
+    /// <summary>How far it notices anything, in tiles. Free: <see cref="Constants.NpcRangeSoftCap"/> is
+    /// what the editor expects it to stay within, not a limit anything enforces.</summary>
     public int Range { get; set; }
     /// <summary>What this NPC can drop. Null or empty = drops nothing, which is a perfectly ordinary state
     /// for trash. Every entry rolls INDEPENDENTLY on a kill, so a death can yield nothing, one thing, or

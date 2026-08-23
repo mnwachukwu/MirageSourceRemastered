@@ -107,27 +107,40 @@ public class LightOcclusionTests
         });
     }
 
-    /// <summary>Fill answers for a whole neighbourhood at once, and nothing past the radius is reached.</summary>
+    /// <summary>Fill answers over the light's own square, indexed from its tile.</summary>
     [Test]
-    public void Fill_MarksTheReachableTilesAndNothingBeyondTheRadius()
+    public void Fill_MarksTheReachableTilesOverItsOwnSquare()
     {
+        const int r = 3;
         var state = StateWithWalls((7, 5));
         var (lx, ly) = At(5, 5);
-        var mask = new bool[LightOcclusion.GridW * LightOcclusion.GridH];
+        var mask = new bool[LightOcclusion.MaskCells(r)];
 
-        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, 3, mask);
+        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask);
 
-        bool Reached(int x, int y) => mask[y * LightOcclusion.GridW + x];
-        var (openX, openY) = At(5, 7);
-        var (shadowX, shadowY) = At(8, 5);
-        var (farX, farY) = At(12, 5);
+        int side = LightOcclusion.MaskSide(r);
+        bool Reached(int dx, int dy) => mask[(dy + r) * side + (dx + r)];
 
         Assert.Multiple(() =>
         {
-            Assert.That(Reached(lx, ly), Is.True, "its own tile");
-            Assert.That(Reached(openX, openY), Is.True, "open ground inside the radius");
-            Assert.That(Reached(shadowX, shadowY), Is.False, "behind the wall");
-            Assert.That(Reached(farX, farY), Is.False, "past the radius");
+            Assert.That(Reached(0, 0), Is.True, "its own tile");
+            Assert.That(Reached(0, 2), Is.True, "open ground inside the radius");
+            Assert.That(Reached(3, 0), Is.False, "behind the wall");
+        });
+    }
+
+    /// <summary>The mask covers the light's square and nothing more, so its cost follows the radius
+    /// rather than the size of the world around it.</summary>
+    [TestCase(0, 1)]
+    [TestCase(1, 9)]
+    [TestCase(3, 49)]
+    [TestCase(8, 289)]
+    public void TheMask_IsSizedByTheRadiusAlone(int radius, int cells)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(LightOcclusion.MaskSide(radius), Is.EqualTo(radius * 2 + 1));
+            Assert.That(LightOcclusion.MaskCells(radius), Is.EqualTo(cells));
         });
     }
 
