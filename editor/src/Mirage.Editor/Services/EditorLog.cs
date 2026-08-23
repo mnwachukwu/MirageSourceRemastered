@@ -8,7 +8,7 @@ namespace Mirage.Editor.Services;
 
 /// <summary>
 /// The editor's file log: one daily-rolling file under <see cref="EditorPaths.Logs"/>, written through a
-/// level switch so the capture level changes from Help &gt; Logging without a restart.
+/// level switch so the capture level changes from Help > Logging without a restart.
 ///
 /// <para>Every call site goes through the static helpers here rather than holding a logger, because the
 /// editor is a view-model app with no container to inject one from. <see cref="Write"/> is the only place

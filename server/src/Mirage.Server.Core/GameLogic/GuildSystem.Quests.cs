@@ -157,14 +157,14 @@ public sealed partial class GuildSystem : GameSystem
     // scaled the acquire cost, so the quest stays a net vault gain at every band (EconomyFormulas.BandScale).
     private void AssignRandomQuest(GuildRecord guild, IReadOnlyList<(int NpcId, int Difficulty)> candidates, int playerLevel)
     {
-        double pickRoll = CombatFormulas.RollPercent() / 100.0;
+        double pickRoll = Rng.Percent() / 100.0;
         int npcId = GuildQuests.PickQuestNpc(candidates, guild.Level, pickRoll);
         var npc = _world.Npcs[npcId];
         int difficulty = NpcDifficulty(npc);
         bool isBoss = npc.IsBoss;   // bosses get a compressed kill count + a reduced reward (GuildQuests)
         // A second, independent roll sizes the quest: it drives the kill count AND the rewards together, so a
         // bigger objective pays proportionally more XP + gold.
-        double varRoll = CombatFormulas.RollPercent() / 100.0;
+        double varRoll = Rng.Percent() / 100.0;
         guild.Quest = new GuildQuestDef
         {
             Objective = new Objective { Kind = ObjectiveKind.Kill, Target = npcId, Count = GuildQuests.KillCount(difficulty, varRoll, isBoss) },

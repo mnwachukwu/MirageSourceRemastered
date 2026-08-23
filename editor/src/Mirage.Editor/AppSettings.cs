@@ -56,7 +56,7 @@ public sealed class AppSettings
     /// server's and are saved one deliberate press at a time.</summary>
     public Dictionary<string, AutoSaveSetting> AutoSave { get; set; } = [];
 
-    /// <summary>File-logging capture level and how long the files are kept. Configured from Help &gt; Logging.</summary>
+    /// <summary>File-logging capture level and how long the files are kept. Configured from Help > Logging.</summary>
     public LoggingSetting Logging { get; set; } = new();
 
     private static AppSettings? _instance;

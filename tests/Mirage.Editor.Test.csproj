@@ -11,11 +11,12 @@
   </PropertyGroup>
 
   <Target Name="BuildSuite">
-    <MSBuild Projects="$(_EditorTests)" Targets="Restore" />
-    <!-- The extra global property forces Build to re-evaluate each suite. Sharing Restore's evaluation
-         leaves a never-restored suite compiling with no package assets: no copied dependencies and no
-         runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly. -->
-    <MSBuild Projects="$(_EditorTests)" Targets="Build" Properties="_AfterRestore=true" />
+    <MSBuild Projects="$(_EditorTests)" Targets="Restore" Properties="_RestorePass=true" />
+    <!-- The distinguishing property goes on RESTORE, not Build. Both calls need their own evaluation -
+         sharing one leaves a never-restored suite compiling with no package assets - but a global property
+         forks the build configuration and flows down every ProjectReference, so on Build it starts a second
+         compile of the whole dependency graph into the same obj/. See Mirage.Test.csproj for the full note. -->
+    <MSBuild Projects="$(_EditorTests)" Targets="Build" />
   </Target>
 
   <Target Name="TestAll" DependsOnTargets="BuildSuite">

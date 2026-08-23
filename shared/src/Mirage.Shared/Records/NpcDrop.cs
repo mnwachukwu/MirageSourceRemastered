@@ -32,7 +32,7 @@ public sealed class NpcDrop
 
     /// <summary>Chance as a direct percent: 1 = 1%, 50 = 50%, 100 or more = always. 0 or less never drops,
     /// which is the way to park a line without deleting it. Rolled against
-    /// <see cref="CombatFormulas.RollPercent"/>, which returns [0..99], so the drop lands when the roll is
+    /// <see cref="RandomSourceExtensions.Percent"/>, which returns [0..99], so the drop lands when the roll is
     /// BELOW this.</summary>
     public short Chance { get; set; }
 

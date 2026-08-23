@@ -89,13 +89,11 @@ public class EquipmentWearAttributionTests
         // successful block returns BEFORE mitigation is priced, so it wears the shield without touching
         // armor or helmet.
         //
-        // Blocking is a roll, so this runs a batch rather than one call. The two "never" assertions are
-        // exact — those slots are not on this code path at all. The shield assertion needs only ONE block
-        // in 500 attempts; if it ever flakes, the block rate has collapsed and that is worth knowing.
-        var (combat, p) = Setup();
-        p.Sp = 100_000;   // blocks drain stamina; this must not run dry mid-batch
+        // Blocking is a roll, so the roll is pinned: one call, one block, no batch to sample through.
+        var (combat, p) = Setup(rng: PinnedRolls.Always);
+        p.Sp = 100_000;   // a block drains stamina, and the drain must not be what ends the test
 
-        for (int i = 0; i < 500 && p.Inv[3].Dur > 1; i++) combat.TryPlayerNegateMagic(Idx);
+        combat.TryPlayerNegateMagic(Idx);
 
         Assert.Multiple(() =>
         {
@@ -182,7 +180,7 @@ public class EquipmentWearAttributionTests
 
     // ── Harness ───────────────────────────────────────────────────────────────
 
-    static (CombatSystem Combat, PlayerRecord Player) Setup(bool withShield = true)
+    static (CombatSystem Combat, PlayerRecord Player) Setup(bool withShield = true, IRandomSource? rng = null)
     {
         var world = new GameWorld();
         var pm = new PlayerManager();
@@ -193,7 +191,7 @@ public class EquipmentWearAttributionTests
         // every chip, so a null one throws before any assertion can run.
         var items = new ItemSystem(world, pm, dispatcher, persistence: null!, bg: null!);
         var combat = new CombatSystem(world, pm, dispatcher, items, movement, joinLeave: null!, blood,
-            objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
+            objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!, rng: rng);
 
         var sp = pm[Idx];
         sp.IsConnected = true;

@@ -28,12 +28,12 @@ public sealed partial class CombatSystem : GameSystem
     /// arrived. That ordering is what keeps it separate from the proc cascade rather than a fourth branch
     /// of it, and it is why a miss floats its own text instead of reusing Block or Dodge.</summary>
     public bool WindTearsItAway(int attackerMap) =>
-        WeatherEffects.MissChancePercent(_world.WeatherOn(attackerMap)) > CombatFormulas.RollPercent();
+        WeatherEffects.MissChancePercent(_world.WeatherOn(attackerMap)) > Rng.Percent();
 
     /// <summary>Shield equipped + SP gate + not Heavy Wind + RNG roll vs PlayerBlockChancePerMille.</summary>
     private bool CanPlayerBlock(PlayerRecord p) =>
         p.Sp > 0 && p.ShieldSlot > 0 && StaminaProcsAllowed(p.Map)
-        && CombatFormulas.PlayerBlockChancePerMille(p.Def, p.Level) > CombatFormulas.RollPerMille();
+        && CombatFormulas.PlayerBlockChancePerMille(p.Def, p.Level) > Rng.PerMille();
 
     /// <summary>Result of a player's attempt to negate an incoming spell — the mirror of melee block/dodge.</summary>
     public enum MagicNegation { None, Blocked, Dodged }
@@ -88,35 +88,35 @@ public sealed partial class CombatSystem : GameSystem
     /// <summary>No shield + SP gate + not Heavy Wind + RNG roll vs PlayerDodgeChancePerMille.</summary>
     private bool CanPlayerDodge(PlayerRecord p) =>
         p.Sp > 0 && p.ShieldSlot == 0 && StaminaProcsAllowed(p.Map)
-        && CombatFormulas.PlayerDodgeChancePerMille(p.Def, p.Level) > CombatFormulas.RollPerMille();
+        && CombatFormulas.PlayerDodgeChancePerMille(p.Def, p.Level) > Rng.PerMille();
 
     /// <summary>Weapon equipped + SP gate + not Heavy Wind + RNG roll vs PlayerCriticalChancePerMille.</summary>
     private bool CanPlayerCritical(PlayerRecord p) =>
         p.Sp > 0 && p.WeaponSlot > 0 && StaminaProcsAllowed(p.Map)
-        && CombatFormulas.PlayerCriticalChancePerMille(p.Str, p.Level) > CombatFormulas.RollPerMille();
+        && CombatFormulas.PlayerCriticalChancePerMille(p.Str, p.Level) > Rng.PerMille();
 
     /// <summary>SP gate + not Heavy Wind + RNG roll vs SpellCriticalChancePerMille.</summary>
     public bool CanSpellCritical(PlayerRecord p) =>
         p.Sp > 0 && StaminaProcsAllowed(p.Map)
-        && CombatFormulas.SpellCriticalChancePerMille(p.Int, p.Level) > CombatFormulas.RollPerMille();
+        && CombatFormulas.SpellCriticalChancePerMille(p.Int, p.Level) > Rng.PerMille();
 
     private bool CanNpcCritical(MapNpcRecord mapNpc, int map) =>
         mapNpc.Sp > 0 && StaminaProcsAllowed(map)
-        && CombatFormulas.NpcCriticalChancePerMille(_world.Npcs[mapNpc.Num].Str) > CombatFormulas.RollPerMille();
+        && CombatFormulas.NpcCriticalChancePerMille(_world.Npcs[mapNpc.Num].Str) > Rng.PerMille();
 
     /// <summary>NPC spell crit — the INT mirror of <see cref="CanNpcCritical"/> (STR melee crit).</summary>
     private bool CanNpcSpellCritical(MapNpcRecord mapNpc, int map) =>
         mapNpc.Sp > 0 && StaminaProcsAllowed(map)
-        && CombatFormulas.NpcSpellCriticalChancePerMille(_world.Npcs[mapNpc.Num].Int) > CombatFormulas.RollPerMille();
+        && CombatFormulas.NpcSpellCriticalChancePerMille(_world.Npcs[mapNpc.Num].Int) > Rng.PerMille();
 
     private bool CanNpcBlock(MapNpcRecord mapNpc, int map) =>
         mapNpc.Sp > 0 && StaminaProcsAllowed(map)
-        && CombatFormulas.NpcBlockChancePerMille(_world.Npcs[mapNpc.Num].Def) > CombatFormulas.RollPerMille();
+        && CombatFormulas.NpcBlockChancePerMille(_world.Npcs[mapNpc.Num].Def) > Rng.PerMille();
 
     /// <summary>Independent of block.</summary>
     private bool CanNpcDodge(MapNpcRecord mapNpc, int map) =>
         mapNpc.Sp > 0 && StaminaProcsAllowed(map)
-        && CombatFormulas.NpcDodgeChancePerMille(_world.Npcs[mapNpc.Num].Def) > CombatFormulas.RollPerMille();
+        && CombatFormulas.NpcDodgeChancePerMille(_world.Npcs[mapNpc.Num].Def) > Rng.PerMille();
 
     /// <summary>Core NPC magic negation — the EXACT mirror of NPC melee negation: a 50/50 coin flip picks block
     /// vs dodge, then the SP-gated <see cref="CanNpcBlock"/>/<see cref="CanNpcDodge"/> roll decides.  On success:

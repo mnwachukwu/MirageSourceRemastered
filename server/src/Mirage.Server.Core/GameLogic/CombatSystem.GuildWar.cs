@@ -140,7 +140,7 @@ public sealed partial class CombatSystem : GameSystem
         {
             if (dmg[i] <= 0 || !_pm[i].IsPlaying) continue;
             if (GuildOf(i)?.Index != killerGuild.Index) continue;
-            if (CombatFormulas.RollPercent() < Constants.GuildWarTerritoryValorChancePercent)
+            if (Rng.Percent() < Constants.GuildWarTerritoryValorChancePercent)
                 _items.GiveItem(i, Constants.ValorItemIndex, 1);
         }
     }
@@ -163,7 +163,7 @@ public sealed partial class CombatSystem : GameSystem
         {
             if (dmg[i] <= 0 || !_pm[i].IsPlaying) continue;
             if (GuildOf(i)?.Index != killerGuild.Index) continue;   // only the killer's war side earns
-            if (CombatFormulas.RollPercent() < Constants.GuildWarGrudgeValorChancePercent)
+            if (Rng.Percent() < Constants.GuildWarGrudgeValorChancePercent)
                 _items.GiveItem(i, Constants.ValorItemIndex, 1);
         }
     }
@@ -313,7 +313,7 @@ public sealed partial class CombatSystem : GameSystem
             if (p.Inv[i].Num > 0 && !equipped.Contains(i)) slots[count++] = i;
         for (int i = 0; i < count; i++)
         {
-            if (CombatFormulas.RollPercent() >= Constants.NormalDropChancePercent) continue;
+            if (Rng.Percent() >= Constants.NormalDropChancePercent) continue;
             int slot = slots[i];
             int itemNum = p.Inv[slot].Num;
             int amount = _world.Items[itemNum].Type == ItemType.Currency && p.Inv[slot].Quantity > 0
@@ -330,7 +330,7 @@ public sealed partial class CombatSystem : GameSystem
         foreach (int slot in eqSlots)
         {
             if (slot <= 0 || p.Inv[slot].Num <= 0) continue;
-            if (CombatFormulas.RollPercent() >= Constants.PkEqDropChancePercent) continue;
+            if (Rng.Percent() >= Constants.PkEqDropChancePercent) continue;
             _items.PlayerMapDropItem(index, slot, 0);
         }
     }

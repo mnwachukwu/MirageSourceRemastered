@@ -282,14 +282,6 @@ public static class CombatFormulas
     public static int RawSpellPower(int @int, int vitalAmount) =>
         SpellPower(@int) + SpellContribution(vitalAmount, @int);
 
-    /// <summary>Roll a uniform percentile in [0..99]. Seam for durability proc bands and
-    /// item-drop chances — anything that lives on 1-percent granularity.</summary>
-    public static int RollPercent() => Random.Shared.Next(Constants.PercentRollSides);
-
-    /// <summary>Roll the seam for block/dodge/crit chances. The roll space scales with
-    /// <see cref="Constants.ChanceScaleFactor"/>: at scale 1 it's [0..99] (percent), at scale 10
-    /// it's [0..999] (per-mille for tenths-of-a-percent precision).</summary>
-    public static int RollPerMille() => Random.Shared.Next(Constants.ChancePercentRollSides);
 
     /// <summary>Divisor turning a raw chance value into a displayed percent.</summary>
     public static int ChancePercentDivisor => Constants.ChanceScaleFactor;

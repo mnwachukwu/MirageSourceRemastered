@@ -33,11 +33,17 @@
        hazard, not an observed failure.  The build failures originally blamed on it turned out to be a
        second agent building the tree concurrently; do not re-attribute flakiness here without evidence. -->
   <Target Name="BuildSuites">
-    <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" />
-    <!-- The extra global property forces Build to re-evaluate each suite. Sharing Restore's evaluation
-         leaves a never-restored suite compiling with no package assets: no copied dependencies and no
-         runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly. -->
-    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" Properties="_AfterRestore=true" />
+    <!-- The distinguishing property goes on RESTORE, not Build. Both calls need separate evaluations -
+         sharing one leaves a never-restored suite compiling with no package assets: no copied dependencies
+         and no runtimeconfig.json, so a no-build `dotnet test` aborts on a missing assembly - but which
+         call carries the property decides whether this doubles the build. A global property forks the
+         configuration, and configuration is what MSBuild keys results on; it also flows down every
+         ProjectReference. On Build that forked every transitive dependency into a SECOND compile racing
+         the outer one into the same obj/, which is the CS2012/MSB3883 file-lock failure. On Restore it
+         forks a pass that writes package assets and never invokes the compiler, while Build now runs in
+         the outer build's own configuration and reuses its result instead of starting a rival. -->
+    <MSBuild Projects="$(_AllTests)" Targets="Restore" BuildInParallel="true" Properties="_RestorePass=true" />
+    <MSBuild Projects="$(_AllTests)" Targets="Build" BuildInParallel="true" />
   </Target>
 
   <Target Name="TestAll" DependsOnTargets="BuildSuites">
@@ -86,7 +92,7 @@
     <Warning Condition="'$(_NodeExit)' != '0'"
              Text="node not found — the repository checks did NOT run. CI still runs them." />
     <Exec Condition="'$(_NodeExit)' == '0'"
-          Command="node .github/checks/check-seed-counts.mjs &amp;&amp; node .github/checks/check-readme-facts.mjs &amp;&amp; node .github/checks/check-doc-links.mjs &amp;&amp; node .github/checks/check-prebuilt-content.mjs"
+          Command="node .github/checks/check-seed-counts.mjs &amp;&amp; node .github/checks/check-readme-facts.mjs &amp;&amp; node .github/checks/check-doc-links.mjs &amp;&amp; node .github/checks/check-prebuilt-content.mjs &amp;&amp; node .github/checks/check-build-graph.mjs"
           WorkingDirectory="$(RepoRoot)" ContinueOnError="true">
       <Output TaskParameter="ExitCode" PropertyName="_DocsExit" />
     </Exec>

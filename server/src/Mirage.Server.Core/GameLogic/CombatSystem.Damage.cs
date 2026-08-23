@@ -115,12 +115,12 @@ public sealed partial class CombatSystem : GameSystem
         if (maxDur <= 0) return;   // no durability budget: indestructible, never chips (mirrors the equip gate)
         // Condition-scaled wear: this hit only costs durability on a roll that gets likelier as the
         // item wears. Healthy gear shrugs off most hits; sub-25% gear chips every time.
-        if (CombatFormulas.RollPercent() >= CombatFormulas.DurabilityDegradeChancePercent(p.Inv[slot].Dur, maxDur))
+        if (Rng.Percent() >= CombatFormulas.DurabilityDegradeChancePercent(p.Inv[slot].Dur, maxDur))
             return;
         // L2 guild perk: a chance to shrug off this hit's durability wear entirely (normal wear only —
         // death wear via DegradeEquipped is unaffected, per the perk spec).
         if (GuildPerks.IsActive(GuildOf(index), Constants.GuildPerkLevelPreventWear)
-            && CombatFormulas.RollPercent() < Constants.GuildPerkPreventWearChancePercent)
+            && Rng.Percent() < Constants.GuildPerkPreventWearChancePercent)
         {
             return;
         }
@@ -162,15 +162,15 @@ public sealed partial class CombatSystem : GameSystem
         }
         else if (pct <= CombatFormulas.DurWarnRepairPct)
         {
-            if (CombatFormulas.RollPercent() < CombatFormulas.DurWarnRepairProcPct)
+            if (Rng.Percent() < CombatFormulas.DurWarnRepairProcPct)
                 SendMsg(index, ServerStrings.CombatSystem_ItemNeedsRepair, GameColor.Yellow, ChatChannel.System, ("Name", name));
         }
         else if (pct <= CombatFormulas.DurWarnWornPct)
         {
-            if (CombatFormulas.RollPercent() < CombatFormulas.DurWarnWornProcPct)
+            if (Rng.Percent() < CombatFormulas.DurWarnWornProcPct)
                 SendMsg(index, ServerStrings.CombatSystem_ItemGettingWorn, GameColor.Gray, ChatChannel.System, ("Name", name));
         }
-        else if (CombatFormulas.RollPercent() < CombatFormulas.DurWarnFineProcPct)
+        else if (Rng.Percent() < CombatFormulas.DurWarnFineProcPct)
         {
             SendMsg(index, ServerStrings.CombatSystem_ItemSeenBetterDays, GameColor.Gray, ChatChannel.System, ("Name", name));
         }

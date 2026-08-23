@@ -46,8 +46,8 @@ public sealed partial class GuildSystem : GameSystem
     public GuildSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher,
                        IPersistenceService persistence, IBackgroundPersistence bg, PlayerSaver saver,
                        ItemSystem items, MailSystem mail, ObjectiveSystem objectives, ILogger<GuildSystem> logger,
-                       IClock? clock = null)
-        : base(dispatcher, clock: clock)
+                       IClock? clock = null, IRandomSource? rng = null)
+        : base(dispatcher, clock: clock, rng: rng)
     {
         _world = world;
         _pm = pm;

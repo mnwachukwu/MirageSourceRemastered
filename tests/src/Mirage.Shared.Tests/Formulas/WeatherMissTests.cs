@@ -36,7 +36,7 @@ public class WeatherMissTests
         Assert.That(Constants.WeatherHeavyWindMissChancePercent, Is.InRange(1, 25));
     }
 
-    /// <summary>The call site is <c>MissChancePercent(w) &gt; RollPercent()</c> against a 0..99 roll, so a
+    /// <summary>The call site is <c>MissChancePercent(w) > rng.Percent()</c> against a 0..99 roll, so a
     /// chance of N misses on exactly N of the 100 outcomes. Pinned because an off-by-one here is invisible in
     /// play and would quietly shift the rate.</summary>
     [Test]

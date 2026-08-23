@@ -88,6 +88,13 @@ jobs:
       - name: Check the committed content matches its sources
         run: node .github/checks/check-prebuilt-content.mjs
 
+      # Not documentation, but the same kind of rot: a rule no compiler enforces. A global property on
+      # an MSBuild Build call forks the configuration and rebuilds the whole dependency graph a second
+      # time, concurrently, into the same obj/ — which surfaces as an occasional CS2012 in the release
+      # job and passes on rerun. Cheap to check statically, expensive to diagnose from a red run.
+      - name: Check no Build target takes a global property
+        run: node .github/checks/check-build-graph.mjs
+
   # ---- Does it work off Windows? ---------------------------------------------------------------
   #
   # The build job below compiles for all three platforms from one Windows runner, which proves they

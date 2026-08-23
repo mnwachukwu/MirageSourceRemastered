@@ -17,8 +17,9 @@ public sealed class SpellSystem : GameSystem
     private readonly ItemSystem _items;
 
     public SpellSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher,
-                       CombatSystem combat, ItemSystem items)
-        : base(dispatcher, ChatChannel.Combat)
+                       CombatSystem combat, ItemSystem items,
+                       IClock? clock = null, IRandomSource? rng = null)
+        : base(dispatcher, ChatChannel.Combat, clock: clock, rng: rng)
     {
         _world = world;
         _pm = pm;
@@ -713,7 +714,7 @@ public sealed class SpellSystem : GameSystem
         if (spell.Type != SpellType.SubHp || reagentCost <= 0) return;
         // L2 guild perk: a chance to spend no reagents for this cast (mirrors the durability-wear skip).
         if (GuildPerks.IsActive(_world.Guilds.GetValueOrDefault(_pm[index].Guild), Constants.GuildPerkLevelPreventWear)
-            && CombatFormulas.RollPercent() < Constants.GuildPerkPreventWearChancePercent)
+            && Rng.Percent() < Constants.GuildPerkPreventWearChancePercent)
         {
             return;
         }

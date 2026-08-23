@@ -49,7 +49,11 @@ public class SpellLandsOnTargetTests
 
         pm[CasterIdx].Char.X = 8; pm[CasterIdx].Char.Y = 6;
         pm[VictimIdx].Char.X = 8; pm[VictimIdx].Char.Y = 7;   // adjacent, inside the R=5 circle
-        pm[VictimIdx].Char.Def = 0;                            // no block/dodge, no mitigation to swallow it
+        pm[VictimIdx].Char.Def = 0;                            // nothing left to mitigate the drain
+        // Stamina is the only gate that shuts dodge off outright. Def=0 does NOT: the chance is
+        // (Def + Level) / 18 rounded, and Level has to stay at 10 for the PvP gate, so it floors at 1 —
+        // against a roll in [0..99] that is 1 cast in 100 dodged. Matches the NPC victim below.
+        pm[VictimIdx].Char.Sp = 0;
 
         var spell = world.Spells[SpellNum];
         spell.Name = "test spell";

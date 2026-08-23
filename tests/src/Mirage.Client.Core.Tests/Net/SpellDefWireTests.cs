@@ -12,7 +12,7 @@ namespace Mirage.Client.Core.Tests;
 /// confirmation and the spell book. Every field the packet carries has to survive that copy.
 ///
 /// <para>A dropped field is silent: the record keeps its default, and a reader gated on
-/// <c>LevelReq &gt; 0</c> just renders nothing. Both handlers are covered because the bulk send at join
+/// <c>LevelReq > 0</c> just renders nothing. Both handlers are covered because the bulk send at join
 /// and the per-spell push after an editor save build the record independently.</para></summary>
 [TestFixture]
 public class SpellDefWireTests

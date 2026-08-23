@@ -293,7 +293,7 @@ public sealed partial class CombatSystem : GameSystem
         foreach (int i in contributors)
         {
             if (GuildSystem.QuestTargetsNpc(GuildOf(i), mapNpc.Num)
-                && CombatFormulas.RollPercent() < Constants.GuildQuestValorChancePercent)
+                && Rng.Percent() < Constants.GuildQuestValorChancePercent)
             {
                 _items.GiveItem(i, Constants.ValorItemIndex, 1);
             }
@@ -318,7 +318,7 @@ public sealed partial class CombatSystem : GameSystem
             // L5 perk: a chance each KO trickles GuildPerkVaultGold into the guild's daily accumulator
             // (credited at the 00:00 settlement, after debits). Accrues in memory; the settlement persists it.
             if (GuildPerks.IsActive(guild, Constants.GuildPerkLevelVaultGold)
-                && CombatFormulas.RollPercent() < Constants.GuildPerkVaultGoldChancePercent)
+                && Rng.Percent() < Constants.GuildPerkVaultGoldChancePercent)
             {
                 guild!.PendingVaultGold += Constants.GuildPerkVaultGold;
                 _world.DirtyGuilds.Add(gid);   // flushed on the periodic save + shutdown (never lost)
@@ -340,7 +340,7 @@ public sealed partial class CombatSystem : GameSystem
     {
         if (contributors.Count == 0) return;
         if (_world.TerritoryGroupOf(mapNum) is not { ControllingGuild: > 0 } terr) return;
-        if (CombatFormulas.RollPercent() >= Constants.TerritoryIncomeChancePercent) return;
+        if (Rng.Percent() >= Constants.TerritoryIncomeChancePercent) return;
 
         int topKiller = 0, topDmg = 0;
         foreach (int i in contributors)
@@ -433,12 +433,12 @@ public sealed partial class CombatSystem : GameSystem
             if (!entry.IsLive || entry.ItemNum > _world.Limits.Items) continue;
             int chance = entry.Chance;
             if (dropRateperk) chance += chance * Constants.GuildPerkDropRateBonusPercent / 100;
-            if (CombatFormulas.RollPercent() >= chance) continue;
+            if (Rng.Percent() >= chance) continue;
 
             bool isCurrency = _world.Items[entry.ItemNum].Type == ItemType.Currency;
             // Currency needs a stack of at least 1 or the drop is a no-op; other items ignore Value.
             int value = isCurrency ? Math.Max((short)1, entry.Quantity) : entry.Quantity;
-            bool doubled = doublePerk && CombatFormulas.RollPercent() < Constants.GuildPerkDoubleDropChancePercent;
+            bool doubled = doublePerk && Rng.Percent() < Constants.GuildPerkDoubleDropChancePercent;
             if (doubled && isCurrency) value *= 2;
             landed.Add((entry.ItemNum, value, isCurrency, doubled));
         }
