@@ -74,13 +74,27 @@
        world an operator already has: putting it into play is a deliberate copy, which the README spells
        out. Globbed rather than listed, so content added since the last release ships without an edit here.
 
+       A server started against this folder creates its runtime state here too — accounts (password
+       hashes), guilds, market listings, trade journals, seasons and dropped items. None of that is
+       authored content and none of it may ship, so the glob names what it excludes rather than trusting
+       the folder to hold only what was written by hand.
+
        Runs after the publish, because _CleanPayload empties the folder first. -->
   <Target Name="_CopySeedIntoPayload">
     <ItemGroup>
-      <_SeedPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/data/**/*" />
+      <_SeedRuntimeState Include="$(RepoRoot)server/src/Mirage.Server.Host/data/accounts/**/*;
+                                  $(RepoRoot)server/src/Mirage.Server.Host/data/guilds/**/*;
+                                  $(RepoRoot)server/src/Mirage.Server.Host/data/map_items/**/*;
+                                  $(RepoRoot)server/src/Mirage.Server.Host/data/market/**/*;
+                                  $(RepoRoot)server/src/Mirage.Server.Host/data/trades/**/*;
+                                  $(RepoRoot)server/src/Mirage.Server.Host/data/seasons/**/*" />
+      <_SeedPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/data/**/*"
+                    Exclude="@(_SeedRuntimeState)" />
     </ItemGroup>
     <Error Condition="'@(_SeedPayload)' == ''"
            Text="No seed data found under server/src/Mirage.Server.Host/data/. The installer would ship without a world to start from." />
+    <Message Condition="'@(_SeedRuntimeState)' != ''" Importance="High"
+             Text="── Seed: held back @(_SeedRuntimeState->Count()) runtime file(s); a server has been run against server/src/Mirage.Server.Host/data/ ──" />
     <Copy SourceFiles="@(_SeedPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/seed/%(RecursiveDir)" />
   </Target>
 
