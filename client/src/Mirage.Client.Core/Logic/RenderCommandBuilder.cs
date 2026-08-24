@@ -67,9 +67,10 @@ public static class RenderCommandBuilder
         return frame;
     }
 
-    // Center map occupies grid cell (1,1) → world-tile origin (MapTilesX, MapTilesY).
-    private const int CenterWorldOffX = WorldCoordHelper.MapTilesX;
-    private const int CenterWorldOffY = WorldCoordHelper.MapTilesY;
+    // Center map occupies grid cell (1,1), so its world-tile origin is one map in on each axis — measured
+    // in the CENTER map's own size, which is the whole neighbourhood's (a map only links to its own size).
+    private static int CenterWorldOffX(ClientState state) => state.MapTilesX;
+    private static int CenterWorldOffY(ClientState state) => state.MapTilesY;
 
     // ── Tiles (Ground, Mask, Anim, Fringe) ────────────────────────────────────
 
@@ -99,17 +100,17 @@ public static class RenderCommandBuilder
         for (int wy = firstWY; wy <= lastWY; wy++)
         {
             if (wy < 0) continue;
-            int row = wy / WorldCoordHelper.MapTilesY;
+            int row = wy / state.MapTilesY;
             if (row > 2) break;
-            int localY = wy % WorldCoordHelper.MapTilesY;
+            int localY = wy % state.MapTilesY;
             for (int wx = firstWX; wx <= lastWX; wx++)
             {
                 if (wx < 0) continue;
-                int col = wx / WorldCoordHelper.MapTilesX;
+                int col = wx / state.MapTilesX;
                 if (col > 2) break;
                 var map = state.NeighborMaps[col, row];
                 if (map is null) continue;
-                int localX = wx % WorldCoordHelper.MapTilesX;
+                int localX = wx % state.MapTilesX;
                 var tile = map.Tile[localX, localY];
                 var (screenX, screenY) = camera.WorldTileToScreen(wx, wy, 0, 0);
 
@@ -146,8 +147,8 @@ public static class RenderCommandBuilder
             {
                 int mapNum = (col == 1 && row == 1) ? state.CenterMapNum : state.NeighborMapNums[col, row];
                 if (mapNum <= 0 || !state.BloodByMap.TryGetValue(mapNum, out var pools) || pools.Count == 0) continue;
-                int offX = col * WorldCoordHelper.MapTilesX;
-                int offY = row * WorldCoordHelper.MapTilesY;
+                int offX = col * state.MapTilesX;
+                int offY = row * state.MapTilesY;
                 foreach (var p in pools)
                 {
                     if (p.Amount <= Constants.BloodVisibleEpsilon) continue;
@@ -185,17 +186,17 @@ public static class RenderCommandBuilder
         for (int wy = firstWY; wy <= lastWY; wy++)
         {
             if (wy < 0) continue;
-            int row = wy / WorldCoordHelper.MapTilesY;
+            int row = wy / state.MapTilesY;
             if (row > 2) break;
-            int localY = wy % WorldCoordHelper.MapTilesY;
+            int localY = wy % state.MapTilesY;
             for (int wx = firstWX; wx <= lastWX; wx++)
             {
                 if (wx < 0) continue;
-                int col = wx / WorldCoordHelper.MapTilesX;
+                int col = wx / state.MapTilesX;
                 if (col > 2) break;
                 var map = state.NeighborMaps[col, row];
                 if (map is null) continue;
-                int localX = wx % WorldCoordHelper.MapTilesX;
+                int localX = wx % state.MapTilesX;
                 var tile = map.Tile[localX, localY];
                 var (screenX, screenY) = camera.WorldTileToScreen(wx, wy, 0, 0);
 
@@ -228,17 +229,17 @@ public static class RenderCommandBuilder
         for (int wy = firstWY; wy <= lastWY; wy++)
         {
             if (wy < 0) continue;
-            int row = wy / WorldCoordHelper.MapTilesY;
+            int row = wy / state.MapTilesY;
             if (row > 2) break;
-            int localY = wy % WorldCoordHelper.MapTilesY;
+            int localY = wy % state.MapTilesY;
             for (int wx = firstWX; wx <= lastWX; wx++)
             {
                 if (wx < 0) continue;
-                int col = wx / WorldCoordHelper.MapTilesX;
+                int col = wx / state.MapTilesX;
                 if (col > 2) break;
                 var map = state.NeighborMaps[col, row];
                 if (map is null) continue;
-                var tile = map.Tile[wx % WorldCoordHelper.MapTilesX, localY];
+                var tile = map.Tile[wx % state.MapTilesX, localY];
                 var (screenX, screenY) = camera.WorldTileToScreen(wx, wy, 0, 0);
                 int visibleAnim = LayerCell.VisibleAnimIndex(tile.Canopy, state.MapAnimFrame);
 
@@ -305,10 +306,10 @@ public static class RenderCommandBuilder
             {
                 var map = state.NeighborMaps[col, row];
                 if (state.LightingOf(map) != MapLighting.AlwaysLit) continue;
-                int left = col * WorldCoordHelper.MapTilesX;
-                int top = row * WorldCoordHelper.MapTilesY;
-                int right = left + WorldCoordHelper.MapTilesX - 1;
-                int bottom = top + WorldCoordHelper.MapTilesY - 1;
+                int left = col * state.MapTilesX;
+                int top = row * state.MapTilesY;
+                int right = left + state.MapTilesX - 1;
+                int bottom = top + state.MapTilesY - 1;
                 if (wx >= left && wx <= right && wy >= top && wy <= bottom)
                     return true;
             }
@@ -331,8 +332,8 @@ public static class RenderCommandBuilder
                 var map = state.NeighborMaps[col, row];
                 if (state.LightingOf(map) != MapLighting.AlwaysLit) continue;
                 var (sx, sy) = camera.WorldTileToScreen(
-                    col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY, 0, 0);
-                frame.AlwaysLitMapLights.Add(new MapLightCmd(sx, sy));
+                    col * state.MapTilesX, row * state.MapTilesY, 0, 0);
+                frame.AlwaysLitMapLights.Add(new MapLightCmd(sx, sy, MapPxW(state), MapPxH(state)));
             }
         }
     }
@@ -350,8 +351,8 @@ public static class RenderCommandBuilder
             {
                 var map = state.NeighborMaps[col, row];
                 if (map is null || map.Lights.Count == 0) continue;
-                int offX = col * WorldCoordHelper.MapTilesX;
-                int offY = row * WorldCoordHelper.MapTilesY;
+                int offX = col * state.MapTilesX;
+                int offY = row * state.MapTilesY;
                 foreach (var pl in map.Lights)
                 {
                     int wx = offX + pl.X;
@@ -391,10 +392,10 @@ public static class RenderCommandBuilder
             {
                 var map = state.NeighborMaps[col, row];
                 if (state.LightingOf(map) != MapLighting.AlwaysDark) continue;
-                int left = col * WorldCoordHelper.MapTilesX;
-                int top = row * WorldCoordHelper.MapTilesY;
-                int right = left + WorldCoordHelper.MapTilesX - 1;
-                int bottom = top + WorldCoordHelper.MapTilesY - 1;
+                int left = col * state.MapTilesX;
+                int top = row * state.MapTilesY;
+                int right = left + state.MapTilesX - 1;
+                int bottom = top + state.MapTilesY - 1;
                 if (wx >= left && wx <= right && wy >= top && wy <= bottom)
                     return true;
             }
@@ -414,14 +415,19 @@ public static class RenderCommandBuilder
                 var map = state.NeighborMaps[col, row];
                 if (map is null) continue;
                 var (sx, sy) = camera.WorldTileToScreen(
-                    col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY, 0, 0);
+                    col * state.MapTilesX, row * state.MapTilesY, 0, 0);
                 if (state.LightingOf(map) == MapLighting.AlwaysDark)
-                    frame.AlwaysDarkMapLights.Add(new MapLightCmd(sx, sy));
+                    frame.AlwaysDarkMapLights.Add(new MapLightCmd(sx, sy, MapPxW(state), MapPxH(state)));
                 else if (state.IndoorsOf(map))
-                    frame.IndoorsMapLights.Add(new MapLightCmd(sx, sy));
+                    frame.IndoorsMapLights.Add(new MapLightCmd(sx, sy, MapPxW(state), MapPxH(state)));
             }
         }
     }
+
+    // The nine cells of the observable area are all one size (the link rule), so one pair answers for
+    // every cell in the grid.
+    private static int MapPxW(ClientState state) => state.MapTilesX * Constants.PicX;
+    private static int MapPxH(ClientState state) => state.MapTilesY * Constants.PicY;
 
     // World-tile offset of the grid cell holding a given map number, or null if that map
     // isn't one of the 9 currently loaded cells.  NeighborMapNums[1,1] is the center map.
@@ -433,7 +439,7 @@ public static class RenderCommandBuilder
             for (int row = 0; row < 3; row++)
             {
                 if (state.NeighborMapNums[col, row] == mapNum)
-                    return (col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY);
+                    return (col * state.MapTilesX, row * state.MapTilesY);
             }
         }
 
@@ -466,7 +472,7 @@ public static class RenderCommandBuilder
 
     private static void EmitItems(ClientState state, RenderFrame frame, Camera camera)
     {
-        EmitItemArray(state, frame, camera, state.MapItems, CenterWorldOffX, CenterWorldOffY);
+        EmitItemArray(state, frame, camera, state.MapItems, CenterWorldOffX(state), CenterWorldOffY(state));
 
         for (int col = 0; col < 3; col++)
         {
@@ -475,7 +481,7 @@ public static class RenderCommandBuilder
                 if (col == 1 && row == 1) continue;
                 if (state.NeighborMaps[col, row] is null) continue; // tiles not loaded yet
                 EmitItemArray(state, frame, camera, state.NeighborItems[col, row],
-                    col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY);
+                    col * state.MapTilesX, row * state.MapTilesY);
             }
         }
     }
@@ -502,7 +508,7 @@ public static class RenderCommandBuilder
     {
         // Center + neighbor maps share the same emit path. Hover and target both address NPCs by
         // (slot, mapNum), so each cell self-disambiguates against the cross-region hover/target.
-        EmitNpcArray(state, frame, camera, state.MapNpcs, CenterWorldOffX, CenterWorldOffY,
+        EmitNpcArray(state, frame, camera, state.MapNpcs, CenterWorldOffX(state), CenterWorldOffY(state),
             state.CenterMapNum, tickNow, alwaysShowBars, hovered, target, showNames, nameLineH);
         for (int col = 0; col < 3; col++)
         {
@@ -511,7 +517,7 @@ public static class RenderCommandBuilder
                 if (col == 1 && row == 1) continue;
                 if (state.NeighborMaps[col, row] is null) continue; // tiles not loaded yet
                 EmitNpcArray(state, frame, camera, state.NeighborNpcs[col, row],
-                    col * WorldCoordHelper.MapTilesX, row * WorldCoordHelper.MapTilesY,
+                    col * state.MapTilesX, row * state.MapTilesY,
                     state.NeighborMapNums[col, row], tickNow, alwaysShowBars, hovered, target, showNames, nameLineH);
             }
         }
@@ -865,8 +871,8 @@ public static class RenderCommandBuilder
         int offX, offY;
         if (i == state.MyIndex)
         {
-            offX = CenterWorldOffX;
-            offY = CenterWorldOffY;
+            offX = CenterWorldOffX(state);
+            offY = CenterWorldOffY(state);
         }
         else
         {
@@ -1059,7 +1065,7 @@ public static class RenderCommandBuilder
     private static bool TargetOutOfRangeWorld(ClientState state, int targetWX, int targetWY, int targetSize = 1)
     {
         var me = state.Me;
-        int myWX = CenterWorldOffX + me.X, myWY = CenterWorldOffY + me.Y;
+        int myWX = CenterWorldOffX(state) + me.X, myWY = CenterWorldOffY(state) + me.Y;
         // Footprint-aware so the gray arrow matches the server: an oversize NPC is in range by its body, not (X,Y).
         return !WorldCoordHelper.IsInSpellRange(myWX, myWY, 1, targetWX, targetWY, targetSize);
     }

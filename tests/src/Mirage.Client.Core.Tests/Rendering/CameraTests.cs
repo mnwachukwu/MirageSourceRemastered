@@ -36,7 +36,7 @@ public class CameraTests
     public void Update_NoNeighbors_LocksToCenterMap()
     {
         var cam = new Camera();
-        cam.Update(0, 0, 0f, 0f, CenterOnly());
+        cam.Update(0, 0, 0f, 0f, CenterOnly(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);
         Assert.Multiple(() =>
         {
             Assert.That(cam.CameraX, Is.EqualTo(512f));
@@ -44,7 +44,7 @@ public class CameraTests
         });
 
         // Player at the far corner of the center map: still locked (no neighbor to scroll toward).
-        cam.Update(Constants.MaxMapX, Constants.MaxMapY, 0f, 0f, CenterOnly());
+        cam.Update(Constants.MaxMapX, Constants.MaxMapY, 0f, 0f, CenterOnly(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);
         Assert.Multiple(() =>
         {
             Assert.That(cam.CameraX, Is.EqualTo(512f));
@@ -57,7 +57,7 @@ public class CameraTests
     public void WorldTileToScreen_NoNeighbors_MatchesSingleMapView()
     {
         var cam = new Camera();
-        cam.Update(8, 6, 0f, 0f, CenterOnly());
+        cam.Update(8, 6, 0f, 0f, CenterOnly(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);
         for (int lx = 0; lx <= Constants.MaxMapX; lx++)
         {
             int worldX = WorldCoordHelper.MapTilesX + lx;
@@ -71,7 +71,7 @@ public class CameraTests
     public void Update_FullGrid_FollowsPlayer()
     {
         var cam = new Camera();
-        cam.Update(8, 6, 0f, 0f, FullGrid());
+        cam.Update(8, 6, 0f, 0f, FullGrid(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);
         float pwx = (WorldCoordHelper.MapTilesX + 8) * Constants.PicX;
         float pwy = (WorldCoordHelper.MapTilesY + 6) * Constants.PicY;
         Assert.Multiple(() =>
@@ -91,7 +91,7 @@ public class CameraTests
         withLeft[0, 1] = 2;   // a map exists to the left
 
         var cam = new Camera();
-        cam.Update(0, 6, 0f, 0f, withLeft);   // player at the left edge of the center map
+        cam.Update(0, 6, 0f, 0f, withLeft, Constants.DefaultMapWidth, Constants.DefaultMapHeight);   // player at the left edge of the center map
         // minCamX is now 0 (left column present), so the camera scrolls left of the center-only lock (512).
         Assert.That(cam.CameraX, Is.LessThan(512f));
     }
@@ -101,7 +101,7 @@ public class CameraTests
     public void ScreenToGridTile_InvertsWorldTileToScreen()
     {
         var cam = new Camera();
-        cam.Update(0, 0, 0f, 0f, CenterOnly());   // locked: CameraX=512, CameraY=384
+        cam.Update(0, 0, 0f, 0f, CenterOnly(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);   // locked: CameraX=512, CameraY=384
         // Center map local (0,0) is world (16,12); its screen pos with the locked camera is (0,0).
         Assert.That(cam.ScreenToGridTile(0, 0), Is.EqualTo(new GridTileHit(Col: 1, Row: 1, LocalX: 0, LocalY: 0)));
     }
@@ -111,7 +111,7 @@ public class CameraTests
     public void ScreenToGridTile_OffWorld_ReturnsNull()
     {
         var cam = new Camera();
-        cam.Update(0, 0, 0f, 0f, FullGrid());
+        cam.Update(0, 0, 0f, 0f, FullGrid(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);
         Assert.That(cam.ScreenToGridTile(-300, -300), Is.Null);
     }
 
@@ -119,7 +119,7 @@ public class CameraTests
     public void IsWorldTileVisible_CenterTileVisible_FarTileNot()
     {
         var cam = new Camera();
-        cam.Update(0, 0, 0f, 0f, CenterOnly());   // CameraX=512, CameraY=384
+        cam.Update(0, 0, 0f, 0f, CenterOnly(), Constants.DefaultMapWidth, Constants.DefaultMapHeight);   // CameraX=512, CameraY=384
         Assert.Multiple(() =>
         {
             Assert.That(cam.IsWorldTileVisible(16, 12), Is.True, "center-map origin is on-screen");
@@ -150,7 +150,7 @@ public class CameraTests
         justArrived[0, 1] = 2;   // named by the server; its tiles are still resolving
 
         var cam = new Camera();
-        cam.Update(0, 0, 0f, 0f, justArrived);
+        cam.Update(0, 0, 0f, 0f, justArrived, Constants.DefaultMapWidth, Constants.DefaultMapHeight);
 
         Assert.That(cam.CameraX, Is.LessThan(LockedToCenter),
             "the camera reaches toward a map it knows is there, rather than waiting for it to download");
@@ -164,9 +164,9 @@ public class CameraTests
         var known = FullGrid();
         var cam = new Camera();
 
-        cam.Update(8, 6, 0f, 0f, known);
+        cam.Update(8, 6, 0f, 0f, known, Constants.DefaultMapWidth, Constants.DefaultMapHeight);
         float settledX = cam.CameraX, settledY = cam.CameraY;
-        for (int frame = 0; frame < 5; frame++) cam.Update(8, 6, 0f, 0f, known);
+        for (int frame = 0; frame < 5; frame++) cam.Update(8, 6, 0f, 0f, known, Constants.DefaultMapWidth, Constants.DefaultMapHeight);
 
         Assert.Multiple(() =>
         {

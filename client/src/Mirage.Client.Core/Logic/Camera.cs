@@ -14,10 +14,20 @@ namespace Mirage.Client.Core.Logic;
 /// </summary>
 public sealed class Camera
 {
-    public const int ViewW = (Constants.MaxMapX + 1) * Constants.PicX; // 512
-    public const int ViewH = (Constants.MaxMapY + 1) * Constants.PicY; // 384
-    private const int MapPxW = (Constants.MaxMapX + 1) * Constants.PicX; // 512
-    private const int MapPxH = (Constants.MaxMapY + 1) * Constants.PicY; // 384
+    // The window, in pixels. A property of the render target, fixed however large the maps are.
+    public const int ViewW = Constants.ViewportTilesX * Constants.PicX; // 512
+    public const int ViewH = Constants.ViewportTilesY * Constants.PicY; // 384
+
+    /// <summary>One map's size in tiles, taken from the center map on each <see cref="Update"/>. The scroll
+    /// bounds and the screen-to-tile inverse are both measured in maps, so they move when the world does.
+    /// Starts at the default so a camera that has not seen a map yet still answers.</summary>
+    public int MapTilesX { get; private set; } = Constants.DefaultMapWidth;
+
+    /// <inheritdoc cref="MapTilesX"/>
+    public int MapTilesY { get; private set; } = Constants.DefaultMapHeight;
+
+    private int MapPxW => MapTilesX * Constants.PicX;
+    private int MapPxH => MapTilesY * Constants.PicY;
 
     /// <summary>World-pixel coordinate of the viewport's top-left corner (true, sub-pixel value).</summary>
     public float CameraX { get; private set; }
@@ -40,11 +50,15 @@ public sealed class Camera
     /// <para>A cell that is named but not yet loaded renders black, which is the same thing that already
     /// happens for a diagonal-only neighbour — an accepted, momentary state rather than a new one.</para>
     /// </summary>
-    public void Update(int playerLocalX, int playerLocalY, float xOffset, float yOffset, int[,] neighborMapNums)
+    public void Update(int playerLocalX, int playerLocalY, float xOffset, float yOffset, int[,] neighborMapNums,
+                       int mapTilesX, int mapTilesY)
     {
+        MapTilesX = mapTilesX;
+        MapTilesY = mapTilesY;
+
         // Center map sits at grid (1,1) → world tile origin (MapTilesX, MapTilesY).
-        float pwx = (WorldCoordHelper.MapTilesX + playerLocalX) * Constants.PicX + xOffset;
-        float pwy = (WorldCoordHelper.MapTilesY + playerLocalY) * Constants.PicY + yOffset;
+        float pwx = (MapTilesX + playerLocalX) * Constants.PicX + xOffset;
+        float pwy = (MapTilesY + playerLocalY) * Constants.PicY + yOffset;
 
         float camX = pwx - ViewW / 2f;
         float camY = pwy - ViewH / 2f;
@@ -90,11 +104,11 @@ public sealed class Camera
         int worldX = (int)Math.Floor((screenX + CameraX) / Constants.PicX);
         int worldY = (int)Math.Floor((screenY + CameraY) / Constants.PicY);
         if (worldX < 0 || worldY < 0) return null;
-        int col = worldX / WorldCoordHelper.MapTilesX;
-        int row = worldY / WorldCoordHelper.MapTilesY;
+        int col = worldX / MapTilesX;
+        int row = worldY / MapTilesY;
         if (col < 0 || col > 2 || row < 0 || row > 2) return null;
-        int localX = worldX % WorldCoordHelper.MapTilesX;
-        int localY = worldY % WorldCoordHelper.MapTilesY;
+        int localX = worldX % MapTilesX;
+        int localY = worldY % MapTilesY;
         return new GridTileHit(col, row, localX, localY);
     }
 }

@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Services;
 using Mirage.Shared;
+using Mirage.Shared.Records;
 
 namespace Mirage.Editor.ViewModels;
 
@@ -29,6 +30,14 @@ public sealed partial class MainWindowViewModel
 
     /// <summary>The open world's path, for the title bar and the empty-state prompt.</summary>
     public string WorldPath => EditorPaths.Data;
+
+    /// <summary>What to call the open world in the window title: its own name, or "Untitled World" where
+    /// it has none, or nothing at all when none is open. Telling a live world from a test copy of it is the
+    /// whole reason a world carries a name, and the title bar is where that has to be legible.</summary>
+    public string WorldLabel =>
+        !HasWorld ? ""
+        : _data.Manifest.IsNamed ? _data.Manifest.Name.Trim()
+        : EditorStrings.Get(EditorStrings.World_Untitled);
 
     /// <summary>Worlds opened before, most recent first.</summary>
     public IReadOnlyList<RecentWorldViewModel> RecentWorlds =>
@@ -103,28 +112,105 @@ public sealed partial class MainWindowViewModel
     /// <summary>Set by the View: shows the world's record ceilings and answers with the new ones.</summary>
     public Func<WorldSettingsDialogViewModel, Task>? ShowWorldSettingsDialogAsync { get; set; }
 
-    /// <summary>The world's record ceilings. A confirmed change is written to the folder and the world
-    /// reread, since every list is sized from it.</summary>
+    /// <summary>The world's name, its default map size and its record ceilings. A confirmed change is
+    /// written to the folder and the world reread, since every list is sized from it.</summary>
     [RelayCommand]
     private async Task WorldSettingsAsync()
     {
         if (ShowWorldSettingsDialogAsync is null || !HasWorld) return;
-        var dlg = new WorldSettingsDialogViewModel(_data.Limits, IsOnline);
-        RecordLimits? chosen = null;
-        dlg.Confirmed += limits => chosen = limits;
+        var dlg = new WorldSettingsDialogViewModel(_data.Manifest, IsOnline);
+        WorldManifest? chosen = null;
+        dlg.Confirmed += manifest => chosen = manifest;
         await ShowWorldSettingsDialogAsync(dlg);
         if (chosen is null) return;
 
         await EditorDataService.SaveManifestAsync(EditorPaths.Data, chosen);
-        EditorLog.Info("World record ceilings set on {Path}.", EditorPaths.Data);
+        EditorLog.Info("World settings written to {Path}.", EditorPaths.Data);
         await OpenWorldAsync(EditorPaths.Data, remember: false);
     }
+
+    /// <summary>Set by the View: shows the world check's findings.</summary>
+    public Func<WorldCheckDialogViewModel, Task>? ShowWorldCheckDialogAsync { get; set; }
+
+    /// <summary>Reads every map against every other and reports what does not agree — a link joining two
+    /// sizes, a warp naming a tile its destination has not got, a group index no group backs. Records only,
+    /// so it needs no server and changes nothing.</summary>
+    [RelayCommand]
+    private async Task CheckWorldAsync()
+    {
+        if (ShowWorldCheckDialogAsync is null || (!HasWorld && !IsOnline)) return;
+
+        var groups = MapGroupEditor.MapGroups.Select(g => g.Index).ToHashSet();
+        var world = new WorldContent
+        {
+            Maps = Slots(MapEditor.Maps, r => r.Index, r => r.Record),
+            Items = Slots(ItemEditor.Items, r => r.Index, r => r.ToRecord()),
+            Npcs = Slots(NpcEditor.Items, r => r.Index, r => r.ToRecord()),
+            Shops = Slots(ShopEditor.Items, r => r.Index, r => r.ToRecord()),
+            Spells = Slots(SpellEditor.Items, r => r.Index, r => r.ToRecord()),
+            Quests = Slots(QuestEditor.Items, r => r.Index, r => r.ToRecord()),
+            Conversations = Slots(ConversationEditor.Items, r => r.Index, r => r.ToRecord()),
+            Classes = Slots(ClassEditor.Items, r => r.Index, r => r.ToRecord()),
+            GroupExists = groups.Contains,
+        };
+
+        var dlg = new WorldCheckDialogViewModel(WorldCheck.Run(world), NameOf);
+        dlg.Navigate += GoTo;
+        await ShowWorldCheckDialogAsync(dlg);
+    }
+
+    /// <summary>An editor's rows as the 1-based array every record family is held in, index 0 unused.</summary>
+    private static TRecord?[] Slots<TRow, TRecord>(IReadOnlyList<TRow> rows, Func<TRow, int> numOf,
+                                                   Func<TRow, TRecord> recordOf) where TRecord : class
+    {
+        int max = 0;
+        foreach (var row in rows) max = Math.Max(max, numOf(row));
+        var all = new TRecord?[max + 1];
+        foreach (var row in rows)
+        {
+            int n = numOf(row);
+            if (n > 0) all[n] = recordOf(row);
+        }
+
+        return all;
+    }
+
+    /// <summary>Follows a finding to the record it is on. A tile-scoped one goes to its map and no further:
+    /// selecting a tile belongs to the canvas control rather than here, and the row names the coordinates.</summary>
+    private void GoTo(WorldRecordKind kind, int num)
+    {
+        switch (kind)
+        {
+            case WorldRecordKind.Map: OpenMap(num); break;
+            case WorldRecordKind.Item: Open("Items", ItemEditor, num); break;
+            case WorldRecordKind.Npc: Open("NPCs", NpcEditor, num); break;
+            case WorldRecordKind.Shop: Open("Shops", ShopEditor, num); break;
+            case WorldRecordKind.Spell: Open("Spells", SpellEditor, num); break;
+            case WorldRecordKind.Quest: Open("Quests", QuestEditor, num); break;
+            case WorldRecordKind.Conversation: Open("Conversations", ConversationEditor, num); break;
+            case WorldRecordKind.Class: Open("Classes", ClassEditor, num); break;
+        }
+    }
+
+    /// <summary>What to call the record a finding is on, for the row that names it.</summary>
+    private string NameOf(WorldRecordKind kind, int num) => kind switch
+    {
+        WorldRecordKind.Map => MapEditor.Maps.FirstOrDefault(m => m.Index == num)?.DisplayName ?? "",
+        WorldRecordKind.Item => ItemEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+        WorldRecordKind.Npc => NpcEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+        WorldRecordKind.Shop => ShopEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+        WorldRecordKind.Spell => SpellEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+        WorldRecordKind.Quest => QuestEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+        WorldRecordKind.Conversation => ConversationEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+        _ => ClassEditor.Items.FirstOrDefault(r => r.Index == num)?.DisplayName ?? "",
+    };
 
     private void NotifyWorldChanged()
     {
         OnPropertyChanged(nameof(HasWorld));
         OnPropertyChanged(nameof(ShowEmptyWorld));
         OnPropertyChanged(nameof(WorldPath));
+        OnPropertyChanged(nameof(WorldLabel));
         OnPropertyChanged(nameof(RecentWorlds));
     }
 

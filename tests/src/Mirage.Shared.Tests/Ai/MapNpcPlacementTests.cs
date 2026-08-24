@@ -38,7 +38,7 @@ public class MapNpcPlacementTests
     public void FootprintCoversBlockedTile_ReturnsOnBlocked()
     {
         var map = MapWith(new MapNpcEntry(2, null, null));   // 2x2 at (4,4) covers (5,5)
-        map.Tile[5, 5].Type = TileType.Blocked;
+        map.EditTile(5, 5, t => t with { Type = TileType.Blocked });
         Assert.That(MapNpcPlacement.ValidatePin(map, 0, 4, 4, WorldLayer.Ground, SizeById), Is.EqualTo(NpcPlacementError.OnBlocked));
     }
 

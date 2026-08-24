@@ -294,6 +294,47 @@ public sealed partial class MapEditorViewModel : ObservableObject
     public string MapRevisionText =>
         $"{EditorStrings.Get(EditorStrings.MapEditor_RevisionLabel)} {MapRevision}";
 
+    // ── Size ──────────────────────────────────────────────────────────────────
+
+    /// <summary>The open map's size, for the Properties panel. Read-only here: changing it discards tiles,
+    /// so it goes through a dialog that says what would be lost — see <see cref="ResizeMapCommand"/>.</summary>
+    public string MapSizeText =>
+        EditorStrings.Format(EditorStrings.MapEditor_SizeText, ("Width", MapCols), ("Height", MapRows));
+
+    /// <summary>Set by the View: shows the resize dialog and answers with the chosen size.</summary>
+    public Func<MapResizeDialogViewModel, Task>? ShowMapResizeDialogAsync { get; set; }
+
+    /// <summary>Resizes the open map. The dialog refuses a linked map, itemizes what a smaller size would
+    /// discard, and says that none of it can be taken back.</summary>
+    [RelayCommand]
+    private async Task ResizeMapAsync()
+    {
+        if (ShowMapResizeDialogAsync is null || SelectedMap is null) return;
+
+        var dlg = new MapResizeDialogViewModel(SelectedMap.Record, AllMapsForResize(), SelectedMap.Index);
+        MapSize? chosen = null;
+        dlg.Confirmed += size => chosen = size;
+        await ShowMapResizeDialogAsync(dlg);
+        if (chosen is not { } size || (size.Width == MapCols && size.Height == MapRows)) return;
+
+        MapResize.Apply(SelectedMap.Record, size);
+        SelectedMap.MarkDirty();
+        RebuildMapNpcRows();
+        NotifyMapProperties();
+        StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_Resized,
+            ("Width", size.Width), ("Height", size.Height));
+    }
+
+    // Every map the world holds, so the dialog can find this one's links and the warps aimed at it. Online
+    // the editor holds only what it has fetched, which is exactly what it can report on.
+    private IReadOnlyList<MapRecord?> AllMapsForResize()
+    {
+        var all = new MapRecord?[_data.Limits.Maps + 1];
+        foreach (var row in Maps)
+            if (row.Index >= 0 && row.Index < all.Length) all[row.Index] = row.Record;
+        return all;
+    }
+
     /// <summary>Re-raises every property the map Properties panel and the neighbor grid bind to.
     /// Called whenever the selected map changes wholesale — a different map selected, a record
     /// swapped in by a load, or an edit applied outside the bound setters — because those paths
@@ -327,6 +368,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(MapAlwaysLit));
         OnPropertyChanged(nameof(MapAlwaysDark));
         OnPropertyChanged(nameof(MapRevisionText));
+        OnPropertyChanged(nameof(MapSizeText));
         OnPropertyChanged(nameof(UsedTilesheets));
         OnPropertyChanged(nameof(HasSelectedMap));
         RebuildMapNpcRows();

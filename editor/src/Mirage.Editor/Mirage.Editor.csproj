@@ -9,7 +9,9 @@
     <RootNamespace>Mirage.Editor</RootNamespace>
     <AssemblyName>$(GameNameSlug)-Editor</AssemblyName>
     <ApplicationIcon>$(EditorIcon)</ApplicationIcon>
-    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <!-- ON: a binding to a missing property is a build error rather than an empty control that logs
+         nothing. Cost: every binding scope needs an x:DataType, templates included. -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>

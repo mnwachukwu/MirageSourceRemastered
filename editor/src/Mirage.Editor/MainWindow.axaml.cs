@@ -48,11 +48,20 @@ public partial class MainWindow : FAAppWindow
         Closing += OnWindowClosing;
     }
 
+    /// <summary>The window title, with the open world's name where one is open. Re-run on a language
+    /// change and whenever a world opens or closes.</summary>
+    private void ApplyTitle()
+    {
+        string label = (DataContext as ViewModels.MainWindowViewModel)?.WorldLabel ?? "";
+        string stem = $"{Constants.GameName} — {EditorStrings.Get(EditorStrings.MainWindow_Title)}";
+        Title = label.Length > 0 ? $"{label} — {stem}" : stem;
+    }
+
     /// <summary>Push the current language's strings into the window chrome. Re-run whenever the
     /// language changes, since these captions are set in code rather than bound.</summary>
     private void ApplyStrings()
     {
-        Title = $"{Constants.GameName} — {EditorStrings.Get(EditorStrings.MainWindow_Title)}";
+        ApplyTitle();
         _helpMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMenu);
         _helpMapEditorItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMapEditor);
         _helpLoggingItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpLogging);
@@ -62,6 +71,7 @@ public partial class MainWindow : FAAppWindow
         _worldOpenItem.Header = EditorStrings.Get(EditorStrings.World_Open);
         _worldCloseItem.Header = EditorStrings.Get(EditorStrings.World_Close);
         _worldRecentItem.Header = EditorStrings.Get(EditorStrings.World_Recent);
+        _worldCheckItem.Header = EditorStrings.Get(EditorStrings.World_Check);
         _worldSettingsItem.Header = EditorStrings.Get(EditorStrings.World_Settings);
         _worldDownloadItem.Header = EditorStrings.Get(EditorStrings.World_Download);
         _worldUploadItem.Header = EditorStrings.Get(EditorStrings.World_Upload);
@@ -222,6 +232,14 @@ public partial class MainWindow : FAAppWindow
 
         if (DataContext is MainWindowViewModel vm)
         {
+            // The view-model arrives after the constructor, so the title is set again here and thereafter
+            // whenever the open world changes.
+            vm.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName is nameof(MainWindowViewModel.WorldLabel)) ApplyTitle();
+            };
+            ApplyTitle();
+
             // A world is a directory; the picker opens on the shipped one so a first run has something
             // to say yes to.
             vm.PickWorldFolderAsync = async startAt =>
@@ -236,10 +254,17 @@ public partial class MainWindow : FAAppWindow
                 return picked.Count > 0 ? picked[0].TryGetLocalPath() : null;
             };
 
+            vm.ShowWorldCheckDialogAsync = async dlgVm =>
+            {
+                var dlg = new WorldCheckDialog { DataContext = dlgVm };
+                dlg.CloseWhen(h => dlgVm.Closed += h);
+                await dlg.ShowDialog(this);
+            };
+
             vm.ShowWorldSettingsDialogAsync = async dlgVm =>
             {
                 var dlg = new WorldSettingsDialog { DataContext = dlgVm };
-                dlg.CloseWhen<RecordLimits>(h => dlgVm.Confirmed += h);
+                dlg.CloseWhen<Mirage.Shared.Records.WorldManifest>(h => dlgVm.Confirmed += h);
                 dlg.CloseWhen(h => dlgVm.Canceled += h);
                 await dlg.ShowDialog(this);
             };
@@ -277,6 +302,14 @@ public partial class MainWindow : FAAppWindow
                 await new ConfirmDialog(msg, alertOnly: true).ShowDialog<bool>(this);
 
             vm.MapEditor.ShowAlertAsync = vm.ShowAlertAsync;
+
+            vm.MapEditor.ShowMapResizeDialogAsync = async dlgVm =>
+            {
+                var dlg = new MapResizeDialog { DataContext = dlgVm };
+                dlg.CloseWhen<Mirage.Shared.Records.MapSize>(h => dlgVm.Confirmed += h);
+                dlg.CloseWhen(h => dlgVm.Canceled += h);
+                await dlg.ShowDialog(this);
+            };
 
             vm.MapEditor.SaveFilePngAsync = async suggestedName =>
             {

@@ -11,35 +11,45 @@ namespace Mirage.Shared.Serialization;
 /// </summary>
 internal sealed class TileArrayConverter : JsonConverter<TileRecord[,]>
 {
+    /// <summary>Reads the grid at whatever size the file wrote it. The map's dimensions ARE the shape of
+    /// this array — nothing else records them — so the columns are buffered before the array is allocated,
+    /// and a short or ragged row is filled out with empty tiles rather than truncating the map to fit.</summary>
     public override TileRecord[,] Read(
         ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var arr = new TileRecord[Constants.MaxMapX + 1, Constants.MaxMapY + 1];
-        for (int x = 0; x <= Constants.MaxMapX; x++)
-        {
-            for (int y = 0; y <= Constants.MaxMapY; y++)
-                arr[x, y] = new TileRecord();
-        }
-
         if (reader.TokenType != JsonTokenType.StartArray) throw new JsonException();
         reader.Read();
 
-        for (int x = 0; reader.TokenType != JsonTokenType.EndArray; x++)
+        var columns = new List<List<TileRecord>>();
+        while (reader.TokenType != JsonTokenType.EndArray)
         {
             if (reader.TokenType != JsonTokenType.StartArray) throw new JsonException();
             reader.Read();
 
-            for (int y = 0; reader.TokenType != JsonTokenType.EndArray; y++)
+            var column = new List<TileRecord>();
+            while (reader.TokenType != JsonTokenType.EndArray)
             {
-                var tile = JsonSerializer.Deserialize<TileRecord>(ref reader, options)
-                           ?? new TileRecord();
-                if (x <= Constants.MaxMapX && y <= Constants.MaxMapY)
-                    arr[x, y] = tile;
+                column.Add(JsonSerializer.Deserialize<TileRecord>(ref reader, options));
                 reader.Read();
             }
+            columns.Add(column);
             reader.Read(); // past inner EndArray
         }
         // Reader is now at outer EndArray; framework advances past it.
+
+        int cols = columns.Count;
+        int rows = 0;
+        foreach (var column in columns)
+            if (column.Count > rows) rows = column.Count;
+        if (cols == 0 || rows == 0) return TileGrid.Empty(Constants.MaxMapX + 1, Constants.MaxMapY + 1);
+
+        var arr = new TileRecord[cols, rows];
+        for (int x = 0; x < cols; x++)
+        {
+            var column = columns[x];
+            for (int y = 0; y < rows; y++)
+                arr[x, y] = y < column.Count ? column[y] : new TileRecord();
+        }
         return arr;
     }
 

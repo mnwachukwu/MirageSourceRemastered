@@ -14,18 +14,19 @@ namespace Mirage.Server.Core.GameLogic;
 /// guest's own idle/chase/step lifecycle, and the return home that ends it.</summary>
 public sealed partial class NpcAiSystem : GameSystem
 {
-    /// <summary>True when stepping one tile in <paramref name="dir"/> from (x,y) crosses the map
-    /// edge; on true, (destX,destY) is the wrapped landing tile on the neighbor map.</summary>
-    private static bool StepLeavesMap(int x, int y, Direction dir, out int destX, out int destY)
+    /// <summary>True when stepping one tile in <paramref name="dir"/> from (x,y) crosses the edge of
+    /// <paramref name="from"/>; on true, (destX,destY) is the landing tile on <paramref name="to"/> — that
+    /// map's own opposite edge, which the link rule keeps equal to this one's.</summary>
+    private static bool StepLeavesMap(MapRecord from, MapRecord to, int x, int y, Direction dir, out int destX, out int destY)
     {
         destX = x;
         destY = y;
         switch (dir)
         {
-            case Direction.Up: if (y == 0) { destY = Constants.MaxMapY; return true; } break;
-            case Direction.Down: if (y == Constants.MaxMapY) { destY = 0; return true; } break;
-            case Direction.Left: if (x == 0) { destX = Constants.MaxMapX; return true; } break;
-            case Direction.Right: if (x == Constants.MaxMapX) { destX = 0; return true; } break;
+            case Direction.Up: if (y == 0) { destY = to.Height - 1; return true; } break;
+            case Direction.Down: if (y == from.Height - 1) { destY = 0; return true; } break;
+            case Direction.Left: if (x == 0) { destX = to.Width - 1; return true; } break;
+            case Direction.Right: if (x == from.Width - 1) { destX = 0; return true; } break;
         }
         return false;
     }

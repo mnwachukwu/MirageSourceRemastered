@@ -205,7 +205,7 @@ public sealed partial class NpcAiSystem : GameSystem
     /// <summary>True when this NPC's own tile is a <see cref="TileType.LayerRamp"/> (it is on a ramp, hence on the
     /// Fringe).  Read at its map-local (X,Y) — size-1 movers only stand on one tile; big NPCs never fit a ramp.</summary>
     private bool NpcStandsOnRamp(int mapNum, MapNpcRecord mn)
-        => (uint)mn.X <= Constants.MaxMapX && (uint)mn.Y <= Constants.MaxMapY
+        => _world.Maps[mapNum].Contains(mn.X, mn.Y)
            && _world.Maps[mapNum]?.Tile[mn.X, mn.Y].FringeAttr is { Type: TileType.LayerRamp };
 
     /// <summary>A chasing NPC standing ON a ramp with its target on the SAME layer (up on the deck the ramp leads
@@ -497,11 +497,11 @@ public sealed partial class NpcAiSystem : GameSystem
         if (!NpcCanAffordCast(mn, npc)) return false;   // not a caster, or can't AFFORD a cast — do NOT hold at range; fall through so the legs close in for melee (an out-of-mana caster must never stand idle)
         if (npc.Int <= npc.Str) return false;           // melee-primary/balanced (Str>=Int): fights AT melee, so it never holds at cast range — only an INT-primary kiter (Int>Str) does
         if (!mn.WeaveCastThisBeat) return false;        // this beat the weave chose melee — let the legs close in, don't hold at range
-        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
-        var (tgtWX, tgtWY) = WorldCoordHelper.ToWorld(1, 1, targetX, targetY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var (npcWX, npcWY) = grid.CenterToWorld(mn.X, mn.Y);
+        var (tgtWX, tgtWY) = grid.CenterToWorld(targetX, targetY);
         // Footprint-aware: an oversize caster holds when its BODY is in cast range of the target's body.
         if (!WorldCoordHelper.IsInSpellRange(npcWX, npcWY, npc.EffectiveSize, tgtWX, tgtWY, targetSize)) return false;
-        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
         // Two-plane: only HOLD to cast if the caster could ACTUALLY cast — same layer, or ramp-bridged. Otherwise a
         // ground caster would camp at 2-D spell range against a target up on the fringe it can't hit (the cast is
         // layer-gated in TryNpcMagicActionCore), never closing to a ramp to follow it. Mirror the cast's exact gate:
@@ -534,32 +534,36 @@ public sealed partial class NpcAiSystem : GameSystem
             mn.Sp = Math.Min(mn.Sp + StatFormulas.GetNpcSpRegen(npc, regenMult), maxSp);
     }
 
-    // Each open door ages out on ITS OWN stamp, so opening a second door no longer extends the first one's
-    // window and doors don't all slam shut together.  No early-out on a shared timer: the map is 16x12x2 and
-    // the shut-door test is one array read, so the sweep is noise next to the pathfinding already running here.
+    // Scratch list for the sweep below: the due doors are collected before any is shut, because closing
+    // one removes the entry it was read from. Reused across maps and ticks.
+    private readonly List<(int X, int Y, WorldLayer Layer)> _dueDoors = [];
+
+    // Each open door ages out on ITS OWN stamp: opening a second door leaves the first one's window
+    // untouched, and doors never all slam shut together.  Reads the map's open doors rather than its tiles,
+    // so a map with no door standing open costs one count check however large it is.
     private void CheckDoorAutoClose(int mapNum, long now)
     {
         var temp = _world.TempTiles[mapNum];
+        if (temp.OpenDoors.Count == 0) return;
+
         var map = _world.Maps[mapNum];
-        for (int y = 0; y <= Constants.MaxMapY; y++)
+        _dueDoors.Clear();
+        foreach (var ((x, y, layer), openedAt) in temp.OpenDoors)
         {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
-            {
-                for (int l = 0; l < 2; l++)   // both planes — a deck door and the ground door under it are tracked separately
-                {
-                    long openedAt = temp.DoorOpenedAt[x, y, l];
-                    if (openedAt == 0 || now - openedAt < DoorAutoCloseMs) continue;
+            if (now - openedAt < DoorAutoCloseMs) continue;
 
-                    // A tile the editor has since retyped away from Key keeps its stale stamp rather than
-                    // broadcasting a close for a door the client no longer draws.  Inert either way: every
-                    // door check is gated on TileType.Key first.
-                    var layer = (WorldLayer)l;
-                    if (LayerLogic.AttrFor(map.Tile[x, y], layer).Type != TileType.Key) continue;
+            // A tile the editor has since retyped away from Key keeps its stale stamp rather than
+            // broadcasting a close for a door the client no longer draws.  Inert either way: every
+            // door check is gated on TileType.Key first.
+            if (!map.Contains(x, y) || LayerLogic.AttrFor(map.Tile[x, y], layer).Type != TileType.Key) continue;
 
-                    temp.DoorOpenedAt[x, y, l] = 0;
-                    SendToMap(_world, mapNum, new MapKeyPacket { MapNum = mapNum, X = x, Y = y, Open = false, Layer = layer });
-                }
-            }
+            _dueDoors.Add((x, y, layer));
+        }
+
+        foreach (var (x, y, layer) in _dueDoors)
+        {
+            temp.CloseDoor(x, y, layer);
+            SendToMap(_world, mapNum, new MapKeyPacket { MapNum = mapNum, X = x, Y = y, Open = false, Layer = layer });
         }
     }
 }

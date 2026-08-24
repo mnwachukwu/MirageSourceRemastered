@@ -1,6 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mirage.Editor.ViewModels"
         x:Class="Mirage.Editor.Views.PushChangesDialog"
+        x:DataType="vm:PushChangesDialogViewModel"
         Width="580" Height="340"
         CanResize="False"
         WindowStartupLocation="CenterOwner">

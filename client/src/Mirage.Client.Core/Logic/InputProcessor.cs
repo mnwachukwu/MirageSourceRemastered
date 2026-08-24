@@ -65,7 +65,7 @@ public static class InputProcessor
                 break;
         }
 
-        bool inBounds = nx >= 0 && nx <= Constants.MaxMapX && ny >= 0 && ny <= Constants.MaxMapY;
+        bool inBounds = state.Map.Contains(nx, ny);
 
         // Two-layer world: the logical layer this step lands on (sticky / ramp-gated), resolved by LayerLogic
         // over the 3x3 tile view exactly as the server's CanPlayerWalkOnTile does — so a predicted step onto a
@@ -77,8 +77,8 @@ public static class InputProcessor
         if (inBounds)
         {
             // CanEnter false => walking off a deck edge (fringe footprint doesn't fit): treat as blocked.
-            bool blocked = !LayerLogic.CanEnter(new ClientTileView(state), WorldCoordHelper.MapTilesX + nx,
-                                                 WorldCoordHelper.MapTilesY + ny, 1, me.Layer, dir.Value, out newLayer);
+            bool blocked = !LayerLogic.CanEnter(new ClientTileView(state), state.MapTilesX + nx,
+                                                 state.MapTilesY + ny, 1, me.Layer, dir.Value, out newLayer);
             // A deck edge resolves no legal transition, so god mode keeps the plane it is already on.
             if (blocked && me.GodMode) newLayer = me.Layer;
             if (!blocked)
@@ -171,9 +171,9 @@ public static class InputProcessor
             state.ShiftGrid(dir.Value);
             (me.X, me.Y) = dir.Value switch
             {
-                Direction.Up => (me.X, Constants.MaxMapY),
+                Direction.Up => (me.X, state.Map.Height - 1),
                 Direction.Down => (me.X, 0),
-                Direction.Left => (Constants.MaxMapX, me.Y),
+                Direction.Left => (state.Map.Width - 1, me.Y),
                 Direction.Right => (0, me.Y),
                 _ => (me.X, me.Y),
             };
@@ -202,9 +202,9 @@ public static class InputProcessor
         newLayer = me.Layer;   // default: carry the layer (used on the "neighbor not loaded → allow" path)
         var (col, row, dx, dy) = dir switch
         {
-            Direction.Up => (1, 0, meX, Constants.MaxMapY),
+            Direction.Up => (1, 0, meX, state.NeighborMaps[1, 0]?.Height - 1 ?? 0),
             Direction.Down => (1, 2, meX, 0),
-            Direction.Left => (0, 1, Constants.MaxMapX, meY),
+            Direction.Left => (0, 1, state.NeighborMaps[0, 1]?.Width - 1 ?? 0, meY),
             Direction.Right => (2, 1, 0, meY),
             _ => (1, 1, 0, 0)
         };
@@ -213,8 +213,8 @@ public static class InputProcessor
 
         // Resolve the resulting layer over the 3x3 view (same gate as the in-map step) and reject a deck-edge
         // walk-off; then read the neighbor tile's attribute AT that layer.
-        int destWX = col * WorldCoordHelper.MapTilesX + dx;
-        int destWY = row * WorldCoordHelper.MapTilesY + dy;
+        int destWX = col * state.MapTilesX + dx;
+        int destWY = row * state.MapTilesY + dy;
         if (!LayerLogic.CanEnter(new ClientTileView(state), destWX, destWY, 1, me.Layer, dir, out newLayer))
         {
             if (!me.GodMode) return true;
@@ -314,8 +314,8 @@ public static class InputProcessor
         layerConnects = false;
         var me = state.Me;
         var (dx, dy) = WorldCoordHelper.DirDelta(me.Dir);
-        int frontWX = WorldCoordHelper.MapTilesX + me.X + dx;
-        int frontWY = WorldCoordHelper.MapTilesY + me.Y + dy;
+        int frontWX = state.MapTilesX + me.X + dx;
+        int frontWY = state.MapTilesY + me.Y + dy;
 
         bool found = false;                       // a cross-layer fallback hit is recorded; a same-layer hit returns immediately
         var foundLayer = WorldLayer.Ground;       // the fallback's plane, tested for a ramp connect once the scan ends
@@ -331,7 +331,7 @@ public static class InputProcessor
                     var n = npcs[i];
                     if (n.Num <= 0 || n.Num > state.Limits.Npcs) continue;
                     int size = state.NpcDefs[n.Num]?.EffectiveSize ?? 1;
-                    var (awx, awy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+                    var (awx, awy) = state.ToWorld(col, row, n.X, n.Y);
                     if (!WorldCoordHelper.FootprintContains(awx, awy, size, frontWX, frontWY)) continue;
                     if (n.Layer == me.Layer)
                     {

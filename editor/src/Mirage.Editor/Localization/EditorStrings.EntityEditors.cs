@@ -86,7 +86,6 @@ public static partial class EditorStrings
     public const string NpcEditor_DodgeLabel = nameof(NpcEditor_DodgeLabel);
     public const string NpcEditor_ExpLabel = nameof(NpcEditor_ExpLabel);
     public const string NpcEditor_PreviewLevelLabel = nameof(NpcEditor_PreviewLevelLabel);
-    public const string NpcEditor_DropPercentLabel = nameof(NpcEditor_DropPercentLabel);
     public const string NpcEditor_SaveNpcButton = nameof(NpcEditor_SaveNpcButton);
     public const string NpcEditor_DropItemSearchPlaceholder = nameof(NpcEditor_DropItemSearchPlaceholder);
     // Formula-notes panel — sub-headers, formula lines, and explanatory paragraphs.

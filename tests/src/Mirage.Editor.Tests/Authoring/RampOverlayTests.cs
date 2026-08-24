@@ -15,7 +15,7 @@ public class RampOverlayTests
 
     // A ramp whose ARROW points `lift` (up-ramp) — stored ground side is the opposite.
     private static void Ramp(MapRecord m, int x, int y, Direction groundSide) =>
-        m.Tile[x, y].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = groundSide };
+        m.EditTile(x, y, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = groundSide } });
 
     // ── Mixed-direction detection (amber) ───────────────────────────────────────
     [Test]
@@ -95,7 +95,7 @@ public class RampOverlayTests
     {
         var m = Map();
         Ramp(m, 5, 5, Direction.Down);          // foot (5,6)...
-        m.Tile[5, 6].Type = TileType.Blocked;   // ...is a ground wall → you can't stand there to mount
+        m.EditTile(5, 6, t => t with { Type = TileType.Blocked });   // ...is a ground wall → you can't stand there to mount
 
         Assert.That(RampOverlay.IsInvalidBlock(m, 5, 5), Is.True);
     }

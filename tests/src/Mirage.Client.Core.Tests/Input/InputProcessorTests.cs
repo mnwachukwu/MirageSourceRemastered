@@ -47,7 +47,7 @@ public class InputProcessorTests
     {
         var (s, t, sender) = Setup(5, 5);
         s.Me.Dir = Direction.Up;                     // so facing Down is a change
-        s.Map.Tile[5, 6].Type = TileType.Blocked;    // the tile below is a wall
+        s.Map.EditTile(5, 6, t => t with { Type = TileType.Blocked });    // the tile below is a wall
         InputProcessor.Process(new InputSnapshot { Move = Direction.Down }, s, sender, 0);
         Assert.Multiple(() =>
         {
@@ -233,7 +233,7 @@ public class InputProcessorTests
         s.MapNpcs[1].Layer = WorldLayer.Fringe;
         s.NpcKeeperShop[9] = 1;
         // The faced tile is a ramp whose ground side faces Up — back toward the player standing at its foot.
-        s.Map.Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up };
+        s.Map.EditTile(5, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up } });
 
         InputProcessor.Process(new InputSnapshot { Attack = true, AttackPressed = true }, s, sender, 0);
 
@@ -334,11 +334,11 @@ public class InputProcessorTests
     {
         (string What, Action<ClientState> Place)[] obstacles =
         [
-            ("a wall", s => s.Map.Tile[5, 6].Type = TileType.Blocked),
+            ("a wall", s => s.Map.EditTile(5, 6, t => t with { Type = TileType.Blocked })),
             ("a closed door", s =>
             {
-                s.Map.Tile[5, 6].Type = TileType.Key;
-                s.TempTile[5, 6, (int)WorldLayer.Ground] = false;
+                s.Map.EditTile(5, 6, t => t with { Type = TileType.Key });
+                s.TempTile.Set(5, 6, (int)WorldLayer.Ground, false);
             }),
             ("another player", s =>
             {

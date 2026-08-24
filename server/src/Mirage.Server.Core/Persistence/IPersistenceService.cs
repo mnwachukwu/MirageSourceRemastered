@@ -163,6 +163,12 @@ public interface IPersistenceService
     Task<DroppedItemSaveData[]> LoadDroppedItemsAsync(int mapNum);
     Task SaveDroppedItemsAsync(int mapNum, DroppedItemSaveData[] items);
 
+    // ── The world folder's own manifest ───────────────────────────────────────
+    /// <summary>What the data folder says about itself — its name, and the size a blank map is padded to.
+    /// Absent or unreadable, the stock answers apply. The record CEILINGS on it are the editor's offline
+    /// concern; a server states its own in serverconfig.json and in the hello.</summary>
+    Task<WorldManifest> LoadWorldManifestAsync();
+
     // ── MOTD ──────────────────────────────────────────────────────────────────
     Task<string> LoadMotdAsync();
     Task SaveMotdAsync(string motd);

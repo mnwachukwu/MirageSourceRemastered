@@ -183,6 +183,7 @@
   "Hosting_GamePortHint": "A porta que os jogadores escrevem no cliente. Só a encaminhe no router se estiverem fora da sua rede.",
   "Hosting_DataDir": "Pasta do mundo",
   "Hosting_DataDirHint": "Deixe vazio para usar a pasta data junto ao servidor. Indique outro caminho para guardar um mundo noutro disco, ou numa pasta de que faça cópia de segurança.",
+  "Hosting_WorldNameNote": "Uma pasta de mundo pode dar-se um nome em world.json. Esse nome é seu, não dos jogadores: aparece aqui e nos registos para distinguir um mundo em serviço de uma cópia de teste, e nunca chega a ninguém que esteja a jogar. O que um jogador vê é o nome do jogo.",
   "Hosting_DataDirDefault": "pasta data junto ao servidor",
   "Hosting_Browse": "Procurar…",
   "Hosting_UseDefault": "Usar predefinição",

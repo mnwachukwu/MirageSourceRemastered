@@ -1,4 +1,5 @@
 using Mirage.Server.Core.GameLogic;
+using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
@@ -88,7 +89,7 @@ public class MovementSystemTests
     public void PlayerMove_BlockedTile_FacesButHoldsPosition()
     {
         var (world, _, move, p) = Setup(5, 5);
-        world.Maps[Map].Tile[5, 6].Type = TileType.Blocked;
+        world.Maps[Map].EditTile(5, 6, t => t with { Type = TileType.Blocked });
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
         Assert.Multiple(() =>
         {
@@ -101,7 +102,7 @@ public class MovementSystemTests
     public void PlayerMove_KeyDoor_ClosedBlocks_OpenPasses()
     {
         var (world, _, move, p) = Setup(5, 5);
-        world.Maps[Map].Tile[5, 6].Type = TileType.Key;
+        world.Maps[Map].EditTile(5, 6, t => t with { Type = TileType.Key });
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
         Assert.That(p.Y, Is.EqualTo(5), "a closed door blocks");
 
@@ -162,11 +163,7 @@ public class MovementSystemTests
     public void PlayerMove_OntoWarpTile_Teleports()
     {
         var (world, _, move, p) = Setup(5, 5);
-        var warp = world.Maps[Map].Tile[5, 6];
-        warp.Type = TileType.Warp;
-        warp.WarpMap = Map;
-        warp.WarpX = 8;
-        warp.WarpY = 9;
+        world.Maps[Map].EditTile(5, 6, t => t with { Type = TileType.Warp, WarpMap = Map, WarpX = 8, WarpY = 9 });
 
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -178,6 +175,61 @@ public class MovementSystemTests
         });
     }
 
+    // ── Warp destinations that name no tile ──────────────────────────────────────
+    // Every coordinate a warp is handed comes from outside the engine — an authored Warp attribute, a config
+    // file, a character saved against an older map — and is indexed straight into MapRecord.Tile. Each case
+    // below is an IndexOutOfRangeException on the game loop if the bound is not held.
+
+    [TestCase(Constants.MaxMapX + 1, 5, TestName = "PlayerWarp past the right edge")]
+    [TestCase(5, Constants.MaxMapY + 1, TestName = "PlayerWarp past the bottom edge")]
+    [TestCase(-1, 5, TestName = "PlayerWarp to a negative column")]
+    [TestCase(5, -1, TestName = "PlayerWarp to a negative row")]
+    [TestCase(200, 200, TestName = "PlayerWarp far off the map")]
+    public void PlayerWarp_ToATileThatDoesNotExist_LeavesThePlayerWhereTheyWere(int x, int y)
+    {
+        var (_, _, move, p) = Setup(3, 4);
+
+        Assert.DoesNotThrow(() => move.PlayerWarp(Idx, Map, x, y));
+        Assert.That((p.Map, p.X, p.Y), Is.EqualTo((Map, 3, 4)));
+    }
+
+    [Test]
+    public void PlayerWarp_ToAMapThatDoesNotExist_LeavesThePlayerWhereTheyWere()
+    {
+        var (world, _, move, p) = Setup(3, 4);
+
+        Assert.DoesNotThrow(() => move.PlayerWarp(Idx, world.Limits.Maps + 1, 5, 5));
+        Assert.That((p.Map, p.X, p.Y), Is.EqualTo((Map, 3, 4)));
+    }
+
+    /// <summary>The refusal is spoken, so a broken door reads as broken in playtesting instead of as a
+    /// door that does nothing.</summary>
+    [Test]
+    public void PlayerWarp_ToATileThatDoesNotExist_TellsThePlayer()
+    {
+        var chat = new ChatCapturingDispatcher();
+        var (_, _, move, _) = Setup(3, 4, chat);
+
+        move.PlayerWarp(Idx, Map, 99, 99);
+
+        Assert.That(chat.Keys, Does.Contain(ServerStrings.MovementSystem_WarpDestinationMissing));
+    }
+
+    /// <summary>The case that reaches the engine in practice: a Warp tile authored with a destination past
+    /// the edge of its own map. The step onto it lands; the teleport off it does not.</summary>
+    [Test]
+    public void PlayerMove_OntoAWarpTilePointingPastTheEdge_StepsOnAndStaysPut()
+    {
+        var (world, _, move, p) = Setup(5, 5);
+        world.Maps[Map].EditTile(5, 6, t => t with { Type = TileType.Warp, WarpMap = Map, WarpX = 200, WarpY = 200 });
+
+        Assert.DoesNotThrow(() => move.PlayerMove(Idx, Direction.Down, MovementType.Walking));
+        Assert.That((p.Map, p.X, p.Y), Is.EqualTo((Map, 5, 6)), "on the warp tile, not through it");
+
+        // And the refusal leaves nothing behind that the next step trips over.
+        Assert.DoesNotThrow(() => move.PlayerMove(Idx, Direction.Up, MovementType.Walking));
+    }
+
     // Two-plane world (§1b): the post-step Warp is read on the mover's OWN layer. A Warp authored on the fringe
     // deck (FringeAttr) fires for a fringe walker; a GROUND warp at the same tile is inert to someone crossing above.
     [Test]
@@ -187,7 +239,7 @@ public class MovementSystemTests
         {
             var (world, _, move, p) = Setup(5, 5);
             p.Layer = WorldLayer.Fringe;
-            world.Maps[Map].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.Warp, WarpMap = Map, WarpX = 8, WarpY = 9 };
+            world.Maps[Map].EditTile(5, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.Warp, WarpMap = Map, WarpX = 8, WarpY = 9 } });
 
             move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -202,11 +254,7 @@ public class MovementSystemTests
         {
             var (world, _, move, p) = Setup(5, 5);
             p.Layer = WorldLayer.Fringe;
-            var warp = world.Maps[Map].Tile[5, 6];
-            warp.Type = TileType.Warp;
-            warp.WarpMap = Map;
-            warp.WarpX = 8;
-            warp.WarpY = 9;  // ground warp only
+            world.Maps[Map].EditTile(5, 6, t => t with { Type = TileType.Warp, WarpMap = Map, WarpX = 8, WarpY = 9 });
 
             move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -223,12 +271,7 @@ public class MovementSystemTests
     public void PlayerMove_WarpWithFringeDest_DeliversOntoTheFringePlane()
     {
         var (world, _, move, p) = Setup(5, 5);
-        var warp = world.Maps[Map].Tile[5, 6];
-        warp.Type = TileType.Warp;
-        warp.WarpMap = Map;
-        warp.WarpX = 8;
-        warp.WarpY = 9;
-        warp.WarpLayer = WorldLayer.Fringe;   // dest (8,9) up on the fringe deck
+        world.Maps[Map].EditTile(5, 6, t => t with { Type = TileType.Warp, WarpMap = Map, WarpX = 8, WarpY = 9, WarpLayer = WorldLayer.Fringe });
 
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
 
@@ -246,11 +289,11 @@ public class MovementSystemTests
     {
         var (world, _, move, p) = Setup(5, 5);   // p.Layer defaults to Ground → steps onto a ground plate
         var map = world.Maps[Map];
-        map.Tile[5, 6].Type = TileType.KeyOpen;                                 // a GROUND KeyOpen plate at (5,6)
-        map.Tile[5, 6].DoorX = 5;
-        map.Tile[5, 6].DoorY = 7;  // targeting the door at (5,7)…
-        map.Tile[5, 6].DoorLayer = WorldLayer.Fringe;                           // …on the FRINGE plane (cross-layer)
-        map.Tile[5, 7].FringeAttr = new FringeAttr { Type = TileType.Key };     // the fringe Key door it opens
+        map.EditTile(5, 6, t => t with { Type = TileType.KeyOpen });                                 // a GROUND KeyOpen plate at (5,6)
+        map.EditTile(5, 6, t => t with { DoorX = 5 });
+        map.EditTile(5, 6, t => t with { DoorY = 7 });  // targeting the door at (5,7)…
+        map.EditTile(5, 6, t => t with { DoorLayer = WorldLayer.Fringe });                           // …on the FRINGE plane (cross-layer)
+        map.EditTile(5, 7, t => t with { FringeAttr = new FringeAttr { Type = TileType.Key } });     // the fringe Key door it opens
 
         move.PlayerMove(Idx, Direction.Down, MovementType.Walking);   // step onto the ground plate
 
@@ -270,7 +313,7 @@ public class MovementSystemTests
         // Ground walker passes under a closed fringe door.
         {
             var (world, _, move, p) = Setup(5, 5);   // p.Layer defaults to Ground
-            world.Maps[Map].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.Key };
+            world.Maps[Map].EditTile(5, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.Key } });
             move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
             Assert.That(p.Y, Is.EqualTo(6), "a ground walker is not blocked by a fringe door above");
         }
@@ -279,7 +322,7 @@ public class MovementSystemTests
         {
             var (world, _, move, p) = Setup(5, 5);
             p.Layer = WorldLayer.Fringe;
-            world.Maps[Map].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.Key };
+            world.Maps[Map].EditTile(5, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.Key } });
 
             move.PlayerMove(Idx, Direction.Down, MovementType.Walking);
             Assert.That(p.Y, Is.EqualTo(5), "a closed fringe door blocks the fringe walker");
@@ -438,7 +481,7 @@ public class MovementSystemTests
 
         Assert.That(move.CanNpcMoveFrom(Map, npc, Direction.Down), Is.True, "an open tile is movable");
 
-        world.Maps[Map].Tile[5, 4].Type = TileType.Blocked;
+        world.Maps[Map].EditTile(5, 4, t => t with { Type = TileType.Blocked });
         Assert.That(move.CanNpcMoveFrom(Map, npc, Direction.Up), Is.False, "a wall stops the NPC");
     }
 
@@ -452,8 +495,8 @@ public class MovementSystemTests
         var (world, _, move, _) = Setup(0, 0);
         world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
         var map = world.Maps[Map];
-        map.Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
-        map.Tile[6, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
+        map.EditTile(5, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
+        map.EditTile(6, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
         var npc = world.MapNpcs[Map, 1];
         npc.Num = 1;
         npc.Hp = 100;
@@ -509,13 +552,13 @@ public class MovementSystemTests
         Assert.Multiple(() =>
         {
             // A '^' ramp (vertical mount axis) just across the seam: stepping Right onto it is PERPENDICULAR → blocked.
-            world.Maps[2].Tile[0, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
+            world.Maps[2].EditTile(0, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
             Assert.That(move.NpcStepPassesRampGate(Map, npc, Direction.Right, out _), Is.False,
                 "no perpendicular mount across a seam");
 
             // A ramp whose ground side faces the NPC (mount axis ALONG the seam): stepping Right is the up-ramp
             // mount → allowed, and it ascends onto the bridge.
-            world.Maps[2].Tile[0, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
+            world.Maps[2].EditTile(0, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left } });
             Assert.That(move.NpcStepPassesRampGate(Map, npc, Direction.Right, out var layer), Is.True,
                 "the along-axis mount across a seam is legal");
             Assert.That(layer, Is.EqualTo(WorldLayer.Fringe), "and it ascends");
@@ -549,7 +592,7 @@ public class MovementSystemTests
     {
         var (world, _, move, p) = Setup(0, 0);
         // A ramp at (5,5): solid (Blocked) on Ground, walkable (LayerRamp) on Fringe.
-        world.Maps[Map].Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
+        world.Maps[Map].EditTile(5, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
 
         Assert.Multiple(() =>
         {
@@ -570,6 +613,15 @@ public class MovementSystemTests
     }
 
     // ── Harness ──────────────────────────────────────────────────────────────────
+
+    sealed class ChatCapturingDispatcher : NoOpDispatcher
+    {
+        /// <summary>The localized key of every line spoken to a single player.</summary>
+        public List<string> Keys { get; } = new();
+
+        public override void SendLocalizedChatTo(int index, string key, ChatMetadata meta, params (string Key, object? Value)[] args) =>
+            Keys.Add(key);
+    }
 
     sealed class CapturingDispatcher : NoOpDispatcher
     {
@@ -598,7 +650,7 @@ public class MovementSystemTests
         public void SendToGuildBut(int guildId, int exclude, IPacket packet) { }
         public void SendLocalizedChatToGuild(int guildId, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendLocalizedChatToGuildOfficers(int guildId, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
-        public void SendLocalizedChatTo(int index, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
+        public virtual void SendLocalizedChatTo(int index, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendLocalizedChatToAll(string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendLocalizedChatToAllBut(int exclude, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }
         public void SendLocalizedChatToObservers(IReadOnlyCollection<int> observers, string key, ChatMetadata meta, params (string Key, object? Value)[] args) { }

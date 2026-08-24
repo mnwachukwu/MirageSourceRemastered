@@ -3,7 +3,9 @@
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:models="using:Mirage.Editor.Models"
              xmlns:mui="using:Mirage.Ui.Controls"
+             xmlns:vm="using:Mirage.Editor.ViewModels"
              Grid.IsSharedSizeScope="True"
+             x:DataType="vm:MapEditorViewModel"
              x:Class="Mirage.Editor.Views.MapEditorView">
 
   <Grid RowDefinitions="*,Auto,Auto">
@@ -414,6 +416,19 @@
 
                 <TextBlock x:Name="_inheritHint" FontSize="11" Foreground="#8B84AE" FontStyle="Italic"
                            TextWrapping="Wrap"/>
+
+                <!-- Read-only here: changing a map's size discards tiles, so it goes through a dialog
+                     that says exactly what would go. -->
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MapPropLabel"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock x:Name="_sizeLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                  <TextBlock Grid.Column="1" Text="{Binding MapSizeText}" VerticalAlignment="Center"/>
+                  <Button x:Name="_resizeBtn" Grid.Column="2" Command="{Binding ResizeMapCommand}"/>
+                </Grid>
 
                 <HeaderedContentControl x:Name="_mapLinksGroup" Classes="propGroup">
                   <StackPanel Spacing="8">

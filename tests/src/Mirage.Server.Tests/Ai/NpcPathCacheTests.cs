@@ -204,8 +204,8 @@ public class NpcPathCacheTests
         world.Maps[2].Left = Map;
         // Ramp at Map 1's right edge (15,6), ground side Left (mount from (14,6) by stepping Right); deck continues
         // onto Map 2 at (0,6). Mirrors map6.json (ramp (15,9) data1=Left).
-        world.Maps[Map].Tile[15, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
-        world.Maps[2].Tile[0, 6].FringeAttr = new FringeAttr { Type = TileType.Walkable };
+        world.Maps[Map].EditTile(15, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left } });
+        world.Maps[2].EditTile(0, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.Walkable } });
 
         var ai = new NpcAiSystem(world, pm, null!, null!, null!, null!, null!, null!);
         var npc = world.Npcs[1];
@@ -375,8 +375,8 @@ public class NpcPathCacheTests
         if (!open)
         {
             foreach (int x in new[] { 5, 6, 7, 8, 9 })         // horizontal wall below (8,3), open at the ends
-                world.Maps[Map].Tile[x, 5].Type = TileType.Blocked;
-            world.Maps[Map].Tile[7, 3].Type = TileType.NpcAvoid;   // ring tile: wall for AoS, walkable for guards
+                world.Maps[Map].EditTile(x, 5, t => t with { Type = TileType.Blocked });
+            world.Maps[Map].EditTile(7, 3, t => t with { Type = TileType.NpcAvoid });   // ring tile: wall for AoS, walkable for guards
 
             var blocker = world.MapNpcs[Map, 1];
             blocker.Num = 2;
@@ -401,9 +401,9 @@ public class NpcPathCacheTests
         world.Npcs[1].Size = 1;
 
         for (int x = 5; x <= 9; x++)
-            world.Maps[Map].Tile[x, 6].FringeAttr = new FringeAttr { Type = TileType.Walkable };
-        world.Maps[Map].Tile[4, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
-        world.Maps[Map].Tile[10, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Right };
+            world.Maps[Map].EditTile(x, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.Walkable } });
+        world.Maps[Map].EditTile(4, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left } });
+        world.Maps[Map].EditTile(10, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Right } });
 
         var ai = new NpcAiSystem(world, pm, null!, null!, null!, null!, null!, null!);
         return (ai, world);

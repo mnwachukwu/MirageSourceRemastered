@@ -3,7 +3,9 @@
              xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:mui="using:Mirage.Ui.Controls"
+             xmlns:vm="using:Mirage.Editor.ViewModels"
              Grid.IsSharedSizeScope="True"
+             x:DataType="vm:SpellEditorViewModel"
              x:Class="Mirage.Editor.Views.SpellEditorView">
 
   <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
@@ -37,7 +39,7 @@
                   HorizontalAlignment="Stretch"
                   FontSize="11">
           <ComboBox.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="models:NamedEntry">
               <TextBlock Text="{Binding Name}"/>
             </DataTemplate>
           </ComboBox.ItemTemplate>

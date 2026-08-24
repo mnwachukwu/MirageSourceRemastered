@@ -36,8 +36,8 @@ internal static class MapImageExport
         IReadOnlyList<(MapRecord Map, int PixelX, int PixelY)> placements,
         IReadOnlyList<Bitmap?> tilesets, int worldW, int worldH, string path, Action<int, int>? progress = null)
     {
-        int mapW = TileGridControl.MapPixelW; // 512
-        int mapH = TileGridControl.MapPixelH; // 384
+        int mapW = TileGridControl.MapPixelW(placements.Count > 0 ? placements[0].Map : null);
+        int mapH = TileGridControl.MapPixelH(placements.Count > 0 ? placements[0].Map : null);
 
         // Group placements into grid-row bands keyed by their top pixel-Y (each a multiple of mapH).
         var mapsByTop = new Dictionary<int, List<(MapRecord Map, int PixelX)>>();

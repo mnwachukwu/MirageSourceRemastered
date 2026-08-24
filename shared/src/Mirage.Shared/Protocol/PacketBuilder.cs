@@ -156,9 +156,9 @@ public static class PacketBuilder
     public static SendMapPacket SendMap(int mapNum, MapRecord map, int col = 1, int row = 1, bool forEditor = false)
     {
         var tiles = new List<SendMapPacket.TileData>();
-        for (int x = 0; x <= Constants.MaxMapX; x++)
+        for (int x = 0; x < map.Width; x++)
         {
-            for (int y = 0; y <= Constants.MaxMapY; y++)
+            for (int y = 0; y < map.Height; y++)
             {
                 var t = map.Tile[x, y];
                 // Sparse: omit fully-default tiles; the client rebuilds from a blank grid.
@@ -172,6 +172,8 @@ public static class PacketBuilder
             MapNum = mapNum,
             Col = col,
             Row = row,
+            Width = map.Width,
+            Height = map.Height,
             Revision = map.Revision,
             Name = map.Name,
             DisplayName = map.DisplayName,

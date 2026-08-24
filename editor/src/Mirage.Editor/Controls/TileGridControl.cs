@@ -19,14 +19,18 @@ public sealed partial class TileGridControl : Control
     // ── Layout constants ──────────────────────────────────────────────────────
     public const int TileW = 32;
     public const int TileH = 32;
-    private const int GridCols = Constants.MaxMapX + 1; // 16 — active map width
-    private const int GridRows = Constants.MaxMapY + 1; // 12 — active map height
+    // The open map's size in tiles, and the 3x3 observable area built from it. Every cell of the grid is
+    // this size — a map only links to maps its own size — so one figure lays out the whole control.
+    private static int Cols(MapRecord? map) => map?.Width ?? Constants.DefaultMapWidth;
+    private static int Rows(MapRecord? map) => map?.Height ?? Constants.DefaultMapHeight;
+    private int GridCols => Cols(Map);
+    private int GridRows => Rows(Map);
 
     // 3×3 grid: active map in center cell (1,1)
-    private const int TotalCols = GridCols * 3; // 48
-    private const int TotalRows = GridRows * 3; // 36
-    public const int OffsetCol = GridCols;      // tile-column offset of center map start in the 3×3 grid
-    public const int OffsetRow = GridRows;      // tile-row offset of center map start in the 3×3 grid
+    private int TotalCols => GridCols * 3;
+    private int TotalRows => GridRows * 3;
+    public int OffsetCol => GridCols;      // tile-column offset of center map start in the 3×3 grid
+    public int OffsetRow => GridRows;      // tile-row offset of center map start in the 3×3 grid
 
     // Lowest (1-based) layer index — Alt+wheel clamps to this at the bottom.
     private const int FirstLayerIndex = 1;
@@ -264,7 +268,7 @@ public sealed partial class TileGridControl : Control
     // ── Events ────────────────────────────────────────────────────────────────
     public event Action<TileClick>? TileClicked;
     public event Action<NeighborCell>? NeighborMapClicked;
-    public event Action<(short MapId, short X, short Y)>? WarpDestinationClicked;
+    public event Action<(short MapId, ushort X, ushort Y)>? WarpDestinationClicked;
     public event Action? NavigateBackRequested;
     public event Action? NavigateForwardRequested;
     public event Action<(int X, int Y)>? TileRightClicked;

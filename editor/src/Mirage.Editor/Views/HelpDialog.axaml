@@ -202,6 +202,70 @@
 
       </StackPanel>
 
+      <!-- == The World ========================================================= -->
+      <StackPanel Spacing="6">
+        <TextBlock x:Name="_worldHeader" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MirageMutedBrush}"/>
+        <Separator Background="{DynamicResource MirageLineSoftBrush}"/>
+        <TextBlock x:Name="_worldIntro" TextWrapping="Wrap" Foreground="#6B6491" FontSize="11"/>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldWorldFolder" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldWorldFolderDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldMapSlots" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldMapSlotsDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldMapSize" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldMapSizeDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldLinks" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldLinksDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldGroups" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldGroupsDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldProperties" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldPropertiesDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_worldPlanes" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_worldPlanesDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+
     </StackPanel>
   </ScrollViewer>
 

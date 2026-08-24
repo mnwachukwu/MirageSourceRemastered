@@ -228,9 +228,9 @@ public sealed partial class GameplayScreen : IGameScreen
         if (_debugOverlay && includeExtras)
         {
             var (dbgX, dbgY) = _camera.WorldTileToScreen(
-                WorldCoordHelper.MapTilesX, WorldCoordHelper.MapTilesY, 0f, 0f);
-            int cellW = WorldCoordHelper.MapTilesX * Constants.PicX;
-            int cellH = WorldCoordHelper.MapTilesY * Constants.PicY;
+                _ctx.State.MapTilesX, _ctx.State.MapTilesY, 0f, 0f);
+            int cellW = _ctx.State.MapTilesX * Constants.PicX;
+            int cellH = _ctx.State.MapTilesY * Constants.PicY;
             UiHelper.DrawBorder(sb, dbgX, dbgY, cellW, cellH, Color.White);
         }
 
@@ -398,8 +398,8 @@ public sealed partial class GameplayScreen : IGameScreen
         var cell = GridCellForMap(mapNum);
         if (cell is null) return false;
         (sx, sy) = _camera.WorldTileToScreen(
-            cell.Value.col * WorldCoordHelper.MapTilesX + localX,
-            cell.Value.row * WorldCoordHelper.MapTilesY + localY, xOff, yOff);
+            cell.Value.col * _ctx.State.MapTilesX + localX,
+            cell.Value.row * _ctx.State.MapTilesY + localY, xOff, yOff);
         return true;
     }
 }

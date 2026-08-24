@@ -111,9 +111,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
         var m = row.Record;
         if (!string.IsNullOrWhiteSpace(m.Name) || !string.IsNullOrWhiteSpace(m.DisplayName)) return false;
         if (m.Npcs.Count > 0 || m.Lights.Count > 0) return false;
-        for (int y = 0; y <= Constants.MaxMapY; y++)
+        for (int y = 0; y < m.Height; y++)
         {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
+            for (int x = 0; x < m.Width; x++)
             {
                 var t = m.Tile[x, y];
                 if (t.Type != TileType.Walkable || t.FringeAttr is not null) return false;

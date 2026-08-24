@@ -158,6 +158,8 @@ public partial class MapEditorView : LocalizedUserControl
         _alwaysLitLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_AlwaysLitLabel);
         _alwaysDarkLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_AlwaysDarkLabel);
         _inheritHint.Text = EditorStrings.Get(EditorStrings.MapEditor_InheritHint);
+        _sizeLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_SizeLabel);
+        _resizeBtn.Content = EditorStrings.Get(EditorStrings.MapEditor_ResizeButton);
         _npcSlotsLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_NpcSlotsLabel);
         _noNpcsHint.Text = EditorStrings.Get(EditorStrings.Common_NoRowsHint);
         _addNpcRowBtn.Content = EditorStrings.Get(EditorStrings.Common_AddRow);
@@ -657,9 +659,12 @@ public partial class MapEditorView : LocalizedUserControl
     {
         Dispatcher.UIThread.Post(() =>
         {
+            // The centre cell starts one map in on each axis, so the offset is the open map's own size.
+            var grid = this.FindControl<TileGridControl>("TileGrid");
+            if (grid is null) return;
             MapScrollViewer.Offset = new Vector(
-                TileGridControl.OffsetCol * TileGridControl.TileW * zoom,
-                TileGridControl.OffsetRow * TileGridControl.TileH * zoom);
+                grid.OffsetCol * TileGridControl.TileW * zoom,
+                grid.OffsetRow * TileGridControl.TileH * zoom);
         }, DispatcherPriority.Loaded);
     }
 

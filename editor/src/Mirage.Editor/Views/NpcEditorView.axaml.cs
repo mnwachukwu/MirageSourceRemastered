@@ -84,7 +84,6 @@ public partial class NpcEditorView : LocalizedUserControl
         _rewardsHeader.Text = EditorStrings.Get(EditorStrings.NpcEditor_RewardsHeader);
         _expLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_ExpLabel);
         _previewLevelLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_PreviewLevelLabel);
-        _dropPctLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_DropPercentLabel);
         _notesExpander.Header = EditorStrings.Get(EditorStrings.Common_Notes);
 
         // The drop-item picker is per-ROW now, so its placeholder is bound through

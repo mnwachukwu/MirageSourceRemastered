@@ -66,9 +66,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
             if (SelectedMap is null) return string.Empty;
             var used = new SortedSet<int>();
             var map = SelectedMap.Record;
-            for (int y = 0; y <= Constants.MaxMapY; y++)
+            for (int y = 0; y < MapRows; y++)
             {
-                for (int x = 0; x <= Constants.MaxMapX; x++)
+                for (int x = 0; x < MapCols; x++)
                 {
                     AddUsedSheets(map.Tile[x, y].Ground, used);
                     AddUsedSheets(map.Tile[x, y].Fringe, used);
@@ -80,7 +80,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
     }
 
-    private static void AddUsedSheets(int[] layers, SortedSet<int> used)
+    private static void AddUsedSheets(ReadOnlySpan<int> layers, SortedSet<int> used)
     {
         foreach (int cell in layers)
             if (!LayerCell.IsEmpty(cell)) used.Add(LayerCell.Sheet(cell));
@@ -119,12 +119,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // 0-based array index of the selected layer within its layer type's stack.
     private int SelectedLayerArrayIndex => SelectedLayerIndex - 1;
     // The tile-art stack (Ground / Fringe / Canopy) for a layer type, and its layer count.
-    private static int[] StackOf(TileRecord t, LayerType type) => type switch
-    {
-        LayerType.Ground => t.Ground,
-        LayerType.Fringe => t.Fringe,
-        _ => t.Canopy,
-    };
+    private static ReadOnlySpan<int> StackOf(in TileRecord t, LayerType type) => t.Art(type);
+    // Nullable overload for the hover preview, which may have no tile under the cursor.
+    private static int CellAt(TileRecord? t, LayerType type, int index) =>
+        t is { } tile && index < TileRecord.Depth(type) ? tile.Art(type)[index] : LayerCell.Empty;
     private static int MaxLayersOf(LayerType type) => type switch
     {
         LayerType.Ground => Constants.MaxGroundLayers,
@@ -132,7 +130,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         _ => Constants.MaxCanopyLayers,
     };
     // The selected layer type's stack within a tile.
-    private int[] SelectedLayers(TileRecord t) => StackOf(t, SelectedLayerType);
+    private ReadOnlySpan<int> SelectedLayers(in TileRecord t) => StackOf(in t, SelectedLayerType);
     // Pack a palette tile index with the currently-selected sheet, Anim flag, and animation style.
     private int PackSelected(int tileIdx) => LayerCell.Pack(tileIdx, SelectedTileset, SelectedAnim, SelectedAnimStyle);
     // "Ground 2" / "Fringe 5" for the layer label, the anim rows, and the status messages. The layer
@@ -174,15 +172,15 @@ public sealed partial class MapEditorViewModel : ObservableObject
         int packed = PackSelected(SelectedStamp.Indices[0, 0]);
         int idx = SelectedLayerArrayIndex;
         BeginBatch();
-        for (int y = 0; y <= Constants.MaxMapY; y++)
+        for (int y = 0; y < MapRows; y++)
         {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
+            for (int x = 0; x < MapCols; x++)
             {
                 var tile = map.Tile[x, y];
-                var layers = SelectedLayers(tile);
-                if (!LayerCell.IsEmpty(layers[idx])) continue;
+                if (!LayerCell.IsEmpty(SelectedLayers(tile)[idx])) continue;
                 var before = Snap(tile);
-                layers[idx] = packed;
+                tile = tile.WithCell(SelectedLayerType, idx, packed);
+                map.Tile[x, y] = tile;
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(x, y);
                 Record(x, y, before, Snap(tile));
@@ -211,15 +209,15 @@ public sealed partial class MapEditorViewModel : ObservableObject
         int idx = SelectedLayerArrayIndex;
         EditorLog.Info("Clearing layer {Layer} on map {Map}.", SelectedLayerLabel, SelectedMap.Index);
         BeginBatch();
-        for (int y = 0; y <= Constants.MaxMapY; y++)
+        for (int y = 0; y < MapRows; y++)
         {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
+            for (int x = 0; x < MapCols; x++)
             {
                 var tile = map.Tile[x, y];
-                var layers = SelectedLayers(tile);
-                if (LayerCell.IsEmpty(layers[idx])) continue;
+                if (LayerCell.IsEmpty(SelectedLayers(tile)[idx])) continue;
                 var before = Snap(tile);
-                layers[idx] = LayerCell.Empty;
+                tile = tile.WithCell(SelectedLayerType, idx, LayerCell.Empty);
+                map.Tile[x, y] = tile;
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(x, y);
                 Record(x, y, before, Snap(tile));
@@ -245,15 +243,16 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
         var map = SelectedMap.Record;
         BeginBatch();
-        for (int y = 0; y <= Constants.MaxMapY; y++)
+        for (int y = 0; y < MapRows; y++)
         {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
+            for (int x = 0; x < MapCols; x++)
             {
                 var tile = map.Tile[x, y];
                 if (tile.Type == TileType.Walkable) continue;
                 var before = Snap(tile);
-                tile.Type = TileType.Walkable;
-                tile.Normalize();   // Walkable authors nothing, so this clears whatever the old type held
+                // Walkable authors nothing, so normalizing clears whatever the old type held.
+                tile = (tile with { Type = TileType.Walkable }).Normalized();
+                map.Tile[x, y] = tile;
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(x, y);
                 Record(x, y, before, Snap(tile));

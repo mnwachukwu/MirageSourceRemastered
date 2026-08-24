@@ -20,8 +20,11 @@ public sealed partial class TileGridControl : Control
 {
     // ── PNG export (clean map art) ─────────────────────────────────────────────
     // The size of one map in native pixels — the export unit shared by all three export commands.
-    public const int MapPixelW = GridCols * TileW; // 512
-    public const int MapPixelH = GridRows * TileH; // 384
+    /// <summary>One map's pixel size at 1x zoom — its own tile count, not a fixed figure.</summary>
+    public static int MapPixelW(MapRecord? map) => (map?.Width ?? Constants.DefaultMapWidth) * TileW;
+
+    /// <inheritdoc cref="MapPixelW"/>
+    public static int MapPixelH(MapRecord? map) => (map?.Height ?? Constants.DefaultMapHeight) * TileH;
 
     // Draws the base Ground+Fringe of each placed map (no grid line, no attribute/light overlays, anim
     // layers shown) into `ctx`, clipped to the world band [bandTopPx, bandTopPx + bandHeightPx): a map's
@@ -36,12 +39,12 @@ public sealed partial class TileGridControl : Control
         int bandBottomPx = bandTopPx + bandHeightPx;
         foreach (var (map, ox, oy) in placements)
         {
-            if (oy + MapPixelH <= bandTopPx || oy >= bandBottomPx) continue; // map wholly outside the band
-            for (int y = 0; y < GridRows; y++)
+            if (oy + MapPixelH(map) <= bandTopPx || oy >= bandBottomPx) continue; // map wholly outside the band
+            for (int y = 0; y < map.Height; y++)
             {
                 int tileTop = oy + y * TileH;
                 if (tileTop + TileH <= bandTopPx || tileTop >= bandBottomPx) continue;
-                for (int x = 0; x < GridCols; x++)
+                for (int x = 0; x < map.Width; x++)
                 {
                     var tile = map.Tile[x, y];
                     var dst = new Rect(ox + x * TileW, tileTop - bandTopPx, TileW, TileH);

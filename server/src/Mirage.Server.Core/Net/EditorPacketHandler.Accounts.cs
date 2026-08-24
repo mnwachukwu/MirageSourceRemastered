@@ -600,8 +600,8 @@ public sealed partial class EditorPacketHandler
         if (SlotValidation.IsValidMapNum(e.Map, _world.Limits.Maps))
         {
             c.Map = e.Map;
-            c.X = Math.Clamp(e.X, 0, Constants.MaxMapX);
-            c.Y = Math.Clamp(e.Y, 0, Constants.MaxMapY);
+            c.X = Math.Clamp(e.X, 0, _world.Maps[c.Map].Width - 1);
+            c.Y = Math.Clamp(e.Y, 0, _world.Maps[c.Map].Height - 1);
         }
     }
 

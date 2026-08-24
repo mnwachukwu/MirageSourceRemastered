@@ -152,8 +152,11 @@ public sealed partial class PacketHandler
             return;
         }
 
+        // The command names a MAP; the tile is incidental, carried over from wherever they were standing.
+        // It is clamped onto the destination so a jump from a large map to a small one still lands.
         var ch = _pm[index].Char;
-        _movement.PlayerWarp(index, p.MapNum, ch.X, ch.Y);
+        var (_, x, y) = _world.RepairPosition(p.MapNum, ch.X, ch.Y, (p.MapNum, 0, 0));
+        _movement.PlayerWarp(index, p.MapNum, x, y);
         _dispatcher.SendLocalizedChatTo(index, ServerStrings.AdminCommand_WarpedToMap, new ChatMetadata(GameColor.BrightBlue, ChatChannel.Notice), ("Map", p.MapNum));
         _logger.LogInformation("{Name} warped to map #{Map}.", ch.Name.Trim(), p.MapNum);
     }

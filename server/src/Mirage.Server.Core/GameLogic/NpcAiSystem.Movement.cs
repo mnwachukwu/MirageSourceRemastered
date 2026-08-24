@@ -21,9 +21,10 @@ public sealed partial class NpcAiSystem : GameSystem
     private bool TryNativeStep(int mapNum, int slot, MapNpcRecord mn, Direction dir)
     {
         var npc = _world.Npcs[mn.Num];
-        if (StepLeavesMap(mn.X, mn.Y, dir, out int destX, out int destY))
+        int neighborMap = NeighborInDir(mapNum, dir);
+        if (StepLeavesMap(_world.Maps[mapNum], _world.Maps[neighborMap > 0 ? neighborMap : mapNum],
+                          mn.X, mn.Y, dir, out int destX, out int destY))
         {
-            int neighborMap = NeighborInDir(mapNum, dir);
             if (neighborMap > 0
                 // Same ramp corridor + fit + layer gate as a within-map step (world-space, reads the neighbor's
                 // tiles across the seam), then land at the RESOLVED layer — so a bridge at a seam obeys the same
@@ -48,9 +49,10 @@ public sealed partial class NpcAiSystem : GameSystem
     private bool TryGuestStep(int mapNum, int listIndex, TraversalNpcRecord t, Direction dir)
     {
         var npc = _world.Npcs[t.Num];
-        if (StepLeavesMap(t.X, t.Y, dir, out int destX, out int destY))
+        int neighborMap = NeighborInDir(mapNum, dir);
+        if (StepLeavesMap(_world.Maps[mapNum], _world.Maps[neighborMap > 0 ? neighborMap : mapNum],
+                          t.X, t.Y, dir, out int destX, out int destY))
         {
-            int neighborMap = NeighborInDir(mapNum, dir);
             if (neighborMap > 0
                 && _movement.NpcStepPassesRampGate(mapNum, t, dir, out var crossLayer)
                 && _movement.IsNpcFootprintLandingFree(neighborMap, destX, destY, npc.EffectiveSize, MovementSystem.NpcIgnoresNpcAvoid(npc.Behavior), t, crossLayer))
@@ -310,9 +312,10 @@ public sealed partial class NpcAiSystem : GameSystem
     /// callers already gated on that, so this is just defensive.</summary>
     private int WorldDistanceTo(int npcMap, int npcX, int npcY, int targetMap, int targetX, int targetY)
     {
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, npcMap, targetMap, targetX, targetY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, npcMap);
+        var tw = grid.ToWorldRelative(targetMap, targetX, targetY);
         if (tw is null) return int.MaxValue;
-        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, npcX, npcY);
+        var (npcWX, npcWY) = grid.CenterToWorld(npcX, npcY);
         return WorldCoordHelper.WorldManhattan(npcWX, npcWY, tw.Value.worldX, tw.Value.worldY);
     }
 
@@ -396,14 +399,15 @@ public sealed partial class NpcAiSystem : GameSystem
                                          int targetMap, int targetX, int targetY,
                                          out Direction primary, out int dx, out int dy)
     {
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, targetMap, targetX, targetY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var tw = grid.ToWorldRelative(targetMap, targetX, targetY);
         if (tw is null)
         {
             primary = Direction.Up;
             dx = dy = 0;
             return false;
         }
-        var (srcWX, srcWY) = WorldCoordHelper.ToWorld(1, 1, fromX, fromY);
+        var (srcWX, srcWY) = grid.CenterToWorld(fromX, fromY);
         dx = tw.Value.worldX - srcWX;
         dy = tw.Value.worldY - srcWY;
         primary = WorldCoordHelper.WorldDirectionFrom(srcWX, srcWY, tw.Value.worldX, tw.Value.worldY);
@@ -468,9 +472,10 @@ public sealed partial class NpcAiSystem : GameSystem
     private Direction FaceTargetDir(int mapNum, int fromX, int fromY,
                                      int targetMap, int targetX, int targetY, Direction fallback)
     {
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, targetMap, targetX, targetY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var tw = grid.ToWorldRelative(targetMap, targetX, targetY);
         if (tw is null) return fallback;
-        var (srcWX, srcWY) = WorldCoordHelper.ToWorld(1, 1, fromX, fromY);
+        var (srcWX, srcWY) = grid.CenterToWorld(fromX, fromY);
         return WorldCoordHelper.WorldDirectionFrom(srcWX, srcWY, tw.Value.worldX, tw.Value.worldY);
     }
 

@@ -80,11 +80,8 @@ public class WorldTransferTests
             Name = "harbour-1", DisplayName = "Drowned Port", Music = 2, MapGroup = 1,
             Up = 2, Down = 3, Left = 4, Right = 5, AlwaysLit = true, Indoors = false,
         };
-        map.Tile[1, 1] = new TileRecord { Ground = [163, 0, 0, 0, 0], Type = TileType.Blocked };
-        map.Tile[2, 2] = new TileRecord
-        {
-            Ground = [2, 0, 0, 0, 0], Type = TileType.Warp, WarpMap = 6, WarpX = 3, WarpY = 4,
-        };
+        map.Tile[1, 1] = new TileRecord { Type = TileType.Blocked }.WithArt(LayerType.Ground, [163]);
+        map.Tile[2, 2] = new TileRecord { Type = TileType.Warp, WarpMap = 6, WarpX = 3, WarpY = 4 }.WithArt(LayerType.Ground, [2]);
         map.Npcs.Add(new MapNpcEntry(1, 5, 6));
         w.Maps[1] = map;
         return w;

@@ -175,7 +175,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 return;
             }
             MapImageExport.SaveBitmap([(rec, 0, 0)], Tilesets,
-                TileGridControl.MapPixelW, TileGridControl.MapPixelH, path);
+                TileGridControl.MapPixelW(rec), TileGridControl.MapPixelH(rec), path);
             StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_ExportedMap, ("Path", path));
         }
         catch (Exception ex)
@@ -194,7 +194,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         try
         {
             if (_data.IsOnline) await EagerLoadNeighborsAsync(); // ensure the visible 3×3 ring is loaded
-            int mw = TileGridControl.MapPixelW, mh = TileGridControl.MapPixelH;
+            int mw = TileGridControl.MapPixelW(SelectedMap?.Record), mh = TileGridControl.MapPixelH(SelectedMap?.Record);
             // 3×3 layout mirroring the on-screen observable area: the selected map is the center cell.
             (MapRecord? Map, int Cx, int Cy)[] cells =
             [
@@ -219,7 +219,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (SelectedMap is null || SaveFilePngAsync is null) return;
         var origin = SelectedMap;
-        int mw = TileGridControl.MapPixelW, mh = TileGridControl.MapPixelH;
+        int mw = TileGridControl.MapPixelW(SelectedMap?.Record), mh = TileGridControl.MapPixelH(SelectedMap?.Record);
         string? path = null;
         try
         {

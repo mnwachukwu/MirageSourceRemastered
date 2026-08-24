@@ -78,7 +78,7 @@ public static class LayerCell
 
     /// <summary>Index of the highest non-empty layer in a stack, or -1 when every layer is empty.
     /// Used by the door-open reveal, which hides this single topmost layer.</summary>
-    public static int TopmostNonEmptyIndex(int[] layers)
+    public static int TopmostNonEmptyIndex(ReadOnlySpan<int> layers)
     {
         for (int i = layers.Length - 1; i >= 0; i--)
             if (!IsEmpty(layers[i])) return i;
@@ -90,7 +90,7 @@ public static class LayerCell
     /// even frames); 2+ → traversed by the lowest anim layer's <see cref="AnimStyle"/> (Cycle = frame mod N,
     /// Pendulum = triangle wave). Non-anim layers are unaffected -- callers only consult this for
     /// Anim-flagged cells. Allocation-free.</summary>
-    public static int VisibleAnimIndex(int[] layers, int frame)
+    public static int VisibleAnimIndex(ReadOnlySpan<int> layers, int frame)
     {
         int n = 0, first = -1;
         for (int i = 0; i < layers.Length; i++)

@@ -183,6 +183,7 @@
   "Hosting_GamePortHint": "Le port que les joueurs saisissent dans leur client. Ne l'ouvrez sur votre routeur que s'ils sont hors de votre réseau.",
   "Hosting_DataDir": "Dossier du monde",
   "Hosting_DataDirHint": "Laissez vide pour utiliser le dossier data situé à côté du serveur. Indiquez un autre chemin pour garder un monde sur un autre disque, ou dans un dossier que vous sauvegardez.",
+  "Hosting_WorldNameNote": "Un dossier de monde peut se nommer dans world.json. Ce nom est le vôtre, pas celui des joueurs : il apparaît ici et dans les journaux pour distinguer un monde en service d'une copie de test, et n'atteint jamais personne qui joue. Ce qu'un joueur voit, c'est le nom du jeu.",
   "Hosting_DataDirDefault": "dossier data à côté du serveur",
   "Hosting_Browse": "Parcourir…",
   "Hosting_UseDefault": "Par défaut",

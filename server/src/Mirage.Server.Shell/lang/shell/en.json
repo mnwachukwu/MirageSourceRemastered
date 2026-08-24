@@ -183,6 +183,7 @@
   "Hosting_GamePortHint": "The port players type into their client. Only forward it on your router if they are outside your network.",
   "Hosting_DataDir": "World folder",
   "Hosting_DataDirHint": "Leave this empty to use the data folder beside the server. Point it somewhere else to keep a world on another drive, or in a folder you back up.",
+  "Hosting_WorldNameNote": "A world folder can name itself in world.json. That name is yours, not the players' - it appears here and in the logs so you can tell a live world from a test copy, and never reaches anyone playing. What a player sees is the game's name.",
   "Hosting_DataDirDefault": "data folder beside the server",
   "Hosting_Browse": "Browse…",
   "Hosting_UseDefault": "Use default",

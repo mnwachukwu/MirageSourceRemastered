@@ -251,4 +251,25 @@ public static partial class EditorStrings
     public const string AttrDialog_SelectKeyItem = nameof(AttrDialog_SelectKeyItem);
     public const string AttrDialog_InvalidColor = nameof(AttrDialog_InvalidColor);
     public const string AttrDialog_RadiusPositive = nameof(AttrDialog_RadiusPositive);
+
+    // ── Map size ──────────────────────────────────────────────────────────────
+    // The Properties panel's read-out and the resize dialog: what the map is now, what a new size would
+    // discard, why a linked map is refused, and the line saying none of it can be taken back.
+    public const string MapEditor_SizeLabel = nameof(MapEditor_SizeLabel);
+    public const string MapEditor_ResizeButton = nameof(MapEditor_ResizeButton);
+    public const string MapEditor_SizeText = nameof(MapEditor_SizeText);                 // "{Width}", "{Height}"
+    public const string MapResize_DialogTitle = nameof(MapResize_DialogTitle);
+    public const string MapResize_Intro = nameof(MapResize_Intro);
+    public const string MapResize_CurrentSize = nameof(MapResize_CurrentSize);           // "{Width}", "{Height}"
+    public const string MapResize_WidthLabel = nameof(MapResize_WidthLabel);
+    public const string MapResize_HeightLabel = nameof(MapResize_HeightLabel);
+    public const string MapResize_LinkedRefusal = nameof(MapResize_LinkedRefusal);       // "{Maps}"
+    public const string MapResize_SoftCapWarning = nameof(MapResize_SoftCapWarning);     // "{Cap}"
+    public const string MapEditor_LinkSizeMismatch = nameof(MapEditor_LinkSizeMismatch);   // "{Target}" "{TargetSize}" "{Size}"
+    public const string MapResize_Irreversible = nameof(MapResize_Irreversible);
+    public const string MapResize_LossTiles = nameof(MapResize_LossTiles);               // "{Count}"
+    public const string MapResize_LossLights = nameof(MapResize_LossLights);             // "{Count}"
+    public const string MapResize_LossPins = nameof(MapResize_LossPins);                 // "{Count}"
+    public const string MapResize_LossWarps = nameof(MapResize_LossWarps);               // "{Count}"
+    public const string MapEditorStatus_Resized = nameof(MapEditorStatus_Resized);       // "{Width}", "{Height}"
 }

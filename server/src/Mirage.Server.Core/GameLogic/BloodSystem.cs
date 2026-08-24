@@ -25,17 +25,14 @@ public sealed class BloodSystem : GameSystem
 {
     private readonly GameWorld _world;
 
-    private const int W = Constants.MaxMapX + 1;   // 16
-    private const int H = Constants.MaxMapY + 1;   // 12
-
     // Fixed timestep: the loop drives this tick at BloodTickIntervalMs, so decay uses a constant dt.  (The client
     // fades with real per-frame dt; the server copy only feeds broadcasts/snapshots, where a small dt difference
     // is cosmetically irrelevant.)
     private const float Dt = Constants.BloodTickIntervalMs / 1000f;
 
-    // Reused packing buffer (worst case = every pool, 5 bytes each).  A right-sized copy is taken per send.  Safe
+    // Reused packing buffer (worst case = every pool). A right-sized copy is taken per send.  Safe
     // to share: every caller runs on the single game thread and never nests.
-    private readonly List<byte> _payload = new(Constants.MaxMapBloodPools * 6);
+    private readonly List<byte> _payload = new(Constants.MaxMapBloodPools * BloodUpdatePacket.BytesPerPool);
 
     public BloodSystem(GameWorld world, IPacketDispatcher dispatcher)
         : base(dispatcher)
@@ -51,7 +48,7 @@ public sealed class BloodSystem : GameSystem
     public void Deposit(int mapNum, int x, int y, float intensity, int size = 1, WorldLayer layer = WorldLayer.Ground)
     {
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
-        if ((uint)x >= W || (uint)y >= H) return;   // anchor tile must be on this map's grid
+        if (!_world.Maps[mapNum].Contains(x, y)) return;   // anchor tile must be on this map's grid
         if (intensity <= 0f) return;
         size = Math.Clamp(size, 1, Constants.MaxNpcSize);
         float d = intensity * Constants.BloodPerHitScale;   // intensity may exceed 1 (near-death closeness boost)
@@ -104,7 +101,8 @@ public sealed class BloodSystem : GameSystem
     /// re-darkening ground the entity revisits.  Game thread only.</summary>
     public void DepositTrail(int mapNum, int x, int y, int size = 1, WorldLayer layer = WorldLayer.Ground)
     {
-        if ((uint)x >= W || (uint)y >= H) return;
+        if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
+        if (!_world.Maps[mapNum].Contains(x, y)) return;
         if (_world.MapBlood.TryGetValue(mapNum, out var field))
         {
             foreach (var p in field.Pools)
@@ -202,16 +200,23 @@ public sealed class BloodSystem : GameSystem
         _dispatcher.SendToObservers(observers, new BloodUpdatePacket { MapNum = mapNum, Reset = false, Pools = _payload.ToArray() });
     }
 
-    // Packs every live pool into _payload as 6 bytes: x, y, size, amount, freshness, layer.  Returns false (and
-    // leaves _payload empty) when the map has no pool worth sending.
+    // Packs every live pool into _payload, BloodUpdatePacket.BytesPerPool each: x and y as little-endian 16-bit, then size,
+    // amount, freshness, layer. Returns false (and leaves _payload empty) when the map has no pool worth
+    // sending.
+    //
+    // The coordinates are 16-bit because a tile coordinate has to be able to name any tile on the map, and
+    // a byte stops at 255. Two bytes per pool against a 128-pool cap is a few hundred bytes on a broadcast
+    // that only happens when blood actually changed.
     private bool BuildPayload(BloodField field)
     {
         _payload.Clear();
         foreach (var p in field.Pools)
         {
             if (p.Amount <= Constants.BloodVisibleEpsilon) continue;
-            _payload.Add((byte)p.X);
-            _payload.Add((byte)p.Y);
+            _payload.Add((byte)(p.X & 0xFF));
+            _payload.Add((byte)((p.X >> 8) & 0xFF));
+            _payload.Add((byte)(p.Y & 0xFF));
+            _payload.Add((byte)((p.Y >> 8) & 0xFF));
             _payload.Add((byte)p.Size);
             _payload.Add(Quantize(p.Amount));
             _payload.Add(QuantizeFresh(p.Amount, p.Peak));

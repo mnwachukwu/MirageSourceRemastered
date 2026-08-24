@@ -123,6 +123,16 @@ public sealed record BloodUpdatePacket : IPacket
     [JsonPropertyName("mapNum")] public int MapNum { get; init; }
     [JsonPropertyName("reset")] public bool Reset { get; init; }
     [JsonPropertyName("pools")] public byte[] Pools { get; init; } = [];
+
+    /// <summary>Bytes per pool in <see cref="Pools"/>: x and y as little-endian 16-bit, then size, amount,
+    /// freshness, layer. Both ends read this rather than a literal, so the stride cannot drift on one side
+    /// and turn the whole list into noise.</summary>
+    public const int BytesPerPool = 8;
+
+    /// <summary>Reads the tile coordinate of the pool starting at <paramref name="offset"/>.</summary>
+    public static (int X, int Y) PoolTileAt(byte[] pools, int offset) =>
+        (pools[offset] | (pools[offset + 1] << 8),
+         pools[offset + 2] | (pools[offset + 3] << 8));
 }
 
 /// <summary>Kind of no-damage combat outcome floated by <see cref="CombatTextPacket"/>. 0 = unset sentinel.</summary>

@@ -29,24 +29,46 @@ public static class TileAttrRules
         UsesWarp(type) || UsesItem(type) || UsesKey(type) || UsesDoor(type) || UsesRamp(type)
         || UsesBlocked(type);
 
-    public static void Normalize(TileRecord t)
+    /// <summary>A copy of <paramref name="t"/> with every ground-attribute field its <see cref="TileType"/>
+    /// does not use cleared, so a retyped tile cannot keep the previous kind's numbers. Leaves the art and
+    /// the fringe plane alone.</summary>
+    public static TileRecord Normalize(TileRecord t) => t with
     {
-        if (!UsesWarp(t.Type)) { t.WarpMap = 0; t.WarpX = 0; t.WarpY = 0; t.WarpLayer = default; }
-        if (!UsesItem(t.Type)) { t.ItemNum = 0; t.ItemQuantity = 0; t.ItemRespawnSecs = 0; }
-        if (!UsesKey(t.Type)) { t.KeyItemNum = 0; t.KeyIsConsumed = false; }
-        if (!UsesDoor(t.Type)) { t.DoorX = 0; t.DoorY = 0; t.DoorLayer = default; }
-        if (!UsesRamp(t.Type)) t.RampGroundSide = default;
+        WarpMap = UsesWarp(t.Type) ? t.WarpMap : (short)0,
+        WarpX = UsesWarp(t.Type) ? t.WarpX : (ushort)0,
+        WarpY = UsesWarp(t.Type) ? t.WarpY : (ushort)0,
+        WarpLayer = UsesWarp(t.Type) ? t.WarpLayer : default,
+        ItemNum = UsesItem(t.Type) ? t.ItemNum : (short)0,
+        ItemQuantity = UsesItem(t.Type) ? t.ItemQuantity : (short)0,
+        ItemRespawnSecs = UsesItem(t.Type) ? t.ItemRespawnSecs : (short)0,
+        KeyItemNum = UsesKey(t.Type) ? t.KeyItemNum : (short)0,
+        KeyIsConsumed = UsesKey(t.Type) && t.KeyIsConsumed,
+        DoorX = UsesDoor(t.Type) ? t.DoorX : (ushort)0,
+        DoorY = UsesDoor(t.Type) ? t.DoorY : (ushort)0,
+        DoorLayer = UsesDoor(t.Type) ? t.DoorLayer : default,
+        RampGroundSide = UsesRamp(t.Type) ? t.RampGroundSide : default,
         // Reset to stopping everything, so a tile that is not a wall carries no permission a wall would honour.
-        if (!UsesBlocked(t.Type)) { t.BlocksLight = true; t.BlocksSight = true; }
-    }
+        BlocksLight = !UsesBlocked(t.Type) || t.BlocksLight,
+        BlocksSight = !UsesBlocked(t.Type) || t.BlocksSight,
+    };
 
-    public static void Normalize(FringeAttr a)
+    /// <inheritdoc cref="Normalize(TileRecord)"/>
+    public static FringeAttr Normalize(FringeAttr a) => a with
     {
-        if (!UsesWarp(a.Type)) { a.WarpMap = 0; a.WarpX = 0; a.WarpY = 0; a.WarpLayer = default; }
-        if (!UsesItem(a.Type)) { a.ItemNum = 0; a.ItemQuantity = 0; a.ItemRespawnSecs = 0; }
-        if (!UsesKey(a.Type)) { a.KeyItemNum = 0; a.KeyIsConsumed = false; }
-        if (!UsesDoor(a.Type)) { a.DoorX = 0; a.DoorY = 0; a.DoorLayer = default; }
-        if (!UsesRamp(a.Type)) a.RampGroundSide = default;
-        if (!UsesBlocked(a.Type)) { a.BlocksLight = true; a.BlocksSight = true; }
-    }
+        WarpMap = UsesWarp(a.Type) ? a.WarpMap : (short)0,
+        WarpX = UsesWarp(a.Type) ? a.WarpX : (ushort)0,
+        WarpY = UsesWarp(a.Type) ? a.WarpY : (ushort)0,
+        WarpLayer = UsesWarp(a.Type) ? a.WarpLayer : default,
+        ItemNum = UsesItem(a.Type) ? a.ItemNum : (short)0,
+        ItemQuantity = UsesItem(a.Type) ? a.ItemQuantity : (short)0,
+        ItemRespawnSecs = UsesItem(a.Type) ? a.ItemRespawnSecs : (short)0,
+        KeyItemNum = UsesKey(a.Type) ? a.KeyItemNum : (short)0,
+        KeyIsConsumed = UsesKey(a.Type) && a.KeyIsConsumed,
+        DoorX = UsesDoor(a.Type) ? a.DoorX : (ushort)0,
+        DoorY = UsesDoor(a.Type) ? a.DoorY : (ushort)0,
+        DoorLayer = UsesDoor(a.Type) ? a.DoorLayer : default,
+        RampGroundSide = UsesRamp(a.Type) ? a.RampGroundSide : default,
+        BlocksLight = !UsesBlocked(a.Type) || a.BlocksLight,
+        BlocksSight = !UsesBlocked(a.Type) || a.BlocksSight,
+    };
 }

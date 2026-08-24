@@ -97,7 +97,7 @@ public class KiteDirectionBiasTests
         {
             mn.X = npcX;
             mn.Y = npcY;
-            var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
+            var (npcWX, npcWY) = WorldCoordHelper.BuildMapGrid(world.Maps, Map).CenterToWorld(mn.X, mn.Y);
             bool moved = (bool)method.Invoke(ai, new object?[] { Map, Slot, mn, npcWX, npcWY, tw, 1 })!;   // trailing 1 = size-1 target (footprint-aware kite param)
             if (!moved) continue;
             t.Moved++;

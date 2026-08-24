@@ -224,7 +224,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private List<(int X, int Y)> LargestWalkableComponent(int mapNum)
     {
         var map = _world.Maps[mapNum];
-        int w = Constants.MaxMapX + 1, h = Constants.MaxMapY + 1;
+        int w = map.Width, h = map.Height;
         var seen = new bool[w, h];
         var best = new List<(int X, int Y)>();
         var queue = new Queue<(int X, int Y)>();
@@ -291,22 +291,36 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private bool TryPickWalkable(int mapNum, out int x, out int y)
     {
         var map = _world.Maps[mapNum];
-        var candidates = new List<(int X, int Y)>();
-        for (int tx = 0; tx <= Constants.MaxMapX; tx++)
+        // Counted, then walked to the winning tile. A list of every walkable tile is 65,000 entries
+        // on a large map; the draw is one number either way.
+        int walkable = 0;
+        for (int tx = 0; tx < map.Width; tx++)
         {
-            for (int ty = 0; ty <= Constants.MaxMapY; ty++)
-                if (map.Tile[tx, ty].Type == TileType.Walkable) candidates.Add((tx, ty));
+            for (int ty = 0; ty < map.Height; ty++)
+                if (map.Tile[tx, ty].Type == TileType.Walkable) walkable++;
         }
 
-        if (candidates.Count == 0)
+        if (walkable == 0)
         {
             x = y = 0;
             return false;
         }
-        var pick = candidates[Rng.Next(candidates.Count)];
-        x = pick.X;
-        y = pick.Y;
-        return true;
+
+        int pick = Rng.Next(walkable);
+        for (int tx = 0; tx < map.Width; tx++)
+        {
+            for (int ty = 0; ty < map.Height; ty++)
+            {
+                if (map.Tile[tx, ty].Type != TileType.Walkable) continue;
+                if (pick-- > 0) continue;
+                x = tx;
+                y = ty;
+                return true;
+            }
+        }
+
+        x = y = 0;
+        return false;
     }
 
     private bool HasActiveContest(int territoryIndex)

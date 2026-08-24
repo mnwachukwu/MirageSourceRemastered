@@ -1,11 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mirage.Editor.ViewModels"
         x:Class="Mirage.Editor.Views.WorldTransferDialog"
+        x:DataType="vm:WorldTransferDialogViewModel"
         Width="720" Height="620"
         WindowStartupLocation="CenterOwner">
 
   <Window.Resources>
-    <DataTemplate x:Key="ChangeRow">
+    <DataTemplate x:Key="ChangeRow" x:DataType="vm:WorldChangeRowViewModel">
       <Grid Margin="0,2">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="130"/>

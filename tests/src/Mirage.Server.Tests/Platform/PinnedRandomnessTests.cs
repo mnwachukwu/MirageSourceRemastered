@@ -244,7 +244,7 @@ public class PinnedRandomnessTests
         for (int x = 0; x <= Constants.MaxMapX; x++)
         {
             for (int y = 0; y <= Constants.MaxMapY; y++)
-                map.Tile[x, y].Type = TileType.Walkable;
+                map.EditTile(x, y, t => t with { Type = TileType.Walkable });
         }
 
         // An UNPINNED entry — a pinned one would spawn at its tile and never roll (see
@@ -287,7 +287,7 @@ public class PinnedRandomnessTests
         for (int x = 0; x <= Constants.MaxMapX; x++)
         {
             for (int y = 0; y <= Constants.MaxMapY; y++)
-                map.Tile[x, y].Type = TileType.Walkable;
+                map.EditTile(x, y, t => t with { Type = TileType.Walkable });
         }
 
         var rng = new Rolls(2);

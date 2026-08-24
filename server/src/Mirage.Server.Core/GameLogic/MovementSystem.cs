@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
@@ -14,14 +16,16 @@ public sealed class MovementSystem : GameSystem
     private readonly GameWorld _world;
     private readonly PlayerManager _pm;
     private readonly BloodSystem _blood;
+    private readonly ILogger<MovementSystem> _logger;
 
     public MovementSystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher, BloodSystem blood,
-                          IClock? clock = null)
+                          IClock? clock = null, ILogger<MovementSystem>? logger = null)
         : base(dispatcher, clock: clock)
     {
         _world = world;
         _pm = pm;
         _blood = blood;
+        _logger = logger ?? NullLogger<MovementSystem>.Instance;
     }
 
     // ── The pace gate ─────────────────────────────────────────────────────────
@@ -81,6 +85,12 @@ public sealed class MovementSystem : GameSystem
         bool stepped = false;   // true only for normal tile steps (not edge-of-map warps)
         WorldLayer newLayer;    // the logical layer the in-map step lands on (committed to p.Layer)
 
+        // The map's own edges. Every step is either inside them or a crossing, and a neighbour's opposite
+        // edge is read off THAT map — the link rule keeps the two equal, and reading each map's own is what
+        // keeps a hand-edited world from indexing past a tile array.
+        var here = _world.Maps[p.Map];
+        int lastX = here.Width - 1, lastY = here.Height - 1;
+
         switch (dir)
         {
             case Direction.Up:
@@ -92,16 +102,15 @@ public sealed class MovementSystem : GameSystem
                     moved = true;
                     stepped = true;
                 }
-                else if (p.Y == 0 && _world.Maps[p.Map].Up > 0
-                    && CanPlayerWalkOnTile(index, _world.Maps[p.Map].Up, p.X, Constants.MaxMapY, dir, out newLayer))
+                else if (p.Y == 0 && here.Up > 0
+                    && CanPlayerWalkOnTile(index, here.Up, p.X, _world.Maps[here.Up].Height - 1, dir, out newLayer))
                 {
-                    PlayerWarp(index, _world.Maps[p.Map].Up, p.X, Constants.MaxMapY, Direction.Up, movement, destLayer: newLayer);
-                    moved = true;
+                    moved = PlayerWarp(index, here.Up, p.X, _world.Maps[here.Up].Height - 1, Direction.Up, movement, destLayer: newLayer);
                 }
                 break;
 
             case Direction.Down:
-                if (p.Y < Constants.MaxMapY && CanPlayerWalkOnTile(index, p.Map, p.X, p.Y + 1, dir, out newLayer))
+                if (p.Y < lastY && CanPlayerWalkOnTile(index, p.Map, p.X, p.Y + 1, dir, out newLayer))
                 {
                     p.Y++;
                     p.Layer = newLayer;
@@ -109,11 +118,10 @@ public sealed class MovementSystem : GameSystem
                     moved = true;
                     stepped = true;
                 }
-                else if (p.Y == Constants.MaxMapY && _world.Maps[p.Map].Down > 0
-                    && CanPlayerWalkOnTile(index, _world.Maps[p.Map].Down, p.X, 0, dir, out newLayer))
+                else if (p.Y == lastY && here.Down > 0
+                    && CanPlayerWalkOnTile(index, here.Down, p.X, 0, dir, out newLayer))
                 {
-                    PlayerWarp(index, _world.Maps[p.Map].Down, p.X, 0, Direction.Down, movement, destLayer: newLayer);
-                    moved = true;
+                    moved = PlayerWarp(index, here.Down, p.X, 0, Direction.Down, movement, destLayer: newLayer);
                 }
                 break;
 
@@ -126,16 +134,15 @@ public sealed class MovementSystem : GameSystem
                     moved = true;
                     stepped = true;
                 }
-                else if (p.X == 0 && _world.Maps[p.Map].Left > 0
-                    && CanPlayerWalkOnTile(index, _world.Maps[p.Map].Left, Constants.MaxMapX, p.Y, dir, out newLayer))
+                else if (p.X == 0 && here.Left > 0
+                    && CanPlayerWalkOnTile(index, here.Left, _world.Maps[here.Left].Width - 1, p.Y, dir, out newLayer))
                 {
-                    PlayerWarp(index, _world.Maps[p.Map].Left, Constants.MaxMapX, p.Y, Direction.Left, movement, destLayer: newLayer);
-                    moved = true;
+                    moved = PlayerWarp(index, here.Left, _world.Maps[here.Left].Width - 1, p.Y, Direction.Left, movement, destLayer: newLayer);
                 }
                 break;
 
             case Direction.Right:
-                if (p.X < Constants.MaxMapX && CanPlayerWalkOnTile(index, p.Map, p.X + 1, p.Y, dir, out newLayer))
+                if (p.X < lastX && CanPlayerWalkOnTile(index, p.Map, p.X + 1, p.Y, dir, out newLayer))
                 {
                     p.X++;
                     p.Layer = newLayer;
@@ -143,11 +150,10 @@ public sealed class MovementSystem : GameSystem
                     moved = true;
                     stepped = true;
                 }
-                else if (p.X == Constants.MaxMapX && _world.Maps[p.Map].Right > 0
-                    && CanPlayerWalkOnTile(index, _world.Maps[p.Map].Right, 0, p.Y, dir, out newLayer))
+                else if (p.X == lastX && here.Right > 0
+                    && CanPlayerWalkOnTile(index, here.Right, 0, p.Y, dir, out newLayer))
                 {
-                    PlayerWarp(index, _world.Maps[p.Map].Right, 0, p.Y, Direction.Right, movement, destLayer: newLayer);
-                    moved = true;
+                    moved = PlayerWarp(index, here.Right, 0, p.Y, Direction.Right, movement, destLayer: newLayer);
                 }
                 break;
         }
@@ -250,12 +256,42 @@ public sealed class MovementSystem : GameSystem
             SendMsg(index, ServerStrings.MapGreeting_LeaveSay, GameColor.Npc, ("Speaker", g.Speaker.TrimEnd()), ("LeaveSay", g.LeaveSay.TrimEnd()));
     }
 
-    public void PlayerWarp(int index, int mapNum, int x, int y, Direction? edgeDir = null,
+    /// <summary>True when <paramref name="mapNum"/> is a real map and (<paramref name="x"/>,
+    /// <paramref name="y"/>) is a real tile on it.
+    ///
+    /// <para>Coordinates reach a warp from four places that the engine does not control — an authored Warp
+    /// attribute, a map's Boot/spawn setting, the operator's config, and a character file saved against an
+    /// older version of the map. Every one of them can name a tile that does not exist, and the destination
+    /// is indexed into <see cref="MapRecord.Tile"/> without another check, so this is the only thing standing
+    /// between a mistyped coordinate and an <see cref="IndexOutOfRangeException"/> on the game loop.</para></summary>
+    public bool IsWarpDestinationValid(int mapNum, int x, int y) =>
+        mapNum > 0 && mapNum <= _world.Limits.Maps && _world.Maps[mapNum].Contains(x, y);
+
+    // A destination that names no real tile. The player stays where they are, is told in red, and the
+    // whole address — where they were standing and where it pointed — goes to the log, because the tile
+    // that needs correcting is the one they are standing on, not the one that failed.
+    private void RefuseWarp(int index, int mapNum, int x, int y)
+    {
+        var p = _pm[index].Char;
+        _logger.LogWarning(
+            "Refused a warp for {Name}: map #{Map} ({X},{Y}) is not a tile that exists. Sent from map #{FromMap} ({FromX},{FromY}) — correct the destination there.",
+            p.TrimmedName, mapNum, x, y, p.Map, p.X, p.Y);
+        Notify(index, ServerStrings.MovementSystem_WarpDestinationMissing, ("Map", mapNum), ("X", x), ("Y", y));
+    }
+
+    /// <summary>False means the player did not move: they were not in play, or the destination names no
+    /// tile that exists and was refused (see <see cref="IsWarpDestinationValid"/>).</summary>
+    public bool PlayerWarp(int index, int mapNum, int x, int y, Direction? edgeDir = null,
                            MovementType movement = MovementType.Walking,
                            bool suppressMapGreeting = false,
                            WorldLayer destLayer = WorldLayer.Ground)
     {
-        if (!_pm[index].IsPlaying || mapNum <= 0 || mapNum > _world.Limits.Maps) return;
+        if (!_pm[index].IsPlaying) return false;
+        if (!IsWarpDestinationValid(mapNum, x, y))
+        {
+            RefuseWarp(index, mapNum, x, y);
+            return false;
+        }
 
         var p = _pm[index].Char;
         var sp = _pm[index];
@@ -377,6 +413,8 @@ public sealed class MovementSystem : GameSystem
             sp.GettingMap = true;
             _dispatcher.SendTo(index, new CheckForMapPacket { MapNum = mapNum, Revision = _world.Maps[mapNum].Revision });
         }
+
+        return true;
     }
 
     // ── NPC movement ──────────────────────────────────────────────────────────
@@ -421,7 +459,7 @@ public sealed class MovementSystem : GameSystem
         // (sticky, ramp-gated) and reject an illegal deck-edge walk-off.  Covers cross-seam bridges.
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
         var view = new ServerTileView(_world, grid);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, npc.X, npc.Y);
+        var (aWX, aWY) = grid.CenterToWorld(npc.X, npc.Y);
         var (adx, ady) = WorldCoordHelper.DirDelta(dir);
         if (!LayerLogic.CanEnter(view, aWX + adx, aWY + ady, size, npc.Layer, dir, out var newLayer)) return false;
 
@@ -438,7 +476,7 @@ public sealed class MovementSystem : GameSystem
         // TryNativeStep).  Without this, a WANDERING big NPC - which steps via CanNpcMove, bypassing
         // StepLeavesMap - would push its anchor off-map, leaving its footprint on no on-map tile at all and
         // so invisible to collision.
-        if ((uint)(npc.X + adx) > Constants.MaxMapX || (uint)(npc.Y + ady) > Constants.MaxMapY) return false;
+        if (!_world.Maps[mapNum].Contains(npc.X + adx, npc.Y + ady)) return false;
 
         // A large NPC's leading edge can already spill across a seam on a within-map anchor step (the body
         // straddles), so resolve each leading-edge tile in world space and validate it (at the resulting
@@ -447,7 +485,7 @@ public sealed class MovementSystem : GameSystem
         for (int e = 0; e < edge.Count; e++)
         {
             var (ewx, ewy) = edge[e];
-            var (m, lx, ly) = WorldCoordHelper.ResolveWorldTile(in grid, ewx, ewy);
+            var (m, lx, ly) = grid.ResolveWorldTile(ewx, ewy);
             if (m <= 0) return false;
             if (!IsNpcTileFree(m, lx, ly, newLayer, ignoreNpcAvoid, npc)) return false;
         }
@@ -472,7 +510,7 @@ public sealed class MovementSystem : GameSystem
     private bool IsNpcTileFree(int mapNum, int x, int y, WorldLayer layer, bool ignoreNpcAvoid, MapNpcRecord? exclude)
     {
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return false;
-        if (x < 0 || x > Constants.MaxMapX || y < 0 || y > Constants.MaxMapY) return false;
+        if (!_world.Maps[mapNum].Contains(x, y)) return false;
         // Walkable type at the mover's layer: a fringe surface / ramp is walkable up top, a fringe wall is not.
         var type = LayerLogic.AttrFor(_world.Maps[mapNum].Tile[x, y], layer).Type;
         if (!IsNpcWalkableTileType(type, ignoreNpcAvoid)) return false;
@@ -505,12 +543,12 @@ public sealed class MovementSystem : GameSystem
         if (size <= 1) return IsNpcTileFree(destMap, x, y, layer, ignoreNpcAvoid, mover);
         if (destMap <= 0 || destMap > _world.Limits.Maps) return false;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, destMap);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, x, y);
+        var (aWX, aWY) = grid.CenterToWorld(x, y);
         for (int j = 0; j < size; j++)
         {
             for (int i = 0; i < size; i++)
             {
-                var (m, lx, ly) = WorldCoordHelper.ResolveWorldTile(in grid, aWX + i, aWY + j);
+                var (m, lx, ly) = grid.ResolveWorldTile(aWX + i, aWY + j);
                 if (m <= 0) return false;
                 if (!IsNpcTileFree(m, lx, ly, layer, ignoreNpcAvoid, mover)) return false;
             }
@@ -528,7 +566,7 @@ public sealed class MovementSystem : GameSystem
     {
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
         var view = new ServerTileView(_world, grid);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, npc.X, npc.Y);
+        var (aWX, aWY) = grid.CenterToWorld(npc.X, npc.Y);
         var (adx, ady) = WorldCoordHelper.DirDelta(dir);
         int size = _world.Npcs[npc.Num].EffectiveSize;
         return LayerLogic.CanEnter(view, aWX + adx, aWY + ady, size, npc.Layer, dir, out newLayer);
@@ -543,7 +581,7 @@ public sealed class MovementSystem : GameSystem
         // the src/dest tiles around the anchor's pre-move position.
         int size = _world.Npcs[npc.Num].EffectiveSize;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, npc.X, npc.Y);
+        var (aWX, aWY) = grid.CenterToWorld(npc.X, npc.Y);
         var (dx, dy) = WorldCoordHelper.DirDelta(dir);
         npc.Layer = LayerLogic.ResolveLayer(new ServerTileView(_world, grid), aWX + dx, aWY + dy, size, npc.Layer, dir);
 
@@ -591,9 +629,9 @@ public sealed class MovementSystem : GameSystem
         // resulting logical layer (sticky, ramp-gated) and reject an illegal deck-edge walk-off.  Players
         // are always size 1.  This also covers cross-seam bridges: the view reads neighbor tiles too.
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mover.Map);
-        var gp = WorldCoordHelper.GridPosition(in grid, destMapNum);
+        var gp = grid.PositionOf(destMapNum);
         if (gp is null) return false;
-        var (destWX, destWY) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, x, y);
+        var (destWX, destWY) = grid.ToWorld(gp.Value.col, gp.Value.row, x, y);
         if (!LayerLogic.CanEnter(new ServerTileView(_world, grid), destWX, destWY, 1, mover.Layer, dir, out newLayer))
         {
             // A deck edge holds nobody in observer mode either; the plane it is already on is kept, since

@@ -38,8 +38,9 @@ public sealed partial class NpcAiSystem : GameSystem
         // retreat; the magic-push sites skip the "hold the legs off" push while it's set).
         mn.WantsKite = false;
 
-        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, victimMap, victimX, victimY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var (npcWX, npcWY) = grid.CenterToWorld(mn.X, mn.Y);
+        var tw = grid.ToWorldRelative(victimMap, victimX, victimY);
         if (tw is null) return false;
         int tgtWX = tw.Value.worldX, tgtWY = tw.Value.worldY;
 
@@ -274,8 +275,9 @@ public sealed partial class NpcAiSystem : GameSystem
     private void TryLegsKite(int mapNum, int slot, MapNpcRecord mn, int targetMap, int targetX, int targetY, long now, int targetSize = 1)
     {
         if (mn.MeleeKiteAttempts >= Constants.NpcMeleeKiteMaxAttempts) return;   // cap reached — hold for the brain's cast
-        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, targetMap, targetX, targetY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var (npcWX, npcWY) = grid.CenterToWorld(mn.X, mn.Y);
+        var tw = grid.ToWorldRelative(targetMap, targetX, targetY);
         int spd = _world.Npcs[mn.Num].Spd;                       // capture before the step — a native→guest cross zeroes mn.Num
         bool running = NpcCanRun(mapNum, mn);
         mn.MoveType = running ? MovementType.Running : MovementType.Walking;

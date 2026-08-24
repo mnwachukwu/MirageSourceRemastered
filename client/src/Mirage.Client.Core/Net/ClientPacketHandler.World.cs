@@ -23,10 +23,10 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private void HandleMapKey(MapKeyPacket p)
     {
-        if (p.X > Constants.MaxMapX || p.Y > Constants.MaxMapY) return;
+        if (p.X < 0 || p.Y < 0) return;
         var doors = _state.TempTilesForMap(p.MapNum);
         if (doors is null) return;
-        doors[p.X, p.Y, (int)p.Layer] = p.Open;   // per-layer: a fringe-deck door is tracked apart from the ground one
+        doors.Set(p.X, p.Y, (int)p.Layer, p.Open);   // per-layer: a fringe-deck door is tracked apart from the ground one
     }
 
     private void HandlePlayersOnline(PlayersOnlinePacket p)

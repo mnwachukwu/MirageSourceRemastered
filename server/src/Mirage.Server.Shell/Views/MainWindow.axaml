@@ -599,6 +599,7 @@
                       Command="{Binding UseDefaultDataDirCommand}" Margin="8,0,0,0"/>
             </Grid>
             <TextBlock Classes="hint" Text="{Binding DataDirHint}"/>
+            <TextBlock Classes="hint" Text="{Binding WorldNameNote}"/>
           </StackPanel>
 
           <!-- Record slots. Per-server now rather than compiled into the client: the server states these

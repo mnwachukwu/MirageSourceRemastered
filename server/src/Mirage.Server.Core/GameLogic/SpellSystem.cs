@@ -761,8 +761,9 @@ public sealed class SpellSystem : GameSystem
     private bool TargetInRange(int index, int targetMap, int targetX, int targetY, int targetSize = 1)
     {
         var p = _pm[index].Char;
-        var (myWX, myWY) = WorldCoordHelper.ToWorld(1, 1, p.X, p.Y);  // caster (a player) sits at the center cell, size 1
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, p.Map, targetMap, targetX, targetY);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, p.Map);
+        var (myWX, myWY) = grid.CenterToWorld(p.X, p.Y);  // caster (a player) sits at the center cell, size 1
+        var tw = grid.ToWorldRelative(targetMap, targetX, targetY);
         if (tw is null) return false;
         // Footprint-aware: an oversize NPC is in range when ANY tile of its body is in the circle, not just (X,Y).
         return WorldCoordHelper.IsInSpellRange(myWX, myWY, 1, tw.Value.worldX, tw.Value.worldY, targetSize);
@@ -775,10 +776,10 @@ public sealed class SpellSystem : GameSystem
     private bool HasLineOfSight(int index, int targetMap, int targetX, int targetY, WorldLayer targetLayer)
     {
         var p = _pm[index].Char;
-        var (myWX, myWY) = WorldCoordHelper.ToWorld(1, 1, p.X, p.Y);
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, p.Map, targetMap, targetX, targetY);
-        if (tw is null) return false;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, p.Map);
+        var (myWX, myWY) = grid.CenterToWorld(p.X, p.Y);
+        var tw = grid.ToWorldRelative(targetMap, targetX, targetY);
+        if (tw is null) return false;
 
         // Two-layer world: the caster and target must first CONNECT across layers — same layer always; across
         // layers only when one of them stands on a ramp (a person on a ramp can see/shoot both the ground and the

@@ -2,6 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="using:Mirage.Editor.Models"
         xmlns:controls="using:Mirage.Editor.Controls"
+        xmlns:vm="using:Mirage.Editor.ViewModels"
+        x:DataType="vm:ConversationNodeRowViewModel"
         x:Class="Mirage.Editor.Views.ConversationNodeDialog"
         Width="620" Height="540" MinWidth="460" MinHeight="360"
         WindowStartupLocation="CenterOwner"
@@ -27,7 +29,7 @@
       <ScrollViewer>
         <ItemsControl ItemsSource="{Binding Choices}">
           <ItemsControl.ItemTemplate>
-            <DataTemplate>
+            <DataTemplate x:DataType="vm:ConversationChoiceRowViewModel">
               <Grid ColumnDefinitions="2*,2*,*,34" HorizontalAlignment="Stretch" Margin="0,0,0,4">
                 <TextBox Grid.Column="0" Text="{Binding Label}" PlaceholderText="{Binding LabelPlaceholder}"/>
                 <controls:DropdownAutoCompleteBox Grid.Column="1" Margin="4,0,0,0"
@@ -39,7 +41,7 @@
                 <ComboBox Grid.Column="2" Margin="4,0,0,0" ItemsSource="{Binding Actions}"
                           SelectedItem="{Binding Action}" HorizontalAlignment="Stretch"/>
                 <Button Grid.Column="3" Content="-" FontWeight="Bold"
-                        Command="{Binding $parent[ItemsControl].DataContext.RemoveChoiceCommand}"
+                        Command="{Binding $parent[ItemsControl].((vm:ConversationNodeRowViewModel)DataContext).RemoveChoiceCommand}"
                         CommandParameter="{Binding}"
                         Classes="glyph" Margin="4,0,0,0"
                         HorizontalAlignment="Center" VerticalAlignment="Stretch"/>

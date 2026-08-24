@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Mirage.Editor.Localization;
+using Mirage.Shared;
 using Mirage.Editor.ViewModels;
 
 namespace Mirage.Editor.Views;
@@ -30,6 +31,22 @@ public partial class HelpDialog : Window
         _selectionHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_SelectionHeader);
         _layersHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_LayersHeader);
         _attributeHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_AttributeHeader);
+        _worldHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_WorldHeader);
+        _worldIntro.Text = EditorStrings.Get(EditorStrings.HelpDialog_WorldIntro);
+        _worldWorldFolder.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_WorldFolder);
+        _worldWorldFolderDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_WorldFolderDesc);
+        _worldMapSlots.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_MapSlots);
+        _worldMapSlotsDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_MapSlotsDesc);
+        _worldMapSize.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_MapSize);
+        _worldMapSizeDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_MapSizeDesc);
+        _worldLinks.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_Links);
+        _worldLinksDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_LinksDesc);
+        _worldGroups.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_Groups);
+        _worldGroupsDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_GroupsDesc);
+        _worldProperties.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_Properties);
+        _worldPropertiesDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_PropertiesDesc);
+        _worldPlanes.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_Planes);
+        _worldPlanesDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_PlanesDesc);
 
         _ctrlLeftClick.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_LeftClick);
         _ctrlLeftClickDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_LeftClickDesc);

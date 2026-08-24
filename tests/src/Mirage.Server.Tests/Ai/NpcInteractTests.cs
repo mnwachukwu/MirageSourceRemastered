@@ -95,7 +95,7 @@ public class NpcInteractTests
     {
         var world = InteractWorld(npcLayer: WorldLayer.Fringe);
         // The keeper's own tile (5,6) is a ramp whose ground side faces Up — i.e. toward the player at (5,5).
-        world.Maps[1].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up };
+        world.Maps[1].EditTile(5, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up } });
         var pc = new PlayerRecord { Map = 1, X = 5, Y = 5, Layer = WorldLayer.Ground };
 
         Assert.That(world.IsNpcInInteractRange(1, pc, 1, 2, out int npcNum), Is.True,
@@ -108,7 +108,7 @@ public class NpcInteractTests
     public void IsNpcInInteractRange_CrossLayerOffRampMountAxis_IsOutOfReach()
     {
         var world = InteractWorld(npcLayer: WorldLayer.Fringe);
-        world.Maps[1].Tile[5, 6].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up };
+        world.Maps[1].EditTile(5, 6, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Up } });
         var pc = new PlayerRecord { Map = 1, X = 3, Y = 6, Layer = WorldLayer.Ground };   // beside the ramp, not at its foot
 
         Assert.That(world.IsNpcInInteractRange(1, pc, 1, 2, out _), Is.False,

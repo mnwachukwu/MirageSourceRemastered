@@ -18,13 +18,13 @@ internal readonly struct ClientTileView(ClientState state) : LayerLogic.IWorldTi
 
     public TileRecord? At(int worldX, int worldY)
     {
-        int col = worldX / WorldCoordHelper.MapTilesX;
-        int row = worldY / WorldCoordHelper.MapTilesY;
+        int col = worldX / _state.MapTilesX;
+        int row = worldY / _state.MapTilesY;
         if ((uint)col > 2 || (uint)row > 2) return null;
         var map = _state.NeighborMaps[col, row];
         if (map is null) return null;
-        int lx = worldX - col * WorldCoordHelper.MapTilesX;
-        int ly = worldY - row * WorldCoordHelper.MapTilesY;
+        int lx = worldX - col * _state.MapTilesX;
+        int ly = worldY - row * _state.MapTilesY;
         return map.Tile[lx, ly];
     }
 }

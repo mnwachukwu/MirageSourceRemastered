@@ -447,6 +447,7 @@ public class EditorLiveBroadcastTests
             Task.FromResult<IReadOnlyList<HardwareBanEntry>>([]);
         public Task<DroppedItemSaveData[]> LoadDroppedItemsAsync(int mapNum) => Task.FromResult(Array.Empty<DroppedItemSaveData>());
         public Task SaveDroppedItemsAsync(int mapNum, DroppedItemSaveData[] items) => Task.CompletedTask;
+        public Task<Mirage.Shared.Records.WorldManifest> LoadWorldManifestAsync() => Task.FromResult(new Mirage.Shared.Records.WorldManifest());
         public Task<string> LoadMotdAsync() => Task.FromResult("");
         public Task SaveMotdAsync(string motd) => Task.CompletedTask;
         public Task<EnvironmentState?> LoadEnvironmentAsync() => Task.FromResult<EnvironmentState?>(null);

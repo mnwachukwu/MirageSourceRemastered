@@ -21,6 +21,8 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
     {
         if (reader.TokenType != JsonTokenType.StartObject) throw new JsonException();
         var tile = new TileRecord();
+        Span<int> art = stackalloc int[Math.Max(Constants.MaxGroundLayers,
+                                       Math.Max(Constants.MaxFringeLayers, Constants.MaxCanopyLayers))];
 
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
@@ -31,36 +33,36 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
             switch (name)
             {
                 case "ground":
-                    ReadPackedArray(ref reader, tile.Ground);
+                    tile = tile.WithArt(LayerType.Ground, art[..ReadPackedArray(ref reader, art, Constants.MaxGroundLayers)]);
                     break;
                 case "fringe":
-                    ReadPackedArray(ref reader, tile.Fringe);
+                    tile = tile.WithArt(LayerType.Fringe, art[..ReadPackedArray(ref reader, art, Constants.MaxFringeLayers)]);
                     break;
                 case "canopy":
-                    ReadPackedArray(ref reader, tile.Canopy);
+                    tile = tile.WithArt(LayerType.Canopy, art[..ReadPackedArray(ref reader, art, Constants.MaxCanopyLayers)]);
                     break;
                 case "fringeattr":
-                    tile.FringeAttr = ReadFringeAttr(ref reader);
+                    tile = tile with { FringeAttr = ReadFringeAttr(ref reader) };
                     break;
                 case "type":
-                    tile.Type = ReadTileType(ref reader);
+                    tile = tile with { Type = ReadTileType(ref reader) };
                     break;
-                case "warpmap": tile.WarpMap = reader.GetInt16(); break;
-                case "warpx": tile.WarpX = reader.GetInt16(); break;
-                case "warpy": tile.WarpY = reader.GetInt16(); break;
-                case "warplayer": tile.WarpLayer = ReadLayer(ref reader); break;
-                case "itemnum": tile.ItemNum = reader.GetInt16(); break;
+                case "warpmap": tile = tile with { WarpMap = reader.GetInt16() }; break;
+                case "warpx": tile = tile with { WarpX = reader.GetUInt16() }; break;
+                case "warpy": tile = tile with { WarpY = reader.GetUInt16() }; break;
+                case "warplayer": tile = tile with { WarpLayer = ReadLayer(ref reader) }; break;
+                case "itemnum": tile = tile with { ItemNum = reader.GetInt16() }; break;
                 // "itemvalue" is the older spelling, still accepted so an existing map loads.
-                case "itemquantity" or "itemvalue": tile.ItemQuantity = reader.GetInt16(); break;
-                case "itemrespawnsecs": tile.ItemRespawnSecs = reader.GetInt16(); break;
-                case "keyitemnum": tile.KeyItemNum = reader.GetInt16(); break;
-                case "keyisconsumed": tile.KeyIsConsumed = reader.GetBoolean(); break;
-                case "blockslight": tile.BlocksLight = reader.GetBoolean(); break;
-                case "blockssight": tile.BlocksSight = reader.GetBoolean(); break;
-                case "doorx": tile.DoorX = reader.GetInt16(); break;
-                case "doory": tile.DoorY = reader.GetInt16(); break;
-                case "doorlayer": tile.DoorLayer = ReadLayer(ref reader); break;
-                case "rampgroundside": tile.RampGroundSide = ReadDirection(ref reader); break;
+                case "itemquantity" or "itemvalue": tile = tile with { ItemQuantity = reader.GetInt16() }; break;
+                case "itemrespawnsecs": tile = tile with { ItemRespawnSecs = reader.GetInt16() }; break;
+                case "keyitemnum": tile = tile with { KeyItemNum = reader.GetInt16() }; break;
+                case "keyisconsumed": tile = tile with { KeyIsConsumed = reader.GetBoolean() }; break;
+                case "blockslight": tile = tile with { BlocksLight = reader.GetBoolean() }; break;
+                case "blockssight": tile = tile with { BlocksSight = reader.GetBoolean() }; break;
+                case "doorx": tile = tile with { DoorX = reader.GetUInt16() }; break;
+                case "doory": tile = tile with { DoorY = reader.GetUInt16() }; break;
+                case "doorlayer": tile = tile with { DoorLayer = ReadLayer(ref reader) }; break;
+                case "rampgroundside": tile = tile with { RampGroundSide = ReadDirection(ref reader) }; break;
                 default:
                     reader.Skip();
                     break;
@@ -87,20 +89,23 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
         writer.WriteEndObject();
     }
 
-    // Reads a JSON array of packed layer ints (reader positioned at StartArray) into dest, clamped to length.
-    private static void ReadPackedArray(ref Utf8JsonReader reader, int[] dest)
+    // Reads a JSON array of packed layer ints (reader positioned at StartArray) into the caller's scratch
+    // buffer, and returns how many were written. A file carrying more layers than this build has is read to
+    // the end and the surplus dropped, so a map authored against a deeper stack still loads.
+    private static int ReadPackedArray(ref Utf8JsonReader reader, scoped Span<int> scratch, int depth)
     {
         int i = 0;
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
             int v = reader.GetInt32();
-            if (i < dest.Length) dest[i] = v;
+            if (i < depth) scratch[i] = v;
             i++;
         }
+        return Math.Min(i, depth);
     }
 
     // Writes the layer stack up to its last non-empty slot; omits the property when fully empty.
-    private static void WritePackedArray(Utf8JsonWriter writer, string name, int[] layers)
+    private static void WritePackedArray(Utf8JsonWriter writer, string name, ReadOnlySpan<int> layers)
     {
         int last = -1;
         for (int i = 0; i < layers.Length; i++)
@@ -136,23 +141,23 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
             switch (name)
             {
                 case "type":
-                    fa.Type = ReadTileType(ref reader);
+                    fa = fa with { Type = ReadTileType(ref reader) };
                     break;
-                case "warpmap": fa.WarpMap = reader.GetInt16(); break;
-                case "warpx": fa.WarpX = reader.GetInt16(); break;
-                case "warpy": fa.WarpY = reader.GetInt16(); break;
-                case "warplayer": fa.WarpLayer = ReadLayer(ref reader); break;
-                case "itemnum": fa.ItemNum = reader.GetInt16(); break;
-                case "itemquantity" or "itemvalue": fa.ItemQuantity = reader.GetInt16(); break;
-                case "itemrespawnsecs": fa.ItemRespawnSecs = reader.GetInt16(); break;
-                case "keyitemnum": fa.KeyItemNum = reader.GetInt16(); break;
-                case "keyisconsumed": fa.KeyIsConsumed = reader.GetBoolean(); break;
-                case "blockslight": fa.BlocksLight = reader.GetBoolean(); break;
-                case "blockssight": fa.BlocksSight = reader.GetBoolean(); break;
-                case "doorx": fa.DoorX = reader.GetInt16(); break;
-                case "doory": fa.DoorY = reader.GetInt16(); break;
-                case "doorlayer": fa.DoorLayer = ReadLayer(ref reader); break;
-                case "rampgroundside": fa.RampGroundSide = ReadDirection(ref reader); break;
+                case "warpmap": fa = fa with { WarpMap = reader.GetInt16() }; break;
+                case "warpx": fa = fa with { WarpX = reader.GetUInt16() }; break;
+                case "warpy": fa = fa with { WarpY = reader.GetUInt16() }; break;
+                case "warplayer": fa = fa with { WarpLayer = ReadLayer(ref reader) }; break;
+                case "itemnum": fa = fa with { ItemNum = reader.GetInt16() }; break;
+                case "itemquantity" or "itemvalue": fa = fa with { ItemQuantity = reader.GetInt16() }; break;
+                case "itemrespawnsecs": fa = fa with { ItemRespawnSecs = reader.GetInt16() }; break;
+                case "keyitemnum": fa = fa with { KeyItemNum = reader.GetInt16() }; break;
+                case "keyisconsumed": fa = fa with { KeyIsConsumed = reader.GetBoolean() }; break;
+                case "blockslight": fa = fa with { BlocksLight = reader.GetBoolean() }; break;
+                case "blockssight": fa = fa with { BlocksSight = reader.GetBoolean() }; break;
+                case "doorx": fa = fa with { DoorX = reader.GetUInt16() }; break;
+                case "doory": fa = fa with { DoorY = reader.GetUInt16() }; break;
+                case "doorlayer": fa = fa with { DoorLayer = ReadLayer(ref reader) }; break;
+                case "rampgroundside": fa = fa with { RampGroundSide = ReadDirection(ref reader) }; break;
                 default:
                     reader.Skip();
                     break;
@@ -190,11 +195,11 @@ internal sealed class TileRecordConverter : JsonConverter<TileRecord>
     // the enum, where a bare number does not.
     private static void WriteAttrFields(
         Utf8JsonWriter writer, TileType type,
-        short warpMap, short warpX, short warpY, WorldLayer warpLayer,
+        short warpMap, ushort warpX, ushort warpY, WorldLayer warpLayer,
         short itemNum, short itemQuantity, short itemRespawnSecs,
         short keyItemNum, bool keyIsConsumed,
         bool blocksLight, bool blocksSight,
-        short doorX, short doorY, WorldLayer doorLayer,
+        ushort doorX, ushort doorY, WorldLayer doorLayer,
         Direction rampGroundSide)
     {
         if (TileAttrRules.UsesWarp(type))

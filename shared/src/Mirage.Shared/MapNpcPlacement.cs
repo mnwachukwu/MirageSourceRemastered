@@ -24,7 +24,7 @@ public static class MapNpcPlacement
         int npcNum = entryIndex >= 0 && entryIndex < map.Npcs.Count ? map.Npcs[entryIndex].Npc : 0;
         int size = Math.Max(1, npcSize(npcNum));
 
-        if (x < 0 || y < 0 || x + size > Constants.MaxMapX + 1 || y + size > Constants.MaxMapY + 1)
+        if (x < 0 || y < 0 || x + size > map.Width || y + size > map.Height)
             return NpcPlacementError.OffMap;
 
         for (int j = 0; j < size; j++)

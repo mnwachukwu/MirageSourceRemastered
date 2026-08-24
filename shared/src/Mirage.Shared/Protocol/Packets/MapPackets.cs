@@ -79,6 +79,11 @@ public sealed record SendMapPacket : IPacket
     // Neighbor pre-loads carry their own cell; the center map keeps the default.
     [JsonPropertyName("col")] public int Col { get; init; } = 1;
     [JsonPropertyName("row")] public int Row { get; init; } = 1;
+    // The map's size in tiles. Tiles travel sparsely, so the grid's extent cannot be inferred from them —
+    // a map of empty tiles would arrive as no tiles at all. Defaults keep a packet written without them
+    // meaning a default-sized map.
+    [JsonPropertyName("w")] public int Width { get; init; } = Constants.DefaultMapWidth;
+    [JsonPropertyName("h")] public int Height { get; init; } = Constants.DefaultMapHeight;
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("displayName")] public string DisplayName { get; init; } = "";
     [JsonPropertyName("up")] public int Up { get; init; }
@@ -144,40 +149,31 @@ public sealed record SendMapPacket : IPacket
         public TileRecord ToTile()
         {
             var tile = new TileRecord { Type = Type };
-            Fields?.ApplyTo(tile);
-            CopyClamped(Ground, tile.Ground);
-            CopyClamped(Fringe, tile.Fringe);
-            CopyClamped(Canopy, tile.Canopy);
+            if (Fields is { } f) tile = f.ApplyTo(tile);
+            tile = tile.WithArt(LayerType.Ground, Ground)
+                       .WithArt(LayerType.Fringe, Fringe)
+                       .WithArt(LayerType.Canopy, Canopy);
             if (FringeAttr is { } fa)
             {
-                var attr = new FringeAttr { Type = fa.Type };
-                fa.Fields?.ApplyTo(attr);
-                tile.FringeAttr = attr;
+                var attr = new Records.FringeAttr { Type = fa.Type };
+                if (fa.Fields is { } ff) attr = ff.ApplyTo(attr);
+                tile = tile with { FringeAttr = attr };
             }
             return tile;
         }
 
         /// <summary>True when a tile carries nothing — no layers, default type, no fields, no fringe layer —
         /// so it can be omitted from a sparse SendMap.</summary>
-        public static bool IsDefault(TileRecord t)
-        {
-            if (t.Type != TileType.Walkable) return false;
-            if (t.FringeAttr is not null) return false;
-            foreach (int p in t.Ground) if (!LayerCell.IsEmpty(p)) return false;
-            foreach (int p in t.Fringe) if (!LayerCell.IsEmpty(p)) return false;
-            foreach (int p in t.Canopy) if (!LayerCell.IsEmpty(p)) return false;
-            return true;
-        }
+        public static bool IsDefault(TileRecord t) =>
+            t.Type == TileType.Walkable && t.FringeAttr is null && t.HasNoArt;
 
-        private static int[] Trim(int[] layers)
+        private static int[] Trim(ReadOnlySpan<int> layers)
         {
             int last = -1;
             for (int i = 0; i < layers.Length; i++)
                 if (!LayerCell.IsEmpty(layers[i])) last = i;
             if (last < 0) return [];
-            var r = new int[last + 1];
-            Array.Copy(layers, r, last + 1);
-            return r;
+            return layers[..(last + 1)].ToArray();
         }
 
         private static void CopyClamped(int[]? src, int[] dest)
@@ -204,16 +200,16 @@ public sealed record SendMapPacket : IPacket
     public sealed record AttrFields
     {
         [property: JsonPropertyName("wm"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpMap { get; init; }
-        [property: JsonPropertyName("wx"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpX { get; init; }
-        [property: JsonPropertyName("wy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short WarpY { get; init; }
+        [property: JsonPropertyName("wx"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public ushort WarpX { get; init; }
+        [property: JsonPropertyName("wy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public ushort WarpY { get; init; }
         [property: JsonPropertyName("wl"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WorldLayer WarpLayer { get; init; }
         [property: JsonPropertyName("in"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemNum { get; init; }
         [property: JsonPropertyName("iv"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemQuantity { get; init; }
         [property: JsonPropertyName("ir"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short ItemRespawnSecs { get; init; }
         [property: JsonPropertyName("kn"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short KeyItemNum { get; init; }
         [property: JsonPropertyName("kc"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public bool KeyIsConsumed { get; init; }
-        [property: JsonPropertyName("dx"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short DoorX { get; init; }
-        [property: JsonPropertyName("dy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public short DoorY { get; init; }
+        [property: JsonPropertyName("dx"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public ushort DoorX { get; init; }
+        [property: JsonPropertyName("dy"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public ushort DoorY { get; init; }
         [property: JsonPropertyName("dl"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WorldLayer DoorLayer { get; init; }
         [property: JsonPropertyName("rg"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public Direction RampGroundSide { get; init; }
         // What the wall lets THROUGH, carried as the exception so an ordinary wall omits both. A Blocked
@@ -249,25 +245,25 @@ public sealed record SendMapPacket : IPacket
             RampGroundSide = a.RampGroundSide,
         };
 
-        public void ApplyTo(TileRecord t)
+        public TileRecord ApplyTo(TileRecord t) => t with
         {
-            t.WarpMap = WarpMap; t.WarpX = WarpX; t.WarpY = WarpY; t.WarpLayer = WarpLayer;
-            t.ItemNum = ItemNum; t.ItemQuantity = ItemQuantity; t.ItemRespawnSecs = ItemRespawnSecs;
-            t.KeyItemNum = KeyItemNum; t.KeyIsConsumed = KeyIsConsumed;
-            t.DoorX = DoorX; t.DoorY = DoorY; t.DoorLayer = DoorLayer;
-            t.RampGroundSide = RampGroundSide;
-            t.BlocksLight = !LightPasses; t.BlocksSight = !SightPasses;
-        }
+            WarpMap = WarpMap, WarpX = WarpX, WarpY = WarpY, WarpLayer = WarpLayer,
+            ItemNum = ItemNum, ItemQuantity = ItemQuantity, ItemRespawnSecs = ItemRespawnSecs,
+            KeyItemNum = KeyItemNum, KeyIsConsumed = KeyIsConsumed,
+            DoorX = DoorX, DoorY = DoorY, DoorLayer = DoorLayer,
+            RampGroundSide = RampGroundSide,
+            BlocksLight = !LightPasses, BlocksSight = !SightPasses,
+        };
 
-        public void ApplyTo(Records.FringeAttr a)
+        public Records.FringeAttr ApplyTo(Records.FringeAttr a) => a with
         {
-            a.WarpMap = WarpMap; a.WarpX = WarpX; a.WarpY = WarpY; a.WarpLayer = WarpLayer;
-            a.ItemNum = ItemNum; a.ItemQuantity = ItemQuantity; a.ItemRespawnSecs = ItemRespawnSecs;
-            a.KeyItemNum = KeyItemNum; a.KeyIsConsumed = KeyIsConsumed;
-            a.DoorX = DoorX; a.DoorY = DoorY; a.DoorLayer = DoorLayer;
-            a.RampGroundSide = RampGroundSide;
-            a.BlocksLight = !LightPasses; a.BlocksSight = !SightPasses;
-        }
+            WarpMap = WarpMap, WarpX = WarpX, WarpY = WarpY, WarpLayer = WarpLayer,
+            ItemNum = ItemNum, ItemQuantity = ItemQuantity, ItemRespawnSecs = ItemRespawnSecs,
+            KeyItemNum = KeyItemNum, KeyIsConsumed = KeyIsConsumed,
+            DoorX = DoorX, DoorY = DoorY, DoorLayer = DoorLayer,
+            RampGroundSide = RampGroundSide,
+            BlocksLight = !LightPasses, BlocksSight = !SightPasses,
+        };
     }
 }
 

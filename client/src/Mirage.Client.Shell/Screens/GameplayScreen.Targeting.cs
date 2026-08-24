@@ -39,8 +39,8 @@ public sealed partial class GameplayScreen : IGameScreen
         var state = _ctx.State;
         bool safeMap = state.MoralOf(state.Map) == MapMoral.Safe;
         var me = state.Me;
-        int myWX = WorldCoordHelper.MapTilesX + me.X;  // local player sits at the center cell
-        int myWY = WorldCoordHelper.MapTilesY + me.Y;
+        int myWX = _ctx.State.MapTilesX + me.X;  // local player sits at the center cell
+        int myWY = _ctx.State.MapTilesY + me.Y;
         var list = new List<(TargetRef Ref, int DistSq)>();
 
         void TryAddNpc(TargetRef r, int worldX, int worldY, int size, NpcBehavior behavior, WorldLayer layer)
@@ -64,7 +64,7 @@ public sealed partial class GameplayScreen : IGameScreen
                 if (cellMap <= 0) continue;
                 var npcs = state.NpcsForMap(cellMap);
                 if (npcs is null) continue;
-                int offX = col * WorldCoordHelper.MapTilesX, offY = row * WorldCoordHelper.MapTilesY;
+                int offX = col * _ctx.State.MapTilesX, offY = row * _ctx.State.MapTilesY;
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
@@ -150,7 +150,7 @@ public sealed partial class GameplayScreen : IGameScreen
         var state = _ctx.State;
         var me = state.Me;
         if (state.MyIndex > 0
-            && Hit(wx, wy, WorldCoordHelper.MapTilesX + me.X, WorldCoordHelper.MapTilesY + me.Y, me.XOffset, me.YOffset))
+            && Hit(wx, wy, _ctx.State.MapTilesX + me.X, _ctx.State.MapTilesY + me.Y, me.XOffset, me.YOffset))
         {
             return new TargetRef(TargetKind.Player, state.MyIndex, 0);
         }
@@ -177,8 +177,8 @@ public sealed partial class GameplayScreen : IGameScreen
                 if (mapNum <= 0) continue;
                 var npcs = state.NpcsForMap(mapNum);
                 if (npcs is null) continue;
-                int cellOx = c * WorldCoordHelper.MapTilesX;
-                int cellOy = r * WorldCoordHelper.MapTilesY;
+                int cellOx = c * _ctx.State.MapTilesX;
+                int cellOy = r * _ctx.State.MapTilesY;
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
@@ -224,7 +224,7 @@ public sealed partial class GameplayScreen : IGameScreen
                 if (mapNum <= 0) continue;
                 var npcs = state.NpcsForMap(mapNum);
                 if (npcs is null) continue;
-                int cellOx = c * WorldCoordHelper.MapTilesX, cellOy = r * WorldCoordHelper.MapTilesY;
+                int cellOx = c * _ctx.State.MapTilesX, cellOy = r * _ctx.State.MapTilesY;
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++)
                 {
                     var n = npcs[i];
@@ -318,7 +318,7 @@ public sealed partial class GameplayScreen : IGameScreen
             for (int r = 0; r < 3; r++)
             {
                 if (nums[c, r] == mapNum)
-                    return (c * WorldCoordHelper.MapTilesX, r * WorldCoordHelper.MapTilesY);
+                    return (c * _ctx.State.MapTilesX, r * _ctx.State.MapTilesY);
             }
         }
 

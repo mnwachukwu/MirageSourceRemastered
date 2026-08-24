@@ -39,8 +39,8 @@ public class ConnectedRunFillTests
     private static void LayWalls(MapRecord map)
     {
         foreach (var (x, y) in new[] { (2, 2), (3, 2), (4, 2), (4, 3), (4, 4) })
-            map.Tile[x, y].Type = TileType.Blocked;
-        map.Tile[5, 5].Type = TileType.Blocked;      // diagonal from (4,4): a separate wall
+            map.EditTile(x, y, t => t with { Type = TileType.Blocked });
+        map.EditTile(5, 5, t => t with { Type = TileType.Blocked });      // diagonal from (4,4): a separate wall
     }
 
     [Test]
@@ -152,8 +152,8 @@ public class ConnectedRunFillTests
         var (vm, map) = Build();
         foreach (var (x, y) in new[] { (1, 1), (2, 1), (1, 2) })
         {
-            map.Tile[x, y].Type = TileType.Warp;
-            map.Tile[x, y].WarpMap = 4;
+            map.EditTile(x, y, t => t with { Type = TileType.Warp });
+            map.EditTile(x, y, t => t with { WarpMap = 4 });
         }
         vm.SelectedAttributeTool = AttributeTool.Warp;
         vm.FillRun = true;
@@ -181,9 +181,9 @@ public class ConnectedRunFillTests
     public void TheRun_StopsAtADifferentAttribute()
     {
         var (vm, map) = Build();
-        map.Tile[1, 1].Type = TileType.Warp;
-        map.Tile[2, 1].Type = TileType.Warp;
-        map.Tile[3, 1].Type = TileType.Blocked;
+        map.EditTile(1, 1, t => t with { Type = TileType.Warp });
+        map.EditTile(2, 1, t => t with { Type = TileType.Warp });
+        map.EditTile(3, 1, t => t with { Type = TileType.Blocked });
         vm.SelectedAttributeTool = AttributeTool.Warp;
         vm.FillRun = true;
 

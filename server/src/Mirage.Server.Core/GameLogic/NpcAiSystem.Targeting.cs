@@ -31,7 +31,7 @@ public sealed partial class NpcAiSystem : GameSystem
     {
         var npc = _world.Npcs[mn.Num];
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
+        var (npcWX, npcWY) = grid.CenterToWorld(mn.X, mn.Y);
         var los = new WorldLosPredicate(_world, grid, mn.Layer);
         int best = 0, bestLevel = int.MaxValue, bestDist = int.MaxValue;
         foreach (int i in _world.MapObservers[mapNum])
@@ -43,9 +43,9 @@ public sealed partial class NpcAiSystem : GameSystem
             // Beneath its notice: a mob far enough under the player does not start anything. Struck, it
             // still retaliates through AlertNpc, which is a different path entirely.
             if (p.Level - StatFormulas.NpcLevel(npc) > Constants.NpcAggroIgnoreLevelGap) continue;
-            var gp = WorldCoordHelper.GridPosition(grid, p.Map);
+            var gp = grid.PositionOf(p.Map);
             if (gp is null) continue;  // defensive: observer that left the area mid-tick
-            var (pwx, pwy) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, p.X, p.Y);
+            var (pwx, pwy) = grid.ToWorld(gp.Value.col, gp.Value.row, p.X, p.Y);
             if (Math.Abs(pwx - npcWX) > range || Math.Abs(pwy - npcWY) > range) continue;
             int d = WorldCoordHelper.WorldManhattan(npcWX, npcWY, pwx, pwy);
             // Lowest level wins; nearest breaks equal-level ties.  Cheap cutoff before LoS/BFS work:
@@ -70,7 +70,7 @@ public sealed partial class NpcAiSystem : GameSystem
     {
         long nowUtc = NowUtc;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        var (gWX, gWY) = WorldCoordHelper.ToWorld(1, 1, guard.X, guard.Y);
+        var (gWX, gWY) = grid.CenterToWorld(guard.X, guard.Y);
         int best = 0, bestDist = int.MaxValue;
         foreach (int i in _world.MapObservers[mapNum])
         {
@@ -78,11 +78,11 @@ public sealed partial class NpcAiSystem : GameSystem
             if (_pm[i].Char.Dead) continue;  // a dead PK player is still PK (death doesn't clear PkExpiryUtc) — don't guard-target the corpse
             if (_pm[i].GodMode) continue;    // nor an observer, whatever its PK history says
             var p = _pm[i].Char;
-            var gp = WorldCoordHelper.GridPosition(grid, p.Map);
+            var gp = grid.PositionOf(p.Map);
             if (gp is null) continue;
             bool effectivelyPk = p.IsPk(nowUtc) && _pm[i].PkGraceUntilUtc <= nowUtc;
             if (!effectivelyPk && _pm[i].PvpAttackerUntil <= now) continue;
-            var (pwx, pwy) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, p.X, p.Y);
+            var (pwx, pwy) = grid.ToWorld(gp.Value.col, gp.Value.row, p.X, p.Y);
             int d = WorldCoordHelper.WorldManhattan(gWX, gWY, pwx, pwy);
             if (d < bestDist)
             {
@@ -102,7 +102,7 @@ public sealed partial class NpcAiSystem : GameSystem
     private (int SpawnMap, int SpawnSlot) FindGuardNpcTarget(int mapNum, int guardSlot, MapNpcRecord guard)
     {
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        var (gWX, gWY) = WorldCoordHelper.ToWorld(1, 1, guard.X, guard.Y);
+        var (gWX, gWY) = grid.CenterToWorld(guard.X, guard.Y);
         (int SpawnMap, int SpawnSlot) best = (0, 0);
         int bestDist = int.MaxValue;
 
@@ -121,7 +121,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     var beh = _world.Npcs[other.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
                     if (other.Target <= 0) continue;  // must currently be chasing a PLAYER
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, other.X, other.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, other.X, other.Y);
                     if (!WorldCoordHelper.IsWithinViewport(gWX, gWY, oWX, oWY)) continue;
                     int d = WorldCoordHelper.WorldManhattan(gWX, gWY, oWX, oWY);
                     if (d < bestDist)
@@ -139,7 +139,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     var beh = _world.Npcs[gt.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
                     if (gt.Target <= 0) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, gt.X, gt.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, gt.X, gt.Y);
                     if (!WorldCoordHelper.IsWithinViewport(gWX, gWY, oWX, oWY)) continue;
                     int d = WorldCoordHelper.WorldManhattan(gWX, gWY, oWX, oWY);
                     if (d < bestDist)
@@ -166,7 +166,7 @@ public sealed partial class NpcAiSystem : GameSystem
     {
         var attackerNpc = _world.Npcs[attacker.Num];
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, attacker.X, attacker.Y);
+        var (aWX, aWY) = grid.CenterToWorld(attacker.X, attacker.Y);
         var los = new WorldLosPredicate(_world, grid, attacker.Layer);
         int range = attackerNpc.Range;
         (int SpawnMap, int SpawnSlot) best = (0, 0);
@@ -186,7 +186,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     if (AreNpcsAllied(attacker.Num, other.Num)) continue;  // same-kind or same-group peace
                     var beh = _world.Npcs[other.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, other.X, other.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, other.X, other.Y);
                     if (Math.Abs(oWX - aWX) > range || Math.Abs(oWY - aWY) > range) continue;
                     int d = WorldCoordHelper.WorldManhattan(aWX, aWY, oWX, oWY);
                     if (d >= bestDist) continue;  // can't beat the current nearest; skip before LoS/BFS
@@ -207,7 +207,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     if (AreNpcsAllied(attacker.Num, gt.Num)) continue;  // same-kind or same-group peace
                     var beh = _world.Npcs[gt.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, gt.X, gt.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, gt.X, gt.Y);
                     if (Math.Abs(oWX - aWX) > range || Math.Abs(oWY - aWY) > range) continue;
                     int d = WorldCoordHelper.WorldManhattan(aWX, aWY, oWX, oWY);
                     if (d >= bestDist) continue;
@@ -294,7 +294,7 @@ public sealed partial class NpcAiSystem : GameSystem
 
         // Must still be inside attacker's 3×3 observable area — no warp follow for NPC targets.
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        if (WorldCoordHelper.GridPosition(grid, victimMap) is null)
+        if (grid.PositionOf(victimMap) is null)
         {
             DropNpcTarget(mapNum, slot, mn);
             return;
@@ -418,7 +418,7 @@ public sealed partial class NpcAiSystem : GameSystem
     private (int SpawnMap, int SpawnSlot) FindGuardInViewport(MapNpcRecord mn, int currentMapNum)
     {
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, currentMapNum);
-        var (mnWX, mnWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
+        var (mnWX, mnWY) = grid.CenterToWorld(mn.X, mn.Y);
         int bestSpawnMap = 0, bestSpawnSlot = 0, bestDist = int.MaxValue;
         for (int col = 0; col < 3; col++)
         {
@@ -431,7 +431,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     var other = _world.MapNpcs[m, s];
                     if (other.Num <= 0 || other.Hp <= 0) continue;
                     if (_world.Npcs[other.Num].Behavior != NpcBehavior.Guard) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, other.X, other.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, other.X, other.Y);
                     if (!WorldCoordHelper.IsWithinViewport(mnWX, mnWY, oWX, oWY)) continue;
                     int d = WorldCoordHelper.WorldManhattan(mnWX, mnWY, oWX, oWY);
                     if (d < bestDist)
@@ -446,7 +446,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     var gt = guests[g];
                     if (gt.Num <= 0 || gt.Hp <= 0) continue;
                     if (_world.Npcs[gt.Num].Behavior != NpcBehavior.Guard) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, gt.X, gt.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, gt.X, gt.Y);
                     if (!WorldCoordHelper.IsWithinViewport(mnWX, mnWY, oWX, oWY)) continue;
                     int d = WorldCoordHelper.WorldManhattan(mnWX, mnWY, oWX, oWY);
                     if (d < bestDist)

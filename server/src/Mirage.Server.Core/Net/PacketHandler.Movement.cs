@@ -83,6 +83,15 @@ public sealed partial class PacketHandler
         }
 
         var (map, x, y) = _config.Spawn.HomeFor(vp);
+        // The cooldown is stamped below, after this gate: a home point that names no tile refuses the
+        // command outright, and a refusal costs nothing.
+        if (!_movement.IsWarpDestinationValid(map, x, y))
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeDestinationMissing,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.Notice));
+            return;
+        }
+
         vp.HomeUsedAtUtc = now;
         _movement.PlayerWarp(index, map, x, y);
         _saver.SaveCharInBackground(sp.Login, sp.CharNum, vp.Clone(), sp.CloneBank());

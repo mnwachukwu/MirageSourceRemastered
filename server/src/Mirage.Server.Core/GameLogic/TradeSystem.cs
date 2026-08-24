@@ -489,8 +489,9 @@ public sealed class TradeSystem : GameSystem
     {
         var pa = _pm[a].Char;
         var pb = _pm[b].Char;
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, pa.X, pa.Y);
-        var bw = WorldCoordHelper.ToWorldRelative(_world.Maps, pa.Map, pb.Map, pb.X, pb.Y);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, pa.Map);
+        var (aWX, aWY) = grid.CenterToWorld(pa.X, pa.Y);
+        var bw = grid.ToWorldRelative(pb.Map, pb.X, pb.Y);
         return bw is not null && WorldCoordHelper.IsInSpellRange(aWX, aWY, bw.Value.worldX, bw.Value.worldY);
     }
 

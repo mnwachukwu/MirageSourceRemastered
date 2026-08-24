@@ -151,16 +151,18 @@ public sealed partial class ClientPacketHandler : IClientEvents
         var pools = _state.BloodPoolsForMap(p.MapNum);
         pools.Clear();
         var b = p.Pools;
-        for (int i = 0; i + 5 < b.Length; i += 6)   // 6 bytes/pool: x, y, size, amount, freshness, layer
+        const int stride = BloodUpdatePacket.BytesPerPool;
+        for (int i = 0; i + stride - 1 < b.Length; i += stride)
         {
+            var (x, y) = BloodUpdatePacket.PoolTileAt(b, i);
             pools.Add(new ClientState.BloodPool
             {
-                X = b[i],
-                Y = b[i + 1],
-                Size = b[i + 2],
-                Amount = b[i + 3] / 255f * Constants.BloodMaxTileAmount,
-                Freshness = b[i + 4] / 255f,
-                Layer = (WorldLayer)b[i + 5],
+                X = x,
+                Y = y,
+                Size = b[i + 4],
+                Amount = b[i + 5] / 255f * Constants.BloodMaxTileAmount,
+                Freshness = b[i + 6] / 255f,
+                Layer = (WorldLayer)b[i + 7],
             });
         }
     }

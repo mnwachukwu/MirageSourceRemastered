@@ -219,9 +219,10 @@ public sealed partial class ItemSystem : GameSystem
                 // at grid [1,1], so local (0,0) maps to world (MapTilesX, MapTilesY).
                 var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, p.Map);
                 var (dx, dy) = WorldCoordHelper.DirDelta(p.Dir);
-                int wx = WorldCoordHelper.MapTilesX + p.X + dx;
-                int wy = WorldCoordHelper.MapTilesY + p.Y + dy;
-                var (mapNum, tx, ty) = WorldCoordHelper.ResolveWorldTile(grid, wx, wy);
+                var (px, py) = grid.CenterToWorld(p.X, p.Y);
+                int wx = px + dx;
+                int wy = py + dy;
+                var (mapNum, tx, ty) = grid.ResolveWorldTile(wx, wy);
                 if (mapNum <= 0 || mapNum > _world.Limits.Maps) break;
                 var map = _world.Maps[mapNum];
                 if (map is null) break; // cardinal link to a non-existent map

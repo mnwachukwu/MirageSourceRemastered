@@ -117,8 +117,7 @@ public class BlockedAttrTests
     {
         var tile = new TileRecord { Type = TileType.Blocked, BlocksLight = false, BlocksSight = false };
 
-        tile.Type = TileType.Walkable;
-        TileAttrRules.Normalize(tile);
+        tile = TileAttrRules.Normalize(tile with { Type = TileType.Walkable });
 
         Assert.Multiple(() =>
         {

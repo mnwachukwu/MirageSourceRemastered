@@ -33,7 +33,7 @@ public class ClientLineOfSightTests
     public void HasClear_BlockedTileOnLine_False()
     {
         var s = CenterState();
-        s.Map.Tile[7, 5].Type = TileType.Blocked;   // world (23,17) lies on the line
+        s.Map.EditTile(7, 5, t => t with { Type = TileType.Blocked });   // world (23,17) lies on the line
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY), Is.False);
     }
 
@@ -42,10 +42,10 @@ public class ClientLineOfSightTests
     public void HasClear_KeyDoor_ClosedBlocks_OpenClears()
     {
         var s = CenterState();
-        s.Map.Tile[8, 5].Type = TileType.Key;   // world (24,17) on the line
+        s.Map.EditTile(8, 5, t => t with { Type = TileType.Key });   // world (24,17) on the line
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY), Is.False, "closed door blocks");
 
-        s.TempTile[8, 5, (int)WorldLayer.Ground] = true;   // ground door open
+        s.TempTile.Set(8, 5, (int)WorldLayer.Ground, true);   // ground door open
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY), Is.True, "open door clears");
     }
 
@@ -55,7 +55,7 @@ public class ClientLineOfSightTests
     public void HasClear_FringeWall_BlocksFringeShot_NotGroundShotBeneath()
     {
         var s = CenterState();
-        s.Map.Tile[7, 5].FringeAttr = new FringeAttr { Type = TileType.Blocked };   // a fringe railing on the line
+        s.Map.EditTile(7, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.Blocked } });   // a fringe railing on the line
 
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY), Is.True,
             "a ground shot passes beneath a fringe wall");
@@ -71,17 +71,17 @@ public class ClientLineOfSightTests
     public void HasClear_FringeDoor_IsIndependentOfTheGroundDoorState()
     {
         var s = CenterState();
-        s.Map.Tile[8, 5].FringeAttr = new FringeAttr { Type = TileType.Key };   // a fringe-deck door on the line
+        s.Map.EditTile(8, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.Key } });   // a fringe-deck door on the line
         s.Me.Layer = WorldLayer.Fringe;
 
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY, WorldLayer.Fringe), Is.False,
             "the closed fringe door blocks the fringe shot");
 
-        s.TempTile[8, 5, (int)WorldLayer.Ground] = true;   // opening the GROUND door changes nothing up on the deck
+        s.TempTile.Set(8, 5, (int)WorldLayer.Ground, true);   // opening the GROUND door changes nothing up on the deck
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY, WorldLayer.Fringe), Is.False,
             "the ground door is independent — the fringe shot is still blocked");
 
-        s.TempTile[8, 5, (int)WorldLayer.Fringe] = true;   // opening the FRINGE door clears it
+        s.TempTile.Set(8, 5, (int)WorldLayer.Fringe, true);   // opening the FRINGE door clears it
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, TargetWX, TargetWY, WorldLayer.Fringe), Is.True,
             "opening the fringe door clears the fringe shot");
     }
@@ -98,7 +98,7 @@ public class ClientLineOfSightTests
 
         // A ramp on the adjacent tile (local (6,5) = world (22,17)), ground side Left so stepping Right mounts it:
         // a fringe target standing on it connects from the ground foot at (5,5).
-        s.Map.Tile[6, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
+        s.Map.EditTile(6, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left } });
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, 22, 17, WorldLayer.Fringe), Is.True,
             "reaches a target on the adjacent ramp");
     }
@@ -110,12 +110,12 @@ public class ClientLineOfSightTests
     {
         var s = CenterState();
         // A distant fringe target on row 5 stands ON a ramp (local (9,5) = world (25,17)) → the endpoints connect.
-        s.Map.Tile[9, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
+        s.Map.EditTile(9, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left } });
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, 25, 17, WorldLayer.Fringe), Is.True,
             "a clear cross-layer line to a ramp target connects");
 
         // Drop a ramp mid-line (local (7,5) = world (23,17)) → it blocks the cross-layer cast.
-        s.Map.Tile[7, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left };
+        s.Map.EditTile(7, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Left } });
         Assert.That(ClientLineOfSight.HasClearFromLocalPlayer(s, 25, 17, WorldLayer.Fringe), Is.False,
             "a ramp on the line blocks the cross-layer cast");
     }

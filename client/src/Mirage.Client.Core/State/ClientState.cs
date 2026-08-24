@@ -201,6 +201,34 @@ public sealed partial class ClientState
     /// <summary>Server map number of the current ("center") map.</summary>
     public int CenterMapNum { get; set; }
 
+    // ── World-tile coordinates ────────────────────────────────────────────────
+    // The 3x3 neighbourhood's stride, taken from the CENTER map. A map may only link to maps of its own
+    // size, so every cell measures the same and a world coordinate means one thing across the whole grid.
+
+    /// <summary>The neighbourhood's tile width — the center map's own.</summary>
+    public int MapTilesX => NeighborMaps[1, 1]?.Width ?? Constants.DefaultMapWidth;
+
+    /// <summary>The neighbourhood's tile height — the center map's own.</summary>
+    public int MapTilesY => NeighborMaps[1, 1]?.Height ?? Constants.DefaultMapHeight;
+
+    /// <summary>World-tile coordinate of a local tile within a grid cell. The center map's (0,0) sits at
+    /// (<see cref="MapTilesX"/>, <see cref="MapTilesY"/>), so neighbors fit on every side.</summary>
+    public (int worldX, int worldY) ToWorld(int col, int row, int localX, int localY)
+        => (col * MapTilesX + localX, row * MapTilesY + localY);
+
+    /// <summary>World-tile coordinate of a local tile on the CENTER map.</summary>
+    public (int worldX, int worldY) CenterToWorld(int localX, int localY)
+        => (MapTilesX + localX, MapTilesY + localY);
+
+    /// <summary>Inverse of <see cref="ToWorld"/>: the grid cell and local tile a world coordinate lands
+    /// on. The cell may be outside the 3x3, so callers check before indexing.</summary>
+    public (int col, int row, int localX, int localY) FromWorld(int worldX, int worldY)
+    {
+        int col = worldX / MapTilesX;
+        int row = worldY / MapTilesY;
+        return (col, row, worldX - col * MapTilesX, worldY - row * MapTilesY);
+    }
+
     /// <summary>
     /// Server map number occupying each 3×3 grid cell ([col,row]); 0 = no map.
     /// [1,1] mirrors <see cref="CenterMapNum"/>.  Lets the client route incoming
@@ -211,29 +239,29 @@ public sealed partial class ClientState
     /// <summary>Door-open state per tile on the center map; indexed [x, y, (int)WorldLayer].
     /// Two-plane world: a fringe-deck door on a bridge is independent of the ground door beneath it.
     /// Settable so a seamless crossing can swap it with a neighbor cell's grid (see ShiftGrid).</summary>
-    public bool[,,] TempTile { get; private set; } = new bool[Constants.MaxMapX + 1, Constants.MaxMapY + 1, 2];
+    public OpenDoors TempTile { get; private set; } = new();
 
     /// <summary>
     /// Door-open state for the 8 neighbor maps ([col,row]; [1,1] unused — center uses
     /// <see cref="TempTile"/>).  Mirrors the center's door tracking so neighbor doors predict
     /// collision identically.  Each cell is an always-allocated [x,y,layer] bool grid.
     /// </summary>
-    public bool[,][,,] NeighborTempTiles { get; } = InitNeighborTempTiles();
+    public OpenDoors[,] NeighborTempTiles { get; } = InitNeighborTempTiles();
 
-    private static bool[,][,,] InitNeighborTempTiles()
+    private static OpenDoors[,] InitNeighborTempTiles()
     {
-        var g = new bool[3, 3][,,];
+        var g = new OpenDoors[3, 3];
         for (int c = 0; c < 3; c++)
         {
             for (int r = 0; r < 3; r++)
-                g[c, r] = new bool[Constants.MaxMapX + 1, Constants.MaxMapY + 1, 2];
+                g[c, r] = new OpenDoors();
         }
 
         return g;
     }
 
-    /// <summary>Door-open grid for a map number — the center grid, a neighbor cell, or null.</summary>
-    public bool[,,]? TempTilesForMap(int mapNum)
+    /// <summary>Open-door set for a map number — the center's, a neighbor cell's, or null.</summary>
+    public OpenDoors? TempTilesForMap(int mapNum)
     {
         if (mapNum <= 0) return null;
         if (mapNum == CenterMapNum) return TempTile;

@@ -88,7 +88,7 @@ public sealed partial class ClientState
         MapItems.Clear();
         for (int i = 1; i <= Constants.MaxMapNpcs; i++) MapNpcs[i] = new ClientMapNpc();
         TraversalNpcs.Clear();
-        Array.Clear(TempTile);
+        TempTile.Clear();
         BloodByMap.Clear();
         // Drop stale neighbor maps, their map numbers, and their entities; the server
         // re-pushes them for the new center.  Keep the center cell ([1,1]).
@@ -102,7 +102,7 @@ public sealed partial class ClientState
                 var npcCell = NeighborNpcs[c, r];
                 for (int i = 1; i <= Constants.MaxMapNpcs; i++) npcCell[i] = new ClientMapNpc();
                 NeighborItems[c, r].Clear();
-                Array.Clear(NeighborTempTiles[c, r]);
+                NeighborTempTiles[c, r].Clear();
             }
         }
 
@@ -174,11 +174,11 @@ public sealed partial class ClientState
         }
 
         // World-pixel offset the data slid. Subscribers re-anchor their world-pixel state to match.
-        GridShifted?.Invoke(dc * WorldCoordHelper.MapTilesX * Constants.PicX,
-                            dr * WorldCoordHelper.MapTilesY * Constants.PicY);
+        GridShifted?.Invoke(dc * MapTilesX * Constants.PicX,
+                            dr * MapTilesY * Constants.PicY);
     }
 
-    private static bool[,,] NewTempTile() => new bool[Constants.MaxMapX + 1, Constants.MaxMapY + 1, 2];
+    private static OpenDoors NewTempTile() => new();
 
     // Slides a 3×3 grid's contents by (dc,dr): new[c,r] = old[c-dc,r-dr], filling off-grid cells fresh.
     private static void ShiftCells<T>(T[,] grid, int dc, int dr, Func<T> fresh)

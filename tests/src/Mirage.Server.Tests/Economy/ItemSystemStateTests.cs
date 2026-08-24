@@ -225,11 +225,7 @@ public class ItemSystemStateTests
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Armor].Type = ItemType.Armor;
 
-        var tile = world.Maps[Map].Tile[4, 5];
-        tile.Type = TileType.Item;
-        tile.ItemNum = Armor;
-        tile.ItemQuantity = 1;  // ground tile-item
-        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemQuantity = 1 };    // fringe tile-item, same (x,y)
+        world.Maps[Map].EditTile(4, 5, t => t with { Type = TileType.Item, ItemNum = Armor, ItemQuantity = 1, FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemQuantity = 1 } });
 
         items.SpawnMapItems(Map);
 
@@ -252,18 +248,14 @@ public class ItemSystemStateTests
         var (world, _, items, _) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
         world.Items[Armor].Type = ItemType.Armor;
-        var tile = world.Maps[Map].Tile[4, 5];
-        tile.Type = TileType.Item;
-        tile.ItemNum = Armor;
-        tile.ItemQuantity = 1;  // ground tile-item
-        tile.FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemQuantity = 1 };    // fringe tile-item, same (x,y)
+        world.Maps[Map].EditTile(4, 5, t => t with { Type = TileType.Item, ItemNum = Armor, ItemQuantity = 1, FringeAttr = new FringeAttr { Type = TileType.Item, ItemNum = Sword, ItemQuantity = 1 } });
 
         items.SpawnMapItems(Map);
         var list = world.MapItems[Map];
         // Simulate a ground-layer pickup: remove the ground item and arm ONLY its ground respawn timer.
         list.RemoveAll(m => m.Layer == WorldLayer.Ground);
         const long armAt = 1_000;
-        world.TempTiles[Map].ItemRespawnTimers[4, 5, (int)WorldLayer.Ground] = armAt;
+        world.TempTiles[Map].TakeTileItem(4, 5, WorldLayer.Ground, armAt);
 
         items.CheckItemRespawn(Map, armAt + Constants.DefaultItemRespawnSeconds * 1000L + 1);
 

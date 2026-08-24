@@ -182,10 +182,19 @@ public sealed partial class CombatSystem : GameSystem
         SendToMap(_world, vp.Map, PacketBuilder.PlayerData(victim, vp, vp.Map, _pm[victim].PkGraceUntilUtc));
     }
 
-    /// <summary>Respawn a dead player once their timer has elapsed: warp to their spawn (or, for
-    /// a guild-war death, back into the contested territory or onto the map they fell on), restore vitals, clear the dead state, and
-    /// grace-protect. Public for the RespawnRequest handler; self-gates on
-    /// <see cref="PlayerRecord.RespawnReadyUtc"/> so an early request is ignored.</summary>
+    /// <summary>Respawn a dead player once their timer has elapsed: warp them back, restore vitals, clear
+    /// the dead state, and grace-protect. Public for the RespawnRequest handler; self-gates on
+    /// <see cref="PlayerRecord.RespawnReadyUtc"/> so an early request is ignored.
+    ///
+    /// <para>Where they come back, in order:</para>
+    /// <list type="number">
+    /// <item>a guild-war death returns to the contested territory, or to the tile they fell on when the
+    /// war has no bounded area;</item>
+    /// <item>the boot point of the map they died on, resolved through its MapGroup — the map author's say
+    /// over what dying there costs, which outranks anything the player bought;</item>
+    /// <item>their own Inn-purchased respawn point;</item>
+    /// <item>the server's configured spawn.</item>
+    /// </list></summary>
     public void RespawnPlayer(int victim)
     {
         var vp = _pm[victim].Char;
@@ -211,6 +220,15 @@ public sealed partial class CombatSystem : GameSystem
                 respawnY = vp.Y;
             }
         }
+        else if (_world.BootMapOf(vp.Map) > 0)
+        {
+            // The map they fell on says where dying there puts you, resolved through its MapGroup so one
+            // dungeon declares one exit for all its maps. It outranks a purchased Inn point: the consequence
+            // of dying in a place belongs to whoever authored the place.
+            respawnMap = _world.BootMapOf(vp.Map);
+            respawnX = _world.BootXOf(vp.Map);
+            respawnY = _world.BootYOf(vp.Map);
+        }
         else
         {
             (respawnMap, respawnX, respawnY) = Config.Spawn.HomeFor(vp);
@@ -219,6 +237,12 @@ public sealed partial class CombatSystem : GameSystem
         vp.DiedInWar = false;
         vp.DiedInTerritory = 0;
         vp.RespawnReadyUtc = 0;
+        // Coming back is the one warp that may never be refused, so a respawn point naming a tile that no
+        // longer exists is repaired onto real ground and the player is told their point is gone.
+        var landing = _world.RepairPosition(respawnMap, respawnX, respawnY, Config.Spawn.HomeFor(vp));
+        if (landing != (respawnMap, respawnX, respawnY))
+            Notify(victim, ServerStrings.CombatSystem_RespawnPointMissing);
+        (respawnMap, respawnX, respawnY) = landing;
         _movement.PlayerWarp(victim, respawnMap, respawnX, respawnY);   // re-broadcasts the live (Dead=false) player on the spawn map
         vp.Hp = vp.MaxHp;
         vp.Mp = vp.MaxMp;

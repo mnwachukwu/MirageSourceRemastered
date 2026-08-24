@@ -19,27 +19,14 @@ public sealed partial class MapEditorViewModel : ObservableObject
 {
     // ── Undo / Redo ────────────────────────────────────────────────────────────
 
-    // Two-layer world: the snapshot also carries the third visual stack (Canopy) and the fringe-layer attribute
-    // sub-record (FringeAttr) so authoring either survives undo/redo.  FringeAttr is deep-copied (it is a
-    // mutable ref type) so an undo entry can't be mutated by a later edit to the live tile.
-    private sealed record TileSnapshot(int[] Ground, int[] Fringe, int[] Canopy, FringeAttr? Fa, TileAttr Attr);
-    private static TileSnapshot Snap(TileRecord t) =>
-        new((int[])t.Ground.Clone(), (int[])t.Fringe.Clone(), (int[])t.Canopy.Clone(), CloneFringeAttr(t.FringeAttr),
-            t.ToGroundAttr());
-    private static void Restore(TileRecord t, TileSnapshot s)
-    {
-        Array.Copy(s.Ground, t.Ground, Math.Min(s.Ground.Length, t.Ground.Length));
-        Array.Copy(s.Fringe, t.Fringe, Math.Min(s.Fringe.Length, t.Fringe.Length));
-        Array.Copy(s.Canopy, t.Canopy, Math.Min(s.Canopy.Length, t.Canopy.Length));
-        t.FringeAttr = CloneFringeAttr(s.Fa);
-        t.SetGroundAttr(s.Attr);
-    }
-    private static FringeAttr? CloneFringeAttr(FringeAttr? fa) => fa?.Clone();
+    // A tile is a value and its fringe plane is immutable, so a snapshot is the tile itself: nothing to
+    // deep-copy, and a later edit to the map cannot reach back into an undo entry.
+    private static TileRecord Snap(TileRecord t) => t;
 
     // An undo entry: a tile change (Tile/Attribute modes) OR a placed-light change (Light Sources mode,
     // at most one light per tile). Both carry the (x,y) they touch so undo can invalidate that cell.
     private abstract record UndoOp(int X, int Y);
-    private sealed record TileOp(int X, int Y, TileSnapshot Before, TileSnapshot After) : UndoOp(X, Y);
+    private sealed record TileOp(int X, int Y, TileRecord Before, TileRecord After) : UndoOp(X, Y);
     private sealed record LightOp(int X, int Y, PlacedLight? Before, PlacedLight? After) : UndoOp(X, Y);
     // A fixed NPC-spawn pin change (Attribute mode, NpcSpawn tool; at most one pin per tile). Before/After = the
     // index of the Npcs entry pinned at (x,y), or null for none. Symmetric with LightOp — a per-(x,y) op fully
@@ -67,7 +54,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     }
 
     // Records a tile change.  If a batch is open it's accumulated; otherwise pushed immediately.
-    private void Record(int x, int y, TileSnapshot before, TileSnapshot after)
+    private void Record(int x, int y, TileRecord before, TileRecord after)
     {
         if (before.Equals(after)) return;
         PushOp(new TileOp(x, y, before, after));
@@ -141,7 +128,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         switch (op)
         {
             case TileOp t:
-                Restore(map.Tile[t.X, t.Y], undo ? t.Before : t.After);
+                map.Tile[t.X, t.Y] = undo ? t.Before : t.After;
                 break;
             case LightOp l:
                 SetLightSlot(map, l.X, l.Y, (l.Before ?? l.After)?.Layer ?? WorldLayer.Ground, undo ? l.Before : l.After);

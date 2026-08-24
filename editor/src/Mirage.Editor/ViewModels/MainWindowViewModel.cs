@@ -346,6 +346,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         NotifyAutoSaveMenuChanged();
         OnPropertyChanged(nameof(ConnectionStatus));
         OnPropertyChanged(nameof(RailToggleTooltip));
+        // Both name an unnamed world, which is a localized word. The rows are rebuilt from the setting
+        // each time this is raised, so re-raising it is what re-words them.
+        OnPropertyChanged(nameof(WorldLabel));
+        OnPropertyChanged(nameof(RecentWorlds));
     }
 
     // Maps the stable section id to its localized nav label key. Logic (switch/lookup) keeps using

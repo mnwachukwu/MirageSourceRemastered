@@ -124,8 +124,35 @@ public static class Constants
     public const int NameLength = 30;
     public const int MinFieldLength = 3;
 
-    public const int MaxMapX = 15; // With 0-based indexing, maps are 16 tiles wide
-    public const int MaxMapY = 11; // With 0-based indexing, maps are 12 tiles tall
+    // ── Three sizes that happen to be equal, and must not be confused ────────
+    // A map's size, the camera's window, and how far gameplay reaches are three separate things. They
+    // are all 16x12 today, which is exactly why each is written out on its own here: a map that is not
+    // 16x12 must move NEITHER of the other two. Derive nothing across these groups.
+
+    /// <summary>The size a map is when nothing says otherwise — a NEW map's dimensions, and the padding
+    /// a blank map slot is given. A map's ACTUAL size is <c>MapRecord.Width</c> / <c>Height</c>, read off
+    /// its own tile grid; never assume a map is this size.</summary>
+    public const int DefaultMapWidth = 16;
+
+    /// <inheritdoc cref="DefaultMapWidth"/>
+    public const int DefaultMapHeight = 12;
+
+    // The default map size as a 0-based maximum index.
+    public const int MaxMapX = DefaultMapWidth - 1;
+    public const int MaxMapY = DefaultMapHeight - 1;
+
+    /// <summary>The camera's window in tiles — a property of the RENDER TARGET (512x384 at
+    /// <see cref="PicX"/>), not of any map. It is what the client draws and what gameplay reach is
+    /// measured against, and it does not move when a map's size does.</summary>
+    public const int ViewportTilesX = 16;
+
+    /// <inheritdoc cref="ViewportTilesX"/>
+    public const int ViewportTilesY = 12;
+
+    /// <summary>Spell-cast radius in tiles: a symmetric circle around the caster. The largest circle that
+    /// fits the viewport, limited by its short half-extent in Y — larger would reach past what is drawn.
+    /// Pinned to the VIEWPORT, so a large map never grants extra reach.</summary>
+    public const int SpellRangeTiles = (ViewportTilesY / 2) - 1;   // 5
 
     public const int PicX = 32; // Size, in pixels
     public const int PicY = 32; // Size, in pixels

@@ -40,6 +40,7 @@ public static partial class ServerStrings
     public const string MovementSystem_EnterArenaBase = nameof(MovementSystem_EnterArenaBase);
     public const string MovementSystem_EnterArenaPvp = nameof(MovementSystem_EnterArenaPvp);
     public const string MovementSystem_LeaveArena = nameof(MovementSystem_LeaveArena);
+    public const string MovementSystem_WarpDestinationMissing = nameof(MovementSystem_WarpDestinationMissing);
 
     // ── PartySystem ───────────────────────────────────────────────────────────
     public const string PartySystem_TargetNotOnline = nameof(PartySystem_TargetNotOnline);

@@ -532,7 +532,8 @@ public sealed partial class GameplayScreen : IGameScreen
     private void UpdateCamera()
     {
         var me = _ctx.State.Me;
-        _camera.Update(me.X, me.Y, me.XOffset, me.YOffset, _ctx.State.NeighborMapNums);
+        _camera.Update(me.X, me.Y, me.XOffset, me.YOffset, _ctx.State.NeighborMapNums,
+                       _ctx.State.MapTilesX, _ctx.State.MapTilesY);
     }
 
     private InputSnapshot BuildInputSnapshot(InputState input, bool pickUpLatched, bool attackPressLatched)

@@ -48,9 +48,10 @@ public sealed partial class CombatSystem : GameSystem
         if (now <= mapNpc.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
 
         var vp = _pm[victimIndex].Char;
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, vp.Map, vp.X, vp.Y);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var tw = grid.ToWorldRelative(vp.Map, vp.X, vp.Y);
         if (tw is null) return false;  // victim is outside the NPC's 9-map region
-        var (npcWX, npcWY) = WorldCoordHelper.ToWorld(1, 1, mapNpc.X, mapNpc.Y);
+        var (npcWX, npcWY) = grid.CenterToWorld(mapNpc.X, mapNpc.Y);
         int size = _world.Npcs[mapNpc.Num].EffectiveSize;
         if (size <= 1)
         {
@@ -70,7 +71,6 @@ public sealed partial class CombatSystem : GameSystem
         // player up on the fringe — or vice-versa — unless the fringe endpoint is on a ramp.  Without this an NPC
         // directly beneath a bridged player could still swing while the player couldn't hit back (the reported
         // asymmetry).  Same-layer neighbors always connect, so flat-map melee is unchanged.
-        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
         if (!LayerLogic.LayerConnects(new ServerTileView(_world, grid), npcWX, npcWY, mapNpc.Layer,
                 tw.Value.worldX, tw.Value.worldY, vp.Layer))
         {
@@ -206,13 +206,13 @@ public sealed partial class CombatSystem : GameSystem
 
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
         var view = new ServerTileView(_world, grid);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, mapNpc.X, mapNpc.Y);
+        var (aWX, aWY) = grid.CenterToWorld(mapNpc.X, mapNpc.Y);
         var strip = WorldCoordHelper.LeadingEdgeTiles(aWX, aWY, npcRec.EffectiveSize, mapNpc.Dir);
         var (edx, edy) = WorldCoordHelper.DirDelta(mapNpc.Dir);   // strip tile is one step in Dir from the NPC's front row
         for (int s = 0; s < strip.Count; s++)
         {
             var (swx, swy) = strip[s];
-            var (tMap, tx, ty) = WorldCoordHelper.ResolveWorldTile(in grid, swx, swy);
+            var (tMap, tx, ty) = grid.ResolveWorldTile(swx, swy);
             if (tMap <= 0) continue;
             foreach (int i in _world.MapObservers[tMap])
             {

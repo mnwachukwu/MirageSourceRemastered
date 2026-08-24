@@ -105,8 +105,8 @@ public sealed partial class ClientState
         var cell = CellForMap(mapNum);
         if (cell is null) return false;
         int col = cell.Value.col, row = cell.Value.row;
-        int qwx = col * WorldCoordHelper.MapTilesX + x;
-        int qwy = row * WorldCoordHelper.MapTilesY + y;
+        int qwx = col * MapTilesX + x;
+        int qwy = row * MapTilesY + y;
         return BigNpcOnCellCovers(col - 1, row, qwx, qwy, layer)          // left neighbor
             || BigNpcOnCellCovers(col, row - 1, qwx, qwy, layer)          // up neighbor
             || BigNpcOnCellCovers(col - 1, row - 1, qwx, qwy, layer);     // up-left neighbor
@@ -143,7 +143,7 @@ public sealed partial class ClientState
             if (n.Num <= 0 || n.Layer != layer) continue;
             int size = NpcSizeFor(n.Num);
             if (size <= 1) continue;
-            var (awx, awy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+            var (awx, awy) = ToWorld(col, row, n.X, n.Y);
             if (WorldCoordHelper.FootprintContains(awx, awy, size, qwx, qwy)) return true;
         }
         foreach (var t in TraversalNpcs.Values)
@@ -151,7 +151,7 @@ public sealed partial class ClientState
             if (t.Num <= 0 || t.Layer != layer || t.CurrentMapNum != m) continue;
             int size = NpcSizeFor(t.Num);
             if (size <= 1) continue;
-            var (awx, awy) = WorldCoordHelper.ToWorld(col, row, t.X, t.Y);
+            var (awx, awy) = ToWorld(col, row, t.X, t.Y);
             if (WorldCoordHelper.FootprintContains(awx, awy, size, qwx, qwy)) return true;
         }
         return false;

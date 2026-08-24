@@ -18,8 +18,8 @@ public readonly record struct TileAttr
 
     // ── Warp: where stepping onto this tile sends you ───────────────────────────────────────────
     public short WarpMap { get; init; }
-    public short WarpX { get; init; }
-    public short WarpY { get; init; }
+    public ushort WarpX { get; init; }
+    public ushort WarpY { get; init; }
     /// <summary>Which plane the warp delivers onto — a warp can put you up on a bridge deck.</summary>
     public WorldLayer WarpLayer { get; init; }
 
@@ -38,8 +38,8 @@ public readonly record struct TileAttr
     public bool KeyIsConsumed { get; init; }
 
     // ── KeyOpen: a pressure plate that opens a door elsewhere ───────────────────────────────────
-    public short DoorX { get; init; }
-    public short DoorY { get; init; }
+    public ushort DoorX { get; init; }
+    public ushort DoorY { get; init; }
     /// <summary>Which plane the door sits on, so a ground plate can open a door up on the deck.</summary>
     public WorldLayer DoorLayer { get; init; }
 

@@ -8,6 +8,7 @@ using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Server.Host.Net;
 using Mirage.Shared;
+using Mirage.Shared.Records;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -273,7 +274,13 @@ public sealed class MirageServerService : IHostedService
         // Perpetual season archive — load past seasons for the historical-season browser.
         _world.SeasonArchives.AddRange(await _persistence.LoadAllSeasonArchivesAsync());
 
-        // Maps — load all; create an empty file for any that don't exist on disk
+        // Maps — load all; create an empty file for any that don't exist on disk, at the size this world
+        // says a map is (world.json). An authored map is whatever size it was authored at.
+        var manifest = await _persistence.LoadWorldManifestAsync();
+        var blank = manifest.DefaultMapSize;
+        // Which set of records this is. Operator-facing only — a player sees the GAME's name, never this.
+        if (!string.IsNullOrWhiteSpace(manifest.Name))
+            LocalizedLog.Info(_logger, ServerStrings.Server_WorldName, ("WorldName", manifest.Name));
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingMaps));
         int mapsLoaded = 0, mapsCreated = 0;
         for (short i = 1; i <= _world.Limits.Maps; i++)
@@ -287,6 +294,7 @@ public sealed class MirageServerService : IHostedService
             }
             else
             {
+                _world.Maps[i] = new MapRecord(blank.Width, blank.Height);
                 await _persistence.SaveMapAsync(i, _world.Maps[i]);
                 mapsCreated++;
             }

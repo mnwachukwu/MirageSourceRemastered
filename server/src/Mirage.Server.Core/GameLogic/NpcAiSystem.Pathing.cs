@@ -1,3 +1,4 @@
+using System.Buffers;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
@@ -45,19 +46,17 @@ public sealed partial class NpcAiSystem : GameSystem
                                              NpcRecord npc,
                                              bool planAroundActors = false, int selfSpawnMap = 0, int selfSpawnSlot = 0)
     {
-        const int W = WorldCoordHelper.MapTilesX;   // 16
-        const int H = WorldCoordHelper.MapTilesY;   // 12
-        const int RW = 3 * W;                       // 48
-        const int RH = 3 * H;                       // 36
-        const int N = RW * RH;                      // 1,728 tiles per layer; the BFS state space is 2*N (ground+fringe)
-
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-        var gp = WorldCoordHelper.GridPosition(grid, targetMap);
+        // The BFS runs over the whole observable area in the neighbourhood's own tile size.
+        int W = grid.TilesX, H = grid.TilesY;
+        int RW = 3 * W, RH = 3 * H;
+        int N = RW * RH;                            // tiles per layer; the state space is 2*N (ground+fringe)
+        var gp = grid.PositionOf(targetMap);
         if (gp is null) return null;  // target outside observable area — caller falls back to warp follow
         var view = new ServerTileView(_world, grid);
 
-        var (srcWX, srcWY) = WorldCoordHelper.ToWorld(1, 1, fromX, fromY);
-        var (tgtWX, tgtWY) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, toX, toY);
+        var (srcWX, srcWY) = grid.CenterToWorld(fromX, fromY);
+        var (tgtWX, tgtWY) = grid.ToWorld(gp.Value.col, gp.Value.row, toX, toY);
         if (srcWX == tgtWX && srcWY == tgtWY && fromLayer == targetLayer) return null;  // already on the target state
         int srcLayerI = (int)fromLayer;
 
@@ -69,10 +68,19 @@ public sealed partial class NpcAiSystem : GameSystem
         //    current positions, not the brain-tick cache.
         //  * NpcChasePlansAroundLiveActors (global, default off) — the shared full-occupancy snapshot,
         //    reused per (map, tick): a few microseconds warm, near-zero thereafter.
-        scoped Span<byte> occupied;   // scoped: never escapes this method, so a stackalloc / grid-tied span may back it
+        // Scratch for this BFS. Rented, never stackalloc'd: 2*N states over a nine-map area is a few
+        // kilobytes at the default size and several megabytes on a large map, and the game thread's stack
+        // would not survive the second case.
+        byte[] stalledBuf = [], visitedBuf = ArrayPool<byte>.Shared.Rent(2 * N);
+        int[] queueBuf = ArrayPool<int>.Shared.Rent(2 * N);
+        try
+        {
+        scoped Span<byte> occupied;   // scoped: never escapes this method
         if (planAroundActors)
         {
-            Span<byte> stalledOcc = stackalloc byte[2 * N];
+            stalledBuf = ArrayPool<byte>.Shared.Rent(2 * N);
+            var stalledOcc = stalledBuf.AsSpan(0, 2 * N);
+            stalledOcc.Clear();
             FillOccupancyExcludingPursuers(stalledOcc, mapNum, in grid, selfSpawnMap, selfSpawnSlot);
             occupied = stalledOcc;
         }
@@ -84,8 +92,9 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             occupied = default;
         }
-        Span<byte> visited = stackalloc byte[2 * N];
-        Span<int> queue = stackalloc int[2 * N];
+        Span<byte> visited = visitedBuf.AsSpan(0, 2 * N);
+        Span<int> queue = queueBuf.AsSpan(0, 2 * N);
+        visited.Clear();
 
         // Guards path across NpcAvoid ("npc block") tiles as if walkable; every other behavior
         // still treats them as walls, so the planned route only cuts through for guards.
@@ -129,6 +138,12 @@ public sealed partial class NpcAiSystem : GameSystem
                 for (int nl = 0; nl < 2; nl++)
                 {
                     var nLayer = (WorldLayer)nl;
+                    int sIdx = nl * N + nwy * RW + nwx;
+                    // CanEnter is the expensive call in this loop, and in a flood most candidate edges lead
+                    // to a state already reached, so the visited test comes first. The source state is never
+                    // marked visited — reaching it returns — so this cannot swallow the answer.
+                    if (visited[sIdx] != 0) continue;
+
                     if (!LayerLogic.CanEnter(view, cwx, cwy, footprintSize, nLayer, stepDir, out var landed)
                         || landed != curLayer)
                     {
@@ -136,9 +151,6 @@ public sealed partial class NpcAiSystem : GameSystem
                     }
 
                     if (nwx == srcWX && nwy == srcWY && nl == srcLayerI) return stepDir;
-
-                    int sIdx = nl * N + nwy * RW + nwx;
-                    if (visited[sIdx] != 0) continue;
                     if (!occupied.IsEmpty && occupied[sIdx] != 0) continue;  // live blocker — treat as wall (occupancy-aware plan)
 
                     if (nMap <= 0) continue;  // unlinked cell — treat as wall
@@ -174,6 +186,13 @@ public sealed partial class NpcAiSystem : GameSystem
             }
         }
         return null;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(visitedBuf);
+            ArrayPool<int>.Shared.Return(queueBuf);
+            if (stalledBuf.Length > 0) ArrayPool<byte>.Shared.Return(stalledBuf);
+        }
     }
 
     // Blind (non-stalled) counterpart to FindStepTowardObservableArea for the legs pass, backed by the
@@ -186,10 +205,10 @@ public sealed partial class NpcAiSystem : GameSystem
     private Direction? CachedStepTowardObservableArea(int mapNum, int fromX, int fromY, WorldLayer fromLayer,
                                                       int targetMap, int toX, int toY, WorldLayer targetLayer, NpcRecord npc)
     {
-        const int W = WorldCoordHelper.MapTilesX;   // 16
-        const int H = WorldCoordHelper.MapTilesY;   // 12
-        const int RW = 3 * W;                       // 48
-        const int N = RW * 3 * H;                   // 1,728 tiles per layer (the field holds 2*N: ground then fringe)
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        int W = grid.TilesX, H = grid.TilesY;
+        int RW = 3 * W;
+        int N = RW * 3 * H;                   // tiles per layer (the field holds 2*N: ground then fringe)
 
         if (_pathFieldStamp != _pathNow)            // new pass — drop last pass's fields, reuse the buffers
         {
@@ -201,16 +220,15 @@ public sealed partial class NpcAiSystem : GameSystem
         var key = new PathFieldKey(mapNum, targetMap, toX, toY, (int)targetLayer, npc.EffectiveSize, (int)npc.Behavior);
         if (!_pathFieldCache.TryGetValue(key, out byte[]? field))
         {
-            var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
-            var gp = WorldCoordHelper.GridPosition(grid, targetMap);
+            var gp = grid.PositionOf(targetMap);
             if (gp is null)
             {
                 field = null;                       // target outside observable area — matches FindStep's early null
             }
             else
             {
-                var (tgtWX, tgtWY) = WorldCoordHelper.ToWorld(gp.Value.col, gp.Value.row, toX, toY);
-                field = RentPathFieldBuffer();
+                var (tgtWX, tgtWY) = grid.ToWorld(gp.Value.col, gp.Value.row, toX, toY);
+                field = RentPathFieldBuffer(2 * N);
                 FillPathField(field, mapNum, tgtWX, tgtWY, targetLayer, in grid, npc);
             }
             _pathFieldCache[key] = field;
@@ -240,16 +258,21 @@ public sealed partial class NpcAiSystem : GameSystem
     private void FillPathField(Span<byte> dirField, int mapNum, int tgtWX, int tgtWY, WorldLayer targetLayer, in MapGrid grid,
                                NpcRecord npc)
     {
-        const int W = WorldCoordHelper.MapTilesX;   // 16
-        const int H = WorldCoordHelper.MapTilesY;   // 12
-        const int RW = 3 * W;                       // 48
-        const int RH = 3 * H;                       // 36
-        const int N = RW * RH;                      // 1,728 tiles per layer; states are layer*N + cell (2*N total)
+        int W = grid.TilesX, H = grid.TilesY;
+        int RW = 3 * W;                       // 48
+        int RH = 3 * H;                       // 36
+        int N = RW * RH;                      // 1,728 tiles per layer; states are layer*N + cell (2*N total)
 
         var view = new ServerTileView(_world, grid);
         Span<byte> occupied = default;              // blind: static geometry + attack-slot ring only
-        Span<byte> visited = stackalloc byte[2 * N];
-        Span<int> queue = stackalloc int[2 * N];
+        // Rented for the same reason as the BFS above: this space follows the observable area, not a constant.
+        byte[] visitedBuf = ArrayPool<byte>.Shared.Rent(2 * N);
+        int[] queueBuf = ArrayPool<int>.Shared.Rent(2 * N);
+        try
+        {
+        Span<byte> visited = visitedBuf.AsSpan(0, 2 * N);
+        Span<int> queue = queueBuf.AsSpan(0, 2 * N);
+        visited.Clear();
 
         bool ignoreNpcAvoid = MovementSystem.NpcIgnoresNpcAvoid(npc.Behavior);
         int footprintSize = npc.EffectiveSize;
@@ -282,6 +305,12 @@ public sealed partial class NpcAiSystem : GameSystem
                 for (int nl = 0; nl < 2; nl++)
                 {
                     var nLayer = (WorldLayer)nl;
+                    int sIdx = nl * N + nwy * RW + nwx;
+                    // CanEnter is the expensive call in this loop, and in a flood most candidate edges lead to
+                    // a state already reached. A visited state has had its dirField written already — the write
+                    // precedes every visited=1 — so skipping ahead of both leaves the field identical.
+                    if (visited[sIdx] != 0) continue;
+
                     // Layer-transition gate (mirrors FindStep): neighbor→cur is a real edge only when stepping
                     // stepDir from the neighbor on nLayer lands on (cur, curLayer).  Ramp = the only cross-layer.
                     if (!LayerLogic.CanEnter(view, cwx, cwy, footprintSize, nLayer, stepDir, out var landed)
@@ -290,15 +319,12 @@ public sealed partial class NpcAiSystem : GameSystem
                         continue;
                     }
 
-                    int sIdx = nl * N + nwy * RW + nwx;
                     if (sIdx == rootIdx) continue;  // invariant (2): the goal state keeps dir 0
 
                     // Invariant (1): record the step toward the target on FIRST reach (dirField==0 freezes the
                     // shortest), BEFORE the checks below — so a chaser standing on an occupied attack-slot state
                     // or a non-walkable state still gets the same step FindStep returns for it.
                     if (dirField[sIdx] == 0) dirField[sIdx] = (byte)((int)stepDir + 1);
-
-                    if (visited[sIdx] != 0) continue;
                     if (!occupied.IsEmpty && occupied[sIdx] != 0) continue;  // blind here — always empty (see doc)
 
                     if (nMap <= 0) continue;  // unlinked cell — treat as wall
@@ -327,24 +353,36 @@ public sealed partial class NpcAiSystem : GameSystem
                 }
             }
         }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(visitedBuf);
+            ArrayPool<int>.Shared.Return(queueBuf);
+        }
     }
 
-    // Hands out a cleared 3,456-byte direction-field buffer (2 layers x 48 x 36) from the per-pass pool, growing
+    // Hands out a cleared direction-field buffer from the per-pass pool, growing
     // it only at the high-water mark of distinct fields in a pass (the used-count is reset in
     // CachedStepTowardObservableArea on a pass change) — so field builds are allocation-neutral once warm, like
     // _occupancyCache.
-    private byte[] RentPathFieldBuffer()
+    private byte[] RentPathFieldBuffer(int states)
     {
-        const int N = 2 * (3 * WorldCoordHelper.MapTilesX) * (3 * WorldCoordHelper.MapTilesY);   // 2 x 48 x 36 = 3,456
         byte[] buf;
         if (_pathFieldBuffersUsed < _pathFieldBuffers.Count)
         {
             buf = _pathFieldBuffers[_pathFieldBuffersUsed];
-            Array.Clear(buf, 0, N);                 // invariant (4): no stale directions from a prior target
+            // A pooled buffer is sized for whatever neighbourhood it was first built for, and a player can
+            // walk from a small zone into a large one mid-session — so it grows to fit before it is reused.
+            if (buf.Length < states)
+            {
+                buf = new byte[states];
+                _pathFieldBuffers[_pathFieldBuffersUsed] = buf;
+            }
+            Array.Clear(buf, 0, states);            // invariant (4): no stale directions from a prior target
         }
         else
         {
-            buf = new byte[N];
+            buf = new byte[states];
             _pathFieldBuffers.Add(buf);
         }
         _pathFieldBuffersUsed++;
@@ -359,10 +397,9 @@ public sealed partial class NpcAiSystem : GameSystem
     // fringe-footprint-fit invariant (whole body on a fringe surface) is enforced here for free.
     private bool FootprintBlockWalkable(int aWX, int aWY, int size, WorldLayer layer, in MapGrid grid, bool ignoreNpcAvoid)
     {
-        const int W = WorldCoordHelper.MapTilesX;
-        const int H = WorldCoordHelper.MapTilesY;
-        const int RW = 3 * W;
-        const int RH = 3 * H;
+        int W = grid.TilesX, H = grid.TilesY;
+        int RW = 3 * W;
+        int RH = 3 * H;
         for (int j = 0; j < size; j++)
         {
             for (int i = 0; i < size; i++)
@@ -393,7 +430,8 @@ public sealed partial class NpcAiSystem : GameSystem
             _attackSlotMemo.Clear();
             _attackSlotMemoStamp = _pathNow;
         }
-        long key = ((long)(int)layer << 40) | ((long)mapNum << 20) | ((long)x << 10) | (long)y;
+        // 16 bits per axis — a whole tile coordinate (see MapSize.HardMax), so no two tiles collide.
+        long key = ((long)(int)layer << 52) | ((long)mapNum << 32) | ((long)x << 16) | (long)y;
         if (_attackSlotMemo.TryGetValue(key, out bool blocked)) return blocked;
         blocked = IsTileOccupiedByActor(mapNum, x, y, layer);
         _attackSlotMemo[key] = blocked;
@@ -424,13 +462,12 @@ public sealed partial class NpcAiSystem : GameSystem
     // check; target is the BFS root and so never expanded into).
     private Span<byte> GetOccupancyBitmap(int mapNum, in MapGrid grid)
     {
-        const int W = WorldCoordHelper.MapTilesX;
-        const int H = WorldCoordHelper.MapTilesY;
-        const int RW = 3 * W;
-        const int N = RW * 3 * H;                   // tiles per layer; the bitmap holds 2*N (ground then fringe)
+        int W = grid.TilesX, H = grid.TilesY;
+        int RW = 3 * W;
+        int N = RW * 3 * H;                   // tiles per layer; the bitmap holds 2*N (ground then fringe)
 
         var bitmap = _occupancyCache[mapNum];
-        if (bitmap is null)
+        if (bitmap is null || bitmap.Length < 2 * N)
         {
             bitmap = new byte[2 * N];
             _occupancyCache[mapNum] = bitmap;
@@ -445,9 +482,9 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             if (!_pm[i].IsPlaying) continue;
             var pc = _pm[i].Char;
-            var pgp = WorldCoordHelper.GridPosition(grid, pc.Map);
+            var pgp = grid.PositionOf(pc.Map);
             if (pgp is null) continue;  // defensive: observer that left the area mid-tick
-            var (pwx, pwy) = WorldCoordHelper.ToWorld(pgp.Value.col, pgp.Value.row, pc.X, pc.Y);
+            var (pwx, pwy) = grid.ToWorld(pgp.Value.col, pgp.Value.row, pc.X, pc.Y);
             bitmap[(int)pc.Layer * N + pwy * RW + pwx] = 1;
         }
         for (int row = 0; row < 3; row++)
@@ -460,7 +497,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 {
                     var n = _world.MapNpcs[m, s];
                     if (n.Num <= 0) continue;
-                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+                    var (wx, wy) = grid.ToWorld(col, row, n.X, n.Y);
                     bitmap[(int)n.Layer * N + wy * RW + wx] = 1;
                 }
                 var list = _world.MapTraversalNpcs[m];
@@ -468,7 +505,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 {
                     var t = list[k];
                     if (t.Num <= 0) continue;
-                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, t.X, t.Y);
+                    var (wx, wy) = grid.ToWorld(col, row, t.X, t.Y);
                     bitmap[(int)t.Layer * N + wy * RW + wx] = 1;
                 }
             }
@@ -490,16 +527,16 @@ public sealed partial class NpcAiSystem : GameSystem
     private void FillOccupancyExcludingPursuers(Span<byte> bmp, int mapNum, in MapGrid grid, int selfSpawnMap, int selfSpawnSlot)
     {
         const int W = WorldCoordHelper.MapTilesX;
-        const int RW = 3 * W;
-        const int N = RW * 3 * WorldCoordHelper.MapTilesY;   // tiles per layer; bmp is 2*N, indexed by state (layer*N + cell)
+        int RW = 3 * W;
+        int N = RW * 3 * WorldCoordHelper.MapTilesY;   // tiles per layer; bmp is 2*N, indexed by state (layer*N + cell)
         bmp.Clear();
         foreach (int i in _world.MapObservers[mapNum])
         {
             if (!_pm[i].IsPlaying) continue;
             var pc = _pm[i].Char;
-            var pgp = WorldCoordHelper.GridPosition(grid, pc.Map);
+            var pgp = grid.PositionOf(pc.Map);
             if (pgp is null) continue;
-            var (pwx, pwy) = WorldCoordHelper.ToWorld(pgp.Value.col, pgp.Value.row, pc.X, pc.Y);
+            var (pwx, pwy) = grid.ToWorld(pgp.Value.col, pgp.Value.row, pc.X, pc.Y);
             bmp[(int)pc.Layer * N + pwy * RW + pwx] = 1;
         }
         for (int row = 0; row < 3; row++)
@@ -513,7 +550,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     var n = _world.MapNpcs[m, s];
                     if (n.Num <= 0) continue;
                     if (n.NpcTargetSpawnSlot == selfSpawnSlot && n.NpcTargetSpawnMap == selfSpawnMap) continue;  // my pursuer — leave walkable
-                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+                    var (wx, wy) = grid.ToWorld(col, row, n.X, n.Y);
                     bmp[(int)n.Layer * N + wy * RW + wx] = 1;
                 }
                 var list = _world.MapTraversalNpcs[m];
@@ -522,7 +559,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     var t = list[k];
                     if (t.Num <= 0) continue;
                     if (t.NpcTargetSpawnSlot == selfSpawnSlot && t.NpcTargetSpawnMap == selfSpawnMap) continue;  // pursuer guest
-                    var (wx, wy) = WorldCoordHelper.ToWorld(col, row, t.X, t.Y);
+                    var (wx, wy) = grid.ToWorld(col, row, t.X, t.Y);
                     bmp[(int)t.Layer * N + wy * RW + wx] = 1;
                 }
             }

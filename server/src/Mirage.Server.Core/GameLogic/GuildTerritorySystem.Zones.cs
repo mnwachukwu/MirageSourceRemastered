@@ -65,7 +65,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private bool TryPickNearestTileOutsideRadii(int mapNum, int fromX, int fromY, List<ContestPoint> points, out int x, out int y)
     {
         var map = _world.Maps[mapNum];
-        int w = Constants.MaxMapX + 1, h = Constants.MaxMapY + 1;
+        int w = map.Width, h = map.Height;
         x = y = 0;
         if (fromX < 0 || fromX >= w || fromY < 0 || fromY >= h) return false;
         var seen = new bool[w, h];

@@ -33,13 +33,11 @@ public class MapPacketRoundTripTests
 
         map.Tile[3, 4] = new TileRecord
         {
-            Ground = [11, 12, 0, 0, 0],
-            Fringe = [13, 0, 0, 0, 0],
             Type = TileType.Warp,
             WarpMap = 21,
             WarpX = 5,
             WarpY = 6,
-        };
+        }.WithArt(LayerType.Ground, [11, 12]).WithArt(LayerType.Fringe, [13]);
         map.Npcs.Add(new MapNpcEntry(9, 2, 3));
         map.Lights.Add(new PlacedLight(LightId, 7, 8, LightSpec.Torch));
         return map;
@@ -89,8 +87,8 @@ public class MapPacketRoundTripTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(t.Ground, Is.EqualTo(original.Tile[3, 4].Ground));
-            Assert.That(t.Fringe, Is.EqualTo(original.Tile[3, 4].Fringe));
+            Assert.That(t.Ground.SequenceEqual(original.Tile[3, 4].Ground), Is.True, "the ground stack survives");
+            Assert.That(t.Fringe.SequenceEqual(original.Tile[3, 4].Fringe), Is.True, "and the fringe stack");
             Assert.That(t.Type, Is.EqualTo(TileType.Warp));
             Assert.That(t.WarpMap, Is.EqualTo((short)21));
             Assert.That(back.Npcs, Has.Count.EqualTo(1));
@@ -110,5 +108,42 @@ public class MapPacketRoundTripTests
         for (int x = 0; x <= Constants.MaxMapX; x++)
             for (int y = 0; y <= Constants.MaxMapY; y++)
                 Assert.That(back.Tile[x, y].Type, Is.EqualTo(TileType.Walkable));
+    }
+
+    // ── Size ──────────────────────────────────────────────────────────────────
+    // The map's size IS the shape of its tile array, and tiles travel sparsely — an empty map of any size
+    // sends no tiles at all. So the size has to be stated on the packet, and these hold it to that: without
+    // it a resized map would arrive back at the default and quietly lose every tile past the old edge.
+
+    [TestCase(1, 1, TestName = "the smallest map there can be")]
+    [TestCase(16, 12, TestName = "the default")]
+    [TestCase(24, 20, TestName = "wider and taller, differing on both axes")]
+    [TestCase(256, 256, TestName = "the size the editor warns past")]
+    public void AMapsSize_SurvivesTheOnlineRoundTrip(int w, int h)
+    {
+        var back = RoundTrip(new MapRecord(w, h));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(back.Width, Is.EqualTo(w));
+            Assert.That(back.Height, Is.EqualTo(h));
+        });
+    }
+
+    /// <summary>A tile only a resized map has — past where the default's grid ends on both axes.</summary>
+    [Test]
+    public void ATileBeyondTheDefaultEdge_SurvivesTheOnlineRoundTrip()
+    {
+        var original = new MapRecord(24, 20);
+        original.EditTile(23, 19, t => t with { Type = TileType.Blocked });
+        original.EditTile(23, 19, t => t with { BlocksSight = false });
+
+        var back = RoundTrip(original);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(back.Tile[23, 19].Type, Is.EqualTo(TileType.Blocked));
+            Assert.That(back.Tile[23, 19].BlocksSight, Is.False, "and its authored exception with it");
+        });
     }
 }

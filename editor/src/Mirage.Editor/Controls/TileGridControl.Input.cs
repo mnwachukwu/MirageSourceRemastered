@@ -28,7 +28,7 @@ public sealed partial class TileGridControl : Control
         return (x, y);
     }
 
-    private static bool InActiveMap(int x, int y) =>
+    private bool InActiveMap(int x, int y) =>
         x >= 0 && x < GridCols && y >= 0 && y < GridRows;
 
     // Resolves a pointer position to one of the 8 surrounding neighbor cells in

@@ -126,13 +126,13 @@ public sealed partial class GameplayScreen : IGameScreen
         int wtx = (int)MathF.Floor(worldPixelX / Constants.PicX);
         int wty = (int)MathF.Floor(worldPixelY / Constants.PicY);
         if (wtx < 0 || wty < 0) return;
-        int cell = wtx / WorldCoordHelper.MapTilesX, row = wty / WorldCoordHelper.MapTilesY;
+        int cell = wtx / _ctx.State.MapTilesX, row = wty / _ctx.State.MapTilesY;
         if (cell > 2 || row > 2) return;
 
         int mapNum = _ctx.State.NeighborMapNums[cell, row];
         if (mapNum <= 0) return;
-        int tileX = wtx - cell * WorldCoordHelper.MapTilesX;
-        int tileY = wty - row * WorldCoordHelper.MapTilesY;
+        int tileX = wtx - cell * _ctx.State.MapTilesX;
+        int tileY = wty - row * _ctx.State.MapTilesY;
 
         var groups = new List<(string Name, List<ContextMenu.Item> Items)>();
 
@@ -236,7 +236,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
         bool InReach(WorldLayer layer) =>
             WorldCoordHelper.IsInSpellRange(
-                WorldCoordHelper.MapTilesX + _ctx.State.Me.X, WorldCoordHelper.MapTilesY + _ctx.State.Me.Y, 1,
+                _ctx.State.MapTilesX + _ctx.State.Me.X, _ctx.State.MapTilesY + _ctx.State.Me.Y, 1,
                 worldTx, worldTy, 1)
             && ClientLineOfSight.LayerConnectsFromLocalPlayer(_ctx.State, worldTx, worldTy, layer);
 
@@ -389,7 +389,7 @@ public sealed partial class GameplayScreen : IGameScreen
             var off = CellOffsetForMapClient(m);
             if (off is null) return false;
             return WorldCoordHelper.IsInSpellRange(
-                WorldCoordHelper.MapTilesX + me.X, WorldCoordHelper.MapTilesY + me.Y, 1,
+                _ctx.State.MapTilesX + me.X, _ctx.State.MapTilesY + me.Y, 1,
                 off.Value.ox + nx, off.Value.oy + ny, npcSize);
         }
         var items = new List<ContextMenu.Item>();

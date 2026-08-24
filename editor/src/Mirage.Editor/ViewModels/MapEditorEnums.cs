@@ -2,14 +2,9 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Models;
+using Mirage.Shared;
 using Mirage.Shared.Records;
 namespace Mirage.Editor.ViewModels;
-
-// The three tile-art visual stacks. Each is a stack of numbered layers (1..Max{Ground,Fringe,Canopy}Layers)
-// selected separately, and each layer can carry the per-layer Anim flag. Ground draws below entities, Fringe
-// between the ground- and fringe-entity passes (the bridge surface), Canopy OVER everything (treetops / roofs /
-// foliage above both logical layers). Distinct from the logical WorldLayer (Ground/Fringe) that attributes use.
-public enum LayerType { Ground, Fringe, Canopy }
 
 /// <summary>One cell of the hovered-tile exploded preview: a layer's tile drawn from its own sheet.
 /// <paramref name="SheetText"/> is the source sheet index (blank for an empty layer).</summary>

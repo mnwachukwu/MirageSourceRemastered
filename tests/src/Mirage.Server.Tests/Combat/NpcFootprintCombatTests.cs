@@ -290,7 +290,7 @@ public class NpcFootprintCombatTests
             Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim), Is.False, "no cross-layer melee on a plain tile");
 
             // A ramp on the victim's tile (mounts from below) → the ground attacker at its foot connects.
-            world.Maps[Map].Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
+            world.Maps[Map].EditTile(5, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
             Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim), Is.True, "reaches a victim on the adjacent ramp");
         });
     }
@@ -319,7 +319,7 @@ public class NpcFootprintCombatTests
             Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.False, "no cross-layer melee on a plain tile");
 
             // A ramp on the player's tile → the ground NPC at its foot connects.
-            world.Maps[Map].Tile[5, 5].FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down };
+            world.Maps[Map].EditTile(5, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
             Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Environment.TickCount64), Is.True, "reaches a player on the adjacent ramp");
         });
     }

@@ -22,8 +22,8 @@ public static class ClientLineOfSight
     public static bool HasClearFromLocalPlayer(ClientState state, int targetWorldX, int targetWorldY)
     {
         var me = state.Me;
-        int myWX = WorldCoordHelper.MapTilesX + me.X;
-        int myWY = WorldCoordHelper.MapTilesY + me.Y;
+        int myWX = state.MapTilesX + me.X;
+        int myWY = state.MapTilesY + me.Y;
         return WorldCoordHelper.HasClearSpellLineOfSight(myWX, myWY, targetWorldX, targetWorldY,
             new SpellLosPredicate(state, me.Layer));
     }
@@ -35,8 +35,8 @@ public static class ClientLineOfSight
     public static bool HasClearFromLocalPlayer(ClientState state, int targetWorldX, int targetWorldY, WorldLayer targetLayer)
     {
         var me = state.Me;
-        int myWX = WorldCoordHelper.MapTilesX + me.X;
-        int myWY = WorldCoordHelper.MapTilesY + me.Y;
+        int myWX = state.MapTilesX + me.X;
+        int myWY = state.MapTilesY + me.Y;
         if (!LayerLogic.LayerConnects(new ClientTileView(state), myWX, myWY, me.Layer, targetWorldX, targetWorldY, targetLayer))
             return false;
         // Cross-layer cast: ramp tiles on the line block (mirrors the server) — can't cast through a ramp to a
@@ -53,7 +53,7 @@ public static class ClientLineOfSight
     {
         var me = state.Me;
         return LayerLogic.LayerConnects(new ClientTileView(state),
-            WorldCoordHelper.MapTilesX + me.X, WorldCoordHelper.MapTilesY + me.Y, me.Layer,
+            state.MapTilesX + me.X, state.MapTilesY + me.Y, me.Layer,
             targetWorldX, targetWorldY, targetLayer);
     }
 
@@ -68,13 +68,13 @@ public static class ClientLineOfSight
 
         public bool IsBlocked(int worldX, int worldY)
         {
-            int col = worldX / WorldCoordHelper.MapTilesX;
-            int row = worldY / WorldCoordHelper.MapTilesY;
+            int col = worldX / _state.MapTilesX;
+            int row = worldY / _state.MapTilesY;
             if (col < 0 || col > 2 || row < 0 || row > 2) return true;
             var map = _state.NeighborMaps[col, row];
             if (map is null) return true;
-            int lx = worldX - col * WorldCoordHelper.MapTilesX;
-            int ly = worldY - row * WorldCoordHelper.MapTilesY;
+            int lx = worldX - col * _state.MapTilesX;
+            int ly = worldY - row * _state.MapTilesY;
             var tile = map.Tile[lx, ly];
             if (_blockRamps && tile.FringeAttr is { Type: TileType.LayerRamp }) return true;   // ramp = wall on a cross-layer line
             var attr = LayerLogic.AttrFor(tile, _layer);

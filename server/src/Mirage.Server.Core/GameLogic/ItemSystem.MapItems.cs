@@ -50,7 +50,7 @@ public sealed partial class ItemSystem : GameSystem
 
         // A tile-defined item landing resets the respawn timer for this (tile, layer).
         if (source == ItemSource.TileDefined && itemNum > 0)
-            _world.TempTiles[mapNum].ItemRespawnTimers[x, y, (int)layer] = 0;
+            _world.TempTiles[mapNum].RestoreTileItem(x, y, layer);
 
         SendToMap(_world, mapNum, new MapItemsPacket
         {
@@ -187,9 +187,9 @@ public sealed partial class ItemSystem : GameSystem
         var map = _world.Maps[mapNum];
         // Two-plane world: a tile-defined item can be authored on the Ground OR the Fringe layer (its FringeAttr),
         // so scan both planes at every tile and spawn each on its own layer.
-        for (int y = 0; y <= Constants.MaxMapY; y++)
+        for (int y = 0; y < map.Height; y++)
         {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
+            for (int x = 0; x < map.Width; x++)
             {
                 SpawnTileItem(map.Tile[x, y], WorldLayer.Ground, mapNum, x, y);
                 SpawnTileItem(map.Tile[x, y], WorldLayer.Fringe, mapNum, x, y);
@@ -206,35 +206,43 @@ public sealed partial class ItemSystem : GameSystem
         SpawnItem(attr.ItemNum, val, mapNum, x, y, layer: layer);
     }
 
+    // Scratch list for the sweep below: the due tiles are collected before any is spawned, because
+    // SpawnItem clears the entry it was read from. Reused across maps and ticks so a sweep over a
+    // thousand maps allocates nothing.
+    private readonly List<(int X, int Y, WorldLayer Layer)> _dueRespawns = [];
+
     /// <summary>Re-spawn any picked-up tile-defined item on this map whose per-(tile, layer) timer has
     /// elapsed. The delay is the tile attribute's own seconds value, or
-    /// <see cref="Constants.DefaultItemRespawnSeconds"/> when it authors none.</summary>
+    /// <see cref="Constants.DefaultItemRespawnSeconds"/> when it authors none.
+    ///
+    /// <para>Reads the map's taken-item entries, not its tiles: a map with nothing picked up costs one
+    /// count check, and one with three costs three. The game loop runs this over every map in the world
+    /// once a second, so the cost has to follow what is actually running rather than how big the map
+    /// is.</para></summary>
     public void CheckItemRespawn(int mapNum, long now)
     {
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
-        var map = _world.Maps[mapNum];
         var temp = _world.TempTiles[mapNum];
-        for (int y = 0; y <= Constants.MaxMapY; y++)
-        {
-            for (int x = 0; x <= Constants.MaxMapX; x++)
-            {
-                CheckTileItemRespawn(map.Tile[x, y], WorldLayer.Ground, temp, mapNum, x, y, now);
-                CheckTileItemRespawn(map.Tile[x, y], WorldLayer.Fringe, temp, mapNum, x, y, now);
-            }
-        }
-    }
+        if (temp.TakenTileItems.Count == 0) return;
 
-    // Respawn a picked-up tile-defined item on one plane once its per-layer timer elapses.
-    private void CheckTileItemRespawn(TileRecord tile, WorldLayer layer, TempTileState temp, int mapNum, int x, int y, long now)
-    {
-        long removedAt = temp.ItemRespawnTimers[x, y, (int)layer];
-        if (removedAt == 0) return;
-        var attr = LayerLogic.AttrFor(tile, layer);
-        if (attr.Type != TileType.Item) return;
-        long thresholdMs = (attr.ItemRespawnSecs > 0 ? attr.ItemRespawnSecs : Constants.DefaultItemRespawnSeconds) * 1000L;
-        if (now - removedAt < thresholdMs) return;
-        int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemQuantity <= 0) ? 1 : attr.ItemQuantity;
-        SpawnItem(attr.ItemNum, val, mapNum, x, y, ItemSource.TileDefined, layer: layer);
+        var map = _world.Maps[mapNum];
+        _dueRespawns.Clear();
+        foreach (var ((x, y, layer), takenAt) in temp.TakenTileItems)
+        {
+            if (!map.Contains(x, y)) continue;
+            var attr = LayerLogic.AttrFor(map.Tile[x, y], layer);
+            if (attr.Type != TileType.Item) continue;
+            long thresholdMs = (attr.ItemRespawnSecs > 0 ? attr.ItemRespawnSecs : Constants.DefaultItemRespawnSeconds) * 1000L;
+            if (now - takenAt < thresholdMs) continue;
+            _dueRespawns.Add((x, y, layer));
+        }
+
+        foreach (var (x, y, layer) in _dueRespawns)
+        {
+            var attr = LayerLogic.AttrFor(map.Tile[x, y], layer);
+            int val = (_world.Items[attr.ItemNum].Type == ItemType.Currency && attr.ItemQuantity <= 0) ? 1 : attr.ItemQuantity;
+            SpawnItem(attr.ItemNum, val, mapNum, x, y, ItemSource.TileDefined, layer: layer);
+        }
     }
 
     // ── Player pick up item ───────────────────────────────────────────────────
@@ -350,7 +358,7 @@ public sealed partial class ItemSystem : GameSystem
         if (itemSource == ItemSource.TileDefined &&
             LayerLogic.AttrFor(_world.Maps[mapNum].Tile[itemX, itemY], itemLayer).Type == TileType.Item)
         {
-            _world.TempTiles[mapNum].ItemRespawnTimers[itemX, itemY, (int)itemLayer] = Environment.TickCount64;
+            _world.TempTiles[mapNum].TakeTileItem(itemX, itemY, itemLayer, Environment.TickCount64);
         }
 
         // Persist the removal of a dropped item

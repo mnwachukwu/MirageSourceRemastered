@@ -991,6 +991,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string HostingPortHint => ShellStrings.Get(ShellStrings.Hosting_GamePortHint);
     public string DataDirLabel => ShellStrings.Get(ShellStrings.Hosting_DataDir);
     public string DataDirHint => ShellStrings.Get(ShellStrings.Hosting_DataDirHint);
+
+    /// <summary>That a world names itself, and that the name is the operator's rather than the player's.</summary>
+    public string WorldNameNote => ShellStrings.Get(ShellStrings.Hosting_WorldNameNote);
     public string DataDirPlaceholder => ShellStrings.Get(ShellStrings.Hosting_DataDirDefault);
     public string BrowseLabel => ShellStrings.Get(ShellStrings.Hosting_Browse);
     public string UseDefaultLabel => ShellStrings.Get(ShellStrings.Hosting_UseDefault);

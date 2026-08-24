@@ -276,8 +276,8 @@ public sealed partial class GameplayScreen : IGameScreen
             bool inDark = false;
             foreach (var r in _renderFrame.AlwaysDarkMapLights)
             {
-                if (sx >= r.ScreenX - bleed && sx < r.ScreenX + Camera.ViewW + bleed &&
-                    sy >= r.ScreenY - bleed && sy < r.ScreenY + Camera.ViewH + bleed)
+                if (sx >= r.ScreenX - bleed && sx < r.ScreenX + r.PxW + bleed &&
+                    sy >= r.ScreenY - bleed && sy < r.ScreenY + r.PxH + bleed)
                 {
                     inDark = true;
                     break;

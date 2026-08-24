@@ -939,15 +939,11 @@ public sealed partial class EditorPacketHandler
 
         // Replace, don't merge: the editor's BuildSaveMapPacket omits tiles that are fully default,
         // so a tile cleared back to default in the editor would otherwise keep its old server value.
-        // The whole tile grid is replaced by the incoming editor payload.
-        for (int x = 0; x <= Constants.MaxMapX; x++)
-        {
-            for (int y = 0; y <= Constants.MaxMapY; y++)
-                map.Tile[x, y] = new TileRecord();
-        }
+        // The whole grid is rebuilt at the size the editor sent, which is also how a resize lands.
+        map.Tile = TileGrid.Empty(src.Width, src.Height);
 
         foreach (var tile in src.Tiles)
-            map.Tile[tile.X, tile.Y] = tile.ToTile();
+            if (map.Contains(tile.X, tile.Y)) map.Tile[tile.X, tile.Y] = tile.ToTile();
 
         // NPC spawn entries: wholesale replace with the editor's dense list (only non-empty rows are authored).
         // Drop empty/out-of-range rows defensively and cap at MaxMapNpcs runtime posts; SpawnNpc (below) reads

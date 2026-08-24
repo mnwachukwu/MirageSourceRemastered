@@ -25,8 +25,9 @@ public sealed partial class CombatSystem : GameSystem
         long windMult = _world.WeatherOn(attackerMap) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
         if (Environment.TickCount64 <= attackerMn.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
 
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, attackerMn.X, attackerMn.Y);
-        var vw = WorldCoordHelper.ToWorldRelative(_world.Maps, attackerMap, victimMap, victimMn.X, victimMn.Y);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);
+        var (aWX, aWY) = grid.CenterToWorld(attackerMn.X, attackerMn.Y);
+        var vw = grid.ToWorldRelative(victimMap, victimMn.X, victimMn.Y);
         if (vw is null) return false;
         // Edge to edge, since either side may be oversize: two size-3 bodies touching sit 3 tiles apart anchor
         // to anchor. Both sides are footprints here, unlike the player gate where the attacker is always size 1.
@@ -36,7 +37,6 @@ public sealed partial class CombatSystem : GameSystem
             return false;
         // Two-layer connect: the attacker and the adjacent victim connect across layers only where a ramp bridges
         // them — a guard on the ground can't hit a mob up on the bridge (or vice-versa) unless one is on a ramp.
-        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);
         return LayerLogic.LayerConnects(new ServerTileView(_world, grid), aWX, aWY, attackerMn.Layer, vw.Value.worldX, vw.Value.worldY, victimMn.Layer);
     }
 

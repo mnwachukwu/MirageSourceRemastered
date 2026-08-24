@@ -120,15 +120,15 @@ public sealed class GameWorld
         if (!IsObserving(index, mapNum)) return false;
         var mn = MapNpcs[mapNum, npcSlot];
         if (mn.Num <= 0) return false;
-        var (myWX, myWY) = WorldCoordHelper.ToWorld(1, 1, pc.X, pc.Y);
-        var tw = WorldCoordHelper.ToWorldRelative(Maps, pc.Map, mapNum, mn.X, mn.Y);
+        var grid = WorldCoordHelper.BuildMapGrid(Maps, pc.Map);
+        var (myWX, myWY) = grid.CenterToWorld(pc.X, pc.Y);
+        var tw = grid.ToWorldRelative(mapNum, mn.X, mn.Y);
         // Footprint-aware r=5: interacting with an oversize NPC counts its whole body, not just its anchor.
         if (tw is null || !WorldCoordHelper.IsInSpellRange(myWX, myWY, 1, tw.Value.worldX, tw.Value.worldY, Npcs[mn.Num].EffectiveSize)) return false;
         // Two-layer world: a keeper on the bridge deck and a player on the ground beneath it are a few pixels apart
         // on screen but not on the same plane. Same connect rule combat and spell targeting use (LayerConnects is
         // range-agnostic): same layer always, across them only from a ramp's mount side — so you can talk to a
         // keeper on the deck while standing at the ramp foot, but not from anywhere else on the ground.
-        var grid = WorldCoordHelper.BuildMapGrid(Maps, pc.Map);
         if (!LayerLogic.LayerConnects(new ServerTileView(this, grid), myWX, myWY, pc.Layer,
                 tw.Value.worldX, tw.Value.worldY, mn.Layer))
         {
@@ -155,12 +155,12 @@ public sealed class GameWorld
         if (mi.Num <= 0 || mi.Num > Limits.Items) return false;
         if (!IsObserving(index, mapNum)) return false;
 
-        var (myWX, myWY) = WorldCoordHelper.ToWorld(1, 1, pc.X, pc.Y);
-        var tw = WorldCoordHelper.ToWorldRelative(Maps, pc.Map, mapNum, mi.X, mi.Y);
+        var grid = WorldCoordHelper.BuildMapGrid(Maps, pc.Map);
+        var (myWX, myWY) = grid.CenterToWorld(pc.X, pc.Y);
+        var tw = grid.ToWorldRelative(mapNum, mi.X, mi.Y);
         if (tw is null || !WorldCoordHelper.IsInSpellRange(myWX, myWY, 1, tw.Value.worldX, tw.Value.worldY, 1))
             return false;
 
-        var grid = WorldCoordHelper.BuildMapGrid(Maps, pc.Map);
         return LayerLogic.LayerConnects(new ServerTileView(this, grid), myWX, myWY, pc.Layer,
                                         tw.Value.worldX, tw.Value.worldY, mi.Layer);
     }
@@ -171,6 +171,28 @@ public sealed class GameWorld
     public int BootMapOf(int mapNum) => MapGroupResolve.BootMap(Maps[mapNum], GroupOf(mapNum));
     public int BootXOf(int mapNum) => MapGroupResolve.BootX(Maps[mapNum], GroupOf(mapNum));
     public int BootYOf(int mapNum) => MapGroupResolve.BootY(Maps[mapNum], GroupOf(mapNum));
+
+    public bool IsRealMap(int mapNum) => mapNum > 0 && mapNum <= Limits.Maps;
+
+    /// <summary>The closest real tile to a REMEMBERED position — where a character was standing when it
+    /// was last saved, or the respawn point it paid for.
+    ///
+    /// <para>A remembered position is bookkeeping, and gets repaired. An authored warp destination is
+    /// content, and gets refused and reported instead (<c>MovementSystem.IsWarpDestinationValid</c>) —
+    /// the tile that points nowhere is for its author to correct, whereas a player whose map shrank
+    /// under them has nothing to correct and would simply be locked out.</para>
+    ///
+    /// <para><paramref name="fallback"/> covers only the case where the map itself is gone, and is
+    /// clamped on the same terms, so a misconfigured spawn point cannot strand anyone either.</para></summary>
+    public (int Map, int X, int Y) RepairPosition(int mapNum, int x, int y, (int Map, int X, int Y) fallback)
+    {
+        if (IsRealMap(mapNum)) return ClampToMap(mapNum, x, y);
+        if (IsRealMap(fallback.Map)) return ClampToMap(fallback.Map, fallback.X, fallback.Y);
+        return ClampToMap(1, 0, 0);
+    }
+
+    private (int Map, int X, int Y) ClampToMap(int mapNum, int x, int y) =>
+        (mapNum, Math.Clamp(x, 0, Maps[mapNum].Width - 1), Math.Clamp(y, 0, Maps[mapNum].Height - 1));
 
     /// <summary>The map's MapGroup iff it is a contestable TERRITORY (Territory = true), else null — the
     /// territory-income hook's fast gate (a group-less or non-territory map returns null).</summary>
@@ -461,7 +483,7 @@ public sealed class GameWorld
             if (n.Num <= 0 || ReferenceEquals(n, exclude) || !LayerMatches(n, layer)) continue;
             int size = Npcs[n.Num].EffectiveSize;
             if (size <= 1) continue;
-            var (awx, awy) = WorldCoordHelper.ToWorld(col, row, n.X, n.Y);
+            var (awx, awy) = grid.ToWorld(col, row, n.X, n.Y);
             if (WorldCoordHelper.FootprintContains(awx, awy, size, qwx, qwy)) return true;
         }
         var list = MapTraversalNpcs[m];
@@ -471,7 +493,7 @@ public sealed class GameWorld
             if (t.Num <= 0 || ReferenceEquals(t, exclude) || !LayerMatches(t, layer)) continue;
             int size = Npcs[t.Num].EffectiveSize;
             if (size <= 1) continue;
-            var (awx, awy) = WorldCoordHelper.ToWorld(col, row, t.X, t.Y);
+            var (awx, awy) = grid.ToWorld(col, row, t.X, t.Y);
             if (WorldCoordHelper.FootprintContains(awx, awy, size, qwx, qwy)) return true;
         }
         return false;

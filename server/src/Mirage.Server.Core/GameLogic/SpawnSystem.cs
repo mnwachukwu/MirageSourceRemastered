@@ -68,6 +68,7 @@ public sealed class SpawnSystem : GameSystem
         bool spawned = false;
         // Footprint size: a size-S NPC needs an SxS block of clear, walkable, on-map tiles at its anchor.
         int size = npcRec.EffectiveSize;
+        var map = _world.Maps[mapNum];
 
         // Fixed placement: a slot pinned to a tile always spawns there, as long as the
         // authored tile is on-map + walkable. Occupancy is deliberately ignored so a passerby standing on the
@@ -86,8 +87,8 @@ public sealed class SpawnSystem : GameSystem
         for (int i = 0; !spawned && i < SpawnSearchAttempts; i++)
         {
             // Clamp the random anchor so the whole footprint fits on the map (no edge-straddle at spawn).
-            int x = Rng.Next(Constants.MaxMapX + 2 - size);
-            int y = Rng.Next(Constants.MaxMapY + 2 - size);
+            int x = Rng.Next(map.Width + 1 - size);
+            int y = Rng.Next(map.Height + 1 - size);
             if (IsFootprintSpawnClear(mapNum, x, y, size, mapNpcSlot))
             {
                 mn.X = x;
@@ -100,9 +101,9 @@ public sealed class SpawnSystem : GameSystem
         // Fallback: scan all tiles
         if (!spawned)
         {
-            for (int y = 0; y <= Constants.MaxMapY - (size - 1) && !spawned; y++)
+            for (int y = 0; y <= map.Height - size && !spawned; y++)
             {
-                for (int x = 0; x <= Constants.MaxMapX - (size - 1) && !spawned; x++)
+                for (int x = 0; x <= map.Width - size && !spawned; x++)
                 {
                     if (IsFootprintSpawnClear(mapNum, x, y, size, mapNpcSlot))
                     {
@@ -153,7 +154,8 @@ public sealed class SpawnSystem : GameSystem
     // tile (a mistake) still fails and falls back to the random search.
     private bool IsFootprintOnWalkableGround(int mapNum, int aX, int aY, int size, WorldLayer layer = WorldLayer.Ground)
     {
-        if (aX < 0 || aY < 0 || aX + size > Constants.MaxMapX + 1 || aY + size > Constants.MaxMapY + 1) return false;
+        var map = _world.Maps[mapNum];
+        if (aX < 0 || aY < 0 || aX + size > map.Width || aY + size > map.Height) return false;
         for (int j = 0; j < size; j++)
         {
             for (int i = 0; i < size; i++)

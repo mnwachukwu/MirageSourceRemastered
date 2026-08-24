@@ -439,7 +439,7 @@ public sealed partial class TileGridControl : Control
         MapRecord? map, Point pixOff, bool applyOverlay, int animFrame, bool doorPreview, bool showAttributes, bool showLights,
         WorldLayer attrLayer, Func<int, int> npcSize, LayerType activeStack)
     {
-        var cellRect = new Rect(pixOff.X, pixOff.Y, GridCols * TileW, GridRows * TileH);
+        var cellRect = new Rect(pixOff.X, pixOff.Y, Cols(map) * TileW, Rows(map) * TileH);
 
         if (map is null)
         {
@@ -449,9 +449,9 @@ public sealed partial class TileGridControl : Control
 
         // Only the CENTER cell dims its non-active stacks; the neighbors already recede under NeighborOverlayBrush.
         LayerType? focusStack = applyOverlay ? null : activeStack;
-        for (int x = 0; x < GridCols; x++)
+        for (int x = 0; x < Cols(map); x++)
         {
-            for (int y = 0; y < GridRows; y++)
+            for (int y = 0; y < Rows(map); y++)
             {
                 RenderTileAt(ctx, map, tilesets, x, y,
                     new Point(pixOff.X + x * TileW, pixOff.Y + y * TileH), animFrame, doorPreview, showAttributes, attrLayer, focusStack);
@@ -484,7 +484,7 @@ public sealed partial class TileGridControl : Control
     };
 
     private static TileType NeighborAttr(MapRecord map, int x, int y, WorldLayer layer) =>
-        x >= 0 && x < GridCols && y >= 0 && y < GridRows ? DisplayAttr(map.Tile[x, y], layer).Type : TileType.Walkable;
+        x >= 0 && x < Cols(map) && y >= 0 && y < Rows(map) ? DisplayAttr(map.Tile[x, y], layer).Type : TileType.Walkable;
 
     // Fills a band inside each edge of a tile where the adjacent tile has a different attribute type (on the
     // active layer — a ramp counts on both), producing an outline around contiguous blocks rather than per-tile
@@ -492,9 +492,9 @@ public sealed partial class TileGridControl : Control
     // side of the shared grid line — see AttributeBorderGeometry.
     private static void RenderAttributeBorders(DrawingContext ctx, MapRecord map, Point pixOff, WorldLayer attrLayer)
     {
-        for (int x = 0; x < GridCols; x++)
+        for (int x = 0; x < Cols(map); x++)
         {
-            for (int y = 0; y < GridRows; y++)
+            for (int y = 0; y < Rows(map); y++)
             {
                 var attr = DisplayAttr(map.Tile[x, y], attrLayer).Type;
                 var pen = AttributeBorderPen(attr);
@@ -524,7 +524,7 @@ public sealed partial class TileGridControl : Control
         foreach (var pl in map.Lights)
         {
             if (pl.Layer != activeLayer) continue;
-            if (pl.X < 0 || pl.X >= GridCols || pl.Y < 0 || pl.Y >= GridRows) continue;
+            if (pl.X < 0 || pl.X >= Cols(map) || pl.Y < 0 || pl.Y >= Rows(map)) continue;
             uint rgb = pl.Light.Rgb;
             var color = Color.FromRgb((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
             var center = new Point(pixOff.X + (pl.X + 0.5) * TileW, pixOff.Y + (pl.Y + 0.5) * TileH);
@@ -550,11 +550,11 @@ public sealed partial class TileGridControl : Control
             var e = map.Npcs[i];
             if (!e.HasPin || e.PinLayer != activeLayer) continue;
             int px = e.PinX!.Value, py = e.PinY!.Value;
-            if (px < 0 || px >= GridCols || py < 0 || py >= GridRows) continue;
+            if (px < 0 || px >= Cols(map) || py < 0 || py >= Rows(map)) continue;
             // Full SxS footprint: the whole reserved body, clamped to the cell, then the
             // post-number badge on the anchor tile.
             int size = Math.Max(1, npcSize(e.Npc));
-            int fw = Math.Min(size, GridCols - px), fh = Math.Min(size, GridRows - py);
+            int fw = Math.Min(size, Cols(map) - px), fh = Math.Min(size, Rows(map) - py);
             ctx.DrawRectangle(NpcSpawnFootprintBrush, NpcSpawnFootprintPen,
                 new Rect(pixOff.X + px * TileW, pixOff.Y + py * TileH, fw * TileW, fh * TileH));
             double cx = pixOff.X + (px + 0.5) * TileW;
@@ -575,7 +575,7 @@ public sealed partial class TileGridControl : Control
         var map = Map;
         if (map is null) return;
         double x0 = OffsetCol * TileW * zoom, y0 = OffsetRow * TileH * zoom;
-        var rect = new Rect(x0, y0, GridCols * TileW * zoom, GridRows * TileH * zoom);
+        var rect = new Rect(x0, y0, Cols(map) * TileW * zoom, Rows(map) * TileH * zoom);
 
         var lights = new List<NightLight>(map.Lights.Count);
         // In Light mode, preview only the ACTIVE plane's lights (matching the markers + the Ground/Fringe
@@ -584,7 +584,7 @@ public sealed partial class TileGridControl : Control
         foreach (var pl in map.Lights)
         {
             if (filterLayer && pl.Layer != AttributeLayer) continue;
-            if (pl.X < 0 || pl.X >= GridCols || pl.Y < 0 || pl.Y >= GridRows) continue;
+            if (pl.X < 0 || pl.X >= Cols(map) || pl.Y < 0 || pl.Y >= Rows(map)) continue;
             lights.Add(new NightLight(
                 (float)(x0 + (pl.X + 0.5) * TileW * zoom),
                 (float)(y0 + (pl.Y + 0.5) * TileH * zoom),
@@ -813,31 +813,22 @@ public sealed partial class TileGridControl : Control
     // Draws every non-empty cell of a layer stack, skipping the layer at hideIndex (door-open reveal,
     // -1 = none).  animFrame < 0 = not animating (all anim layers drawn statically); animFrame >= 0 = show
     // only the current frame's anim layer (LayerCell.VisibleAnimIndex), hiding the other anim layers.
-    private static void DrawLayerStack(DrawingContext ctx, IReadOnlyList<Bitmap?> tilesets, int[] layers, Rect dst, int animFrame, int hideIndex, bool dim = false)
+    private static void DrawLayerStack(DrawingContext ctx, IReadOnlyList<Bitmap?> tilesets, ReadOnlySpan<int> layers, Rect dst, int animFrame, int hideIndex, bool dim = false)
     {
         int visibleAnim = animFrame >= 0 ? LayerCell.VisibleAnimIndex(layers, animFrame) : 0;
 
-        void DrawAll()
-        {
-            for (int k = 0; k < layers.Length; k++)
-            {
-                int p = layers[k];
-                if (LayerCell.IsEmpty(p)) continue;
-                if (k == hideIndex) continue;
-                if (animFrame >= 0 && LayerCell.Anim(p) && k != visibleAnim) continue;
-                DrawPackedLayer(ctx, tilesets, p, dst);
-            }
-        }
-
         // dim => fade the whole stack (non-active layer on the center cell) so the active stack reads crisply.
-        if (dim)
+        // The opacity push is scoped around the loop rather than around a local function, because a span
+        // cannot be captured by one.
+        using var fade = dim ? ctx.PushOpacity(DimmedStackOpacity) : default;
+
+        for (int k = 0; k < layers.Length; k++)
         {
-            using var _ = ctx.PushOpacity(DimmedStackOpacity);
-            DrawAll();
-        }
-        else
-        {
-            DrawAll();
+            int p = layers[k];
+            if (LayerCell.IsEmpty(p)) continue;
+            if (k == hideIndex) continue;
+            if (animFrame >= 0 && LayerCell.Anim(p) && k != visibleAnim) continue;
+            DrawPackedLayer(ctx, tilesets, p, dst);
         }
     }
 

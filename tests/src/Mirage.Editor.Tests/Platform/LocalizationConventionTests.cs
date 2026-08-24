@@ -96,7 +96,10 @@ public class LocalizationConventionTests
             cls.EndsWith("RowViewModel", StringComparison.Ordinal)
             || cls.EndsWith("DialogViewModel", StringComparison.Ordinal)
             || cls is "SectionViewModel" or "AutoSaveIntervalOption" or "AutoSaveReachOption"
-                   or "LogLevelOption" or "LogRetentionOption" or "AutoSaveMessages";
+                   or "LogLevelOption" or "LogRetentionOption" or "AutoSaveMessages"
+                   // Rebuilt from the recent-worlds setting every time MainWindowViewModel raises the
+                   // property, which OnLanguageChanged does.
+                   or "RecentWorldViewModel";
 
         var uses = new HashSet<string>(StringComparer.Ordinal);
         var hooked = new HashSet<string>(StringComparer.Ordinal);

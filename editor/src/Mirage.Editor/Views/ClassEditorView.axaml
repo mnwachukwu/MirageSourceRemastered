@@ -3,7 +3,9 @@
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:models="using:Mirage.Editor.Models"
              xmlns:mui="using:Mirage.Ui.Controls"
+             xmlns:vm="using:Mirage.Editor.ViewModels"
              Grid.IsSharedSizeScope="True"
+             x:DataType="vm:ClassEditorViewModel"
              x:Class="Mirage.Editor.Views.ClassEditorView">
 
   <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">

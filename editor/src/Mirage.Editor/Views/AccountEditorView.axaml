@@ -5,6 +5,7 @@
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:mui="using:Mirage.Ui.Controls"
              Grid.IsSharedSizeScope="True"
+             x:DataType="vm:AccountEditorViewModel"
              x:Class="Mirage.Editor.Views.AccountEditorView">
 
   <!-- The only ONLINE-ONLY section. Accounts live on the server, so there is nothing to show against a
@@ -351,7 +352,7 @@
                                          VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                          Foreground="{DynamicResource MirageFaintBrush}"/>
                               <TextBlock Grid.Column="3" FontSize="10" VerticalAlignment="Center"
-                                         Text="{Binding $parent[UserControl].DataContext.IneligibleLabel}"
+                                         Text="{Binding $parent[ItemsControl].((vm:AccountCharRowViewModel)DataContext).IneligibleLabel}"
                                          IsVisible="{Binding !Eligible}"
                                          Foreground="{DynamicResource MirageBadBrush}"/>
                               <Button Grid.Column="4" Content="-" FontWeight="Bold" Classes="glyph"

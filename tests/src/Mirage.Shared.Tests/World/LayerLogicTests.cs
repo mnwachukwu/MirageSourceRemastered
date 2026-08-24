@@ -147,7 +147,7 @@ public class LayerLogicTests
     {
         // '^' at (5,5): ground side Down (mounts from below).
         var v = new GridView().Ramp(5, 5, Direction.Down);
-        var rampTile = v.At(5, 5)!;
+        var rampTile = v.At(5, 5)!.Value;
 
         Assert.Multiple(() =>
         {

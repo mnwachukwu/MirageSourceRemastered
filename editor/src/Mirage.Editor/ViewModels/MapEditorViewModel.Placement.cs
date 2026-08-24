@@ -34,7 +34,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         var map = SelectedMap.Record;
         var want = ActiveAttrType(map.Tile[x, y]);
 
-        var seen = new bool[Constants.MaxMapX + 1, Constants.MaxMapY + 1];
+        var seen = new bool[MapCols, MapRows];
         var stack = new Stack<(int X, int Y)>();
         stack.Push((x, y));
         seen[x, y] = true;
@@ -45,7 +45,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
             {
                 int nx = cx + dx, ny = cy + dy;
-                if (nx < 0 || nx > Constants.MaxMapX || ny < 0 || ny > Constants.MaxMapY) continue;
+                if (!InMapBounds(nx, ny)) continue;
                 if (seen[nx, ny]) continue;
                 if (ActiveAttrType(map.Tile[nx, ny]) != want) continue;
                 seen[nx, ny] = true;
@@ -105,12 +105,13 @@ public sealed partial class MapEditorViewModel : ObservableObject
         {
             var t = SelectedMap.Record.Tile[tx, ty];
             var before = Snap(t);
-            SetActiveAttr(t, new TileAttr
+            t = WithActiveAttr(t, new TileAttr
             {
                 Type = TileType.Blocked,
                 BlocksLight = BlockedBlocksLight,
                 BlocksSight = BlockedBlocksSight,
             });
+            SelectedMap.Record.Tile[tx, ty] = t;
             SelectedMap.UpdateRecord(SelectedMap.Record);
             InvalidateTileGrid?.Invoke(tx, ty);
             Record(tx, ty, before, Snap(t));
@@ -458,7 +459,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         ShowAnimDialog = true;
     }
 
-    private void AddAnimRows(int[] layers, LayerType type)
+    private void AddAnimRows(ReadOnlySpan<int> layers, LayerType type)
     {
         for (int i = 0; i < layers.Length; i++)
         {
@@ -472,7 +473,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     }
 
     // A stack's style = the style bit on its lowest animated layer (defaults Cycle when none animate).
-    private static AnimStyle StackStyle(int[] layers)
+    private static AnimStyle StackStyle(ReadOnlySpan<int> layers)
     {
         for (int i = 0; i < layers.Length; i++)
             if (!LayerCell.IsEmpty(layers[i]) && LayerCell.Anim(layers[i])) return LayerCell.Style(layers[i]);
@@ -500,20 +501,20 @@ public sealed partial class MapEditorViewModel : ObservableObject
         bool changed = false;
         foreach (var row in AnimLayers)
         {
-            var layers = row.Type == LayerType.Ground ? tile.Ground : tile.Fringe;
-            int packed = layers[row.ArrayIndex];
+            int packed = tile.Art(row.Type)[row.ArrayIndex];
             // Non-anim layers store the neutral Cycle style; anim layers take their stack's chosen style.
             var style = !row.IsAnim ? AnimStyle.Cycle
                 : row.Type == LayerType.Ground ? GroundAnimStyle : FringeAnimStyle;
             int repacked = LayerCell.Pack(LayerCell.Tile(packed), LayerCell.Sheet(packed), row.IsAnim, style);
             if (repacked != packed)
             {
-                layers[row.ArrayIndex] = repacked;
+                tile = tile.WithCell(row.Type, row.ArrayIndex, repacked);
                 changed = true;
             }
         }
         if (changed)
         {
+            map.Tile[_animDialogX, _animDialogY] = tile;
             BeginBatch();
             SelectedMap.UpdateRecord(map);
             InvalidateTileGrid?.Invoke(_animDialogX, _animDialogY);

@@ -43,10 +43,10 @@ public class RenderPerfBaselineTests
                 {
                     for (int y = 0; y <= Constants.MaxMapY; y++)
                     {
-                        map.Tile[x, y].Type = TileType.Walkable;
+                        map.EditTile(x, y, t => t with { Type = TileType.Walkable });
                         // Layered art: each layer cell is a packed sheet+tile value, 0 = unused.
-                        map.Tile[x, y].Ground[0] = 1 + ((x + y) % 4);        // every tile has ground art
-                        if (x % 3 == 0) map.Tile[x, y].Fringe[0] = 2;        // partial fringe coverage
+                        map.EditTile(x, y, t => t.WithCell(LayerType.Ground, 0, 1 + ((x + y) % 4)));        // every tile has ground art
+                        if (x % 3 == 0) map.EditTile(x, y, t => t.WithCell(LayerType.Fringe, 0, 2));        // partial fringe coverage
                     }
                 }
 
@@ -106,7 +106,7 @@ public class RenderPerfBaselineTests
     {
         var frame = new RenderFrame();
         var camera = new Camera();
-        camera.Update(8, 6, 0f, 0f, state.NeighborMapNums);
+        camera.Update(8, 6, 0f, 0f, state.NeighborMapNums, state.MapTilesX, state.MapTilesY);
 
         void OneFrame()
         {
@@ -162,7 +162,7 @@ public class RenderPerfBaselineTests
         var state = BusyState(30, 10, 25);
         var frame = new RenderFrame();
         var camera = new Camera();
-        camera.Update(8, 6, 0f, 0f, state.NeighborMapNums);
+        camera.Update(8, 6, 0f, 0f, state.NeighborMapNums, state.MapTilesX, state.MapTilesY);
 
         // Cold: the very first frame grows the command lists from empty.
         GC.Collect();

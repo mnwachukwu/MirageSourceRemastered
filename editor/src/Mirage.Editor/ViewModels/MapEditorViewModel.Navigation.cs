@@ -134,7 +134,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     /// <summary>Called by TileGridControl on Ctrl+Alt+Shift + left-click on an active-map warp tile.</summary>
     [RelayCommand]
-    public void WarpDestinationClicked((short MapId, short X, short Y) warp)
+    public void WarpDestinationClicked((short MapId, ushort X, ushort Y) warp)
     {
         if (warp.MapId <= 0) return;
         var target = RowFor(warp.MapId);

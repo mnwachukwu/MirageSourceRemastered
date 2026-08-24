@@ -21,6 +21,19 @@ public sealed partial class MapEditorViewModel : ObservableObject, IAutoSaveTarg
     // Palette/active-sheet bitmap = Tilesets[SelectedTileset]; kept in sync by UpdateTileBitmap().
     [ObservableProperty] private Bitmap? _tileBitmap;
     [ObservableProperty] private MapRowViewModel? _selectedMap;
+
+    // ── The open map's size ───────────────────────────────────────────────────
+    // Read off the map itself, so every grid loop, bounds test and clamp in the editor follows the map
+    // being edited. With nothing open they answer the default, which is the size a new map is created at.
+
+    /// <summary>The open map's width in tiles.</summary>
+    public int MapCols => SelectedMap?.Record.Width ?? Constants.DefaultMapWidth;
+
+    /// <summary>The open map's height in tiles.</summary>
+    public int MapRows => SelectedMap?.Record.Height ?? Constants.DefaultMapHeight;
+
+    /// <summary>True when (x, y) is a tile on the open map.</summary>
+    public bool InMapBounds(int x, int y) => (uint)x < (uint)MapCols && (uint)y < (uint)MapRows;
     // Layer selection: which layer type, which 1-based layer index within it, and whether new tiles are
     // painted with the per-layer Anim (blink) flag set.
     [ObservableProperty] private LayerType _selectedLayerType = LayerType.Ground;
@@ -149,17 +162,15 @@ public sealed partial class MapEditorViewModel : ObservableObject, IAutoSaveTarg
     // Write an attribute to the ACTIVE layer.  Ground → inline fields; Fringe → FringeAttr (Walkable
     // clears it back to the default walkable plane, since Walkable authors no fields).  Never used for the
     // ramp (which writes both-plane occupancy).
-    private void SetActiveAttr(TileRecord t, TileAttr attr)
-    {
-        if (AttrLayerIsFringe)
-            t.FringeAttr = attr.Type == TileType.Walkable ? null : FringeAttr.From(attr);
-        else
-            t.SetGroundAttr(attr);
-    }
+    private TileRecord WithActiveAttr(TileRecord t, TileAttr attr) =>
+        AttrLayerIsFringe
+            ? t with { FringeAttr = attr.Type == TileType.Walkable ? null : FringeAttr.From(attr) }
+            : t.WithGroundAttr(attr);
+
     // Overload for the many callers that only set a type and no fields. A wall stops everything, which is
     // what a caller naming only the type means by one.
-    private void SetActiveAttr(TileRecord t, TileType type) =>
-        SetActiveAttr(t, new TileAttr { Type = type, BlocksLight = true, BlocksSight = true });
+    private TileRecord WithActiveAttr(TileRecord t, TileType type) =>
+        WithActiveAttr(t, new TileAttr { Type = type, BlocksLight = true, BlocksSight = true });
 
     public string HoveredText => HoveredX >= 0
         ? EditorStrings.Format(EditorStrings.MapEditor_TileCoords, ("X", HoveredX), ("Y", HoveredY))

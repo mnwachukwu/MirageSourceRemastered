@@ -38,6 +38,12 @@ public sealed class MapRecord
     // as their inherit sentinel and resolve per-field (map's own wins if non-blank, else the group's).
     public MapMoral? Moral { get; set; }
     public int Music { get; set; }
+
+    /// <summary>Where this map puts a player who leaves it other than by walking: they die here, or they log
+    /// out here. 0 = inherit the MapGroup's, so a whole dungeon can name one exit once.
+    ///
+    /// <para>It outranks the player's own Inn-purchased respawn point. What dying in a place costs is the
+    /// map author's call, not something a player can buy their way out of.</para></summary>
     public int BootMap { get; set; }
     public int BootX { get; set; }
     public int BootY { get; set; }
@@ -62,10 +68,67 @@ public sealed class MapRecord
     /// plus an optional territory.</summary>
     public int MapGroup { get; set; }
 
-    // Tile grid [0..MaxMapX, 0..MaxMapY] — already 0-based
+    // The tile grid, 0-based on both axes. Its dimensions are the map's size — see Width/Height below.
     [JsonConverter(typeof(TileArrayConverter))]
-    public TileRecord[,] Tile { get; set; } =
-        new TileRecord[Constants.MaxMapX + 1, Constants.MaxMapY + 1];
+    public TileRecord[,] Tile { get; set; } = TileGrid.Empty(Constants.MaxMapX + 1, Constants.MaxMapY + 1);
+
+    /// <summary>The map's width in tiles, read off the grid itself.</summary>
+    [JsonIgnore] public int Width => Tile.GetLength(0);
+
+    /// <summary>The map's height in tiles, read off the grid itself.</summary>
+    [JsonIgnore] public int Height => Tile.GetLength(1);
+
+    /// <summary>True when (<paramref name="x"/>, <paramref name="y"/>) names a real tile on this map.
+    /// Every coordinate that arrives from authored data, a config file or a saved character is checked
+    /// through here before it reaches <see cref="Tile"/>.</summary>
+    public bool Contains(int x, int y) => (uint)x < (uint)Width && (uint)y < (uint)Height;
+
+    /// <summary>True when nobody has put anything on this map: a slot the world was padded out to rather
+    /// than a place.
+    ///
+    /// <para>Tiles are compared against a freshly built one rather than field by field, so a tile property
+    /// added later is covered without this having to be remembered. Size is deliberately not part of it —
+    /// a map resized and then cleared is still empty.</para></summary>
+    [JsonIgnore]
+    public bool IsBlank
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Name) || !string.IsNullOrWhiteSpace(DisplayName)) return false;
+            if (Npcs.Count > 0 || Lights.Count > 0) return false;
+            if (Up != 0 || Down != 0 || Left != 0 || Right != 0) return false;
+            if (MapGroup != 0 || Music != 0 || BootMap != 0 || BootX != 0 || BootY != 0) return false;
+            // All four are nullable on purpose: null is "unset", and None / false are real answers a map
+            // can give. Setting any of them is authoring.
+            if (Moral is not null || Indoors is not null || AlwaysLit is not null || AlwaysDark is not null) return false;
+            if (!string.IsNullOrWhiteSpace(GreetingSpeaker) || !string.IsNullOrWhiteSpace(JoinSay)
+                || !string.IsNullOrWhiteSpace(LeaveSay))
+            {
+                return false;
+            }
+
+            var blank = new TileRecord();
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    if (Tile[x, y] != blank) return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    /// <summary>Replaces one tile with what <paramref name="edit"/> makes of it —
+    /// <c>map.EditTile(3, 4, t =&gt; t with { Type = TileType.Blocked })</c>.
+    ///
+    /// <para>A tile is a value, so changing one means producing a new one and storing it back. This is that
+    /// round trip written once. A coordinate off the map is ignored.</para></summary>
+    public void EditTile(int x, int y, Func<TileRecord, TileRecord> edit)
+    {
+        if (Contains(x, y)) Tile[x, y] = edit(Tile[x, y]);
+    }
 
     // NPC spawn entries: a dense 0-based list (0..Count-1, cap MaxMapNpcs). Entry i drives the runtime spawn
     // post MapNpcs[map, i + 1]; each entry carries the NPC type plus its optional fixed spawn tile. Only
@@ -76,13 +139,8 @@ public sealed class MapRecord
     // AlwaysDark maps. Empty by default, so old maps deserialize with no lights (no migration).
     public List<PlacedLight> Lights { get; set; } = new();
 
-    /// <summary>Fills the tile grid with empty tiles, so every cell is addressable without a null check.</summary>
-    public MapRecord()
-    {
-        for (int x = 0; x <= Constants.MaxMapX; x++)
-        {
-            for (int y = 0; y <= Constants.MaxMapY; y++)
-                Tile[x, y] = new TileRecord();
-        }
-    }
+    public MapRecord() { }
+
+    /// <summary>A map of a given size, filled with empty tiles.</summary>
+    public MapRecord(int width, int height) => Tile = TileGrid.Empty(width, height);
 }

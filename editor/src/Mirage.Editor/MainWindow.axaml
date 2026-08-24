@@ -1,7 +1,9 @@
 <ui:FAAppWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="using:FluentAvalonia.UI.Windowing"
+        xmlns:vm="using:Mirage.Editor.ViewModels"
         x:Class="Mirage.Editor.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
         Width="1280" Height="720"
         MinWidth="800" MinHeight="500"
         Background="{DynamicResource MirageBgBrush}">
@@ -30,6 +32,7 @@
                       IsVisible="{Binding !IsOnline}"/>
             <MenuItem x:Name="_worldCloseItem" Command="{Binding CloseWorldCommand}"
                       IsVisible="{Binding !IsOnline}" IsEnabled="{Binding HasWorld}"/>
+            <MenuItem x:Name="_worldCheckItem" Command="{Binding CheckWorldCommand}"/>
             <MenuItem x:Name="_worldSettingsItem" Command="{Binding WorldSettingsCommand}"
                       IsVisible="{Binding !IsOnline}" IsEnabled="{Binding HasWorld}"/>
             <Separator IsVisible="{Binding !IsOnline}"/>
@@ -44,11 +47,12 @@
               <!-- Each row carries its own command, so the item binds to itself and never reaches back up
                    the tree for the window's view-model.
 
-                   The header is the shortened path and the tooltip is the whole one: a menu wide enough
-                   for a real world path is a menu nobody can read, and one that scrolls to fit is worse. -->
+                   The header is the world's name, or its shortened path where it has no name, and the
+                   tooltip is the whole path: a menu wide enough for a real world path is a menu nobody
+                   can read, and one that scrolls to fit is worse. -->
               <MenuItem.Styles>
-                <Style Selector="MenuItem > MenuItem">
-                  <Setter Property="Header" Value="{Binding DisplayPath}"/>
+                <Style Selector="MenuItem > MenuItem" x:DataType="vm:RecentWorldViewModel">
+                  <Setter Property="Header" Value="{Binding Display}"/>
                   <Setter Property="Command" Value="{Binding OpenCommand}"/>
                   <Setter Property="ToolTip.Tip" Value="{Binding Path}"/>
                 </Style>

@@ -38,7 +38,7 @@ public sealed partial class PacketHandler
     private void HandleSearch(int index, SearchPacket p)
     {
         if (!_pm[index].IsPlaying) return;
-        if (p.X < 0 || p.X > Constants.MaxMapX || p.Y < 0 || p.Y > Constants.MaxMapY) return;
+        if (!_world.Maps[_pm[index].Char.Map].Contains(p.X, p.Y)) return;
         if (p.ProposedType is not (0 or 1 or 2 or 3 or 255))
         {
             HackingAttempt(index, "Invalid ProposedType");

@@ -23,8 +23,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     [ObservableProperty] private bool _showWarpDialog;
     [ObservableProperty] private short _warpMapNum;
-    [ObservableProperty] private short _warpX;
-    [ObservableProperty] private short _warpY;
+    [ObservableProperty] private ushort _warpX;
+    [ObservableProperty] private ushort _warpY;
     // Two-plane world (§1b): the logical layer the warp delivers you onto — Ground (default) or the Fringe deck.
     // Packed into the warp's Data3 alongside WarpY via WorldTarget (dest coords are well under a byte).
     [ObservableProperty] private WorldLayer _warpDestLayer = WorldLayer.Ground;
@@ -32,6 +32,11 @@ public sealed partial class MapEditorViewModel : ObservableObject
     [ObservableProperty] private bool _showItemDialog;
     [ObservableProperty] private short _itemTileNum;
     [ObservableProperty] private short _itemTileQuantity;
+
+    /// <summary>The most a tile-item's quantity can be — the width of the field that stores it
+    /// (<see cref="Mirage.Shared.Records.TileRecord.ItemQuantity"/>). Bound rather than written into the
+    /// XAML so the spinner and the record cannot disagree about the ceiling.</summary>
+    public static short ItemTileQuantityMax => short.MaxValue;
     [ObservableProperty] private short _itemTileRespawnSeconds;
 
     [ObservableProperty] private bool _showKeyDialog;
@@ -46,8 +51,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     [ObservableProperty] private bool _showKeyOpenDialog;
     // Data1/2 = coordinates of the Key (door) tile on the same map.
-    [ObservableProperty] private short _keyOpenDoorX;
-    [ObservableProperty] private short _keyOpenDoorY;
+    [ObservableProperty] private ushort _keyOpenDoorX;
+    [ObservableProperty] private ushort _keyOpenDoorY;
     // Data3 = the target door's WorldLayer (0 Ground / 1 Fringe) — a KeyOpen can open a Key door on EITHER plane,
     // independent of the plane the KeyOpen plate itself sits on (e.g. a ground plate opening a fringe-deck gate).
     [ObservableProperty] private WorldLayer _keyOpenDoorLayer = WorldLayer.Ground;
@@ -85,7 +90,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // ── Retained values (set only by Confirm when *Retain is true; Alt+Click) ──
     // Completely separate from the dialog fields so cancel never corrupts them.
     private bool _hasRetainedWarp;
-    private short _retWarpMapNum, _retWarpX, _retWarpY;
+    private short _retWarpMapNum;
+    private ushort _retWarpX, _retWarpY;
     private WorldLayer _retWarpDestLayer;
 
     private bool _hasRetainedItem;
@@ -96,7 +102,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private bool _retKeyTake;
 
     private bool _hasRetainedKeyOpen;
-    private short _retKeyOpenDoorX, _retKeyOpenDoorY;
+    private ushort _retKeyOpenDoorX, _retKeyOpenDoorY;
     private WorldLayer _retKeyOpenDoorLayer;
 
     // A wall stops everything until a dialog says otherwise, so these start where a plain wall does.

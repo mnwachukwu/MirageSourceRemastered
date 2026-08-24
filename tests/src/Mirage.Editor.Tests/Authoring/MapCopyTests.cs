@@ -170,12 +170,12 @@ public class MapCopyTests
     public void CopiedMap_IsDeep_SoPaintingItCannotReachTheOriginal()
     {
         var source = Authored();
-        source.Tile[0, 0].Ground[0] = LayerCell.Pack(5, 0, false);
+        source.EditTile(0, 0, t => t.WithCell(LayerType.Ground, 0, LayerCell.Pack(5, 0, false)));
         var vm = BuildOffline(World(source));
         vm.SelectedMap = Row(vm, 1);
 
         vm.CopyMapCommand.Execute(null);
-        Row(vm, 2).Record.Tile[0, 0].Ground[0] = LayerCell.Pack(99, 0, false);
+        Row(vm, 2).Record.EditTile(0, 0, t => t.WithCell(LayerType.Ground, 0, LayerCell.Pack(99, 0, false)));
 
         Assert.That(Row(vm, 1).Record.Tile[0, 0].Ground[0], Is.EqualTo(LayerCell.Pack(5, 0, false)));
     }
@@ -186,7 +186,7 @@ public class MapCopyTests
     public void APaintedMapWithNoName_IsNotACopyTarget()
     {
         var unnamedButPainted = new MapRecord();
-        unnamedButPainted.Tile[3, 3].Ground[0] = LayerCell.Pack(7, 0, false);
+        unnamedButPainted.EditTile(3, 3, t => t.WithCell(LayerType.Ground, 0, LayerCell.Pack(7, 0, false)));
         var vm = BuildOffline(World(Authored(), unnamedButPainted));
         vm.SelectedMap = Row(vm, 1);
 

@@ -1009,6 +1009,23 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     private string MotdFile => Path.Combine(_dataPath, "motd.json");
 
+    public async Task<WorldManifest> LoadWorldManifestAsync()
+    {
+        string path = Path.Combine(_dataPath, WorldManifest.FileName);
+        if (!File.Exists(path)) return new WorldManifest();
+        try
+        {
+            return JsonSerializer.Deserialize<WorldManifest>(await File.ReadAllTextAsync(path), Options)
+                   ?? new WorldManifest();
+        }
+        catch (Exception ex)
+        {
+            // A folder that cannot say what it is still runs, on the stock answers.
+            _logger.LogWarning(ex, "Could not read {File}; using the default world settings.", WorldManifest.FileName);
+            return new WorldManifest();
+        }
+    }
+
     public async Task<string> LoadMotdAsync()
     {
         if (!File.Exists(MotdFile)) return "";

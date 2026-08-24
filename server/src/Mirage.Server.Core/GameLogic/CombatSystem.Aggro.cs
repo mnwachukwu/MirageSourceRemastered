@@ -103,7 +103,7 @@ public sealed partial class CombatSystem : GameSystem
 
         long now = Environment.TickCount64;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, alertedMap);
-        var (alertedWX, alertedWY) = WorldCoordHelper.ToWorld(1, 1, alertedMn.X, alertedMn.Y);
+        var (alertedWX, alertedWY) = grid.CenterToWorld(alertedMn.X, alertedMn.Y);
         string say = string.IsNullOrWhiteSpace(alertedNpc.AttackSay) ? string.Empty : alertedNpc.AttackSay.TrimEnd();
         int encodedNpc = spec.IsNpc ? MapNpcRecord.EncodeNpcId(spec.NpcSpawnMap, spec.NpcSpawnSlot) : 0;
 
@@ -121,7 +121,7 @@ public sealed partial class CombatSystem : GameSystem
                     // Initial-wake call: don't touch already-engaged comrades.  Aggro-flip call: overwrite.
                     if (!overwrite && (other.Target != 0 || other.NpcTargetSpawnSlot != 0)) continue;
 
-                    var (otherWX, otherWY) = WorldCoordHelper.ToWorld(col, row, other.X, other.Y);
+                    var (otherWX, otherWY) = grid.ToWorld(col, row, other.X, other.Y);
                     if (!WorldCoordHelper.IsWithinViewport(otherWX, otherWY, alertedWX, alertedWY)) continue;
 
                     other.Target = spec.Player;
@@ -279,7 +279,7 @@ public sealed partial class CombatSystem : GameSystem
     public bool HasGuardInViewport(MapNpcRecord mn, int currentMapNum)
     {
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, currentMapNum);
-        var (mnWX, mnWY) = WorldCoordHelper.ToWorld(1, 1, mn.X, mn.Y);
+        var (mnWX, mnWY) = grid.CenterToWorld(mn.X, mn.Y);
         for (int col = 0; col < 3; col++)
         {
             for (int row = 0; row < 3; row++)
@@ -291,7 +291,7 @@ public sealed partial class CombatSystem : GameSystem
                     var other = _world.MapNpcs[m, s];
                     if (other.Num <= 0 || other.Hp <= 0) continue;
                     if (_world.Npcs[other.Num].Behavior != NpcBehavior.Guard) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, other.X, other.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, other.X, other.Y);
                     if (WorldCoordHelper.IsWithinViewport(mnWX, mnWY, oWX, oWY)) return true;
                 }
                 var guests = _world.MapTraversalNpcs[m];
@@ -300,7 +300,7 @@ public sealed partial class CombatSystem : GameSystem
                     var gt = guests[g];
                     if (gt.Num <= 0 || gt.Hp <= 0) continue;
                     if (_world.Npcs[gt.Num].Behavior != NpcBehavior.Guard) continue;
-                    var (oWX, oWY) = WorldCoordHelper.ToWorld(col, row, gt.X, gt.Y);
+                    var (oWX, oWY) = grid.ToWorld(col, row, gt.X, gt.Y);
                     if (WorldCoordHelper.IsWithinViewport(mnWX, mnWY, oWX, oWY)) return true;
                 }
             }
@@ -358,7 +358,7 @@ public sealed partial class CombatSystem : GameSystem
                 for (int i = 1; i <= _pm.Slots; i++)
                 {
                     if (mn.DamageByPlayer[i] > 0 && _pm[i].IsPlaying
-                        && WorldCoordHelper.GridPosition(grid, _pm[i].Char.Map) is not null && _pm[i].Char.IsPk(nowUtc))
+                        && grid.PositionOf(_pm[i].Char.Map) is not null && _pm[i].Char.IsPk(nowUtc))
                     {
                         hasPk = true;
                         break;
@@ -369,7 +369,7 @@ public sealed partial class CombatSystem : GameSystem
             for (int i = 1; i <= _pm.Slots; i++)
             {
                 if (mn.DamageByPlayer[i] == 0) continue;
-                if (!_pm[i].IsPlaying || WorldCoordHelper.GridPosition(grid, _pm[i].Char.Map) is null) continue;
+                if (!_pm[i].IsPlaying || grid.PositionOf(_pm[i].Char.Map) is null) continue;
                 if (guardMode && hasPk && !_pm[i].Char.IsPk(nowUtc)) continue;
                 // Guards in active grace with this player ignore their damage for target picking —
                 // the warnings are still being spent, so the player shouldn't drive an aggro flip
@@ -412,7 +412,7 @@ public sealed partial class CombatSystem : GameSystem
                 var resolved = ResolveNpcByIdentity(e.SpawnMap, e.SpawnSlot);
                 if (resolved is null) continue;
                 var (cMap, _, rec) = resolved.Value;
-                if (WorldCoordHelper.GridPosition(grid, cMap) is null) continue;
+                if (grid.PositionOf(cMap) is null) continue;
                 double score = e.Damage * AggroWeight(_world.Npcs[rec.Num].Def);
                 if (score > bestNpcScore)
                 {

@@ -445,8 +445,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
         ox = oy = 0f;
         if (_state.CellForMap(fromMap) is not { } a) return false;
         if (_state.CellForMap(toMap) is not { } b) return false;
-        int dx = (b.col * WorldCoordHelper.MapTilesX + toX) - (a.col * WorldCoordHelper.MapTilesX + fromX);
-        int dy = (b.row * WorldCoordHelper.MapTilesY + toY) - (a.row * WorldCoordHelper.MapTilesY + fromY);
+        int dx = (b.col * _state.MapTilesX + toX) - (a.col * _state.MapTilesX + fromX);
+        int dy = (b.row * _state.MapTilesY + toY) - (a.row * _state.MapTilesY + fromY);
         if (Math.Abs(dx) + Math.Abs(dy) != 1) return false;
         ox = -dx * Constants.PicX;
         oy = -dy * Constants.PicY;

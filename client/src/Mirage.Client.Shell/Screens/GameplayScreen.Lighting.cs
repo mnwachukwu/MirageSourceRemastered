@@ -67,13 +67,7 @@ public sealed partial class GameplayScreen : IGameScreen
             sb.Begin(SpriteSortMode.Deferred, MirageGame.MaxLightBlend,
                 SamplerState.LinearClamp, null, null, null, transform);
             var safeColor = ScaleGlow(SafeZoneLightPeak, 1f);
-            foreach (var m in _renderFrame.AlwaysLitMapLights)
-            {
-                var dest = new Rectangle(
-                    (int)m.ScreenX - MirageGame.MapAreaBleed, (int)m.ScreenY - MirageGame.MapAreaBleed,
-                    Camera.ViewW + MirageGame.MapAreaBleed * 2, Camera.ViewH + MirageGame.MapAreaBleed * 2);
-                sb.Draw(boxTex, dest, safeColor);
-            }
+            foreach (var m in _renderFrame.AlwaysLitMapLights) DrawMapAreaBox(sb, boxTex, in m, safeColor);
             sb.End();
         }
 
@@ -89,20 +83,8 @@ public sealed partial class GameplayScreen : IGameScreen
         {
             sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend,
                 SamplerState.LinearClamp, null, null, null, transform);
-            foreach (var m in _renderFrame.IndoorsMapLights)
-            {
-                var dest = new Rectangle(
-                    (int)m.ScreenX - MirageGame.MapAreaBleed, (int)m.ScreenY - MirageGame.MapAreaBleed,
-                    Camera.ViewW + MirageGame.MapAreaBleed * 2, Camera.ViewH + MirageGame.MapAreaBleed * 2);
-                sb.Draw(boxTex, dest, Color.White);
-            }
-            foreach (var m in _renderFrame.AlwaysDarkMapLights)
-            {
-                var dest = new Rectangle(
-                    (int)m.ScreenX - MirageGame.MapAreaBleed, (int)m.ScreenY - MirageGame.MapAreaBleed,
-                    Camera.ViewW + MirageGame.MapAreaBleed * 2, Camera.ViewH + MirageGame.MapAreaBleed * 2);
-                sb.Draw(boxTex, dest, MirageGame.NightAmbient);
-            }
+            foreach (var m in _renderFrame.IndoorsMapLights) DrawMapAreaBox(sb, boxTex, in m, Color.White);
+            foreach (var m in _renderFrame.AlwaysDarkMapLights) DrawMapAreaBox(sb, boxTex, in m, MirageGame.NightAmbient);
             sb.End();
         }
 
@@ -144,5 +126,29 @@ public sealed partial class GameplayScreen : IGameScreen
         }
         sb.End();
         sb.GraphicsDevice.ScissorRectangle = prevScissor;
+    }
+
+    // The box texture is a flat interior ringed by a skirt of MapAreaBleed px that feathers 1 -> 0. Drawn as
+    // a nine-patch: the four corners keep the skirt's authored size, the four edges stretch along the one
+    // axis they are constant on, and the flat interior stretches to the map. Stretching the whole texture
+    // instead would scale the skirt with the map, so the feather would widen as maps grow.
+    private static void DrawMapAreaBox(SpriteBatch sb, Texture2D boxTex, in MapLightCmd m, Color color)
+    {
+        int b = MirageGame.MapAreaBleed;
+        int srcInnerW = boxTex.Width - b * 2, srcInnerH = boxTex.Height - b * 2;
+        int x0 = (int)m.ScreenX - b, x1 = (int)m.ScreenX, x2 = (int)m.ScreenX + m.PxW;
+        int y0 = (int)m.ScreenY - b, y1 = (int)m.ScreenY, y2 = (int)m.ScreenY + m.PxH;
+        int[] dx = { x0, x1, x2 }, dw = { b, m.PxW, b };
+        int[] dy = { y0, y1, y2 }, dh = { b, m.PxH, b };
+        int[] sx = { 0, b, b + srcInnerW }, sw = { b, srcInnerW, b };
+        int[] sy = { 0, b, b + srcInnerH }, sh = { b, srcInnerH, b };
+        for (int r = 0; r < 3; r++)
+        {
+            for (int c = 0; c < 3; c++)
+            {
+                sb.Draw(boxTex, new Rectangle(dx[c], dy[r], dw[c], dh[r]),
+                        new Rectangle(sx[c], sy[r], sw[c], sh[r]), color);
+            }
+        }
     }
 }

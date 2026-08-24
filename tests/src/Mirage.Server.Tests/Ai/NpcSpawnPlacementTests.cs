@@ -92,7 +92,7 @@ public class NpcSpawnPlacementTests
         var world = new GameWorld();
         var pm = new PlayerManager();
         DefineNpc(world);
-        world.Maps[Map].Tile[9, 4].Type = TileType.Blocked;   // authoring error: the pin is on a wall
+        world.Maps[Map].EditTile(9, 4, t => t with { Type = TileType.Blocked });   // authoring error: the pin is on a wall
         world.Maps[Map].Npcs.Add(new MapNpcEntry(NpcNum, 9, 4));
 
         NewSpawn(world, pm).SpawnNpc(1, Map);

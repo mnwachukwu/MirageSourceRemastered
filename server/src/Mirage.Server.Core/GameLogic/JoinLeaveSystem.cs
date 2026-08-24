@@ -173,6 +173,10 @@ public sealed class JoinLeaveSystem : GameSystem
         _dispatcher.SendTo(index, PacketBuilder.Weather(_world.Weather));
         _dispatcher.SendTo(index, PacketBuilder.TimeOfDay(_world.TimePhase, _world.TimeProgress));
 
+        // Pull the saved tile onto ground that exists — see GameWorld.RepairPosition. Written back to the
+        // record, so a corrected position persists with the character.
+        (p.Map, p.X, p.Y) = _world.RepairPosition(p.Map, p.X, p.Y, Config.Spawn.HomeFor(p));
+
         // Warp to saved location (triggers map loading flow via CheckForMap).
         // suppressMapGreeting: true so the spawn-map's NPC chatter can be re-issued AFTER SendWelcome
         // and land last in the joining player's chat.  destLayer: p.Layer restores the PERSISTED layer so a relog
@@ -294,18 +298,10 @@ public sealed class JoinLeaveSystem : GameSystem
     /// </summary>
     private void SendOpenDoors(int index, int mapNum)
     {
-        var temp = _world.TempTiles[mapNum];
-        for (int x = 0; x <= Constants.MaxMapX; x++)
-        {
-            for (int y = 0; y <= Constants.MaxMapY; y++)
-            {
-                for (int l = 0; l < 2; l++)   // sync both planes' open doors so the client predicts each correctly
-                {
-                    if (temp.IsDoorOpen(x, y, (WorldLayer)l))
-                        _dispatcher.SendTo(index, new MapKeyPacket { MapNum = mapNum, X = x, Y = y, Open = true, Layer = (WorldLayer)l });
-                }
-            }
-        }
+        // Both planes' open doors, so the client predicts each correctly. Reads the map's open-door set
+        // directly: a map with nothing open sends nothing and costs nothing, whatever its size.
+        foreach (var ((x, y, layer), _) in _world.TempTiles[mapNum].OpenDoors)
+            _dispatcher.SendTo(index, new MapKeyPacket { MapNum = mapNum, X = x, Y = y, Open = true, Layer = layer });
     }
 
     /// <summary>
@@ -327,7 +323,9 @@ public sealed class JoinLeaveSystem : GameSystem
             if (p.Map == editedMapNum)
             {
                 // Occupant — same-map "warp" reloads tiles + region and re-blocks input until confirm.
-                _movement.PlayerWarp(i, editedMapNum, p.X, p.Y);
+                // The tile is repaired first: the save that triggered this may have shrunk the map.
+                var (_, rx, ry) = _world.RepairPosition(editedMapNum, p.X, p.Y, Config.Spawn.HomeFor(p));
+                _movement.PlayerWarp(i, editedMapNum, rx, ry);
                 continue;
             }
             // Neighbor observer — locate the cell where the edited map sits in their grid and push
@@ -462,9 +460,22 @@ public sealed class JoinLeaveSystem : GameSystem
         int bootMap = _world.BootMapOf(p.Map);
         if (bootMap > 0)
         {
-            p.X = _world.BootXOf(p.Map);
-            p.Y = _world.BootYOf(p.Map);
-            p.Map = bootMap;
+            int bootX = _world.BootXOf(p.Map);
+            int bootY = _world.BootYOf(p.Map);
+            // A boot point is authored content, so one naming no tile is reported and ignored: the
+            // character is saved standing where they logged out, which is somewhere that exists.
+            if (_world.IsRealMap(bootMap) && _world.Maps[bootMap].Contains(bootX, bootY))
+            {
+                p.X = bootX;
+                p.Y = bootY;
+                p.Map = bootMap;
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Map #{Map} boots to map #{BootMap} ({X},{Y}), which is not a tile that exists - {Name} was left where they logged out.",
+                    p.Map, bootMap, bootX, bootY, p.TrimmedName);
+            }
         }
 
         _party.DisbandParty(index);

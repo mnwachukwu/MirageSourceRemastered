@@ -59,15 +59,16 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 var before = Snap(t);
                 if (SelectedMode == EditorMode.Tile)
                 {
-                    var layers = SelectedLayers(t);
                     int li = SelectedLayerArrayIndex;
-                    if (LayerCell.IsEmpty(layers[li])) continue;
-                    layers[li] = LayerCell.Empty;
+                    if (LayerCell.IsEmpty(SelectedLayers(t)[li])) continue;
+                    t = t.WithCell(SelectedLayerType, li, LayerCell.Empty);
+                    map.Tile[x, y] = t;
                 }
                 else  // Attribute — clear the ACTIVE layer (Fringe drops its FringeAttr / ramp; Ground → Walkable).
                 {
                     if (ActiveAttrType(t) == TileType.Walkable) continue;
-                    SetActiveAttr(t, TileType.Walkable);
+                    t = WithActiveAttr(t, TileType.Walkable);
+                    map.Tile[x, y] = t;
                 }
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(x, y);
@@ -266,16 +267,17 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 int idx = clip[dx, dy];
                 if (idx == 0) continue;
                 int tx = ax + dx, ty = ay + dy;
-                if (tx < 0 || tx > Constants.MaxMapX || ty < 0 || ty > Constants.MaxMapY) continue;
+                if (!InMapBounds(tx, ty)) continue;
 
                 var t = map.Tile[tx, ty];
                 var layers = SelectedLayers(t);
                 int li = SelectedLayerArrayIndex;
-                if (!LayerCell.IsEmpty(layers[li])) continue;
+                if (!LayerCell.IsEmpty(SelectedLayers(t)[li])) continue;
 
                 var before = Snap(t);
                 // Clipboard cells store packed LayerCell values, so sheet + Anim flag are preserved on paste.
-                layers[li] = idx;
+                t = t.WithCell(SelectedLayerType, li, idx);
+                map.Tile[tx, ty] = t;
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(tx, ty);
                 Record(tx, ty, before, Snap(t));
@@ -300,7 +302,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             {
                 if (clip[dx, dy] is not { } spec) continue;
                 int tx = ax + dx, ty = ay + dy;
-                if (tx < 0 || tx > Constants.MaxMapX || ty < 0 || ty > Constants.MaxMapY) continue;
+                if (!InMapBounds(tx, ty)) continue;
 
                 var before = LightAt(map, tx, ty, SelectedAttributeLayer);
                 var pl = new PlacedLight(Guid.NewGuid(), tx, ty, spec, SelectedAttributeLayer);   // fresh identity per pasted light
@@ -376,7 +378,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 var src = clip[dx, dy];
                 if (src.Type == TileType.Walkable) continue;
                 int tx = ax + dx, ty = ay + dy;
-                if (tx < 0 || tx > Constants.MaxMapX || ty < 0 || ty > Constants.MaxMapY) continue;
+                if (!InMapBounds(tx, ty)) continue;
 
                 var t = map.Tile[tx, ty];
                 // Skip cells whose ACTIVE layer already holds a DIFFERENT attribute — same legality check as the place
@@ -384,7 +386,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 if (ActiveAttrType(t) != TileType.Walkable && ActiveAttrType(t) != src.Type) continue;
 
                 var before = Snap(t);
-                SetActiveAttr(t, src);
+                t = WithActiveAttr(t, src);
+                map.Tile[tx, ty] = t;
                 SelectedMap.UpdateRecord(map);
                 InvalidateTileGrid?.Invoke(tx, ty);
                 Record(tx, ty, before, Snap(t));

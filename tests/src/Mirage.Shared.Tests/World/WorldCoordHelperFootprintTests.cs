@@ -86,14 +86,14 @@ public class WorldCoordHelperFootprintTests
     public void Footprint_StraddlesSeam_RightNeighborResolves()
     {
         // Center map = 1 at grid [1,1], right neighbor = 2. Anchor local (15,0) on center = world (31,12).
-        var grid = new MapGrid(0, 0, 0, 0, 1, 2, 0, 0, 0);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, 15, 0);
+        var grid = new MapGrid(0, 0, 0, 0, 1, 2, 0, 0, 0, WorldCoordHelper.MapTilesX, WorldCoordHelper.MapTilesY);
+        var (aWX, aWY) = grid.ToWorld(1, 1, 15, 0);
         Assert.That((aWX, aWY), Is.EqualTo((31, 12)));
 
         // Size-2 footprint {(31,12),(32,12)}: col 31 = center local 15; col 32 = right neighbor local 0.
         Assert.That(WorldCoordHelper.FootprintContains(aWX, aWY, 2, 32, 12), Is.True);
-        Assert.That(WorldCoordHelper.ResolveWorldTile(in grid, 31, 12), Is.EqualTo((1, 15, 0)));
-        Assert.That(WorldCoordHelper.ResolveWorldTile(in grid, 32, 12), Is.EqualTo((2, 0, 0)));
+        Assert.That(grid.ResolveWorldTile(31, 12), Is.EqualTo((1, 15, 0)));
+        Assert.That(grid.ResolveWorldTile(32, 12), Is.EqualTo((2, 0, 0)));
     }
 
     // ── Spell-circle range (footprint-aware, r = 5) ──────────────────────────

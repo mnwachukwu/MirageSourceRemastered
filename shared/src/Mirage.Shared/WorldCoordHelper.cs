@@ -19,30 +19,19 @@ namespace Mirage.Shared;
 /// </summary>
 public static class WorldCoordHelper
 {
-    public const int MapTilesX = Constants.MaxMapX + 1; // 16
-    public const int MapTilesY = Constants.MaxMapY + 1; // 12
+    /// <summary>The default map size in tiles — the stride this file's world-coordinate math assumes.
+    /// A map's own size is <c>MapRecord.Width</c> / <c>Height</c>.</summary>
+    public const int MapTilesX = Constants.DefaultMapWidth;
+    public const int MapTilesY = Constants.DefaultMapHeight;
 
-    // Visible viewport in tiles.
-    public const int ViewportTilesX = MapTilesX; // 16 (512 / 32)
-    public const int ViewportTilesY = MapTilesY; // 12 (384 / 32)
+    /// <summary>The camera's window in tiles. Equal to the default map size today and independent of it
+    /// by construction — see <see cref="Constants.ViewportTilesX"/>.</summary>
+    public const int ViewportTilesX = Constants.ViewportTilesX;
+    public const int ViewportTilesY = Constants.ViewportTilesY;
 
-    /// <summary>World-tile coordinate of a local tile within a given grid cell.</summary>
-    public static (int worldX, int worldY) ToWorld(int col, int row, int localX, int localY)
-        => (col * MapTilesX + localX, row * MapTilesY + localY);
-
-    /// <summary>
-    /// Inverse of <see cref="ToWorld"/>: resolves a world-tile coordinate back to the
-    /// (mapNum, localX, localY) it lands on within the 3×3 grid around the center map.
-    /// <paramref name="mapNum"/> is 0 when the coordinate falls on an unlinked or out-of-range
-    /// cell, so callers must validate it before indexing the map.
-    /// </summary>
-    public static (int mapNum, int localX, int localY) ResolveWorldTile(in MapGrid grid, int worldX, int worldY)
-    {
-        int col = worldX / MapTilesX;
-        int row = worldY / MapTilesY;
-        int mapNum = grid[col, row]; // MapGrid indexer returns 0 for an out-of-range (col,row)
-        return (mapNum, worldX - col * MapTilesX, worldY - row * MapTilesY);
-    }
+    // World coordinates are computed through MapGrid — see MapGrid.ToWorld / ResolveWorldTile. There is no
+    // constant-strided version on purpose: one would read the DEFAULT map size and silently give the wrong
+    // answer for every neighbourhood that is not that size.
 
     private static MapRecord? MapAt(MapRecord?[] maps, int num)
         => num > 0 && num < maps.Length ? maps[num] : null;
@@ -61,7 +50,8 @@ public static class WorldCoordHelper
     public static MapGrid BuildMapGrid(MapRecord?[] allMaps, int centerMapNum)
     {
         var c = MapAt(allMaps, centerMapNum);
-        if (c is null) return new MapGrid(0, 0, 0, 0, centerMapNum, 0, 0, 0, 0);
+        // No center map to measure, so the grid takes the default size. Every cell is 0 anyway.
+        if (c is null) return new MapGrid(0, 0, 0, 0, centerMapNum, 0, 0, 0, 0, MapTilesX, MapTilesY);
 
         var up = MapAt(allMaps, c.Up);
         var down = MapAt(allMaps, c.Down);
@@ -77,7 +67,9 @@ public static class WorldCoordHelper
             c.Right,                                         // [2,1] Right
             FirstNonZero(down?.Left ?? 0, left?.Down ?? 0),  // [0,2] DownLeft
             c.Down,                                          // [1,2] Down
-            FirstNonZero(down?.Right ?? 0, right?.Down ?? 0) // [2,2] DownRight
+            FirstNonZero(down?.Right ?? 0, right?.Down ?? 0),// [2,2] DownRight
+            // The center's size is the whole grid's: a map only links to maps its own size.
+            c.Width, c.Height
         );
     }
 
@@ -100,20 +92,7 @@ public static class WorldCoordHelper
     /// (passed by <c>in</c> to avoid copying); center first, then cardinals, then diagonals so a map that
     /// repeats in a tiny world resolves to its nearest cell.
     /// </summary>
-    public static (int col, int row)? GridPosition(in MapGrid g, int queryMapNum)
-    {
-        if (queryMapNum <= 0) return null;
-        if (g.C11 == queryMapNum) return (1, 1);
-        if (g.C10 == queryMapNum) return (1, 0);
-        if (g.C12 == queryMapNum) return (1, 2);
-        if (g.C01 == queryMapNum) return (0, 1);
-        if (g.C21 == queryMapNum) return (2, 1);
-        if (g.C00 == queryMapNum) return (0, 0);
-        if (g.C20 == queryMapNum) return (2, 0);
-        if (g.C02 == queryMapNum) return (0, 2);
-        if (g.C22 == queryMapNum) return (2, 2);
-        return null;
-    }
+    public static (int col, int row)? GridPosition(in MapGrid g, int queryMapNum) => g.PositionOf(queryMapNum);
 
     /// <summary>
     /// World-tile coordinate of an entity, expressed relative to <paramref name="centerMapNum"/>.
@@ -122,9 +101,12 @@ public static class WorldCoordHelper
     public static (int worldX, int worldY)? ToWorldRelative(
         MapRecord?[] allMaps, int centerMapNum, int entityMapNum, int localX, int localY)
     {
-        var gp = GridPosition(allMaps, centerMapNum, entityMapNum);
-        if (gp is null) return null;
-        return ToWorld(gp.Value.col, gp.Value.row, localX, localY);
+        if (entityMapNum == centerMapNum)
+        {
+            var self = MapAt(allMaps, centerMapNum);
+            return self is null ? null : (self.Width + localX, self.Height + localY);
+        }
+        return BuildMapGrid(allMaps, centerMapNum).ToWorldRelative(entityMapNum, localX, localY);
     }
 
     public static int WorldManhattan(int ax, int ay, int bx, int by)
@@ -241,7 +223,7 @@ public static class WorldCoordHelper
     {
         int dx = RectAxisGap(aWorldX, aSize, bWorldX, bSize);
         int dy = RectAxisGap(aWorldY, aSize, bWorldY, bSize);
-        const int r = (ViewportTilesY / 2) - 1; // 5 — viewport's short half-extent (Y)
+        const int r = Constants.SpellRangeTiles;
         return dx * dx + dy * dy <= r * r;
     }
 
@@ -343,13 +325,28 @@ public interface ISpellLosPredicate
 /// lives on the stack with no backing array object.  Field names are <c>C{col}{row}</c> (center is
 /// <see cref="C11"/>); a value of 0 means "no map linked in that cell".  Built by
 /// <see cref="WorldCoordHelper.BuildMapGrid"/>; pass by <c>in</c> when handing it to a reader to avoid
-/// copying the 36 bytes.
+/// copying it.
+///
+/// <para>It also carries the neighbourhood's tile size, which is what makes it — rather than any
+/// constant — the thing world coordinates are computed against. See <see cref="TilesX"/>.</para>
 /// </summary>
-public readonly struct MapGrid(int c00, int c10, int c20, int c01, int c11, int c21, int c02, int c12, int c22)
+public readonly struct MapGrid(int c00, int c10, int c20, int c01, int c11, int c21, int c02, int c12, int c22,
+                               int tilesX, int tilesY)
 {
     public readonly int C00 = c00, C10 = c10, C20 = c20; // row 0 (top):    UpLeft,   Up,     UpRight
     public readonly int C01 = c01, C11 = c11, C21 = c21; // row 1 (middle): Left,     Center, Right
     public readonly int C02 = c02, C12 = c12, C22 = c22; // row 2 (bottom): DownLeft, Down,   DownRight
+
+    /// <summary>Every cell's size in tiles — ONE size for the whole neighbourhood.
+    ///
+    /// <para>A map may only link to maps of its own size, so a 3×3 is uniform by construction and a world
+    /// coordinate has a single stride wherever in the grid it lands. That is why the stride lives here and
+    /// not in a constant: the size belongs to the neighbourhood being measured, and a grid built around a
+    /// 256×256 map measures in 256s.</para></summary>
+    public readonly int TilesX = tilesX;
+
+    /// <inheritdoc cref="TilesX"/>
+    public readonly int TilesY = tilesY;
 
     /// <summary>Map number at grid cell (col,row); 0 if unlinked or out of range. For the 9-cell sweeps
     /// (observer sets, neighbor sends) — the hot lookup path reads the fields directly instead.</summary>
@@ -366,6 +363,51 @@ public readonly struct MapGrid(int c00, int c10, int c20, int c01, int c11, int 
         (2, 2) => C22,
         _ => 0,
     };
+
+    /// <summary>World-tile coordinate of a local tile within a given grid cell. The center map's (0,0) is
+    /// world (<see cref="TilesX"/>, <see cref="TilesY"/>), so neighbors fit on every side.</summary>
+    public (int worldX, int worldY) ToWorld(int col, int row, int localX, int localY)
+        => (col * TilesX + localX, row * TilesY + localY);
+
+    /// <summary>World-tile coordinate of a local tile on the CENTER map — the common case.</summary>
+    public (int worldX, int worldY) CenterToWorld(int localX, int localY)
+        => (TilesX + localX, TilesY + localY);
+
+    /// <summary>Inverse of <see cref="ToWorld"/>: resolves a world-tile coordinate back to the
+    /// (mapNum, localX, localY) it lands on. <c>mapNum</c> is 0 when the coordinate falls on an unlinked
+    /// or out-of-range cell, so callers must validate it before indexing the map.</summary>
+    public (int mapNum, int localX, int localY) ResolveWorldTile(int worldX, int worldY)
+    {
+        int col = worldX / TilesX;
+        int row = worldY / TilesY;
+        return (this[col, row], worldX - col * TilesX, worldY - row * TilesY);
+    }
+
+    /// <summary>Grid (col,row) of <paramref name="queryMapNum"/>, or null if it isn't one of the 9 cells.
+    /// Center first, then cardinals, then diagonals, so a map that repeats in a tiny world resolves to its
+    /// nearest cell.</summary>
+    public (int col, int row)? PositionOf(int queryMapNum)
+    {
+        if (queryMapNum <= 0) return null;
+        if (C11 == queryMapNum) return (1, 1);
+        if (C10 == queryMapNum) return (1, 0);
+        if (C12 == queryMapNum) return (1, 2);
+        if (C01 == queryMapNum) return (0, 1);
+        if (C21 == queryMapNum) return (2, 1);
+        if (C00 == queryMapNum) return (0, 0);
+        if (C20 == queryMapNum) return (2, 0);
+        if (C02 == queryMapNum) return (0, 2);
+        if (C22 == queryMapNum) return (2, 2);
+        return null;
+    }
+
+    /// <summary>World-tile coordinate of an entity on any of the 9 maps, or null when its map is not one
+    /// of them.</summary>
+    public (int worldX, int worldY)? ToWorldRelative(int entityMapNum, int localX, int localY)
+    {
+        var gp = PositionOf(entityMapNum);
+        return gp is null ? null : ToWorld(gp.Value.col, gp.Value.row, localX, localY);
+    }
 }
 
 /// <summary>

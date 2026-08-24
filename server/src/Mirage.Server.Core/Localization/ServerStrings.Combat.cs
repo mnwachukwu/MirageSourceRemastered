@@ -11,6 +11,8 @@ public static partial class ServerStrings
     public const string CombatSystem_DrawnIntoCombat = nameof(CombatSystem_DrawnIntoCombat);
     public const string CombatSystem_GraceSeconds = nameof(CombatSystem_GraceSeconds);
     public const string CombatSystem_GraceEnded = nameof(CombatSystem_GraceEnded);
+    // Spoken on respawn when the player's respawn point names no real tile.
+    public const string CombatSystem_RespawnPointMissing = nameof(CombatSystem_RespawnPointMissing);
     public const string CombatSystem_AggressorFlagged = nameof(CombatSystem_AggressorFlagged);
     public const string CombatSystem_AggressorCleared = nameof(CombatSystem_AggressorCleared);
     public const string CombatSystem_ItemBroken = nameof(CombatSystem_ItemBroken);

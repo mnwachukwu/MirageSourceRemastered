@@ -186,7 +186,9 @@ public sealed partial class ClientPacketHandler : IClientEvents
 
     private static MapRecord BuildMapRecord(SendMapPacket p)
     {
-        var map = new MapRecord
+        // Sized from the packet before the tiles land: they travel sparsely, so the grid's extent is
+        // stated rather than inferred.
+        var map = new MapRecord(p.Width, p.Height)
         {
             Name = p.Name,
             DisplayName = p.DisplayName,
@@ -207,7 +209,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         };
 
         foreach (var t in p.Tiles)
-            map.Tile[t.X, t.Y] = t.ToTile();
+            if (map.Contains(t.X, t.Y)) map.Tile[t.X, t.Y] = t.ToTile();
 
         // Dense NPC entry list: stored as-is — the game client renders NPCs from live spawn
         // packets and never reads these. Capped defensively at MaxMapNpcs runtime posts.

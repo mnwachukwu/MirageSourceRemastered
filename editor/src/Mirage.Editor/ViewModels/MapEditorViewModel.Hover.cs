@@ -20,8 +20,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     public bool IsHovering => HoveredX >= 0 && SelectedMap is not null;
 
     private TileRecord? HoveredTileRecord =>
-        HoveredX >= 0 && HoveredX <= Constants.MaxMapX &&
-        HoveredY >= 0 && HoveredY <= Constants.MaxMapY &&
+        InMapBounds(HoveredX, HoveredY) &&
         SelectedMap is not null
             ? SelectedMap.Record.Tile[HoveredX, HoveredY]
             : null;
@@ -38,12 +37,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         var list = new HoveredLayerPreview[count];
         for (int i = 0; i < count; i++)
         {
-            int packed = LayerCell.Empty;
-            if (t is not null)
-            {
-                var layers = StackOf(t, type);
-                if (i < layers.Length) packed = layers[i];
-            }
+            int packed = CellAt(t, type, i);
             int sheet = LayerCell.Sheet(packed);
             int tileIndex = LayerCell.Tile(packed);
             Bitmap? bmp = sheet >= 0 && sheet < Tilesets.Count ? Tilesets[sheet] : null;
@@ -75,7 +69,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // Placed-light info for the hovered tile, shown in the Shift exploded-tile preview so a tile's whole
     // definition — layers, attribute, AND any light — is visible in one place.
     private PlacedLight? HoveredLight =>
-        HoveredX >= 0 && HoveredX <= Constants.MaxMapX && HoveredY >= 0 && HoveredY <= Constants.MaxMapY && SelectedMap is not null
+        InMapBounds(HoveredX, HoveredY) && SelectedMap is not null
             ? LightAt(SelectedMap.Record, HoveredX, HoveredY, SelectedAttributeLayer)
             : null;
     public string HoveredLightText => HoveredLight is { } pl
@@ -92,7 +86,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // NpcSpawn has no TileType (it writes a MapRecord.Npcs entry's pin, not tile.Type/FringeAttr — see
     // AttributeTool), so the hover preview surfaces it separately from the Ground/Fringe attribute lines.
     private int? HoveredNpcSpawnIndex =>
-        HoveredX >= 0 && HoveredX <= Constants.MaxMapX && HoveredY >= 0 && HoveredY <= Constants.MaxMapY && SelectedMap is not null
+        InMapBounds(HoveredX, HoveredY) && SelectedMap is not null
             ? EntryPinnedAt(SelectedMap.Record, HoveredX, HoveredY, SelectedAttributeLayer)
             : null;
     public bool HoveredHasNpcSpawn => HoveredNpcSpawnIndex is not null;

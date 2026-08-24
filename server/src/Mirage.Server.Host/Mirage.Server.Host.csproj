@@ -9,6 +9,10 @@
          what an operator double-clicks and what the installer's shortcut points at. -->
     <AssemblyName>$(GameNameSlug)-Server-Console</AssemblyName>
     <ApplicationIcon>$(ServerIcon)</ApplicationIcon>
+    <!-- The world is resident for the process's whole life and the game loop's tightest tick is 100ms, so
+         collection pauses are the cost that matters, not peak footprint. Measured on a 13-million-object
+         heap: full gen2 243ms -> 135ms, and a large map's deserialize 168ms -> 76ms. -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

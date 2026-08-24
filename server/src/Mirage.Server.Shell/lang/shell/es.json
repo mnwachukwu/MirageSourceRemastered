@@ -183,6 +183,7 @@
   "Hosting_GamePortHint": "El puerto que los jugadores escriben en su cliente. Ábrelo en tu router solo si están fuera de tu red.",
   "Hosting_DataDir": "Carpeta del mundo",
   "Hosting_DataDirHint": "Déjalo vacío para usar la carpeta data junto al servidor. Indica otra ruta para guardar un mundo en otro disco, o en una carpeta de la que hagas copia de seguridad.",
+  "Hosting_WorldNameNote": "Una carpeta de mundo puede darse un nombre en world.json. Ese nombre es tuyo, no de los jugadores: aparece aquí y en los registros para que distingas un mundo en vivo de una copia de prueba, y nunca llega a nadie que esté jugando. Lo que ve un jugador es el nombre del juego.",
   "Hosting_DataDirDefault": "carpeta data junto al servidor",
   "Hosting_Browse": "Examinar…",
   "Hosting_UseDefault": "Usar predeterminada",

@@ -218,6 +218,8 @@ public static class ShellStrings
     public const string Hosting_GamePortHint = nameof(Hosting_GamePortHint);
     public const string Hosting_DataDir = nameof(Hosting_DataDir);
     public const string Hosting_DataDirHint = nameof(Hosting_DataDirHint);
+    // The world-vs-game name distinction, said where an operator picks the world folder.
+    public const string Hosting_WorldNameNote = nameof(Hosting_WorldNameNote);
     public const string Hosting_DataDirDefault = nameof(Hosting_DataDirDefault);
     public const string Hosting_Browse = nameof(Hosting_Browse);
     public const string Hosting_UseDefault = nameof(Hosting_UseDefault);

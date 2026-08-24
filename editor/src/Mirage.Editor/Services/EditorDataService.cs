@@ -170,7 +170,17 @@ public sealed class EditorDataService
     /// <summary>How many of each record family exist. The connected server's, from its greeting; the
     /// protocol defaults when offline or against a server too old to greet an editor. A ceiling this
     /// editor was compiled with is a bug rather than a default — see <see cref="RecordLimits"/>.</summary>
-    public RecordLimits Limits { get; private set; } = RecordLimits.Default;
+    /// <summary>What the open world says about itself — its record ceilings, its name, and the size new
+    /// maps are created at. Offline this is the folder's <c>world.json</c>; connected, the ceilings come from
+    /// the server's hello and the rest stays local.</summary>
+    public WorldManifest Manifest { get; private set; } = new();
+
+    /// <summary>Shorthand for <c>Manifest.Records</c> — every list in the editor is sized from it.</summary>
+    public RecordLimits Limits
+    {
+        get => Manifest.Records;
+        private set => Manifest = Manifest with { Records = value };
+    }
 
     /// <summary>True if item <paramref name="id"/> is a currency-type item. Uses the server-sent currency
     /// set when online; falls back to the offline records otherwise.</summary>
@@ -214,7 +224,7 @@ public sealed class EditorDataService
 
         var dataPath = EditorPaths.Data;
         EditorLog.Info("Loading the offline data set from {Path}.", dataPath);
-        Limits = await LoadManifestAsync(dataPath);
+        Manifest = await LoadManifestAsync(dataPath);
         OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", Limits.Items);
         OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", Limits.Npcs);
         OfflineShops = await LoadAllFromDirAsync<ShopRecord>(Path.Combine(dataPath, "shops"), "shop", Limits.Shops);
@@ -222,7 +232,7 @@ public sealed class EditorDataService
         OfflineClasses = await LoadAllFromDirAsync<ClassRecord>(Path.Combine(dataPath, "classes"), "class", Constants.MaxClasses);
         OfflineQuests = await LoadAllFromDirAsync<QuestRecord>(Path.Combine(dataPath, "quests"), "quest", Limits.Quests);
         OfflineConversations = await LoadAllFromDirAsync<ConversationRecord>(Path.Combine(dataPath, "conversations"), "conversation", Limits.Conversations);
-        OfflineMaps = await LoadAllMapsAsync(dataPath, Limits.Maps);
+        OfflineMaps = await LoadAllMapsAsync(dataPath, Limits.Maps, Manifest.DefaultMapSize);
         OfflineMapGroups = await LoadAllMapGroupsAsync(dataPath, Limits.MapGroups);
         ClearEntryCache();
         EditorLog.Info("Offline data set loaded: {Items} items, {Npcs} npcs, {Maps} maps, {Groups} map groups.",
@@ -230,17 +240,14 @@ public sealed class EditorDataService
             OfflineMaps.Count(r => r is not null), OfflineMapGroups.Length);
     }
 
-    /// <summary>What the folder says its record ceilings are. A world with no manifest runs on the stock
-    /// sizes.</summary>
-    public static async Task<RecordLimits> LoadManifestAsync(string worldPath)
-    {
-        var manifest = await LoadJsonAsync<WorldManifest>(Path.Combine(worldPath, WorldManifest.FileName));
-        return manifest?.Records ?? RecordLimits.Default;
-    }
+    /// <summary>What the folder says about itself. A world with no manifest runs on the stock answers.</summary>
+    public static async Task<WorldManifest> LoadManifestAsync(string worldPath) =>
+        await LoadJsonAsync<WorldManifest>(Path.Combine(worldPath, WorldManifest.FileName)) ?? new WorldManifest();
 
-    /// <summary>Writes the folder its record ceilings.</summary>
-    public static Task SaveManifestAsync(string worldPath, RecordLimits limits) =>
-        WriteJsonAsync(Path.Combine(worldPath, WorldManifest.FileName), new WorldManifest { Records = limits });
+    /// <summary>Writes the folder's manifest whole, so a setting the caller did not touch is carried
+    /// through rather than reset to its default.</summary>
+    public static Task SaveManifestAsync(string worldPath, WorldManifest manifest) =>
+        WriteJsonAsync(Path.Combine(worldPath, WorldManifest.FileName), manifest);
 
     // A slot with no file is a blank record, not a missing one, so nothing is written to fill the gap: a
     // world is however many files an author made, and opening one leaves the folder as it was found.
@@ -259,11 +266,12 @@ public sealed class EditorDataService
         return result;
     }
 
-    private static async Task<MapRecord[]> LoadAllMapsAsync(string dataPath, int max)
+    private static async Task<MapRecord[]> LoadAllMapsAsync(string dataPath, int max, MapSize blankSize)
     {
         var mapsDir = Path.Combine(dataPath, "maps");
         var result = new MapRecord[max + 1];
-        for (int i = 1; i <= max; i++) result[i] = new MapRecord();
+        // An unauthored slot is a blank map at the world's default size — the size this world makes maps.
+        for (int i = 1; i <= max; i++) result[i] = new MapRecord(blankSize.Width, blankSize.Height);
 
         if (!Directory.Exists(mapsDir)) return result;
         foreach (var file in Directory.EnumerateFiles(mapsDir, "map*.json"))
@@ -306,7 +314,8 @@ public sealed class EditorDataService
     public async Task<MapRecord> LoadSingleMapOfflineAsync(int mapNum)
     {
         var file = Path.Combine(EditorPaths.Data, "maps", $"map{mapNum}.json");
-        var map = await LoadJsonAsync<MapRecord>(file) ?? new MapRecord();
+        var blank = Manifest.DefaultMapSize;
+        var map = await LoadJsonAsync<MapRecord>(file) ?? new MapRecord(blank.Width, blank.Height);
         OfflineMaps[mapNum] = map;
         return map;
     }
@@ -463,9 +472,9 @@ public sealed class EditorDataService
     public static EditorSaveMapPacket BuildSaveMapPacket(int mapNum, MapRecord map)
     {
         var tiles = new List<SendMapPacket.TileData>();
-        for (int x = 0; x <= Constants.MaxMapX; x++)
+        for (int x = 0; x < map.Width; x++)
         {
-            for (int y = 0; y <= Constants.MaxMapY; y++)
+            for (int y = 0; y < map.Height; y++)
             {
                 var t = map.Tile[x, y];
                 if (!SendMapPacket.TileData.IsDefault(t))
@@ -479,6 +488,8 @@ public sealed class EditorDataService
             Map = new SendMapPacket
             {
                 MapNum = mapNum,
+                Width = map.Width,
+                Height = map.Height,
                 // Send the current revision as-is. The server's HandleEditorSaveMap ignores this field
                 // and bumps its own `map.Revision++` authoritatively, so any value here is dead data on
                 // the wire. The caller is expected to have already called BumpRevision() before us, so
@@ -511,7 +522,7 @@ public sealed class EditorDataService
 
     public static MapRecord MapRecordFromPacket(SendMapPacket pkt)
     {
-        var map = new MapRecord
+        var map = new MapRecord(pkt.Width, pkt.Height)
         {
             Name = pkt.Name,
             DisplayName = pkt.DisplayName,
@@ -534,7 +545,7 @@ public sealed class EditorDataService
             MapGroup = pkt.MapGroup,
         };
         foreach (var t in pkt.Tiles)
-            map.Tile[t.X, t.Y] = t.ToTile();
+            if (map.Contains(t.X, t.Y)) map.Tile[t.X, t.Y] = t.ToTile();
         for (int i = 0; i < pkt.Npcs.Length && i < Constants.MaxMapNpcs; i++)
             map.Npcs.Add(pkt.Npcs[i]);
         map.Lights.AddRange(pkt.Lights);

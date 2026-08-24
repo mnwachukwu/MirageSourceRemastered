@@ -16,13 +16,9 @@ namespace Mirage.Editor.Controls;
 /// </summary>
 public static class RampOverlay
 {
-    private const int Cols = Constants.MaxMapX + 1;
-    private const int Rows = Constants.MaxMapY + 1;
     private static readonly (int dx, int dy)[] Adj = { (0, -1), (0, 1), (-1, 0), (1, 0) };
 
     public static bool IsRamp(TileRecord t) => t.FringeAttr is { Type: TileType.LayerRamp };
-
-    private static bool InBounds(int x, int y) => x >= 0 && x < Cols && y >= 0 && y < Rows;
 
     private static (int dx, int dy) DirDelta(Direction d) => d switch
     {
@@ -40,7 +36,7 @@ public static class RampOverlay
         foreach (var (dx, dy) in Adj)
         {
             int nx = x + dx, ny = y + dy;
-            if (InBounds(nx, ny) && map.Tile[nx, ny].FringeAttr is { Type: TileType.LayerRamp } fa
+            if (map.Contains(nx, ny) && map.Tile[nx, ny].FringeAttr is { Type: TileType.LayerRamp } fa
                 && fa.RampGroundSide != self.RampGroundSide)
             {
                 return true;
@@ -67,7 +63,7 @@ public static class RampOverlay
 
             var (gx, gy) = DirDelta(fa.RampGroundSide);
             int fx = cx + gx, fy = cy + gy;
-            if (!InBounds(fx, fy))
+            if (!map.Contains(fx, fy))
                 return false;   // foot off the map edge → assume a cross-seam mount; not flagged
             var foot = map.Tile[fx, fy];
             if (foot.FringeAttr is not { Type: TileType.LayerRamp } && foot.Type != TileType.Blocked)
@@ -76,7 +72,7 @@ public static class RampOverlay
             foreach (var (dx, dy) in Adj)
             {
                 int nx = cx + dx, ny = cy + dy;
-                if (InBounds(nx, ny) && map.Tile[nx, ny].FringeAttr is { Type: TileType.LayerRamp })
+                if (map.Contains(nx, ny) && map.Tile[nx, ny].FringeAttr is { Type: TileType.LayerRamp })
                     stack.Push((nx, ny));
             }
         }

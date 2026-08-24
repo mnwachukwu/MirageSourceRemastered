@@ -150,6 +150,46 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
     }
 
+// Two maps joined by an edge are one continuous surface, so both sides must measure the same: world
+    // coordinates run straight across a seam, and a mismatch puts a step across one somewhere other than
+    // where it looks. Same rule the resize dialog enforces from its own side, so neither can make a mismatch.
+    private async Task<bool> RevertMismatchedSizeAsync(MapDirection dir, int newId, int oldId)
+    {
+        if (SelectedMap is null || newId <= 0 || newId == SelectedMap.Index) return false;
+
+        var target = RowFor(newId);
+        // Online, a neighbour that never loaded has a placeholder record whose size means nothing. The
+        // eager load above is what usually settles this; anything still unloaded is left alone.
+        if (target is null || (_data.IsOnline && !target.IsLoaded)) return false;
+
+        var mine = new MapSize(SelectedMap.Record.Width, SelectedMap.Record.Height);
+        var theirs = new MapSize(target.Record.Width, target.Record.Height);
+        if (mine == theirs) return false;
+
+        SetLink(SelectedMap.Record, dir, oldId);
+        NotifyNeighborProperties();
+        NotifyLinkPicker(dir);
+
+        if (ShowAlertAsync is not null)
+        {
+            await ShowAlertAsync(EditorStrings.Format(EditorStrings.MapEditor_LinkSizeMismatch,
+                ("Target", newId), ("TargetSize", theirs), ("Size", mine)));
+        }
+
+        return true;
+    }
+
+    private void NotifyLinkPicker(MapDirection dir)
+    {
+        OnPropertyChanged(dir switch
+        {
+            MapDirection.Up => nameof(SelectedMapUp),
+            MapDirection.Down => nameof(SelectedMapDown),
+            MapDirection.Left => nameof(SelectedMapLeft),
+            _ => nameof(SelectedMapRight),
+        });
+    }
+
     private readonly record struct LinkConflict(int MapId, MapDirection Dir, int CurrentTarget, int WantedTarget);
 
     private MapRowViewModel? RowFor(int id) =>
@@ -159,6 +199,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (SelectedMap is null || newId == oldId) return;
         if (_data.IsOnline) await EagerLoadNeighborsAsync();
+
+        if (await RevertMismatchedSizeAsync(dir, newId, oldId)) return;
 
         var visited = new HashSet<(int, MapDirection)>();
         var conflicts = new List<LinkConflict>();

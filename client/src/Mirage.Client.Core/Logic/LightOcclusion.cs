@@ -18,9 +18,12 @@ namespace Mirage.Client.Core.Logic;
 /// </summary>
 public static class LightOcclusion
 {
-    /// <summary>The 3x3 neighbourhood, in tiles. A light is culled long before it could reach past it.</summary>
-    public const int GridW = WorldCoordHelper.MapTilesX * 3;
-    public const int GridH = WorldCoordHelper.MapTilesY * 3;
+    /// <summary>The 3x3 neighbourhood in tiles, measured in the center map's size. A light is culled long
+    /// before it could reach past it.</summary>
+    public static int GridW(ClientState state) => state.MapTilesX * 3;
+
+    /// <inheritdoc cref="GridW"/>
+    public static int GridH(ClientState state) => state.MapTilesY * 3;
 
     /// <summary>True when light from <paramref name="lightWX"/>,<paramref name="lightWY"/> reaches the tile
     /// at <paramref name="tileWX"/>,<paramref name="tileWY"/>.</summary>
@@ -58,11 +61,11 @@ public static class LightOcclusion
         for (int dy = -r; dy <= r; dy++)
         {
             int wy = lightWY + dy;
-            if (wy < 0 || wy >= GridH) continue;
+            if (wy < 0 || wy >= GridH(state)) continue;
             for (int dx = -r; dx <= r; dx++)
             {
                 int wx = lightWX + dx;
-                if (wx < 0 || wx >= GridW) continue;
+                if (wx < 0 || wx >= GridW(state)) continue;
                 mask[(dy + r) * side + (dx + r)] = Reaches(state, lightWX, lightWY, layer, wx, wy);
             }
         }
@@ -94,13 +97,13 @@ public static class LightOcclusion
 
         public bool IsBlocked(int worldX, int worldY)
         {
-            int col = worldX / WorldCoordHelper.MapTilesX;
-            int row = worldY / WorldCoordHelper.MapTilesY;
+            int col = worldX / _state.MapTilesX;
+            int row = worldY / _state.MapTilesY;
             if (col < 0 || col > 2 || row < 0 || row > 2) return true;
             var map = _state.NeighborMaps[col, row];
             if (map is null) return true;
-            int lx = worldX - col * WorldCoordHelper.MapTilesX;
-            int ly = worldY - row * WorldCoordHelper.MapTilesY;
+            int lx = worldX - col * _state.MapTilesX;
+            int ly = worldY - row * _state.MapTilesY;
             var attr = LayerLogic.AttrFor(map.Tile[lx, ly], _layer);
             var type = attr.Type;
             if (type == TileType.Blocked) return attr.BlocksLight;

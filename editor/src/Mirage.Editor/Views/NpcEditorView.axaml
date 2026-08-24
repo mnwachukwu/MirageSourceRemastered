@@ -3,7 +3,9 @@
              xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
              xmlns:mui="using:Mirage.Ui.Controls"
+             xmlns:vm="using:Mirage.Editor.ViewModels"
              Grid.IsSharedSizeScope="True"
+             x:DataType="vm:NpcEditorViewModel"
              x:Class="Mirage.Editor.Views.NpcEditorView">
 
   <Grid x:Name="PanelGrid" RowDefinitions="*,Auto">
@@ -421,10 +423,6 @@
                 <TextBlock x:Name="_previewLevelLabel" Grid.Column="0" VerticalAlignment="Center" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
                 <NumericUpDown Grid.Column="1" Value="{Binding SelectedNpc.PreviewLevel}" Minimum="1" Maximum="255"
                                FormatString="0" FontSize="11" Width="140"/>
-              </Grid>
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock x:Name="_dropPctLabel" Grid.Column="0" Foreground="#8B84AE" FontStyle="Italic" FontSize="11"/>
-                <TextBlock Grid.Column="1" Text="{Binding SelectedNpc.DropChancePct}" Foreground="#AAFFAA" FontWeight="SemiBold" FontSize="11"/>
               </Grid>
             </StackPanel>
             </Border>

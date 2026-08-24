@@ -157,7 +157,7 @@ public static class WorldTransfer
     /// <summary>Reads a world folder without touching the editor's open one.</summary>
     public static async Task<WorldSnapshot> ReadFolderAsync(string root)
     {
-        var limits = await EditorDataService.LoadManifestAsync(root);
+        var limits = (await EditorDataService.LoadManifestAsync(root)).Records;
         return new WorldSnapshot
         {
             Limits = limits,
@@ -230,7 +230,10 @@ public static class WorldTransfer
         IProgress<WorldTransferProgress>? progress = null, CancellationToken ct = default)
     {
         Directory.CreateDirectory(root);
-        await EditorDataService.SaveManifestAsync(root, world.Limits);
+        // The folder's own name and default map size are kept: a download states the SERVER's ceilings,
+        // and says nothing about what the folder receiving them is called.
+        var manifest = await EditorDataService.LoadManifestAsync(root);
+        await EditorDataService.SaveManifestAsync(root, manifest with { Records = world.Limits });
 
         var ctx = new PacketContext(world);
         int written = 0;

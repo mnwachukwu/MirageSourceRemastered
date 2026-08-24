@@ -25,7 +25,7 @@ public class LightOcclusionTests
             for (int r = 0; r < 3; r++)
                 state.NeighborMaps[c, r] = new MapRecord();
         foreach (var (x, y) in walls)
-            state.NeighborMaps[1, 1]!.Tile[x, y].Type = TileType.Blocked;
+            state.NeighborMaps[1, 1]!.EditTile(x, y, t => t with { Type = TileType.Blocked });
         return state;
     }
 
@@ -93,7 +93,7 @@ public class LightOcclusionTests
         for (int c = 0; c < 3; c++)
             for (int r = 0; r < 3; r++)
                 state.NeighborMaps[c, r] = new MapRecord();
-        state.NeighborMaps[1, 1]!.Tile[7, 5].FringeAttr = new FringeAttr { Type = TileType.Blocked };
+        state.NeighborMaps[1, 1]!.EditTile(7, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.Blocked } });
 
         var (lx, ly) = At(5, 5);
         var (tx, ty) = At(9, 5);

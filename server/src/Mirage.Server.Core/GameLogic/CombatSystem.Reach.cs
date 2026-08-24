@@ -21,10 +21,10 @@ public sealed partial class CombatSystem : GameSystem
     /// </summary>
     private bool IsFacingTargetAcrossMaps(int actorMap, Direction dir, int ax, int ay, int targetMap, int tx, int ty)
     {
-        var tw = WorldCoordHelper.ToWorldRelative(_world.Maps, actorMap, targetMap, tx, ty);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, actorMap);
+        var tw = grid.ToWorldRelative(targetMap, tx, ty);
         if (tw is null) return false;
-        int awx = WorldCoordHelper.MapTilesX + ax;
-        int awy = WorldCoordHelper.MapTilesY + ay;
+        var (awx, awy) = grid.CenterToWorld(ax, ay);
         return WorldCoordHelper.IsAdjacentInDir(awx, awy, dir, tw.Value.worldX, tw.Value.worldY);
     }
 
@@ -34,10 +34,10 @@ public sealed partial class CombatSystem : GameSystem
     /// against its single tile.</summary>
     private bool IsFacingNpcAcrossMaps(int actorMap, Direction dir, int ax, int ay, int npcMap, MapNpcRecord mapNpc, int size)
     {
-        var nw = WorldCoordHelper.ToWorldRelative(_world.Maps, actorMap, npcMap, mapNpc.X, mapNpc.Y);
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, actorMap);
+        var nw = grid.ToWorldRelative(npcMap, mapNpc.X, mapNpc.Y);
         if (nw is null) return false;
-        int awx = WorldCoordHelper.MapTilesX + ax;
-        int awy = WorldCoordHelper.MapTilesY + ay;
+        var (awx, awy) = grid.CenterToWorld(ax, ay);
         var (dx, dy) = WorldCoordHelper.DirDelta(dir);
         return WorldCoordHelper.FootprintContains(nw.Value.worldX, nw.Value.worldY, size, awx + dx, awy + dy);
     }
@@ -52,7 +52,7 @@ public sealed partial class CombatSystem : GameSystem
     {
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, actorMap);
         var view = new ServerTileView(_world, grid);
-        var (aWX, aWY) = WorldCoordHelper.ToWorld(1, 1, ax, ay);
+        var (aWX, aWY) = grid.CenterToWorld(ax, ay);
         var (dx, dy) = WorldCoordHelper.DirDelta(dir);
         return LayerLogic.LayerConnects(view, aWX, aWY, actorLayer, aWX + dx, aWY + dy, targetLayer);
     }

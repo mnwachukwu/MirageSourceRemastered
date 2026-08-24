@@ -17,7 +17,7 @@ internal readonly struct ServerTileView(GameWorld world, MapGrid grid) : LayerLo
 
     public TileRecord? At(int worldX, int worldY)
     {
-        var (mapNum, lx, ly) = WorldCoordHelper.ResolveWorldTile(_grid, worldX, worldY);
+        var (mapNum, lx, ly) = _grid.ResolveWorldTile(worldX, worldY);
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return null;
         return _world.Maps[mapNum]?.Tile[lx, ly];
     }
