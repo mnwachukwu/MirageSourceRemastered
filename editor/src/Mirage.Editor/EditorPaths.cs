@@ -57,7 +57,7 @@ internal static class EditorPaths
 
     /// <summary>The world shipped beside the executable. Not copied anywhere and never opened on its own —
     /// it is where the folder picker starts, so a first run has something to open.</summary>
-    public static string BundledWorld => Path.Combine(AppContext.BaseDirectory, "seed");
+    public static string BundledWorld => Path.Combine(AppContext.BaseDirectory, "seed-world");
 
     // The bundled default graphics shipped next to the executable (read-only on AppImage/.app);
     // the seed source for the editable assets dir.

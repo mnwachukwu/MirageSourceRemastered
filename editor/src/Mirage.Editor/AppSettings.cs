@@ -16,6 +16,12 @@ public sealed class AppSettings
     /// on nothing and asks, so launching it never silently attaches to a world you had finished with.</summary>
     public bool ReopenLastWorld { get; set; }
 
+    /// <summary>Where the folder picker was last browsing — the FOLDER a world was chosen from, not the
+    /// world itself, so the next pick opens among that world's siblings rather than inside its `maps/`
+    /// and `items/`. Worlds live wherever an operator keeps them, which is rarely next to the
+    /// application.</summary>
+    public string? LastWorldBrowsePath { get; set; }
+
     /// <summary>Worlds opened before, most recent first, for the File menu.</summary>
     public List<string> RecentWorlds { get; set; } = [];
 

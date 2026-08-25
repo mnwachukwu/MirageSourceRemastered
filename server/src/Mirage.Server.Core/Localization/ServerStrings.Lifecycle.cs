@@ -20,6 +20,8 @@ public static partial class ServerStrings
     public const string Server_LoadingMaps = nameof(Server_LoadingMaps);
     // Which set of records is loaded, from world.json. Operator-facing; a player never sees it.
     public const string Server_WorldName = nameof(Server_WorldName);   // "{WorldName}"
+    public const string Server_DefaultMotd = nameof(Server_DefaultMotd);   // "{GameName}"
+    public const string Server_NoMotdHint = nameof(Server_NoMotdHint);
     public const string Server_LoadingMotd = nameof(Server_LoadingMotd);
     public const string Server_LoadedSummary = nameof(Server_LoadedSummary);
     public const string Server_RuntimeDataSummary = nameof(Server_RuntimeDataSummary);

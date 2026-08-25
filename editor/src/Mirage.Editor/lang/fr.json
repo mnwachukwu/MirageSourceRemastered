@@ -1002,5 +1002,15 @@
   "WorldCheck_ConversationOpensNoQuests": "Propose d'ouvrir des quetes, mais le PNJ {Detail} n'en donne ni n'en recoit : le choix ne fait rien quand un joueur le prend.",
   "WorldCheck_QuestPrereqCycle": "Sa chaine de prerequis boucle sur elle-meme, donc aucun joueur ne pourra jamais l'accepter.",
   "World_Untitled": "Monde sans titre",
-  "World_UntitledAt": "Monde sans titre ({Folder})"
+  "World_UntitledAt": "Monde sans titre ({Folder})",
+  "World_NotAWorld": "{Path} n'est pas un dossier de monde : il n'a pas de world.json. Utilisez Monde - Nouveau monde pour en creer un, ou choisissez un dossier qui contient deja un monde.",
+  "World_New": "Nouveau monde...",
+  "NewWorld_Title": "Nouveau monde",
+  "NewWorld_Header": "Nommez le monde",
+  "NewWorld_Explanation": "Le nom est pour vous, pas pour les joueurs : il distingue ce monde d'une copie dans la barre de titre, la fenetre du serveur et les journaux. C'est aussi le nom du dossier : vous choisissez ensuite ou le ranger, et le monde y est cree dans son propre dossier.",
+  "NewWorld_NameLabel": "Nom du monde",
+  "NewWorld_ChooseFolder": "Choisir l'emplacement...",
+  "NewWorld_Failed": "Le monde n'a pas pu etre cree : {Reason}",
+  "NewWorld_AlreadyThere": "{Path} existe deja. Donnez un autre nom au monde, ou rangez-le ailleurs.",
+  "NewWorld_InvalidName": "\"{Name}\" ne peut pas etre un nom de dossier. Evitez \\ / : * ? \" < > et |."
 }

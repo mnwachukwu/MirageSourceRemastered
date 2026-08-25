@@ -20,7 +20,7 @@ public class SeedDeployTests
     public void SetUp()
     {
         _root = Path.Combine(Path.GetTempPath(), "mirage-seed-" + Guid.NewGuid().ToString("N"));
-        _seed = Path.Combine(_root, "seed");
+        _seed = Path.Combine(_root, "seed-world");
         _data = Path.Combine(_root, "data");
         Directory.CreateDirectory(Path.Combine(_seed, "maps"));
         File.WriteAllText(Path.Combine(_seed, "motd.json"), "{}");
@@ -36,7 +36,7 @@ public class SeedDeployTests
     [Test]
     public void NoDataDirectory_LaysTheSeedDown()
     {
-        int copied = SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        int copied = SeedDeploy.SeedIfAbsent(_seed, _data);
 
         Assert.Multiple(() =>
         {
@@ -53,7 +53,7 @@ public class SeedDeployTests
     {
         Directory.CreateDirectory(_data);
 
-        int copied = SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        int copied = SeedDeploy.SeedIfAbsent(_seed, _data);
 
         Assert.Multiple(() =>
         {
@@ -68,7 +68,7 @@ public class SeedDeployTests
         Directory.CreateDirectory(Path.Combine(_data, "maps"));
         File.WriteAllText(Path.Combine(_data, "maps", "map1.json"), "{\"name\":\"mine\"}");
 
-        int copied = SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        int copied = SeedDeploy.SeedIfAbsent(_seed, _data);
 
         Assert.Multiple(() =>
         {
@@ -84,10 +84,10 @@ public class SeedDeployTests
     [Test]
     public void SeedingTwice_OnlyEverRunsOnce()
     {
-        int first = SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        int first = SeedDeploy.SeedIfAbsent(_seed, _data);
         File.WriteAllText(Path.Combine(_data, "maps", "map1.json"), "{\"name\":\"edited\"}");
 
-        int second = SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        int second = SeedDeploy.SeedIfAbsent(_seed, _data);
 
         Assert.Multiple(() =>
         {
@@ -103,7 +103,7 @@ public class SeedDeployTests
     {
         Directory.Delete(_seed, recursive: true);
 
-        int copied = SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        int copied = SeedDeploy.SeedIfAbsent(_seed, _data);
 
         Assert.Multiple(() =>
         {
@@ -117,7 +117,7 @@ public class SeedDeployTests
     [Test]
     public void TheStagingFolder_IsNeverLeftBehind()
     {
-        SeedDeploy.SeedIfDataAbsent(_seed, _data);
+        SeedDeploy.SeedIfAbsent(_seed, _data);
 
         Assert.That(Directory.Exists(_data + ".seeding"), Is.False, "staging should have been moved, not copied");
     }

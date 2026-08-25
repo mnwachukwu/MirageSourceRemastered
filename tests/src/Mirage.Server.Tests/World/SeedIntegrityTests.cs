@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests;
 
-/// <summary>The shipped seed in <c>server/src/Mirage.Server.Host/data</c>, checked against the engine that
+/// <summary>The shipped seed in <c>server/src/Mirage.Server.Host/world</c>, checked against the engine that
 /// has to load it.
 ///
 /// <para><b>Why this fixture exists.</b> Every other economy test here is formula-level, so anything a
@@ -67,7 +67,7 @@ public class SeedIntegrityTests
         while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Mirage.slnx")))
             dir = dir.Parent;
         if (dir is null) return null;
-        string data = Path.Combine(dir.FullName, "server", "src", "Mirage.Server.Host", "data");
+        string data = Path.Combine(dir.FullName, "server", "src", "Mirage.Server.Host", "world");
         return Directory.Exists(data) ? data : null;
     }
 
@@ -91,7 +91,7 @@ public class SeedIntegrityTests
     private static void RequireSeed()
     {
         Assert.That(_items, Is.Not.Empty,
-            "No seed loaded from server/src/Mirage.Server.Host/data. It is tracked, so an empty read "
+            "No seed loaded from server/src/Mirage.Server.Host/world. It is tracked, so an empty read "
             + "means the folder was emptied or the loader stopped matching its filenames — either way "
             + "this guard has nothing left to check and says so rather than passing.");
     }

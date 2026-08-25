@@ -1,4 +1,4 @@
-// Check that the seed counts quoted in the README match what is actually in data/.
+// Check that the seed counts quoted in the README match what is actually in world/.
 //
 //     node tools/check-seed-counts.mjs
 //
@@ -16,7 +16,7 @@
 // the person who adds 50 NPCs is the least likely to reread a paragraph in the getting-started
 // section. That is exactly the shape of rot check-doc-links.mjs was written for, applied to numbers.
 //
-// AN EMPTY data/ IS A PASS, not a failure — the same rule SeedIntegrityTests uses. data/ is the
+// AN EMPTY world/ IS A PASS, not a failure — the same rule SeedIntegrityTests uses. world/ is the
 // shipped default configuration and is deliberately allowed to be empty; a fresh clone that has not
 // populated it must not go red, or this check is the first thing anybody deletes.
 
@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 
 // Walk UP for a repo marker rather than assuming "my parent is the root". The old form hardcoded one
 // directory of nesting, so moving this file — which happened the moment tools/ was retired in favor of
-// .github/checks/ — silently pointed it at a folder with no data/ and no README, where it would have
+// .github/checks/ — silently pointed it at a folder with no world/ and no README, where it would have
 // found nothing to check and said so cheerfully. Same strategy check-doc-links.mjs already used.
 function findRepoRoot(start) {
   for (let dir = resolve(start); ; dir = dirname(dir)) {
@@ -35,11 +35,11 @@ function findRepoRoot(start) {
   }
 }
 const repoRoot = findRepoRoot(dirname(fileURLToPath(import.meta.url)));
-const dataDir = join(repoRoot, 'server', 'src', 'Mirage.Server.Host', 'data');
+const worldDir = join(repoRoot, 'server', 'src', 'Mirage.Server.Host', 'world');
 const readmePath = join(repoRoot, 'README.md');
 
 // The words the README uses -> the folder they describe. A count is only checked when the README
-// actually mentions it, so adding a collection to data/ never fails this on its own.
+// actually mentions it, so adding a collection to world/ never fails this on its own.
 const COLLECTIONS = {
   classes: 'classes',
   items: 'items',
@@ -59,20 +59,20 @@ if (!callout) {
   process.exit(1);
 }
 
-if (!existsSync(dataDir)) {
-  console.log(`No data/ at ${dataDir} — nothing to check.`);
+if (!existsSync(worldDir)) {
+  console.log(`No world/ at ${worldDir} — nothing to check.`);
   process.exit(0);
 }
 
 const count = folder => {
-  const dir = join(dataDir, folder);
+  const dir = join(worldDir, folder);
   if (!existsSync(dir)) return 0;
   return readdirSync(dir).filter(f => f.endsWith('.json')).length;
 };
 
 const total = Object.values(COLLECTIONS).reduce((n, f) => n + count(f), 0);
 if (total === 0) {
-  console.log('data/ is empty — the shipped default configuration is allowed to be, so nothing to check.');
+  console.log('world/ is empty — the shipped default configuration is allowed to be, so nothing to check.');
   process.exit(0);
 }
 
@@ -86,14 +86,14 @@ for (const [word, folder] of Object.entries(COLLECTIONS)) {
 
   const raw = match[1];
   const quoted = /^[\d,]+$/.test(raw) ? Number(raw.replace(/,/g, '')) : WORDS[raw.toLowerCase()];
-  if (quoted === undefined) continue;   // an adjective, not a number ("partial data/ folder")
+  if (quoted === undefined) continue;   // an adjective, not a number ("partial world/ folder")
 
   const actual = count(folder);
-  if (quoted !== actual) problems.push(`  README says ${raw} ${word}; data/${folder} holds ${actual}`);
+  if (quoted !== actual) problems.push(`  README says ${raw} ${word}; world/${folder} holds ${actual}`);
 }
 
 if (problems.length > 0) {
-  console.error('FAILED — the README\'s seed counts disagree with data/:\n');
+  console.error('FAILED — the README\'s seed counts disagree with world/:\n');
   console.error(problems.join('\n'));
   console.error('\nUpdate the "**Seed data:**" line in README.md. The site quotes these numbers from it.');
   process.exit(1);

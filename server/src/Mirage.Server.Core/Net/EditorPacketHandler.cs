@@ -338,6 +338,7 @@ public sealed partial class EditorPacketHandler
             ItemGates = itemGates,
             SpellGates = spellGates,
             NpcSizes = npcSizes,
+            WorldName = _world.WorldName,
         };
     }
 

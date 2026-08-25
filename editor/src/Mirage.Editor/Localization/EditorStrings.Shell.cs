@@ -376,6 +376,16 @@ public static partial class EditorStrings
     public const string World_Settings = nameof(World_Settings);
     public const string World_Check = nameof(World_Check);
     public const string World_Untitled = nameof(World_Untitled);
+    public const string World_NotAWorld = nameof(World_NotAWorld);   // "{Path}"
+    public const string World_New = nameof(World_New);
+    public const string NewWorld_Title = nameof(NewWorld_Title);
+    public const string NewWorld_Header = nameof(NewWorld_Header);
+    public const string NewWorld_Explanation = nameof(NewWorld_Explanation);
+    public const string NewWorld_NameLabel = nameof(NewWorld_NameLabel);
+    public const string NewWorld_ChooseFolder = nameof(NewWorld_ChooseFolder);
+    public const string NewWorld_AlreadyThere = nameof(NewWorld_AlreadyThere);   // "{Path}"
+    public const string NewWorld_InvalidName = nameof(NewWorld_InvalidName);     // "{Name}"
+    public const string NewWorld_Failed = nameof(NewWorld_Failed);   // "{Reason}"
     public const string World_UntitledAt = nameof(World_UntitledAt);   // "{Folder}"
     public const string WorldCheck_Title = nameof(WorldCheck_Title);
     public const string WorldCheck_Intro = nameof(WorldCheck_Intro);

@@ -280,7 +280,7 @@ public class TradeSystemTests
         string dir = Path.Combine(Path.GetTempPath(), "mirage-tradejournal-" + Guid.NewGuid().ToString("N"));
         try
         {
-            var persistence = new JsonPersistenceService(dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
+            var persistence = new JsonPersistenceService(dir, dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
             var world = new GameWorld();
             world.Items[Sword].Type = ItemType.Weapon;
             world.Items[Shield].Type = ItemType.Armor;

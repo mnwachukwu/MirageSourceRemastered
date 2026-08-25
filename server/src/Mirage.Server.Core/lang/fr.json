@@ -320,7 +320,7 @@
   "CombatSystem_DrawnIntoCombat": "Vous êtes entraîné dans le combat!",
   "CombatSystem_GraceSeconds": "Vous avez {Seconds} secondes pour déguerpir!",
   "CombatSystem_RespawnPointMissing": "Votre point de réapparition n'existe plus. Vous avez été ramené au terrain le plus proche qui existe.",
-  "CombatSystem_GraceEnded":"Votre période de grâce est terminée.",
+  "CombatSystem_GraceEnded": "Votre période de grâce est terminée.",
   "CombatSystem_AggressorFlagged": "Vous êtes marqué comme agresseur pendant 30 secondes!",
   "CombatSystem_AggressorCleared": "Vous n'êtes plus marqué comme agresseur.",
   "CombatSystem_ItemBroken": "Votre {Item} est brisé et doit être réparé avant de servir à nouveau.",
@@ -769,5 +769,7 @@
   "Console_EditorsTotal": "{Count} session(s) d'éditeur connectée(s).",
   "Console_KickEditorUsage": "Utilisation : /kickeditor <emplacement|compte>",
   "Console_EditorNotFound": "Aucun éditeur connecté ne correspond à '{Target}'.",
-  "Console_EditorKicked": "Session d'éditeur {Target} déconnectée."
+  "Console_EditorKicked": "Session d'éditeur {Target} déconnectée.",
+  "Server_DefaultMotd": "Merci d'avoir joué à {GameName} !",
+  "Server_NoMotdHint": "Aucun message du jour n'est défini ; celui par défaut est utilisé. Définissez-en un avec /motd <texte>."
 }

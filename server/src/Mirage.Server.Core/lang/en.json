@@ -769,5 +769,7 @@
   "Console_EditorsTotal": "{Count} editor session(s) connected.",
   "Console_KickEditorUsage": "Usage: /kickeditor <slot|account>",
   "Console_EditorNotFound": "No connected editor matches '{Target}'.",
-  "Console_EditorKicked": "Disconnected editor session {Target}."
+  "Console_EditorKicked": "Disconnected editor session {Target}.",
+  "Server_DefaultMotd": "Thank you for playing {GameName}!",
+  "Server_NoMotdHint": "No message of the day is set - using a default. Set one with /motd <text>."
 }

@@ -309,6 +309,14 @@ public sealed record EditorDataPacket : IPacket
     [JsonPropertyName("itemGates")] public ItemGate[] ItemGates { get; init; } = [];
     [JsonPropertyName("spellGates")] public SpellGate[] SpellGates { get; init; } = [];
 
+    /// <summary>What the server calls the world an editor is now editing — its `world.json` name, blank
+    /// when it has none.
+    ///
+    /// <para>It rides HERE and not on <see cref="ServerHelloPacket"/> because the hello goes to game
+    /// clients too, and a world's name is for whoever is holding the records. A player never sees it; a
+    /// mapper needs it, to know which of two servers they are connected to.</para></summary>
+    [JsonPropertyName("worldName")] public string WorldName { get; init; } = "";
+
     // Price rides along with the gate facts rather than getting a packet of its own: the shop editor's sales
     // table shows what each listed item will actually cost, and that number lives on the item record. Both
     // consumers want "tell me about item N from the LIVE world", so one lookup serves them.

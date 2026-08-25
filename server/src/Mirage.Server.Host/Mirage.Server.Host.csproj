@@ -21,9 +21,10 @@
     <ProjectReference Include="..\..\..\shared\src\Mirage.Updates\Mirage.Updates.csproj" />
   </ItemGroup>
 
-  <!-- Seed data — not auto-copied; manually place data/ next to the exe before first run. -->
+  <!-- The tracked world, listed so the IDE shows it. Not copied anywhere: the installers ship it as
+       seed/ (see publish/), and a source run reads it wherever WorldDir points. -->
   <ItemGroup>
-    <None Include="data\*.json" />
+    <None Include="world\*.json" />
     <Content Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
     <!-- Shipped rather than written on first boot, so the settings are discoverable. Every value is a
          default, so deleting it changes nothing. -->

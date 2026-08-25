@@ -30,7 +30,7 @@ public class HardwareBanTests
     private JsonPersistenceService _svc = null!;
 
     private JsonPersistenceService NewService() =>
-        new(_dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
+        new(_dir, _dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
 
     [SetUp]
     public void SetUp()
@@ -77,7 +77,7 @@ public class HardwareBanTests
         string otherDir = Path.Combine(Path.GetTempPath(), "mirage-hwban-" + Guid.NewGuid().ToString("N"));
         try
         {
-            var other = new JsonPersistenceService(otherDir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
+            var other = new JsonPersistenceService(otherDir, otherDir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
             Assert.That(await other.HashMachineKeyAsync("client-key"), Is.Not.EqualTo(here));
         }
         finally

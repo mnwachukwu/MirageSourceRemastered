@@ -101,9 +101,23 @@ dotnet run --project editor/src/Mirage.Editor
 
 The editor opens on nothing and says so. A world is a folder, and it edits one wherever it lives — so
 either **World → Open World…** and point it at a world of your own or at
-`server/src/Mirage.Server.Host/data/`, or connect to a running server and edit that world live. An
-installed editor ships a copy of the seed as `seed/` beside its executable and starts the picker there;
-running from source there is no such copy, so the first Open is yours to aim.
+`server/src/Mirage.Server.Host/world/`, or connect to a running server and edit that world live. Running
+from source there is no bundled copy, so the first Open is yours to aim.
+
+> **Installed, both the server and the editor ship the world as `seed-world/` beside their executable**, and it
+> is the same set of files and folders in each — whichever you installed, you already have it, and there is
+> no reason to install one to get the other's copy. A much smaller `seed-data/` rides along with the
+> defaults an installation starts with rather than a world, which today is the MOTD.
+>
+> **Neither is shipped as the folder it becomes**, so nothing an installer or an update writes can land on
+> top of a world you already have. A first run lays each down only where there is nothing: no `world/` gets
+> the shipped world, no `data/` gets the shipped defaults. An **empty** one of either is left exactly as
+> found — that is somebody's blank canvas, and refilling it on the next launch is the one thing seeding must
+> never do.
+>
+> So a fresh install starts on the shipped world without being asked, and clearing `world/` and restarting
+> gets it back. To start from nothing instead, leave an empty `world/` in place. The editor needs no copy
+> at all: it opens a world wherever it lives, and starts its picker at `seed-world/`.
 
 > **Importing VB6 world data:** [MirageSourceRemasteredConverter](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public) turns an original VB6 server directory into this JSON format in one pass — all binary `.dat` maps and INI data files, with account passwords hashed on the way through and the source files never modified, so a run costs nothing if the result is not what you wanted. See [Authoring tools](#authoring-tools).
 
@@ -115,7 +129,15 @@ running from source there is no such copy, so the first Open is yours to aim.
 >
 > Past 128 tiles on an axis the editor warns, but nothing breaks. Drawing the world costs the same at every size — the client only ever draws what fits on screen — so what grows with a map is the two things that read it whole: crossing a seam loads three maps, and an NPC that loses its path searches the whole nine-map neighbourhood before giving up. At 128×128 each takes about 40 ms, a few frames and under a tenth of an AI tick; at 256×256 both are about 180 ms, which is a visible stall. Resident memory is 96 bytes a tile, so 1.5 MB for a 128×128 map against 18 KB for the default. The actual ceiling is 65,535 on either axis, which is how wide a warp's destination coordinate is: past that, a map could hold tiles no door could point at.
 
-> **Seed data:** `server/src/Mirage.Server.Host/data/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 177 NPCs, 38 conversations, 54 quests and 21 shops. The folder is **not** copied to the build output, so to start from it, copy `data/` next to the server executable before first run (or point the `DataDir` setting at one). Any collection you leave out is created empty and written on first save, so a partial `data/` folder boots fine.
+> **A server runs on two folders, and the split is one question: does it change while the server runs?**
+>
+> `world/` is what an author wrote — maps, items, NPCs, spells, shops, quests, conversations, classes and `world.json`. Nothing in it changes unless somebody edits it, which is what lets a world be zipped up and handed to another machine. It is the folder the **editor** opens.
+>
+> `data/` is what one installation accumulated — accounts, guilds, market listings, trade journals, seasons, dropped items, the name registry, the ban lists, the clock and the MOTD. It belongs to that server on that machine and means nothing beside a different world. Keeping the two apart is what stops a copied world carrying somebody's password hashes with it.
+>
+> Both default to sitting beside the executable and are set independently, `WorldDir` and `DataDir`.
+>
+> **Seed data:** `server/src/Mirage.Server.Host/world/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 177 NPCs, 38 conversations, 54 quests and 21 shops. Any collection you leave out is created empty and written on first save, so a partial world folder boots fine.
 >
 > Those counts are checked against the folder by `.github/checks/check-seed-counts.mjs`, which CI runs — they have gone stale twice.
 >

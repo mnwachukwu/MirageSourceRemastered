@@ -320,7 +320,7 @@
   "CombatSystem_DrawnIntoCombat": "Você foi arrastado para o combate!",
   "CombatSystem_GraceSeconds": "Você tem {Seconds} segundos para sair daqui!",
   "CombatSystem_RespawnPointMissing": "Seu ponto de renascimento não existe mais. Você voltou para o terreno mais próximo que existe.",
-  "CombatSystem_GraceEnded":"Seu período de graça terminou.",
+  "CombatSystem_GraceEnded": "Seu período de graça terminou.",
   "CombatSystem_AggressorFlagged": "Você está marcado como agressor por 30 segundos!",
   "CombatSystem_AggressorCleared": "Você não está mais marcado como agressor.",
   "CombatSystem_ItemBroken": "Seu {Item} quebrou e precisa ser consertado antes de usar de novo.",
@@ -769,5 +769,7 @@
   "Console_EditorsTotal": "{Count} sessão(ões) de editor ligadas.",
   "Console_KickEditorUsage": "Utilização: /kickeditor <posição|conta>",
   "Console_EditorNotFound": "Nenhum editor ligado corresponde a '{Target}'.",
-  "Console_EditorKicked": "Sessão de editor {Target} desligada."
+  "Console_EditorKicked": "Sessão de editor {Target} desligada.",
+  "Server_DefaultMotd": "Obrigado por jogar {GameName}!",
+  "Server_NoMotdHint": "Não há mensagem do dia definida; a predefinida está em uso. Defina uma com /motd <texto>."
 }

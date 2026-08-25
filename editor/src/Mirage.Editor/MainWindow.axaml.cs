@@ -54,7 +54,7 @@ public partial class MainWindow : FAAppWindow
     {
         string label = (DataContext as ViewModels.MainWindowViewModel)?.WorldLabel ?? "";
         string stem = $"{Constants.GameName} — {EditorStrings.Get(EditorStrings.MainWindow_Title)}";
-        Title = label.Length > 0 ? $"{label} — {stem}" : stem;
+        Title = label.Length > 0 ? $"{stem}: {label}" : stem;
     }
 
     /// <summary>Push the current language's strings into the window chrome. Re-run whenever the
@@ -68,6 +68,7 @@ public partial class MainWindow : FAAppWindow
         _helpAboutItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpAbout);
         _dataMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_DataMenu);
         _worldMenu.Header = EditorStrings.Get(EditorStrings.World_Menu);
+        _worldNewItem.Header = EditorStrings.Get(EditorStrings.World_New);
         _worldOpenItem.Header = EditorStrings.Get(EditorStrings.World_Open);
         _worldCloseItem.Header = EditorStrings.Get(EditorStrings.World_Close);
         _worldRecentItem.Header = EditorStrings.Get(EditorStrings.World_Recent);
@@ -77,6 +78,7 @@ public partial class MainWindow : FAAppWindow
         _worldUploadItem.Header = EditorStrings.Get(EditorStrings.World_Upload);
         _emptyWorldTitle.Text = EditorStrings.Get(EditorStrings.World_EmptyTitle);
         _emptyWorldHint.Text = EditorStrings.Get(EditorStrings.World_EmptyHint);
+        _emptyWorldNew.Content = EditorStrings.Get(EditorStrings.World_New);
         _emptyWorldOpen.Content = EditorStrings.Get(EditorStrings.World_Open);
         _languageMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_LanguageMenu);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
@@ -259,6 +261,18 @@ public partial class MainWindow : FAAppWindow
                 var dlg = new WorldCheckDialog { DataContext = dlgVm };
                 dlg.CloseWhen(h => dlgVm.Closed += h);
                 await dlg.ShowDialog(this);
+            };
+
+            // The name, then the folder. Answers null when the person backs out of either.
+            vm.AskNewWorldNameAsync = async dlgVm =>
+            {
+                string? name = null;
+                var dlg = new NewWorldDialog { DataContext = dlgVm };
+                dlgVm.Confirmed += n => name = n;
+                dlg.CloseWhen<string>(h => dlgVm.Confirmed += h);
+                dlg.CloseWhen(h => dlgVm.Canceled += h);
+                await dlg.ShowDialog(this);
+                return name;
             };
 
             vm.ShowWorldSettingsDialogAsync = async dlgVm =>

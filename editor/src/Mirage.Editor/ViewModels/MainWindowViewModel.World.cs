@@ -21,37 +21,141 @@ public sealed partial class MainWindowViewModel
     /// the person cancelled.</summary>
     public Func<string, Task<string?>>? PickWorldFolderAsync { get; set; }
 
-    /// <summary>Whether a world is open. Everything that lists or edits records hangs off this.</summary>
-    public bool HasWorld => EditorPaths.HasWorld;
+    /// <summary>Whether a world is open. Everything that lists or edits records hangs off this.
+    ///
+    /// <para>Connecting IS opening a world — the server's — so a live session counts. A session has one
+    /// world or none: an open folder, or a connection, never both at once as far as this is concerned.
+    /// Where something means the FOLDER specifically, it asks <see cref="EditorPaths.HasWorld"/>.</para></summary>
+    public bool HasWorld => EditorPaths.HasWorld || IsOnline;
 
-    /// <summary>Whether the window has nothing to show. Connected, the world is the server's and there is
-    /// always one, so the prompt to open a folder belongs to the offline case alone.</summary>
-    public bool ShowEmptyWorld => !IsOnline && !HasWorld;
+    /// <summary>Whether the window has nothing to show.</summary>
+    public bool ShowEmptyWorld => !HasWorld;
 
     /// <summary>The open world's path, for the title bar and the empty-state prompt.</summary>
     public string WorldPath => EditorPaths.Data;
 
     /// <summary>What to call the open world in the window title: its own name, or "Untitled World" where
     /// it has none, or nothing at all when none is open. Telling a live world from a test copy of it is the
-    /// whole reason a world carries a name, and the title bar is where that has to be legible.</summary>
-    public string WorldLabel =>
-        !HasWorld ? ""
-        : _data.Manifest.IsNamed ? _data.Manifest.Name.Trim()
-        : EditorStrings.Get(EditorStrings.World_Untitled);
+    /// whole reason a world carries a name, and the title bar is where that has to be legible.
+    ///
+    /// <para>Connected, the name is the SERVER's — the folder that may also be open is not what is being
+    /// edited.</para></summary>
+    public string WorldLabel
+    {
+        get
+        {
+            if (!HasWorld) return "";
+            string name = IsOnline ? _data.OnlineWorldName : _data.Manifest.Name;
+            return string.IsNullOrWhiteSpace(name) ? EditorStrings.Get(EditorStrings.World_Untitled) : name.Trim();
+        }
+    }
 
     /// <summary>Worlds opened before, most recent first.</summary>
     public IReadOnlyList<RecentWorldViewModel> RecentWorlds =>
         [.. AppSettings.Current.RecentWorlds.Select(p => new RecentWorldViewModel(p, OpenRecentWorldAsync))];
 
+    /// <summary>Where a folder picker opens. Every one of them asks the same question — which of your
+    /// worlds — so they share an answer and each pick teaches the next.
+    ///
+    /// <para>Falling back: the folder browsed last, then the one holding the open world, then the shipped
+    /// seed, which is the one thing a first run is guaranteed to have. A remembered folder that has since
+    /// gone is skipped rather than handed to a picker that would ignore it anyway.</para></summary>
+    private static string WorldPickerStart()
+    {
+        string? remembered = AppSettings.Current.LastWorldBrowsePath;
+        if (!string.IsNullOrWhiteSpace(remembered) && Directory.Exists(remembered)) return remembered;
+
+        if (EditorPaths.HasWorld && ParentOf(EditorPaths.Data) is { } parent) return parent;
+        if (Directory.Exists(EditorPaths.BundledWorld)) return EditorPaths.BundledWorld;
+        return AppContext.BaseDirectory;
+    }
+
+    /// <summary>Remembers where a pick came from, so the next picker opens there. The world's PARENT: a
+    /// picker aimed inside a world shows its collections, and the next world over is the likelier target.</summary>
+    private static void RememberBrowsedFrom(string pickedWorld)
+    {
+        if (ParentOf(pickedWorld) is not { } parent) return;
+        var s = AppSettings.Current;
+        if (string.Equals(s.LastWorldBrowsePath, parent, StringComparison.OrdinalIgnoreCase)) return;
+        s.LastWorldBrowsePath = parent;
+        s.Save();
+    }
+
+    /// <summary>Set by the View: asks what a new world is called, or null if the person backed out.</summary>
+    public Func<NewWorldDialogViewModel, Task<string?>>? AskNewWorldNameAsync { get; set; }
+
+    /// <summary>Makes a world: a name, then somewhere to keep it. <b>The name is the folder's name</b> — a
+    /// world called Demo Landia is a folder called Demo Landia, made inside the one that was picked — so a
+    /// world is never dropped loose among whatever else was in there.
+    ///
+    /// <para>What lands in it is the `world.json` that makes the folder a world and an empty directory per
+    /// record family. No record FILE is written: a slot with no file is a blank record, not a missing
+    /// one.</para></summary>
+    [RelayCommand]
+    private async Task NewWorldAsync()
+    {
+        if (AskNewWorldNameAsync is null || PickWorldFolderAsync is null) return;
+
+        string? name = await AskNewWorldNameAsync(new NewWorldDialogViewModel());
+        if (name is null) return;
+
+        // Unnamed is a real answer, and the folder is called what the window would call the world.
+        string folderName = name.Length > 0 ? name : EditorStrings.Get(EditorStrings.World_Untitled);
+        if (folderName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            if (ShowAlertAsync is not null)
+                await ShowAlertAsync(EditorStrings.Format(EditorStrings.NewWorld_InvalidName, ("Name", folderName)));
+            return;
+        }
+
+        string? parent = await PickWorldFolderAsync(WorldPickerStart());
+        if (parent is null) return;
+
+        string folder = Path.Combine(parent, folderName);
+
+        // A name collision is a failure rather than a question: the answer to "there is already one of
+        // those here" is a different name, which is not something a yes/no can supply.
+        if (Directory.Exists(folder))
+        {
+            if (ShowAlertAsync is not null)
+                await ShowAlertAsync(EditorStrings.Format(EditorStrings.NewWorld_AlreadyThere, ("Path", folder)));
+            return;
+        }
+
+        if (!await ConfirmDiscardIfDirtyAsync()) return;
+
+        try
+        {
+            await EditorDataService.CreateWorldAsync(folder, new WorldManifest { Name = name });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            if (ShowAlertAsync is not null)
+                await ShowAlertAsync(EditorStrings.Format(EditorStrings.NewWorld_Failed, ("Reason", e.Message)));
+            return;
+        }
+
+        EditorLog.Info("Created world {Path}.", folder);
+        await OpenWorldAsync(folder, remember: true);
+    }
+
+    private static string? ParentOf(string path)
+    {
+        try
+        {
+            return Path.GetDirectoryName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
     [RelayCommand]
     private async Task OpenWorldAsync()
     {
         if (PickWorldFolderAsync is null) return;
-        // The picker starts at the shipped world, which is the one thing a first run is guaranteed to have.
-        string start = EditorPaths.HasWorld ? EditorPaths.Data
-            : Directory.Exists(EditorPaths.BundledWorld) ? EditorPaths.BundledWorld
-            : AppContext.BaseDirectory;
-        string? picked = await PickWorldFolderAsync(start);
+        string? picked = await PickWorldFolderAsync(WorldPickerStart());
         if (picked is not null) await OpenWorldAsync(picked, remember: true);
     }
 
@@ -66,6 +170,16 @@ public sealed partial class MainWindowViewModel
             Forget(path);
             return;
         }
+        // A world is a folder with a world.json in it, and nothing else opens. Creating one is its own
+        // command, so there is no "open somewhere empty and it becomes a world" — which is what would let
+        // a mistaken pick end up with maps/ and items/ written into it.
+        if (!IsWorldFolder(path))
+        {
+            if (ShowAlertAsync is not null)
+                await ShowAlertAsync(EditorStrings.Format(EditorStrings.World_NotAWorld, ("Path", path)));
+            return;
+        }
+
         if (!await ConfirmDiscardIfDirtyAsync()) return;
 
         EditorPaths.OpenWorld(path);
@@ -93,7 +207,7 @@ public sealed partial class MainWindowViewModel
     [RelayCommand]
     private async Task CloseWorldAsync()
     {
-        if (!HasWorld) return;
+        if (!EditorPaths.HasWorld) return;
         if (!await ConfirmDiscardIfDirtyAsync()) return;
         EditorLog.Info("Closing world {Path}.", EditorPaths.Data);
         EditorPaths.OpenWorld("");
@@ -117,7 +231,7 @@ public sealed partial class MainWindowViewModel
     [RelayCommand]
     private async Task WorldSettingsAsync()
     {
-        if (ShowWorldSettingsDialogAsync is null || !HasWorld) return;
+        if (ShowWorldSettingsDialogAsync is null || !EditorPaths.HasWorld) return;
         var dlg = new WorldSettingsDialogViewModel(_data.Manifest, IsOnline);
         WorldManifest? chosen = null;
         dlg.Confirmed += manifest => chosen = manifest;
@@ -138,7 +252,7 @@ public sealed partial class MainWindowViewModel
     [RelayCommand]
     private async Task CheckWorldAsync()
     {
-        if (ShowWorldCheckDialogAsync is null || (!HasWorld && !IsOnline)) return;
+        if (ShowWorldCheckDialogAsync is null || !HasWorld) return;
 
         var groups = MapGroupEditor.MapGroups.Select(g => g.Index).ToHashSet();
         var world = new WorldContent
@@ -216,6 +330,7 @@ public sealed partial class MainWindowViewModel
 
     private static void Remember(string path)
     {
+        RememberBrowsedFrom(path);
         var s = AppSettings.Current;
         s.RecentWorlds.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
         s.RecentWorlds.Insert(0, path);

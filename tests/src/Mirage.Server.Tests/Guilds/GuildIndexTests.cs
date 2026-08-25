@@ -31,7 +31,7 @@ public class GuildIndexTests
     public void SetUp()
     {
         _dir = Path.Combine(Path.GetTempPath(), "mirage-guild-" + Guid.NewGuid().ToString("N"));
-        _svc = new JsonPersistenceService(_dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
+        _svc = new JsonPersistenceService(_dir, _dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
     }
 
     [TearDown]
@@ -201,7 +201,7 @@ public class GuildIndexTests
         await _svc.SaveGuildAsync(7, new GuildRecord { Index = 7, Name = "Seven" });
         await _svc.RetireGuildAsync(7, new GuildRecord { Index = 7, Name = "Seven" });
 
-        var reopened = new JsonPersistenceService(_dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
+        var reopened = new JsonPersistenceService(_dir, _dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
 
         Assert.Multiple(() =>
         {

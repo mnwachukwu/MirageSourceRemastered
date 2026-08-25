@@ -14,6 +14,11 @@ public sealed class GameWorld
     // World data IDs stay 1-based: indices 0..Max, with 0 as an unused dummy.
     // Changing the 1-based model would break all saved data, migration, and the wire protocol; the
     // LENGTHS are the operator's to set (see Limits).
+    /// <summary>What this world calls itself, from `world.json`; blank when it has none. Operator-facing
+    /// only — a player sees the GAME's name, never this. Held here so an editor session can be told which
+    /// set of records it has opened.</summary>
+    public string WorldName { get; set; } = "";
+
     public MapRecord[] Maps { get; }
     public TempTileState[] TempTiles { get; }
     public ItemRecord[] Items { get; }

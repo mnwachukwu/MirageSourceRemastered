@@ -29,12 +29,13 @@ public sealed partial class MainWindowViewModel
     {
         if (!await RequireConnectionAsync() || PickWorldFolderAsync is null) return;
 
-        string? target = await PickWorldFolderAsync(EditorPaths.HasWorld ? EditorPaths.Data : AppContext.BaseDirectory);
+        string? target = await PickWorldFolderAsync(WorldPickerStart());
         if (target is null) return;
+        RememberBrowsedFrom(target);
 
         // Anything already in the folder is replaced record for record, which is worth saying out loud
         // before it happens rather than after.
-        if (LooksLikeAWorld(target) && ConfirmAsync is not null &&
+        if (IsWorldFolder(target) && ConfirmAsync is not null &&
             !await ConfirmAsync(EditorStrings.Format(EditorStrings.WorldTransfer_TargetNotEmpty, ("Path", target))))
             return;
 
@@ -76,8 +77,9 @@ public sealed partial class MainWindowViewModel
         if (!await RequireConnectionAsync() || PickWorldFolderAsync is null ||
             ShowWorldTransferDialogAsync is null) return;
 
-        string? source = await PickWorldFolderAsync(EditorPaths.HasWorld ? EditorPaths.Data : AppContext.BaseDirectory);
+        string? source = await PickWorldFolderAsync(WorldPickerStart());
         if (source is null) return;
+        RememberBrowsedFrom(source);
 
         WorldTransferDialogViewModel dialog;
         IReadOnlyList<WorldChange> approved;
@@ -166,9 +168,11 @@ public sealed partial class MainWindowViewModel
             await ShowAlertAsync(EditorStrings.Format(EditorStrings.WorldTransfer_Failed, ("Reason", ex.Message)));
     }
 
-    // A folder with any record directory in it already holds a world, whether or not it holds many.
-    private static bool LooksLikeAWorld(string path) =>
-        Directory.Exists(path) &&
-        (Directory.Exists(Path.Combine(path, "maps")) || Directory.Exists(Path.Combine(path, "items")) ||
-         File.Exists(Path.Combine(path, Mirage.Shared.Records.WorldManifest.FileName)));
+    /// <summary>Whether a folder is a world: it has a <c>world.json</c>. Nothing else counts, and the
+    /// record directories deliberately do not — "maps" and "items" are ordinary words, and one of them
+    /// matching should never let a folder of something else be opened and written into.
+    ///
+    /// <para>A world with no records yet is still a world; the manifest is the claim, not the contents.</para></summary>
+    public static bool IsWorldFolder(string path) =>
+        Directory.Exists(path) && File.Exists(Path.Combine(path, Mirage.Shared.Records.WorldManifest.FileName));
 }

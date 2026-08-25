@@ -28,6 +28,8 @@
           <!-- A world is a folder, opened from wherever it lives. Offline only: connected, the world is
                the server's. -->
           <MenuItem x:Name="_worldMenu">
+            <MenuItem x:Name="_worldNewItem" Command="{Binding NewWorldCommand}"
+                      IsVisible="{Binding !IsOnline}"/>
             <MenuItem x:Name="_worldOpenItem" Command="{Binding OpenWorldCommand}"
                       IsVisible="{Binding !IsOnline}"/>
             <MenuItem x:Name="_worldCloseItem" Command="{Binding CloseWorldCommand}"
@@ -182,9 +184,14 @@
 
     <!-- ── Content area ── -->
     <!-- Both fill it and exactly one is ever visible, so they share a Grid: a DockPanel gives the fill to
-         its LAST child only, and a sibling here would dock to an edge instead of centring. -->
+         its LAST child only, and a sibling here would dock to an edge instead of centring.
+
+         The editor is bound to the same condition rather than left to whatever last set CurrentEditor:
+         a message centred over a populated editor reads as a broken window, and only one code path has
+         to forget for that to happen. -->
     <Grid>
-      <ContentControl Content="{Binding CurrentEditor}" Margin="0" />
+      <ContentControl Content="{Binding CurrentEditor}" Margin="0"
+                      IsVisible="{Binding !ShowEmptyWorld}" />
 
       <!-- Nothing is open until something is opened, and the window says which. -->
       <StackPanel IsVisible="{Binding ShowEmptyWorld}"
@@ -195,8 +202,10 @@
         <TextBlock x:Name="_emptyWorldHint" FontSize="12" HorizontalAlignment="Center"
                    TextWrapping="Wrap" MaxWidth="360" TextAlignment="Center"
                    Foreground="{DynamicResource MirageFaintBrush}"/>
-        <Button x:Name="_emptyWorldOpen" Command="{Binding OpenWorldCommand}"
-                HorizontalAlignment="Center"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+          <Button x:Name="_emptyWorldNew" Command="{Binding NewWorldCommand}" Classes="primary"/>
+          <Button x:Name="_emptyWorldOpen" Command="{Binding OpenWorldCommand}"/>
+        </StackPanel>
       </StackPanel>
     </Grid>
 

@@ -52,6 +52,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ConnectionStatus))]
     [NotifyPropertyChangedFor(nameof(AutoSaveMenuItemLabel))]
     [NotifyPropertyChangedFor(nameof(ShowEmptyWorld))]
+    [NotifyPropertyChangedFor(nameof(HasWorld))]
+    [NotifyPropertyChangedFor(nameof(WorldLabel))]
     private bool _isOnline;
 
     /// <summary>The one word inside the toolbar badge. Derived rather than assigned at each transition:
@@ -504,7 +506,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _data.ClearOnline();
         RefreshEditors(online: false);
         RestoreAllSections();
-        SelectedSection = _sectionMap[AllSectionNames[0]];
+        // The session's world went with the connection. A folder opened before connecting is still open
+        // and is what the window falls back to; with none, there is nothing for a section to show, so the
+        // window goes back to its empty state rather than to a section listing records that are gone.
+        if (EditorPaths.HasWorld)
+        {
+            SelectedSection = _sectionMap[AllSectionNames[0]];
+        }
+        else
+        {
+            SelectedSection = null;
+            CurrentEditor = null;
+        }
+
         ConnectionEndpoint = "";
     }
 

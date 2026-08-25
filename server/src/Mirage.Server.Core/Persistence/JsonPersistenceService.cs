@@ -11,6 +11,7 @@ namespace Mirage.Server.Core.Persistence;
 
 public sealed class JsonPersistenceService : IPersistenceService
 {
+    private readonly string _worldPath;
     private readonly string _dataPath;
     private readonly ILogger<JsonPersistenceService> _logger;
     private readonly IChatLog _chatLog;
@@ -26,42 +27,63 @@ public sealed class JsonPersistenceService : IPersistenceService
     /// <summary><paramref name="limits"/> decides how far each family is padded on load — the same object
     /// <see cref="World.GameWorld"/> sizes its arrays from, so the folder and the world always agree on how
     /// many slots exist.</summary>
-    public JsonPersistenceService(string dataPath, ILogger<JsonPersistenceService> logger, IChatLog chatLog,
-                                  RecordLimits? limits = null)
+    /// <summary>Two roots, split on one question: <b>does it change while the server runs?</b>
+    ///
+    /// <para><paramref name="worldPath"/> holds what an author wrote — maps, the record families, the
+    /// manifest, the MOTD. It changes only when somebody edits it, it travels whole when a world is copied
+    /// to another machine, and it is the folder the EDITOR opens.</para>
+    ///
+    /// <para><paramref name="dataPath"/> holds what this installation accumulated — accounts, guilds,
+    /// market listings, trade journals, seasons, dropped items, the name registry, the ban lists and the
+    /// clock. It belongs to one server on one machine and is meaningless beside a different world.</para>
+    ///
+    /// <para>Keeping them apart is what makes a world a thing you can zip up and hand over, and what stops
+    /// a copied world from carrying somebody's password hashes with it.</para></summary>
+    /// <param name="limits">How far each family is padded on load — the same object
+    /// <see cref="World.GameWorld"/> sizes its arrays from, so the folder and the world always agree on how
+    /// many slots exist.</param>
+    public JsonPersistenceService(string worldPath, string dataPath, ILogger<JsonPersistenceService> logger,
+                                  IChatLog chatLog, RecordLimits? limits = null)
     {
         _limits = limits ?? RecordLimits.Default;
+        _worldPath = worldPath;
         _dataPath = dataPath;
         _logger = logger;
         _chatLog = chatLog;
-        Directory.CreateDirectory(AccountsPath);
-        Directory.CreateDirectory(MapsPath);
-        Directory.CreateDirectory(MapItemsPath);
-        Directory.CreateDirectory(ItemsPath);
-        Directory.CreateDirectory(QuestsPath);
-        Directory.CreateDirectory(ConversationsPath);
-        Directory.CreateDirectory(NpcsPath);
-        Directory.CreateDirectory(ShopsPath);
-        Directory.CreateDirectory(SpellsPath);
-        Directory.CreateDirectory(ClassesPath);
-        Directory.CreateDirectory(GuildsPath);
-        Directory.CreateDirectory(MapGroupsPath);
-        Directory.CreateDirectory(SeasonsPath);
-        Directory.CreateDirectory(MarketListingsPath);
-        Directory.CreateDirectory(TradeJournalsPath);
+
+        foreach (string dir in new[]
+                 {
+                     MapsPath, ItemsPath, QuestsPath, ConversationsPath, NpcsPath, ShopsPath, SpellsPath,
+                     ClassesPath, MapGroupsPath,
+                 })
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        foreach (string dir in new[]
+                 {
+                     AccountsPath, MapItemsPath, GuildsPath, SeasonsPath, MarketListingsPath, TradeJournalsPath,
+                 })
+        {
+            Directory.CreateDirectory(dir);
+        }
     }
 
+    // ── The world: authored, and unchanged by anything the server does ──────
+    private string MapsPath => Path.Combine(_worldPath, "maps");
+    private string ItemsPath => Path.Combine(_worldPath, "items");
+    private string QuestsPath => Path.Combine(_worldPath, "quests");
+    private string ConversationsPath => Path.Combine(_worldPath, "conversations");
+    private string NpcsPath => Path.Combine(_worldPath, "npcs");
+    private string ShopsPath => Path.Combine(_worldPath, "shops");
+    private string SpellsPath => Path.Combine(_worldPath, "spells");
+    private string ClassesPath => Path.Combine(_worldPath, "classes");
+    private string MapGroupsPath => Path.Combine(_worldPath, "map_groups");
+
+    // ── This installation: everything the server itself writes ──────────────
     private string AccountsPath => Path.Combine(_dataPath, "accounts");
-    private string MapsPath => Path.Combine(_dataPath, "maps");
     private string MapItemsPath => Path.Combine(_dataPath, "map_items");
-    private string ItemsPath => Path.Combine(_dataPath, "items");
-    private string QuestsPath => Path.Combine(_dataPath, "quests");
-    private string ConversationsPath => Path.Combine(_dataPath, "conversations");
-    private string NpcsPath => Path.Combine(_dataPath, "npcs");
-    private string ShopsPath => Path.Combine(_dataPath, "shops");
-    private string SpellsPath => Path.Combine(_dataPath, "spells");
-    private string ClassesPath => Path.Combine(_dataPath, "classes");
     private string GuildsPath => Path.Combine(_dataPath, "guilds");
-    private string MapGroupsPath => Path.Combine(_dataPath, "map_groups");
     private string SeasonsPath => Path.Combine(_dataPath, "seasons");
     private string MarketListingsPath => Path.Combine(_dataPath, "market");
 
@@ -1007,11 +1029,13 @@ public sealed class JsonPersistenceService : IPersistenceService
 
     // ── MOTD ──────────────────────────────────────────────────────────────────
 
+    // The greeting THIS server gives, not something a world carries: it is written from the server
+    // window, it is about whoever is hosting, and a world handed to somebody else should arrive without it.
     private string MotdFile => Path.Combine(_dataPath, "motd.json");
 
     public async Task<WorldManifest> LoadWorldManifestAsync()
     {
-        string path = Path.Combine(_dataPath, WorldManifest.FileName);
+        string path = Path.Combine(_worldPath, WorldManifest.FileName);
         if (!File.Exists(path)) return new WorldManifest();
         try
         {

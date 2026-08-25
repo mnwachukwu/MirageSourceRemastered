@@ -279,7 +279,9 @@ public sealed class MirageServerService : IHostedService
         var manifest = await _persistence.LoadWorldManifestAsync();
         var blank = manifest.DefaultMapSize;
         // Which set of records this is. Operator-facing only — a player sees the GAME's name, never this.
-        if (!string.IsNullOrWhiteSpace(manifest.Name))
+        // Kept on the world as well as logged, so a connected editor can put it in its title bar.
+        _world.WorldName = manifest.Name;
+        if (manifest.IsNamed)
             LocalizedLog.Info(_logger, ServerStrings.Server_WorldName, ("WorldName", manifest.Name));
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingMaps));
         int mapsLoaded = 0, mapsCreated = 0;
@@ -300,9 +302,20 @@ public sealed class MirageServerService : IHostedService
             }
         }
 
-        // MOTD
+        // MOTD. A server with no motd.json greets players anyway, from a default held in memory and never
+        // written — so an operator who wants their own is setting one rather than replacing one, and a
+        // server that has never been configured still says something.
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingMotd));
-        _world.Motd = await _persistence.LoadMotdAsync();
+        string motd = await _persistence.LoadMotdAsync();
+        if (string.IsNullOrWhiteSpace(motd))
+        {
+            _world.Motd = ServerStrings.Format(ServerStrings.Server_DefaultMotd, ("GameName", Constants.GameName));
+            _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_NoMotdHint));
+        }
+        else
+        {
+            _world.Motd = motd;
+        }
 
         // Environment — restore Time of Day + Weather from environment.json so both pause while offline,
         // and seed the guild daily-settlement cursor (wall-clock, so downtime is caught up on the first tick).

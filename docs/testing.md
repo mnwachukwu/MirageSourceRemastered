@@ -76,7 +76,7 @@ namespace in C# and renaming them would be churn no reader benefits from.
 
 **Unit tests build their own fixtures.** Anything that needs records, a world or a data directory writes
 one into a temp folder and deletes it afterwards; nothing under `tests/src/` asserts against
-`server/src/Mirage.Server.Host/data`. Real content changes for content reasons, and a test that reads it
+`server/src/Mirage.Server.Host/world`. Real content changes for content reasons, and a test that reads it
 fails for reasons that have nothing to do with the code it names.
 
 The one thing that *does* read the shipped seed is a **content guard**, and it says so: those fixtures
@@ -87,7 +87,7 @@ guards that read committed artifacts rather than exercise code — and as their 
 | | Runs in | Reads |
 |---|---|---|
 | The six suites | every driver, a solution build, `dotnet test` | their own temp fixtures |
-| `[Category("Content")]` | the Checks block, and one CI step | `server/src/Mirage.Server.Host/data` |
+| `[Category("Content")]` | the Checks block, and one CI step | `server/src/Mirage.Server.Host/world` |
 
 **Why the guard is kept rather than converted.** It holds the seed to the engine's own rules — drop tables
 naming real items, scrolls teaching real spells, quest chains that can be walked in order, prices that

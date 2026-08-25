@@ -32,7 +32,7 @@ public class SeedRenderableTextTests
         || c == 'Œ' || c == 'œ' || c == '\n' || c == '\r' || c == '\t';
 
     private static string SeedDir() =>
-        Path.Combine(RepoRoot(), "server", "src", "Mirage.Server.Host", "data");
+        Path.Combine(RepoRoot(), "server", "src", "Mirage.Server.Host", "world");
 
     private static void Collect(JsonElement el, string where, List<string> bad)
     {

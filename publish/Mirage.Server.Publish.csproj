@@ -71,31 +71,29 @@
   </Target>
 
   <!-- The authored world, shipped as seed/ and never as data/. An install therefore cannot overwrite a
-       world an operator already has: putting it into play is a deliberate copy, which the README spells
-       out. Globbed rather than listed, so content added since the last release ships without an edit here.
+       world an operator already has: putting it into play is a deliberate copy of seed/ into data/, which
+       the README's Getting Started section and the site's Setup page both spell out. The SERVER and the
+       EDITOR ship the same payload from this same source folder, so neither install needs the other.
+       Globbed rather than listed, so content added since the last release ships without an edit here.
 
-       A server started against this folder creates its runtime state here too — accounts (password
-       hashes), guilds, market listings, trade journals, seasons and dropped items. None of that is
-       authored content and none of it may ship, so the glob names what it excludes rather than trusting
-       the folder to hold only what was written by hand.
+       Nothing here has to be excluded. A server keeps its own state — accounts, guilds, market listings,
+       trade journals, seasons, dropped items — in data/, which is a different folder; a world holds only
+       what an author wrote, so the whole of it ships.
+
+       A second, much smaller payload rides along as seed-data/: the defaults an INSTALLATION starts with
+       rather than a world, which today is the MOTD. Same rule at the far end — laid down only where there
+       is nothing already.
 
        Runs after the publish, because _CleanPayload empties the folder first. -->
   <Target Name="_CopySeedIntoPayload">
     <ItemGroup>
-      <_SeedRuntimeState Include="$(RepoRoot)server/src/Mirage.Server.Host/data/accounts/**/*;
-                                  $(RepoRoot)server/src/Mirage.Server.Host/data/guilds/**/*;
-                                  $(RepoRoot)server/src/Mirage.Server.Host/data/map_items/**/*;
-                                  $(RepoRoot)server/src/Mirage.Server.Host/data/market/**/*;
-                                  $(RepoRoot)server/src/Mirage.Server.Host/data/trades/**/*;
-                                  $(RepoRoot)server/src/Mirage.Server.Host/data/seasons/**/*" />
-      <_SeedPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/data/**/*"
-                    Exclude="@(_SeedRuntimeState)" />
+      <_SeedPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/world/**/*" />
+      <_SeedDataPayload Include="$(RepoRoot)server/src/Mirage.Server.Host/data/motd.json" />
     </ItemGroup>
     <Error Condition="'@(_SeedPayload)' == ''"
-           Text="No seed data found under server/src/Mirage.Server.Host/data/. The installer would ship without a world to start from." />
-    <Message Condition="'@(_SeedRuntimeState)' != ''" Importance="High"
-             Text="── Seed: held back @(_SeedRuntimeState->Count()) runtime file(s); a server has been run against server/src/Mirage.Server.Host/data/ ──" />
-    <Copy SourceFiles="@(_SeedPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/seed/%(RecursiveDir)" />
+           Text="No world found under server/src/Mirage.Server.Host/world/. The installer would ship without a world to start from." />
+    <Copy SourceFiles="@(_SeedPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/seed-world/%(RecursiveDir)" />
+    <Copy SourceFiles="@(_SeedDataPayload)" DestinationFolder="$(DistRoot)server/$(_Rid)/seed-data/%(RecursiveDir)" />
   </Target>
 
   <!-- ═══════════════════════════════════════ WINDOWS ═══════════════════════════════════════ -->

@@ -61,6 +61,32 @@ Log.Logger = new LoggerConfiguration()
 // out loud, because the alternative is an operator whose settings silently do nothing.
 if (configError is not null) Log.Warning("{ConfigError}", configError);
 
+// ── The two folders ───────────────────────────────────────────────────────────
+// Split on one question: does it change while the server runs? The world does not and is the editor's;
+// this installation's state does and is the server's. serverconfig.json holds both, because that is where
+// an operator sets them from the shell; the appsettings.json DataDir key is where the single path lived
+// before the split and is still honored.
+//
+// Resolved HERE rather than inside ConfigureServices, so the seeding below happens before anything reads
+// either folder.
+string dataDir = serverConfig.DataDir is { Length: > 0 } configuredData
+    ? configuredData
+    : Path.Combine(AppContext.BaseDirectory, "data");
+string worldDir = serverConfig.WorldDir is { Length: > 0 } configuredWorld
+    ? configuredWorld
+    : Path.Combine(AppContext.BaseDirectory, "world");
+
+// A first run on a machine with nothing gets what the package shipped — the world, and the handful of
+// defaults an installation starts with. Absence of the folder is the only trigger in both cases: an empty
+// one is somebody's blank canvas and is left exactly as found.
+int seededWorld = SeedDeploy.SeedIfAbsent(Path.Combine(AppContext.BaseDirectory, "seed-world"), worldDir);
+if (seededWorld > 0)
+    Log.Information("No world at {WorldDir}; laid down the shipped seed ({Count} files).", worldDir, seededWorld);
+
+int seededData = SeedDeploy.SeedIfAbsent(Path.Combine(AppContext.BaseDirectory, "seed-data"), dataDir);
+if (seededData > 0)
+    Log.Information("Nothing at {DataDir}; laid down the shipped defaults ({Count} files).", dataDir, seededData);
+
 // ── Build and run the host ────────────────────────────────────────────────────
 
 var host = Host.CreateDefaultBuilder(args)
@@ -90,18 +116,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<EditorLockRegistry>();
 
         // ── Persistence ───────────────────────────────────────────────────────
-        // serverconfig.json wins, because that is where an operator sets it from the shell. The
-        // appsettings.json key is where this lived before the config split and is still honored, so an
-        // install that predates the move keeps finding its world. Default: data/ beside the executable.
-        string dataDir = serverConfig.DataDir is { Length: > 0 } configured
-            ? configured
-            : ctx.Configuration["DataDir"] ?? Path.Combine(AppContext.BaseDirectory, "data");
-        // A first run on a machine with no world gets the shipped one. Absence of data/ is the only
-        // trigger — an empty data/ is somebody's blank canvas and is left exactly as found. Honours a
-        // configured DataDir too, so an operator who points elsewhere is seeded there and not beside the exe.
-        int seeded = SeedDeploy.SeedIfDataAbsent(Path.Combine(AppContext.BaseDirectory, "seed"), dataDir);
-        if (seeded > 0)
-            Log.Information("No world at {DataDir}; laid down the shipped seed ({Count} files).", dataDir, seeded);
+        // Resolved before the host was built — see above.
 
         string logsDir = ctx.Configuration["LogsDir"] ?? Path.Combine(AppContext.BaseDirectory, "logs");
 
@@ -115,7 +130,7 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IChatLog>(new SerilogChatLog(chatSerilogLogger));
 
         services.AddSingleton<IPersistenceService>(sp =>
-            new JsonPersistenceService(dataDir,
+            new JsonPersistenceService(worldDir, dataDir,
                 sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<JsonPersistenceService>>(),
                 sp.GetRequiredService<IChatLog>(),
                 serverConfig.Records));

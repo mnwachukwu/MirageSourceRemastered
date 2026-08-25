@@ -175,6 +175,11 @@ public sealed class EditorDataService
     /// the server's hello and the rest stays local.</summary>
     public WorldManifest Manifest { get; private set; } = new();
 
+    /// <summary>What the connected server calls its world, blank when it has no name or nothing is
+    /// connected. The offline equivalent is <see cref="Manifest"/>'s name — a session has one or the
+    /// other, never both, because connecting is how an online world is opened.</summary>
+    public string OnlineWorldName { get; private set; } = "";
+
     /// <summary>Shorthand for <c>Manifest.Records</c> — every list in the editor is sized from it.</summary>
     public RecordLimits Limits
     {
@@ -224,6 +229,7 @@ public sealed class EditorDataService
 
         var dataPath = EditorPaths.Data;
         EditorLog.Info("Loading the offline data set from {Path}.", dataPath);
+        EnsureRecordFolders(dataPath);
         Manifest = await LoadManifestAsync(dataPath);
         OfflineItems = await LoadAllFromDirAsync<ItemRecord>(Path.Combine(dataPath, "items"), "item", Limits.Items);
         OfflineNpcs = await LoadAllFromDirAsync<NpcRecord>(Path.Combine(dataPath, "npcs"), "npc", Limits.Npcs);
@@ -248,6 +254,47 @@ public sealed class EditorDataService
     /// through rather than reset to its default.</summary>
     public static Task SaveManifestAsync(string worldPath, WorldManifest manifest) =>
         WriteJsonAsync(Path.Combine(worldPath, WorldManifest.FileName), manifest);
+
+    /// <summary>The record folders a world folder is made of — the ones an AUTHOR fills. The server reads
+    /// the same list, because a folder one of them wrote and the other never read would be a world with a
+    /// hole in it.</summary>
+    public static string[] RecordFolders => WorldLayout.WorldFolders;
+
+    /// <summary>Puts back any record folder a world is missing, and is what makes the set of them a
+    /// property of a world rather than a thing that happens to be there.
+    ///
+    /// <para>Run on every open, so emptying a world is deleting everything but the manifest: the folders
+    /// come back on the next open, and what is gone is the records. Creating a directory that already
+    /// exists does nothing, so this costs a world that is intact nothing at all.</para></summary>
+    public static void EnsureRecordFolders(string worldPath)
+    {
+        foreach (string folder in RecordFolders)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.Combine(worldPath, folder));
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // A read-only world still opens; it just cannot be repaired. Saving will say so.
+                EditorLog.Warn("Could not create {Folder} in {Path}: {Reason}", folder, worldPath, e.Message);
+            }
+        }
+    }
+
+    /// <summary>Makes a world: the manifest that says the folder is one, and an empty directory per record
+    /// family.
+    ///
+    /// <para>The directories are created EMPTY and stay that way — a slot with no file is a blank record,
+    /// not a missing one, so nothing is written until something is authored. They exist up front to claim
+    /// the names: an operator looking at a fresh world sees the shape it will take, and cannot make a
+    /// folder of their own that the editor would later collide with.</para></summary>
+    public static async Task CreateWorldAsync(string worldPath, WorldManifest manifest)
+    {
+        Directory.CreateDirectory(worldPath);
+        EnsureRecordFolders(worldPath);
+        await SaveManifestAsync(worldPath, manifest);
+    }
 
     // A slot with no file is a blank record, not a missing one, so nothing is written to fill the gap: a
     // world is however many files an author made, and opening one leaves the folder as it was found.
@@ -325,6 +372,7 @@ public sealed class EditorDataService
     public void LoadOnline(EditorDataPacket pkt, RecordLimits? limits = null)
     {
         Limits = limits ?? RecordLimits.Default;
+        OnlineWorldName = pkt.WorldName;
         OnlineItems = pkt.Items;   // NameEntry[] — names only
         OnlineNpcs = pkt.Npcs;
         OnlineNpcSizes = pkt.NpcSizes;
@@ -343,6 +391,7 @@ public sealed class EditorDataService
     public void ClearOnline()
     {
         Limits = RecordLimits.Default;
+        OnlineWorldName = "";
         OnlineItems = null;
         OnlineNpcs = null;
         OnlineNpcSizes = null;

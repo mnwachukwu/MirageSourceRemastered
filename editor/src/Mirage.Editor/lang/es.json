@@ -1002,5 +1002,15 @@
   "WorldCheck_ConversationOpensNoQuests": "Ofrece abrir misiones, pero el NPC {Detail} ni las da ni las recibe: la opcion no hace nada cuando un jugador la elige.",
   "WorldCheck_QuestPrereqCycle": "Su cadena de requisitos vuelve sobre si misma, asi que ningun jugador puede aceptarla nunca.",
   "World_Untitled": "Mundo sin titulo",
-  "World_UntitledAt": "Mundo sin titulo ({Folder})"
+  "World_UntitledAt": "Mundo sin titulo ({Folder})",
+  "World_NotAWorld": "{Path} no es una carpeta de mundo: no tiene world.json. Usa Mundo - Mundo nuevo para crear uno, o elige una carpeta que ya contenga un mundo.",
+  "World_New": "Mundo nuevo...",
+  "NewWorld_Title": "Mundo nuevo",
+  "NewWorld_Header": "Nombra el mundo",
+  "NewWorld_Explanation": "El nombre es para ti, no para los jugadores: distingue este mundo de una copia suya en la barra de titulo, la ventana del servidor y los registros. Tambien es el nombre de la carpeta: a continuacion eliges donde guardarlo y el mundo se crea alli en una carpeta propia.",
+  "NewWorld_NameLabel": "Nombre del mundo",
+  "NewWorld_ChooseFolder": "Elegir ubicacion...",
+  "NewWorld_Failed": "No se pudo crear el mundo: {Reason}",
+  "NewWorld_AlreadyThere": "{Path} ya existe. Ponle otro nombre al mundo, o guardalo en otro sitio.",
+  "NewWorld_InvalidName": "\"{Name}\" no puede ser el nombre de una carpeta. No uses \\ / : * ? \" < > ni |."
 }

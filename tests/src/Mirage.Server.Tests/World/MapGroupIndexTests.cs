@@ -31,7 +31,7 @@ public class MapGroupIndexTests
     public void SetUp()
     {
         _dir = Path.Combine(Path.GetTempPath(), "mirage-mapgroup-" + Guid.NewGuid().ToString("N"));
-        _svc = new JsonPersistenceService(_dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
+        _svc = new JsonPersistenceService(_dir, _dir, NullLogger<JsonPersistenceService>.Instance, new NoOpChatLog());
     }
 
     [TearDown]

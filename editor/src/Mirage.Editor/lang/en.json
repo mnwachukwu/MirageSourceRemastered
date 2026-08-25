@@ -1002,5 +1002,15 @@
   "WorldCheck_ConversationOpensNoQuests": "Offers to open quests, but NPC {Detail} neither gives nor takes one - the choice does nothing when a player picks it.",
   "WorldCheck_QuestPrereqCycle": "Its prerequisite chain loops back to itself, so no player can ever accept it.",
   "World_Untitled": "Untitled World",
-  "World_UntitledAt": "Untitled World ({Folder})"
+  "World_UntitledAt": "Untitled World ({Folder})",
+  "World_NotAWorld": "{Path} is not a world folder - it has no world.json. Use World - New World to make one, or pick a folder that already holds a world.",
+  "World_New": "New World...",
+  "NewWorld_Title": "New World",
+  "NewWorld_Header": "Name the world",
+  "NewWorld_Explanation": "The name is for you, not for players - it tells this world apart from a copy of it in the title bar, the server window and the logs. It is also the folder's name: you choose where to keep it next, and the world is made in a folder of its own there.",
+  "NewWorld_NameLabel": "World name",
+  "NewWorld_ChooseFolder": "Choose Location...",
+  "NewWorld_Failed": "The world could not be created: {Reason}",
+  "NewWorld_AlreadyThere": "{Path} already exists. Give the world a different name, or keep it somewhere else.",
+  "NewWorld_InvalidName": "\"{Name}\" cannot be a folder name. Leave out \\ / : * ? \" < > and |."
 }
