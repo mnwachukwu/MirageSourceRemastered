@@ -95,10 +95,10 @@ public sealed partial class MirageGame : Game
                 // ground light is OCCLUDED by the fringe (it never lights the deck/décor above it).
                 GraphicsDevice.SetRenderTarget(_lightRT);
                 GraphicsDevice.Clear(ambient);
-                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds);   // ALL lights → ground
+                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);   // ALL lights → ground
                 GraphicsDevice.SetRenderTarget(_lightRTFringe);
                 GraphicsDevice.Clear(ambient);
-                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, WorldLayer.Fringe);   // fringe lights only
+                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, WorldLayer.Fringe, _lightMaskEffect);   // fringe lights only
 
                 // Pre-multiply each world target by its OWN light map IN PLACE (LightModulateBlend preserves the
                 // target's alpha, so the transparent fringe gaps survive lighting).
@@ -130,7 +130,7 @@ public sealed partial class MirageGame : Game
                 // map for the ground/extras pass; _lightRTFringe still holds the fringe map for the fringe pass.
                 GraphicsDevice.SetRenderTarget(_lightRT);
                 GraphicsDevice.Clear(ambient);
-                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds);   // null filter = ALL halos
+                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);   // null filter = ALL halos
 
                 // Draw labels into the scratch target, multiply by the given light map in place (the scratch stays
                 // bound after the overlay batch), then alpha-composite the lit labels over _worldRT.
@@ -179,7 +179,7 @@ public sealed partial class MirageGame : Game
                 {
                     GraphicsDevice.SetRenderTarget(_lightRT);
                     GraphicsDevice.Clear(Color.Lerp(Color.White, NightAmbient, rawDarkness));
-                    gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds);
+                    gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);
                 }
             }
         }

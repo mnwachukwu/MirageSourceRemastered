@@ -273,7 +273,7 @@ public sealed partial class NpcAiSystem : GameSystem
             TryLegsKite(mapNum, slot, mn, victimMap, victimMn.X, victimMn.Y, now, _world.Npcs[victimMn.Num].EffectiveSize);
             return;
         }  // caster retreat
-        if (_combat.CanNpcAttackNpc(mapNum, mn, victimMap, victimMn) && !ChaserVacatesRampFor(mapNum, mn, victimMn.Layer))
+        if (_combat.CanNpcAttackNpc(mapNum, mn, victimMap, victimMn, now) && !ChaserVacatesRampFor(mapNum, mn, victimMn.Layer))
         {
             mn.HasMadeContact = true;
             mn.ChaseSprinting = false;
@@ -338,7 +338,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 TryLegsKite(mapNum, listIndex, t, victimMap, victimMn.X, victimMn.Y, now, _world.Npcs[victimMn.Num].EffectiveSize);
                 return;
             }  // caster retreat
-            if (_combat.CanNpcAttackNpc(mapNum, t, victimMap, victimMn) && !ChaserVacatesRampFor(mapNum, t, victimMn.Layer))
+            if (_combat.CanNpcAttackNpc(mapNum, t, victimMap, victimMn, now) && !ChaserVacatesRampFor(mapNum, t, victimMn.Layer))
             {
                 t.HasMadeContact = true;
                 t.ChaseSprinting = false;

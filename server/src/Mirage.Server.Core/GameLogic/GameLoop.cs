@@ -175,32 +175,32 @@ public sealed class GameLoop : IDisposable
             if (now >= nextAi)
             {
                 RunTick(AiTick, "AI");
-                nextAi = now + AiIntervalMs;
+                nextAi = Schedule(nextAi, now, AiIntervalMs);
             }
             if (now >= nextNpcMove)
             {
                 RunTick(NpcMoveTick, "npc-move");
-                nextNpcMove = now + NpcMoveIntervalMs;
+                nextNpcMove = Schedule(nextNpcMove, now, NpcMoveIntervalMs);
             }
             if (now >= nextBlood)
             {
                 RunTick(BloodTick, "blood");
-                nextBlood = now + BloodIntervalMs;
+                nextBlood = Schedule(nextBlood, now, BloodIntervalMs);
             }
             if (now >= nextSpawn)
             {
                 RunTick(SpawnTick, "spawn");
-                nextSpawn = now + SpawnIntervalMs;
+                nextSpawn = Schedule(nextSpawn, now, SpawnIntervalMs);
             }
             if (now >= nextSave)
             {
                 RunTick(SaveTick, "save");
-                nextSave = now + SaveIntervalMs;
+                nextSave = Schedule(nextSave, now, SaveIntervalMs);
             }
             if (now >= nextMailSweep)
             {
                 RunTick(MailTick, "mail");
-                nextMailSweep = now + MailSweepIntervalMs;
+                nextMailSweep = Schedule(nextMailSweep, now, MailSweepIntervalMs);
             }
 
             // End of iteration: persist any player flagged dirty by this tick's packet handlers or AI
@@ -242,6 +242,17 @@ public sealed class GameLoop : IDisposable
     }
 
     // ── Ticks (all run on the game thread) ──────────────────────────────────────
+
+    /// <summary>When a tick that just ran is next due.
+    ///
+    /// <para>Advances the PREVIOUS deadline by one interval rather than restarting from the clock, so a tick
+    /// that ran late does not push every tick after it late as well. Waking a millisecond late 120 times a
+    /// minute is how a 500 ms cadence quietly becomes 520, and the drift never comes back.</para>
+    ///
+    /// <para>A tick more than one interval behind — a long save, a stalled thread — restarts from the clock
+    /// instead of trying to catch up, since replaying the beats it missed helps nobody.</para></summary>
+    private static long Schedule(long due, long now, int intervalMs) =>
+        due + intervalMs > now ? due + intervalMs : now + intervalMs;
 
     private void AiTick()
     {

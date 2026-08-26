@@ -85,9 +85,6 @@ public sealed partial class EditorPacketHandler
                 case EditorLoginPacket p:
                     HandleEditorLogin(editorIndex, p);
                     break;
-                case EditorRequestDataPacket:
-                    HandleEditorRequestData(editorIndex);
-                    break;
                 case EditorLockPacket p:
                     HandleEditorLock(editorIndex, p);
                     break;
@@ -253,10 +250,16 @@ public sealed partial class EditorPacketHandler
         session.Login = username;
         session.AdminLevel = access;
         session.Locale = locale;
+        session.SessionId = Guid.NewGuid().ToString("N");
         session.IsAuthenticated = true;
 
         _dispatcher.SendToEditor(editorIndex, new EditorLoginResponsePacket
-        { Success = true, Message = ServerStrings.ForLocale(locale, ServerStrings.EditorAuth_Authenticated), AccessLevel = access });
+        {
+            Success = true,
+            Message = ServerStrings.ForLocale(locale, ServerStrings.EditorAuth_Authenticated),
+            AccessLevel = access,
+            SessionId = session.SessionId,
+        });
 
         _dispatcher.SendToEditor(editorIndex, BuildEditorDataPacket());
         // The table as it stands, so a session that joins mid-edit sees the locks already held.
@@ -351,7 +354,7 @@ public sealed partial class EditorPacketHandler
         if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
         var session = _editors.GetSession(editorIndex);
         if (session is null) return;
-        if (_locks.TryAcquire(p.Section, p.Num, editorIndex, session.Login)) BroadcastLocks();
+        if (_locks.TryAcquire(p.Section, p.Num, editorIndex, session.Login, session.SessionId)) BroadcastLocks();
     }
 
     /// <summary>Gives a record back, on save or on discard. Ignored from anyone but the holder.</summary>
@@ -370,30 +373,24 @@ public sealed partial class EditorPacketHandler
 
     private void BroadcastLocks() => _dispatcher.SendToAllEditors(_locks.Snapshot());
 
-    /// <summary>Refuses a save for a record somebody else is holding. The editor already greys those out, so
-    /// reaching here means a stale client or a hand-rolled one — either way the holder's work wins.</summary>
+    /// <summary>Refuses a save for a record another SESSION is holding — including one signed in as the same
+    /// account, which is two sets of unsaved changes and not one. The editor already greys those out, so
+    /// reaching here means a stale client or a hand-rolled one; either way the holder's work wins.</summary>
     private bool LockedByAnother(int editorIndex, string section, int num)
     {
         var session = _editors.GetSession(editorIndex);
-        string? holder = _locks.HolderOf(section, num);
-        if (holder is null || session is null || holder == session.Login) return false;
+        var holder = _locks.HolderOf(section, num);
+        if (holder is not { } h || session is null || h.EditorIndex == editorIndex) return false;
+        string message = string.Equals(h.Login, session.Login, StringComparison.OrdinalIgnoreCase)
+            ? ServerStrings.EditorLock_HeldByYourOtherSession
+            : ServerStrings.EditorLock_HeldByAnother;
         _dispatcher.SendToEditor(editorIndex, new EditorNoticePacket
         {
-            Message = ServerStrings.ForLocale(session.Locale, ServerStrings.EditorLock_HeldByAnother,
-                                              ("Holder", holder)),
+            Message = ServerStrings.ForLocale(session.Locale, message, ("Holder", h.Login)),
         });
-        _logger.LogInformation("Editor {Index} tried to save {Section} #{Num}, held by {Holder}.",
-                               editorIndex, section, num, holder);
+        _logger.LogInformation("Editor {Index} tried to save {Section} #{Num}, held by editor {Holder} ({Login}).",
+                               editorIndex, section, num, h.EditorIndex, h.Login);
         return true;
-    }
-
-    /// <summary>Re-sends the name indexes the session was given at login, so an editor left open while the
-    /// world changed can catch up without reconnecting. Same builder as login: a refresh and a fresh session
-    /// see the same world.</summary>
-    private void HandleEditorRequestData(int editorIndex)
-    {
-        if (!RequireAccess(editorIndex, AdminLevel.Mapper)) return;
-        _dispatcher.SendToEditor(editorIndex, BuildEditorDataPacket());
     }
 
     private void HandleEditorRequestItem(int editorIndex, EditorRequestItemPacket p)

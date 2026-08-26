@@ -56,13 +56,6 @@ public sealed record EditorRequestMapGroupPacket : IPacket
     [JsonPropertyName("groupNum")] public int GroupNum { get; init; }
 }
 
-/// <summary>Asks the server to send <see cref="EditorDataPacket"/> again. The same payload the session is
-/// given at login, so an editor left open while the world changed can catch up without reconnecting.</summary>
-public sealed record EditorRequestDataPacket : IPacket
-{
-    [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorRequestData;
-}
-
 // ── Record locks ─────────────────────────────────────────────────────────────
 // Two editors saving the same record is the one way work is silently lost: both read the same version, both
 // write, and the second wins without either being told.
@@ -71,6 +64,10 @@ public sealed record EditorRequestDataPacket : IPacket
 // nothing, so browsing never shuts anybody out and the table only ever names people who actually have
 // changes in hand. It is given up when those changes are saved or discarded, and everything a session holds
 // falls away when it disconnects — a crashed editor cannot wedge a record shut.
+//
+// A lock belongs to a SESSION, not to an account. Two editors signed in as the same person are two sets of
+// unsaved changes and block each other exactly like two people would; the account name is carried alongside
+// only so a reader can be told who to go and ask.
 
 /// <summary>Claims a record. Refused only when another session already holds it; re-claiming one you hold
 /// is not an error.</summary>
@@ -95,11 +92,14 @@ public sealed record EditorUnlockPacket : IPacket
 public sealed record EditorLocksPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.EditorLocks;
-    /// <summary><paramref name="Login"/> is the account holding it, which is what a reader is shown.</summary>
+    /// <summary><paramref name="Session"/> identifies the connection holding it and is what decides whether
+    /// a lock is somebody else's. <paramref name="Login"/> is the account behind that connection, carried
+    /// for display only — two sessions can share it.</summary>
     public sealed record Held(
         [property: JsonPropertyName("section")] string Section,
         [property: JsonPropertyName("num")] int Num,
-        [property: JsonPropertyName("login")] string Login);
+        [property: JsonPropertyName("login")] string Login,
+        [property: JsonPropertyName("session")] string Session);
 
     [JsonPropertyName("locks")] public Held[] Locks { get; init; } = [];
 }
@@ -282,6 +282,10 @@ public sealed record EditorLoginResponsePacket : IPacket
     [JsonPropertyName("success")] public bool Success { get; init; }
     [JsonPropertyName("message")] public string Message { get; init; } = "";
     [JsonPropertyName("access")] public AdminLevel AccessLevel { get; init; }
+    /// <summary>Identifies this connection for the lifetime of the connection, so a session can tell its own
+    /// locks from those of another session signed in as the same account. Fresh on every login, so a reused
+    /// slot never inherits the last occupant's identity. Blank on a refused login.</summary>
+    [JsonPropertyName("session")] public string SessionId { get; init; } = "";
 }
 
 public sealed record EditorDataPacket : IPacket

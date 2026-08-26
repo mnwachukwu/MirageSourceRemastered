@@ -1,7 +1,7 @@
 {
   "name": "Fenn's Landing 2",
   "displayName": "",
-  "revision": 11,
+  "revision": 12,
   "up": 0,
   "down": 2,
   "left": 0,
@@ -1085,5 +1085,17 @@
       "pinY": 7
     }
   ],
-  "lights": []
+  "lights": [
+    {
+      "id": "31c3fd83-c463-441a-9631-a603f52433ac",
+      "x": 9,
+      "y": 2,
+      "light": {
+        "rgb": 16777215,
+        "radius": 5,
+        "flicker": "Flame",
+        "intensity": 1
+      }
+    }
+  ]
 }

@@ -33,13 +33,14 @@ public sealed class EditorSessionManager
         return _sessions[index];
     }
 
-    /// <summary>Release a slot: clears the connected and authenticated flags and the login, leaving the
-    /// instance in place for reuse. Out-of-range indices are ignored.</summary>
+    /// <summary>Release a slot: clears the connected and authenticated flags, the login and the session id,
+    /// leaving the instance in place for reuse. Out-of-range indices are ignored.</summary>
     public void Disconnect(int index)
     {
         if (index < 1 || index > Constants.MaxEditorSessions) return;
         _sessions[index].IsConnected = false;
         _sessions[index].IsAuthenticated = false;
         _sessions[index].Login = "";
+        _sessions[index].SessionId = "";
     }
 }

@@ -25,12 +25,21 @@ public sealed class OpenDoors
     /// <summary>How many doors are open — the whole cost of a sweep over this map.</summary>
     public int Count => _open.Count;
 
+    /// <summary>Bumped whenever a door actually moves. A closed door stops light, so anything that caches
+    /// what a light reaches has to know this changed; comparing versions is cheaper than re-deriving it.</summary>
+    public int Version { get; private set; }
+
     public void Set(int x, int y, int layer, bool open)
     {
-        if (open) _open.Add((x, y, layer));
-        else _open.Remove((x, y, layer));
+        bool moved = open ? _open.Add((x, y, layer)) : _open.Remove((x, y, layer));
+        if (moved) Version++;
     }
 
     /// <summary>Every door shut — what a map load or a grid reframe leaves behind.</summary>
-    public void Clear() => _open.Clear();
+    public void Clear()
+    {
+        if (_open.Count == 0) return;
+        _open.Clear();
+        Version++;
+    }
 }

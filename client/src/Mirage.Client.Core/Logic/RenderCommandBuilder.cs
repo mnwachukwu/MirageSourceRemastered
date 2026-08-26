@@ -361,24 +361,91 @@ public static class RenderCommandBuilder
                     float radiusPx = pl.Light.Radius * Constants.PicX;
                     if (!LightReachesR(screenX, screenY, radiusPx)) continue;
                     float effectiveDark = InAlwaysDark(state, wx, wy) ? 1f : state.GetCurrentDarkness();
-                    var (mapReachR, mapReach) = Reach(state, frame, wx, wy, pl.Layer, pl.Light.Radius);
+                    var lit = ReachAcrossStep(state, camera, wx, wy, 0f, 0f, pl.Layer, pl.Light.Radius);
                     frame.Lights.Add(new LightSourceCmd(screenX, screenY, pl.Light.Intensity, pl.Light.Rgb,
                         radiusPx, pl.Light.Flicker, pl.Id.GetHashCode(), effectiveDark, pl.Layer,
-                        wx, wy, mapReachR, mapReach));
+                        lit.FromScreenX, lit.FromScreenY, lit.Radius, lit.From,
+                        lit.Into, lit.IntoScreenX, lit.IntoScreenY, lit.Blend));
                 }
             }
         }
     }
 
-    /// <summary>Which tiles one light reaches, traced against the walls around it. A wall stops light,
-    /// so a torch inside a building does not light the street through its own wall.</summary>
-    private static (int Radius, bool[] Mask) Reach(ClientState state, RenderFrame frame, int wx, int wy,
-                                                   WorldLayer layer, float radiusTiles)
+    /// <summary>One light's occlusion across a step: the mask traced from the tile being LEFT, the mask
+    /// traced from the tile being ENTERED, and how far between them the emitter is.
+    ///
+    /// <para>Reach is answered per tile, so a single mask can only change in one jump as an emitter crosses a
+    /// border — the halo slides smoothly and its shadows do not. Tracing both ends and blending makes the
+    /// change continuous. An entity's X/Y is already the DESTINATION the instant a step begins, with the
+    /// offset counting a whole tile back to zero, so the tile being left is the one the offset points at.</para>
+    ///
+    /// <para>A standing emitter's two tiles are the same one: it traces once and blends nothing, which is
+    /// what keeps the second trace something only moving things pay for.</para></summary>
+    private readonly record struct LightReach(
+        int Radius, bool[] From, float FromScreenX, float FromScreenY,
+        bool[]? Into, float IntoScreenX, float IntoScreenY, float Blend);
+
+    private static LightReach ReachAcrossStep(ClientState state, Camera camera,
+        int wx, int wy, float xOffset, float yOffset, WorldLayer layer, float radiusTiles)
     {
         int r = Math.Max(0, (int)MathF.Ceiling(radiusTiles));
-        var mask = frame.RentReach(LightOcclusion.MaskCells(r));
-        LightOcclusion.Fill(state, wx, wy, layer, r, mask);
-        return (r, mask);
+        int fromX = wx + Math.Sign(xOffset), fromY = wy + Math.Sign(yOffset);
+        var (fsx, fsy) = camera.WorldTileToScreen(fromX, fromY, 0, 0);
+        var from = CachedReach(state, fromX, fromY, layer, r);
+        if (fromX == wx && fromY == wy) return new LightReach(r, from, fsx, fsy, null, 0f, 0f, 0f);
+
+        var (isx, isy) = camera.WorldTileToScreen(wx, wy, 0, 0);
+        var into = CachedReach(state, wx, wy, layer, r);
+        float travelled = MathF.Max(MathF.Abs(xOffset), MathF.Abs(yOffset)) / Constants.PicX;
+        return new LightReach(r, from, fsx, fsy, into, isx, isy, Math.Clamp(1f - travelled, 0f, 1f));
+    }
+
+    // ── Reach cache ──────────────────────────────────────────────────────────
+    // What a light reaches from a tile depends on the walls and doors around it and on nothing else — not on
+    // the light, not on the frame. A wall lamp or a standing NPC therefore traces the same answer sixty times
+    // a second, and a walking one re-traces a tile it or something else already asked about a moment ago.
+    //
+    // So the answers are kept, and thrown away wholesale the moment anything they were derived from moves.
+    // Stamping rather than invalidating per tile: the inputs are nine maps and nine door sets, a door opening
+    // three maps away can matter to a light near the seam, and working out which entries it reached would cost
+    // more than re-tracing the handful of lights on screen.
+    private static int _reachStamp;
+    private static readonly Dictionary<(int X, int Y, WorldLayer Layer, int Radius), bool[]> _reachCache = [];
+
+    /// <summary>Every input the occlusion trace reads, in one comparable number: which maps are loaded, what
+    /// revision each is at, and how many times each map's doors have moved.</summary>
+    private static int ReachStamp(ClientState state)
+    {
+        int h = 17;
+        for (int col = 0; col < 3; col++)
+        {
+            for (int row = 0; row < 3; row++)
+            {
+                h = h * 31 + (state.NeighborMaps[col, row]?.Revision ?? -1);
+                h = h * 31 + state.NeighborMapNums[col, row];
+                h = h * 31 + state.NeighborTempTiles[col, row].Version;
+            }
+        }
+
+        return h;
+    }
+
+    // A cap rather than an eviction policy: entries are only ever added for tiles a light actually stood on,
+    // and wandering NPCs accumulate them slowly. Dropping the lot costs the next frame's traces and nothing else.
+    private const int MaxCachedReaches = 256;
+
+    private static bool[] CachedReach(ClientState state, int wx, int wy, WorldLayer layer, int radius)
+    {
+        int stamp = ReachStamp(state);
+        if (stamp != _reachStamp) { _reachCache.Clear(); _reachStamp = stamp; }
+        var key = (wx, wy, layer, radius);
+        if (_reachCache.TryGetValue(key, out var hit)) return hit;
+
+        if (_reachCache.Count >= MaxCachedReaches) _reachCache.Clear();
+        var mask = new bool[LightOcclusion.MaskCells(radius)];
+        LightOcclusion.Fill(state, wx, wy, layer, radius, mask);
+        _reachCache[key] = mask;
+        return mask;
     }
     // True when world tile (wx,wy) sits on an AlwaysDark map — exact cell bounds, no spillover. Mirrors
     // InTownLight: keyed to the map seam so a light-bearer's halo snaps to full-bright the instant it steps
@@ -622,12 +689,15 @@ public static class RenderCommandBuilder
             {
                 float effectiveDark = InAlwaysDark(state, offX + n.X, offY + n.Y) ? 1f : state.GetCurrentDarkness();
                 var lightLayer = SlideRenderLayer(n.Layer, n.PrevLayer, n.XOffset, n.YOffset);
-                var (npcReachR, npcReach) =
-                    Reach(state, frame, offX + n.X, offY + n.Y, lightLayer, radiusPx / Constants.PicX);
+                // Each mask is anchored to the tile it was traced from, so a mid-step NPC's shadows stay put
+                // in the world while its halo slides — the halo's own offset is already in screen space.
+                var lit = ReachAcrossStep(state, camera, offX + n.X, offY + n.Y,
+                                          n.XOffset, n.YOffset, lightLayer, radiusPx / Constants.PicX);
                 frame.Lights.Add(new LightSourceCmd(lightOx, lightOy, def.Light.Intensity, def.Light.Rgb,
                     radiusPx, def.Light.Flicker, lightId, effectiveDark,
                     lightLayer,   // torch follows the sprite's slide layer
-                    offX + n.X, offY + n.Y, npcReachR, npcReach));
+                    lit.FromScreenX, lit.FromScreenY, lit.Radius, lit.From,
+                    lit.Into, lit.IntoScreenX, lit.IntoScreenY, lit.Blend));
             }
         }
         if (!OnScreenSized(screenX, screenY, spritePx)) return;
@@ -887,9 +957,14 @@ public static class RenderCommandBuilder
         {
             float effectiveDark = InAlwaysDark(state, offX + p.X, offY + p.Y) ? 1f : state.GetCurrentDarkness();
             var torch = LightSpec.Torch;   // players are the fixed default torch
+            var torchLayer = SlideRenderLayer(p.Layer, p.PrevLayer, p.XOffset, p.YOffset);
+            var lit = ReachAcrossStep(state, camera, offX + p.X, offY + p.Y,
+                                      p.XOffset, p.YOffset, torchLayer, torch.Radius);
             frame.Lights.Add(new LightSourceCmd(screenX, screenY, torch.Intensity, torch.Rgb,
                 torch.Radius * Constants.PicX, torch.Flicker, i, effectiveDark,
-                SlideRenderLayer(p.Layer, p.PrevLayer, p.XOffset, p.YOffset)));   // torch follows the sprite's slide layer
+                torchLayer,   // torch follows the sprite's slide layer
+                lit.FromScreenX, lit.FromScreenY, lit.Radius, lit.From,
+                lit.Into, lit.IntoScreenX, lit.IntoScreenY, lit.Blend));
         }
         if (!OnScreen(screenX, screenY)) return;
 

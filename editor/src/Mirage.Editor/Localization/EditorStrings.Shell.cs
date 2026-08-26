@@ -17,6 +17,11 @@ public static partial class EditorStrings
     public const string Common_Close = nameof(Common_Close);              // "Close"
     public const string Common_Confirm = nameof(Common_Confirm);            // "Confirm"
     public const string Common_Connect = nameof(Common_Connect);            // "Connect"
+    public const string PushChangesDialog_UnsavedSwitchWorld = nameof(PushChangesDialog_UnsavedSwitchWorld);
+    public const string PushChangesDialog_SaveAndContinue = nameof(PushChangesDialog_SaveAndContinue);
+    // The lock tooltip on a record list, when the holder is another window signed in as you. Any other
+    // holder is shown by account name and needs no wording.
+    public const string Common_LockHeldByYourOtherSession = nameof(Common_LockHeldByYourOtherSession);
     public const string Common_Discard = nameof(Common_Discard);            // "Discard"
     public const string Common_DiscardAll = nameof(Common_DiscardAll);         // "Discard All"
     public const string Common_SaveAll = nameof(Common_SaveAll);            // "Save All"
@@ -364,7 +369,6 @@ public static partial class EditorStrings
     // ── Data / Refresh ────────────────────────────────────────────────────────
     public const string MainWindow_DataMenu = nameof(MainWindow_DataMenu);
     public const string MainWindow_DataRefresh = nameof(MainWindow_DataRefresh);
-    public const string Refresh_ServerSilent = nameof(Refresh_ServerSilent);
     public const string World_NotFound = nameof(World_NotFound);
     public const string World_Open = nameof(World_Open);
     public const string World_Close = nameof(World_Close);
@@ -460,7 +464,6 @@ public static partial class EditorStrings
     public const string WorldTransfer_OverCeiling = nameof(WorldTransfer_OverCeiling);
     public const string WorldTransfer_Unnamed = nameof(WorldTransfer_Unnamed);
     public const string Refresh_FromDisk = nameof(Refresh_FromDisk);
-    public const string Refresh_FromServer = nameof(Refresh_FromServer);
     public const string Refresh_SectionMoved = nameof(Refresh_SectionMoved);
     public const string Refresh_Changed = nameof(Refresh_Changed);
     public const string Refresh_NothingMoved = nameof(Refresh_NothingMoved);

@@ -766,6 +766,7 @@
   "Console_GuildResetUsage": "Usage: /guildreset [day|week|season]",
   "Console_GuildReset": "Ran a manual {Scope} settlement.",
   "EditorLock_HeldByAnother": "{Holder} is editing this record. Your change was not saved.",
+  "EditorLock_HeldByYourOtherSession": "Another editor signed in as {Holder} is editing this record. Your change was not saved.",
   "Console_EditorsTotal": "{Count} editor session(s) connected.",
   "Console_KickEditorUsage": "Usage: /kickeditor <slot|account>",
   "Console_EditorNotFound": "No connected editor matches '{Target}'.",

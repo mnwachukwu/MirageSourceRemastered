@@ -11,6 +11,10 @@ public sealed class EditorSession
     public int Index { get; set; }
     /// <summary>Account name once authenticated; blank while free or unauthenticated.</summary>
     public string Login { get; set; } = "";
+    /// <summary>Identifies this occupancy of the slot, minted at login and cleared on disconnect. Slots are
+    /// recycled, so <see cref="Index"/> alone would let a new session inherit the last one's identity — and a
+    /// lock is a fact about a connection, not about the account or the slot.</summary>
+    public string SessionId { get; set; } = "";
     /// <summary>Access level of the authenticated account, which gates the editor sections.</summary>
     public AdminLevel AdminLevel { get; set; }
     /// <summary>Whether credentials have been accepted. Connected but unauthenticated is a real state —

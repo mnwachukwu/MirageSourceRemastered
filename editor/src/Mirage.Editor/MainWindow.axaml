@@ -10,7 +10,7 @@
 
   <!-- InputGesture on the menu item only DRAWS the shortcut; the binding here is what makes the key work. -->
   <Window.KeyBindings>
-    <KeyBinding Gesture="F5" Command="{Binding RefreshFromSourceCommand}"/>
+    <KeyBinding Gesture="F5" Command="{Binding RefreshFromDiskCommand}"/>
   </Window.KeyBindings>
 
   <Grid>
@@ -83,7 +83,7 @@
           <MenuItem x:Name="_dataMenu">
             <MenuItem x:Name="_dataRefreshItem"
                       Header="{Binding RefreshMenuItemLabel}"
-                      Command="{Binding RefreshFromSourceCommand}"
+                      Command="{Binding RefreshFromDiskCommand}"
                       InputGesture="F5"/>
           </MenuItem>
           <MenuItem x:Name="_languageMenu" />

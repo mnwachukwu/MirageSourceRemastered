@@ -1,23 +1,21 @@
 using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Services;
-using Mirage.Shared.Protocol.Packets;
 using System.Text;
 
 namespace Mirage.Editor.ViewModels;
 
 /// <summary>
-/// Rereading whatever the editor is pointed at — the offline store on disk, or the server's name indexes
-/// over the live connection — and reporting what arrived, so a change made outside the editor does not need
-/// a restart to be seen.
+/// Rereading the offline store on disk and reporting what arrived, so a change made to the folder outside
+/// the editor does not need a restart to be seen.
+///
+/// <para>OFFLINE ONLY, and the command is disabled online. A live session is already told about every
+/// record the moment it changes — the server pushes each save to every other editor — so there is nothing
+/// for a manual reread to find, and a button that always reports "nothing moved" reads as broken.</para>
 ///
 /// <para>A section holding unsaved edits is left alone. Reloading it would drop that work with no way back,
 /// and the report names it so a section that did not move is never mistaken for one that had nothing to
 /// take.</para>
-///
-/// <para>Online the same payload login hands over is asked for again with <c>EditorRequestDataPacket</c>.
-/// The offline side compares folders on disk; the online side compares the packet, which moves when a record
-/// is added, removed or renamed.</para>
 /// </summary>
 public sealed partial class MainWindowViewModel
 {
@@ -33,47 +31,21 @@ public sealed partial class MainWindowViewModel
     /// anything actually arrived.</summary>
     private readonly Dictionary<string, string> _lastSeen = [];
 
-    private (string Key, Action Online, Action Offline, Func<bool> Dirty, Func<int> Count)[] Refreshable =>
+    private (string Key, Action Reload, Func<bool> Dirty, Func<int> Count)[] Refreshable =>
     [
-        ("Maps",          MapEditor.LoadOnline, MapEditor.LoadOffline,          () => MapEditor.HasAnyDirtyMap,       () => MapEditor.Maps.Count),
-        ("MapGroups",     MapGroupEditor.LoadOnline, MapGroupEditor.LoadOffline,     () => MapGroupEditor.HasAnyDirty,     () => MapGroupEditor.MapGroups.Count),
-        ("Items",         ItemEditor.LoadOnline, ItemEditor.LoadOffline,         () => ItemEditor.HasAnyDirty,         () => ItemEditor.Items.Count),
-        ("NPCs",          NpcEditor.LoadOnline, NpcEditor.LoadOffline,          () => NpcEditor.HasAnyDirty,          () => NpcEditor.Npcs.Count),
-        ("Shops",         ShopEditor.LoadOnline, ShopEditor.LoadOffline,         () => ShopEditor.HasAnyDirty,         () => ShopEditor.Shops.Count),
-        ("Spells",        SpellEditor.LoadOnline, SpellEditor.LoadOffline,        () => SpellEditor.HasAnyDirty,        () => SpellEditor.Spells.Count),
-        ("Classes",       ClassEditor.LoadOnline, ClassEditor.LoadOffline,        () => ClassEditor.HasAnyDirty,        () => ClassEditor.Classes.Count),
-        ("Quests",        QuestEditor.LoadOnline, QuestEditor.LoadOffline,        () => QuestEditor.HasAnyDirty,        () => QuestEditor.Quests.Count),
-        ("Conversations", ConversationEditor.LoadOnline, ConversationEditor.LoadOffline, () => ConversationEditor.HasAnyDirty, () => ConversationEditor.Conversations.Count),
-        ("Accounts",      AccountEditor.LoadOnline, AccountEditor.LoadOffline,      () => false,                          () => AccountEditor.Accounts.Count),
+        ("Maps",          MapEditor.LoadOffline,          () => MapEditor.HasAnyDirtyMap,       () => MapEditor.Maps.Count),
+        ("MapGroups",     MapGroupEditor.LoadOffline,     () => MapGroupEditor.HasAnyDirty,     () => MapGroupEditor.MapGroups.Count),
+        ("Items",         ItemEditor.LoadOffline,         () => ItemEditor.HasAnyDirty,         () => ItemEditor.Items.Count),
+        ("NPCs",          NpcEditor.LoadOffline,          () => NpcEditor.HasAnyDirty,          () => NpcEditor.Npcs.Count),
+        ("Shops",         ShopEditor.LoadOffline,         () => ShopEditor.HasAnyDirty,         () => ShopEditor.Shops.Count),
+        ("Spells",        SpellEditor.LoadOffline,        () => SpellEditor.HasAnyDirty,        () => SpellEditor.Spells.Count),
+        ("Classes",       ClassEditor.LoadOffline,        () => ClassEditor.HasAnyDirty,        () => ClassEditor.Classes.Count),
+        ("Quests",        QuestEditor.LoadOffline,        () => QuestEditor.HasAnyDirty,        () => QuestEditor.Quests.Count),
+        ("Conversations", ConversationEditor.LoadOffline, () => ConversationEditor.HasAnyDirty, () => ConversationEditor.Conversations.Count),
+        ("Accounts",      AccountEditor.LoadOffline,      () => false,                          () => AccountEditor.Accounts.Count),
     ];
 
     public string RefreshMenuItemLabel => EditorStrings.Get(EditorStrings.MainWindow_DataRefresh);
-
-    /// <summary>The server's answer, reduced to something comparable: every name index it sent, in order.
-    /// It moves when a record is added, removed or renamed on the server, which is the online equivalent of
-    /// a file changing on disk.</summary>
-    private static string ServerStamp(EditorDataPacket p)
-    {
-        var sb = new StringBuilder();
-        void band(string label, IReadOnlyList<EditorDataPacket.NameEntry>? xs)
-        {
-            sb.Append(label).Append('=');
-            foreach (var e in xs ?? []) sb.Append(e.Num).Append(':').Append(e.Name).Append(',');
-            sb.Append('|');
-        }
-        band("i", p.Items); band("n", p.Npcs); band("s", p.Shops); band("p", p.Spells);
-        band("m", p.Maps); band("c", p.Classes); band("g", p.MapGroups); band("q", p.Quests);
-        band("v", p.Conversations);
-        return sb.ToString();
-    }
-
-    /// <summary>The stamp of the last server payload seen, for the same before/after question the offline
-    /// folders answer. One value rather than one per section: the server sends every index in one packet.</summary>
-    private string _lastServerSeen = "";
-
-    /// <summary>Takes the baseline from a payload the session already has, so the first refresh after a
-    /// connect compares against what login handed over rather than against nothing.</summary>
-    public void MarkServerSeen(EditorDataPacket pkt) => _lastServerSeen = ServerStamp(pkt);
 
     /// <summary>
     /// A cheap stand-in for the content of a section's folder: every file's name, length and write time. It
@@ -106,13 +78,17 @@ public sealed partial class MainWindowViewModel
     /// Called once the startup load has finished.</summary>
     public void MarkSourceSeen()
     {
-        foreach (var (key, _, _, _, _) in Refreshable) _lastSeen[key] = SourceStamp(key);
+        foreach (var (key, _, _, _) in Refreshable) _lastSeen[key] = SourceStamp(key);
     }
 
-    [RelayCommand]
-    private async Task RefreshFromSourceAsync()
+    /// <summary>Offline only. Online the server pushes every change as it happens, so there is nothing here
+    /// to ask for.</summary>
+    private bool CanRefreshFromDisk() => !IsOnline;
+
+    [RelayCommand(CanExecute = nameof(CanRefreshFromDisk))]
+    private async Task RefreshFromDiskAsync()
     {
-        EditorLog.Info("Refresh requested ({Source}).", IsOnline ? "server" : "disk");
+        EditorLog.Info("Refresh from disk requested.");
 
         // The whole world is replaced under the open editors, so the window is covered while it happens.
         // Editing a row that is about to be thrown away reads as the editor discarding the work.
@@ -136,51 +112,30 @@ public sealed partial class MainWindowViewModel
     /// <summary>Rereads the world and returns what moved, for reporting once the cover is down.</summary>
     private async Task<string?> RereadAsync()
     {
-        // THE reread, and the whole point of the command. Each editor's LoadOffline()/LoadOnline() refills
-        // its rows from a cache filled once at startup or at login. Calling those alone rebuilds the view
-        // from the same records and reports, correctly and uselessly, that nothing changed.
-        bool serverMoved = false;
-        if (IsOnline)
-        {
-            var pkt = await _conn.RequestDataAsync();
-            if (pkt is null)
-            {
-                EditorLog.Warn("Refresh: the server did not answer the data request.");
-                return EditorStrings.Get(EditorStrings.Refresh_ServerSilent);
-            }
-            string stamp = ServerStamp(pkt);
-            serverMoved = stamp != _lastServerSeen;
-            _lastServerSeen = stamp;
-            _data.LoadOnline(pkt, _conn.Hello?.Records);
-        }
-        else
-        {
-            await _data.LoadOfflineAsync();
-        }
+        // THE reread, and the whole point of the command. Each editor's LoadOffline() refills its rows from
+        // a cache filled once at startup. Calling those alone rebuilds the view from the same records and
+        // reports, correctly and uselessly, that nothing changed.
+        await _data.LoadOfflineAsync();
 
         var changed = new List<string>();
         var same = new List<string>();
         var skipped = new List<string>();
 
-        foreach (var (key, online, offline, dirty, count) in Refreshable)
+        foreach (var (key, reload, dirty, count) in Refreshable)
         {
             string label = EditorStrings.Get(SectionLabelKey(key));
             if (dirty()) { skipped.Add(label); continue; }
 
             string before = _lastSeen.GetValueOrDefault(key, "");
-            string now = IsOnline ? "" : SourceStamp(key);
+            string now = SourceStamp(key);
             int countBefore = count();
 
-            if (IsOnline) online(); else offline();
+            reload();
 
             _lastSeen[key] = now;
             int countAfter = count();
 
-            // Offline each folder answers for itself. Online there is one packet for every section, so the
-            // section moved if the packet did or if its own count changed — a rename moves the packet, and
-            // that is as fine-grained as the server's answer gets.
-            bool moved = IsOnline ? serverMoved || countAfter != countBefore : now != before;
-            if (!moved) { same.Add(label); continue; }
+            if (now == before) { same.Add(label); continue; }
             changed.Add(countAfter == countBefore
                 ? label
                 : EditorStrings.Format(EditorStrings.Refresh_SectionMoved,
@@ -188,7 +143,7 @@ public sealed partial class MainWindowViewModel
         }
 
         var sb = new StringBuilder();
-        sb.AppendLine(EditorStrings.Get(IsOnline ? EditorStrings.Refresh_FromServer : EditorStrings.Refresh_FromDisk));
+        sb.AppendLine(EditorStrings.Get(EditorStrings.Refresh_FromDisk));
         sb.AppendLine();
         sb.AppendLine(changed.Count > 0
             ? EditorStrings.Format(EditorStrings.Refresh_Changed, ("Sections", string.Join(", ", changed)))

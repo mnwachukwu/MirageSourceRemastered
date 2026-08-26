@@ -458,7 +458,6 @@ public static class PacketSerializer
                 PacketNames.EditorRequestSpell => JsonSerializer.Deserialize<EditorRequestSpellPacket>(line, Options),
                 PacketNames.EditorRequestMap => JsonSerializer.Deserialize<EditorRequestMapPacket>(line, Options),
                 PacketNames.EditorRequestClass => JsonSerializer.Deserialize<EditorRequestClassPacket>(line, Options),
-                PacketNames.EditorRequestData => JsonSerializer.Deserialize<EditorRequestDataPacket>(line, Options),
                 PacketNames.EditorLock => JsonSerializer.Deserialize<EditorLockPacket>(line, Options),
                 PacketNames.EditorUnlock => JsonSerializer.Deserialize<EditorUnlockPacket>(line, Options),
                 PacketNames.EditorLocks => JsonSerializer.Deserialize<EditorLocksPacket>(line, Options),

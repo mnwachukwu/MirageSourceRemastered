@@ -59,6 +59,8 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject, IAut
     {
         OnPropertyChanged(nameof(FilteredItems));
         OnPropertyChanged(nameof(FilterStatus));
+        // A lock held by another window of your own account is worded, not just named.
+        RefreshLockState();
     }
 
     /// <summary>The row the editor pane is bound to, or null when nothing is selected.</summary>
@@ -367,7 +369,10 @@ public abstract partial class EditorViewModelBase<TRow> : ObservableObject, IAut
             if (row is not ILockableRow lockable) continue;
             int num = GetIndex(row);
             string? holder = Locks.HolderOf(SectionId, num);
-            lockable.LockHolder = holder ?? "";
+            lockable.LockHolder = holder is null ? ""
+                : Locks.IsHeldByMyAccountElsewhere(SectionId, num)
+                    ? EditorStrings.Format(EditorStrings.Common_LockHeldByYourOtherSession, ("Holder", holder))
+                    : holder;
             lockable.LockedByOther = Locks.IsHeldByOther(SectionId, num);
         }
         OnPropertyChanged(nameof(IsSelectedLocked));

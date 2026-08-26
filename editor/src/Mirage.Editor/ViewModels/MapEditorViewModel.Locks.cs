@@ -1,3 +1,4 @@
+using Mirage.Editor.Localization;
 using Mirage.Editor.Services;
 using Mirage.Shared.Protocol.Packets;
 using System.ComponentModel;
@@ -45,7 +46,10 @@ public sealed partial class MapEditorViewModel
         foreach (var row in Maps)
         {
             string? holder = Locks.HolderOf(LockSection, row.Index);
-            row.LockHolder = holder ?? "";
+            row.LockHolder = holder is null ? ""
+                : Locks.IsHeldByMyAccountElsewhere(LockSection, row.Index)
+                    ? EditorStrings.Format(EditorStrings.Common_LockHeldByYourOtherSession, ("Holder", holder))
+                    : holder;
             row.LockedByOther = Locks.IsHeldByOther(LockSection, row.Index);
         }
         OnPropertyChanged(nameof(IsSelectedLocked));

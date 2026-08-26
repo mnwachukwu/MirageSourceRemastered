@@ -9,24 +9,33 @@ namespace Mirage.Server.Core.Net;
 /// takes nothing, so the table only ever names people who actually have changes in hand — and a session that
 /// drops takes every one of its locks with it, so a crashed editor cannot wedge a record shut.</para>
 ///
+/// <para>A lock belongs to a SESSION. Two editors signed in as the same account hold two independent sets of
+/// unsaved changes and block each other, which is why nothing here compares logins — the login is carried so
+/// the holder can be named, never to decide who the holder is.</para>
+///
 /// <para>In memory only, and deliberately: a lock is a fact about a live connection, and one that outlived
 /// the process would be a lock nobody can release.</para>
 /// </summary>
 public sealed class EditorLockRegistry
 {
     private readonly record struct Key(string Section, int Num);
-    private readonly Dictionary<Key, (int EditorIndex, string Login)> _held = [];
+
+    /// <summary>Who holds a record: the slot, the connection occupying it, and the account behind it.</summary>
+    public readonly record struct Holder(int EditorIndex, string Login, string SessionId);
+
+    private readonly Dictionary<Key, Holder> _held = [];
     private readonly Lock _gate = new();
 
     /// <summary>Claims a record for <paramref name="editorIndex"/>. True when it now holds it — including
-    /// when it already did, since dirtying a record twice is not a conflict. False when somebody else has it.</summary>
-    public bool TryAcquire(string section, int num, int editorIndex, string login)
+    /// when it already did, since dirtying a record twice is not a conflict. False when another session has
+    /// it, whoever is signed in there.</summary>
+    public bool TryAcquire(string section, int num, int editorIndex, string login, string sessionId)
     {
         lock (_gate)
         {
             var key = new Key(section, num);
             if (_held.TryGetValue(key, out var cur)) return cur.EditorIndex == editorIndex;
-            _held[key] = (editorIndex, login);
+            _held[key] = new Holder(editorIndex, login, sessionId);
             return true;
         }
     }
@@ -57,11 +66,11 @@ public sealed class EditorLockRegistry
     }
 
     /// <summary>Who holds <paramref name="section"/>/<paramref name="num"/>, or null.</summary>
-    public string? HolderOf(string section, int num)
+    public Holder? HolderOf(string section, int num)
     {
         lock (_gate)
         {
-            return _held.TryGetValue(new Key(section, num), out var cur) ? cur.Login : null;
+            return _held.TryGetValue(new Key(section, num), out var cur) ? cur : null;
         }
     }
 
@@ -84,7 +93,8 @@ public sealed class EditorLockRegistry
         {
             return new EditorLocksPacket
             {
-                Locks = _held.Select(kv => new EditorLocksPacket.Held(kv.Key.Section, kv.Key.Num, kv.Value.Login))
+                Locks = _held.Select(kv => new EditorLocksPacket.Held(
+                                 kv.Key.Section, kv.Key.Num, kv.Value.Login, kv.Value.SessionId))
                              .OrderBy(h => h.Section, StringComparer.Ordinal).ThenBy(h => h.Num).ToArray(),
             };
         }

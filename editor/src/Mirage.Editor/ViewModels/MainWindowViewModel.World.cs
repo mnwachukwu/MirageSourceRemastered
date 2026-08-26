@@ -355,7 +355,7 @@ public sealed partial class MainWindowViewModel
     {
         var dirty = GetAllDirty().ToList();
         if (dirty.Count == 0 || ShowPushChangesDialogAsync is null) return true;
-        var vm = new PushChangesDialogViewModel(dirty, _conn, _data, isConnecting: true);
+        var vm = new PushChangesDialogViewModel(dirty, _conn, _data, PushChangesReason.SwitchingWorld);
         bool go = false;
         vm.ProceedConfirmed += () => go = true;
         await ShowPushChangesDialogAsync(vm);

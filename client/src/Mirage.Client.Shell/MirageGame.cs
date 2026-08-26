@@ -84,6 +84,7 @@ public sealed partial class MirageGame : Game
     private Texture2D? _lightHaloOuterTex; // 3-tile radius (96 px), smoothstep falloff — stable reach
     private Texture2D? _lightHaloInnerTex; // 2-tile radius (64 px), Gaussian falloff — flickering flame core
     private Effect? _heatEffect;              // HeatWave world-distortion shader (Content/shaders/HeatHaze.fx)
+    private Effect? _lightMaskEffect;         // Multiplies a light halo by its reach mask (Content/shaders/LightMask.fx)
     private const float HeatIntensity = 1.0f; // heat-haze strength (shader Intensity param)
     // Soft-edged box light for safe-zone maps (flat interior, feathered border). Created in LoadContent.
     private Texture2D? _mapLightTex;

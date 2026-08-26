@@ -766,6 +766,7 @@
   "Console_GuildResetUsage": "Utilisation : /guildreset [day|week|season]",
   "Console_GuildReset": "Règlement manuel de type {Scope} effectué.",
   "EditorLock_HeldByAnother": "{Holder} modifie cet enregistrement. Votre modification n'a pas été enregistrée.",
+  "EditorLock_HeldByYourOtherSession": "Un autre éditeur connecté en tant que {Holder} modifie cet enregistrement. Votre modification n'a pas été enregistrée.",
   "Console_EditorsTotal": "{Count} session(s) d'éditeur connectée(s).",
   "Console_KickEditorUsage": "Utilisation : /kickeditor <emplacement|compte>",
   "Console_EditorNotFound": "Aucun éditeur connecté ne correspond à '{Target}'.",

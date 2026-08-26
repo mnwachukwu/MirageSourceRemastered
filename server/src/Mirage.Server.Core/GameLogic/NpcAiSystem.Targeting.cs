@@ -318,7 +318,7 @@ public sealed partial class NpcAiSystem : GameSystem
 
         // Adjacent (incl. cross-seam) → strike.  Turn to face first (the legs pass does this on arrival; brain
         // fallback here), but never mid-slide, and with no deliberate beat (see the player-target path).
-        if (_combat.CanNpcAttackNpc(mapNum, mn, victimMap, victimMn))
+        if (_combat.CanNpcAttackNpc(mapNum, mn, victimMap, victimMn, now))
         {
             var faceDir = FaceTargetDir(mapNum, mn.X, mn.Y, victimMap, victimMn.X, victimMn.Y, mn.Dir);
             if (mn.Dir != faceDir)
@@ -327,7 +327,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 BroadcastNpcDir(mapNum, slot, faceDir);
                 return;
             }
-            _combat.NpcAttackNpc(mapNum, slot, mn, victimMap, victimSlot, victimMn);
+            _combat.NpcAttackNpc(mapNum, slot, mn, victimMap, victimSlot, victimMn, now);
             mn.AttackTimer = now;
             return;
         }

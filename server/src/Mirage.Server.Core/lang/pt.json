@@ -766,6 +766,7 @@
   "Console_GuildResetUsage": "Utilização: /guildreset [day|week|season]",
   "Console_GuildReset": "Liquidação manual do tipo {Scope} executada.",
   "EditorLock_HeldByAnother": "{Holder} está a editar este registo. A sua alteração não foi guardada.",
+  "EditorLock_HeldByYourOtherSession": "Outro editor com sessão iniciada como {Holder} está a editar este registo. A sua alteração não foi guardada.",
   "Console_EditorsTotal": "{Count} sessão(ões) de editor ligadas.",
   "Console_KickEditorUsage": "Utilização: /kickeditor <posição|conta>",
   "Console_EditorNotFound": "Nenhum editor ligado corresponde a '{Target}'.",

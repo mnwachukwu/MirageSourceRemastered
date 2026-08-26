@@ -61,7 +61,7 @@ public sealed partial class NpcAiSystem : GameSystem
             return;
         }
 
-        if (_combat.CanNpcAttackNpc(mapNum, t, victimMap, victimMn))
+        if (_combat.CanNpcAttackNpc(mapNum, t, victimMap, victimMn, now))
         {
             // Turn to face BEFORE the swing (so the client applies the new Dir before the swoosh spawns) — the
             // legs pass does this on arrival; brain fallback here, never mid-slide, no deliberate beat.
@@ -72,7 +72,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 FaceNpcToward(mapNum, 0, t, victimMap, victimMn.X, victimMn.Y);
                 return;
             }
-            _combat.NpcAttackNpc(mapNum, 0, t, victimMap, victimSlot, victimMn);
+            _combat.NpcAttackNpc(mapNum, 0, t, victimMap, victimSlot, victimMn, now);
             t.AttackTimer = now;
             BroadcastTraversalState(t);
             return;

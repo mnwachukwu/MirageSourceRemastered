@@ -39,6 +39,7 @@ public static partial class ServerStrings
     public const string EditorAuth_InsufficientAccess = nameof(EditorAuth_InsufficientAccess);
     public const string EditorAuth_Authenticated = nameof(EditorAuth_Authenticated);
     public const string EditorLock_HeldByAnother = nameof(EditorLock_HeldByAnother);
+    public const string EditorLock_HeldByYourOtherSession = nameof(EditorLock_HeldByYourOtherSession);
     public const string Console_EditorsTotal = nameof(Console_EditorsTotal);
     public const string Console_KickEditorUsage = nameof(Console_KickEditorUsage);
     public const string Console_EditorNotFound = nameof(Console_EditorNotFound);

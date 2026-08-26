@@ -197,7 +197,7 @@ public class MeleeMissParityTests
             victim.NpcTargetSpawnSlot = 0;   // AlertNpcFromNpc only acquires an unclaimed victim
             dispatcher.Clear();
 
-            combat.NpcAttackNpc(Map, NpcSlot, attacker, Map, VictimNpcSlot, victim);
+            combat.NpcAttackNpc(Map, NpcSlot, attacker, Map, VictimNpcSlot, victim, Environment.TickCount64);
 
             if (dispatcher.Packets.OfType<CombatTextPacket>().Any(p => want.Contains(p.Kind)))
                 return victim.NpcTargetSpawnSlot;

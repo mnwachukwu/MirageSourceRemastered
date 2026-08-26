@@ -292,7 +292,7 @@ public sealed partial class GameplayScreen : IGameScreen
     }
 
     private static void DrawLightHalo(SpriteBatch sb, Texture2D outerTex, Texture2D innerTex,
-        float cx, float cy, in LightSourceCmd cmd, float totalSec)
+        float cx, float cy, in LightSourceCmd cmd, float totalSec, Effect? maskFx)
     {
         // intensity fades the whole halo out where a safe-zone town light already covers this emitter.
         float lit = cmd.EffectiveDarkness * cmd.Intensity;
@@ -302,9 +302,8 @@ public sealed partial class GameplayScreen : IGameScreen
         float outerR = cmd.Radius;
         var outerDest = new Rectangle(
             (int)(cx - outerR), (int)(cy - outerR), (int)(outerR * 2f), (int)(outerR * 2f));
-        var outerTint = ScaleGlow(core * LightModel.OuterDimFactor, lit);
-        if (cmd.Reach is null) sb.Draw(outerTex, outerDest, outerTint);
-        else DrawOccludedHalo(sb, outerTex, outerDest, outerTint, cmd);
+        SetMaskUvs(maskFx, outerDest, in cmd);
+        sb.Draw(outerTex, outerDest, ScaleGlow(core * LightModel.OuterDimFactor, lit));
 
         // Inner core — brightness animates both ways per FlickerStyle; size only oscillates up from the base
         // (floored at MinInnerSizeFactor) so the core never shrinks small.
@@ -314,54 +313,36 @@ public sealed partial class GameplayScreen : IGameScreen
         int innerSize = (int)(innerR * 2f * sizeF);
         var innerDest = new Rectangle(
             (int)(cx - innerSize / 2f), (int)(cy - innerSize / 2f), innerSize, innerSize);
-        var innerTint = ScaleGlow(core, lit * f);
-        if (cmd.Reach is null) sb.Draw(innerTex, innerDest, innerTint);
-        else DrawOccludedHalo(sb, innerTex, innerDest, innerTint, cmd);
+        SetMaskUvs(maskFx, innerDest, in cmd);
+        sb.Draw(innerTex, innerDest, ScaleGlow(core, lit * f));
     }
 
     /// <summary>
-    /// Draws a halo one tile at a time, skipping the tiles the light cannot reach.
+    /// Maps a halo's quad onto its reach mask, in screen space, for <c>LightMask.fx</c>.
     ///
-    /// <para>Each tile takes the slice of the halo texture that would have covered it, so the gradient is
-    /// the same one a single sprite would have drawn and the only new edges are at the walls. Additive
-    /// accumulation is unchanged: two lights still sum on a tile they both reach.</para>
+    /// <para>The mask spans the <c>MaskSide</c> tiles around the tile the occlusion was traced from; the halo
+    /// spans its own radius around wherever the light is being drawn. Both are axis-aligned rectangles in the
+    /// same space, so one scale and one offset carry the halo's 0..1 coordinates onto the mask's — and a halo
+    /// that slides sub-tile slides across a mask that does not move.</para>
+    ///
+    /// <para>The mask is always at least a tile wider than the halo (<c>MaskSide</c> is <c>2r+1</c> tiles for
+    /// a halo of <c>r</c> tiles' radius), so the sampler never reaches the clamp.</para>
     /// </summary>
-    private static void DrawOccludedHalo(SpriteBatch sb, Texture2D tex, Rectangle dest, Color tint,
-                                         in LightSourceCmd cmd)
+    private static void SetMaskUvs(Effect? maskFx, in Rectangle dest, in LightSourceCmd cmd)
     {
-        var reach = cmd.Reach!;
-        int r = cmd.ReachRadius;
-        int side = LightOcclusion.MaskSide(r);
-        // The halo's own bounds in tiles, relative to the emitter, so only tiles it covers are considered.
-        int firstX = (int)MathF.Floor(dest.Left / (float)Constants.PicX);
-        int lastX = (int)MathF.Ceiling(dest.Right / (float)Constants.PicX) - 1;
-        int firstY = (int)MathF.Floor(dest.Top / (float)Constants.PicY);
-        int lastY = (int)MathF.Ceiling(dest.Bottom / (float)Constants.PicY) - 1;
-        int emitterTileX = (int)MathF.Floor(cmd.ScreenX / Constants.PicX);
-        int emitterTileY = (int)MathF.Floor(cmd.ScreenY / Constants.PicY);
-
-        for (int ty = firstY; ty <= lastY; ty++)
-        {
-            for (int tx = firstX; tx <= lastX; tx++)
-            {
-                // Offset from the emitter's own tile, which is what the mask is indexed by.
-                int dx = tx - emitterTileX, dy = ty - emitterTileY;
-                if (dx < -r || dx > r || dy < -r || dy > r) continue;
-                if (!reach[(dy + r) * side + (dx + r)]) continue;
-
-                var cell = new Rectangle(tx * Constants.PicX, ty * Constants.PicY, Constants.PicX, Constants.PicY);
-                var slice = Rectangle.Intersect(cell, dest);
-                if (slice.Width <= 0 || slice.Height <= 0) continue;
-
-                // The matching slice of the halo texture, so every tile keeps the gradient it would have had.
-                var src = new Rectangle(
-                    (int)((slice.X - dest.X) / (float)dest.Width * tex.Width),
-                    (int)((slice.Y - dest.Y) / (float)dest.Height * tex.Height),
-                    Math.Max(1, (int)(slice.Width / (float)dest.Width * tex.Width)),
-                    Math.Max(1, (int)(slice.Height / (float)dest.Height * tex.Height)));
-                sb.Draw(tex, slice, src, tint);
-            }
-        }
+        if (maskFx is null) return;
+        var (sx, sy, ox, oy) = LightOcclusion.MaskUv(dest.Left, dest.Top, dest.Width, dest.Height,
+                                                     cmd.TileScreenX, cmd.TileScreenY, cmd.ReachRadius);
+        maskFx.Parameters["MaskScale"].SetValue(new Vector2(sx, sy));
+        maskFx.Parameters["MaskOffset"].SetValue(new Vector2(ox, oy));
+        // A standing emitter has no second tile: the blend is zero, so this mapping is never read.
+        var (ix, iy, iox, ioy) = cmd.ReachInto is null
+            ? (sx, sy, ox, oy)
+            : LightOcclusion.MaskUv(dest.Left, dest.Top, dest.Width, dest.Height,
+                                    cmd.IntoScreenX, cmd.IntoScreenY, cmd.ReachRadius);
+        maskFx.Parameters["IntoScale"].SetValue(new Vector2(ix, iy));
+        maskFx.Parameters["IntoOffset"].SetValue(new Vector2(iox, ioy));
+        maskFx.Parameters["MaskBlend"].SetValue(cmd.ReachInto is null ? 0f : cmd.ReachBlend);
     }
 
     // Scales a peak light color by an intensity factor, folding brightness into the RGB channels

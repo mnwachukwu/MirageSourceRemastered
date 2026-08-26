@@ -68,15 +68,26 @@ public readonly record struct LightSourceCmd(
     float ScreenX, float ScreenY, float Intensity,
     uint Rgb, float Radius, FlickerStyle Flicker, int Id, float EffectiveDarkness = 0f,
     WorldLayer Layer = WorldLayer.Ground,
-    /// <summary>The emitter's tile in the 3x3 neighbourhood, which is what its reach mask is centred on.</summary>
-    int TileX = 0, int TileY = 0,
-    /// <summary>How far the reach mask extends from that tile, in tiles.</summary>
+    /// <summary>Screen position of the top-left of the tile <see cref="Reach"/> was traced from, NOT wherever
+    /// the halo itself is being drawn. The two differ for anything mid-step or wider than a tile, and the
+    /// mask has to follow the trace.</summary>
+    float TileScreenX = 0f, float TileScreenY = 0f,
+    /// <summary>How far the reach masks extend from their tile, in tiles.</summary>
     int ReachRadius = 0,
-    /// <summary>Which tiles this light reaches, over its own square: index
-    /// <c>(dy + ReachRadius) * LightOcclusion.MaskSide(ReachRadius) + (dx + ReachRadius)</c> for an offset
-    /// from the emitter's tile. Null means everything in range — a light with nothing to hide behind, or a
+    /// <summary>Where this light reaches over its own square, row-major at
+    /// <c>LightOcclusion.MaskTexels(ReachRadius)</c> a side — finer than a tile, so the falloff at a wall
+    /// can stop clear of it. Null means everything in range: a light with nothing to hide behind, or a
     /// frame built without occlusion.</summary>
-    bool[]? Reach = null);
+    bool[]? Reach = null,
+    /// <summary>The same, traced from the tile a mid-step emitter is moving INTO, with
+    /// <see cref="ReachBlend"/> saying how far between the two it is. Reach is answered per tile, so without
+    /// this the whole shadow pattern changes in one jump each time an emitter crosses a border; blending the
+    /// two makes it continuous. Null whenever the emitter is standing still, which is what keeps the second
+    /// trace something only moving things pay for.</summary>
+    bool[]? ReachInto = null,
+    float IntoScreenX = 0f, float IntoScreenY = 0f,
+    /// <summary>0 on the tile just left, 1 on the tile being entered.</summary>
+    float ReachBlend = 0f);
 
 /// <summary>A map-wide area light for a safe-zone map cell. <see cref="ScreenX"/>/<see cref="ScreenY"/>
 /// is the cell's top-left in screen space and <see cref="PxW"/>/<see cref="PxH"/> the cell's own size in
@@ -197,19 +208,6 @@ public sealed class RenderFrame
     /// <summary>Bright additive FX glow cores, drawn at the post-composite glow seam so they read at night.</summary>
     public List<GlowCmd> Glows { get; } = new();
 
-    // One reach mask per light, kept across frames: rebuilding them every frame would be the only
-    // allocation in the render path. Each covers its own light's square, so the pool holds small arrays
-    // and grows one only when a wider light asks for it.
-    private readonly List<bool[]> _reachPool = new();
-    private int _reachUsed;
-
-    /// <summary>A reach mask of at least <paramref name="cells"/> entries, ready to fill.</summary>
-    public bool[] RentReach(int cells)
-    {
-        if (_reachUsed == _reachPool.Count) _reachPool.Add(new bool[cells]);
-        else if (_reachPool[_reachUsed].Length < cells) _reachPool[_reachUsed] = new bool[cells];
-        return _reachPool[_reachUsed++];
-    }
     public List<TextDrawCmd> Names { get; } = new();
     public List<BarDrawCmd> Bars { get; } = new();
     public List<TargetArrowCmd> TargetArrows { get; } = new();
@@ -242,7 +240,6 @@ public sealed class RenderFrame
         AlwaysDarkMapLights.Clear();
         IndoorsMapLights.Clear();
         Glows.Clear();
-        _reachUsed = 0;
         Names.Clear();
         Bars.Clear();
         TargetArrows.Clear();

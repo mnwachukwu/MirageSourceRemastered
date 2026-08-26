@@ -18,12 +18,12 @@ public sealed partial class CombatSystem : GameSystem
     /// <summary>Adjacency + cooldown gate for an NPC swinging at another NPC.  Cross-seam aware via
     /// world-tile math.  No safe-zone gate (aggressive NPCs can't spawn on safe maps, so the only
     /// relevant case is a safe-map guard striking a non-safe-map mob, which is allowed).</summary>
-    public bool CanNpcAttackNpc(int attackerMap, MapNpcRecord attackerMn, int victimMap, MapNpcRecord victimMn)
+    public bool CanNpcAttackNpc(int attackerMap, MapNpcRecord attackerMn, int victimMap, MapNpcRecord victimMn, long now)
     {
         if (attackerMn.Num <= 0 || attackerMn.Hp <= 0) return false;
         if (victimMn.Num <= 0 || victimMn.Hp <= 0) return false;
         long windMult = _world.WeatherOn(attackerMap) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
-        if (Environment.TickCount64 <= attackerMn.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
+        if (!AiCadence.Elapsed(now, attackerMn.AttackTimer, Constants.NpcAttackCooldownMs * windMult)) return false;
 
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);
         var (aWX, aWY) = grid.CenterToWorld(attackerMn.X, attackerMn.Y);
@@ -49,13 +49,12 @@ public sealed partial class CombatSystem : GameSystem
     /// fact that players don't get implicit gear baked into their stat block — both sides cancel
     /// in matched NPC-vs-NPC, so the curve mirrors player-vs-NPC at matched gear (~30% net throughput
     /// at matched stats).</summary>
-    public void NpcAttackNpc(int attackerMap, int attackerSlot, MapNpcRecord attackerMn, int victimMap, int victimSlot, MapNpcRecord victimMn)
+    public void NpcAttackNpc(int attackerMap, int attackerSlot, MapNpcRecord attackerMn, int victimMap, int victimSlot, MapNpcRecord victimMn, long now)
     {
         var attackerNpc = _world.Npcs[attackerMn.Num];
-        if (!CanNpcAttackNpc(attackerMap, attackerMn, victimMap, victimMn)) return;
+        if (!CanNpcAttackNpc(attackerMap, attackerMn, victimMap, victimMn, now)) return;
         var victimNpc = _world.Npcs[victimMn.Num];
 
-        long now = Environment.TickCount64;
         MarkNpcCombat(attackerMn, now);
         MarkNpcCombat(victimMn, now);
 

@@ -6,13 +6,31 @@ using System.Collections.ObjectModel;
 
 namespace Mirage.Editor.ViewModels;
 
+/// <summary>Which transition raised the unsaved-changes prompt. It decides the wording, and separately
+/// whether committing writes to disk or sends to the server — a transition that ends offline has to write
+/// where the work will still be readable.</summary>
+public enum PushChangesReason
+{
+    /// <summary>Going online. What is dirty is offline work, so committing writes it to disk.</summary>
+    Connecting,
+    /// <summary>The connection dropped and came back.</summary>
+    Reconnecting,
+    /// <summary>Leaving the server deliberately.</summary>
+    Disconnecting,
+    /// <summary>Closing the window.</summary>
+    Closing,
+    /// <summary>Opening, creating or closing a world — every record is replaced, and what is dirty belongs
+    /// to the world being left, so committing writes it to that world's folder.</summary>
+    SwitchingWorld,
+}
+
 /// <summary>
 /// The unsaved-changes prompt shown before any transition that would discard edits — connecting,
-/// reconnecting, disconnecting, or closing the window. Lists every dirty row across all editors and
-/// offers to commit them first.
-/// <para>Which of the four situations applies is carried by the constructor flags and only changes
-/// the wording (<see cref="MessageText"/>, <see cref="SaveButtonText"/>,
-/// <see cref="ProceedButtonText"/>) plus whether committing writes to disk or to the server.</para>
+/// reconnecting, disconnecting, switching world, or closing the window. Lists every dirty row across all
+/// editors and offers to commit them first.
+/// <para>Which situation applies is carried by <see cref="PushChangesReason"/> and changes the wording
+/// (<see cref="MessageText"/>, <see cref="SaveButtonText"/>, <see cref="ProceedButtonText"/>) plus where a
+/// commit lands.</para>
 /// <para>The caller drives the outcome through <see cref="ProceedConfirmed"/> and
 /// <see cref="Canceled"/>; this view-model never closes the dialog itself.</para>
 /// </summary>
@@ -21,11 +39,13 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
     private readonly IReadOnlyList<object> _dirtyItems;
     private readonly EditorConnection _conn;
     private readonly EditorDataService _data;
-    private readonly bool _isConnecting;
-    private readonly bool _isClosing;
-    private readonly bool _isReconnecting;
+    private readonly PushChangesReason _reason;
+    /// <summary>Whether a commit writes to the offline folder rather than sending editor-save packets.
+    /// Kept apart from <see cref="_reason"/> because closing answers it from the connection state, and
+    /// because two transitions that read the same to an author can land in different places.</summary>
+    private readonly bool _commitsToDisk;
     /// <summary>Whether the prompt was raised by a dropped connection rather than a user action.</summary>
-    public bool IsReconnecting => _isReconnecting;
+    public bool IsReconnecting => _reason == PushChangesReason.Reconnecting;
 
     [ObservableProperty] private string _statusMessage = "";
     /// <summary>True while a commit is in flight, so the buttons can disable.</summary>
@@ -35,18 +55,34 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
     public ObservableCollection<string> DirtyNames { get; } = [];
 
     /// <summary>Prompt body, worded for the situation that raised the dialog.</summary>
-    public string MessageText => _isClosing
-        ? EditorStrings.Get(EditorStrings.PushChangesDialog_UnsavedOnClose)
-        : _isReconnecting
-            ? EditorStrings.Get(EditorStrings.PushChangesDialog_UnsavedPush)
-            : _isConnecting
-                ? EditorStrings.Get(EditorStrings.PushChangesDialog_UnsavedConnect)
-                : EditorStrings.Get(EditorStrings.PushChangesDialog_UnsavedOnline);
+    public string MessageText => EditorStrings.Get(_reason switch
+    {
+        PushChangesReason.Closing => EditorStrings.PushChangesDialog_UnsavedOnClose,
+        PushChangesReason.Reconnecting => EditorStrings.PushChangesDialog_UnsavedPush,
+        PushChangesReason.Connecting => EditorStrings.PushChangesDialog_UnsavedConnect,
+        PushChangesReason.SwitchingWorld => EditorStrings.PushChangesDialog_UnsavedSwitchWorld,
+        _ => EditorStrings.PushChangesDialog_UnsavedOnline,
+    });
 
     /// <summary>Caption for the commit-then-continue button.</summary>
-    public string SaveButtonText => _isClosing ? EditorStrings.Get(EditorStrings.PushChangesDialog_SaveAndClose) : _isReconnecting ? EditorStrings.Get(EditorStrings.PushChangesDialog_PushAndContinue) : _isConnecting ? EditorStrings.Get(EditorStrings.PushChangesDialog_SaveAndConnect) : EditorStrings.Get(EditorStrings.PushChangesDialog_PushAndDisconnect);
+    public string SaveButtonText => EditorStrings.Get(_reason switch
+    {
+        PushChangesReason.Closing => EditorStrings.PushChangesDialog_SaveAndClose,
+        PushChangesReason.Reconnecting => EditorStrings.PushChangesDialog_PushAndContinue,
+        PushChangesReason.Connecting => EditorStrings.PushChangesDialog_SaveAndConnect,
+        PushChangesReason.SwitchingWorld => EditorStrings.PushChangesDialog_SaveAndContinue,
+        _ => EditorStrings.PushChangesDialog_PushAndDisconnect,
+    });
+
     /// <summary>Caption for the discard-then-continue button.</summary>
-    public string ProceedButtonText => _isClosing ? EditorStrings.Get(EditorStrings.PushChangesDialog_DiscardAndClose) : _isReconnecting ? EditorStrings.Get(EditorStrings.PushChangesDialog_DiscardAndContinue) : _isConnecting ? EditorStrings.Get(EditorStrings.PushChangesDialog_DiscardAndConnect) : EditorStrings.Get(EditorStrings.PushChangesDialog_DiscardAndDisconnect);
+    public string ProceedButtonText => EditorStrings.Get(_reason switch
+    {
+        PushChangesReason.Closing => EditorStrings.PushChangesDialog_DiscardAndClose,
+        PushChangesReason.Reconnecting or PushChangesReason.SwitchingWorld
+            => EditorStrings.PushChangesDialog_DiscardAndContinue,
+        PushChangesReason.Connecting => EditorStrings.PushChangesDialog_DiscardAndConnect,
+        _ => EditorStrings.PushChangesDialog_DiscardAndDisconnect,
+    });
 
     /// <summary>Raised when the author chose to go ahead, whether they committed or discarded.</summary>
     public event Action? ProceedConfirmed;
@@ -64,17 +100,19 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
         IReadOnlyList<object> dirtyItems,
         EditorConnection conn,
         EditorDataService data,
-        bool isConnecting = false,
-        bool isClosing = false,
-        bool isReconnecting = false)
+        PushChangesReason reason = PushChangesReason.Disconnecting)
     {
         _dirtyItems = dirtyItems;
         _conn = conn;
         _data = data;
-        _isClosing = isClosing;
-        _isReconnecting = isReconnecting;
-        // Closing while offline commits to disk, which is exactly the connecting path's behavior.
-        _isConnecting = isConnecting || (isClosing && !data.IsOnline);
+        _reason = reason;
+        _commitsToDisk = reason switch
+        {
+            PushChangesReason.Connecting or PushChangesReason.SwitchingWorld => true,
+            // Closing while offline has no server to push to.
+            PushChangesReason.Closing => !data.IsOnline,
+            _ => false,
+        };
 
         // The dirty set arrives as a flat object list (it spans every editor), so each row type is
         // matched back to its own caption format here.
@@ -108,7 +146,7 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
     private async Task SaveAndProceedAsync()
     {
         IsBusy = true;
-        StatusMessage = _isConnecting ? EditorStrings.Get(EditorStrings.PushChangesDialog_Saving) : EditorStrings.Get(EditorStrings.PushChangesDialog_Pushing);
+        StatusMessage = _commitsToDisk ? EditorStrings.Get(EditorStrings.PushChangesDialog_Saving) : EditorStrings.Get(EditorStrings.PushChangesDialog_Pushing);
         try
         {
             foreach (var item in _dirtyItems)
@@ -116,32 +154,32 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
                 switch (item)
                 {
                     case ItemRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineItemAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineItemAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
                     case NpcRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineNpcAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineNpcAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
                     case ShopRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineShopAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineShopAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
                     case QuestRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineQuestAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineQuestAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
                     case ConversationRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineConversationAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineConversationAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
                     case SpellRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineSpellAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineSpellAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
@@ -149,7 +187,7 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
                         // Bump before either save — the server ignores the packet's Revision and does its
                         // own bump; the local bump is a UI mirror (see MapRowViewModel.BumpRevision).
                         vm.BumpRevision();
-                        if (_isConnecting)
+                        if (_commitsToDisk)
                         {
                             await _data.SaveOfflineMapAsync(vm.Index, vm.Record);
                         }
@@ -162,12 +200,12 @@ public sealed partial class PushChangesDialogViewModel : ObservableObject
                         vm.ClearDirty();
                         break;
                     case MapGroupRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineMapGroupAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineMapGroupAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;
                     case ClassRowViewModel vm:
-                        if (_isConnecting) await _data.SaveOfflineClassAsync(vm.Index, vm.ToRecord());
+                        if (_commitsToDisk) await _data.SaveOfflineClassAsync(vm.Index, vm.ToRecord());
                         else await _conn.SendSaveAsync(vm.BuildSavePacket());
                         vm.ClearDirty();
                         break;

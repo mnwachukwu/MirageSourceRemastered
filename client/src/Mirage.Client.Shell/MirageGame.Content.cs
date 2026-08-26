@@ -186,6 +186,7 @@ public sealed partial class MirageGame : Game
         _titleFont = Content.Load<SpriteFont>("fonts/TitleFont");
         _bubbleFont = Content.Load<SpriteFont>("fonts/BubbleFont");
         _heatEffect = Content.Load<Effect>("shaders/HeatHaze");
+        _lightMaskEffect = Content.Load<Effect>("shaders/LightMask");
         if (_ctx is not null)
         {
             _ctx.MenuFont = _menuFont;

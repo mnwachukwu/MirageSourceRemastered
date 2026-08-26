@@ -45,7 +45,7 @@ public sealed partial class CombatSystem : GameSystem
         if (_pm[victimIndex].GodMode) return false;    // an observer is not there to be swung at
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
         long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
-        if (now <= mapNpc.AttackTimer + Constants.NpcAttackCooldownMs * windMult) return false;
+        if (!AiCadence.Elapsed(now, mapNpc.AttackTimer, Constants.NpcAttackCooldownMs * windMult)) return false;
 
         var vp = _pm[victimIndex].Char;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);

@@ -224,7 +224,6 @@ public static class PacketNames
     public const string EditorRequestMap = "editorreqmap";
     public const string EditorRequestClass = "editorreqclass";
     public const string EditorSaveClass = "editorsaveclass";
-    public const string EditorRequestData = "editorreqdata";
     public const string EditorLock = "editorlock";
     public const string EditorUnlock = "editorunlock";
     public const string EditorRequestAllItems = "editorreqallitems";

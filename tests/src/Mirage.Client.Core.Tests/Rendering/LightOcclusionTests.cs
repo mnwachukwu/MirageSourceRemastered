@@ -53,16 +53,17 @@ public class LightOcclusionTests
         Assert.That(LightOcclusion.Reaches(state, lx, ly, WorldLayer.Ground, tx, ty), Is.False);
     }
 
-    /// <summary>The wall itself is lit. A torch in front of a wall has to show the wall, or every wall in
-    /// the world is a black silhouette against the ground it encloses.</summary>
+    /// <summary>Light stops AT a tile that blocks it, so the tile is not lit. A tile that should catch the
+    /// light and be stood on — open water, ground cover — carries <c>BlocksLight</c> false; nothing is
+    /// exempted here on its behalf, or the flag would not mean what it says.</summary>
     [Test]
-    public void TheWallItself_IsLitFromTheSideFacingTheLight()
+    public void ATileThatBlocksLight_IsNotItselfLit()
     {
         var state = StateWithWalls((7, 5));
         var (lx, ly) = At(5, 5);
         var (wx, wy) = At(7, 5);
 
-        Assert.That(LightOcclusion.Reaches(state, lx, ly, WorldLayer.Ground, wx, wy), Is.True);
+        Assert.That(LightOcclusion.Reaches(state, lx, ly, WorldLayer.Ground, wx, wy), Is.False);
     }
 
     [Test]
@@ -107,6 +108,32 @@ public class LightOcclusionTests
         });
     }
 
+    private const int Sub = LightOcclusion.SubSamples;
+
+    // The mask is finer than a tile, so a tile is only "reached" if EVERY texel in it is — which is the
+    // question that matters: a tile with a dark half has the light stopping inside it.
+    private static bool WhollyLit(bool[] mask, int r, int dx, int dy)
+    {
+        int texels = LightOcclusion.MaskTexels(r);
+        for (int sy = 0; sy < Sub; sy++)
+        {
+            for (int sx = 0; sx < Sub; sx++)
+                if (!mask[((dy + r) * Sub + sy) * texels + (dx + r) * Sub + sx]) return false;
+        }
+        return true;
+    }
+
+    private static bool WhollyDark(bool[] mask, int r, int dx, int dy)
+    {
+        int texels = LightOcclusion.MaskTexels(r);
+        for (int sy = 0; sy < Sub; sy++)
+        {
+            for (int sx = 0; sx < Sub; sx++)
+                if (mask[((dy + r) * Sub + sy) * texels + (dx + r) * Sub + sx]) return false;
+        }
+        return true;
+    }
+
     /// <summary>Fill answers over the light's own square, indexed from its tile.</summary>
     [Test]
     public void Fill_MarksTheReachableTilesOverItsOwnSquare()
@@ -118,28 +145,50 @@ public class LightOcclusionTests
 
         LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask);
 
-        int side = LightOcclusion.MaskSide(r);
-        bool Reached(int dx, int dy) => mask[(dy + r) * side + (dx + r)];
+        Assert.Multiple(() =>
+        {
+            Assert.That(WhollyLit(mask, r, 0, 0), Is.True, "its own tile");
+            Assert.That(WhollyLit(mask, r, 0, -2), Is.True, "open ground clear of the wall");
+            Assert.That(WhollyDark(mask, r, 3, 0), Is.True, "behind the wall");
+        });
+    }
+
+    /// <summary>The pull-back that keeps light off a blocker only applies on the side of a texel FACING AWAY
+    /// from the light. Applied evenly it also dims the open tiles beside and diagonal to a wall — tiles
+    /// nothing is standing between — which reads as shadow leaking sideways out of the thing casting it.
+    /// </summary>
+    [Test]
+    public void ThePullBack_TrimsWhatFacesTheWallAndNothingElse()
+    {
+        const int r = 3;
+        var state = StateWithWalls((7, 5));
+        var (lx, ly) = At(5, 5);
+        var mask = new bool[LightOcclusion.MaskCells(r)];
+
+        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask);
 
         Assert.Multiple(() =>
         {
-            Assert.That(Reached(0, 0), Is.True, "its own tile");
-            Assert.That(Reached(0, 2), Is.True, "open ground inside the radius");
-            Assert.That(Reached(3, 0), Is.False, "behind the wall");
+            Assert.That(WhollyDark(mask, r, 2, 0), Is.True, "the wall takes nothing, to its last texel");
+            Assert.That(WhollyLit(mask, r, 1, 0), Is.False,
+                "the tile in front of it gives up the texel facing it, which is where the ramp lives");
+            Assert.That(WhollyLit(mask, r, 1, 1), Is.True,
+                "but the tile diagonal to the wall keeps every one — nothing stands between it and the light");
         });
     }
 
     /// <summary>The mask covers the light's square and nothing more, so its cost follows the radius
     /// rather than the size of the world around it.</summary>
-    [TestCase(0, 1)]
-    [TestCase(1, 9)]
-    [TestCase(3, 49)]
-    [TestCase(8, 289)]
+    [TestCase(0, 64)]
+    [TestCase(1, 576)]
+    [TestCase(3, 3136)]
+    [TestCase(8, 18496)]
     public void TheMask_IsSizedByTheRadiusAlone(int radius, int cells)
     {
         Assert.Multiple(() =>
         {
             Assert.That(LightOcclusion.MaskSide(radius), Is.EqualTo(radius * 2 + 1));
+            Assert.That(LightOcclusion.MaskTexels(radius), Is.EqualTo((radius * 2 + 1) * Sub));
             Assert.That(LightOcclusion.MaskCells(radius), Is.EqualTo(cells));
         });
     }

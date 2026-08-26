@@ -69,6 +69,11 @@ public sealed class EditorConnection : IDisposable
     /// silently does nothing is worse than one that is plainly disabled.</summary>
     public string Login { get; private set; } = "";
 
+    /// <summary>What the server calls this connection, minted fresh at every login. Record locks are held per
+    /// session rather than per account, so this — not <see cref="Login"/> — is what tells this editor's locks
+    /// from those of another window signed in as the same person. Blank while offline.</summary>
+    public string SessionId { get; private set; } = "";
+
     public async Task<AuthResult> ConnectAndAuthAsync(string host, int port, string username, string password,
                                                      CancellationToken ct = default)
     {
@@ -77,6 +82,7 @@ public sealed class EditorConnection : IDisposable
         _closingDeliberately = false;
         Endpoint = $"{host}:{port}";
         Login = username;
+        SessionId = "";
         EditorLog.Info("Connecting to {Endpoint} as {Login}.", Endpoint, username);
         _client = new TcpClient();
         await _client.ConnectAsync(host, port, ct);
@@ -116,6 +122,7 @@ public sealed class EditorConnection : IDisposable
             await DisconnectAsync();
             return AuthResult.Failed(response.Message);
         }
+        SessionId = response.SessionId;
 
         var (dataPacketRead, closedBeforeData) = await ReadHandshakeAsync(ct);
         if (closedBeforeData)
@@ -182,11 +189,6 @@ public sealed class EditorConnection : IDisposable
         if (_writer is null) return;
         await _writer.WriteAsync(PacketSerializer.Serialize(new EditorUnlockPacket { Section = section, Num = num }));
     }
-
-    /// <summary>Re-asks for the session's name indexes — the payload login hands over. What makes an online
-    /// refresh possible without dropping the connection.</summary>
-    public Task<EditorDataPacket?> RequestDataAsync(CancellationToken ct = default)
-        => RequestBulkAsync<EditorDataPacket>(PacketNames.EditorData, new EditorRequestDataPacket(), ct);
 
     public Task<EditorAllItemsPacket?> RequestAllItemsAsync(CancellationToken ct = default)
         => RequestBulkAsync<EditorAllItemsPacket>(PacketNames.EditorAllItems, new EditorRequestAllItemsPacket(), ct);
@@ -404,6 +406,7 @@ public sealed class EditorConnection : IDisposable
     public async Task DisconnectAsync()
     {
         _closingDeliberately = true;
+        SessionId = "";
         _cts?.Cancel();
         _cts = null;
         FailAllPending();

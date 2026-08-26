@@ -12,12 +12,23 @@ namespace Mirage.Editor.Tests;
 /// message on top of a fully populated editor — a right-hand panel, a tile palette and a toolbar, all for
 /// a world that is not there.</para>
 ///
-/// <para>A folder opened BEFORE connecting is still open afterwards and is what the window falls back to,
-/// so the two cases answer differently.</para>
+/// <para>Disconnecting closes the world outright — including a folder that was open BEFORE connecting.
+/// Falling back to that folder put a different world on screen under the same window with nothing
+/// announcing the swap, which is how somebody edits the wrong one.</para>
 /// </summary>
 [TestFixture]
 public class DisconnectStateTests
 {
+    private string _openedWorld = "";
+
+    [TearDown]
+    public void CloseAnyWorld()
+    {
+        EditorPaths.OpenWorld("");
+        if (_openedWorld.Length > 0 && Directory.Exists(_openedWorld)) Directory.Delete(_openedWorld, true);
+        _openedWorld = "";
+    }
+
     private static MainWindowViewModel Online()
     {
         var vm = new MainWindowViewModel(new EditorDataService(), new EditorConnection(), new EditorBitmapCache())
@@ -56,6 +67,30 @@ public class DisconnectStateTests
         await vm.ForceDisconnectAsync();
 
         Assert.That(vm.ShowEmptyWorld && vm.CurrentEditor is not null, Is.False);
+    }
+
+    /// <summary>The other case: a folder was open before connecting. It does NOT come back — the window
+    /// ends on the empty state either way, so what is on screen after a disconnect never depends on what
+    /// was on screen before the connection.</summary>
+    [Test]
+    public async Task DisconnectingWithAWorldOpenedBeforehand_ClosesThatToo()
+    {
+        _openedWorld = Path.Combine(Path.GetTempPath(), "mirage-disconnect-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_openedWorld);
+        EditorPaths.OpenWorld(_openedWorld);
+        var vm = Online();
+
+        Assume.That(EditorPaths.HasWorld, Is.True, "the folder is open going in");
+
+        await vm.ForceDisconnectAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(EditorPaths.HasWorld, Is.False, "the world is closed, not fallen back to");
+            Assert.That(vm.ShowEmptyWorld, Is.True);
+            Assert.That(vm.CurrentEditor, Is.Null);
+            Assert.That(vm.SelectedSection, Is.Null);
+        });
     }
 
     [Test]

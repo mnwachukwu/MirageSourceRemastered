@@ -40,6 +40,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
         MoralOptions = MoralChoices.Build();
         OnPropertyChanged(nameof(MoralOptions));
         OnPropertyChanged(nameof(SelectedMapMoral));
+        // A lock held by another window of your own account is worded, not just named.
+        RefreshLockState();
     }
 
     private void NotifyEntryLists()

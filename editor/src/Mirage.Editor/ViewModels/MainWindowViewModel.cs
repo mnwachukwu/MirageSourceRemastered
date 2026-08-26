@@ -54,6 +54,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ShowEmptyWorld))]
     [NotifyPropertyChangedFor(nameof(HasWorld))]
     [NotifyPropertyChangedFor(nameof(WorldLabel))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshFromDiskCommand))]
     private bool _isOnline;
 
     /// <summary>The one word inside the toolbar badge. Derived rather than assigned at each transition:
@@ -383,7 +384,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
         {
             bool proceed = false;
-            var dirtyDlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, isConnecting: true);
+            var dirtyDlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, PushChangesReason.Connecting);
             dirtyDlgVm.ProceedConfirmed += () => proceed = true;
             dirtyDlgVm.Canceled += () => { };
             await ShowPushChangesDialogAsync(dirtyDlgVm);
@@ -398,8 +399,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void OnConnectSuccess(EditorDataPacket pkt, AdminLevel access)
     {
         _data.LoadOnline(pkt, _conn.Hello?.Records);
-        MarkServerSeen(pkt);
         Locks.MyLogin = _conn.Login;
+        Locks.MySession = _conn.SessionId;
         RefreshEditors(online: true);
         IsOnline = true;
         ConnectionEndpoint = _conn.Endpoint;
@@ -419,7 +420,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ApplySectionRestrictions(access);
         if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
         {
-            var pushVm = new PushChangesDialogViewModel(dirty, _conn, _data, isReconnecting: true);
+            var pushVm = new PushChangesDialogViewModel(dirty, _conn, _data, PushChangesReason.Reconnecting);
             await ShowPushChangesDialogAsync(pushVm);
         }
         RefreshEditors(online: true);
@@ -434,7 +435,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (dirty.Count > 0 && ShowPushChangesDialogAsync is not null)
         {
             bool disconnectConfirmed = false;
-            var dlgVm = new PushChangesDialogViewModel(dirty, _conn, _data);
+            var dlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, PushChangesReason.Disconnecting);
             dlgVm.DisconnectConfirmed += () => disconnectConfirmed = true;
             await ShowPushChangesDialogAsync(dlgVm);
             if (!disconnectConfirmed) return;
@@ -504,22 +505,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
         LoadingStatus = "";
         await _conn.DisconnectAsync();
         _data.ClearOnline();
+        // The session's world went with the connection, and so does everything else: disconnecting closes
+        // the online world the way Close World closes an offline one, and leaves no world open. Falling back
+        // to a folder opened before connecting put a different world on screen under the same window with
+        // nothing announcing the swap, which is how somebody edits the wrong one.
+        EditorPaths.OpenWorld("");
+        _data.ClearOffline();
         RefreshEditors(online: false);
         RestoreAllSections();
-        // The session's world went with the connection. A folder opened before connecting is still open
-        // and is what the window falls back to; with none, there is nothing for a section to show, so the
-        // window goes back to its empty state rather than to a section listing records that are gone.
-        if (EditorPaths.HasWorld)
-        {
-            SelectedSection = _sectionMap[AllSectionNames[0]];
-        }
-        else
-        {
-            SelectedSection = null;
-            CurrentEditor = null;
-        }
-
+        SelectedSection = null;
+        CurrentEditor = null;
         ConnectionEndpoint = "";
+        NotifyWorldChanged();
     }
 
     // Three tiers now: a Creator gets everything, Developer gets the content sections, and a Mapper gets
@@ -580,7 +577,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         if (dirty.Count == 0) return true;
         if (ShowPushChangesDialogAsync is null) return true;
         bool proceed = false;
-        var dlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, isClosing: true);
+        var dlgVm = new PushChangesDialogViewModel(dirty, _conn, _data, PushChangesReason.Closing);
         dlgVm.ProceedConfirmed += () => proceed = true;
         dlgVm.Canceled += () => { };
         await ShowPushChangesDialogAsync(dlgVm);

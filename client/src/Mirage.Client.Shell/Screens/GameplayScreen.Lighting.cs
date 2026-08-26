@@ -57,7 +57,7 @@ public sealed partial class GameplayScreen : IGameScreen
     /// <c>Matrix.CreateScale(_worldSS)</c>. Composited over the world by multiply in Pass 2.
     /// </summary>
     public void DrawLightMap(SpriteBatch sb, Matrix transform, Texture2D boxTex, Texture2D outerTex,
-        Texture2D innerTex, float totalSec, WorldLayer? layerFilter = null)
+        Texture2D innerTex, float totalSec, WorldLayer? layerFilter = null, Effect? maskFx = null)
     {
         // Safe-zone map area lights FIRST, MAX-blended: contiguous safe cells' flat interiors tile with no
         // seam, skirts spill. (Emitters are excluded from the Lights list inside safe cells, so no halo
@@ -91,6 +91,13 @@ public sealed partial class GameplayScreen : IGameScreen
         // Entity halos SECOND, ADDITIVE: static outer reach + flickering inner core. Overlapping halos (and
         // the safe skirt at a town border) sum and blend smoothly — no seams, no dips — clamping at white
         // (= fully lit) in the 8-bit light map, so nothing floods brighter than "no lighting effect".
+        //
+        // Two batches. A light with a reach mask carries its own texture and its own UV mapping, which are
+        // effect parameters, so those go through LightMask.fx in Immediate mode — every Draw flushes, so the
+        // parameters set just before it are the ones it uses. Everything else batches as before. Additive
+        // accumulation is order-independent, so splitting the list changes nothing about the result.
+        var masked = _lightBatchScratch;
+        masked.Clear();
         sb.Begin(SpriteSortMode.Deferred, MirageGame.LightAccumBlend,
             SamplerState.LinearClamp, null, null, null, transform);
         foreach (var cmd in _renderFrame.Lights)
@@ -99,9 +106,59 @@ public sealed partial class GameplayScreen : IGameScreen
             // so ground-layer content is lit by the ground map and fringe content by the fringe map. Unfiltered
             // (layerFilter == null) is the single-map flat/daylight path — every halo, as before.
             if (layerFilter is not null && cmd.Layer != layerFilter) continue;
-            DrawLightHalo(sb, outerTex, innerTex, cmd.ScreenX + HalfTile, cmd.ScreenY + HalfTile, cmd, totalSec);
+            if (maskFx is not null && cmd.Reach is not null) { masked.Add(cmd); continue; }
+            DrawLightHalo(sb, outerTex, innerTex, cmd.ScreenX + HalfTile, cmd.ScreenY + HalfTile, cmd, totalSec, null);
         }
         sb.End();
+
+        if (masked.Count == 0) return;
+        sb.Begin(SpriteSortMode.Immediate, MirageGame.LightAccumBlend,
+            SamplerState.LinearClamp, null, null, maskFx, transform);
+        foreach (var cmd in masked)
+        {
+            maskFx!.Parameters["MaskTexture"].SetValue(
+                ReachTexture(sb.GraphicsDevice, _reachTexFrom, cmd.ReachRadius, cmd.Reach!));
+            // A standing emitter reads only the first mask, but the sampler still has to be bound.
+            maskFx.Parameters["IntoTexture"].SetValue(
+                ReachTexture(sb.GraphicsDevice, _reachTexInto, cmd.ReachRadius, cmd.ReachInto ?? cmd.Reach!));
+            sb.GraphicsDevice.SamplerStates[1] = SamplerState.LinearClamp;
+            sb.GraphicsDevice.SamplerStates[2] = SamplerState.LinearClamp;
+            DrawLightHalo(sb, outerTex, innerTex, cmd.ScreenX + HalfTile, cmd.ScreenY + HalfTile, cmd, totalSec, maskFx);
+        }
+        sb.End();
+    }
+
+    // Reused across lights and frames. One texture per mask SIZE — the UVs map the halo onto the whole
+    // texture, so a mask cannot be uploaded into a corner of a bigger one. Two banks, because a moving
+    // emitter has both its masks bound at once and one texture cannot hold both.
+    private readonly List<LightSourceCmd> _lightBatchScratch = [];
+    private readonly Dictionary<int, Texture2D> _reachTexFrom = [];
+    private readonly Dictionary<int, Texture2D> _reachTexInto = [];
+    private byte[] _reachTexels = [];
+
+    /// <summary>Uploads one reach mask as a texture, opaque where the light gets through. Sampled with linear
+    /// filtering, so a wall's edge arrives as a ramp a few pixels wide rather than as the 32px stair a
+    /// per-tile draw would leave.
+    ///
+    /// <para>One byte a texel, not four: the mask is a single bit and a radius-3 light is 28x28 of them, so
+    /// a colour format spends three quarters of the upload on nothing.</para>
+    ///
+    /// <para>🔴 <see cref="SurfaceFormat.Alpha8"/> lands in a DIFFERENT CHANNEL per backend, so the format
+    /// and the shader have to be changed together. On DesktopGL — which is every platform this ships on —
+    /// MonoGame maps it to <c>GL_LUMINANCE</c>, which samples as (L,L,L,1), so <c>LightMask.fx</c> reads
+    /// <c>.r</c>. A DirectX build would get <c>A8_UNORM</c>, which samples as (0,0,0,a): the mask would read
+    /// as zero everywhere and every light in the game would go black. Obvious rather than subtle, but the
+    /// fix is in the shader and nowhere near where it would be noticed.</para></summary>
+    private Texture2D ReachTexture(GraphicsDevice gd, Dictionary<int, Texture2D> bank, int radius, bool[] reach)
+    {
+        int side = LightOcclusion.MaskTexels(radius);
+        if (!bank.TryGetValue(side, out var tex))
+            bank[side] = tex = new Texture2D(gd, side, side, false, SurfaceFormat.Alpha8);
+        int cells = side * side;
+        if (_reachTexels.Length < cells) _reachTexels = new byte[cells];
+        for (int i = 0; i < cells; i++) _reachTexels[i] = reach[i] ? (byte)255 : (byte)0;
+        tex.SetData(_reachTexels, 0, cells);
+        return tex;
     }
 
     /// <summary>

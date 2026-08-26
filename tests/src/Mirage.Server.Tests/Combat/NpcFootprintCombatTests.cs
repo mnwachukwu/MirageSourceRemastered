@@ -18,6 +18,9 @@ public class NpcFootprintCombatTests
 {
     const int Map = 1;
     const int StartHp = 9999;
+    // These pin REACH, not cadence. Every NPC here starts with AttackTimer at 0, so any live clock reading
+    // clears the cooldown and the gate answers the question the test is asking.
+    static long Now => Environment.TickCount64;
 
     // ── Footprint occupancy ───────────────────────────────────────────────────
     [Test]
@@ -168,8 +171,8 @@ public class NpcFootprintCombatTests
         {
             Assert.That(WorldCoordHelper.WorldManhattan(5, 5, 8, 5), Is.EqualTo(3),
                 "a touching pair is 3 apart by anchor — the distance the old gate measured");
-            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b), Is.True, "touching edges are in reach");
-            Assert.That(combat.CanNpcAttackNpc(Map, b, Map, a), Is.True, "and reach reads the same from either body");
+            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b, Now), Is.True, "touching edges are in reach");
+            Assert.That(combat.CanNpcAttackNpc(Map, b, Map, a, Now), Is.True, "and reach reads the same from either body");
         });
     }
 
@@ -182,7 +185,7 @@ public class NpcFootprintCombatTests
         var a = PlaceNpc(world, 1, 1, 5, 5);   // x 5..7
         var b = PlaceNpc(world, 2, 2, 9, 5);   // x 9..11 — column 8 is empty between them
 
-        Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b), Is.False, "one clear tile of gap is out of reach");
+        Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b, Now), Is.False, "one clear tile of gap is out of reach");
     }
 
     [Test]
@@ -194,7 +197,7 @@ public class NpcFootprintCombatTests
         var a = PlaceNpc(world, 1, 1, 5, 5);   // x 5..7, y 5..7
         var b = PlaceNpc(world, 2, 2, 8, 8);   // x 8..10, y 8..10 — corner to corner only
 
-        Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b), Is.False, "melee is cardinal — a diagonal corner is not reach");
+        Assert.That(combat.CanNpcAttackNpc(Map, a, Map, b, Now), Is.False, "melee is cardinal — a diagonal corner is not reach");
     }
 
     [Test]
@@ -210,8 +213,8 @@ public class NpcFootprintCombatTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, neighbor), Is.True, "the classic one-tile neighbor");
-            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, twoAway), Is.False, "two tiles is still out of reach");
+            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, neighbor, Now), Is.True, "the classic one-tile neighbor");
+            Assert.That(combat.CanNpcAttackNpc(Map, a, Map, twoAway, Now), Is.False, "two tiles is still out of reach");
         });
     }
 
@@ -283,15 +286,15 @@ public class NpcFootprintCombatTests
             // Same layer, adjacent → connects.
             attacker.Layer = WorldLayer.Ground;
             victim.Layer = WorldLayer.Ground;
-            Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim), Is.True, "same-layer neighbors connect");
+            Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim, Now), Is.True, "same-layer neighbors connect");
 
             // Victim on the fringe over a plain tile → no reach from the ground.
             victim.Layer = WorldLayer.Fringe;
-            Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim), Is.False, "no cross-layer melee on a plain tile");
+            Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim, Now), Is.False, "no cross-layer melee on a plain tile");
 
             // A ramp on the victim's tile (mounts from below) → the ground attacker at its foot connects.
             world.Maps[Map].EditTile(5, 5, t => t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = Direction.Down } });
-            Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim), Is.True, "reaches a victim on the adjacent ramp");
+            Assert.That(combat.CanNpcAttackNpc(Map, attacker, Map, victim, Now), Is.True, "reaches a victim on the adjacent ramp");
         });
     }
 

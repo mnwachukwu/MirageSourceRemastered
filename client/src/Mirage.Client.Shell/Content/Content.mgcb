@@ -52,3 +52,8 @@
 /importer:EffectImporter
 /processor:EffectProcessor
 /build:shaders/HeatHaze.fx
+
+#begin shaders/LightMask.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/build:shaders/LightMask.fx
