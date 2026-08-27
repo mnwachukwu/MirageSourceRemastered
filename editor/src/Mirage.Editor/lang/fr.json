@@ -941,7 +941,7 @@
   "BlockedTileDialog_Title": "Bloqué",
   "BlockedTileDialog_Description": "Rien ne traverse une case bloquée. Ce qu'elle arrête d'autre vous appartient : un mur plein arrête tout, une rambarde ou une fenêtre n'arrêtent rien.",
   "BlockedTileDialog_BlocksLight": "Arrête la lumière",
-  "BlockedTileDialog_BlocksLightTooltip": "Décoché, une lampe derrière cette case éclaire toujours le sol devant elle.",
+  "BlockedTileDialog_BlocksLightTooltip": "Coché, cette case projette une ombre à la forme de son propre dessin : la lumière passe là où le graphisme est vide. Décoché, une lampe derrière elle éclaire toujours le sol devant elle.",
   "BlockedTileDialog_BlocksSight": "Arrête la ligne de vue",
   "BlockedTileDialog_BlocksSightTooltip": "Décoché, les sorts la traversent.",
   "Common_FillConnectedRun": "Appliquer à toute la zone connectée",

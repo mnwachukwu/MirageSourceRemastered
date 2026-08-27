@@ -138,6 +138,14 @@ public sealed class QuestSystem : GameSystem
         {
             var p = _pm[index].Char;
             p.Exp = Math.Min(p.Exp + rewardExp, ExpFormulas.MaxTotalExp);
+            // Name the number. The exp bar reads WITHIN the current level, so a reward lands as a nudge to a
+            // bar rather than a figure — and with two quests in progress there is nothing tying the amount a
+            // board promised to the one that just paid out.
+            SendMsg(index, ServerStrings.Quest_RewardExp, GameColor.BrightBlue, ChatChannel.Rewards, ("Exp", rewardExp));
+            // 🔴 And push the stats, or the reward is invisible: the client's exp comes from this packet alone,
+            // so without it the bar does not move and the overhead number never floats — the client raises both
+            // off an exp that arrived higher than the one it had. A kill syncs here; a turn-in did not.
+            _dispatcher.SendTo(index, PacketBuilder.SendStats(p));
             _combat.Value.CheckPlayerLevelUp(index);
         }
     }
@@ -221,7 +229,24 @@ public sealed class QuestSystem : GameSystem
         pq.Progress[objIndex] = progress;
         _pm.MarkDirty(index);
         SyncTo(index);
+
+        // Say it out loud as well as syncing the log: a kill that counted looks exactly like one that did not
+        // unless the panel happens to be open, and a quest is mostly played with it closed.
+        var objectives = _world.Quests[questNum].Objectives;
+        if (objIndex < objectives.Count)
+        {
+            var o = objectives[objIndex];
+            SendMsg(index, ServerStrings.Quest_ObjectiveProgress, GameColor.Yellow,
+                ("Target", TargetName(o.Target)), ("Have", progress), ("Need", o.Count));
+        }
     }
+
+    /// <summary>What an objective's target is called. A target of 0 is the wildcard "anything of this kind",
+    /// which has no name to give.</summary>
+    private string TargetName(int npcNum)
+        => npcNum >= 1 && npcNum < _world.Npcs.Length && _world.Npcs[npcNum].TrimmedName.Length > 0
+            ? _world.Npcs[npcNum].TrimmedName
+            : ServerStrings.Get(ServerStrings.Quest_AnyTarget);
 
     private void OnObjectiveCompleted(int index, int questNum)
     {

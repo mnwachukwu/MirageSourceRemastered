@@ -284,9 +284,17 @@ public sealed partial class GameplayScreen : IGameScreen
                 }
             }
             float effectiveDark = inDark ? 1f : rawDark;
+            // Spell light is occluded like any other: a bolt behind a wall lights the wall, not the room past
+            // it. Traced off the same cache the frame's own emitters just filled, so a burst of sparkles over
+            // one tile costs one trace between them — and cross-faded across the border it is crossing, since
+            // reach is answered per tile and a bolt crosses more of them, faster, than anything on legs.
+            var reach = RenderCommandBuilder.ReachAcrossTravel(_ctx.State, _camera, p.X, p.Y, p.Vx, p.Vy,
+                p.Layer, ProjectileLightRadius / Constants.PicX);
             // LightSourceCmd centers via +HalfTile at draw, so pass center-minus-half-tile.
             _renderFrame.Lights.Add(new LightSourceCmd(sx - HalfTile, sy - HalfTile, 1f, p.Rgb,
-                ProjectileLightRadius, FlickerStyle.Pulse, id, effectiveDark, p.Layer));
+                ProjectileLightRadius, FlickerStyle.Pulse, id, effectiveDark, p.Layer,
+                reach.FromScreenX, reach.FromScreenY, reach.Radius, reach.From,
+                reach.Into, reach.IntoScreenX, reach.IntoScreenY, reach.Blend));
             _renderFrame.Glows.Add(new GlowCmd(sx, sy, p.Rgb, MathF.Max(p.Size, ProjectileGlowMinSize) * ProjectileGlowFactor));
         }
     }

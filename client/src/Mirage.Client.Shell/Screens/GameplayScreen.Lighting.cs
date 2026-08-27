@@ -143,10 +143,10 @@ public sealed partial class GameplayScreen : IGameScreen
     // RenderCommandBuilder.ReachGeneration the same array is the same reach and the texture holding it stays
     // good. The UVs map a halo onto the whole texture, so a mask cannot share one with a mask of another size.
     private readonly List<LightSourceCmd> _lightBatchScratch = [];
-    private readonly Dictionary<bool[], Texture2D> _reachTexOf = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<byte[], Texture2D> _reachTexOf = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<int, Stack<Texture2D>> _reachTexPool = [];
     private int _reachTexGeneration = -1;
-    private byte[] _reachTexels = [];
+
 
     /// <summary>The texture holding one light's reach mask, opaque where the light gets through. Uploaded the
     /// first time a mask is seen and kept until the reach cache drops.
@@ -166,7 +166,7 @@ public sealed partial class GameplayScreen : IGameScreen
     /// <c>.r</c>. A DirectX build would get <c>A8_UNORM</c>, which samples as (0,0,0,a): the mask would read
     /// as zero everywhere and every light in the game would go black. Obvious rather than subtle, but the
     /// fix is in the shader and nowhere near where it would be noticed.</para></summary>
-    private Texture2D ReachTexture(GraphicsDevice gd, int radius, bool[] reach)
+    private Texture2D ReachTexture(GraphicsDevice gd, int radius, byte[] reach)
     {
         if (_reachTexOf.TryGetValue(reach, out var tex)) return tex;
 
@@ -178,10 +178,7 @@ public sealed partial class GameplayScreen : IGameScreen
         var free = ReachTexPool(side);
         tex = free.Count > 0 ? free.Pop() : new Texture2D(gd, side, side, false, SurfaceFormat.Alpha8);
 
-        int cells = side * side;
-        if (_reachTexels.Length < cells) _reachTexels = new byte[cells];
-        for (int i = 0; i < cells; i++) _reachTexels[i] = reach[i] ? (byte)255 : (byte)0;
-        tex.SetData(_reachTexels, 0, cells);
+        tex.SetData(reach, 0, side * side);
         _reachTexOf[reach] = tex;
         return tex;
     }

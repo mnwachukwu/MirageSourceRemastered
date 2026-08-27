@@ -112,24 +112,24 @@ public class LightOcclusionTests
 
     // The mask is finer than a tile, so a tile is only "reached" if EVERY texel in it is — which is the
     // question that matters: a tile with a dark half has the light stopping inside it.
-    private static bool WhollyLit(bool[] mask, int r, int dx, int dy)
+    private static bool WhollyLit(byte[] mask, int r, int dx, int dy)
     {
         int texels = LightOcclusion.MaskTexels(r);
         for (int sy = 0; sy < Sub; sy++)
         {
             for (int sx = 0; sx < Sub; sx++)
-                if (!mask[((dy + r) * Sub + sy) * texels + (dx + r) * Sub + sx]) return false;
+                if (!LightOcclusion.IsLit(mask[((dy + r) * Sub + sy) * texels + (dx + r) * Sub + sx])) return false;
         }
         return true;
     }
 
-    private static bool WhollyDark(bool[] mask, int r, int dx, int dy)
+    private static bool WhollyDark(byte[] mask, int r, int dx, int dy)
     {
         int texels = LightOcclusion.MaskTexels(r);
         for (int sy = 0; sy < Sub; sy++)
         {
             for (int sx = 0; sx < Sub; sx++)
-                if (mask[((dy + r) * Sub + sy) * texels + (dx + r) * Sub + sx]) return false;
+                if (LightOcclusion.IsLit(mask[((dy + r) * Sub + sy) * texels + (dx + r) * Sub + sx])) return false;
         }
         return true;
     }
@@ -141,9 +141,9 @@ public class LightOcclusionTests
         const int r = 3;
         var state = StateWithWalls((7, 5));
         var (lx, ly) = At(5, 5);
-        var mask = new bool[LightOcclusion.MaskCells(r)];
+        var mask = new byte[LightOcclusion.MaskCells(r)];
 
-        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask);
+        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask, mounted: true);
 
         Assert.Multiple(() =>
         {
@@ -153,27 +153,30 @@ public class LightOcclusionTests
         });
     }
 
-    /// <summary>The pull-back that keeps light off a blocker only applies on the side of a texel FACING AWAY
-    /// from the light. Applied evenly it also dims the open tiles beside and diagonal to a wall — tiles
-    /// nothing is standing between — which reads as shadow leaking sideways out of the thing casting it.
+    /// <summary>
+    /// A shadow begins at the edge of the thing casting it, and the ground keeps every texel right up to it.
+    ///
+    /// <para>Nothing is trimmed back from art. The linear sampler's ramp therefore straddles the boundary and
+    /// a hairline of light rides the leading edge of a silhouette — the price of a shadow that lands exactly
+    /// on the graphic rather than a texel short of it.</para>
     /// </summary>
     [Test]
-    public void ThePullBack_TrimsWhatFacesTheWallAndNothingElse()
+    public void TheShadowBeginsAtTheOccludersOwnEdge()
     {
         const int r = 3;
         var state = StateWithWalls((7, 5));
         var (lx, ly) = At(5, 5);
-        var mask = new bool[LightOcclusion.MaskCells(r)];
+        var mask = new byte[LightOcclusion.MaskCells(r)];
 
-        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask);
+        LightOcclusion.Fill(state, lx, ly, WorldLayer.Ground, r, mask, mounted: true);
 
         Assert.Multiple(() =>
         {
             Assert.That(WhollyDark(mask, r, 2, 0), Is.True, "the wall takes nothing, to its last texel");
-            Assert.That(WhollyLit(mask, r, 1, 0), Is.False,
-                "the tile in front of it gives up the texel facing it, which is where the ramp lives");
+            Assert.That(WhollyLit(mask, r, 1, 0), Is.True,
+                "the ground against it keeps every texel — the boundary is the wall's edge, not a texel short");
             Assert.That(WhollyLit(mask, r, 1, 1), Is.True,
-                "but the tile diagonal to the wall keeps every one — nothing stands between it and the light");
+                "and the tile diagonal to the wall keeps every one — nothing stands between it and the light");
         });
     }
 

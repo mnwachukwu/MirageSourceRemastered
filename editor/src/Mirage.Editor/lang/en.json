@@ -941,7 +941,7 @@
   "BlockedTileDialog_Title": "Blocked",
   "BlockedTileDialog_Description": "Nothing walks through a blocked tile. What else it stops is up to you — a solid wall stops everything, a railing or a window stops neither.",
   "BlockedTileDialog_BlocksLight": "Blocks light",
-  "BlockedTileDialog_BlocksLightTooltip": "Off, a lamp behind this tile still lights the ground in front of it.",
+  "BlockedTileDialog_BlocksLightTooltip": "Marked, this tile shades in the shape of its own art — light passes wherever the graphic is clear. Unmarked, a lamp behind it still lights the ground in front of it.",
   "BlockedTileDialog_BlocksSight": "Blocks line of sight",
   "BlockedTileDialog_BlocksSightTooltip": "Off, spells can be cast straight through it.",
   "Common_FillConnectedRun": "Apply to the whole connected run",

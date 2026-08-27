@@ -123,7 +123,7 @@ public class LightReachIdentityTests
 
         RenderCommandBuilder.Build(state, frame, camera, myIndex: state.MyIndex);
         int gen = RenderCommandBuilder.ReachGeneration;
-        var tileOf = new Dictionary<bool[], (float X, float Y, int R)>(ReferenceEqualityComparer.Instance);
+        var tileOf = new Dictionary<byte[], (float X, float Y, int R)>(ReferenceEqualityComparer.Instance);
         int drops = 0;
 
         // One lap of the map's tiles, five at a time — comfortably more distinct reaches than the cap holds.

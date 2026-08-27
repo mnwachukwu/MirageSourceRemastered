@@ -941,7 +941,7 @@
   "BlockedTileDialog_Title": "Bloqueado",
   "BlockedTileDialog_Description": "Nadie atraviesa una casilla bloqueada. Lo demás que detenga lo decides tú: un muro sólido detiene todo, una barandilla o una ventana no detienen nada.",
   "BlockedTileDialog_BlocksLight": "Detiene la luz",
-  "BlockedTileDialog_BlocksLightTooltip": "Sin marcar, una lámpara detrás de esta casilla sigue iluminando el suelo delante de ella.",
+  "BlockedTileDialog_BlocksLightTooltip": "Marcado, esta casilla proyecta sombra con la forma de su propio dibujo: la luz pasa por donde el gráfico está vacío. Sin marcar, una lámpara detrás de ella sigue iluminando el suelo delante.",
   "BlockedTileDialog_BlocksSight": "Detiene la línea de visión",
   "BlockedTileDialog_BlocksSightTooltip": "Sin marcar, se puede lanzar hechizos a través de ella.",
   "Common_FillConnectedRun": "Aplicar a todo el tramo conectado",

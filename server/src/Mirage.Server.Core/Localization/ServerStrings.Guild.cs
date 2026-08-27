@@ -113,6 +113,7 @@ public static partial class ServerStrings
     public const string Guild_QuestNoneToAbandon = nameof(Guild_QuestNoneToAbandon);
     public const string Guild_QuestAbandoned = nameof(Guild_QuestAbandoned);
     public const string Guild_QuestComplete = nameof(Guild_QuestComplete);
+    public const string Guild_QuestProgress = nameof(Guild_QuestProgress);
     public const string Guild_QuestExpired = nameof(Guild_QuestExpired);
     // ── Guild wars ────────────
     // Rejections / confirmations to the acting player.

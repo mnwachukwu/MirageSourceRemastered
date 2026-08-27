@@ -263,9 +263,9 @@ public sealed partial class CombatSystem : GameSystem
             if (GuildPerks.IsActive(GuildOf(i), Constants.GuildPerkLevelBonusExp))
                 contributionExp += (long)Math.Round(contributionExp * (Constants.GuildPerkBonusExpPercent / 100.0), MidpointRounding.AwayFromZero);
             int partner = _pm[i].InParty ? _pm[i].PartyPlayer : 0;
-            bool partnerOnMap = partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum);
-            int partnerLevel = partnerOnMap ? _pm[partner].Char.Level : 0;
-            bool partnerInBand = partnerOnMap && Math.Abs(p.Level - partnerLevel) <= ExpFormulas.PartyLevelGap;
+            bool partnerInRange = partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum);
+            int partnerLevel = partnerInRange ? _pm[partner].Char.Level : 0;
+            bool partnerInBand = partnerInRange && Math.Abs(p.Level - partnerLevel) <= ExpFormulas.PartyLevelGap;
             long partyBonusExp = partnerInBand ? (long)(contributionExp * ExpFormulas.PartyExpBonus) - contributionExp : 0;
             long partnerBase = contributorBaseExp.GetValueOrDefault(partner);
             long partnerKillExp = ExpFormulas.PartnerKillBonus(p.Level, partnerLevel, partnerBase);
@@ -287,10 +287,15 @@ public sealed partial class CombatSystem : GameSystem
             _dispatcher.SendTo(i, PacketBuilder.SendStats(p));
         }
 
-        // Guild-quest valor (per-player): a contributor whose guild's active quest targets this mob rolls for 1
-        // valor. Rolled BEFORE the kernel advances the quest below, so a kill that COMPLETES a guild quest still
-        // pays valor (the kernel's completion callback clears the quest, which would otherwise hide the target).
-        foreach (int i in contributors)
+        // Who this kill counts for on a QUEST, which is narrower than who earns EXP from it. Both the valor
+        // roll and the kernel read it: a kill either counts toward a guild's quest or it does not, and the
+        // currency paid for advancing one answers to the same rule as the advance.
+        var questCredit = QuestCreditFor(mapNpc, mapNum, totalDmg, contributors);
+
+        // Guild-quest valor (per-player): a credited player whose guild's active quest targets this mob rolls
+        // for 1 valor. Rolled BEFORE the kernel advances the quest below, so a kill that COMPLETES a guild quest
+        // still pays valor (the kernel's completion callback clears the quest, which would otherwise hide the target).
+        foreach (int i in questCredit)
         {
             if (GuildSystem.QuestTargetsNpc(GuildOf(i), mapNpc.Num)
                 && Rng.Percent() < Constants.GuildQuestValorChancePercent)
@@ -299,11 +304,10 @@ public sealed partial class CombatSystem : GameSystem
             }
         }
 
-        // Objective-kernel kill hook: advance any tracked Kill objective this mob +
-        // its contributors match. Scope-agnostic — the kernel owns no guild/player notion; BOTH guild quests and
-        // player quests register here, so this one seam drives both. Runs after the valor roll above so a
-        // completing kill still pays valor.
-        _objectives.RecordNpcKill(mapNpc.Num, contributors);
+        // Objective-kernel kill hook: advance any tracked Kill objective this mob + its credited players match.
+        // Scope-agnostic — the kernel owns no guild/player notion; BOTH guild quests and player quests register
+        // here, so this one seam drives both. Runs after the valor roll above so a completing kill still pays valor.
+        _objectives.RecordNpcKill(mapNpc.Num, questCredit);
 
         // Guild XP: one point per KO to each DISTINCT guild that had a contributor (deduped so several
         // guildmates on one kill grant the guild a single point — a minor trickle; quests are the main
@@ -328,6 +332,40 @@ public sealed partial class CombatSystem : GameSystem
 
         // Territory income: a chance for this PvE kill to trickle gold to the controlling guild.
         AccrueTerritoryIncome(mapNum, mapNpc, contributors);
+    }
+
+    /// <summary>
+    /// Who this kill counts for on a QUEST, which is a narrower question than who earns EXP from it.
+    ///
+    /// <para>EXP divides by damage share, so a token hit earns a token amount and gains nothing by it. An
+    /// objective tick does NOT divide — it is the same size however little was done for it — so it takes a real
+    /// share of the work (<see cref="Constants.QuestCreditDamagePercent"/>) rather than any damage at all.
+    /// Otherwise one point of damage on a mob somebody else killed is a full tick, and tagging is the fastest
+    /// way to quest.</para>
+    ///
+    /// <para>A party partner earns it alongside whoever qualified, whether or not they landed a blow. Hunting
+    /// together is supported everywhere else — the party EXP bonus, the partner-kill bonus — and a support
+    /// build that heals rather than hits would otherwise advance a quest never.</para>
+    ///
+    /// <para>🔴 Partner reach is the SAME test the partner-kill EXP bonus applies: observing the map the kill
+    /// happened on, which is the 3x3 neighbourhood rather than that one map. There is no party-range constant
+    /// to read — <c>PartySystem</c> has no proximity rule of its own — so this test IS the range, and the two
+    /// rewards have to ask it the same way or a partner earns EXP from a kill their quest ignores.</para>
+    /// </summary>
+    internal HashSet<int> QuestCreditFor(MapNpcRecord mapNpc, int mapNum, long totalDmg, HashSet<int> contributors)
+    {
+        var credited = new HashSet<int>();
+        foreach (int i in contributors)
+        {
+            // Compared as whole numbers: the threshold is a percentage of a damage total, and both are ints.
+            if (mapNpc.DamageByPlayer[i] * 100L < totalDmg * Constants.QuestCreditDamagePercent) continue;
+            credited.Add(i);
+
+            int partner = _pm[i].InParty ? _pm[i].PartyPlayer : 0;
+            if (partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum)) credited.Add(partner);
+        }
+
+        return credited;
     }
 
     // Territory income: a PvE kill in a controlled territory rolls a chance to add gold to the

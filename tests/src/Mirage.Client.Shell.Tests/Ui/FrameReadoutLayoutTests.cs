@@ -7,37 +7,48 @@ namespace Mirage.Client.Shell.Tests;
 
 /// <summary>
 /// The frame readout stacks above the action bar, which sits in the bottom-right corner — its left edge is at
-/// 583 of the 800-wide reference. Anchoring the text there leaves about two hundred pixels before the screen
-/// ends, and the longest line needs half as much again, so it ran off the edge.
+/// 583 of the 800-wide reference, leaving barely two hundred pixels before the screen ends.
 ///
-/// <para>The block therefore grows LEFTWARD from the bar's right edge whenever it is wider than the bar. This
-/// is arithmetic, not rendering, so it is testable without a device — what a font measures is the input.</para>
+/// <para>🔴 It starts AT the bar and slides left only as far as the screen edge demands. The chat log fills
+/// the other half of the screen, so a block that moves further than it has to lands on top of it — which is
+/// what aligning its right edge to the BAR's right edge does, since every line is wider than four hotkeys.
+/// The screen edge is the constraint; the bar is only where it starts.</para>
+///
+/// <para>This is arithmetic, not rendering, so it is testable without a device — what a font measures is
+/// the input.</para>
 /// </summary>
 [TestFixture]
 public class FrameReadoutLayoutTests
 {
     private static readonly float BarLeft = HotkeyBarPanel.Bounds.Left;
-    private static readonly float BarRight = HotkeyBarPanel.Bounds.Right;
+    private const float Screen = UiHelper.RefW;
 
-    [Test]
-    public void ContentNarrowerThanTheBar_StaysAlignedToIt()
+    /// <summary>The room a line has if the block never moves — what every readout line is written to fit.</summary>
+    private static readonly float Room = Screen - BarLeft;
+
+    [TestCase(60f)]
+    [TestCase(150f)]
+    public void ContentThatFits_StartsAtTheBarAndDoesNotMove(float widest)
     {
-        float widest = HotkeyBarPanel.Bounds.Width - 10;
-        Assert.That(GameplayScreen.ReadoutLeft(BarLeft, BarRight, widest), Is.EqualTo(BarLeft),
-            "a short line has no reason to move");
+        Assert.That(GameplayScreen.ReadoutLeft(BarLeft, Screen, widest), Is.EqualTo(BarLeft),
+            "a line with room to spare has no reason to move left, and moving lands it on the chat log");
     }
 
-    [TestCase(200f)]
-    [TestCase(320f)]
-    [TestCase(400f)]
-    public void ContentWiderThanTheBar_EndsFlushWithItAndFitsOnScreen(float widest)
+    [Test]
+    public void ContentExactlyFillingTheRoom_StillStartsAtTheBar()
     {
-        float x = GameplayScreen.ReadoutLeft(BarLeft, BarRight, widest);
+        Assert.That(GameplayScreen.ReadoutLeft(BarLeft, Screen, Room), Is.EqualTo(BarLeft));
+    }
+
+    [TestCase(20f)]
+    [TestCase(80f)]
+    public void ContentTooWide_SlidesLeftByExactlyTheOverflow(float over)
+    {
+        float x = GameplayScreen.ReadoutLeft(BarLeft, Screen, Room + over);
         Assert.Multiple(() =>
         {
-            Assert.That(x + widest, Is.EqualTo(BarRight).Within(0.01f), "the block's right edge lands on the bar's");
-            Assert.That(x, Is.GreaterThanOrEqualTo(0f));
-            Assert.That(x + widest, Is.LessThanOrEqualTo((float)UiHelper.RefW), "and nothing runs off the screen");
+            Assert.That(BarLeft - x, Is.EqualTo(over).Within(0.01f), "it moves by the overflow and no further");
+            Assert.That(x + Room + over, Is.EqualTo(Screen).Within(0.01f), "so the last pixel is the last pixel");
         });
     }
 
@@ -45,15 +56,16 @@ public class FrameReadoutLayoutTests
     public void ContentWiderThanTheScreen_StartsAtTheLeftEdge()
     {
         // Nothing can save a line this long, but it must clip at the far edge rather than start off-screen.
-        Assert.That(GameplayScreen.ReadoutLeft(BarLeft, BarRight, UiHelper.RefW * 2f), Is.EqualTo(0f));
+        Assert.That(GameplayScreen.ReadoutLeft(BarLeft, Screen, Screen * 2f), Is.EqualTo(0f));
     }
 
     [Test]
-    public void TheBarIsFarEnoughRightThatThisMatters()
+    public void TheBarLeavesEnoughRoomForTheLinesAsWritten()
     {
-        // The premise, pinned: if the bar ever moves left, this whole guard is still correct but the failure
-        // it prevents is gone, and the test above stops meaning anything.
-        Assert.That(UiHelper.RefW - BarLeft, Is.LessThan(320f),
-            "the readout's longest line does not fit to the right of the action bar");
+        // The premise. The longest line is the GC one — "gc 12/3 in 10s  1234 KB/s  (1234/56/7)" at its
+        // widest — and the readout font runs about seven pixels a character, so this is the budget the
+        // strings are written against. If the bar ever moves right, they have to get shorter.
+        Assert.That(Room, Is.GreaterThanOrEqualTo(210f),
+            "there is no longer room beside the action bar for a readout line, so the block will cover chat");
     }
 }

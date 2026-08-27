@@ -161,6 +161,35 @@ public sealed class QuestLogPanel : IGamePanel
                 UiHelper.DrawLabel(sb, font, line, new Vector2(c.X + 6, detailY), prog >= o.Count ? Color.LightGreen : Color.White, c.Width - 12);
                 detailY += LineH;
             }
+
+            // What this run pays. A repeat run pays the repeat set — and only if one is defined, matching the
+            // server — so the journal names the reward that is actually coming rather than the first-time one.
+            bool useRepeat = pq is { Status: QuestStatus.InProgressRepeat } && def.HasRepeatRewards;
+            long rewardExp = useRepeat ? def.RepeatRewardExp : def.RewardExp;
+            var rewardItems = useRepeat ? def.RepeatRewardItems : def.RewardItems;
+            if (rewardExp > 0 || rewardItems.Count > 0)
+            {
+                detailY += 4;
+                UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.QuestDialog_RewardsHeader),
+                    new Vector2(c.X + 6, detailY), UiHelper.DlgLabelColor, c.Width - 12);
+                detailY += LineH;
+                if (rewardExp > 0)
+                {
+                    UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.QuestDialog_RewardExp, ("Exp", rewardExp)),
+                        new Vector2(c.X + 12, detailY), Color.White, c.Width - 18);
+                    detailY += LineH;
+                }
+
+                foreach (var reward in rewardItems)
+                {
+                    if (reward.ItemNum < 1 || reward.ItemNum >= state.Items.Length) continue;
+                    string item = state.Items[reward.ItemNum]?.Name?.TrimEnd() ?? "?";
+                    UiHelper.DrawLabel(sb, font,
+                        ClientStrings.Format(ClientStrings.QuestDialog_RewardItem, ("Item", item), ("Qty", reward.Quantity)),
+                        new Vector2(c.X + 12, detailY), Color.White, c.Width - 18);
+                    detailY += LineH;
+                }
+            }
         }
 
         if (_abandonBtn.Enabled) _abandonBtn.Draw(sb, font, _input);

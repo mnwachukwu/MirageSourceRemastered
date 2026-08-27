@@ -363,9 +363,9 @@ public sealed partial class CombatSystem : GameSystem
             if (p.Level >= Constants.MaxLevel) continue;
             long contributionExp = contributorBaseExp.GetValueOrDefault(i);
             int partner = _pm[i].InParty ? _pm[i].PartyPlayer : 0;
-            bool partnerOnMap = partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum);
-            int partnerLevel = partnerOnMap ? _pm[partner].Char.Level : 0;
-            bool partnerInBand = partnerOnMap && Math.Abs(p.Level - partnerLevel) <= ExpFormulas.PartyLevelGap;
+            bool partnerInRange = partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum);
+            int partnerLevel = partnerInRange ? _pm[partner].Char.Level : 0;
+            bool partnerInBand = partnerInRange && Math.Abs(p.Level - partnerLevel) <= ExpFormulas.PartyLevelGap;
             long partyBonusExp = partnerInBand ? (long)(contributionExp * ExpFormulas.PartyExpBonus) - contributionExp : 0;
             long partnerBase = contributorBaseExp.GetValueOrDefault(partner);
             long partnerKillExp = ExpFormulas.PartnerKillBonus(p.Level, partnerLevel, partnerBase);

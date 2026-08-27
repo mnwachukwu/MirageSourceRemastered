@@ -338,8 +338,27 @@ public sealed partial class MirageGame : Game
         int max = 0;
         foreach (int k in byIndex.Keys) if (k > max) max = k;
         var sheets = new Texture2D?[max + 1];
-        foreach (var kv in byIndex) sheets[kv.Key] = LoadBitmap(kv.Value);
+        TileOpacity.Reset();
+        foreach (var kv in byIndex)
+        {
+            var tex = LoadBitmap(kv.Value);
+            sheets[kv.Key] = tex;
+            if (tex is not null) ReadTileCoverage(kv.Key, tex);
+        }
+
         return sheets;
+    }
+
+    /// <summary>Hands one loaded sheet's alpha to <see cref="TileOpacity"/>, which keeps eight bytes a tile
+    /// and nothing else. Read AFTER the color key, so the art's transparent color counts as transparent —
+    /// the shadow a tile casts is the shape the player sees.</summary>
+    private static void ReadTileCoverage(int sheet, Texture2D tex)
+    {
+        var pixels = new Color[tex.Width * tex.Height];
+        tex.GetData(pixels);
+        var alpha = new byte[pixels.Length];
+        for (int i = 0; i < pixels.Length; i++) alpha[i] = pixels[i].A;
+        TileOpacity.SetSheet(sheet, alpha, tex.Width, tex.Height);
     }
 
     // Parses the leading run of digits in a filename as its sheet index; -1 when there is none.

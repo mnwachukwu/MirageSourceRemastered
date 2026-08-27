@@ -382,9 +382,9 @@ public static class RenderCommandBuilder
     ///
     /// <para>A standing emitter's two tiles are the same one: it traces once and blends nothing, which is
     /// what keeps the second trace something only moving things pay for.</para></summary>
-    private readonly record struct LightReach(
-        int Radius, bool[] From, float FromScreenX, float FromScreenY,
-        bool[]? Into, float IntoScreenX, float IntoScreenY, float Blend);
+    public readonly record struct LightReach(
+        int Radius, byte[] From, float FromScreenX, float FromScreenY,
+        byte[]? Into, float IntoScreenX, float IntoScreenY, float Blend);
 
     private static LightReach ReachAcrossStep(ClientState state, Camera camera,
         int wx, int wy, float xOffset, float yOffset, WorldLayer layer, float radiusTiles)
@@ -392,13 +392,58 @@ public static class RenderCommandBuilder
         int r = Math.Max(0, (int)MathF.Ceiling(radiusTiles));
         int fromX = wx + Math.Sign(xOffset), fromY = wy + Math.Sign(yOffset);
         var (fsx, fsy) = camera.WorldTileToScreen(fromX, fromY, 0, 0);
-        var from = CachedReach(state, fromX, fromY, layer, r);
+        var from = CachedReach(state, fromX, fromY, layer, r, mounted: true);
         if (fromX == wx && fromY == wy) return new LightReach(r, from, fsx, fsy, null, 0f, 0f, 0f);
 
         var (isx, isy) = camera.WorldTileToScreen(wx, wy, 0, 0);
-        var into = CachedReach(state, wx, wy, layer, r);
+        var into = CachedReach(state, wx, wy, layer, r, mounted: true);
         float travelled = MathF.Max(MathF.Abs(xOffset), MathF.Abs(yOffset)) / Constants.PicX;
         return new LightReach(r, from, fsx, fsy, into, isx, isy, Math.Clamp(1f - travelled, 0f, 1f));
+    }
+
+    /// <summary>
+    /// The reach masks for a light moving freely through the world — a spell bolt, which the SHELL appends
+    /// after the frame is built — with the same cross-fade a walking emitter gets.
+    ///
+    /// <para>Reach is answered per TILE, so a mask can only change in a jump at a border. A body walking pays
+    /// for two traces and blends between them; a bolt travels faster and over more borders, so the jump is
+    /// worse for it, not better — the shadows snap square as it flies.</para>
+    ///
+    /// <para>The pair is taken along the DOMINANT axis of travel: the tile it is crossing into, the one behind
+    /// it on that axis, and how far across it has come. A bolt that is not moving blends nothing, exactly as a
+    /// standing emitter does not.</para>
+    /// </summary>
+    public static LightReach ReachAcrossTravel(ClientState state, Camera camera, float worldX, float worldY,
+                                               float vx, float vy, WorldLayer layer, float radiusTiles)
+    {
+        int r = Math.Max(0, (int)MathF.Ceiling(radiusTiles));
+        int intoX = (int)MathF.Floor(worldX / Constants.PicX);
+        int intoY = (int)MathF.Floor(worldY / Constants.PicY);
+
+        int fromX = intoX, fromY = intoY;
+        float blend = 0f;
+        if (MathF.Abs(vx) >= MathF.Abs(vy) && vx != 0f)
+        {
+            float frac = worldX / Constants.PicX - intoX;
+            fromX = intoX + (vx > 0f ? -1 : 1);
+            blend = vx > 0f ? frac : 1f - frac;
+        }
+        else if (vy != 0f)
+        {
+            float frac = worldY / Constants.PicY - intoY;
+            fromY = intoY + (vy > 0f ? -1 : 1);
+            blend = vy > 0f ? frac : 1f - frac;
+        }
+
+        // NOT mounted: a bolt is passing OVER these tiles, not fixed to them. Exempt its own tile and a burst
+        // scattering against a wall lights the wall up as though it stopped nothing.
+        var (fsx, fsy) = camera.WorldTileToScreen(fromX, fromY, 0, 0);
+        var from = CachedReach(state, fromX, fromY, layer, r, mounted: false);
+        if (fromX == intoX && fromY == intoY) return new LightReach(r, from, fsx, fsy, null, 0f, 0f, 0f);
+
+        var (isx, isy) = camera.WorldTileToScreen(intoX, intoY, 0, 0);
+        var into = CachedReach(state, intoX, intoY, layer, r, mounted: false);
+        return new LightReach(r, from, fsx, fsy, into, isx, isy, Math.Clamp(blend, 0f, 1f));
     }
 
     // ── Reach cache ──────────────────────────────────────────────────────────
@@ -411,7 +456,7 @@ public static class RenderCommandBuilder
     // three maps away can matter to a light near the seam, and working out which entries it reached would cost
     // more than re-tracing the handful of lights on screen.
     private static int _reachStamp;
-    private static readonly Dictionary<(int X, int Y, WorldLayer Layer, int Radius), bool[]> _reachCache = [];
+    private static readonly Dictionary<(int X, int Y, WorldLayer Layer, int Radius, bool Mounted), byte[]> _reachCache = [];
 
     /// <summary>Counts how many times the reach cache has been dropped.
     ///
@@ -446,14 +491,14 @@ public static class RenderCommandBuilder
     // Masks are recycled rather than dropped. A wandering emitter enters a new tile a couple of times a
     // second, and at a few kilobytes a mask that is a steady drip of garbage in the one place the render
     // path is otherwise allocation-free. A discarded mask is the exact size the next one needs.
-    private static readonly Dictionary<int, Stack<bool[]>> _reachSpare = [];
+    private static readonly Dictionary<int, Stack<byte[]>> _reachSpare = [];
 
     private static void DropCache()
     {
         foreach (var mask in _reachCache.Values)
         {
             if (!_reachSpare.TryGetValue(mask.Length, out var spares))
-                _reachSpare[mask.Length] = spares = new Stack<bool[]>();
+                _reachSpare[mask.Length] = spares = new Stack<byte[]>();
             spares.Push(mask);
         }
 
@@ -480,16 +525,16 @@ public static class RenderCommandBuilder
         }
     }
 
-    private static bool[] CachedReach(ClientState state, int wx, int wy, WorldLayer layer, int radius)
+    private static byte[] CachedReach(ClientState state, int wx, int wy, WorldLayer layer, int radius, bool mounted)
     {
-        var key = (wx, wy, layer, radius);
+        var key = (wx, wy, layer, radius, mounted);
         if (_reachCache.TryGetValue(key, out var hit)) return hit;
 
         int cells = LightOcclusion.MaskCells(radius);
         var mask = _reachSpare.TryGetValue(cells, out var spare) && spare.Count > 0
             ? spare.Pop()
-            : new bool[cells];
-        LightOcclusion.Fill(state, wx, wy, layer, radius, mask);
+            : new byte[cells];
+        LightOcclusion.Fill(state, wx, wy, layer, radius, mask, mounted);
         _reachCache[key] = mask;
         return mask;
     }

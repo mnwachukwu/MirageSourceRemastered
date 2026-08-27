@@ -186,7 +186,20 @@ public sealed partial class GuildSystem : GameSystem
             guild.Quest!.Objective,
             contributor => _pm[contributor].Guild == guild.Index,
             onCompleted: () => CompleteQuest(guild),
-            onAdvanced: () => _world.DirtyGuilds.Add(guild.Index));
+            onAdvanced: () => AdvanceQuest(guild));
+    }
+
+    // A guild quest is worked by everyone and watched by nobody, so each kill that counted is announced on the
+    // Guild channel — otherwise the only visible states are "acquired" and "complete", hours apart. Runs BEFORE
+    // onCompleted, so the finishing kill reads as its own full count and then the completion line.
+    private void AdvanceQuest(GuildRecord guild)
+    {
+        _world.DirtyGuilds.Add(guild.Index);   // in-progress kills persist on the next periodic save
+        if (guild.Quest is not { } quest) return;
+        _dispatcher.SendLocalizedChatToGuild(guild.Index, ServerStrings.Guild_QuestProgress,
+            new ChatMetadata(GameColor.Guild, ChatChannel.Guild),
+            ("Npc", _world.Npcs[quest.Objective.Target].TrimmedName),
+            ("Have", quest.Objective.Progress), ("Need", quest.Objective.Count));
     }
 
     // Stop the kernel registration for a guild's quest and forget the handle (abandon/expiry). No-op when none

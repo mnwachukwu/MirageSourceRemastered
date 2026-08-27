@@ -31,15 +31,15 @@ public sealed partial class GameplayScreen
     private float _readoutWidth;
 
     /// <summary>
-    /// Where the block starts, so its RIGHT edge never runs off the screen.
+    /// Where the block starts: at the action bar, unless that would run it off the screen.
     ///
-    /// <para>🔴 The action bar sits in the bottom-right corner — its left edge is at 583 of 800 — so anchoring
-    /// text there leaves about two hundred pixels before the screen ends, and the longest line needs half as
-    /// much again. Lines share a left edge (ragged-left is unreadable) and the block's right edge lands on the
-    /// bar's, so it grows leftward into the room it needs and a longer translation costs nothing.</para>
+    /// <para>The bar sits in the bottom-right corner — its left edge is at 583 of 800 — so there are barely
+    /// two hundred pixels to its right, and the lines are written to fit in them. A longer translation, or a
+    /// run of unusually long numbers, slides the block left by exactly the overflow and no further: the chat
+    /// log fills the other half of the screen, so every pixel of slide is a pixel on top of it.</para>
     /// </summary>
-    internal static float ReadoutLeft(float barLeft, float barRight, float widest)
-        => MathF.Max(0f, MathF.Min(barLeft, barRight - widest));
+    internal static float ReadoutLeft(float barLeft, float screenRight, float widest)
+        => MathF.Max(0f, MathF.Min(barLeft, screenRight - widest));
 
     private void DrawFrameReadout(SpriteBatch sb, SpriteFont font, double nowMs)
     {
@@ -55,7 +55,7 @@ public sealed partial class GameplayScreen
                 _readoutWidth = MathF.Max(_readoutWidth, font.MeasureString(text).X);
         }
 
-        float x = ReadoutLeft(HotkeyBarPanel.Bounds.Left, HotkeyBarPanel.Bounds.Right, _readoutWidth);
+        float x = ReadoutLeft(HotkeyBarPanel.Bounds.Left, UiHelper.RefW, _readoutWidth);
         float y = HotkeyBarPanel.Bounds.Top - ReadoutGap;
         for (int i = _readoutLines.Count - 1; i >= 0; i--)
         {
@@ -100,11 +100,14 @@ public sealed partial class GameplayScreen
                     ("Frames", s.CatchUpFrames), ("Updates", s.ExtraUpdates),
                     ("Total", s.TotalCatchUpFrames), ("Slow", s.SlowFrames)),
                     s.CatchUpFrames > 0 ? ReadoutAlarm : ReadoutDetail));
+                // Two lines: the whole breakdown on one runs past the screen edge, and the block sits above
+                // the action bar in the bottom-right corner with only a couple of hundred pixels to its right.
+                var worstColor = s.Worst.Gen2 > 0 ? ReadoutAlarm : ReadoutDetail;
                 lines.Add((ClientStrings.Format(ClientStrings.Hud_FrameWorst,
-                    ("Total", Ms(s.Worst.TotalMs)), ("Draw", Ms(s.Worst.DrawMs)),
+                    ("Total", Ms(s.Worst.TotalMs)), ("Draw", Ms(s.Worst.DrawMs))), worstColor));
+                lines.Add((ClientStrings.Format(ClientStrings.Hud_FrameWorstRest,
                     ("Update", Ms(s.Worst.UpdateMs)),
-                    ("Gc", $"{s.Worst.Gen0}/{s.Worst.Gen1}/{s.Worst.Gen2}")),
-                    s.Worst.Gen2 > 0 ? ReadoutAlarm : ReadoutDetail));
+                    ("Gc", $"{s.Worst.Gen0}/{s.Worst.Gen1}/{s.Worst.Gen2}")), worstColor));
                 // Windowed collections and the churn driving them, with the session totals behind. A rate
                 // can be judged; a total that only ever climbs cannot.
                 lines.Add((ClientStrings.Format(ClientStrings.Hud_FrameGc,

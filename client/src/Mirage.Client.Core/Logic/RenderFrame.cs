@@ -78,13 +78,13 @@ public readonly record struct LightSourceCmd(
     /// <c>LightOcclusion.MaskTexels(ReachRadius)</c> a side — finer than a tile, so the falloff at a wall
     /// can stop clear of it. Null means everything in range: a light with nothing to hide behind, or a
     /// frame built without occlusion.</summary>
-    bool[]? Reach = null,
+    byte[]? Reach = null,
     /// <summary>The same, traced from the tile a mid-step emitter is moving INTO, with
     /// <see cref="ReachBlend"/> saying how far between the two it is. Reach is answered per tile, so without
     /// this the whole shadow pattern changes in one jump each time an emitter crosses a border; blending the
     /// two makes it continuous. Null whenever the emitter is standing still, which is what keeps the second
     /// trace something only moving things pay for.</summary>
-    bool[]? ReachInto = null,
+    byte[]? ReachInto = null,
     float IntoScreenX = 0f, float IntoScreenY = 0f,
     /// <summary>0 on the tile just left, 1 on the tile being entered.</summary>
     float ReachBlend = 0f);

@@ -69,6 +69,7 @@ public static partial class ClientStrings
     public const string Hud_FrameLight = nameof(Hud_FrameLight);
     public const string Hud_FrameCatchUp = nameof(Hud_FrameCatchUp);
     public const string Hud_FrameWorst = nameof(Hud_FrameWorst);
+    public const string Hud_FrameWorstRest = nameof(Hud_FrameWorstRest);
     public const string Hud_FrameGc = nameof(Hud_FrameGc);
     public const string ChatPanel_HomeInCombat = nameof(ChatPanel_HomeInCombat);
     public const string ChatPanel_UsageTell = nameof(ChatPanel_UsageTell);

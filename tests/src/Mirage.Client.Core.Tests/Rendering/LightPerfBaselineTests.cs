@@ -23,9 +23,62 @@ namespace Mirage.Client.Core.Tests;
 [Explicit, Category("Benchmark")]
 public class LightPerfBaselineTests
 {
-    // A 3x3 of maps with walls scattered thickly enough that occlusion has real work to do — a clear field
+    /// <summary>
+    /// The frame after the reach cache lets go, which is the only frame that can hitch.
+    ///
+    /// <para>Every mask is kept until something it was traced from moves, so a steady scene pays nothing.
+    /// A door opening or a seam crossing drops the lot at once, and every light on screen re-traces in
+    /// that one frame — so this is the number that decides whether tracing per texel is affordable.</para>
+    /// </summary>
+    [Test]
+    public void Benchmark_Build_TheFrameAfterTheCacheDrops()
+    {
+        TestContext.Out.WriteLine("torches   scattered us/frame   clustered us/frame");
+        foreach (int torches in new[] { 5, 10, 20, 30 })
+        {
+            TestContext.Out.WriteLine(
+                $"  {torches,-8}  {Measure(torches, Scattered),16:F1}  {Measure(torches, Clustered),16:F1}");
+        }
+
+        static double Measure(int torches, Func<int, int, bool> wall)
+        {
+            var state = WalledState(wall);
+            for (int i = 1; i <= torches && i < state.Players.Length; i++)
+            {
+                var p = state.Players[i];
+                p.Name = $"player{i}";
+                p.Sprite = 1;
+                p.Map = state.CenterMapNum;
+                p.X = 1 + i % (Constants.MaxMapX - 1);
+                p.Y = 1 + i % (Constants.MaxMapY - 1);
+                p.XOffset = -Constants.PicX / 2f;      // mid-step, so both masks are traced
+            }
+
+            var frame = new RenderFrame();
+            var camera = new Camera();
+            camera.Update(8, 6, 0f, 0f, state.NeighborMapNums, state.MapTilesX, state.MapTilesY);
+            return MicrosPer(200, () =>
+            {
+                state.NeighborMaps[1, 1]!.Revision++;   // what a door opening does: every mask is let go
+                frame.Clear();
+                RenderCommandBuilder.Build(state, frame, camera, myIndex: state.MyIndex);
+            });
+        }
+    }
+
+    // Evenly scattered walls: the worst case for skipping work, since something stands within a few tiles of
+    // everything. A real map does not look like this.
+    private static readonly Func<int, int, bool> Scattered = (x, y) => (x * 7 + y * 3) % 11 == 0;
+
+    // What a map really looks like: ranges and building walls, with open ground between them. Roughly the
+    // same share of blocked tiles as the authored world, gathered instead of sprinkled.
+    private static readonly Func<int, int, bool> Clustered = (x, y) => x / 5 % 2 == 0 && y / 4 % 2 == 0;
+
+    private static ClientState WalledState() => WalledState(Scattered);
+
+    // A 3x3 of maps with walls laid down by `wall`, so occlusion has real work to do — a clear field
     // measures the loop but not the tracing.
-    private static ClientState WalledState()
+    private static ClientState WalledState(Func<int, int, bool> wall)
     {
         var state = new ClientState { MyIndex = 1, CenterMapNum = 1 };
         for (int col = 0; col < 3; col++)
@@ -37,8 +90,8 @@ public class LightPerfBaselineTests
                 {
                     for (int y = 0; y <= Constants.MaxMapY; y++)
                     {
-                        bool wall = (x * 7 + y * 3) % 11 == 0;
-                        map.EditTile(x, y, t => t with { Type = wall ? TileType.Blocked : TileType.Walkable });
+                        bool blocked = wall(x, y);
+                        map.EditTile(x, y, t => t with { Type = blocked ? TileType.Blocked : TileType.Walkable });
                     }
                 }
 
@@ -80,11 +133,11 @@ public class LightPerfBaselineTests
         TestContext.Out.WriteLine("  r   tiles  texels   KB      us/fill");
         foreach (int r in new[] { 2, 3, 4, 6, 8 })
         {
-            var mask = new bool[LightOcclusion.MaskCells(r)];
+            var mask = new byte[LightOcclusion.MaskCells(r)];
             int side = LightOcclusion.MaskSide(r);
             int texels = LightOcclusion.MaskTexels(r);
             double us = MicrosPer(2000, () =>
-                LightOcclusion.Fill(state, cx, cy, WorldLayer.Ground, r, mask));
+                LightOcclusion.Fill(state, cx, cy, WorldLayer.Ground, r, mask, mounted: true));
             // What the shell then uploads: one 32-bit texel each, which is the GPU-side half of the bill.
             double kb = texels * texels / 1024.0;   // Alpha8: one byte a texel
             TestContext.Out.WriteLine(

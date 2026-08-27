@@ -941,7 +941,7 @@
   "BlockedTileDialog_Title": "Bloqueado",
   "BlockedTileDialog_Description": "Nada atravessa uma casa bloqueada. O que mais ela detém é consigo: uma parede sólida detém tudo, uma guarda ou uma janela não detêm nada.",
   "BlockedTileDialog_BlocksLight": "Detém a luz",
-  "BlockedTileDialog_BlocksLightTooltip": "Desligado, um candeeiro atrás desta casa continua a iluminar o chão à frente dela.",
+  "BlockedTileDialog_BlocksLightTooltip": "Marcado, esta casa projeta sombra com a forma do seu próprio desenho: a luz passa por onde o gráfico está vazio. Desmarcado, um candeeiro atrás dela continua a iluminar o chão à frente.",
   "BlockedTileDialog_BlocksSight": "Detém a linha de visão",
   "BlockedTileDialog_BlocksSightTooltip": "Desligado, os feitiços atravessam-na.",
   "Common_FillConnectedRun": "Aplicar a todo o troço ligado",
