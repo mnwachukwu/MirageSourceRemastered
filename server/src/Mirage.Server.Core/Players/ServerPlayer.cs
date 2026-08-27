@@ -169,10 +169,11 @@ public sealed class ServerPlayer
     public bool ViewingMarket { get; set; }
 
     // ── Active shop/inn ───────────────────────────────────────────────────────
-    // Shops are not map-bound: a shop/inn is "open" for this player only while they stand by the keeper NPC
-    // that opened it. Set in PacketHandler.OpenNpcShop (shop number + the keeper's map/slot); every follow-up op
-    // (buy/repair/bank/market/set-spawn) re-validates r=5 of that keeper via ActiveShop, and it's cleared on a
-    // map change (MovementSystem.PlayerWarp). Transient — never persisted.
+    // Shops are not map-bound: a shop/inn hangs off the keeper NPC that opened it. Set in
+    // PacketHandler.OpenNpcShop (shop number + the keeper's map/slot) once the player is within reach, and
+    // cleared when they leave the map (MovementSystem.PlayerWarp) or the character (JoinLeaveSystem.ClearGhost).
+    // Follow-up ops — buy, repair, bank, market, set-spawn — read it through ActiveShop, which checks the keeper
+    // is still that keeper and deliberately does NOT re-check reach. Transient — never persisted.
     public int ActiveShopNum { get; set; }
     public int ActiveShopKeeperMap { get; set; }
     public int ActiveShopKeeperSlot { get; set; }
@@ -186,6 +187,30 @@ public sealed class ServerPlayer
 
     public void ClearActiveShop() => SetActiveShop(0, 0, 0);
 
+    // ── Active quest menu ─────────────────────────────────────────────────────
+    // The NPC whose quest menu this player has open. Recorded by PacketHandler.HandleNpcInteract once the
+    // player is within reach, and cleared when they leave the map or the character — the same lifetime as a
+    // shop session, for the same reason: the quest dialog pins the player where they stand, so the only way
+    // to end up apart from the giver is for the GIVER to walk off. Transient — never persisted.
+    public int ActiveQuestNpcMap { get; set; }
+    public int ActiveQuestNpcSlot { get; set; }
+
+    public void SetActiveQuestNpc(int mapNum, int npcSlot)
+    {
+        ActiveQuestNpcMap = mapNum;
+        ActiveQuestNpcSlot = npcSlot;
+    }
+
+    public void ClearActiveQuestNpc() => SetActiveQuestNpc(0, 0);
+
+    /// <summary>The NPC template whose quest menu is open, or 0 when none is.
+    ///
+    /// <para>Reach is decided when the menu opens and never again. What has to hold afterwards is that the
+    /// slot still holds an NPC at all — the caller then checks that NPC gives or takes the quest in hand,
+    /// which is what stops a session resolving into a stranger's quest.</para></summary>
+    public int ActiveQuestNpc(GameWorld world) =>
+        ActiveQuestNpcSlot <= 0 ? 0 : world.NpcTemplateAt(ActiveQuestNpcMap, ActiveQuestNpcSlot);
+
     /// <summary>Observer mode: this player passes through everything, spends no stamina, cannot act on
     /// anyone and cannot be acted on. TRANSIENT — cleared when the character leaves, so it is never
     /// something an account carries back in with it.</summary>
@@ -195,14 +220,20 @@ public sealed class ServerPlayer
     /// held-key inputs, so the refusal is throttled rather than printed per attempt.</summary>
     public long GodModeNoticeAt { get; set; }
 
-    /// <summary>The shop/inn this player currently has open, re-validated to still be within r=5 of the keeper
-    /// NPC that opened it (and that the keeper still keeps it) — else 0. A shop is reachable only while
-    /// standing by its keeper, never by occupying a particular map.</summary>
+    /// <summary>The shop or inn this player has open, or 0.
+    ///
+    /// <para>REACH DECIDES THE OPENING AND NOTHING AFTER IT. Every panel a keeper opens locks the player where
+    /// they stand, so a session that begins in range can only leave it because the KEEPER walked off — and a
+    /// wandering NPC cancelling a half-finished withdrawal is the shop breaking, not a rule being enforced.
+    /// The session ends when the player leaves the map, and by then the panel has closed with them.</para>
+    ///
+    /// <para>What still has to hold is that the keeper is the same one: a keeper can die and its slot respawn
+    /// as something else, and a session must not survive into a stranger's inventory.</para></summary>
     public int ActiveShop(GameWorld world, int index)
     {
         if (ActiveShopNum <= 0) return 0;
-        if (!world.IsNpcInInteractRange(index, Char, ActiveShopKeeperMap, ActiveShopKeeperSlot, out int keeperNpc)) return 0;
-        return world.ShopAssignedToNpc(keeperNpc) == ActiveShopNum ? ActiveShopNum : 0;
+        int keeperNpc = world.NpcTemplateAt(ActiveShopKeeperMap, ActiveShopKeeperSlot);
+        return keeperNpc > 0 && world.ShopAssignedToNpc(keeperNpc) == ActiveShopNum ? ActiveShopNum : 0;
     }
 
     public bool GettingMap { get; set; }

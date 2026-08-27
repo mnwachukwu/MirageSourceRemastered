@@ -46,8 +46,9 @@ public sealed partial class NpcAiSystem : GameSystem
             var gp = grid.PositionOf(p.Map);
             if (gp is null) continue;  // defensive: observer that left the area mid-tick
             var (pwx, pwy) = grid.ToWorld(gp.Value.col, gp.Value.row, p.X, p.Y);
-            if (Math.Abs(pwx - npcWX) > range || Math.Abs(pwy - npcWY) > range) continue;
-            int d = WorldCoordHelper.WorldManhattan(npcWX, npcWY, pwx, pwy);
+            // Range is measured from the BODY, so a big NPC notices you at the same distance on every side.
+            if (!WorldCoordHelper.AreFootprintsWithin(npcWX, npcWY, npc.EffectiveSize, pwx, pwy, 1, range)) continue;
+            int d = WorldCoordHelper.FootprintManhattan(npcWX, npcWY, npc.EffectiveSize, pwx, pwy, 1);
             // Lowest level wins; nearest breaks equal-level ties.  Cheap cutoff before LoS/BFS work:
             // skip anyone who can't beat the current (level, distance) best.
             if (p.Level > bestLevel) continue;
@@ -187,14 +188,17 @@ public sealed partial class NpcAiSystem : GameSystem
                     var beh = _world.Npcs[other.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
                     var (oWX, oWY) = grid.ToWorld(col, row, other.X, other.Y);
-                    if (Math.Abs(oWX - aWX) > range || Math.Abs(oWY - aWY) > range) continue;
-                    int d = WorldCoordHelper.WorldManhattan(aWX, aWY, oWX, oWY);
+                    // Both sides can be oversize here, so range and nearness are measured edge to edge.
+                    int otherSize = _world.Npcs[other.Num].EffectiveSize;
+                    if (!WorldCoordHelper.AreFootprintsWithin(aWX, aWY, attackerNpc.EffectiveSize, oWX, oWY, otherSize, range)) continue;
+                    int d = WorldCoordHelper.FootprintManhattan(aWX, aWY, attackerNpc.EffectiveSize, oWX, oWY, otherSize);
                     if (d >= bestDist) continue;  // can't beat the current nearest; skip before LoS/BFS
                     if (!WorldCoordHelper.HasClearSpellLineOfSight(aWX, aWY, oWX, oWY, los)) continue;
                     // Reachability gate — same rationale as FindLowestLevelPlayer.  An LoS-visible
                     // mob behind an NpcAvoid wall passes the LoS check but has no walkable path;
                     // locking on would loop give-up → instant reacquire forever.
-                    if (FindStepTowardObservableArea(mapNum, attacker.X, attacker.Y, attacker.Layer, m, other.X, other.Y, other.Layer, attackerNpc) is null)
+                    if (FindStepTowardObservableArea(mapNum, attacker.X, attacker.Y, attacker.Layer, m, other.X, other.Y, other.Layer, attackerNpc,
+                                                 targetSize: _world.Npcs[other.Num].EffectiveSize) is null)
                         continue;
                     bestDist = d;
                     best = other.GetSpawnIdentity(m, s);
@@ -212,7 +216,8 @@ public sealed partial class NpcAiSystem : GameSystem
                     int d = WorldCoordHelper.WorldManhattan(aWX, aWY, oWX, oWY);
                     if (d >= bestDist) continue;
                     if (!WorldCoordHelper.HasClearSpellLineOfSight(aWX, aWY, oWX, oWY, los)) continue;
-                    if (FindStepTowardObservableArea(mapNum, attacker.X, attacker.Y, attacker.Layer, m, gt.X, gt.Y, gt.Layer, attackerNpc) is null)
+                    if (FindStepTowardObservableArea(mapNum, attacker.X, attacker.Y, attacker.Layer, m, gt.X, gt.Y, gt.Layer, attackerNpc,
+                                                 targetSize: _world.Npcs[gt.Num].EffectiveSize) is null)
                         continue;
                     bestDist = d;
                     best = gt.GetSpawnIdentity(m, 0);
@@ -320,7 +325,7 @@ public sealed partial class NpcAiSystem : GameSystem
         // fallback here), but never mid-slide, and with no deliberate beat (see the player-target path).
         if (_combat.CanNpcAttackNpc(mapNum, mn, victimMap, victimMn, now))
         {
-            var faceDir = FaceTargetDir(mapNum, mn.X, mn.Y, victimMap, victimMn.X, victimMn.Y, mn.Dir);
+            var faceDir = FaceTargetDir(mapNum, mn.X, mn.Y, _world.Npcs[mn.Num].EffectiveSize, victimMap, victimMn.X, victimMn.Y, mn.Dir);
             if (mn.Dir != faceDir)
             {
                 if (now < mn.NextMoveMs) return;                  // still sliding into place — finish the move first

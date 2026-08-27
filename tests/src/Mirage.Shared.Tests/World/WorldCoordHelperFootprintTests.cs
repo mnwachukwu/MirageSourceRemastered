@@ -188,4 +188,102 @@ public class WorldCoordHelperFootprintTests
         Assert.That(WorldCoordHelper.AreFootprintsAdjacent(4, 6, 3, 7, 9, 3), Is.False,
             "melee is cardinal — corner contact is not reach");
     }
+
+    // ── Measuring from the body rather than the anchor ────────────────────────
+    // The anchor is bookkeeping — the top-left tile of a block that is all equally the NPC. Everything that
+    // compares a distance against a threshold has to measure from the block, or the threshold means a
+    // different thing on each side of it.
+
+    /// <summary>Every tile touching a body faces the edge it touches, so the leading-edge strip covers it.</summary>
+    [TestCase(2)]
+    [TestCase(3)]
+    public void FootprintFacingToward_EveryTouchingTile_LandsOnTheLeadingEdge(int size)
+    {
+        const int ax = 5, ay = 5;
+        for (int i = 0; i < size; i++)
+        {
+            (int X, int Y)[] touching =
+            [
+                (ax + i, ay - 1),          // above column i
+                (ax + i, ay + size),       // below column i
+                (ax - 1, ay + i),          // left of row i
+                (ax + size, ay + i),       // right of row i
+            ];
+            foreach (var (tx, ty) in touching)
+            {
+                var dir = WorldCoordHelper.FootprintFacingToward(ax, ay, size, tx, ty);
+                Assert.That(WorldCoordHelper.LeadingEdgeTiles(ax, ay, size, dir).Contains(tx, ty), Is.True,
+                    $"size {size}: ({tx},{ty}) touches the body but the facing points elsewhere");
+            }
+        }
+    }
+
+    [Test]
+    public void FootprintFacingToward_DiagonalPastACorner_IsNotOnAnyEdge()
+    {
+        // Body 5..7 both axes. (8,8) is past the bottom-right corner — touching nothing, so whichever edge
+        // it resolves to must not claim it. Melee is cardinal.
+        var dir = WorldCoordHelper.FootprintFacingToward(5, 5, 3, 8, 8);
+        Assert.That(WorldCoordHelper.LeadingEdgeTiles(5, 5, 3, dir).Contains(8, 8), Is.False);
+    }
+
+    [Test]
+    public void FootprintManhattan_IsOneExactlyWhenAdjacent()
+    {
+        for (int aSize = 1; aSize <= 3; aSize++)
+        {
+            for (int bSize = 1; bSize <= 3; bSize++)
+            {
+                for (int bx = 0; bx <= 10; bx++)
+                {
+                    for (int by = 0; by <= 10; by++)
+                    {
+                        bool adjacent = WorldCoordHelper.AreFootprintsAdjacent(5, 5, aSize, bx, by, bSize);
+                        int d = WorldCoordHelper.FootprintManhattan(5, 5, aSize, bx, by, bSize);
+                        Assert.That(d == 1, Is.EqualTo(adjacent),
+                            $"sizes {aSize}/{bSize} at ({bx},{by}): distance {d} vs adjacency {adjacent}");
+                    }
+                }
+            }
+        }
+    }
+
+    [Test]
+    public void FootprintManhattan_IsSymmetric_AndSidesAgree()
+    {
+        // The lopsidedness this replaces: anchor-to-anchor, a body reads as further from something at its
+        // bottom-right than from the same thing at its top-left.
+        Assert.That(WorldCoordHelper.FootprintManhattan(5, 5, 3, 5, 2, 1),
+            Is.EqualTo(WorldCoordHelper.FootprintManhattan(5, 5, 3, 5, 10, 1)),
+            "three tiles above the body is the same distance as three tiles below it");
+        Assert.That(WorldCoordHelper.FootprintManhattan(5, 5, 3, 9, 6, 2),
+            Is.EqualTo(WorldCoordHelper.FootprintManhattan(9, 6, 2, 5, 5, 3)),
+            "and reading it from either body gives the same number");
+    }
+
+    // 🔴 The safety property for the whole change: a one-tile NPC's body IS its anchor, so every helper here
+    // must agree exactly with the anchor math it replaced. Nothing changes for the overwhelming majority of
+    // the roster; only oversize NPCs move at all.
+    [Test]
+    public void AtSizeOne_EveryFootprintMeasureMatchesTheAnchorMath()
+    {
+        for (int bx = 0; bx <= 12; bx++)
+        {
+            for (int by = 0; by <= 12; by++)
+            {
+                if (bx == 5 && by == 5) continue;   // the body's own tile has no side to be beyond
+                Assert.Multiple(() =>
+                {
+                    Assert.That(WorldCoordHelper.FootprintFacingToward(5, 5, 1, bx, by),
+                        Is.EqualTo(WorldCoordHelper.WorldDirectionFrom(5, 5, bx, by)), $"facing at ({bx},{by})");
+                    Assert.That(WorldCoordHelper.FootprintManhattan(5, 5, 1, bx, by, 1),
+                        Is.EqualTo(WorldCoordHelper.WorldManhattan(5, 5, bx, by)), $"distance at ({bx},{by})");
+                    Assert.That(WorldCoordHelper.FootprintOffsetTo(5, 5, 1, bx, by),
+                        Is.EqualTo((bx - 5, by - 5)), $"offset at ({bx},{by})");
+                    Assert.That(WorldCoordHelper.AreFootprintsWithin(5, 5, 1, bx, by, 1, 4),
+                        Is.EqualTo(System.Math.Abs(bx - 5) <= 4 && System.Math.Abs(by - 5) <= 4), $"range box at ({bx},{by})");
+                });
+            }
+        }
+    }
 }

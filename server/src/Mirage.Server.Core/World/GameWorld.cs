@@ -144,6 +144,21 @@ public sealed class GameWorld
         return true;
     }
 
+    /// <summary>The NPC template standing in <paramref name="mapNum"/>'s <paramref name="npcSlot"/>, or 0 when
+    /// the slot is empty or out of range. Asks WHO is there and nothing else — no distance, no planes, no
+    /// observer test.
+    ///
+    /// <para>What an open shop session re-checks. A session is opened within reach of its keeper and stays open
+    /// after that, so the question a purchase asks is not "am I still standing there" but "is the keeper I
+    /// opened this with still the one in that slot" — which a keeper dying and its slot respawning as something
+    /// else would answer no.</para></summary>
+    public int NpcTemplateAt(int mapNum, int npcSlot)
+    {
+        if (mapNum < 1 || mapNum > Limits.Maps) return 0;
+        if (npcSlot < 1 || npcSlot > Constants.MaxMapNpcs) return 0;
+        return MapNpcs[mapNum, npcSlot].Num;
+    }
+
     /// <summary>Is a dropped item close enough for <paramref name="pc"/> to reach, and on a plane that
     /// connects to theirs? The same world-geometry rule as <see cref="IsNpcInInteractRange"/>, and for the
     /// same reason: the tile menu offers pick-up from a distance, so the SERVER has to be the one deciding
@@ -442,8 +457,7 @@ public sealed class GameWorld
         if (x < Constants.MaxNpcSize - 1 || y < Constants.MaxNpcSize - 1)
         {
             var grid = WorldCoordHelper.BuildMapGrid(Maps, mapNum);
-            int qwx = WorldCoordHelper.MapTilesX + x;   // query tile in world space (center cell = mapNum)
-            int qwy = WorldCoordHelper.MapTilesY + y;
+            var (qwx, qwy) = grid.CenterToWorld(x, y);   // query tile in world space (center cell = mapNum)
             if (NeighborBigNpcCovers(in grid, 0, 1, qwx, qwy, exclude, layer)) return true;  // left
             if (NeighborBigNpcCovers(in grid, 1, 0, qwx, qwy, exclude, layer)) return true;  // up
             if (NeighborBigNpcCovers(in grid, 0, 0, qwx, qwy, exclude, layer)) return true;  // up-left

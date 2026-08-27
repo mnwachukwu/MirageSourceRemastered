@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using System.Diagnostics;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Core.Cache;
@@ -30,6 +31,7 @@ public sealed partial class MirageGame : Game
     /// onto the letterboxed map area, then the HUD, panels and dialogs at reference scale.</summary>
     protected override void Draw(GameTime gameTime)
     {
+        long drawStart = Stopwatch.GetTimestamp();
         var gs = _screens.Current as GameplayScreen;
         var lb = GetLetterbox();
 
@@ -95,10 +97,14 @@ public sealed partial class MirageGame : Game
                 // ground light is OCCLUDED by the fringe (it never lights the deck/décor above it).
                 GraphicsDevice.SetRenderTarget(_lightRT);
                 GraphicsDevice.Clear(ambient);
-                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);   // ALL lights → ground
+                _lightStart = Stopwatch.GetTimestamp();
+                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);
+                _lightTicks += Stopwatch.GetTimestamp() - _lightStart;   // ALL lights → ground
                 GraphicsDevice.SetRenderTarget(_lightRTFringe);
                 GraphicsDevice.Clear(ambient);
-                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, WorldLayer.Fringe, _lightMaskEffect);   // fringe lights only
+                _lightStart = Stopwatch.GetTimestamp();
+                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, WorldLayer.Fringe, _lightMaskEffect);
+                _lightTicks += Stopwatch.GetTimestamp() - _lightStart;   // fringe lights only
 
                 // Pre-multiply each world target by its OWN light map IN PLACE (LightModulateBlend preserves the
                 // target's alpha, so the transparent fringe gaps survive lighting).
@@ -126,11 +132,11 @@ public sealed partial class MirageGame : Game
                 // Names/bars float over EVERYTHING (never occluded by the deck). GROUND labels + the shared extras
                 // (target arrow / chat bubbles / floats / debug) are lit by ALL lights (any layer); FRINGE labels
                 // only by fringe lights (ground lights don't reach the deck). Reuse _worldRTFringe as a scratch
-                // overlay target (its world content is already composited) and rebuild _lightRT as the ALL-halos
-                // map for the ground/extras pass; _lightRTFringe still holds the fringe map for the fringe pass.
-                GraphicsDevice.SetRenderTarget(_lightRT);
-                GraphicsDevice.Clear(ambient);
-                gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);   // null filter = ALL halos
+                // overlay target (its world content is already composited). Both light maps are read as they
+                // stand: everything since they were built has bound them as a source texture and never as a
+                // target, so _lightRT still holds the ALL-halos map and _lightRTFringe the fringe-only one.
+                // Rebuilding either here would re-run the whole halo batch to land on the same pixels — a third
+                // of the frame's light cost, and the split path's alone.
 
                 // Draw labels into the scratch target, multiply by the given light map in place (the scratch stays
                 // bound after the overlay batch), then alpha-composite the lit labels over _worldRT.
@@ -179,7 +185,9 @@ public sealed partial class MirageGame : Game
                 {
                     GraphicsDevice.SetRenderTarget(_lightRT);
                     GraphicsDevice.Clear(Color.Lerp(Color.White, NightAmbient, rawDarkness));
+                    _lightStart = Stopwatch.GetTimestamp();
                     gs.DrawLightMap(_sb!, wt, _mapLightTex!, _lightHaloOuterTex!, _lightHaloInnerTex!, _totalTimeSeconds, null, _lightMaskEffect);
+                    _lightTicks += Stopwatch.GetTimestamp() - _lightStart;
                 }
             }
         }
@@ -275,6 +283,38 @@ public sealed partial class MirageGame : Game
         UiHelper.CommitFrameCursor();
 
         base.Draw(gameTime);
+        RecordFrame(drawStart);
+    }
+
+    /// <summary>Closes off the frame's accounting. Present-to-present is the interval a player actually
+    /// perceives, so the frame is measured Draw-to-Draw; the very first one has nothing to measure from and
+    /// is skipped rather than recorded as however long startup took.</summary>
+    private void RecordFrame(long drawStart)
+    {
+        long end = Stopwatch.GetTimestamp();
+        double toMs = 1000.0 / Stopwatch.Frequency;
+        // Collections that ran DURING this frame, so a spike that coincides with one has named itself.
+        int g0 = GC.CollectionCount(0), g1 = GC.CollectionCount(1), g2 = GC.CollectionCount(2);
+        // Thread-local, and the loop is one thread, so this is the frame's own churn rather than the
+        // process's. What drives Gen0, and the number to watch when a collection count is climbing.
+        long allocated = GC.GetAllocatedBytesForCurrentThread();
+        if (_lastPresentStamp != 0)
+        {
+            _state.Frames.Record((end - _lastPresentStamp) * toMs, _updateTicks * toMs,
+                                 (end - drawStart) * toMs, _updatesThisFrame, _runningSlowly,
+                                 g0 - _lastGen0, g1 - _lastGen1, g2 - _lastGen2, allocated - _lastAllocated,
+                                 _lightTicks * toMs);
+        }
+
+        _lastAllocated = allocated;
+        _lightTicks = 0;
+        _lastGen0 = g0;
+        _lastGen1 = g1;
+        _lastGen2 = g2;
+        _lastPresentStamp = end;
+        _updatesThisFrame = 0;
+        _updateTicks = 0;
+        _runningSlowly = false;
     }
 
     /// <summary>Sizes the world render target to the current window: _worldSS = ceil(window scale)
@@ -306,8 +346,13 @@ public sealed partial class MirageGame : Game
             SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);   // two-light-map split: ground content
         _worldRTFringe = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss, false,
             SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);   // two-light-map split: fringe content (transparent gaps)
-        _lightRT = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss);
-        _lightRTFringe = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss);    // fringe-layer light map (split only)
+        // PreserveContents is REQUIRED on both light maps: the split path builds each one, then keeps reading it
+        // as a source texture across several later target binds — the world multiply, then the weather and label
+        // passes. Under DiscardContents those reads are only valid by grace of the backend.
+        _lightRT = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss, false,
+            SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+        _lightRTFringe = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss, false,
+            SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);   // fringe-layer light map (split only)
         _bloodRT = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss);
         _bloodRTFringe = new RenderTarget2D(GraphicsDevice, Camera.ViewW * ss, Camera.ViewH * ss);   // fringe-layer blood field
         _worldSS = ss;

@@ -492,7 +492,9 @@ public sealed partial class ChatPanel
                 OnToggleAdminHelp?.Invoke();
                 break;
             case "fps":
-                AddLine(ClientStrings.Format(ClientStrings.ChatPanel_FpsDisplay, ("Fps", state.GameFps)), GameColor.Pink);
+                state.ShowFps = !state.ShowFps;
+                AddLine(ClientStrings.Get(state.ShowFps ? ClientStrings.ChatPanel_FpsOn : ClientStrings.ChatPanel_FpsOff),
+                        GameColor.Pink);
                 break;
             case "stats":
                 OnToggleStats?.Invoke();

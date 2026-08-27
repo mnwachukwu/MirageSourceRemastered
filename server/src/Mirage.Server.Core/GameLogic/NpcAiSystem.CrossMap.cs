@@ -421,7 +421,7 @@ public sealed partial class NpcAiSystem : GameSystem
             {
                 // Turn to face BEFORE the swing (so the client applies the new Dir before the swoosh spawns) —
                 // the legs pass does this on arrival; brain fallback here, never mid-slide, no deliberate beat.
-                var faceDir = FaceTargetDir(mapNum, t.X, t.Y, vp.Map, vp.X, vp.Y, t.Dir);
+                var faceDir = FaceTargetDir(mapNum, t.X, t.Y, _world.Npcs[t.Num].EffectiveSize, vp.Map, vp.X, vp.Y, t.Dir);
                 if (t.Dir != faceDir)
                 {
                     if (now < t.NextMoveMs) continue;             // still sliding into place — finish the move first

@@ -44,12 +44,12 @@ public class NpcPathCacheTests
     // The blind single-source BFS: (mapNum, fromX, fromY, fromLayer, targetMap, toX, toY, targetLayer, npc, planAroundActors=false, 0, 0).
     static Direction? SingleSource(NpcAiSystem ai, NpcRecord npc, int fromX, int fromY, int toX, int toY,
                                    WorldLayer fromLayer = WorldLayer.Ground, WorldLayer targetLayer = WorldLayer.Ground)
-        => (Direction?)FindStepMethod.Invoke(ai, new object[] { Map, fromX, fromY, fromLayer, Map, toX, toY, targetLayer, npc, false, 0, 0 });
+        => (Direction?)FindStepMethod.Invoke(ai, new object[] { Map, fromX, fromY, fromLayer, Map, toX, toY, targetLayer, npc, false, 0, 0, 1 });
 
     // The cached decode: (mapNum, fromX, fromY, fromLayer, targetMap, toX, toY, targetLayer, npc).
     static Direction? Cached(NpcAiSystem ai, NpcRecord npc, int fromX, int fromY, int toX, int toY,
                              WorldLayer fromLayer = WorldLayer.Ground, WorldLayer targetLayer = WorldLayer.Ground)
-        => (Direction?)CachedStepMethod.Invoke(ai, new object[] { Map, fromX, fromY, fromLayer, Map, toX, toY, targetLayer, npc });
+        => (Direction?)CachedStepMethod.Invoke(ai, new object[] { Map, fromX, fromY, fromLayer, Map, toX, toY, targetLayer, npc, 1 });
 
     // ── Differential equivalence (the drift lock) ─────────────────────────────
 
@@ -212,7 +212,7 @@ public class NpcPathCacheTests
 
         // NPC at the ramp foot (14,6) on Map 1's ground; target = a player on Map 2's deck (0,6), Fringe.
         var step = (Direction?)FindStepMethod.Invoke(ai, new object[]
-            { Map, 14, 6, WorldLayer.Ground, 2, 0, 6, WorldLayer.Fringe, npc, false, 0, 0 });
+            { Map, 14, 6, WorldLayer.Ground, 2, 0, 6, WorldLayer.Fringe, npc, false, 0, 0, 1 });
         Assert.That(step, Is.EqualTo(Direction.Right),
             "ground chaser at a cross-seam ramp foot must mount toward a deck on the neighbor map");
     }

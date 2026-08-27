@@ -165,11 +165,14 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
     public void SendToViewportAt(int mapNum, int x, int y, IPacket packet)
     {
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
-        // Speaker tile sits at the center cell of its own observable area, so its world coords
-        // anchor at (MapTilesX, MapTilesY).  Same arithmetic as the player path above —
-        // SendToViewport is just SendToViewportAt with the speaker's char position.
-        int spWX = WorldCoordHelper.MapTilesX + x;
-        int spWY = WorldCoordHelper.MapTilesY + y;
+        // Speaker tile sits at the center cell of its own observable area, so its world coords anchor at
+        // ITS OWN map's size — same-map ToWorldRelative reads Width/Height off the record. 🔴 The listener
+        // coords below come from that same grid, so a default-size constant here would put speaker and
+        // listener on DIFFERENT grids the moment a map is not 16x12, and earshot would answer nonsense.
+        // Same arithmetic as the player path above — SendToViewport is SendToViewportAt with the char position.
+        var sw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, mapNum, x, y);
+        if (sw is null) return;
+        int spWX = sw.Value.worldX, spWY = sw.Value.worldY;
 
         string json = PacketSerializer.Serialize(packet);
         foreach (int i in _world.MapObservers[mapNum])
@@ -207,8 +210,9 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         }
 
         // Say-range: the speaker's viewport (same earshot test as SendToViewportAt), minus ignorers.
-        int spWX = WorldCoordHelper.MapTilesX + spc.X;
-        int spWY = WorldCoordHelper.MapTilesY + spc.Y;
+        var sw = WorldCoordHelper.ToWorldRelative(_world.Maps, spc.Map, spc.Map, spc.X, spc.Y);
+        if (sw is null) return;
+        int spWX = sw.Value.worldX, spWY = sw.Value.worldY;
         foreach (int i in _world.MapObservers[spc.Map])
         {
             if (!_pm.IsValidSlot(i) || !_pm[i].IsPlaying || IgnoreSuppresses(i, senderLogin, spc.Access)) continue;
@@ -340,8 +344,9 @@ public sealed class TcpPacketDispatcher : IPacketDispatcher, IDisposable
         params (string Key, object? Value)[] args)
     {
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
-        int spWX = WorldCoordHelper.MapTilesX + x;
-        int spWY = WorldCoordHelper.MapTilesY + y;
+        var sw = WorldCoordHelper.ToWorldRelative(_world.Maps, mapNum, mapNum, x, y);
+        if (sw is null) return;
+        int spWX = sw.Value.worldX, spWY = sw.Value.worldY;
 
         foreach (int i in _world.MapObservers[mapNum])
         {

@@ -5,12 +5,21 @@ using NUnit.Framework;
 
 namespace Mirage.Server.Tests;
 
-/// <summary>ServerPlayer.ActiveShop resolution: a keeper-opened shop only resolves while the
-/// player still stands within interact range of the keeper NPC that opened it AND that keeper still keeps that
-/// shop. So an unopened shop, an unobserved map, walking out of range, a vanished keeper, or a reassigned
-/// keeper all close it. This gate fronts every shop/inn/market op, so it's exercised indirectly everywhere but
-/// pinned directly here (NpcInteractTests covers the ShopAssignedToNpc/KeeperShopKind half; this covers the
-/// range-integrated whole).</summary>
+/// <summary>
+/// ServerPlayer.ActiveShop resolution: reach opens a session, and nothing after it closes one.
+///
+/// <para>Every panel a keeper opens locks the player where they stand, so a session that began within reach
+/// can only leave it because the KEEPER walked off — and a wandering shopkeeper cancelling a half-finished
+/// withdrawal is the shop breaking, not a rule working. Distance is checked once, by the interact spine that
+/// opens the panel, and never again.</para>
+///
+/// <para>A session resolves to nothing in two cases: none was opened, or the slot it was opened against
+/// holds something other than that keeper — an empty slot, or a different NPC respawned into it. A session
+/// must never resolve into a stranger's inventory, which is what the identity check is for.</para>
+///
+/// <para>This gate fronts every shop, inn, bank, market and set-spawn op, so it is exercised indirectly
+/// everywhere and pinned directly here.</para>
+/// </summary>
 [TestFixture]
 public class ActiveShopResolutionTests
 {
@@ -54,21 +63,27 @@ public class ActiveShopResolutionTests
         Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0));
     }
 
+    /// <summary>The case the whole rule exists for. Keepers wander, and a shopkeeper who takes a step while
+    /// somebody is halfway through a withdrawal must not cancel it — the panel has the player pinned where
+    /// they stand, so the distance between them is the NPC's doing and not theirs.</summary>
     [Test]
-    public void ActiveShop_KeeperOutOfRange_ClosesTheShop()
+    public void ActiveShop_KeeperWandersOff_KeepsTheShopOpen()
     {
         var (world, sp) = Setup();
         world.MapNpcs[Map, KeeperSlot].X = 20;
         world.MapNpcs[Map, KeeperSlot].Y = 20;  // well beyond interact range
-        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0), "walking out of interact range closes the shop");
+        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(ShopNum));
     }
 
+    /// <summary>Observing the keeper's map is part of being able to OPEN a session, not part of holding one.
+    /// A player who has stopped observing has left the map, and leaving the map clears the session outright
+    /// (MovementSystem.PlayerWarp) rather than leaving one that resolves to nothing.</summary>
     [Test]
-    public void ActiveShop_PlayerNotObservingMap_ReturnsZero()
+    public void ActiveShop_PlayerNotObservingMap_StillResolves()
     {
         var (world, sp) = Setup();
         world.MapObservers[Map].Remove(Index);
-        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0));
+        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(ShopNum));
     }
 
     [Test]
@@ -79,12 +94,25 @@ public class ActiveShopResolutionTests
         Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0), "a vanished keeper closes the shop");
     }
 
-    // The keeper you opened with no longer keeps THIS shop (reassigned/misconfig) — the open shop is stale.
+    // The NPC in that slot keeps a different shop than the one this session was opened against.
     [Test]
-    public void ActiveShop_KeeperNoLongerKeepsThisShop_ReturnsZero()
+    public void ActiveShop_KeeperKeepsADifferentShop_ReturnsZero()
     {
         var (world, sp) = Setup();
-        world.Shops[ShopNum].Keeper = 99;   // shop reassigned to a different keeper NPC
-        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0), "the keeper no longer keeps the active shop");
+        world.Shops[ShopNum].Keeper = 99;   // this shop belongs to a different keeper NPC
+        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0));
+    }
+
+    /// <summary>Leaving the character has to end the session outright. Reach guards the opening only, so a
+    /// session left behind on a recycled slot would be a live shop nobody opened.</summary>
+    [Test]
+    public void LeavingTheCharacter_EndsTheSession()
+    {
+        var (world, sp) = Setup();
+        Assume.That(sp.ActiveShop(world, Index), Is.EqualTo(ShopNum));
+
+        sp.ClearActiveShop();
+
+        Assert.That(sp.ActiveShop(world, Index), Is.EqualTo(0));
     }
 }

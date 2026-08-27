@@ -51,6 +51,7 @@ public static class RenderCommandBuilder
         _showCooldownBar = showCooldownBar;
         _showOtherCooldownBars = showOtherCooldownBars;
         frame.Clear();
+        TrimReachCache(state);
         long tickNow = Environment.TickCount64;
         // Lighting overrides first so frame.AlwaysDarkMapLights is populated for EffectiveDarkness lookups.
         EmitMapDarkOverrides(state, frame, camera);
@@ -412,6 +413,14 @@ public static class RenderCommandBuilder
     private static int _reachStamp;
     private static readonly Dictionary<(int X, int Y, WorldLayer Layer, int Radius), bool[]> _reachCache = [];
 
+    /// <summary>Counts how many times the reach cache has been dropped.
+    ///
+    /// <para>A mask array leaves the cache only through <c>DropCache</c>, so within one generation a given
+    /// array instance always holds the same reach. That makes the array itself a valid cache key for
+    /// anything derived from it — the renderer's GPU mask textures key on it, and re-derive only when this
+    /// number moves.</para></summary>
+    public static int ReachGeneration { get; private set; }
+
     /// <summary>Every input the occlusion trace reads, in one comparable number: which maps are loaded, what
     /// revision each is at, and how many times each map's doors have moved.</summary>
     private static int ReachStamp(ClientState state)
@@ -434,15 +443,52 @@ public static class RenderCommandBuilder
     // and wandering NPCs accumulate them slowly. Dropping the lot costs the next frame's traces and nothing else.
     private const int MaxCachedReaches = 256;
 
-    private static bool[] CachedReach(ClientState state, int wx, int wy, WorldLayer layer, int radius)
+    // Masks are recycled rather than dropped. A wandering emitter enters a new tile a couple of times a
+    // second, and at a few kilobytes a mask that is a steady drip of garbage in the one place the render
+    // path is otherwise allocation-free. A discarded mask is the exact size the next one needs.
+    private static readonly Dictionary<int, Stack<bool[]>> _reachSpare = [];
+
+    private static void DropCache()
+    {
+        foreach (var mask in _reachCache.Values)
+        {
+            if (!_reachSpare.TryGetValue(mask.Length, out var spares))
+                _reachSpare[mask.Length] = spares = new Stack<bool[]>();
+            spares.Push(mask);
+        }
+
+        _reachCache.Clear();
+        ReachGeneration++;
+    }
+
+    /// <summary>Drops the cache when what it was traced from has moved, or when it has outgrown its cap.
+    ///
+    /// <para>🔴 Both happen HERE, at the top of a build, before a single mask has been handed out. A drop
+    /// recycles mask arrays into the spare pool, and recycling one that a light already emitted this frame is
+    /// holding hands two lights the same mask — one of them drawing the other's shadows for a frame.</para></summary>
+    private static void TrimReachCache(ClientState state)
     {
         int stamp = ReachStamp(state);
-        if (stamp != _reachStamp) { _reachCache.Clear(); _reachStamp = stamp; }
+        if (stamp != _reachStamp)
+        {
+            DropCache();
+            _reachStamp = stamp;
+        }
+        else if (_reachCache.Count >= MaxCachedReaches)
+        {
+            DropCache();
+        }
+    }
+
+    private static bool[] CachedReach(ClientState state, int wx, int wy, WorldLayer layer, int radius)
+    {
         var key = (wx, wy, layer, radius);
         if (_reachCache.TryGetValue(key, out var hit)) return hit;
 
-        if (_reachCache.Count >= MaxCachedReaches) _reachCache.Clear();
-        var mask = new bool[LightOcclusion.MaskCells(radius)];
+        int cells = LightOcclusion.MaskCells(radius);
+        var mask = _reachSpare.TryGetValue(cells, out var spare) && spare.Count > 0
+            ? spare.Pop()
+            : new bool[cells];
         LightOcclusion.Fill(state, wx, wy, layer, radius, mask);
         _reachCache[key] = mask;
         return mask;

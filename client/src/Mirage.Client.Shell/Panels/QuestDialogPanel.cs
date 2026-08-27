@@ -28,7 +28,6 @@ public sealed class QuestDialogPanel : IGamePanel
 
     private int _questNum;
     private ClientState.QuestAction _action;
-    private int _map, _slot;
     private readonly Button _actionBtn = new();
     private InputState _input = new();
     private int _labelsGeneration = -1;
@@ -36,13 +35,11 @@ public sealed class QuestDialogPanel : IGamePanel
     private const int Pad = 8;
     private const int LineH = 14;
 
-    /// <summary>Show the offer for <paramref name="questNum"/> at the NPC (map, slot). Action = Accept or TurnIn.</summary>
-    public void Open(int questNum, ClientState.QuestAction action, int map, int slot)
+    /// <summary>Show the offer for <paramref name="questNum"/>. Action = Accept or TurnIn.</summary>
+    public void Open(int questNum, ClientState.QuestAction action)
     {
         _questNum = questNum;
         _action = action;
-        _map = map;
-        _slot = slot;
         IsOpen = true;
         _labelsGeneration = -1;   // force a label refresh for the new action
     }
@@ -67,8 +64,8 @@ public sealed class QuestDialogPanel : IGamePanel
         _actionBtn.Enabled = _action == ClientState.QuestAction.TurnIn || state.IsQuestEligible(_questNum);
         if (_actionBtn.IsClicked(input))
         {
-            if (_action == ClientState.QuestAction.Accept) sender.SendQuestAccept(_questNum, _map, _slot);
-            else sender.SendQuestTurnIn(_questNum, _map, _slot);
+            if (_action == ClientState.QuestAction.Accept) sender.SendQuestAccept(_questNum);
+            else sender.SendQuestTurnIn(_questNum);
             IsOpen = false;   // the server replies with a fresh QuestLog; the offer is done
         }
     }

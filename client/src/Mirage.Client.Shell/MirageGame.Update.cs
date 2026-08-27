@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using System.Diagnostics;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Core.Cache;
@@ -82,6 +83,12 @@ public sealed partial class MirageGame : Game
             if (!_wasActive) _input.NotifyFocusGained();
             _wasActive = true;
         }
+
+        // Counted here rather than in Draw: MonoGame runs EXTRA Updates to catch up after a frame that
+        // overran, and how many is the thing worth knowing. Draw reads and clears it.
+        _updatesThisFrame++;
+        if (gameTime.IsRunningSlowly) _runningSlowly = true;
+        long updateStart = Stopwatch.GetTimestamp();
 
         _fpsFrameCount++;
         float elapsedSec = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -246,6 +253,7 @@ public sealed partial class MirageGame : Game
         TickCombatStateTransitions();
 
         base.Update(gameTime);
+        _updateTicks += Stopwatch.GetTimestamp() - updateStart;
     }
 
     /// <summary>Polls the local player + party partner each frame and spawns floating "Enter Combat"

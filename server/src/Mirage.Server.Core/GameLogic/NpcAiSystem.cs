@@ -129,7 +129,7 @@ public sealed partial class NpcAiSystem : GameSystem
     // omitted because they are read only in the stalled planAroundActors branch, which never uses this cache.
     // If a future per-chaser or per-destination rule is ever added inside the flood, it must be added here too.
     private readonly record struct PathFieldKey(
-        int CenterMap, int TargetMap, int ToX, int ToY, int TargetLayer, int Footprint, int Behavior);
+        int CenterMap, int TargetMap, int ToX, int ToY, int TargetLayer, int Footprint, int Behavior, int TargetFootprint);
 
     /// <summary>The 500ms NPC "brain" pass over every map: target acquisition, magic/kite decisions, attacks,
     /// give-up, warp-follow, wander, and (on its own 5s cadence) regen. An observed map gets the full
@@ -233,7 +233,7 @@ public sealed partial class NpcAiSystem : GameSystem
             TryLegsKite(mapNum, slot, mn, vp.Map, vp.X, vp.Y, now);
             return;
         }  // caster retreat (run pace)
-        if (_combat.CanNpcAttackPlayer(mapNum, mn, target, _pathNow) && !ChaserVacatesRampFor(mapNum, mn, vp.Layer))
+        if (_combat.NpcInMeleeRangeOfPlayer(mapNum, mn, target) && !ChaserVacatesRampFor(mapNum, mn, vp.Layer))
         {
             mn.HasMadeContact = true;
             mn.ChaseSprinting = false;
@@ -250,7 +250,7 @@ public sealed partial class NpcAiSystem : GameSystem
         }  // in cast position — hold; brain casts
 
         var npc = _world.Npcs[mn.Num];
-        int gap = WorldDistanceTo(mapNum, mn.X, mn.Y, vp.Map, vp.X, vp.Y);
+        int gap = WorldDistanceTo(mapNum, mn.X, mn.Y, npc.EffectiveSize, vp.Map, vp.X, vp.Y, 1);
         if (gap == int.MaxValue) return;                            // target left the 3×3 observable area — the brain warp-follows, not the legs
         bool running = NpcCanRun(mapNum, mn) && NpcWantsChaseRun(mn, npc, gap);
         int beforeX = mn.X, beforeY = mn.Y, spBefore = mn.Sp;
@@ -273,7 +273,7 @@ public sealed partial class NpcAiSystem : GameSystem
             TryLegsKite(mapNum, slot, mn, victimMap, victimMn.X, victimMn.Y, now, _world.Npcs[victimMn.Num].EffectiveSize);
             return;
         }  // caster retreat
-        if (_combat.CanNpcAttackNpc(mapNum, mn, victimMap, victimMn, now) && !ChaserVacatesRampFor(mapNum, mn, victimMn.Layer))
+        if (_combat.NpcInMeleeRangeOfNpc(mapNum, mn, victimMap, victimMn) && !ChaserVacatesRampFor(mapNum, mn, victimMn.Layer))
         {
             mn.HasMadeContact = true;
             mn.ChaseSprinting = false;
@@ -289,13 +289,14 @@ public sealed partial class NpcAiSystem : GameSystem
         }  // in cast position — hold; brain casts
 
         var npc = _world.Npcs[mn.Num];
-        int gap = WorldDistanceTo(mapNum, mn.X, mn.Y, victimMap, victimMn.X, victimMn.Y);
+        int gap = WorldDistanceTo(mapNum, mn.X, mn.Y, npc.EffectiveSize, victimMap, victimMn.X, victimMn.Y, _world.Npcs[victimMn.Num].EffectiveSize);
         if (gap == int.MaxValue) return;                            // victim left the 3×3 observable area — the brain drops it (NPC targets don't warp-follow)
         bool running = NpcCanRun(mapNum, mn) && NpcWantsChaseRun(mn, npc, gap);
         int beforeX = mn.X, beforeY = mn.Y, spBefore = mn.Sp;
         mn.MoveType = running ? MovementType.Running : MovementType.Walking;
         if (running) mn.Sp = Math.Max(mn.Sp - NpcRunSpDrain(mapNum), 0);   // drain BEFORE the step (seam-cross parity, see AdvanceNativeChaseStep); FinishChaseStep refunds if blocked
-        StepNpcTowardObservableArea(mapNum, slot, mn, victimMap, victimMn.X, victimMn.Y, victimMn.Layer);
+        StepNpcTowardObservableArea(mapNum, slot, mn, victimMap, victimMn.X, victimMn.Y, victimMn.Layer,
+                                    targetSize: _world.Npcs[victimMn.Num].EffectiveSize);
         FinishChaseStep(mn, npc.Spd, running, beforeX, beforeY, spBefore, now);
     }
 
@@ -316,7 +317,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 TryLegsKite(mapNum, listIndex, t, vp.Map, vp.X, vp.Y, now);
                 return;
             }  // caster retreat
-            if (_combat.CanNpcAttackPlayer(mapNum, t, t.Target, _pathNow) && !ChaserVacatesRampFor(mapNum, t, vp.Layer))
+            if (_combat.NpcInMeleeRangeOfPlayer(mapNum, t, t.Target) && !ChaserVacatesRampFor(mapNum, t, vp.Layer))
             {
                 t.HasMadeContact = true;
                 t.ChaseSprinting = false;
@@ -338,7 +339,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 TryLegsKite(mapNum, listIndex, t, victimMap, victimMn.X, victimMn.Y, now, _world.Npcs[victimMn.Num].EffectiveSize);
                 return;
             }  // caster retreat
-            if (_combat.CanNpcAttackNpc(mapNum, t, victimMap, victimMn, now) && !ChaserVacatesRampFor(mapNum, t, victimMn.Layer))
+            if (_combat.NpcInMeleeRangeOfNpc(mapNum, t, victimMap, victimMn) && !ChaserVacatesRampFor(mapNum, t, victimMn.Layer))
             {
                 t.HasMadeContact = true;
                 t.ChaseSprinting = false;
@@ -360,13 +361,13 @@ public sealed partial class NpcAiSystem : GameSystem
         }  // in cast position — hold; brain casts
 
         var npc = _world.Npcs[t.Num];
-        int gap = WorldDistanceTo(mapNum, t.X, t.Y, targetMap, targetX, targetY);
+        int gap = WorldDistanceTo(mapNum, t.X, t.Y, npc.EffectiveSize, targetMap, targetX, targetY, targetSize);
         if (gap == int.MaxValue) return;                            // target left the 3×3 observable area — the brain warp-follows/drops, not the legs
         bool running = NpcCanRun(mapNum, t) && NpcWantsChaseRun(t, npc, gap);
         int beforeX = t.X, beforeY = t.Y, spBefore = t.Sp;
         t.MoveType = running ? MovementType.Running : MovementType.Walking;
         if (running) t.Sp = Math.Max(t.Sp - NpcRunSpDrain(mapNum), 0);      // drain BEFORE the step (seam-cross parity, see AdvanceNativeChaseStep); FinishChaseStep refunds if blocked
-        StepGuestTowardObservableArea(mapNum, listIndex, t, targetMap, targetX, targetY, targetLayer);
+        StepGuestTowardObservableArea(mapNum, listIndex, t, targetMap, targetX, targetY, targetLayer, targetSize: targetSize);
         FinishChaseStep(t, npc.Spd, running, beforeX, beforeY, spBefore, now);
     }
 

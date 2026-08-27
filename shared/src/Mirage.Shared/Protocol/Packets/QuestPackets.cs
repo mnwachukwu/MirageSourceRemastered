@@ -77,25 +77,21 @@ public sealed record OpenNpcQuestMenuPacket : IPacket
 
 // ── C→S ─────────────────────────────────────────────────────────────────────
 
-/// <summary>C→S: accept a quest (from a giver dialog). Carries the giver NPC the player is standing at (map +
-/// map-NPC slot); the server re-validates it is the quest's GiverNpc and within r=5 — accepting is only allowed
-/// at the giver. Server also validates eligibility.</summary>
+/// <summary>C→S: accept a quest, from the giver's open menu. The NPC comes from that open menu rather than
+/// from here — the server knows which one it opened and for whom — so this carries only which of its quests
+/// was picked. The server validates that NPC is the quest's GiverNpc, and that the player is eligible.</summary>
 public sealed record QuestAcceptPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.QuestAccept;
     [JsonPropertyName("num")] public int QuestNum { get; init; }
-    [JsonPropertyName("map")] public int MapNum { get; init; }
-    [JsonPropertyName("slot")] public int NpcSlot { get; init; }
 }
 
-/// <summary>C→S: turn a completed quest in for its rewards (from a turn-in dialog). Carries the turn-in NPC the
-/// player is standing at; the server re-validates it is the quest's EffectiveTurnInNpc and within r=5.</summary>
+/// <summary>C→S: turn a completed quest in for its rewards, from the turn-in NPC's open menu. As with
+/// accepting, the NPC comes from the open menu; the server validates it is the quest's EffectiveTurnInNpc.</summary>
 public sealed record QuestTurnInPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.QuestTurnIn;
     [JsonPropertyName("num")] public int QuestNum { get; init; }
-    [JsonPropertyName("map")] public int MapNum { get; init; }
-    [JsonPropertyName("slot")] public int NpcSlot { get; init; }
 }
 
 /// <summary>C→S: abandon an in-progress quest (drops it back to not-started, re-acceptable).</summary>

@@ -39,13 +39,28 @@ public sealed partial class CombatSystem : GameSystem
     /// </summary>
     public bool CanNpcAttackPlayer(int mapNum, MapNpcRecord mapNpc, int victimIndex, long now)
     {
+        long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
+        if (!AiCadence.Elapsed(now, mapNpc.AttackTimer, Constants.NpcAttackCooldownMs * windMult)) return false;
+        return NpcInMeleeRangeOfPlayer(mapNum, mapNpc, victimIndex);
+    }
+
+    /// <summary>
+    /// The REACH half of <see cref="CanNpcAttackPlayer"/> — everything but the swing cooldown.
+    ///
+    /// <para>🔴 This is what the legs pass asks, and the distinction is the whole point. "Can I swing right
+    /// now" and "am I standing close enough" are different questions, and an NPC that takes the first for the
+    /// second walks away between swings: the cooldown starts the instant it hits, so for the next second the
+    /// attack gate says no and the chase step reads that as "not there yet". It steps in, the cooldown ends,
+    /// it swings, it steps again — the beat-to-beat shuffle in a fight that should be a mob standing still and
+    /// hitting. Oversize bodies make it obvious because their step lands on a tile they cannot occupy.</para>
+    /// </summary>
+    public bool NpcInMeleeRangeOfPlayer(int mapNum, MapNpcRecord mapNpc, int victimIndex)
+    {
         if (!_pm[victimIndex].IsPlaying) return false;
         if (_pm[victimIndex].GettingMap) return false;
         if (_pm[victimIndex].Char.Dead) return false;  // a corpse can't be attacked/damaged/killed; this gate is above MarkPlayerCombat so it also blocks the combat re-stamp
         if (_pm[victimIndex].GodMode) return false;    // an observer is not there to be swung at
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
-        long windMult = _world.WeatherOn(mapNum) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
-        if (!AiCadence.Elapsed(now, mapNpc.AttackTimer, Constants.NpcAttackCooldownMs * windMult)) return false;
 
         var vp = _pm[victimIndex].Char;
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
@@ -60,9 +75,10 @@ public sealed partial class CombatSystem : GameSystem
         else
         {
             // Large NPC: the victim must sit on a tile just past the leading edge in the direction the NPC
-            // will face (WorldDirectionFrom, matching FaceTargetDir) — so this gate and the strike strip in
-            // NpcAttackPlayer always agree, and the NPC never "attacks" a corner tile it would then miss.
-            var faceDir = WorldCoordHelper.WorldDirectionFrom(npcWX, npcWY, tw.Value.worldX, tw.Value.worldY);
+            // will face (FootprintFacingToward, matching FaceTargetDir) — so this gate and the strike strip in
+            // NpcAttackPlayer always agree, and the NPC never "attacks" a corner tile it would then miss. The
+            // facing is measured from the BODY, so every tile touching it is reachable from some edge.
+            var faceDir = WorldCoordHelper.FootprintFacingToward(npcWX, npcWY, size, tw.Value.worldX, tw.Value.worldY);
             if (!WorldCoordHelper.LeadingEdgeTiles(npcWX, npcWY, size, faceDir).Contains(tw.Value.worldX, tw.Value.worldY))
                 return false;
         }

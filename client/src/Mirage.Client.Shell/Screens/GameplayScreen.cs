@@ -416,6 +416,7 @@ public sealed partial class GameplayScreen : IGameScreen
         _bubbleFont = bubbleFont;
 
         _controls = new ControlsPanel(_ctx.Graphics);
+        PrewarmReachTextures(_ctx.Graphics);
 
         // Every panel field is initialized by now (the rest are field initializers; _controls is
         // above), so the registry can capture them.

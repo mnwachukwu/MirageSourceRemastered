@@ -176,6 +176,62 @@ public static class WorldCoordHelper
     };
 
     /// <summary>
+    /// Which side of an SxS body the tile (wx,wy) lies beyond — the direction that body must FACE for
+    /// <see cref="LeadingEdgeTiles"/> to cover that tile.
+    ///
+    /// <para>🔴 Read the direction off the ANCHOR instead and a big NPC swings at empty air. A player standing
+    /// above the right-hand column of a size-3 body is one tile from it, but the anchor is two columns to the
+    /// left, so anchor math calls that "to the right" and puts the leading edge somewhere the player is not.
+    /// Measured from the body, only the axis the tile actually overshoots can win, and it comes out Up.</para>
+    ///
+    /// <para>Ties go to the horizontal, matching <see cref="WorldDirectionFrom"/> — which this reduces to
+    /// exactly at size 1, where the body IS the anchor. A tile INSIDE the body has no side to be beyond, so it
+    /// defers to the anchor reading; nothing legal can stand there.</para>
+    /// </summary>
+    public static Direction FootprintFacingToward(int anchorWX, int anchorWY, int size, int wx, int wy)
+    {
+        int gx = AxisOvershoot(anchorWX, size, wx);
+        int gy = AxisOvershoot(anchorWY, size, wy);
+        if (gx == 0 && gy == 0) return WorldDirectionFrom(anchorWX, anchorWY, wx, wy);
+        if (Math.Abs(gx) >= Math.Abs(gy)) return gx >= 0 ? Direction.Right : Direction.Left;
+        return gy >= 0 ? Direction.Down : Direction.Up;
+    }
+
+    /// <summary>How far past a footprint's span on one axis a coordinate sits, signed away from the body;
+    /// 0 while it is level with the body on that axis.</summary>
+    private static int AxisOvershoot(int anchor, int size, int v)
+        => v < anchor ? v - anchor
+         : v >= anchor + size ? v - (anchor + size - 1)
+         : 0;
+
+    /// <summary>The signed per-axis offset from a BODY to a tile: how far it would have to travel on each axis
+    /// to touch, and which way. Zero on an axis the body is already level with. At size 1 this is the plain
+    /// coordinate difference.</summary>
+    public static (int X, int Y) FootprintOffsetTo(int anchorWX, int anchorWY, int size, int wx, int wy)
+        => (AxisOvershoot(anchorWX, size, wx), AxisOvershoot(anchorWY, size, wy));
+
+    /// <summary>
+    /// Manhattan distance measured EDGE to EDGE between two bodies — the tiles that actually separate them,
+    /// which is 0 when they overlap and 1 exactly when <see cref="AreFootprintsAdjacent"/> holds.
+    ///
+    /// <para>Anchor-to-anchor overstates it by up to <c>size - 1</c> per axis, and only on the +x/+y sides,
+    /// so an anchor reading is not merely wrong but LOPSIDED: a big NPC reads as further from something at its
+    /// bottom-right than from the same thing at its top-left. Every distance an NPC compares against a
+    /// threshold — chase pace, whether a step closed ground, how near the nearest candidate is — has to be
+    /// this one, or the threshold means a different thing on each side of the body.</para>
+    ///
+    /// <para>Symmetric, and identical to <see cref="WorldManhattan"/> when both sides are size 1.</para>
+    /// </summary>
+    public static int FootprintManhattan(int aX, int aY, int aSize, int bX, int bY, int bSize)
+        => RectAxisGap(aX, aSize, bX, bSize) + RectAxisGap(aY, aSize, bY, bSize);
+
+    /// <summary>True when two bodies are within <paramref name="range"/> tiles of each other on BOTH axes,
+    /// measured edge to edge — the square band an NPC notices things in. At size 1 on both sides this is the
+    /// classic anchor box.</summary>
+    public static bool AreFootprintsWithin(int aX, int aY, int aSize, int bX, int bY, int bSize, int range)
+        => RectAxisGap(aX, aSize, bX, bSize) <= range && RectAxisGap(aY, aSize, bY, bSize) <= range;
+
+    /// <summary>
     /// The single authority for "is this target in casting/targeting range."  Range is the
     /// 16×12 viewport a player sees <i>when centered</i> — a fixed band of -8..+7 tiles in X
     /// and -6..+5 in Y around the actor, regardless of the actual camera.

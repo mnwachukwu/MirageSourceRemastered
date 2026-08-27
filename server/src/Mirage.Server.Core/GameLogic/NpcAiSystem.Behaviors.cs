@@ -375,7 +375,7 @@ public sealed partial class NpcAiSystem : GameSystem
             // seam swing can connect (otherwise a player standing just over the border is unhittable).
             if (_combat.CanNpcAttackPlayer(mapNum, slot, target, _pathNow))
             {
-                var faceDir = FaceTargetDir(mapNum, mn.X, mn.Y, vp.Map, vp.X, vp.Y, mn.Dir);
+                var faceDir = FaceTargetDir(mapNum, mn.X, mn.Y, _world.Npcs[mn.Num].EffectiveSize, vp.Map, vp.X, vp.Y, mn.Dir);
                 if (mn.Dir != faceDir)
                 {
                     // The legs pass turns a freshly-arrived mob to face its target (post-slide, promptly); this

@@ -251,7 +251,7 @@ public sealed class GameLoop : IDisposable
     ///
     /// <para>A tick more than one interval behind — a long save, a stalled thread — restarts from the clock
     /// instead of trying to catch up, since replaying the beats it missed helps nobody.</para></summary>
-    private static long Schedule(long due, long now, int intervalMs) =>
+    internal static long Schedule(long due, long now, int intervalMs) =>
         due + intervalMs > now ? due + intervalMs : now + intervalMs;
 
     private void AiTick()

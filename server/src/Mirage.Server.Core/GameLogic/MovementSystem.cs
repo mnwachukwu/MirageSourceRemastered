@@ -308,6 +308,7 @@ public sealed class MovementSystem : GameSystem
         // (the r=5 re-check would catch it too, but a clean reset avoids a stale keeper reference lingering).
         if (oldMap != mapNum)
             sp.ClearActiveShop();
+            sp.ClearActiveQuestNpc();
 
         if (greetingChanged)
             OnLeaveMap(index);

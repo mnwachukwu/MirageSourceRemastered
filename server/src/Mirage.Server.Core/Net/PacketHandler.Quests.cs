@@ -12,28 +12,31 @@ using Mirage.Shared.Security;
 
 namespace Mirage.Server.Core.Net;
 
-/// <summary>Player quests. Accept and turn-in are gated by the interaction layer (the player must be at the giver/turn-in NPC within r=5); abandon comes from the quest log, so it stays proximity-free.</summary>
+/// <summary>Player quests. Accept and turn-in act on the NPC whose menu the player has open; abandon comes
+/// from the quest log and involves no NPC at all.</summary>
 public sealed partial class PacketHandler
 {
     //  Quest handlers
     // ===========================================================================
 
     // ── Player quests ─────────────────────────────────────────────────────────
-    // Accept/turn-in are gated by the interaction layer: the player must be at the quest's
-    // giver (accept) / turn-in (turn-in) NPC and within r=5. TryResolveInteractNpc is the authoritative proximity
-    // + visibility backstop; then we re-check the NPC's role. QuestSystem still owns eligibility/rewards. Abandon
-    // is driven from the quest-log panel (no NPC), so it stays proximity-free.
+    // Accept and turn-in resolve the NPC from the OPEN MENU, not from the packet: reach is decided once, by
+    // the interact spine that opened the menu, and the quest dialog pins the player where they stand — so a
+    // giver wandering off mid-read must not cancel the accept. What each still checks is the NPC's ROLE, which
+    // is what stops one NPC's menu accepting another's quest. QuestSystem owns eligibility and rewards.
     private void HandleQuestAccept(int index, QuestAcceptPacket p)
     {
         if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
-        if (!TryResolveInteractNpc(index, p.MapNum, p.NpcSlot, out int npcNum)) return;
+        int npcNum = _pm[index].ActiveQuestNpc(_world);
+        if (npcNum <= 0) return;
         if (_world.Quests[p.QuestNum].GiverNpc != npcNum) return;   // accepting is only allowed at the giver
         _quests.Accept(index, p.QuestNum);
     }
     private void HandleQuestTurnIn(int index, QuestTurnInPacket p)
     {
         if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
-        if (!TryResolveInteractNpc(index, p.MapNum, p.NpcSlot, out int npcNum)) return;
+        int npcNum = _pm[index].ActiveQuestNpc(_world);
+        if (npcNum <= 0) return;
         if (_world.Quests[p.QuestNum].EffectiveTurnInNpc != npcNum) return;   // turning in is only allowed at the turn-in NPC
         _quests.TurnIn(index, p.QuestNum);
     }

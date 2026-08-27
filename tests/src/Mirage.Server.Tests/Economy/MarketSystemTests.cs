@@ -17,7 +17,7 @@ namespace Mirage.Server.Tests;
 
 /// <summary>The player marketplace on <see cref="MarketSystem"/>: listing escrows the item off the seller,
 /// buying charges the buyer and delivers goods + post-tax payout as delayed mail, canceling returns the item,
-/// and the guards (own listing, insufficient gold, gold-not-listable, per-seller cap, away-from-an-inn) hold.
+/// and the guards (own listing, insufficient gold, gold-not-listable, per-seller cap, no open inn session) hold.
 /// Buy delivers via mail, whose subject/body resolve through ServerStrings (loaded once by StringsSetUpFixture).</summary>
 [TestFixture]
 public class MarketSystemTests
@@ -35,9 +35,9 @@ public class MarketSystemTests
         var mail = new MailSystem(pm, dispatcher, saver, items);
         var market = new MarketSystem(world, pm, dispatcher, items, mail, persistence: null!, bg: null!);
 
-        // An inn reachable via its keeper NPC — any inn opens the marketplace (the market
-        // resolves the active shop from the keeper, not the map). The keeper sits on Map 1 at (0,0); AtInn stands
-        // each player on that tile + opens the shop, so IsAtInn's r=5 re-check passes.
+        // An inn reachable via its keeper NPC — any inn opens the marketplace (the market resolves the active
+        // shop from the keeper, not the map). The keeper sits on Map 1 at (0,0); AtInn opens the session against
+        // that slot, which is the whole of what authorises a listing.
         world.Shops[1].ShopType = ShopType.Inn;
         world.Shops[1].Keeper = KeeperNpc;
         world.MapNpcs[1, KeeperSlot].Num = KeeperNpc;
@@ -100,22 +100,55 @@ public class MarketSystemTests
         });
     }
 
+    // The market runs off the INN SESSION, not off where the player is standing: the panel pins them in place,
+    // so a keeper wandering off mid-listing must not void the sale. What still has to hold is that there is a
+    // session at all, and that it belongs to an inn — leaving the map clears it (MovementSystem.PlayerWarp).
     [Test]
-    public void List_AwayFromInn_IsRefused()
+    public void List_WithNoOpenInnSession_IsRefused()
     {
         var (world, pm, market) = Setup();
         world.Items[Sword].Type = ItemType.Weapon;
         var sp = AtInn(world, pm, 1, "seller");
-        sp.Char.Map = 2;   // no inn on map 2
+        sp.ClearActiveShop();   // what leaving the map does
         sp.Char.Inv[3].Num = Sword;
 
         market.List(1, 3, 0, 500);
 
         Assert.Multiple(() =>
         {
-            Assert.That(world.MarketListings, Is.Empty, "listing away from an inn is refused");
+            Assert.That(world.MarketListings, Is.Empty, "listing with no inn session open is refused");
             Assert.That(sp.Char.Inv[3].Num, Is.EqualTo(Sword), "and the item isn't escrowed");
         });
+    }
+
+    [Test]
+    public void List_FromAShopThatIsNotAnInn_IsRefused()
+    {
+        var (world, pm, market) = Setup();
+        world.Items[Sword].Type = ItemType.Weapon;
+        var sp = AtInn(world, pm, 1, "seller");
+        world.Shops[1].ShopType = ShopType.Store;   // an open session, but not to an innkeeper
+        sp.Char.Inv[3].Num = Sword;
+
+        market.List(1, 3, 0, 500);
+
+        Assert.That(world.MarketListings, Is.Empty, "only an innkeeper's counter reaches the market");
+    }
+
+    [Test]
+    public void List_AfterTheInnkeeperWalksAway_StillWorks()
+    {
+        var (world, pm, market) = Setup();
+        world.Items[Sword].Type = ItemType.Weapon;
+        var sp = AtInn(world, pm, 1, "seller");
+        sp.Char.X = 15;   // the pair are now nowhere near each other
+        sp.Char.Y = 11;
+        sp.Char.Inv[3].Num = Sword;
+
+        market.List(1, 3, 0, 500);
+
+        Assert.That(world.MarketListings, Is.Not.Empty,
+            "the panel pins the player in place, so only the keeper can move — that must not void the sale");
     }
 
     [Test]

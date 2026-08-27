@@ -264,6 +264,8 @@ public sealed partial class GameplayScreen : IGameScreen
         HotkeyBarPanel.Draw(sb, font, _ctx.State, _items, hk => HotkeyCooldownFraction(hk, nowMs),
             _lastInput.ShowGamepadPrompts, _lastInput, canHover: topUnderMouse < 0);
 
+        DrawFrameReadout(sb, font, nowMs);
+
         // The single tooltip is fed by panel Draws; only the topmost open panel under the mouse
         // may notify it this frame, so a hovered row in a panel hidden behind another panel
         // doesn't leak its tooltip through the occluding window above it.

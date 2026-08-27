@@ -599,6 +599,8 @@ public sealed class JoinLeaveSystem : GameSystem
         sp.MoveAllowedAt = 0;
         sp.Target = 0;
         sp.TargetType = 0;
+        sp.ClearActiveShop();
+        sp.ClearActiveQuestNpc();
         sp.ClearDamageCredit();
         for (int i = 1; i <= Constants.MaxChars; i++)
             sp.Chars[i] = new PlayerRecord();

@@ -58,6 +58,75 @@ public class NpcChaseRoutingTests
         Assert.That(step, Is.EqualTo(Direction.Up), "a pursuer is not masked, so the chaser plans straight into it and holds (no dance)");
     }
 
+    // ── The attack-slot ring is around the BODY, not the anchor ───────────────
+    // A cell is an attack slot when a chaser standing there could swing — its body touching the target's.
+    // Read off the anchor at Manhattan 1 that names four tiles, two of which sit INSIDE an oversize target,
+    // and every real slot around it goes unrecognised: a trailer plans straight into an occupied one and
+    // queues there instead of walking around to a free side.
+
+    [Test]
+    public void AttackSlotRing_AroundAnOversizeTarget_WallsOffAnOccupiedSlot()
+    {
+        var (ai, world) = OversizeVictimBehindAChokepoint(slotTaken: true);
+        var step = FindStep(ai, world, fromX: 12, fromY: 4, toX: 8, toY: 3, selfSlot: 1,
+                            planAroundActors: false, targetSize: 3);
+        Assert.That(step, Is.Null,
+            "the one slot on this side of the body is taken, so there is no route to a place this chaser could swing from");
+    }
+
+    [Test]
+    public void AttackSlotRing_AroundAnOversizeTarget_LeavesAFreeSlotOpen()
+    {
+        // The control: the same geometry with nobody in the slot must still route straight through it.
+        var (ai, world) = OversizeVictimBehindAChokepoint(slotTaken: false);
+        var step = FindStep(ai, world, fromX: 12, fromY: 4, toX: 8, toY: 3, selfSlot: 1,
+                            planAroundActors: false, targetSize: 3);
+        Assert.That(step, Is.EqualTo(Direction.Left), "an empty attack slot is just a tile to walk through");
+    }
+
+    // A size-3 victim anchored at (8,3) — body {8,9,10} x {3,4,5} — walled off from the chaser at (12,4) by a
+    // solid column at x=11 with a single gap at (11,4).  That gap is the only cell on this side whose body
+    // would touch the victim's, so it is the only attack slot, and it is two tiles from the victim's ANCHOR.
+    static (NpcAiSystem ai, GameWorld world) OversizeVictimBehindAChokepoint(bool slotTaken)
+    {
+        var world = new GameWorld();
+        var pm = new PlayerManager();
+        world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;   // the chaser, size 1
+        world.Npcs[2].Behavior = NpcBehavior.Stationary;      // the victim's template
+        world.Npcs[2].Size = 3;
+        world.Npcs[3].Behavior = NpcBehavior.Stationary;      // whoever is standing in the slot
+
+        for (int y = 0; y <= Constants.MaxMapY; y++)
+        {
+            if (y == 4) continue;
+            world.Maps[Map].EditTile(11, y, t => t with { Type = TileType.Blocked });
+        }
+
+        var chaser = world.MapNpcs[Map, 1];
+        chaser.Num = 1;
+        chaser.X = 12;
+        chaser.Y = 4;
+        chaser.Hp = 100;
+
+        var victim = world.MapNpcs[Map, 2];
+        victim.Num = 2;
+        victim.X = 8;
+        victim.Y = 3;
+        victim.Hp = 100;
+
+        if (slotTaken)
+        {
+            var sitting = world.MapNpcs[Map, 3];
+            sitting.Num = 3;
+            sitting.X = 11;
+            sitting.Y = 4;
+            sitting.Hp = 100;
+        }
+
+        var ai = new NpcAiSystem(world, pm, null!, null!, null!, null!, null!, null!);
+        return (ai, world);
+    }
+
     // ── End-to-end: real brain + legs, chaser must reach the victim ────────────
     [Test]
     public void MidPathBlocker_ChaserRoutesAroundAndReachesVictim()
@@ -156,13 +225,15 @@ public class NpcChaseRoutingTests
         return (ai, world);
     }
 
-    static Direction? FindStep(NpcAiSystem ai, GameWorld world, int fromX, int fromY, int toX, int toY, int selfSlot, bool planAroundActors)
+    static Direction? FindStep(NpcAiSystem ai, GameWorld world, int fromX, int fromY, int toX, int toY, int selfSlot,
+                               bool planAroundActors, int targetSize = 1)
     {
         var npc = world.Npcs[world.MapNpcs[Map, selfSlot].Num];
         var m = typeof(NpcAiSystem).GetMethod("FindStepTowardObservableArea", BindingFlags.NonPublic | BindingFlags.Instance)!;
-        // (mapNum, fromX, fromY, fromLayer, targetMap, toX, toY, targetLayer, npc, planAroundActors, selfSpawnMap, selfSpawnSlot)
-        // These routing scenarios are all ground-layer, so both layers are Ground.
-        return (Direction?)m.Invoke(ai, new object[] { Map, fromX, fromY, WorldLayer.Ground, Map, toX, toY, WorldLayer.Ground, npc, planAroundActors, Map, selfSlot });
+        // (mapNum, fromX, fromY, fromLayer, targetMap, toX, toY, targetLayer, npc, planAroundActors, selfSpawnMap,
+        //  selfSpawnSlot, targetSize)
+        // These routing scenarios are all ground-layer, so both layers are Ground; every victim here is size 1.
+        return (Direction?)m.Invoke(ai, new object[] { Map, fromX, fromY, WorldLayer.Ground, Map, toX, toY, WorldLayer.Ground, npc, planAroundActors, Map, selfSlot, targetSize });
     }
 
     // A real NpcAiSystem (real Combat/Movement/Blood/Spawn, no-op dispatcher) for the end-to-end drive; the

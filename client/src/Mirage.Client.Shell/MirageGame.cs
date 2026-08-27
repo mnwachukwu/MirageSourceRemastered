@@ -193,6 +193,20 @@ public sealed partial class MirageGame : Game
     private int _fpsFrameCount;
     private float _fpsAccMs;
 
+    // Frame-time accounting, gathered across Update and closed off in Draw. Present-to-present is what a
+    // player perceives, so the frame is measured between Draws rather than inside one; Update's share is
+    // accumulated because a catch-up frame runs it more than once.
+    private int _updatesThisFrame;
+    private bool _runningSlowly;
+    private long _updateTicks;
+    private long _lastPresentStamp;
+    private int _lastGen0, _lastGen1, _lastGen2;
+    private long _lastAllocated;
+    // The light-map passes, bracketed separately from the rest of Draw: they are the part that scales with
+    // how many emitters are on screen, and a draw that only says "slow" cannot say which half.
+    private long _lightStart;
+    private long _lightTicks;
+
     private const int RefW = UiHelper.RefW;   // 800
     private const int RefH = UiHelper.RefH;   // 600
     private bool _maintainAspectRatio = true;

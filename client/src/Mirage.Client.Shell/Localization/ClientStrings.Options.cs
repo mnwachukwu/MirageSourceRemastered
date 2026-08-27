@@ -60,6 +60,16 @@ public static partial class ClientStrings
     // ── ChatPanel ─────────────────────────────────────────────────────────────
     public const string ChatPanel_Title = nameof(ChatPanel_Title);
     public const string ChatPanel_FpsDisplay = nameof(ChatPanel_FpsDisplay);
+    public const string ChatPanel_FpsOn = nameof(ChatPanel_FpsOn);
+    public const string ChatPanel_FpsOff = nameof(ChatPanel_FpsOff);
+    // The frame readout over the action bar. The bands and the counters are Developer+ only; everyone
+    // else gets the rate on its own.
+    public const string Hud_FrameBands = nameof(Hud_FrameBands);
+    public const string Hud_FrameHalves = nameof(Hud_FrameHalves);
+    public const string Hud_FrameLight = nameof(Hud_FrameLight);
+    public const string Hud_FrameCatchUp = nameof(Hud_FrameCatchUp);
+    public const string Hud_FrameWorst = nameof(Hud_FrameWorst);
+    public const string Hud_FrameGc = nameof(Hud_FrameGc);
     public const string ChatPanel_HomeInCombat = nameof(ChatPanel_HomeInCombat);
     public const string ChatPanel_UsageTell = nameof(ChatPanel_UsageTell);
     public const string ChatPanel_InvalidMapNumber = nameof(ChatPanel_InvalidMapNumber);

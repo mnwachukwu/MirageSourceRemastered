@@ -59,6 +59,15 @@ public sealed partial class GameplayScreen : IGameScreen
     public void DrawLightMap(SpriteBatch sb, Matrix transform, Texture2D boxTex, Texture2D outerTex,
         Texture2D innerTex, float totalSec, WorldLayer? layerFilter = null, Effect? maskFx = null)
     {
+        // Between frames, and only between frames: reach masks are traced while the frame is built, so this
+        // number holds still across the passes below and the second and third find nothing to let go of.
+        int gen = RenderCommandBuilder.ReachGeneration;
+        if (gen != _reachTexGeneration)
+        {
+            RecycleReachTextures();
+            _reachTexGeneration = gen;
+        }
+
         // Safe-zone map area lights FIRST, MAX-blended: contiguous safe cells' flat interiors tile with no
         // seam, skirts spill. (Emitters are excluded from the Lights list inside safe cells, so no halo
         // sits over a town — only the wilderness-side skirt meets halos, where additive fills cleanly.)
@@ -117,10 +126,11 @@ public sealed partial class GameplayScreen : IGameScreen
         foreach (var cmd in masked)
         {
             maskFx!.Parameters["MaskTexture"].SetValue(
-                ReachTexture(sb.GraphicsDevice, _reachTexFrom, cmd.ReachRadius, cmd.Reach!));
-            // A standing emitter reads only the first mask, but the sampler still has to be bound.
+                ReachTexture(sb.GraphicsDevice, cmd.ReachRadius, cmd.Reach!));
+            // A standing emitter reads only the first mask, but the sampler still has to be bound — and it
+            // binds the same texture, so the pair costs one upload rather than two.
             maskFx.Parameters["IntoTexture"].SetValue(
-                ReachTexture(sb.GraphicsDevice, _reachTexInto, cmd.ReachRadius, cmd.ReachInto ?? cmd.Reach!));
+                ReachTexture(sb.GraphicsDevice, cmd.ReachRadius, cmd.ReachInto ?? cmd.Reach!));
             sb.GraphicsDevice.SamplerStates[1] = SamplerState.LinearClamp;
             sb.GraphicsDevice.SamplerStates[2] = SamplerState.LinearClamp;
             DrawLightHalo(sb, outerTex, innerTex, cmd.ScreenX + HalfTile, cmd.ScreenY + HalfTile, cmd, totalSec, maskFx);
@@ -128,20 +138,27 @@ public sealed partial class GameplayScreen : IGameScreen
         sb.End();
     }
 
-    // Reused across lights and frames. One texture per mask SIZE — the UVs map the halo onto the whole
-    // texture, so a mask cannot be uploaded into a corner of a bigger one. Two banks, because a moving
-    // emitter has both its masks bound at once and one texture cannot hold both.
+    // A texture per distinct MASK, keyed by the mask array itself, backed by a pool of spares per texture
+    // size. A mask array leaves the reach cache only when that cache drops wholesale, so within one
+    // RenderCommandBuilder.ReachGeneration the same array is the same reach and the texture holding it stays
+    // good. The UVs map a halo onto the whole texture, so a mask cannot share one with a mask of another size.
     private readonly List<LightSourceCmd> _lightBatchScratch = [];
-    private readonly Dictionary<int, Texture2D> _reachTexFrom = [];
-    private readonly Dictionary<int, Texture2D> _reachTexInto = [];
+    private readonly Dictionary<bool[], Texture2D> _reachTexOf = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<int, Stack<Texture2D>> _reachTexPool = [];
+    private int _reachTexGeneration = -1;
     private byte[] _reachTexels = [];
 
-    /// <summary>Uploads one reach mask as a texture, opaque where the light gets through. Sampled with linear
-    /// filtering, so a wall's edge arrives as a ramp a few pixels wide rather than as the 32px stair a
-    /// per-tile draw would leave.
+    /// <summary>The texture holding one light's reach mask, opaque where the light gets through. Uploaded the
+    /// first time a mask is seen and kept until the reach cache drops.
     ///
-    /// <para>One byte a texel, not four: the mask is a single bit and a radius-3 light is 28x28 of them, so
-    /// a colour format spends three quarters of the upload on nothing.</para>
+    /// <para>🔴 The upload is the expensive half of a light, and not for the bytes. Writing a texture the GPU
+    /// is still reading makes the driver drain the pipeline, and the halo batch runs in
+    /// <see cref="SpriteSortMode.Immediate"/>, so one upload per light is one sync point per light — a cost
+    /// that scales with how many lit actors are on screen and reads as Draw throughput, not as a spike. Keyed
+    /// per mask, a standing lamp uploads once and a street of them uploads nothing.</para>
+    ///
+    /// <para>One byte a texel, not four: the mask is a single bit and a radius-3 light is 56x56 of them, so a
+    /// colour format spends three quarters of the upload on nothing.</para>
     ///
     /// <para>🔴 <see cref="SurfaceFormat.Alpha8"/> lands in a DIFFERENT CHANNEL per backend, so the format
     /// and the shader have to be changed together. On DesktopGL — which is every platform this ships on —
@@ -149,17 +166,64 @@ public sealed partial class GameplayScreen : IGameScreen
     /// <c>.r</c>. A DirectX build would get <c>A8_UNORM</c>, which samples as (0,0,0,a): the mask would read
     /// as zero everywhere and every light in the game would go black. Obvious rather than subtle, but the
     /// fix is in the shader and nowhere near where it would be noticed.</para></summary>
-    private Texture2D ReachTexture(GraphicsDevice gd, Dictionary<int, Texture2D> bank, int radius, bool[] reach)
+    private Texture2D ReachTexture(GraphicsDevice gd, int radius, bool[] reach)
     {
+        if (_reachTexOf.TryGetValue(reach, out var tex)) return tex;
+
+        // 🔴 Never recycles here. A moving light binds both of its masks at once, so a texture reclaimed
+        // partway through a pass could be handed straight back for that same light's second mask — one
+        // sampler reading the other's content. Reclaiming happens between frames and nowhere else; a pass
+        // that outruns the pool grows it instead.
         int side = LightOcclusion.MaskTexels(radius);
-        if (!bank.TryGetValue(side, out var tex))
-            bank[side] = tex = new Texture2D(gd, side, side, false, SurfaceFormat.Alpha8);
+        var free = ReachTexPool(side);
+        tex = free.Count > 0 ? free.Pop() : new Texture2D(gd, side, side, false, SurfaceFormat.Alpha8);
+
         int cells = side * side;
         if (_reachTexels.Length < cells) _reachTexels = new byte[cells];
         for (int i = 0; i < cells; i++) _reachTexels[i] = reach[i] ? (byte)255 : (byte)0;
         tex.SetData(_reachTexels, 0, cells);
+        _reachTexOf[reach] = tex;
         return tex;
     }
+
+    private Stack<Texture2D> ReachTexPool(int side)
+    {
+        if (!_reachTexPool.TryGetValue(side, out var free)) _reachTexPool[side] = free = new Stack<Texture2D>();
+        return free;
+    }
+
+    /// <summary>Returns every held mask texture to its size's pool. Textures are recycled, never destroyed.</summary>
+    private void RecycleReachTextures()
+    {
+        foreach (var tex in _reachTexOf.Values) ReachTexPool(tex.Width).Push(tex);
+        _reachTexOf.Clear();
+    }
+
+    /// <summary>Fills the pool with every mask texture a scene could ask for, made up front.
+    ///
+    /// <para>Creating one costs a driver allocation, and a driver allocation in the middle of a frame is a
+    /// stall of a hundred milliseconds or more — the price of a light at an unseen radius walking into view.
+    /// <see cref="PrewarmedPerRadius"/> of each of the <see cref="MaxLightRadiusTiles"/> sizes costs about
+    /// nine megabytes at load and covers every scene a viewport can hold.</para></summary>
+    private void PrewarmReachTextures(GraphicsDevice gd)
+    {
+        for (int r = 0; r <= MaxLightRadiusTiles; r++)
+        {
+            int side = LightOcclusion.MaskTexels(r);
+            var free = ReachTexPool(side);
+            while (free.Count < PrewarmedPerRadius)
+                free.Push(new Texture2D(gd, side, side, false, SurfaceFormat.Alpha8));
+        }
+    }
+
+    /// <summary>The widest reach a light is built with. An NPC's scales with its footprint and the biggest
+    /// body is three tiles, so this has headroom over anything the world can hold.</summary>
+    private const int MaxLightRadiusTiles = 12;
+
+    /// <summary>Mask textures made up front per radius. A frame holds one per distinct mask drawn, which is
+    /// at most two per visible light — a moving emitter reads the tile it left and the one it is entering —
+    /// so this covers a couple of dozen emitters all at one radius, well past what fits on screen at once.</summary>
+    private const int PrewarmedPerRadius = 48;
 
     /// <summary>
     /// Draws the additive FX glow cores (spell balls, sparkles) at the post-composite "glow seam" so they

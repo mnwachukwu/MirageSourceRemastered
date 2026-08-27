@@ -114,14 +114,14 @@ public sealed class ClientPacketSender
     public void SendNpcInteract(int map, int slot, NpcInteractChoice choice = NpcInteractChoice.Auto)
         => _transport.Send(new NpcInteractPacket { MapNum = map, NpcSlot = slot, Choice = choice });
 
-    /// <summary>C→S: accept quest <paramref name="questNum"/> from the giver NPC at (map, slot). Server re-checks
-    /// the NPC is the giver, proximity (r=5), and eligibility.</summary>
-    public void SendQuestAccept(int questNum, int map, int slot)
-        => _transport.Send(new QuestAcceptPacket { QuestNum = questNum, MapNum = map, NpcSlot = slot });
+    /// <summary>C→S: accept quest <paramref name="questNum"/> from the open giver menu. Which NPC that is comes
+    /// from the menu the server opened, so it is not sent; the server checks the role and eligibility.</summary>
+    public void SendQuestAccept(int questNum)
+        => _transport.Send(new QuestAcceptPacket { QuestNum = questNum });
 
-    /// <summary>C→S: turn quest <paramref name="questNum"/> in at the turn-in NPC at (map, slot).</summary>
-    public void SendQuestTurnIn(int questNum, int map, int slot)
-        => _transport.Send(new QuestTurnInPacket { QuestNum = questNum, MapNum = map, NpcSlot = slot });
+    /// <summary>C→S: turn quest <paramref name="questNum"/> in at the open turn-in menu.</summary>
+    public void SendQuestTurnIn(int questNum)
+        => _transport.Send(new QuestTurnInPacket { QuestNum = questNum });
 
     /// <summary>C→S: abandon quest <paramref name="questNum"/> (from the quest-log panel — no NPC needed).</summary>
     public void SendQuestAbandon(int questNum)

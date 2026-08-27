@@ -20,10 +20,17 @@ public sealed partial class CombatSystem : GameSystem
     /// relevant case is a safe-map guard striking a non-safe-map mob, which is allowed).</summary>
     public bool CanNpcAttackNpc(int attackerMap, MapNpcRecord attackerMn, int victimMap, MapNpcRecord victimMn, long now)
     {
-        if (attackerMn.Num <= 0 || attackerMn.Hp <= 0) return false;
-        if (victimMn.Num <= 0 || victimMn.Hp <= 0) return false;
         long windMult = _world.WeatherOn(attackerMap) == WeatherType.HeavyWind ? Constants.WeatherHeavyWindCooldownMultiplier : 1L;
         if (!AiCadence.Elapsed(now, attackerMn.AttackTimer, Constants.NpcAttackCooldownMs * windMult)) return false;
+        return NpcInMeleeRangeOfNpc(attackerMap, attackerMn, victimMap, victimMn);
+    }
+
+    /// <summary>The REACH half of <see cref="CanNpcAttackNpc"/> — everything but the swing cooldown. See
+    /// <see cref="NpcInMeleeRangeOfPlayer"/> for why the chase step must ask this one and not the other.</summary>
+    public bool NpcInMeleeRangeOfNpc(int attackerMap, MapNpcRecord attackerMn, int victimMap, MapNpcRecord victimMn)
+    {
+        if (attackerMn.Num <= 0 || attackerMn.Hp <= 0) return false;
+        if (victimMn.Num <= 0 || victimMn.Hp <= 0) return false;
 
         var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);
         var (aWX, aWY) = grid.CenterToWorld(attackerMn.X, attackerMn.Y);

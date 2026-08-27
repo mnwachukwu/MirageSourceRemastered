@@ -426,7 +426,7 @@ public sealed partial class GameplayScreen : IGameScreen
                 : ClientStrings.Format(ClientStrings.ContextMenu_QuestTurnIn, ("Name", qname));
             int qn = questNum, map = npc.B, slot = npc.A;
             var act = action;
-            items.Add(new(label, () => OpenQuestDialog(qn, act, map, slot), (Func<bool>)InRange));
+            items.Add(new(label, () => OpenQuestDialog(qn, act), (Func<bool>)InRange));
         }
 
         return items.Count > 0 ? items : null;
@@ -434,9 +434,9 @@ public sealed partial class GameplayScreen : IGameScreen
 
     // Open the accept/turn-in offer for a quest at the given NPC (from the NPC menu). It's a panel, so it joins
     // the normal z-order / focus flow (mirrors OpenShop / OpenInnPanel).
-    private void OpenQuestDialog(int questNum, ClientState.QuestAction action, int map, int slot)
+    private void OpenQuestDialog(int questNum, ClientState.QuestAction action)
     {
-        _questDialog.Open(questNum, action, map, slot);
+        _questDialog.Open(questNum, action);
         BringToFront(PanelQuestDialog);
         _panelFocused = true;
     }
@@ -467,7 +467,7 @@ public sealed partial class GameplayScreen : IGameScreen
         }
 
         if (actionable == 1)
-            OpenQuestDialog(firstQuest, firstAction, map, slot);
+            OpenQuestDialog(firstQuest, firstAction);
         else
             OpenNpcContextMenu(new TargetRef(TargetKind.Npc, slot, map), new Point(UiHelper.RefW / 2, UiHelper.RefH / 2));
     }

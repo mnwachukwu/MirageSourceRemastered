@@ -65,7 +65,7 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             // Turn to face BEFORE the swing (so the client applies the new Dir before the swoosh spawns) — the
             // legs pass does this on arrival; brain fallback here, never mid-slide, no deliberate beat.
-            var faceDir = FaceTargetDir(mapNum, t.X, t.Y, victimMap, victimMn.X, victimMn.Y, t.Dir);
+            var faceDir = FaceTargetDir(mapNum, t.X, t.Y, _world.Npcs[t.Num].EffectiveSize, victimMap, victimMn.X, victimMn.Y, t.Dir);
             if (t.Dir != faceDir)
             {
                 if (now < t.NextMoveMs) return;                   // still sliding into place — finish the move first
@@ -87,6 +87,7 @@ public sealed partial class NpcAiSystem : GameSystem
         // and guests (unlike natives) are ticked everywhere, so on an unwatched map the brain still steps here
         // (both a same-map victim and a seam cross), keeping a guest closing on an NPC while nobody watches.
         if (_world.MapObservers[mapNum].Count == 0)
-            StepGuestTowardObservableArea(mapNum, listIndex, t, victimMap, victimMn.X, victimMn.Y, victimMn.Layer);
+            StepGuestTowardObservableArea(mapNum, listIndex, t, victimMap, victimMn.X, victimMn.Y, victimMn.Layer,
+                targetSize: _world.Npcs[victimMn.Num].EffectiveSize);
     }
 }

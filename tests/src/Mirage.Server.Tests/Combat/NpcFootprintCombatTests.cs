@@ -139,6 +139,45 @@ public class NpcFootprintCombatTests
         Assert.That(offStrip.Hp, Is.EqualTo(StartHp), "a player off the strip is untouched by the same swing");
     }
 
+    // The whole body is the NPC, so every tile touching it is in reach — including the ones beyond a corner
+    // column or row, where the direction read off the ANCHOR points along the wrong axis entirely. A player
+    // standing above a size-3 body's right-hand column is one tile from three tons of monster; the anchor sits
+    // two columns to its left, so an anchor-derived facing calls that "to the right" and swings at empty air.
+    [TestCase(7, 4, TestName = "Footprint_AboveTheRightColumn")]
+    [TestCase(5, 4, TestName = "Footprint_AboveTheLeftColumn")]
+    [TestCase(4, 7, TestName = "Footprint_LeftOfTheBottomRow")]
+    [TestCase(4, 5, TestName = "Footprint_LeftOfTheTopRow")]
+    [TestCase(8, 7, TestName = "Footprint_RightOfTheBottomRow")]
+    [TestCase(7, 8, TestName = "Footprint_BelowTheRightColumn")]
+    public void Size3Npc_ReachesEveryTileTouchingItsBody(int px, int py)
+    {
+        var (combat, world, pm) = NewCombat();
+        world.Npcs[1].Size = 3;
+        world.Npcs[1].Str = 50;
+        world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
+        PlaceNpc(world, 1, 1, 5, 5);   // body {5,6,7} x {5,6,7}
+        RegisterPlayer(world, pm, 10, px, py);
+
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Now), Is.True,
+            $"({px},{py}) touches the body, so it is in reach");
+    }
+
+    [TestCase(8, 8, TestName = "Footprint_DiagonalPastTheCorner")]
+    [TestCase(4, 4, TestName = "Footprint_DiagonalPastTheOtherCorner")]
+    [TestCase(9, 6, TestName = "Footprint_TwoColumnsOut")]
+    public void Size3Npc_DoesNotReachPastItsBody(int px, int py)
+    {
+        var (combat, world, pm) = NewCombat();
+        world.Npcs[1].Size = 3;
+        world.Npcs[1].Str = 50;
+        world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
+        PlaceNpc(world, 1, 1, 5, 5);
+        RegisterPlayer(world, pm, 10, px, py);
+
+        Assert.That(combat.CanNpcAttackPlayer(Map, 1, 10, Now), Is.False,
+            $"({px},{py}) only touches the body at a corner or not at all");
+    }
+
     [Test]
     public void Size1Npc_MeleeStaysOmnidirectional()
     {
