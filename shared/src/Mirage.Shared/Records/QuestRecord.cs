@@ -63,6 +63,15 @@ public sealed class QuestRecord
     [JsonIgnore]
     public bool HasRepeatRewards => RepeatRewardExp > 0 || RepeatRewardItems.Count > 0;
 
+    /// <summary>Whether a run held at <paramref name="status"/> pays the repeat set rather than the main one.
+    ///
+    /// <para>🔴 The single rule behind every place a reward amount is named — the turn-in that grants it, the
+    /// journal, and the giver NPC's offer. <see cref="QuestStatus.Done"/> counts because accepting from Done
+    /// starts a repeat run, so an offer to re-run a finished quest quotes what accepting it will actually
+    /// pay. Anything else — never accepted, or a first run in progress — pays the main set.</para></summary>
+    public bool PaysRepeatRewards(QuestStatus status)
+        => HasRepeatRewards && status is QuestStatus.InProgressRepeat or QuestStatus.Done;
+
     // ── NPC roles (kept here, NOT on NpcRecord) ─────────────────────────────────
     /// <summary>NPC number that offers this quest (0 = not offered in-world).</summary>
     public int GiverNpc { get; set; }

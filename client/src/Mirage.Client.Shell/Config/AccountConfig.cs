@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Mirage.Client.Shell.Logic;
+using Mirage.Shared;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -170,8 +171,7 @@ public sealed class AccountConfig
 
     private static string FilePath(string accountName)
     {
-        var invalid = Path.GetInvalidFileNameChars();
-        var safe = new string(accountName.Select(c => Array.IndexOf(invalid, c) >= 0 ? '_' : c).ToArray());
+        string safe = PortableFileName.Sanitize(accountName);
         return AppPaths.Config("config", $"{safe}.json");
     }
 }

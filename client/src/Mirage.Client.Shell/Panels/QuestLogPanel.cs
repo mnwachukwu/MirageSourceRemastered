@@ -162,9 +162,8 @@ public sealed class QuestLogPanel : IGamePanel
                 detailY += LineH;
             }
 
-            // What this run pays. A repeat run pays the repeat set — and only if one is defined, matching the
-            // server — so the journal names the reward that is actually coming rather than the first-time one.
-            bool useRepeat = pq is { Status: QuestStatus.InProgressRepeat } && def.HasRepeatRewards;
+            // What this run pays, off the same rule the server grants by.
+            bool useRepeat = def.PaysRepeatRewards(pq?.Status ?? QuestStatus.NotStarted);
             long rewardExp = useRepeat ? def.RepeatRewardExp : def.RewardExp;
             var rewardItems = useRepeat ? def.RepeatRewardItems : def.RewardItems;
             if (rewardExp > 0 || rewardItems.Count > 0)

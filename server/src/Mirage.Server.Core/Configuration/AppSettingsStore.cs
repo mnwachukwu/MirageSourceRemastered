@@ -1,3 +1,4 @@
+using Mirage.Shared;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -149,7 +150,7 @@ public static class AppSettingsStore
             case JsonObject obj:
                 if (obj["Name"]?.GetValue<string>() == "File" &&
                     obj["Args"] is JsonObject args &&
-                    args["path"]?.GetValue<string>() == logPath)
+                    PathComparison.SameLocation(args["path"]?.GetValue<string>(), logPath))
                     return args;
                 foreach (var (_, child) in obj)
                     if (child is not null && FindFileSinkArgs(child, logPath) is { } found) return found;

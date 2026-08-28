@@ -10,16 +10,17 @@ using NUnit.Framework;
 namespace Mirage.Server.Tests;
 
 /// <summary>
-/// Who a kill counts for on a QUEST, which is a narrower question than who earns EXP from it.
+/// Who a kill counts for on a QUEST — player objectives, guild objectives, and the valor rolled for advancing
+/// one. A narrower question than who earns EXP from it, and decoupled from it entirely.
 ///
 /// <para>🔴 EXP divides by damage share, so a token hit earns a token amount and gains nothing by it. An
 /// objective tick does NOT divide — it is the same size however little was done for it — so without a floor,
 /// one point of damage on a mob somebody else killed is a full tick and tagging is the fastest way to quest.
 /// The floor is <see cref="Constants.QuestCreditDamagePercent"/>.</para>
 ///
-/// <para>A party partner earns it alongside whoever qualified, whether or not they landed a blow, reached by
-/// the SAME test the partner-kill EXP bonus applies. A support build that heals rather than hits would
-/// otherwise advance a quest never.</para>
+/// <para>A PARTY PARTNER of someone who clears it shares that credit on ONE damaging blow, so a pair splits a
+/// qualifying effort — but both of them hit the mob, and the pair still puts a real share in between them.
+/// Every class deals damage off the same stat spread, so a blow is a bar any build can clear.</para>
 /// </summary>
 [TestFixture]
 public class QuestCreditTests
@@ -58,7 +59,8 @@ public class QuestCreditTests
         pm[b].PartyPlayer = a;
     }
 
-    // The damage ledger for one kill, and who the kernel is told about.
+    // The damage ledger for one kill, and who the kernel is told about. A player with 0 damage is absent from
+    // the contributor set, which is where the one-blow requirement lives.
     private static HashSet<int> CreditFor(CombatSystem combat, GameWorld world, params (int Index, int Damage)[] hits)
     {
         var mn = world.MapNpcs[Map, Slot];
@@ -74,6 +76,8 @@ public class QuestCreditTests
 
         return combat.QuestCreditFor(mn, Map, total, contributors);
     }
+
+    // ── The floor, unpartied ────────────────────────────────────────────────────
 
     [Test]
     public void AShareBelowTheFloor_EarnsNothing()
@@ -123,41 +127,86 @@ public class QuestCreditTests
     }
 
     [Test]
-    public void APartnerWhoDidNothing_EarnsAlongsideThePlayerWhoDid()
+    public void ASoloKiller_Earns()
+    {
+        var (combat, world, pm) = NewCombat();
+        Register(world, pm, 1);
+
+        Assert.That(CreditFor(combat, world, (1, 1)), Does.Contain(1), "all of one point of damage is all of it");
+    }
+
+    // ── The party split ─────────────────────────────────────────────────────────
+
+    /// <summary>One partner carries the fight, the other lands a blow: the pair splits ONE qualifying effort.</summary>
+    [Test]
+    public void APartnerWhoLandedABlow_SharesCredit()
     {
         var (combat, world, pm) = NewCombat();
         Register(world, pm, 1);
         Register(world, pm, 2);
         Party(pm, 1, 2);
 
-        var credit = CreditFor(combat, world, (1, 100));
+        var credit = CreditFor(combat, world, (1, 99), (2, 1));   // 1% — nowhere near the floor
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(credit, Does.Contain(1), "cleared the floor");
+            Assert.That(credit, Does.Contain(2), "one blow is the partner's whole bar");
+        });
+    }
+
+    /// <summary>🔴 The blow is not optional. A partner who watched earns nothing — no objective tick, no valor.</summary>
+    [Test]
+    public void APartnerWhoDealtNothing_EarnsNothing()
+    {
+        var (combat, world, pm) = NewCombat();
+        Register(world, pm, 1);
+        Register(world, pm, 2);
+        Party(pm, 1, 2);
+
+        var credit = CreditFor(combat, world, (1, 100));   // player 2 never hit it
 
         Assert.Multiple(() =>
         {
             Assert.That(credit, Does.Contain(1));
-            Assert.That(credit, Does.Contain(2), "a healer never touches the damage ledger and must still quest");
+            Assert.That(credit, Does.Not.Contain(2), "standing next to a kill is not participating in it");
         });
     }
 
+    /// <summary>Neither half of the pair clears the floor: the split has nothing to divide, so neither earns.</summary>
     [Test]
-    public void APartnerOfSomeoneBelowTheFloor_EarnsNothingEither()
+    public void APairThatNeitherClearsTheFloor_EarnsNothing()
     {
         var (combat, world, pm) = NewCombat();
         for (int i = 1; i <= 3; i++) Register(world, pm, i);
-        Party(pm, 2, 3);   // 2 tags the mob, 3 rides along
+        Party(pm, 2, 3);   // 2 and 3 each tag it while 1 does the work
 
-        var credit = CreditFor(combat, world, (1, 95), (2, 5));
+        var credit = CreditFor(combat, world, (1, 90), (2, 5), (3, 5));
 
         Assert.Multiple(() =>
         {
             Assert.That(credit, Does.Contain(1));
             Assert.That(credit, Does.Not.Contain(2), "a tag earns nothing");
-            Assert.That(credit, Does.Not.Contain(3), "and cannot be laundered through a partner");
+            Assert.That(credit, Does.Not.Contain(3), "and two tags cannot be pooled into one qualifying share");
         });
     }
 
-    /// <summary>Partner reach is the same test the partner-kill EXP bonus uses — observing the map the kill
-    /// happened on. A partner who is not there gets neither.</summary>
+    [Test]
+    public void APairThatBothClearTheFloor_BothEarn()
+    {
+        var (combat, world, pm) = NewCombat();
+        Register(world, pm, 1);
+        Register(world, pm, 2);
+        Party(pm, 1, 2);
+
+        var credit = CreditFor(combat, world, (1, 50), (2, 50));
+
+        Assert.That(credit, Is.EquivalentTo(new[] { 1, 2 }));
+    }
+
+    /// <summary>Partner reach rides on the contributor set, which already requires observing the map the kill
+    /// happened on — the same test the partner-kill EXP bonus applies. A partner who is not there never lands
+    /// the blow the share is gated on.</summary>
     [Test]
     public void APartnerOutOfReach_EarnsNothing()
     {
@@ -175,13 +224,25 @@ public class QuestCreditTests
         });
     }
 
+    /// <summary>Credit cannot be laundered outward: a partner shares from someone who CLEARED the floor, never
+    /// from someone who was themselves only sharing.</summary>
     [Test]
-    public void ASoloKiller_Earns()
+    public void ASharedCredit_DoesNotChainOnward()
     {
         var (combat, world, pm) = NewCombat();
-        Register(world, pm, 1);
+        for (int i = 1; i <= 3; i++) Register(world, pm, i);
+        Party(pm, 1, 2);   // 1 clears the floor, 2 shares off it
+        pm[3].InParty = true;
+        pm[3].PartyPlayer = 2;   // 3 points at 2, who only ever shared
 
-        Assert.That(CreditFor(combat, world, (1, 1)), Does.Contain(1), "all of one point of damage is all of it");
+        var credit = CreditFor(combat, world, (1, 98), (2, 1), (3, 1));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(credit, Does.Contain(1));
+            Assert.That(credit, Does.Contain(2), "shares off the player who cleared it");
+            Assert.That(credit, Does.Not.Contain(3), "and that share is not itself shareable");
+        });
     }
 
     private sealed class NoOpDispatcher : IPacketDispatcher

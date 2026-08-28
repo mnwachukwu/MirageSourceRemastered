@@ -5,6 +5,7 @@ using Mirage.Client.Core.State;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Ui;
+using Mirage.Shared;
 using Mirage.Shared.Records;
 
 namespace Mirage.Client.Shell.Panels;
@@ -116,15 +117,19 @@ public sealed class QuestDialogPanel : IGamePanel
         }
         y += 6;
 
-        // Rewards.
+        // Rewards — the set this run pays, off the same rule the server grants by, so a re-run of a finished
+        // repeatable quest is offered at its repeat amounts.
+        bool useRepeat = def.PaysRepeatRewards(pq?.Status ?? QuestStatus.NotStarted);
+        long rewardExp = useRepeat ? def.RepeatRewardExp : def.RewardExp;
+        var rewardItems = useRepeat ? def.RepeatRewardItems : def.RewardItems;
         sb.DrawString(font, ClientStrings.Get(ClientStrings.QuestDialog_RewardsHeader), new Vector2(c.X + Pad, y), UiHelper.DlgLabelColor);
         y += LineH + 2;
-        if (def.RewardExp > 0)
+        if (rewardExp > 0)
         {
-            sb.DrawString(font, ClientStrings.Format(ClientStrings.QuestDialog_RewardExp, ("Exp", def.RewardExp)), new Vector2(c.X + Pad + 6, y), Color.White);
+            sb.DrawString(font, ClientStrings.Format(ClientStrings.QuestDialog_RewardExp, ("Exp", rewardExp)), new Vector2(c.X + Pad + 6, y), Color.White);
             y += LineH;
         }
-        foreach (var r in def.RewardItems)
+        foreach (var r in rewardItems)
         {
             if (r.ItemNum < 1 || r.ItemNum >= state.Items.Length) continue;
             string item = state.Items[r.ItemNum]?.Name?.TrimEnd() ?? "?";

@@ -76,7 +76,7 @@ public sealed partial class MainWindowViewModel
     {
         if (ParentOf(pickedWorld) is not { } parent) return;
         var s = AppSettings.Current;
-        if (string.Equals(s.LastWorldBrowsePath, parent, StringComparison.OrdinalIgnoreCase)) return;
+        if (PathComparison.SameLocation(s.LastWorldBrowsePath, parent)) return;
         s.LastWorldBrowsePath = parent;
         s.Save();
     }
@@ -101,7 +101,7 @@ public sealed partial class MainWindowViewModel
 
         // Unnamed is a real answer, and the folder is called what the window would call the world.
         string folderName = name.Length > 0 ? name : EditorStrings.Get(EditorStrings.World_Untitled);
-        if (folderName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        if (!PortableFileName.IsValid(folderName))
         {
             if (ShowAlertAsync is not null)
                 await ShowAlertAsync(EditorStrings.Format(EditorStrings.NewWorld_InvalidName, ("Name", folderName)));
@@ -332,7 +332,7 @@ public sealed partial class MainWindowViewModel
     {
         RememberBrowsedFrom(path);
         var s = AppSettings.Current;
-        s.RecentWorlds.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase));
+        s.RecentWorlds.RemoveAll(p => PathComparison.SameLocation(p, path));
         s.RecentWorlds.Insert(0, path);
         if (s.RecentWorlds.Count > 8) s.RecentWorlds.RemoveRange(8, s.RecentWorlds.Count - 8);
         s.LastWorldPath = path;
@@ -343,8 +343,8 @@ public sealed partial class MainWindowViewModel
     private void Forget(string path)
     {
         var s = AppSettings.Current;
-        if (s.RecentWorlds.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase)) == 0) return;
-        if (string.Equals(s.LastWorldPath, path, StringComparison.OrdinalIgnoreCase)) s.LastWorldPath = null;
+        if (s.RecentWorlds.RemoveAll(p => PathComparison.SameLocation(p, path)) == 0) return;
+        if (PathComparison.SameLocation(s.LastWorldPath, path)) s.LastWorldPath = null;
         s.Save();
         OnPropertyChanged(nameof(RecentWorlds));
     }

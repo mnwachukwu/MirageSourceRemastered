@@ -155,7 +155,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     private static string SuggestPngName(MapRowViewModel map, string suffix = "")
     {
         string name = string.IsNullOrWhiteSpace(map.Record.Name) ? "map" : map.Record.Name;
-        string safe = string.Concat(name.Split(Path.GetInvalidFileNameChars()));
+        string safe = PortableFileName.Sanitize(name);
         return $"map-{map.Index:0000}-{safe}{suffix}.png";
     }
 

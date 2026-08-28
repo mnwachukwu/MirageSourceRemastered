@@ -118,8 +118,8 @@ public sealed class QuestSystem : GameSystem
 
     private void GrantRewards(int index, QuestRecord q, PlayerQuest pq)
     {
-        // A repeat run pays the repeat set — but only if one is defined; else it keeps paying the main set.
-        bool useRepeat = pq.Status == QuestStatus.InProgressRepeat && q.HasRepeatRewards;
+        // The same rule the journal and the giver's offer quote, so the amount promised is the amount paid.
+        bool useRepeat = q.PaysRepeatRewards(pq.Status);
         long rewardExp = useRepeat ? q.RepeatRewardExp : q.RewardExp;
         var rewardItems = useRepeat ? q.RepeatRewardItems : q.RewardItems;
 

@@ -578,12 +578,11 @@ public sealed partial class TileGridControl : Control
         var rect = new Rect(x0, y0, Cols(map) * TileW * zoom, Rows(map) * TileH * zoom);
 
         var lights = new List<NightLight>(map.Lights.Count);
-        // In Light mode, preview only the ACTIVE plane's lights (matching the markers + the Ground/Fringe
-        // selector) so authoring a plane shows that plane's night look; other modes preview all lights.
-        bool filterLayer = EditorMode == EditorMode.Light;
+        // Only the ACTIVE plane's lights, matching the markers and the Ground/Fringe selector, in every mode.
+        // A convenience view of the plane being authored — the client owns accuracy, and occludes per layer.
         foreach (var pl in map.Lights)
         {
-            if (filterLayer && pl.Layer != AttributeLayer) continue;
+            if (pl.Layer != AttributeLayer) continue;
             if (pl.X < 0 || pl.X >= Cols(map) || pl.Y < 0 || pl.Y >= Rows(map)) continue;
             lights.Add(new NightLight(
                 (float)(x0 + (pl.X + 0.5) * TileW * zoom),

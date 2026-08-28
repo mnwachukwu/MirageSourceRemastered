@@ -678,15 +678,18 @@ public static class Constants
     // active quest mob.
     public const int GuildQuestValorChancePercent = 25;
 
-    /// <summary>The share of a mob's damage a player must deal for the kill to count toward their quest
-    /// objectives — player and guild alike.
+    /// <summary>The share of a mob's damage a player deals for the kill to count toward their quest
+    /// objectives — player and guild alike, and the valor rolled for advancing one.
     ///
     /// <para>EXP is split by share, so a token hit earns a token amount and nothing is gained by it. A quest
     /// objective is not divisible: the tick is the same size however little was done for it, so without a floor
     /// one point of damage on someone else's kill is a full one, and tagging becomes the fastest way to quest.</para>
     ///
     /// <para>Twelve leaves room for eight to share a mob comfortably, which is well past any party size, so a
-    /// group genuinely working a mob together all qualify while a passer-by landing one hit does not.</para></summary>
+    /// group genuinely working a mob together all qualify while a passer-by landing one hit does not.</para>
+    ///
+    /// <para>🔴 A PARTY PARTNER of someone who clears it shares the credit on one damaging blow instead — see
+    /// <c>CombatSystem.QuestCreditFor</c>. The pair still has to put a real share in between them.</para></summary>
     public const int QuestCreditDamagePercent = 12;
 
     // ── Death & respawn ──────────────────────────────────────────────────────

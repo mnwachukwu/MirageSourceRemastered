@@ -287,9 +287,8 @@ public sealed partial class CombatSystem : GameSystem
             _dispatcher.SendTo(i, PacketBuilder.SendStats(p));
         }
 
-        // Who this kill counts for on a QUEST, which is narrower than who earns EXP from it. Both the valor
-        // roll and the kernel read it: a kill either counts toward a guild's quest or it does not, and the
-        // currency paid for advancing one answers to the same rule as the advance.
+        // Who this kill counts for on a QUEST, which is a narrower question than who earns EXP from it. Guild
+        // quests, player quests and the valor below all read this one set.
         var questCredit = QuestCreditFor(mapNpc, mapNum, totalDmg, contributors);
 
         // Guild-quest valor (per-player): a credited player whose guild's active quest targets this mob rolls
@@ -335,7 +334,8 @@ public sealed partial class CombatSystem : GameSystem
     }
 
     /// <summary>
-    /// Who this kill counts for on a QUEST, which is a narrower question than who earns EXP from it.
+    /// Who this kill counts for on a QUEST — player objectives, guild objectives, and the valor rolled for
+    /// advancing one. A narrower question than who earns EXP from it, and decoupled from it entirely.
     ///
     /// <para>EXP divides by damage share, so a token hit earns a token amount and gains nothing by it. An
     /// objective tick does NOT divide — it is the same size however little was done for it — so it takes a real
@@ -343,14 +343,17 @@ public sealed partial class CombatSystem : GameSystem
     /// Otherwise one point of damage on a mob somebody else killed is a full tick, and tagging is the fastest
     /// way to quest.</para>
     ///
-    /// <para>A party partner earns it alongside whoever qualified, whether or not they landed a blow. Hunting
-    /// together is supported everywhere else — the party EXP bonus, the partner-kill bonus — and a support
-    /// build that heals rather than hits would otherwise advance a quest never.</para>
+    /// <para>🔴 A PARTY PARTNER of someone who clears the floor shares that credit on ONE damaging blow. The
+    /// pair still puts a real share in between them, so this SPLITS a qualifying effort rather than widening
+    /// who qualifies — and each of the two has to hit the mob. Every class deals damage off the same stat
+    /// spread (a healer's spellbook is taxed in MP, not in offense), so a blow is a bar any build can clear.</para>
     ///
-    /// <para>🔴 Partner reach is the SAME test the partner-kill EXP bonus applies: observing the map the kill
-    /// happened on, which is the 3x3 neighbourhood rather than that one map. There is no party-range constant
-    /// to read — <c>PartySystem</c> has no proximity rule of its own — so this test IS the range, and the two
-    /// rewards have to ask it the same way or a partner earns EXP from a kill their quest ignores.</para>
+    /// <para>A blow is also all a partner needs to be REACHED: <paramref name="contributors"/> already carries
+    /// "still observing the map the kill happened on", the same 3x3 test the partner-kill EXP bonus applies,
+    /// so a partner who is elsewhere is absent from it and shares nothing.</para>
+    ///
+    /// <para>Two passes, so the outcome never depends on slot order: every clearing player is collected first,
+    /// then partners are matched against that finished set.</para>
     /// </summary>
     internal HashSet<int> QuestCreditFor(MapNpcRecord mapNpc, int mapNum, long totalDmg, HashSet<int> contributors)
     {
@@ -358,13 +361,18 @@ public sealed partial class CombatSystem : GameSystem
         foreach (int i in contributors)
         {
             // Compared as whole numbers: the threshold is a percentage of a damage total, and both are ints.
-            if (mapNpc.DamageByPlayer[i] * 100L < totalDmg * Constants.QuestCreditDamagePercent) continue;
-            credited.Add(i);
-
-            int partner = _pm[i].InParty ? _pm[i].PartyPlayer : 0;
-            if (partner > 0 && _pm[partner].IsPlaying && _world.IsObserving(partner, mapNum)) credited.Add(partner);
+            if (mapNpc.DamageByPlayer[i] * 100L >= totalDmg * Constants.QuestCreditDamagePercent) credited.Add(i);
         }
 
+        var shared = new HashSet<int>();
+        foreach (int i in contributors)
+        {
+            if (credited.Contains(i)) continue;
+            int partner = _pm[i].InParty ? _pm[i].PartyPlayer : 0;
+            if (partner > 0 && credited.Contains(partner)) shared.Add(i);
+        }
+
+        credited.UnionWith(shared);
         return credited;
     }
 
