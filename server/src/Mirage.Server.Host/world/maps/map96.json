@@ -1,1184 +1,1008 @@
 {
-  "name": "The Reed Shallows 1",
-  "displayName": "",
-  "revision": 13,
-  "up": 16,
+  "name": "The Undertow Stair, The Deep Chorus",
+  "displayName": "The Undertow Stair, The Deep Chorus",
+  "revision": 1,
+  "up": 0,
   "down": 0,
   "left": 0,
-  "right": 17,
+  "right": 0,
   "music": 0,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
+  "indoors": true,
   "greetingSpeaker": "",
   "joinSay": "",
   "leaveSay": "",
-  "mapGroup": 3,
+  "mapGroup": 11,
   "tile": [
     [
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
         "type": "Blocked"
-      },
+      }
+    ],
+    [
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "type": "Blocked"
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
         ],
         "type": "NpcAvoid"
       },
       {
         "ground": [
-          113,
-          2
+          360
         ],
         "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpMap": 82,
+        "warpX": 10,
+        "warpY": 9
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          2
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ],
+        "type": "NpcAvoid"
+      },
+      {
+        "ground": [
+          360
         ],
         "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpMap": 82,
+        "warpX": 10,
+        "warpY": 9
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          2
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ],
+        "type": "NpcAvoid"
+      },
+      {
+        "ground": [
+          360
         ],
         "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpMap": 82,
+        "warpX": 10,
+        "warpY": 9
       }
     ],
     [
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113,
-          2
-        ],
-        "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
-      },
-      {
-        "ground": [
-          113,
-          2
-        ],
-        "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113,
-          2
-        ],
-        "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "fringe": [
-          411
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "fringe": [
-          411
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
+          360
         ]
       },
-      {
-        "ground": [
-          113
-        ]
-      }
-    ],
-    [
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
       },
       {
-        "ground": [
-          113,
-          154
-        ],
         "type": "Blocked"
       }
     ],
     [
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
+          360
+        ]
+      },
+      {
         "type": "Blocked"
       }
     ],
     [
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
-        "fringe": [
-          411
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
         "type": "Blocked"
       }
     ],
     [
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
+          360
+        ]
+      },
+      {
         "type": "Blocked"
       }
     ],
     [
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
-        "fringe": [
-          411
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113
+          360
         ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+          360
+        ]
       },
       {
         "ground": [
-          113,
-          154
-        ],
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
         "type": "Blocked"
       }
     ],
     [
       {
         "ground": [
-          113
-        ],
-        "fringe": [
-          411
+          360
         ]
       },
       {
         "ground": [
-          113,
-          418
-        ],
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
         "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      }
-    ],
-    [
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
       }
     ]
   ],
   "npcs": [
     {
-      "npc": 1
-    },
-    {
-      "npc": 1
-    },
-    {
-      "npc": 1
-    },
-    {
-      "npc": 1
-    },
-    {
-      "npc": 2
+      "npc": 118,
+      "pinX": 6,
+      "pinY": 4
     }
   ],
   "lights": []

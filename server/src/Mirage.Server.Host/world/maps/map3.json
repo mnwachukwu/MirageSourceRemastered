@@ -1,7 +1,7 @@
 {
   "name": "Fenn's Landing 2",
   "displayName": "",
-  "revision": 12,
+  "revision": 14,
   "up": 0,
   "down": 2,
   "left": 0,
@@ -477,7 +477,11 @@
           113,
           163,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 61,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -541,21 +545,27 @@
           113,
           163,
           117
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           163,
           124
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           163,
           131
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 61,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -615,21 +625,27 @@
           113,
           163,
           118
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           163,
           125
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           163,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 61,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -689,7 +705,11 @@
           113,
           163,
           131
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 61,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -1087,9 +1107,9 @@
   ],
   "lights": [
     {
-      "id": "31c3fd83-c463-441a-9631-a603f52433ac",
+      "id": "787b6a14-c95f-4d54-9e1b-165521a1eaef",
       "x": 9,
-      "y": 2,
+      "y": 3,
       "light": {
         "rgb": 16777215,
         "radius": 5,

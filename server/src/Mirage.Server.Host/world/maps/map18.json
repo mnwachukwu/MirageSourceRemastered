@@ -1,7 +1,7 @@
 {
   "name": "The Reed Shallows 4",
   "displayName": "",
-  "revision": 8,
+  "revision": 10,
   "up": 20,
   "down": 17,
   "left": 16,
@@ -505,14 +505,16 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       }
     ],
     [
@@ -561,28 +563,32 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       }
     ],
     [
@@ -631,21 +637,24 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false
       },
       {
         "ground": [
