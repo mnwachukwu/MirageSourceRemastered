@@ -1,7 +1,7 @@
 {
   "name": "The Poacher's Hedge 5",
   "displayName": "",
-  "revision": 5,
+  "revision": 6,
   "up": 24,
   "down": 26,
   "left": 22,
@@ -80,7 +80,9 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -148,7 +150,9 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -173,76 +177,6 @@
           147
         ],
         "type": "Blocked"
-      },
-      {
-        "ground": [
-          2,
-          147
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          2,
-          147
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          2,
-          147
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          2,
-          147
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
-      },
-      {
-        "ground": [
-          2
-        ]
       },
       {
         "ground": [
@@ -316,6 +250,76 @@
       },
       {
         "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2,
+          147
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
+          2
+        ]
+      },
+      {
+        "ground": [
           2
         ]
       },
@@ -615,14 +619,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -681,14 +689,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -747,14 +759,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -813,14 +829,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -879,14 +899,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -945,14 +969,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -1011,14 +1039,18 @@
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           2,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [

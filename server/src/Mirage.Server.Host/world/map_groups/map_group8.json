@@ -9,5 +9,6 @@
   "bootY": 0,
   "greetingSpeaker": "",
   "joinSay": "",
-  "leaveSay": ""
+  "leaveSay": "",
+  "territory": false
 }

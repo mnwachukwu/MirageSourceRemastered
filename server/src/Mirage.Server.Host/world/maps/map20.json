@@ -1,7 +1,7 @@
 {
   "name": "The Reed Shallows 6",
   "displayName": "",
-  "revision": 8,
+  "revision": 9,
   "up": 0,
   "down": 18,
   "left": 19,
@@ -138,14 +138,18 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -194,35 +198,45 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -261,128 +275,54 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "fringe": [
-          411
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -409,17 +349,15 @@
           113,
           418
         ],
+        "fringe": [
+          411
+        ],
         "type": "Blocked"
       },
       {
         "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
           113,
-          154
+          418
         ],
         "type": "Blocked"
       },
@@ -428,40 +366,63 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
-          113
-        ]
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -500,42 +461,145 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ],
+        "fringe": [
+          411
+        ]
+      },
+      {
+        "ground": [
+          113,
+          418
+        ],
         "type": "Blocked"
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          113,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -574,35 +638,45 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -646,28 +720,36 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -721,14 +803,18 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [

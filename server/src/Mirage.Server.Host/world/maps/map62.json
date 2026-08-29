@@ -1,12 +1,12 @@
 {
   "name": "The Dry Deck 3",
   "displayName": "",
-  "revision": 1,
+  "revision": 3,
   "up": 0,
   "down": 60,
   "left": 0,
   "right": 63,
-  "music": 12,
+  "music": 0,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
@@ -49,7 +49,8 @@
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
@@ -116,12 +117,14 @@
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
@@ -178,12 +181,14 @@
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
@@ -235,12 +240,14 @@
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
           163
-        ]
+        ],
+        "type": "NpcAvoid"
       },
       {
         "ground": [
@@ -1118,14 +1125,10 @@
   ],
   "npcs": [
     {
-      "npc": 156,
-      "pinX": null,
-      "pinY": null
+      "npc": 156
     },
     {
-      "npc": 171,
-      "pinX": null,
-      "pinY": null
+      "npc": 171
     }
   ],
   "lights": []

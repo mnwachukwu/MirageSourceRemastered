@@ -1,7 +1,7 @@
 {
   "name": "The Kiln Road 13",
   "displayName": "The Kiln Road, Treacherous Cavern",
-  "revision": 2,
+  "revision": 3,
   "up": 0,
   "down": 49,
   "left": 0,
@@ -70,10 +70,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -128,10 +132,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -186,10 +194,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -244,10 +256,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -302,10 +318,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -360,10 +380,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -418,10 +442,77 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      }
+    ],
+    [
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282
+        ]
+      },
+      {
+        "ground": [
+          282,
+          271
+        ]
+      },
+      {
+        "ground": [
+          278
+        ]
+      },
+      {
+        "ground": [
+          278
+        ]
       }
     ],
     [
@@ -598,19 +689,18 @@
       },
       {
         "ground": [
-          282,
-          271
+          282
         ]
       },
       {
-        "ground": [
-          278
-        ]
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "ground": [
-          278
-        ]
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -665,10 +755,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -723,10 +817,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -781,10 +879,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -839,68 +941,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
-      }
-    ],
-    [
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "ground": [
-          282
-        ]
-      },
-      {
-        "type": "Blocked"
-      },
-      {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -959,10 +1007,14 @@
         ]
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ]
   ],

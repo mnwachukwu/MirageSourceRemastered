@@ -1,4 +1,5 @@
-{  "name": "Fenn's Clearing",
+{
+  "name": "Fenn's Clearing",
   "displayName": "Fenn's Clearing",
   "music": 10,
   "moral": "Safe",
@@ -9,13 +10,5 @@
   "greetingSpeaker": "",
   "joinSay": "",
   "leaveSay": "",
-  "territory": false,
-  "controllingGuild": 0,
-  "pendingIncome": 0,
-  "incomeThisWeek": 0,
-  "previousWeekIncome": 0,
-  "lastWeekRollDate": "0001-01-01",
-  "weeksHeld": 0,
-  "challengers": [],
-  "defenderAbandoned": false
+  "territory": false
 }

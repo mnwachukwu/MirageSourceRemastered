@@ -1,12 +1,12 @@
 {
   "name": "The Coral Wall 2",
   "displayName": "",
-  "revision": 1,
+  "revision": 4,
   "up": 90,
   "down": 84,
   "left": 86,
   "right": 88,
-  "music": 6,
+  "music": 0,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
@@ -63,11 +63,6 @@
       },
       {
         "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
           360,
           361
         ]
@@ -77,67 +72,11 @@
           360,
           361
         ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          360
-        ]
       },
       {
         "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
+          360,
+          361
         ]
       }
     ],
@@ -397,6 +336,68 @@
       },
       {
         "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
           163
         ]
       },
@@ -516,7 +517,8 @@
     [
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
@@ -539,7 +541,8 @@
       },
       {
         "ground": [
-          163
+          163,
+          361
         ]
       },
       {
@@ -550,7 +553,8 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
@@ -591,21 +595,27 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -618,7 +628,9 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -658,42 +670,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -733,42 +757,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -808,42 +844,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -883,42 +931,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -958,42 +1018,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -1066,7 +1138,8 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
@@ -1081,7 +1154,8 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
@@ -1100,24 +1174,16 @@
   ],
   "npcs": [
     {
-      "npc": 74,
-      "pinX": null,
-      "pinY": null
+      "npc": 74
     },
     {
-      "npc": 75,
-      "pinX": null,
-      "pinY": null
+      "npc": 75
     },
     {
-      "npc": 77,
-      "pinX": null,
-      "pinY": null
+      "npc": 77
     },
     {
-      "npc": 74,
-      "pinX": null,
-      "pinY": null
+      "npc": 74
     }
   ],
   "lights": []

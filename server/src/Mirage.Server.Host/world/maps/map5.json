@@ -1,7 +1,7 @@
 {
   "name": "Fenn's Landing 4",
   "displayName": "",
-  "revision": 8,
+  "revision": 11,
   "up": 0,
   "down": 6,
   "left": 4,
@@ -350,7 +350,11 @@
         "ground": [
           113,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -410,25 +414,32 @@
         "ground": [
           113,
           114
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           121
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           128
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           131
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -481,32 +492,43 @@
           113,
           115,
           117
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           122,
           124
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
           113,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -554,26 +576,33 @@
           113,
           115,
           118
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           122,
           125
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           131
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -625,25 +654,32 @@
         "ground": [
           113,
           116
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           123
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           130
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           113,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -701,7 +737,11 @@
         "ground": [
           113,
           132
-        ]
+        ],
+        "type": "Warp",
+        "warpMap": 100,
+        "warpX": 13,
+        "warpY": 9
       },
       {
         "ground": [
@@ -1072,17 +1112,5 @@
       "pinY": 7
     }
   ],
-  "lights": [
-    {
-      "id": "c94d3c82-a29c-45c6-bd94-4886186b7ba5",
-      "x": 8,
-      "y": 3,
-      "light": {
-        "rgb": 16777215,
-        "radius": 5,
-        "flicker": "Flame",
-        "intensity": 1
-      }
-    }
-  ]
+  "lights": []
 }

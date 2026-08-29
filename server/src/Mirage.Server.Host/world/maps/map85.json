@@ -1,12 +1,12 @@
 {
   "name": "The Undertow Stair 6",
   "displayName": "",
-  "revision": 1,
+  "revision": 5,
   "up": 88,
   "down": 82,
   "left": 84,
   "right": 0,
-  "music": 9,
+  "music": 0,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
@@ -92,12 +92,7 @@
       },
       {
         "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          360,
+          163,
           361
         ]
       },
@@ -115,7 +110,14 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
         ]
       },
       {
@@ -153,7 +155,8 @@
       },
       {
         "ground": [
-          163
+          163,
+          361
         ]
       },
       {
@@ -167,21 +170,27 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -191,81 +200,7 @@
       },
       {
         "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          163,
-          361
-        ]
-      },
-      {
-        "ground": [
           360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
           361
         ]
       },
@@ -293,6 +228,12 @@
     [
       {
         "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
           360,
           361
         ]
@@ -302,42 +243,45 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -378,35 +322,133 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -458,42 +500,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -534,42 +588,54 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -610,7 +676,9 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -635,14 +703,18 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -683,7 +755,9 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -693,12 +767,14 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
@@ -712,7 +788,9 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -756,6 +834,161 @@
       },
       {
         "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
           360
         ]
       },
@@ -780,25 +1013,45 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           361
         ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
+      }
+    ],
+    [
       {
         "ground": [
           360,
@@ -808,6 +1061,155 @@
       {
         "ground": [
           360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          361
         ]
       }
     ],
@@ -864,283 +1266,6 @@
       {
         "ground": [
           360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360,
           361
         ]
       },
@@ -1154,41 +1279,22 @@
         "ground": [
           360,
           361
-        ]
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360
         ]
       }
     ]
   ],
   "npcs": [
     {
-      "npc": 69,
-      "pinX": null,
-      "pinY": null
+      "npc": 69
     },
     {
-      "npc": 71,
-      "pinX": null,
-      "pinY": null
+      "npc": 71
     },
     {
-      "npc": 72,
-      "pinX": null,
-      "pinY": null
+      "npc": 72
     },
     {
-      "npc": 72,
-      "pinX": null,
-      "pinY": null
+      "npc": 72
     }
   ],
   "lights": []

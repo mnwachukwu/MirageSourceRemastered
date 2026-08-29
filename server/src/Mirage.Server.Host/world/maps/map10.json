@@ -1,7 +1,7 @@
 {
   "name": "Fenn's Clearing 4",
   "displayName": "",
-  "revision": 14,
+  "revision": 15,
   "up": 0,
   "down": 8,
   "left": 9,
@@ -899,8 +899,8 @@
         ],
         "type": "Warp",
         "warpMap": 15,
-        "warpX": 3,
-        "warpY": 8
+        "warpX": 2,
+        "warpY": 9
       },
       {
         "ground": [
@@ -976,8 +976,8 @@
         ],
         "type": "Warp",
         "warpMap": 15,
-        "warpX": 3,
-        "warpY": 8
+        "warpX": 2,
+        "warpY": 9
       },
       {
         "ground": [
@@ -986,8 +986,8 @@
         ],
         "type": "Warp",
         "warpMap": 15,
-        "warpX": 3,
-        "warpY": 8
+        "warpX": 2,
+        "warpY": 9
       },
       {
         "ground": [
@@ -1060,8 +1060,8 @@
         ],
         "type": "Warp",
         "warpMap": 15,
-        "warpX": 3,
-        "warpY": 8
+        "warpX": 2,
+        "warpY": 9
       },
       {
         "ground": [
@@ -1070,8 +1070,8 @@
         ],
         "type": "Warp",
         "warpMap": 15,
-        "warpX": 3,
-        "warpY": 8
+        "warpX": 2,
+        "warpY": 9
       },
       {
         "ground": [
@@ -1080,8 +1080,8 @@
         ],
         "type": "Warp",
         "warpMap": 15,
-        "warpX": 3,
-        "warpY": 8
+        "warpX": 2,
+        "warpY": 9
       },
       {
         "ground": [

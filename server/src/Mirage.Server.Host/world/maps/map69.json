@@ -1,12 +1,12 @@
 {
   "name": "The Shelf 2",
   "displayName": "",
-  "revision": 1,
+  "revision": 4,
   "up": 72,
   "down": 0,
   "left": 68,
   "right": 70,
-  "music": 15,
+  "music": 0,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
@@ -80,70 +80,6 @@
     [
       {
         "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163,
-          361
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163,
-          361
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
           163,
           361
         ]
@@ -151,9 +87,8 @@
       {
         "ground": [
           163,
-          154
-        ],
-        "type": "Blocked"
+          361
+        ]
       },
       {
         "ground": [
@@ -185,9 +120,8 @@
       {
         "ground": [
           163,
-          154
-        ],
-        "type": "Blocked"
+          361
+        ]
       },
       {
         "ground": [
@@ -223,45 +157,9 @@
           163,
           154
         ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          361
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163,
-          361
-        ]
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -281,37 +179,9 @@
       },
       {
         "ground": [
-          163
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
           163,
           361
         ]
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
       },
       {
         "ground": [
@@ -324,21 +194,9 @@
           163,
           154
         ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -374,49 +232,54 @@
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          361
+        ]
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -443,8 +306,36 @@
     [
       {
         "ground": [
-          163
+          163,
+          361
         ]
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -455,46 +346,34 @@
       {
         "ground": [
           163,
-          361
-        ]
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          163,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           361
-        ]
-      },
-      {
-        "ground": [
-          163
         ]
       },
       {
@@ -516,7 +395,77 @@
     [
       {
         "ground": [
-          163
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          361
         ]
       },
       {
@@ -527,6 +476,25 @@
       {
         "ground": [
           163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          361
         ]
       },
       {
@@ -540,21 +508,36 @@
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -564,7 +547,8 @@
       },
       {
         "ground": [
-          163
+          163,
+          361
         ]
       },
       {
@@ -601,6 +585,77 @@
       },
       {
         "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
           163
         ]
       },
@@ -624,7 +679,14 @@
       },
       {
         "ground": [
-          163
+          163,
+          361
+        ]
+      },
+      {
+        "ground": [
+          163,
+          361
         ]
       },
       {
@@ -1085,24 +1147,16 @@
   ],
   "npcs": [
     {
-      "npc": 54,
-      "pinX": null,
-      "pinY": null
+      "npc": 54
     },
     {
-      "npc": 55,
-      "pinX": null,
-      "pinY": null
+      "npc": 55
     },
     {
-      "npc": 56,
-      "pinX": null,
-      "pinY": null
+      "npc": 56
     },
     {
-      "npc": 56,
-      "pinX": null,
-      "pinY": null
+      "npc": 56
     }
   ],
   "lights": []

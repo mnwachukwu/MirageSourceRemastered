@@ -1,7 +1,7 @@
 {
   "name": "Fenn's Landing 3",
   "displayName": "",
-  "revision": 16,
+  "revision": 17,
   "up": 0,
   "down": 1,
   "left": 3,
@@ -1111,17 +1111,5 @@
       "pinY": 7
     }
   ],
-  "lights": [
-    {
-      "id": "4fc17640-ec3e-4f23-a70d-f528d45501c0",
-      "x": 7,
-      "y": 3,
-      "light": {
-        "rgb": 16777215,
-        "radius": 5,
-        "flicker": "Flame",
-        "intensity": 1
-      }
-    }
-  ]
+  "lights": []
 }

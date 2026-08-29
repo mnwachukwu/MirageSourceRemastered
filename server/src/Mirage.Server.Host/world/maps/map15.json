@@ -1,7 +1,7 @@
 {
   "name": "The Reed Shallows 1",
   "displayName": "",
-  "revision": 13,
+  "revision": 15,
   "up": 16,
   "down": 0,
   "left": 0,
@@ -74,8 +74,8 @@
         ],
         "type": "Warp",
         "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpX": 13,
+        "warpY": 2
       },
       {
         "ground": [
@@ -84,8 +84,8 @@
         ],
         "type": "Warp",
         "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpX": 13,
+        "warpY": 2
       },
       {
         "ground": [
@@ -94,8 +94,8 @@
         ],
         "type": "Warp",
         "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpX": 13,
+        "warpY": 2
       }
     ],
     [
@@ -113,90 +113,6 @@
           418
         ],
         "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ]
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113
-        ],
-        "type": "NpcAvoid"
-      },
-      {
-        "ground": [
-          113,
-          2
-        ],
-        "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
-      },
-      {
-        "ground": [
-          113,
-          2
-        ],
-        "type": "Warp",
-        "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
-      }
-    ],
-    [
-      {
-        "ground": [
-          113
-        ],
-        "fringe": [
-          411
-        ]
-      },
-      {
-        "ground": [
-          113,
-          418
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          113
-        ]
       },
       {
         "ground": [
@@ -247,8 +163,92 @@
         ],
         "type": "Warp",
         "warpMap": 10,
-        "warpX": 12,
-        "warpY": 3
+        "warpX": 13,
+        "warpY": 2
+      },
+      {
+        "ground": [
+          113,
+          2
+        ],
+        "type": "Warp",
+        "warpMap": 10,
+        "warpX": 13,
+        "warpY": 2
+      }
+    ],
+    [
+      {
+        "ground": [
+          113
+        ],
+        "fringe": [
+          411
+        ]
+      },
+      {
+        "ground": [
+          113,
+          418
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ]
+      },
+      {
+        "ground": [
+          113
+        ],
+        "type": "NpcAvoid"
+      },
+      {
+        "ground": [
+          113
+        ],
+        "type": "NpcAvoid"
+      },
+      {
+        "ground": [
+          113,
+          2
+        ],
+        "type": "Warp",
+        "warpMap": 10,
+        "warpX": 13,
+        "warpY": 2
       }
     ],
     [
@@ -592,14 +592,18 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -663,14 +667,18 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -734,21 +742,27 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -807,21 +821,27 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -885,21 +905,27 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -963,14 +989,18 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -1036,7 +1066,9 @@
           113,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [

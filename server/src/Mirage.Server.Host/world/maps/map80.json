@@ -1,13 +1,13 @@
 {
   "name": "The Undertow Stair 1",
   "displayName": "The Undertow Stair, Respite",
-  "revision": 2,
+  "revision": 5,
   "up": 83,
   "down": 77,
   "left": 0,
   "right": 81,
   "moral": "Safe",
-  "music": 9,
+  "music": 0,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
@@ -458,7 +458,8 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
         ]
       },
       {
@@ -469,11 +470,6 @@
       },
       {
         "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
           360,
           361
         ]
@@ -486,7 +482,14 @@
       },
       {
         "ground": [
-          360
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
         ]
       },
       {
@@ -532,7 +535,9 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -545,86 +550,18 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360,
-          361
-        ]
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
-      },
-      {
-        "ground": [
-          360,
-          154
-        ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -675,28 +612,36 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -747,28 +692,36 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -819,28 +772,36 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -891,28 +852,36 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -954,11 +923,6 @@
       },
       {
         "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
           360,
           361
         ]
@@ -968,21 +932,36 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -1024,6 +1003,84 @@
       },
       {
         "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          154
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      },
+      {
+        "ground": [
+          360
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          360,
+          361
+        ]
+      },
+      {
+        "ground": [
           360
         ]
       },
@@ -1038,14 +1095,24 @@
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           360,
           154
         ],
-        "type": "Blocked"
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          360,
+          361
+        ]
       },
       {
         "ground": [
@@ -1065,12 +1132,8 @@
       },
       {
         "ground": [
-          360
-        ]
-      },
-      {
-        "ground": [
-          360
+          360,
+          361
         ]
       },
       {

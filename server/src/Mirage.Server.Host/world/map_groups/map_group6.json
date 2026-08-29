@@ -9,13 +9,5 @@
   "greetingSpeaker": "",
   "joinSay": "",
   "leaveSay": "",
-  "territory": true,
-  "controllingGuild": 0,
-  "pendingIncome": 0,
-  "incomeThisWeek": 0,
-  "previousWeekIncome": 0,
-  "lastWeekRollDate": "0001-01-01",
-  "weeksHeld": 0,
-  "challengers": [],
-  "defenderAbandoned": false
+  "territory": true
 }

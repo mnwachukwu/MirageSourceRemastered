@@ -3,11 +3,11 @@
   "displayName": "The Shelf",
   "music": 15,
   "moral": "None",
-  "alwaysLit": true,
   "bootMap": 0,
   "bootX": 0,
   "bootY": 0,
   "greetingSpeaker": "",
   "joinSay": "",
-  "leaveSay": ""
+  "leaveSay": "",
+  "territory": true
 }
