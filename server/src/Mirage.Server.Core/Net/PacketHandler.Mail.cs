@@ -32,7 +32,7 @@ public sealed partial class PacketHandler
 
     private void HandleMailClaim(int index, MailClaimPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _mail.Claim(index, p.Id);
     }
 
@@ -42,7 +42,7 @@ public sealed partial class PacketHandler
     private void HandleMailSend(int index, MailSendPacket p)
     {
         var sp = _pm[index];
-        if (!sp.IsPlaying) return;
+        if (!IsActing(index)) return;
 
         // Recipients are a comma-separated list. A blank overall field OR any blank token ("a,,b", trailing
         // comma) is rejected; every token is injection-checked; you can never be a recipient (sole or in a list).
@@ -209,7 +209,7 @@ public sealed partial class PacketHandler
     private void HandleMailPayCod(int index, MailPayCodPacket p)
     {
         var sp = _pm[index];
-        if (!sp.IsPlaying) return;
+        if (!IsActing(index)) return;
         var m = sp.Mail.FirstOrDefault(x => x.Id == p.Id);
         if (m is null || m.CodPrice <= 0) return;                                   // not a live CoD
         if (NowUtc < m.DeliverAt) return;        // still in transit

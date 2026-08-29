@@ -344,9 +344,6 @@ public static partial class EditorStrings
     public const string MapGroupEditor_TerritoryLabel = nameof(MapGroupEditor_TerritoryLabel);
     public const string MapGroupEditor_FallbackHeader = nameof(MapGroupEditor_FallbackHeader);
     public const string MapGroupEditor_TriStateHint = nameof(MapGroupEditor_TriStateHint);
-    public const string MapGroupEditor_ControllingGuildLabel = nameof(MapGroupEditor_ControllingGuildLabel);
-    public const string MapGroupEditor_ControlledBy = nameof(MapGroupEditor_ControlledBy);      // "Guild {Guild}"
-    public const string MapGroupEditor_Unclaimed = nameof(MapGroupEditor_Unclaimed);
     public const string MapGroupEditor_SaveButton = nameof(MapGroupEditor_SaveButton);
     public const string MapGroupEditor_MapsHeader = nameof(MapGroupEditor_MapsHeader);
     public const string MapGroupEditor_NoMaps = nameof(MapGroupEditor_NoMaps);

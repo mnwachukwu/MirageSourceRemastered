@@ -32,6 +32,9 @@ public static partial class ServerStrings
     public const string Trade_Sender = nameof(Trade_Sender);
     public const string Trade_TargetNotOnline = nameof(Trade_TargetNotOnline);
     public const string Trade_CannotTradeSelf = nameof(Trade_CannotTradeSelf);
+    /// <summary>The target is a corpse. Named separately from the living refusals so the asker knows to wait
+    /// rather than to move closer.</summary>
+    public const string Trade_TargetIsDead = nameof(Trade_TargetIsDead);
     public const string Trade_AlreadyTrading = nameof(Trade_AlreadyTrading);
     public const string Trade_OutOfRange = nameof(Trade_OutOfRange);
     public const string Trade_RequestSent = nameof(Trade_RequestSent);

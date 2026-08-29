@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="using:Mirage.Editor.Models"
              xmlns:controls="using:Mirage.Editor.Controls"
-             xmlns:mui="using:Mirage.Ui.Controls"
              xmlns:vm="using:Mirage.Editor.ViewModels"
              Grid.IsSharedSizeScope="True"
              x:DataType="vm:MapGroupEditorViewModel"
@@ -219,12 +218,6 @@
 
           <TextBlock x:Name="_triStateHint" FontSize="11" Foreground="#8B84AE" FontStyle="Italic"
                      TextWrapping="Wrap"/>
-
-          <mui:FormRow LabelWidth="130" Margin="0,8,0,0">
-            <TextBlock x:Name="_controllingGuildLabel" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="{DynamicResource MirageMutedBrush}"
-                       Text="{Binding SelectedMapGroup.ControllingGuildText}"/>
-          </mui:FormRow>
         </StackPanel>
       </ScrollViewer>
     </Grid>

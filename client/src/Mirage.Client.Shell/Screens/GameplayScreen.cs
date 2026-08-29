@@ -427,7 +427,6 @@ public sealed partial class GameplayScreen : IGameScreen
         _chat.OnToggleTraining = () => ActivatePanel(PanelTraining);
         _chat.OnToggleStats = () => ActivatePanel(PanelStats);
         _chat.OnToggleHelp = () => ActivateHelpPanel();
-        _chat.OnToggleAdminHelp = () => ActivateHelpPanel();
         _chat.OnActiveChannelChanged = SaveCharPrefs;
         _help.OnToggleControls = () => ActivatePanel(PanelControls);
         _chat.OnToggleDebug = () =>

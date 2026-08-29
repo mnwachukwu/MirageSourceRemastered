@@ -24,6 +24,21 @@ public sealed class UserPaths
     private readonly string _appName;   // human-readable, for the Windows/macOS folder name
     private readonly string _xdgName;   // lowercase, dash-separated, for the Linux/XDG folder name
 
+    /// <summary>
+    /// An absolute directory that replaces every per-user root, for a test run or a portable install.
+    /// Each kind gets its own subfolder under it, so Config and Data stay as separate as they are on the
+    /// OS. Null — the default — resolves the real per-user locations.
+    ///
+    /// <para>🔴 Set this BEFORE anything reads a path. Settings are cached on first access, so a single
+    /// earlier read pins the real file for the rest of the process.</para>
+    ///
+    /// <para>Tests need it because the editor's own settings are a live user document: a test that opens
+    /// or creates a world writes the folder it used into <c>RecentWorlds</c> and <c>LastWorldBrowsePath</c>
+    /// and saves. Run against the real file, the suite fills the recent-worlds menu with dead temp
+    /// directories and points the next Open World at whichever one it happened to make last.</para>
+    /// </summary>
+    public static string? RootOverride { get; set; }
+
     public UserPaths(string appName)
     {
         _appName = appName;
@@ -43,6 +58,9 @@ public sealed class UserPaths
 
     private string Root(UserDirectoryKind kind)
     {
+        if (RootOverride is { Length: > 0 } overrideRoot)
+            return Path.Combine(overrideRoot, kind.ToString().ToLowerInvariant(), _appName);
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             // Roaming (%AppData%) for settings that should follow the user; Local (%LocalAppData%)

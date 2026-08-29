@@ -255,10 +255,15 @@ public class GuestNativeScenarioParityTests
         var npc = world.Npcs[NpcNum];
         npc.Name = "mage";
         npc.Behavior = NpcBehavior.AttackOnSight;
-        npc.Str = 1;
+        // 🔴 PURE caster (Str 0), so RollCastModality's pCast is Int/(Int+Str) = 1.0 and the weave picks magic
+        // every beat. Str 1 also cast every beat here, but only by accident: the fixture pins Mp above the
+        // NPC's actual max, and the Int-primary mana taper is uncapped, so pCast computed ABOVE 1.0. Clamp
+        // that taper in production — a one-line, obviously-correct change — and this parity run silently
+        // becomes a 2.4%-per-beat coin flip.
+        npc.Str = 0;
         npc.Def = 10;
         npc.Int = 40;
-        npc.Spd = 10;  // spell-primary: Int >> Str => casts ~every beat
+        npc.Spd = 10;
 
         var sp = pm[TargetIdx];
         sp.IsConnected = true;
@@ -307,7 +312,7 @@ public class GuestNativeScenarioParityTests
             pc.Hp = 100_000;
             rec.X = 8;
             rec.Y = 6;  // hold at cast range (a rare melee/kite beat may have nudged it)
-            rec.Mp = 9999;
+            rec.Mp = world.EffectiveNpcMaxMp(npc);   // full, never OVER full - see NpcVitalCeilingTests
             rec.Sp = 20;  // always afford the cast; fresh SP for a stable spell-crit chance
             rec.AttackTimer = 0;
             rec.WeaveWasReady = false;  // cast-ready + a fresh weave roll this tick
@@ -425,12 +430,18 @@ public class GuestNativeScenarioParityTests
     [Test]
     public void WeaveModality_CommitsForSeveralBeats_NotEveryBeat()
     {
-        // A balanced mob (Str==Int) rolls ~50-50, so WITHOUT the commitment it would flip modality ~every other beat
-        // (avg run ~2). With the 3-5 beat commitment the average run is ~4. Drive many fresh beats, count modality
-        // switches, and assert the average run is well above the no-commitment ~2.
+        // A balanced mob (Str==Int) rolls 50-50, so WITHOUT the commitment it would flip modality every time the
+        // roll came up the other way. The commitment holds one modality for NpcWeaveCommitMin..MaxBeats.
+        //
+        // 🔴 The roll is PINNED (WeaveRolls), not sampled. Every other brain-driven test in the suite pins its
+        // mob into a deterministic band instead — Int 0 always melees, Str 0 with Int above 0 always casts — but
+        // this test is about the weave itself, so it has to enter the rolling band. That makes it the one place
+        // the IRandomSource seam is load-bearing: with the modality alternating and the commit length fixed, the
+        // run length is exact, and the assertion is an equality rather than a threshold over a sampled average.
+        const int Commit = 4;   // inside NpcWeaveCommitMin..MaxBeats
         var world = new GameWorld();
         var pm = new PlayerManager();
-        var ai = BuildAi(world, pm);
+        var ai = BuildAi(world, pm, new WeaveRolls(Commit));
         var npc = world.Npcs[NpcNum];
         npc.Name = "mob";
         npc.Behavior = NpcBehavior.AttackOnSight;
@@ -452,30 +463,38 @@ public class GuestNativeScenarioParityTests
         mn.ChaseTargetKey = TargetIdx;
 
         long tick = 1_000_000;
-        bool? prev = null;
-        int switches = 0, beats = 0;
+        var modality = new List<bool>();
         for (int i = 0; i < 300; i++)
         {
             mn.X = 8;
             mn.Y = 6;
-            mn.Mp = 9999;
+            mn.Mp = world.EffectiveNpcMaxMp(npc);
             mn.Sp = 20;
             mn.AttackTimer = 0;
             mn.WeaveWasReady = false;  // force a fresh beat each tick
             mn.CombatExpiresAt = tick + 10_000_000;
             ai.RunForAllMaps(tick);
-            bool cast = mn.WeaveCastThisBeat;
-            if (prev is bool p)
-            {
-                beats++;
-                if (p != cast) switches++;
-            }
-            prev = cast;
+            modality.Add(mn.WeaveCastThisBeat);
             tick += 1_000;
         }
-        Assert.That(switches, Is.GreaterThan(0), "the weave must still switch modality over time (not frozen)");
-        double avgRun = (double)beats / switches;
-        Assert.That(avgRun, Is.GreaterThanOrEqualTo(2.5), $"the commitment must keep one modality for several beats (avg run {avgRun:0.0}, {switches} switches over {beats} beats)");
+
+        // Run lengths, dropping the trailing partial run the loop cut off mid-commitment.
+        var runs = new List<int>();
+        int run = 1;
+        for (int i = 1; i < modality.Count; i++)
+        {
+            if (modality[i] == modality[i - 1]) { run++; continue; }
+            runs.Add(run);
+            run = 1;
+        }
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(runs, Is.Not.Empty, "the weave must still switch modality over time (not frozen)");
+            Assert.That(runs, Is.All.EqualTo(Commit),
+                $"every committed run must last exactly the rolled {Commit} beats — got [{string.Join(", ", runs.Distinct())}]");
+            Assert.That(modality.Distinct().Count(), Is.EqualTo(2), "both modalities must appear");
+        });
     }
 
     [Test]
@@ -524,7 +543,7 @@ public class GuestNativeScenarioParityTests
         mn.Dir = Direction.Down;
         mn.Hp = 9999;
         mn.Sp = 20;
-        mn.Mp = 9999;
+        mn.Mp = world.EffectiveNpcMaxMp(npc);
         mn.Target = TargetIdx;
         mn.HasMadeContact = true;
         mn.ChaseTargetKey = TargetIdx;
@@ -872,14 +891,37 @@ public class GuestNativeScenarioParityTests
     // brain (RunForAllMaps): SpawnSystem.CheckNpcRespawn never calls SpawnNpc on a fresh map (no map NPC slot
     // definitions), and the melee/cast paths only touch _items/_joinLeave on a KILL (tests keep the target alive).
     // If a future edit makes these paths touch a nulled system, this throws — a useful "you added a dependency" signal.
-    static NpcAiSystem BuildAi(GameWorld world, PlayerManager pm)
+    static NpcAiSystem BuildAi(GameWorld world, PlayerManager pm, IRandomSource? rng = null)
     {
         var dispatcher = new NoOpDispatcher();
         var blood = new BloodSystem(world, dispatcher);
         var movement = new MovementSystem(world, pm, dispatcher, blood);
         var combat = new CombatSystem(world, pm, dispatcher, items: null!, movement, joinLeave: null!, blood, objectives: new ObjectiveSystem(), guilds: null!, guildWar: null!, territory: null!);
         var spawn = new SpawnSystem(world, pm, dispatcher);
-        return new NpcAiSystem(world, pm, dispatcher, combat, movement, spawn, items: null!, blood);
+        return new NpcAiSystem(world, pm, dispatcher, combat, movement, spawn, items: null!, blood, rng: rng);
+    }
+
+    /// <summary>Pins the melee-vs-magic weave: the modality roll alternates and the commit length is fixed, so
+    /// the run structure the weave produces is exact instead of sampled.
+    ///
+    /// <para>Safe to alternate blindly because <c>Rng.NextDouble()</c> has exactly ONE call site in the whole AI
+    /// — <c>RollCastModality</c> — so no other roll can shift the phase. The ranged overload is CLAMPED into its
+    /// caller's range: it also serves the wander stride, and returning a fixed value blind would hand some other
+    /// caller a number outside its own bounds.</para></summary>
+    sealed class WeaveRolls(int commit) : IRandomSource
+    {
+        private bool _cast;
+
+        public int Next(int maxExclusive) => 0;
+        public int Next(int minInclusive, int maxExclusive) => Math.Clamp(commit, minInclusive, maxExclusive - 1);
+        public long NextInt64(long minInclusive, long maxExclusive) => minInclusive;
+
+        // Balanced mob => pCast 0.5, so 0.0 rolls a cast beat and (just under) 1.0 rolls a melee beat.
+        public double NextDouble()
+        {
+            _cast = !_cast;
+            return _cast ? 0.0 : Math.BitDecrement(1.0);
+        }
     }
 
     // No-op packet dispatcher — the chase step emits sync/dir packets we don't need to observe here.

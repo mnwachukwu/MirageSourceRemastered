@@ -366,6 +366,185 @@ public class NpcFootprintCombatTests
         });
     }
 
+    // ── The strip strikes NPCs too ────────────────────────────────────────────
+    // A body three tiles wide swings once and hits everything on the tiles past its leading edge. That
+    // was true of players and not of NPCs, so the same mob cleaved a line of players and pecked at one
+    // of two enemies pressed against the same face.
+
+    static MapNpcRecord PlaceFoe(GameWorld world, int slot, int num, int x, int y, int size = 1,
+                                 NpcBehavior behavior = NpcBehavior.AttackOnSight, int group = 0)
+    {
+        world.Npcs[num].Size = size;
+        world.Npcs[num].Behavior = behavior;
+        world.Npcs[num].Group = group;
+        var mn = world.MapNpcs[Map, slot];
+        mn.Num = num;
+        mn.X = x;
+        mn.Y = y;
+        mn.Hp = StartHp;
+        return mn;
+    }
+
+    static MapNpcRecord PlaceWideAttacker(GameWorld world, int slot, int num, int x, int y,
+                                          NpcBehavior behavior = NpcBehavior.AttackOnSight)
+    {
+        world.Npcs[num].Size = 3;
+        world.Npcs[num].Str = 60;
+        world.Npcs[num].Behavior = behavior;
+        var mn = world.MapNpcs[Map, slot];
+        mn.Num = num;
+        mn.X = x;
+        mn.Y = y;
+        mn.Hp = StartHp;
+        mn.Dir = Direction.Right;   // footprint cols {5,6,7}; strike strip = col 8, rows {5,6,7}
+        mn.AttackTimer = 0;
+        return mn;
+    }
+
+    /// <summary>🔴 The reported bug: two enemies on one edge, one taking damage.</summary>
+    [Test]
+    public void WideNpc_StrikesEveryEnemyOnItsLeadingEdge()
+    {
+        var (combat, world, _) = NewCombat();
+        var attacker = PlaceWideAttacker(world, 1, 1, 5, 5);
+        var a = PlaceFoe(world, 2, 2, 8, 5);
+        var b = PlaceFoe(world, 3, 3, 8, 6);
+        var offStrip = PlaceFoe(world, 4, 4, 8, 8);   // one row past the strip
+
+        combat.NpcAttackNpc(Map, 1, attacker, Map, 2, a, Now);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(a.Hp, Is.LessThan(StartHp), "the primary victim");
+            Assert.That(b.Hp, Is.LessThan(StartHp), "and the one beside it on the same face");
+            Assert.That(offStrip.Hp, Is.EqualTo(StartHp), "but not a body off the strip");
+        });
+    }
+
+    /// <summary>The whole swing is one beat, so a wide victim covering several strip tiles takes ONE hit —
+    /// anchor-per-tile matching would charge it three.</summary>
+    [Test]
+    public void AWideVictim_IsStruckOnceHoweverMuchOfTheStripItCovers()
+    {
+        var (combat, world, _) = NewCombat();
+        var attacker = PlaceWideAttacker(world, 1, 1, 5, 5);
+        // A body two tiles deep on the strip, and a one-tile body on the third. They cannot SHARE a tile —
+        // occupancy is footprint-aware, so two bodies never stand on one — and the sweep asks each tile who
+        // is on it, so a stacked pair would be one answer anyway.
+        var wide = PlaceFoe(world, 2, 2, 8, 5, size: 2);      // covers (8,5) (8,6) of the strip
+        var single = PlaceFoe(world, 3, 3, 8, 7);             // reference: one tile, one hit
+
+        combat.NpcAttackNpc(Map, 1, attacker, Map, 2, wide, Now);
+        int wideLoss = StartHp - wide.Hp;
+
+        var (combat2, world2, _) = NewCombat();
+        var attacker2 = PlaceWideAttacker(world2, 1, 1, 5, 5);
+        var lone = PlaceFoe(world2, 2, 2, 8, 5);
+        combat2.NpcAttackNpc(Map, 1, attacker2, Map, 2, lone, Now);
+        int loneLoss = StartHp - lone.Hp;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(wideLoss, Is.GreaterThan(0), "the wide body is struck");
+            Assert.That(single.Hp, Is.LessThan(StartHp), "so is the one sharing its tile row");
+            // Damage varies per swing, so compare against three times the worst a single hit can be.
+            Assert.That(wideLoss, Is.LessThan(loneLoss * 2),
+                "a body straddling two strip tiles must take one hit, not one per tile");
+        });
+    }
+
+    /// <summary>A warband does not mince itself. Allies are same-kind or same non-zero Group, the rule the AI
+    /// acquires by.</summary>
+    [Test]
+    public void AnAllyOnTheStrip_IsNeverStruck()
+    {
+        var (combat, world, _) = NewCombat();
+        world.Npcs[1].Group = 7;
+        var attacker = PlaceWideAttacker(world, 1, 1, 5, 5);
+        var foe = PlaceFoe(world, 2, 2, 8, 5);
+        var sameGroup = PlaceFoe(world, 3, 3, 8, 6, group: 7);
+        // Placed by hand: PlaceFoe would rewrite template 1's Size, and template 1 is the ATTACKER — the
+        // helper would shrink it to a single tile and there would be no strip left to test.
+        var sameKind = world.MapNpcs[Map, 4];
+        sameKind.Num = 1;
+        sameKind.X = 8;
+        sameKind.Y = 7;
+        sameKind.Hp = StartHp;
+
+        combat.NpcAttackNpc(Map, 1, attacker, Map, 2, foe, Now);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(foe.Hp, Is.LessThan(StartHp), "the enemy is struck");
+            Assert.That(sameGroup.Hp, Is.EqualTo(StartHp), "a same-group ally is not");
+            Assert.That(sameKind.Hp, Is.EqualTo(StartHp), "nor is one of the attacker's own kind");
+        });
+    }
+
+    /// <summary>A wide guard cutting down whatever stands behind its target would make the safest tiles the
+    /// most dangerous. Its primary is always struck; a bystander has to be aggressive in its own right.</summary>
+    [Test]
+    public void AGuard_SparesABystanderItWouldNotHavePickedAFightWith()
+    {
+        var (combat, world, _) = NewCombat();
+        var guard = PlaceWideAttacker(world, 1, 1, 5, 5, NpcBehavior.Guard);
+        var target = PlaceFoe(world, 2, 2, 8, 5);
+        var bystander = PlaceFoe(world, 3, 3, 8, 6, behavior: NpcBehavior.Friendly);
+        var aggressor = PlaceFoe(world, 4, 4, 8, 7, behavior: NpcBehavior.AttackOnSight);
+
+        combat.NpcAttackNpc(Map, 1, guard, Map, 2, target, Now);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.Hp, Is.LessThan(StartHp), "the guard's own target");
+            Assert.That(aggressor.Hp, Is.LessThan(StartHp), "and anything hostile beside it");
+            Assert.That(bystander.Hp, Is.EqualTo(StartHp), "but not a friendly caught in the arc");
+        });
+    }
+
+    /// <summary>An ORDINARY mob is not a guard and does not care who is standing there — the same principle
+    /// the player strip states.</summary>
+    [Test]
+    public void AnOrdinaryMob_StrikesEvenAPassiveBystander()
+    {
+        var (combat, world, _) = NewCombat();
+        var attacker = PlaceWideAttacker(world, 1, 1, 5, 5);
+        var target = PlaceFoe(world, 2, 2, 8, 5);
+        var passive = PlaceFoe(world, 3, 3, 8, 6, behavior: NpcBehavior.Friendly);
+
+        combat.NpcAttackNpc(Map, 1, attacker, Map, 2, target, Now);
+
+        Assert.That(passive.Hp, Is.LessThan(StartHp));
+    }
+
+    /// <summary>Size 1 is untouched by any of this: one swing, one victim.</summary>
+    [Test]
+    public void ASingleTileNpc_StillStrikesOnlyItsTarget()
+    {
+        var (combat, world, _) = NewCombat();
+        world.Npcs[1].Size = 1;
+        world.Npcs[1].Str = 60;
+        world.Npcs[1].Behavior = NpcBehavior.AttackOnSight;
+        var attacker = world.MapNpcs[Map, 1];
+        attacker.Num = 1;
+        attacker.X = 7;
+        attacker.Y = 5;
+        attacker.Hp = StartHp;
+        attacker.Dir = Direction.Right;
+        attacker.AttackTimer = 0;
+
+        var target = PlaceFoe(world, 2, 2, 8, 5);
+        var neighbour = PlaceFoe(world, 3, 3, 8, 6);
+
+        combat.NpcAttackNpc(Map, 1, attacker, Map, 2, target, Now);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.Hp, Is.LessThan(StartHp));
+            Assert.That(neighbour.Hp, Is.EqualTo(StartHp), "a size-1 body has no strip to cleave along");
+        });
+    }
+
     static (CombatSystem combat, GameWorld world, PlayerManager pm) NewCombat()
     {
         var world = new GameWorld();

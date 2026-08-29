@@ -13,7 +13,7 @@ namespace Mirage.Server.Core.GameLogic;
 
 /// <summary>
 /// Territory war night: the weekly contest cadence, the challenge-registration queue, and the
-/// resolution that sets each territory's <see cref="MapGroupRecord.ControllingGuild"/> + weeks-held (which
+/// resolution that sets each territory's <see cref="TerritoryRecord.ControllingGuild"/> + weeks-held (which
 /// activates the chunk-3 income). Authority mirrors grudge wars — a Leader challenges directly; an Officer
 /// REQUESTS it (queued as <see cref="GuildWarRequestKind.TerritoryChallenge"/>, approved via
 /// <see cref="GuildWarSystem.ReviewRequest"/>).
@@ -125,12 +125,13 @@ public sealed partial class GuildTerritorySystem : GameSystem
             return false;
         }
 
-        var terr = _world.MapGroups.GetValueOrDefault(territoryIndex);
-        if (terr is null || !terr.Territory)
+        var group = _world.MapGroups.GetValueOrDefault(territoryIndex);
+        if (group is null || !group.Territory)
         {
             Notify(index, ServerStrings.GuildTerritory_NotATerritory);
             return false;
         }
+        var terr = _world.TerritoryFor(territoryIndex);
         if (HasActiveContest(territoryIndex))
         {
             Notify(index, ServerStrings.GuildTerritory_ContestActive);
@@ -162,7 +163,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
         // Authority — resolved after validation so an officer's queued request names a real, affordable target.
         if (sp.GuildRank == GuildRank.Officer)
         {
-            QueueChallengeRequest(guild, terr, sp, index);
+            QueueChallengeRequest(guild, group, sp, index);
             return false;
         }
         if (sp.GuildRank != GuildRank.Leader)
@@ -178,21 +179,21 @@ public sealed partial class GuildTerritorySystem : GameSystem
         terr.Challengers.Add(guild.Index);
         GuildWarFormulas.RemoveRequest(guild, GuildWarRequestKind.TerritoryChallenge, territoryIndex);
         _guilds.SaveGuild(guild);
-        SaveMapGroup(terr);
+        SaveTerritory(terr);
 
         // Public War-channel announcement: contesting an owned claim, or laying claim to an unclaimed one.
         if (terr.ControllingGuild > 0)
         {
             AnnounceWarPublic(ServerStrings.GuildTerritory_ContestOwned,
-                ("Guild", guild.Name), ("Owner", OwnerName(terr)), ("Territory", TerritoryName(terr)));
+                ("Guild", guild.Name), ("Owner", OwnerName(terr)), ("Territory", TerritoryName(group)));
         }
         else
         {
-            AnnounceWarPublic(ServerStrings.GuildTerritory_LayClaim, ("Guild", guild.Name), ("Territory", TerritoryName(terr)));
+            AnnounceWarPublic(ServerStrings.GuildTerritory_LayClaim, ("Guild", guild.Name), ("Territory", TerritoryName(group)));
         }
 
-        NotifyOk(index, ServerStrings.GuildTerritory_ChallengeOk, ("Territory", TerritoryName(terr)));
-        _logger.LogInformation("Guild {Guild} challenged territory {Terr} (cost {Cost}).", guild.Name, terr.Index, cost);
+        NotifyOk(index, ServerStrings.GuildTerritory_ChallengeOk, ("Territory", TerritoryName(group)));
+        _logger.LogInformation("Guild {Guild} challenged territory {Terr} (cost {Cost}).", guild.Name, group.Index, cost);
         return true;
     }
 
@@ -214,19 +215,20 @@ public sealed partial class GuildTerritorySystem : GameSystem
             return;
         }
 
-        var terr = _world.MapGroups.GetValueOrDefault(territoryIndex);
+        var group = _world.MapGroups.GetValueOrDefault(territoryIndex);
+        var terr = group is { Territory: true } ? _world.TerritoryFor(territoryIndex) : null;
         if (terr is null || !terr.Challengers.Remove(guild.Index))
         {
             Notify(index, ServerStrings.GuildTerritory_NoChallenge);
             return;
         }
-        SaveMapGroup(terr);
-        NotifyOk(index, ServerStrings.GuildTerritory_WithdrawnOk, ("Territory", TerritoryName(terr)));
+        SaveTerritory(terr);
+        NotifyOk(index, ServerStrings.GuildTerritory_WithdrawnOk, ("Territory", TerritoryName(group!)));
     }
 
     // playerLevel is the challenging member's character level — both branches scale with it
     // (EconomyFormulas.BandScale), since guild level alone says nothing about how rich the members are.
-    private long ChallengeCost(GuildRecord guild, MapGroupRecord terr, int playerLevel)
+    private long ChallengeCost(GuildRecord guild, TerritoryRecord terr, int playerLevel)
     {
         if (terr.ControllingGuild <= 0)
             return Constants.TerritoryUnclaimedChallengeCost;
@@ -237,8 +239,8 @@ public sealed partial class GuildTerritorySystem : GameSystem
     // True if the guild is already registered to challenge ANY territory (the one-challenge-at-a-time cap).
     private bool IsChallengingAny(int guildIndex)
     {
-        foreach (var g in _world.MapGroups.Values)
-            if (g.Territory && g.Challengers.Contains(guildIndex)) return true;
+        foreach (var (_, state) in _world.AllTerritories())
+            if (state.Challengers.Contains(guildIndex)) return true;
         return false;
     }
 
@@ -247,13 +249,13 @@ public sealed partial class GuildTerritorySystem : GameSystem
     // one owned territory exists to abandon.
     private void AbandonOwnedTerritory(int guildIndex, int playerIndex)
     {
-        foreach (var g in _world.MapGroups.Values)
+        foreach (var (group, state) in _world.AllTerritories())
         {
-            if (g.Territory && g.ControllingGuild == guildIndex && !g.DefenderAbandoned)
+            if (state.ControllingGuild == guildIndex && !state.DefenderAbandoned)
             {
-                g.DefenderAbandoned = true;
-                SaveMapGroup(g);
-                Notify(playerIndex, ServerStrings.GuildTerritory_Abandoned, ("Territory", TerritoryName(g)));
+                state.DefenderAbandoned = true;
+                SaveTerritory(state);
+                Notify(playerIndex, ServerStrings.GuildTerritory_Abandoned, ("Territory", TerritoryName(group)));
                 return;
             }
         }
@@ -268,11 +270,10 @@ public sealed partial class GuildTerritorySystem : GameSystem
     {
         AnnounceWarPublic(ServerStrings.GuildTerritory_WarNightStart);
         int contests = 0;
-        foreach (var group in _world.MapGroups.Values.ToList())
+        foreach (var (group, state) in _world.AllTerritories().ToList())
         {
-            if (!group.Territory) continue;
-            int defenderId = group.DefenderAbandoned ? 0 : group.ControllingGuild;
-            var challengers = group.Challengers.Where(c => _guilds.GuildById(c) is not null).ToList();
+            int defenderId = state.DefenderAbandoned ? 0 : state.ControllingGuild;
+            var challengers = state.Challengers.Where(c => _guilds.GuildById(c) is not null).ToList();
             if ((defenderId > 0 ? 1 : 0) + challengers.Count >= 2)
             {
                 StartContest(group, defenderId, challengers);
@@ -280,7 +281,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
             }
             else
             {
-                ResolveTrivial(group, defenderId, challengers);
+                ResolveTrivial(group, state, defenderId, challengers);
             }
         }
         if (contests == 0) AnnounceWarPublic(ServerStrings.GuildTerritory_WarNightEnd);
@@ -333,29 +334,29 @@ public sealed partial class GuildTerritorySystem : GameSystem
 
     // 0-1 participant: no live contest is needed. A lone claimant takes an unclaimed/abandoned
     // territory; an unchallenged defender keeps; anything else stays/falls unclaimed.
-    private void ResolveTrivial(MapGroupRecord group, int defenderId, List<int> challengers)
-        => ApplyOutcome(group, TerritoryFormulas.ResolveWinner(defenderId, challengers), challengers);
+    private void ResolveTrivial(MapGroupRecord group, TerritoryRecord state, int defenderId, List<int> challengers)
+        => ApplyOutcome(group, state, TerritoryFormulas.ResolveWinner(defenderId, challengers), challengers);
 
     // Set a resolved territory's owner + weeks-held, clear its challenge state, persist, and announce the
     // per-guild results. Shared by the trivial path and the contest finalize.
-    private void ApplyOutcome(MapGroupRecord group, int winner, List<int> challengers)
+    private void ApplyOutcome(MapGroupRecord group, TerritoryRecord state, int winner, List<int> challengers)
     {
-        int oldOwner = group.ControllingGuild;
-        bool abandoned = group.DefenderAbandoned;
+        int oldOwner = state.ControllingGuild;
+        bool abandoned = state.DefenderAbandoned;
         bool retained = winner > 0 && winner == oldOwner && !abandoned;
         if (retained)
         {
-            group.WeeksHeld++;                                   // held another week (defended/unchallenged)
+            state.WeeksHeld++;                                   // held another week (defended/unchallenged)
         }
         else
         {
-            group.ControllingGuild = winner;
-            group.WeeksHeld = 0;
+            state.ControllingGuild = winner;
+            state.WeeksHeld = 0;
         }  // fresh capture, or fell unclaimed
         bool hadChallengers = challengers.Count > 0;
-        group.Challengers.Clear();
-        group.DefenderAbandoned = false;
-        SaveMapGroup(group);
+        state.Challengers.Clear();
+        state.DefenderAbandoned = false;
+        SaveTerritory(state);
         AnnounceResults(group, oldOwner, winner, challengers, retained, hadChallengers);
     }
 }

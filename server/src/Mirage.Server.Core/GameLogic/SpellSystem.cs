@@ -101,7 +101,7 @@ public sealed class SpellSystem : GameSystem
         if (_pm[index].Char.Dead) return;  // a corpse can't cast
         // Every spell, not only the harmful ones: an observer that could still heal or buff would be taking
         // part in the fight it is there to watch. Same throttled line the swing gets, so both read alike.
-        if (_pm[index].GodMode) { _combat.SayGodModeRefusal(index); return; }
+        if (_pm[index].Char.GodMode) { _combat.SayGodModeRefusal(index); return; }
         if (!SlotValidation.IsValidSpellSlot(spellSlot)) return;
 
         var sp = _pm[index];

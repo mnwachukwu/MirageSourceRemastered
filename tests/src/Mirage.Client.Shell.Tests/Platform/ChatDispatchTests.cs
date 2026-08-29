@@ -87,7 +87,6 @@ public class ChatDispatchTests
     [TestCase("help")]
     [TestCase("roll")]
     [TestCase("r")]
-    [TestCase("adminhelp")]
     [TestCase("warpto")]
     public void NonSpeechCommand_ReturnsNull(string cmd)
         => Assert.That(SpeechChannelRouter.ForCommand(cmd, "x", Admin, InGuild, GuildRank.Leader), Is.Null);

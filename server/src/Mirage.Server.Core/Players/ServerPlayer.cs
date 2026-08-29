@@ -211,11 +211,6 @@ public sealed class ServerPlayer
     public int ActiveQuestNpc(GameWorld world) =>
         ActiveQuestNpcSlot <= 0 ? 0 : world.NpcTemplateAt(ActiveQuestNpcMap, ActiveQuestNpcSlot);
 
-    /// <summary>Observer mode: this player passes through everything, spends no stamina, cannot act on
-    /// anyone and cannot be acted on. TRANSIENT — cleared when the character leaves, so it is never
-    /// something an account carries back in with it.</summary>
-    public bool GodMode { get; set; }
-
     /// <summary>When the "nothing happens in observer mode" line may be sent again. Attack and cast are both
     /// held-key inputs, so the refusal is throttled rather than printed per attempt.</summary>
     public long GodModeNoticeAt { get; set; }

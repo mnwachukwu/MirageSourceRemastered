@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
+using Mirage.Shared;
 using Mirage.Shared.Records;
 
 namespace Mirage.Editor.ViewModels;
@@ -48,15 +49,7 @@ public sealed class RecentWorldViewModel(string path, Func<string, Task> open)
         }
     }
 
-    // Both separators on every platform. The list is a settings file that travels, and the running OS is
-    // no guide to which slash the path it holds was written with.
-    private static readonly char[] Separators = ['\\', '/'];
-
-    /// <summary>The folder a path ends in, which is what tells two unnamed worlds apart.</summary>
-    private static string Leaf(string path)
-    {
-        string trimmed = path.TrimEnd(Separators);
-        int cut = trimmed.LastIndexOfAny(Separators);
-        return cut < 0 ? trimmed : trimmed[(cut + 1)..];
-    }
+    /// <summary>The folder a path ends in, which is what tells two unnamed worlds apart. Reads both
+    /// separators on every platform: this list is a settings file that travels.</summary>
+    private static string Leaf(string path) => PortablePath.Leaf(path);
 }

@@ -60,10 +60,17 @@ public sealed partial class CombatSystem : GameSystem
     {
         var attackerNpc = _world.Npcs[attackerMn.Num];
         if (!CanNpcAttackNpc(attackerMap, attackerMn, victimMap, victimMn, now)) return;
-        var victimNpc = _world.Npcs[victimMn.Num];
+
+        // A large NPC swings once and strikes everything on the tiles past its leading edge, exactly as it
+        // does against players (NpcAttackPlayerFootprint). A body three tiles wide that could only ever
+        // damage one of the two enemies pressed against that same face was reading as a bug, because it is.
+        if (attackerNpc.EffectiveSize > 1)
+        {
+            NpcAttackNpcFootprint(attackerMap, attackerSlot, attackerMn, attackerNpc, victimMap, victimSlot, victimMn, now);
+            return;
+        }
 
         MarkNpcCombat(attackerMn, now);
-        MarkNpcCombat(victimMn, now);
 
         attackerMn.AttackTimer = now;
         attackerMn.Attacking = true;
@@ -74,6 +81,79 @@ public sealed partial class CombatSystem : GameSystem
         var (aSpawnMap, aSpawnSlot) = attackerMn.GetSpawnIdentity(attackerMap, attackerSlot);
         if (aSpawnSlot > 0)
             SendToMap(_world, attackerMap, new NpcAttackPacket { MapNum = aSpawnMap, NpcSlot = aSpawnSlot });
+
+        ApplyNpcMeleeHitOnNpc(attackerMap, attackerSlot, attackerMn, attackerNpc, victimMap, victimSlot, victimMn, now);
+    }
+
+    /// <summary>
+    /// One swing from a large NPC, striking every eligible NPC standing on the tiles just past its leading
+    /// edge — the same rule <see cref="NpcAttackPlayerFootprint"/> applies to players.
+    ///
+    /// <para>🔴 Victims are matched by FOOTPRINT, not by anchor. The player strip compares the victim's
+    /// single tile; an NPC victim can be three wide, so anchor equality would both miss a body straddling
+    /// the strip and count a wide one once per tile it covers. Candidates are walked once and tested for
+    /// intersection, which dedupes by construction.</para>
+    ///
+    /// <para>Allies are never caught — <see cref="AreNpcsAllied"/> is the same rule the AI acquires by, so a
+    /// warband does not mince itself on a wide swing. A GUARD additionally spares anything it would not have
+    /// picked a fight with: the primary victim is always struck, but a bystander has to be aggressive in its
+    /// own right, mirroring the guard exemption on the player strip.</para>
+    /// </summary>
+    private void NpcAttackNpcFootprint(int attackerMap, int attackerSlot, MapNpcRecord attackerMn, NpcRecord attackerNpc,
+                                       int victimMap, int victimSlot, MapNpcRecord victimMn, long now)
+    {
+        MarkNpcCombat(attackerMn, now);
+        attackerMn.AttackTimer = now;
+        attackerMn.Attacking = true;
+        attackerMn.MarkReachedTarget(now);
+
+        var (aSpawnMap, aSpawnSlot) = attackerMn.GetSpawnIdentity(attackerMap, attackerSlot);
+        if (aSpawnSlot > 0)
+            SendToMap(_world, attackerMap, new NpcAttackPacket { MapNum = aSpawnMap, NpcSlot = aSpawnSlot });
+
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);
+        var view = new ServerTileView(_world, grid);
+        var (aWX, aWY) = grid.CenterToWorld(attackerMn.X, attackerMn.Y);
+        int size = attackerNpc.EffectiveSize;
+        var strip = WorldCoordHelper.LeadingEdgeTiles(aWX, aWY, size, attackerMn.Dir);
+        var (edx, edy) = WorldCoordHelper.DirDelta(attackerMn.Dir);
+
+        // Who is standing on the three tiles — asked of the tiles, not of every roster in the world.
+        foreach (var body in SweepTiles(in grid, in strip, view, attackerMn.Layer, edx, edy))
+        {
+            var other = body.Npc;
+            if (other is null) continue;                       // players are the melee-on-player path's business
+            if (ReferenceEquals(other, attackerMn)) continue;
+
+            bool isPrimary = ReferenceEquals(other, victimMn);
+            if (!isPrimary)
+            {
+                // Allies are never caught — the same rule the AI acquires by, so a warband does not mince
+                // itself. A GUARD additionally spares anything it would not have picked a fight with.
+                if (_world.AreNpcsAllied(attackerMn.Num, other.Num)) continue;
+                if (attackerNpc.Behavior == NpcBehavior.Guard)
+                {
+                    var beh = _world.Npcs[other.Num].Behavior;
+                    if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
+                }
+            }
+
+            ApplyNpcMeleeHitOnNpc(attackerMap, attackerSlot, attackerMn, attackerNpc,
+                                  body.NpcMap, body.NpcSlot, other, now);
+        }
+    }
+
+    /// <summary>Resolves one melee hit on a single NPC from an already-stamped swing: the victim's block/dodge
+    /// rolls, the attacker's crit, and damage.  Does NOT touch the cooldown or the swing FX — the caller does
+    /// that once per swing — so it runs once per struck victim and a wide swing costs one beat, not three.
+    /// Mirrors <see cref="ApplyNpcMeleeHitOnPlayer"/> on the player side.</summary>
+    private void ApplyNpcMeleeHitOnNpc(int attackerMap, int attackerSlot, MapNpcRecord attackerMn, NpcRecord attackerNpc,
+                                       int victimMap, int victimSlot, MapNpcRecord victimMn, long now)
+    {
+        if (victimMn.Num <= 0 || victimMn.Hp <= 0) return;
+        var victimNpc = _world.Npcs[victimMn.Num];
+        MarkNpcCombat(victimMn, now);
+        var (aSpawnMap, aSpawnSlot) = attackerMn.GetSpawnIdentity(attackerMap, attackerSlot);
 
         // Victim NPC blocks/dodges the incoming melee exactly like a player-attacked NPC does — a 50/50 pick
         // between block and dodge, then the SP-gated CanNpcBlock/CanNpcDodge roll.  On success: drain the
@@ -266,7 +346,6 @@ public sealed partial class CombatSystem : GameSystem
         long now = Environment.TickCount64;
         MarkNpcCombat(attackerMn, now);
         MarkNpcCombat(victimMn, now);
-        var victimNpc = _world.Npcs[victimMn.Num];
 
         if (WindTearsItAway(attackerMap))
         {
@@ -274,30 +353,6 @@ public sealed partial class CombatSystem : GameSystem
             attackerMn.Mp -= mpCost;
             attackerMn.AttackTimer = now;
             return;
-        }
-
-        // Power roll — identical to NpcCastSpellOnPlayer: a symmetric +-10% Vary around NpcSpellBaseMagnitude(Int)
-        // (the SAME Vary as NPC melee).  Full magnitude every cast; the trivial pool-fraction mpCost (above) keeps
-        // the caster from OOMing.
-        int magnitude = Math.Max(1, CombatFormulas.Vary(CombatFormulas.NpcSpellBaseMagnitude(attackerNpc.Int)));
-
-        int prot = CombatFormulas.NpcProtection(victimNpc);
-        bool negated = TryNpcNegateMagicCore(victimMap, victimSlot, victimMn, victimNpc) != MagicNegation.None;   // victim NPC blocks/dodges at the same rate as a physical hit
-        bool wasCrit = !negated && CanNpcSpellCritical(attackerMn, attackerMap);
-        int damage;
-        if (negated)
-        {
-            damage = 0;
-        }
-        else if (wasCrit)
-        {
-            attackerMn.Sp = Math.Max(attackerMn.Sp - NpcSpBlockOrCrit(attackerNpc, attackerMap), 0);
-            int crit = CombatFormulas.CritDamage(magnitude);
-            damage = CombatFormulas.ResolveDamage(crit, prot);
-        }
-        else
-        {
-            damage = CombatFormulas.ResolveDamage(magnitude, prot);
         }
 
         attackerMn.Mp -= mpCost;
@@ -316,9 +371,72 @@ public sealed partial class CombatSystem : GameSystem
             SendToMap(_world, attackerMap, castFx);
         }
 
-        // A blocked/dodged spell already floated Block/Dodge; skip the damage path so it doesn't also float a ZeroHit.
-        if (!negated)
-            ExecuteNpcVsNpcDamage(attackerMap, attackerSlot, attackerMn, victimMap, victimSlot, victimMn, damage, wasCrit, isSpell: true);
+        ApplyNpcSpellHitOnNpc(attackerMap, attackerSlot, attackerMn, attackerNpc, victimMap, victimSlot, victimMn, now);
+        SplashNpcSpellOnNpcs(attackerMap, attackerSlot, attackerMn, attackerNpc, victimMap, victimMn, now);
+    }
+
+    /// <summary>Resolves one cast landing on a single NPC: that victim's block/dodge, the attacker's crit, and
+    /// damage.  Does NOT spend mana, stamp the beat or send the bolt — the caller does that once per cast — so a
+    /// splashed body costs the caster nothing extra.  Mirrors <see cref="ApplyNpcSpellHitOnPlayer"/>.</summary>
+    private void ApplyNpcSpellHitOnNpc(int attackerMap, int attackerSlot, MapNpcRecord attackerMn, NpcRecord attackerNpc,
+                                       int victimMap, int victimSlot, MapNpcRecord victimMn, long now)
+    {
+        if (victimMn.Num <= 0 || victimMn.Hp <= 0) return;
+        var victimNpc = _world.Npcs[victimMn.Num];
+        MarkNpcCombat(victimMn, now);
+
+        // A symmetric +-10% Vary around NpcSpellBaseMagnitude(Int) — the SAME Vary as NPC melee, rolled per
+        // victim so a splash is not one number copied across three bodies.
+        int magnitude = Math.Max(1, CombatFormulas.Vary(CombatFormulas.NpcSpellBaseMagnitude(attackerNpc.Int)));
+        int prot = CombatFormulas.NpcProtection(victimNpc);
+
+        // The victim blocks/dodges at the same rate as against a physical hit; that already floated Block/Dodge,
+        // so return before the damage path rather than letting it also float a ZeroHit.
+        if (TryNpcNegateMagicCore(victimMap, victimSlot, victimMn, victimNpc) != MagicNegation.None) return;
+
+        bool wasCrit = CanNpcSpellCritical(attackerMn, attackerMap);
+        if (wasCrit)
+        {
+            attackerMn.Sp = Math.Max(attackerMn.Sp - NpcSpBlockOrCrit(attackerNpc, attackerMap), 0);
+            magnitude = CombatFormulas.CritDamage(magnitude);
+        }
+
+        ExecuteNpcVsNpcDamage(attackerMap, attackerSlot, attackerMn, victimMap, victimSlot, victimMn,
+                              CombatFormulas.ResolveDamage(magnitude, prot), wasCrit, isSpell: true);
+    }
+
+    /// <summary>The rest of a wide caster's break: the NPCs standing either side of where the bolt landed,
+    /// PERPENDICULAR to the caster's facing — the same span its melee cleave sweeps, so a 2x2 catches 3 tiles
+    /// and a 3x3 catches 5.  A body cannot dodge the splash by picking a side to stand on.
+    ///
+    /// <para>The impact tile is the caller's; this skips it.  Allies and the guard exemption are the melee
+    /// cleave's rules exactly — a warband does not mince itself on its own caster.</para></summary>
+    private void SplashNpcSpellOnNpcs(int attackerMap, int attackerSlot, MapNpcRecord attackerMn, NpcRecord attackerNpc,
+                                      int victimMap, MapNpcRecord victimMn, long now)
+    {
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, attackerMap);
+        var cell = WorldCoordHelper.GridPosition(in grid, victimMap);
+        if (cell is null) return;
+
+        var (iWX, iWY) = grid.ToWorld(cell.Value.col, cell.Value.row, victimMn.X, victimMn.Y);
+        var run = SplashRun(iWX, iWY, attackerMn.Dir, attackerNpc.EffectiveSize);
+        var view = new ServerTileView(_world, grid);
+
+        foreach (var body in SweepTiles(in grid, in run, view, victimMn.Layer, 0, 0))
+        {
+            var other = body.Npc;
+            if (other is null) continue;
+            if (ReferenceEquals(other, attackerMn) || ReferenceEquals(other, victimMn)) continue;
+            if (_world.AreNpcsAllied(attackerMn.Num, other.Num)) continue;
+            if (attackerNpc.Behavior == NpcBehavior.Guard)
+            {
+                var beh = _world.Npcs[other.Num].Behavior;
+                if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
+            }
+
+            ApplyNpcSpellHitOnNpc(attackerMap, attackerSlot, attackerMn, attackerNpc,
+                                  body.NpcMap, body.NpcSlot, other, now);
+        }
     }
 
     /// <summary>Per-tick aggro re-evaluation for an NPC currently in combat (Target or NpcTarget set).

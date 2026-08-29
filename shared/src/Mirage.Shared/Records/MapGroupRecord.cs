@@ -2,11 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace Mirage.Shared.Records;
 
-/// <summary>A group of maps sharing a <see cref="Name"/> + map-like fallback properties, and optionally a
-/// contestable TERRITORY. Index-keyed on disk (<c>map_groups/map_group{Index}.json</c>), with
-/// NON-unique names (like maps). A map references its group via <see cref="MapRecord.MapGroup"/>; a map's OWN
-/// property always wins and the group fills in only what the map leaves unset (see <see cref="MapGroupResolve"/>).
-/// A territory = a group with <see cref="Territory"/> = true plus a runtime <see cref="ControllingGuild"/>.</summary>
+/// <summary>A group of maps sharing a <see cref="Name"/> + map-like fallback properties. Index-keyed on disk
+/// (<c>map_groups/map_group{Index}.json</c>), with NON-unique names (like maps). A map references its group
+/// via <see cref="MapRecord.MapGroup"/>; a map's OWN property always wins and the group fills in only what the
+/// map leaves unset (see <see cref="MapGroupResolve"/>).
+///
+/// <para>Everything here is AUTHORED, and a world folder holds nothing else. Who controls a territory, what it
+/// has earned and who is challenging for it belong to one running server rather than to the world, and live
+/// apart in <see cref="TerritoryRecord"/> — see <see cref="Territory"/>.</para></summary>
 public sealed class MapGroupRecord
 {
     /// <summary>Filename stem inside <c>map_groups/</c>; the trailing number is the <see cref="Index"/>.</summary>
@@ -49,49 +52,12 @@ public sealed class MapGroupRecord
     public string LeaveSay { get; set; } = string.Empty;
 
     // ── Territory ──────────────────────────────────────────────────────────────────────────────────────
-    /// <summary>When true this group is a contestable territory (its maps must be non-safe). Capture points,
-    /// income, and war-night contests key off this flag.</summary>
+    /// <summary>When true this group's maps are a contestable territory (they must be non-safe). That is the
+    /// whole of what a group says about one: who holds it, what it earns and who is challenging for it are
+    /// <see cref="TerritoryRecord"/>'s, keyed by this group's <see cref="Index"/>.</summary>
     public bool Territory { get; set; }
-    /// <summary>The guild that currently controls this territory (0 = unclaimed). Persisted — territory
-    /// ownership survives restarts and season resets.</summary>
-    public int ControllingGuild { get; set; }
 
-    // ── Territory income runtime state ───────────────────────────────────────────────────────────────────
-    // Server-owned accumulators, persisted so they survive restarts (PendingIncome especially, so a restart
-    // can't double-credit). The editor never authors these; a group save preserves them (see the save handler).
-    /// <summary>Gold accrued from PvE kills in this territory since the last daily settlement (capped per day).
-    /// Credited to <see cref="ControllingGuild"/>'s vault at the 00:00 settlement, then zeroed.</summary>
-    public long PendingIncome { get; set; }
-    /// <summary>Running total of income CREDITED this territory-week; snapshotted into
-    /// <see cref="PreviousWeekIncome"/> and zeroed at the weekly reset.</summary>
-    public long IncomeThisWeek { get; set; }
-    /// <summary>The gold this territory generated for its owner over the previous week (the Territories-tab
-    /// column). 0 for unclaimed/untaxed.</summary>
-    public long PreviousWeekIncome { get; set; }
-    /// <summary>Settlement idempotency: the last date the weekly PreviousWeekIncome roll ran for this territory
-    /// (default MinValue = never). Keeps the daily settlement + /guildreset from double-rolling. Persisted.</summary>
-    public DateOnly LastWeekRollDate { get; set; }
-    /// <summary>Consecutive weeks the current owner has held this territory (0 = fresh). Drives the income
-    /// multiplier (cap <see cref="Constants.TerritoryWeeksHeldCap"/>). Incremented on a successful weekly
-    /// defense at war night; reset to 0 on capture.</summary>
-    public int WeeksHeld { get; set; }
-
-    // ── War-night challenge registration ─────────────────────────────────────────────────────────────────
-    /// <summary>Guild indices registered to contest this territory at the next war night (up to
-    /// <see cref="Constants.TerritoryMaxChallengers"/>). Persisted — registrations are made ahead of war night
-    /// and must survive a restart. Cleared at resolution.</summary>
-    public List<int> Challengers { get; set; } = new();
-    /// <summary>True when the current owner has abandoned this territory by challenging a different one (the
-    /// one-territory cap): it resolves as an unclaimed contest (no defender) at the next war night. The owner
-    /// keeps its income until then. Reset at resolution.</summary>
-    public bool DefenderAbandoned { get; set; }
-
-    /// <summary>Deep copy for an off-thread save snapshot. All fields are value types or an immutable string
-    /// EXCEPT <see cref="Challengers"/>, which is copied so the snapshot can't be mutated by a live edit.</summary>
-    public MapGroupRecord Clone()
-    {
-        var copy = (MapGroupRecord)MemberwiseClone();
-        copy.Challengers = new List<int>(Challengers);
-        return copy;
-    }
+    /// <summary>Copy for an off-thread save snapshot. Every field is a value type or an immutable string, so
+    /// a shallow copy is a whole one.</summary>
+    public MapGroupRecord Clone() => (MapGroupRecord)MemberwiseClone();
 }

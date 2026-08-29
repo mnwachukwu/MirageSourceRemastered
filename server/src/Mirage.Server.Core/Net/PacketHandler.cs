@@ -145,6 +145,83 @@ public sealed partial class PacketHandler
     private const int FloodMaxBytesPerWindow = 1000;    // inbound JSON characters allowed per window; higher = more permissive
     private const int FloodMaxPacketsPerWindow = 25;    // inbound packets allowed per window; higher = more permissive
 
+    /// <summary>Playing, and not a corpse.
+    ///
+    /// <para>🔴 The gate for anything a dead player must not do: an action that moves them, changes world
+    /// state, or moves an item or a coin. Read-only and social paths — chat, /who, map loading, targeting,
+    /// closing a panel, abandoning something — keep asking <see cref="ServerPlayer.IsPlaying"/> alone, and
+    /// respawn deliberately asks the opposite.</para>
+    ///
+    /// <para>The client closes every panel on death and gates its right-click menu, but it does NOT gate
+    /// the chat input, so every slash command remains typable from a corpse and arrives here regardless.
+    /// This is the half that counts.</para></summary>
+    private bool IsActing(int index) => _pm[index].IsPlaying && !_pm[index].Char.Dead;
+
+    /// <summary>What a corpse may still have DELIVERED to a handler.
+    ///
+    /// <para>🔴 An ALLOW-list, so a packet added later is refused by default instead of by somebody
+    /// remembering to guard it. Market and NpcInteract were both missed exactly that way — they change
+    /// world state, and nothing stopped a corpse using them until they were found by hand.</para>
+    ///
+    /// <para>Two different reasons appear below and they are not the same thing. Most entries are actions
+    /// genuinely ALLOWED while dead. The last group is actions that are REFUSED — but by a handler that
+    /// says so, because a typed slash command that silently does nothing reads as broken. Both have to be
+    /// delivered; only the second kind then turns itself away.</para></summary>
+    private static bool AllowedWhileDead(IPacket packet) => packet is
+        // Session and account: mostly pre-login, where nobody is dead — listed so the gate never becomes
+        // the reason a player cannot get out of a character.
+        GetClassesPacket or NewAccountPacket or LoginPacket or AddCharPacket or DelCharPacket
+        or UseCharPacket or DelAccountPacket or ChangePasswordPacket or LogoutToCharSelectPacket
+        or SetLanguagePacket
+
+        // The one thing a corpse is FOR.
+        or RespawnRequestPacket
+
+        // Speech. A corpse may talk; CombatSystem decides what it may do.
+        or SayMsgPacket or EmoteMsgPacket or YellMsgPacket or BroadcastMsgPacket or RollPacket
+        or NoticeMsgPacket or AdminMsgPacket or PlayerMsgPacket or GuildChatPacket
+
+        // Asking, never changing.
+        or WhoIsOnlinePacket or PlayerInfoRequestPacket or GetStatsPacket or PlayedRequestPacket
+        or RequestLocationPacket or MapReportPacket or HomeCooldownRequestPacket or SpellsRequestPacket
+        or GuildInfoRequestPacket or GuildBrowseRequestPacket or GuildLeaderboardRequestPacket
+        or SeasonArchiveRequestPacket or RequestModerationPacket
+
+        // Map streaming. Refusing these leaves the death screen with nothing to draw over.
+        or MapDataClientPacket or NeedMapPacket or NeedNeighborMapPacket or RequestNewMapPacket
+        or RequestRegionSyncPacket
+
+        // Account bookkeeping with no world effect.
+        or SocialAddFriendPacket or SocialRemoveFriendPacket or SocialAddIgnorePacket
+        or SocialRemoveIgnorePacket or MailMarkReadPacket or MailDeletePacket
+
+        // Targeting is inert: attacking and casting both refuse a corpse already.
+        or DropTargetPacket or SearchPacket
+
+        // Getting OUT of something must always work, whatever state you are in.
+        or TradeCancelPacket or MarketClosePacket
+
+        // Operator tools. An admin's own death is not a reason their moderation stops working.
+        or KickPlayerPacket or BanPlayerPacket or MutePlayerPacket or UnbanPlayerPacket
+        or UnkickPlayerPacket or UnmutePlayerPacket or HwBanPlayerPacket or HwUnbanPlayerPacket
+        or RefreshBanListPacket or SetAccessPacket or SetMotdPacket or AdminGuildResetPacket
+        or AdminTerritoryWarPacket or MapRespawnPacket or SetTimeOfDayPacket or SetWeatherPacket
+        or GodModePacket or SetSpritePacket
+
+        // Delivered ONLY so their handler can refuse them out loud — see the note above.
+        or HomeRequestPacket or TradeInvitePacket or JoinPartyPacket or LeavePartyPacket
+        or WarpToPacket or WarpMeToPacket or WarpToMePacket;
+
+    /// <summary>The same gate for a TYPED command: refuses a corpse and says so, because a slash command
+    /// that silently does nothing reads as broken. Returns true when the caller should stop.</summary>
+    private bool RefuseWhileDead(int index)
+    {
+        if (!_pm[index].Char.Dead) return false;
+        _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_WhileDead,
+            new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+        return true;
+    }
+
     /// <summary>Dispatch one JSON line from the game player at <paramref name="index"/>. Non-admins are
     /// flood-limited first; an unrecognized packet type is ignored, and a handler that throws is logged
     /// rather than allowed to tear down the game loop.</summary>
@@ -176,6 +253,12 @@ public sealed partial class PacketHandler
 
         IPacket? packet = PacketSerializer.TryDeserialize(jsonLine);
         if (packet is null) return;
+
+        // The corpse gate. Everything a dead player may still have delivered is named in
+        // AllowedWhileDead; anything else stops here, so a handler added later is refused by default.
+        // The per-handler IsActing checks stay as they are — they are what let a typed command explain
+        // itself, and they keep each handler honest on its own terms.
+        if (_pm[index].IsPlaying && _pm[index].Char.Dead && !AllowedWhileDead(packet)) return;
 
         try
         {

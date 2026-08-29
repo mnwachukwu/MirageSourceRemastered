@@ -65,6 +65,15 @@ public sealed partial class PacketHandler
         if (!sp.IsPlaying) return;
         var vp = sp.Char;
 
+        // A corpse stays where it fell. Refused above the cooldown gate so a dead player is never charged
+        // the cooldown for a warp that did not happen.
+        if (vp.Dead)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeWhileDead,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            return;
+        }
+
         if (sp.IsInCombat(Environment.TickCount64))
         {
             _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_HomeInCombat,

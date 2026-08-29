@@ -38,7 +38,7 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             if (!_pm[i].IsPlaying) continue;
             if (_pm[i].Char.Dead) continue;  // never acquire a corpse: it would re-lock every idle beat and re-run the death path
-            if (_pm[i].GodMode) continue;    // nor an observer, which nothing can see and nothing can reach
+            if (_pm[i].Char.GodMode) continue;    // nor an observer, which nothing can see and nothing can reach
             var p = _pm[i].Char;
             // Beneath its notice: a mob far enough under the player does not start anything. Struck, it
             // still retaliates through AlertNpc, which is a different path entirely.
@@ -77,7 +77,7 @@ public sealed partial class NpcAiSystem : GameSystem
         {
             if (!_pm[i].IsPlaying) continue;
             if (_pm[i].Char.Dead) continue;  // a dead PK player is still PK (death doesn't clear PkExpiryUtc) — don't guard-target the corpse
-            if (_pm[i].GodMode) continue;    // nor an observer, whatever its PK history says
+            if (_pm[i].Char.GodMode) continue;    // nor an observer, whatever its PK history says
             var p = _pm[i].Char;
             var gp = grid.PositionOf(p.Map);
             if (gp is null) continue;
@@ -156,7 +156,7 @@ public sealed partial class NpcAiSystem : GameSystem
     }
 
     /// <summary>AoS mobs scan their <see cref="NpcRecord.Range"/> for a hostile NPC that is neither
-    /// the same kind nor a same-group ally (see <see cref="AreNpcsAllied"/>: wolves don't fight other
+    /// the same kind nor a same-group ally (see <see cref="GameWorld.AreNpcsAllied"/>: wolves don't fight other
     /// wolves, and a tagged pack doesn't infight).  Eligibility otherwise: AoS/AWA behavior —
     /// Friendly/Stationary/Guard are never targeted (behavior gate).  LoS gated like
     /// <see cref="FindLowestLevelPlayer"/> — can't see a goblin through a wall.  Picks the NEAREST
@@ -184,7 +184,7 @@ public sealed partial class NpcAiSystem : GameSystem
                     if (m == mapNum && s == attackerSlot) continue;
                     var other = _world.MapNpcs[m, s];
                     if (other.Num <= 0 || other.Hp <= 0) continue;
-                    if (AreNpcsAllied(attacker.Num, other.Num)) continue;  // same-kind or same-group peace
+                    if (_world.AreNpcsAllied(attacker.Num, other.Num)) continue;  // same-kind or same-group peace
                     var beh = _world.Npcs[other.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
                     var (oWX, oWY) = grid.ToWorld(col, row, other.X, other.Y);
@@ -208,7 +208,7 @@ public sealed partial class NpcAiSystem : GameSystem
                 {
                     var gt = guests[g];
                     if (gt.Num <= 0 || gt.Hp <= 0) continue;
-                    if (AreNpcsAllied(attacker.Num, gt.Num)) continue;  // same-kind or same-group peace
+                    if (_world.AreNpcsAllied(attacker.Num, gt.Num)) continue;  // same-kind or same-group peace
                     var beh = _world.Npcs[gt.Num].Behavior;
                     if (beh != NpcBehavior.AttackOnSight && beh != NpcBehavior.AttackWhenAttacked) continue;
                     var (oWX, oWY) = grid.ToWorld(col, row, gt.X, gt.Y);
@@ -226,19 +226,6 @@ public sealed partial class NpcAiSystem : GameSystem
         }
 
         return best;
-    }
-
-    /// <summary>Two NPCs never attack each other on sight when they share a kind (same template
-    /// <see cref="MapNpcRecord.Num"/>) OR a non-zero <see cref="NpcRecord.Group"/>.  Group 0 is the
-    /// "ungrouped" sentinel, so two ungrouped NPCs are allied only if they are literally the same
-    /// kind — i.e. Group 0 preserves the original same-type-only behavior.  Equality on Group makes
-    /// the rule symmetric by construction: a one-sided group assignment grants no protection either
-    /// way, surfacing a mis-set group as in-game infighting during testing.</summary>
-    private bool AreNpcsAllied(int numA, int numB)
-    {
-        if (numA == numB) return true;                       // same kind (original same-type peace)
-        int groupA = _world.Npcs[numA].Group;
-        return groupA != 0 && groupA == _world.Npcs[numB].Group;  // same non-zero group
     }
 
     /// <summary>Acquire a hostile NPC target for an idle guard via <see cref="FindGuardNpcTarget"/>.
@@ -333,6 +320,19 @@ public sealed partial class NpcAiSystem : GameSystem
                 return;
             }
             _combat.NpcAttackNpc(mapNum, slot, mn, victimMap, victimSlot, victimMn, now);
+            mn.AttackTimer = now;
+            return;
+        }
+
+        // The target left the face, but a wide body is likely still pressed against by others. It is already
+        // facing them and its beat is ready, so it swings at what is standing there rather than turning away
+        // to chase — the cleave covers the whole edge, and the edge is what decides, not the one target.
+        if (_world.Npcs[mn.Num].EffectiveSize > 1 && _combat.FirstVictimOnFace(mapNum, mn, now) is { } onFace)
+        {
+            if (onFace.Npc is { } faceNpc)
+                _combat.NpcAttackNpc(mapNum, slot, mn, onFace.NpcMap, onFace.NpcSlot, faceNpc, now);
+            else
+                _combat.NpcAttackPlayer(mapNum, slot, onFace.PlayerIndex, now);
             mn.AttackTimer = now;
             return;
         }

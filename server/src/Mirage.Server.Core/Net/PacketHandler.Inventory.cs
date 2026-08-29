@@ -58,7 +58,7 @@ public sealed partial class PacketHandler
 
     private void HandleSortInventory(int index)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _items.SortInventory(index);
     }
 
@@ -160,7 +160,7 @@ public sealed partial class PacketHandler
 
     private void HandleBankOpen(int index)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _bank.OpenBank(index);
     }
 
@@ -234,7 +234,7 @@ public sealed partial class PacketHandler
 
     private void HandleBankSort(int index)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _bank.SortBank(index);
     }
 
@@ -276,7 +276,7 @@ public sealed partial class PacketHandler
     // one, else the client quest/context menu if it has an actionable quest for this player, else its keeper shop.
     private void HandleNpcInteract(int index, NpcInteractPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         if (!TryResolveInteractNpc(index, p.MapNum, p.NpcSlot, out int npcNum)) return;
         switch (p.Choice)
         {

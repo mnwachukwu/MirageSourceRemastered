@@ -20,7 +20,7 @@ public sealed partial class PacketHandler
 
     private void HandleGuildCreate(int index, GuildCreatePacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         string name = p.Name.Trim();
         // Name-format validation here (mirrors character creation); the guild business rules
         // (eligibility, name uniqueness, funds) are enforced in GuildSystem.CreateGuild. Max counts the whole
@@ -47,13 +47,13 @@ public sealed partial class PacketHandler
 
     private void HandleGuildDisband(int index, GuildDisbandPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _guilds.DisbandGuild(index);
     }
 
     private void HandleGuildOfferInitiate(int index, GuildOfferInitiatePacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         string target = p.TargetName.Trim();
         if (target.Length == 0) return;
         if (p.IsRequest) _guilds.RequestJoin(index, target);
@@ -62,7 +62,7 @@ public sealed partial class PacketHandler
 
     private void HandleGuildOfferRespond(int index, GuildOfferRespondPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         if (p.Accept) _guilds.AcceptOffer(index);
         else _guilds.DeclineOffer(index);
     }
@@ -119,31 +119,31 @@ public sealed partial class PacketHandler
 
     private void HandleGuildLeave(int index, GuildLeavePacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _guilds.LeaveGuild(index);
     }
 
     private void HandleGuildKick(int index, GuildKickPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _guilds.KickMember(index, p.Login.Trim());
     }
 
     private void HandleGuildPromote(int index, GuildPromotePacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _guilds.PromoteMember(index, p.Login.Trim());
     }
 
     private void HandleGuildDemote(int index, GuildDemotePacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _guilds.DemoteMember(index, p.Login.Trim());
     }
 
     private void HandleGuildTransfer(int index, GuildTransferPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _guilds.InitiateTransfer(index, p.Login.Trim());
     }
 

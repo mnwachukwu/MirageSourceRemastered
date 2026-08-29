@@ -143,7 +143,9 @@ public sealed partial class MainWindowViewModel
     {
         try
         {
-            return Path.GetDirectoryName(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            // Always a path that resolves on THIS machine — every caller has passed Directory.Exists — so the
+            // platform's own parsing is the right one, and a trailing separator is all it needs handling.
+            return Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(path));
         }
         catch (ArgumentException)
         {

@@ -8,9 +8,9 @@ using NUnit.Framework;
 namespace Mirage.Editor.Tests;
 
 /// <summary>
-/// Locks the MapGroup editor's round-trips: the group row's packet apply/save, the preservation of
-/// runtime-only ControllingGuild across an authoring save, the tri-state Moral mapping, and the map's new
-/// MapGroup reference traveling through the shared map packet in both directions.
+/// Locks the MapGroup editor's round-trips: the group row's packet apply/save, the tri-state Moral
+/// mapping, and the map's new MapGroup reference traveling through the shared map packet in both
+/// directions.
 /// </summary>
 [TestFixture]
 public class MapGroupRoundTripTests
@@ -34,7 +34,6 @@ public class MapGroupRoundTripTests
         BootX = 2,
         BootY = 5,
         Territory = true,
-        ControllingGuild = 12, // runtime state, not authored
     };
 
     [Test]
@@ -64,14 +63,11 @@ public class MapGroupRoundTripTests
     }
 
     [Test]
-    public void ApplyPacket_PreservesControllingGuild_AndDoesNotMarkDirty()
+    public void ApplyPacket_DoesNotMarkDirty()
     {
         var vm = Row();
         vm.ApplyPacket(FullPacket());
 
-        // ControllingGuild is runtime state the editor never authors; a save must write it back verbatim so an
-        // authoring edit can't wipe who currently holds the territory.
-        Assert.That(vm.ToRecord().ControllingGuild, Is.EqualTo(12));
         Assert.That(vm.IsDirty, Is.False, "loading a group from the server must not mark it dirty");
     }
 

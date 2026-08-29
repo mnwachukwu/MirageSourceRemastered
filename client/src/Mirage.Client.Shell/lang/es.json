@@ -596,7 +596,6 @@
   "HelpText_Cmd_Trade": "enviar una solicitud de intercambio a un jugador",
   "HelpText_Cmd_Roll": "tira de 1 a N; N entre 2 y 255 (100 por defecto)",
   "HelpText_Cmd_Reply": "responder a tu último susurro",
-  "HelpText_Cmd_AdminHelp": "abrir la lista de comandos de administrador",
   "HelpText_Cmd_Kick": "expulsar a un jugador (60 min por defecto)",
   "HelpText_Cmd_Ban": "banear a un jugador",
   "HelpText_Cmd_HwBan": "banear a un jugador y su máquina (debe estar en línea)",

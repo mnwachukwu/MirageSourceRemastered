@@ -41,7 +41,6 @@ public partial class MapGroupEditorView : LocalizedUserControl
         _alwaysLitLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_AlwaysLitLabel);
         _alwaysDarkLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_AlwaysDarkLabel);
         _triStateHint.Text = EditorStrings.Get(EditorStrings.MapGroupEditor_TriStateHint);
-        _controllingGuildLabel.Text = EditorStrings.Get(EditorStrings.MapGroupEditor_ControllingGuildLabel);
         _searchBootMap.PlaceholderText = EditorStrings.Get(EditorStrings.MapEditor_SearchMapsPlaceholder);
         _copyBtn.Content = EditorStrings.Get(EditorStrings.Common_Copy);
         _discardBtn.Content = EditorStrings.Get(EditorStrings.Common_Discard);

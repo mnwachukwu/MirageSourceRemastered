@@ -292,7 +292,7 @@ public sealed partial class MirageGame : Game
         {
             string text = meIn ? ClientStrings.Get(ClientStrings.Combat_EnterCombat) : ClientStrings.Get(ClientStrings.Combat_EndCombat);
             Color color = meIn ? Color.Orange : UiHelper.FloatHealColor;
-            gs.SpawnFloatingTextAtEntity(me!.Map, me.X, me.Y, me.XOffset, me.YOffset, text, color);
+            gs.SpawnFloatingTextAtEntity(me!.Map, me.X, me.Y, me.XOffset, me.YOffset, text, color, size: 1);
             _meInCombatPrev = meIn;
         }
 
@@ -303,9 +303,9 @@ public sealed partial class MirageGame : Game
             var p = (party.Index >= 1 && party.Index <= Constants.MaxPlayers)
                 ? _state.Players[party.Index] : null;
             if (p is not null && !string.IsNullOrEmpty(p.Name))
-                gs.SpawnFloatingTextAtEntity(p.Map, p.X, p.Y, p.XOffset, p.YOffset, text, color);
+                gs.SpawnFloatingTextAtEntity(p.Map, p.X, p.Y, p.XOffset, p.YOffset, text, color, size: 1);
             else
-                gs.SpawnFloatingTextAtEntity(party.MapNum, party.X, party.Y, 0f, 0f, text, color);
+                gs.SpawnFloatingTextAtEntity(party.MapNum, party.X, party.Y, 0f, 0f, text, color, size: 1);
             _partyInCombatPrev = partyIn;
         }
         else if (!party.Active)

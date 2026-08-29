@@ -215,20 +215,6 @@ public class WorldTransferTests
         Assert.That(WorldTransfer.Compare(folder, server).Changes, Is.Empty);
     }
 
-    /// <summary>A group's territory state belongs to whichever guild holds it, is preserved by the server
-    /// across an authoring save, and no upload carries it.</summary>
-    [Test]
-    public void AGroupsGuildState_IsNotAChange()
-    {
-        var server = Authored();
-        var folder = Authored();
-        server.MapGroups[1].ControllingGuild = 3;
-        server.MapGroups[1].PendingIncome = 5000;
-        server.MapGroups[1].WeeksHeld = 12;
-
-        Assert.That(WorldTransfer.Compare(folder, server).Changes, Is.Empty);
-    }
-
     // ── The ceiling ──────────────────────────────────────────────────────────
 
     /// <summary>A record above the server's ceiling has nowhere to go. Counted and stated: silently

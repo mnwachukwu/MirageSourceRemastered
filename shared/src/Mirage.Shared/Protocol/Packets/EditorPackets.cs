@@ -442,7 +442,6 @@ public sealed record UpdateMapGroupPacket : IPacket
     [JsonPropertyName("joinSay")] public string JoinSay { get; init; } = "";
     [JsonPropertyName("leaveSay")] public string LeaveSay { get; init; } = "";
     [JsonPropertyName("territory")] public bool Territory { get; init; }
-    [JsonPropertyName("controllingGuild")] public int ControllingGuild { get; init; }
 }
 
 public sealed record EditorAllMapGroupsPacket : IPacket

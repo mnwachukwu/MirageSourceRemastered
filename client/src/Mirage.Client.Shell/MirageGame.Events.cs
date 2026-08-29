@@ -414,7 +414,7 @@ public sealed partial class MirageGame : Game
                 var me = _state.Players[_state.MyIndex];
                 if (string.IsNullOrEmpty(me.Name)) return;
                 gs.SpawnFloatingTextAtEntity(me.Map, me.X, me.Y, me.XOffset, me.YOffset,
-                    $"+{delta:N0} {VitalLabel(VitalType.Exp)}", UiHelper.ExpBarColor);
+                    $"+{delta:N0} {VitalLabel(VitalType.Exp)}", UiHelper.ExpBarColor, size: 1);   // over ME
                 return;
             }
 
@@ -503,7 +503,7 @@ public sealed partial class MirageGame : Game
             if (_screens.Current is not GameplayScreen gs) return;
             var me = _state.Players[_state.MyIndex];
             if (string.IsNullOrEmpty(me.Name)) return;
-            gs.SpawnFloatingTextAtEntity(me.Map, me.X, me.Y, me.XOffset, me.YOffset, ClientStrings.Get(ClientStrings.Combat_LevelUp), Color.Yellow);
+            gs.SpawnFloatingTextAtEntity(me.Map, me.X, me.Y, me.XOffset, me.YOffset, ClientStrings.Get(ClientStrings.Combat_LevelUp), Color.Yellow, size: 1);   // over ME
         };
 
         _handler.CombatText += p =>
@@ -567,7 +567,10 @@ public sealed partial class MirageGame : Game
                 xoff = pl.XOffset;
                 yoff = pl.YOffset;
             }
-            gs.SpawnFloatingTextAtEntity(mapNum, lx, ly, xoff, yoff, text, color);
+            // Centred on the subject's BODY, the way the damage numbers are: Blocked / Missed / Dodged over
+            // a 3x3 mob belongs to the mob, not to whatever is standing on its top-left tile.
+            gs.SpawnFloatingTextAtEntity(mapNum, lx, ly, xoff, yoff, text, color,
+                gs.PopupFootprint(p.IsNpc, p.Index, p.MapNum, lx, ly));
         };
     }
 }

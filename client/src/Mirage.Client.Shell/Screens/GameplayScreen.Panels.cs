@@ -50,9 +50,9 @@ public sealed partial class GameplayScreen : IGameScreen
     }
 
     // Help panel open/close: closes when already on top, otherwise opens (if closed) and brings to
-    // front. The panel's content is a pure function of the viewer's access level, so /help, /admin,
-    // H, and the help link all open the same view — admins always get the admin command and
-    // admin-social sections, regardless of which entry point opened it.
+    // front. The panel's content is a pure function of the viewer's access level, so /help, H, and the
+    // help link all open the same view — admins always get the admin command and admin-social sections,
+    // regardless of which entry point opened it, and there is nothing a separate admin help would show.
     private void ActivateHelpPanel()
     {
         if (_help.IsOpen && TopOpenPanel() == PanelHelp)

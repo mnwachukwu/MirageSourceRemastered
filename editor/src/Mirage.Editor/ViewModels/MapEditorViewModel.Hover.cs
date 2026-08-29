@@ -104,7 +104,20 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         // Not a name but a statement that the tile carries no attribute, so this one stays localized.
         TileType.Walkable => EditorStrings.Get(EditorStrings.MapEditor_AttrText_None),
-        TileType.Blocked or TileType.NpcAvoid => EditorVocabulary.NameOf(type),
+        // 🔴 What a wall stops is stated ALWAYS, including when the answer is nothing. The two flags are
+        // invisible on the map — the fringe frame bounding the upper plane is Blocked with BOTH off and
+        // reads identically to solid rock — and this is the exploded view, whose whole job is to be
+        // explicit. Saying it only when it deviates from the default leaves the reader inferring silence.
+        TileType.Blocked => EditorStrings.Format(EditorStrings.MapEditor_AttrText_BlockedStops,
+            ("Name", EditorVocabulary.NameOf(type)),
+            ("Stops", EditorStrings.Get((a.BlocksLight, a.BlocksSight) switch
+            {
+                (true, true) => EditorStrings.MapEditor_Blocked_LightAndSight,
+                (true, false) => EditorStrings.MapEditor_Blocked_Light,
+                (false, true) => EditorStrings.MapEditor_Blocked_Sight,
+                _ => EditorStrings.MapEditor_Blocked_Nothing,
+            }))),
+        TileType.NpcAvoid => EditorVocabulary.NameOf(type),
         TileType.Warp => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Warp,
             ("Name", EditorVocabulary.NameOf(type)), ("Map", MapLabel(a.WarpMap)), ("X", a.WarpX), ("Y", a.WarpY)),
         TileType.Item => EditorStrings.Format(EditorStrings.MapEditor_AttrText_Item,

@@ -596,7 +596,6 @@
   "HelpText_Cmd_Trade": "send a trade request to a player",
   "HelpText_Cmd_Roll": "rolls 1-N; N is 2-255 (default 100)",
   "HelpText_Cmd_Reply": "reply to your last whisper",
-  "HelpText_Cmd_AdminHelp": "open the admin command reference",
   "HelpText_Cmd_Kick": "kick a player (default 60 min)",
   "HelpText_Cmd_Ban": "ban a player",
   "HelpText_Cmd_HwBan": "ban a player and their machine (they must be online)",

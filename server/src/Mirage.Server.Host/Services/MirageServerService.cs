@@ -222,6 +222,15 @@ public sealed class MirageServerService : IHostedService
 
     private async Task LoadWorldDataAsync(CancellationToken ct)
     {
+        // WHICH set of records everything below comes out of, said before any of it is read: every line
+        // that follows is loading this world's items, this world's maps. Operator-facing only — a player
+        // sees the GAME's name, never this. Kept on the world as well as logged, so a connected editor can
+        // put it in its title bar.
+        var manifest = await _persistence.LoadWorldManifestAsync();
+        _world.WorldName = manifest.Name;
+        if (manifest.IsNamed)
+            LocalizedLog.Info(_logger, ServerStrings.Server_WorldName, ("WorldName", manifest.Name));
+
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingGameData));
 
         // Arrays (1-based; index 0 = unused dummy)
@@ -271,18 +280,17 @@ public sealed class MirageServerService : IHostedService
         var mapGroups = await _persistence.LoadAllMapGroupsAsync();
         foreach (var (index, group) in mapGroups) _world.MapGroups[index] = group;
 
+        // Territory state, keyed by the group whose maps it is. A contestable group with no file is simply
+        // unclaimed, so only what a server has actually written is here.
+        var territories = await _persistence.LoadAllTerritoriesAsync();
+        foreach (var (index, terr) in territories) _world.Territories[index] = terr;
+
         // Perpetual season archive — load past seasons for the historical-season browser.
         _world.SeasonArchives.AddRange(await _persistence.LoadAllSeasonArchivesAsync());
 
         // Maps — load all; create an empty file for any that don't exist on disk, at the size this world
-        // says a map is (world.json). An authored map is whatever size it was authored at.
-        var manifest = await _persistence.LoadWorldManifestAsync();
+        // says a map is (world.json, read at the top). An authored map is whatever size it was authored at.
         var blank = manifest.DefaultMapSize;
-        // Which set of records this is. Operator-facing only — a player sees the GAME's name, never this.
-        // Kept on the world as well as logged, so a connected editor can put it in its title bar.
-        _world.WorldName = manifest.Name;
-        if (manifest.IsNamed)
-            LocalizedLog.Info(_logger, ServerStrings.Server_WorldName, ("WorldName", manifest.Name));
         _logger.LogInformation(ServerStrings.Get(ServerStrings.Server_LoadingMaps));
         int mapsLoaded = 0, mapsCreated = 0;
         for (short i = 1; i <= _world.Limits.Maps; i++)
@@ -301,6 +309,11 @@ public sealed class MirageServerService : IHostedService
                 mapsCreated++;
             }
         }
+
+        // Whatever the maps used to say about the upper plane, they now say this. Nothing has asked yet at
+        // boot, so this is belt and braces — but it is the rule for every path that replaces a map, and a
+        // rule with an exception is one somebody copies.
+        _world.InvalidateFringeReach();
 
         // MOTD. A server with no motd.json greets players anyway, from a default held in memory and never
         // written — so an operator who wants their own is setting one rather than replacing one, and a

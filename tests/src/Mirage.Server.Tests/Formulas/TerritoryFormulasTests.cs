@@ -100,7 +100,7 @@ public class TerritoryFormulasTests
     [Test]
     public void CreditTerritoryIncome_MovesPendingIntoWeeklyTally_AndZeroes()
     {
-        var g = new MapGroupRecord { Territory = true, ControllingGuild = 1, PendingIncome = 42, IncomeThisWeek = 100 };
+        var g = new TerritoryRecord { MapGroup = 1, ControllingGuild = 1, PendingIncome = 42, IncomeThisWeek = 100 };
         long credited = GuildScheduleSystem.CreditTerritoryIncome(g);
         Assert.Multiple(() =>
         {
@@ -115,9 +115,9 @@ public class TerritoryFormulasTests
 
     // ── Disband: what a dissolved guild gives up ──────────────────────────────
     [Test]
-    public void ReleaseTerritory_OwnedGroup_FallsUnclaimed_AndLosesItsHoldStreak()
+    public void ReleaseTerritory_OwnedTerritory_FallsUnclaimed_AndLosesItsHoldStreak()
     {
-        var owned = new MapGroupRecord { Territory = true, ControllingGuild = 7, WeeksHeld = 3 };
+        var owned = new TerritoryRecord { MapGroup = 1, ControllingGuild = 7, WeeksHeld = 3 };
         Assert.That(GuildSystem.ReleaseTerritory(owned, 7), Is.True);
         Assert.Multiple(() =>
         {
@@ -129,7 +129,7 @@ public class TerritoryFormulasTests
     [Test]
     public void ReleaseTerritory_DropsOnlyTheDissolvedGuildsChallenge()
     {
-        var contested = new MapGroupRecord { Territory = true, ControllingGuild = 4 };
+        var contested = new TerritoryRecord { MapGroup = 1, ControllingGuild = 4 };
         contested.Challengers.AddRange(new[] { 7, 9 });
         Assert.That(GuildSystem.ReleaseTerritory(contested, 7), Is.True);
         Assert.Multiple(() =>
@@ -140,9 +140,9 @@ public class TerritoryFormulasTests
     }
 
     [Test]
-    public void ReleaseTerritory_UninvolvedGroup_ReportsNoChange()
+    public void ReleaseTerritory_UninvolvedTerritory_ReportsNoChange()
     {
-        var other = new MapGroupRecord { Territory = true, ControllingGuild = 4, WeeksHeld = 2 };
+        var other = new TerritoryRecord { MapGroup = 1, ControllingGuild = 4, WeeksHeld = 2 };
         other.Challengers.Add(9);
         Assert.That(GuildSystem.ReleaseTerritory(other, 7), Is.False, "no change -> the caller persists nothing");
         Assert.Multiple(() =>

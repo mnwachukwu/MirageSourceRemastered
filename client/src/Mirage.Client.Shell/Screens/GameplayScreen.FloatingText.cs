@@ -166,9 +166,14 @@ public sealed partial class GameplayScreen : IGameScreen
     /// <summary>Spawn floating text anchored over an entity on (mapNum, lx, ly) with its
     /// current interp offset (xoff, yoff). Returns false if the entity isn't on screen.
     /// Centralizes the screen-coord conversion + below-sprite flip + pic-center offset that
-    /// the half-dozen damage/heal/exp/levelup spawn sites otherwise repeat.</summary>
+    /// the half-dozen damage/heal/exp/levelup spawn sites otherwise repeat.
+    ///
+    /// <para>🔴 <paramref name="size"/> is the subject's FOOTPRINT in tiles, and it has no default on
+    /// purpose: an NPC's position is its top-left anchor, so text sized 1 over a 3x3 body lands on its
+    /// shoulder and reads as belonging to something else. A caller over a player passes 1 and says so;
+    /// a caller over an NPC asks <see cref="PopupFootprint"/>.</para></summary>
     public bool SpawnFloatingTextAtEntity(int mapNum, int lx, int ly, float xoff, float yoff,
-                                          string text, Color color, int size = 1)
+                                          string text, Color color, int size)
     {
         if (!TryEntityScreen(mapNum, lx, ly, xoff, yoff, out float sx, out float sy)) return false;
         bool floatDown = sy < RenderCommandBuilder.BelowSpriteThreshold;

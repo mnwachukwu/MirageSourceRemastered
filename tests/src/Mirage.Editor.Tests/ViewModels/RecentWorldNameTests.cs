@@ -98,4 +98,35 @@ public class RecentWorldNameTests
 
         Assert.That(Row().Path, Is.EqualTo(_dir));
     }
+
+    /// <summary>
+    /// 🔴 A path written with the OTHER platform's separator still gives up its folder. **Do not reduce this
+    /// to one case.**
+    ///
+    /// <para>The recent-worlds list is a settings file that travels, so the machine reading it is no guide to
+    /// which slash wrote it. `Path.DirectorySeparatorChar` and `AltDirectorySeparatorChar` are BOTH `/` on
+    /// Linux and macOS, so anything keyed on them is blind to a backslash there and the whole path reads as
+    /// the folder name.</para>
+    ///
+    /// <para>Both shapes are asserted on every platform rather than only the local one — that is what makes
+    /// this catchable here instead of on a CI leg. Neither folder exists, which is the case the menu has to
+    /// survive anyway, and is why one fixture covers both.</para>
+    /// </summary>
+    [TestCase(@"D:\worlds\Brightwater", Description = "written on Windows")]
+    [TestCase("/srv/worlds/Brightwater", Description = "written on Linux or macOS")]
+    public void AForeignSeparator_StillYieldsTheFolder(string path)
+    {
+        var row = new RecentWorldViewModel(path, _ => Task.CompletedTask);
+
+        Assert.That(row.Display, Does.Contain("Brightwater"));
+    }
+
+    [TestCase(@"D:\worlds\Brightwater\", Description = "written on Windows")]
+    [TestCase("/srv/worlds/Brightwater/", Description = "written on Linux or macOS")]
+    public void AForeignTrailingSeparator_DoesNotCostTheFolder(string path)
+    {
+        var row = new RecentWorldViewModel(path, _ => Task.CompletedTask);
+
+        Assert.That(row.Display, Does.Contain("Brightwater"));
+    }
 }

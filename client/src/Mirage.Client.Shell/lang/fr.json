@@ -596,7 +596,6 @@
   "HelpText_Cmd_Trade": "envoyer une demande d'échange à un joueur",
   "HelpText_Cmd_Roll": "lance un dé de 1 à N; N entre 2 et 255 (100 par défaut)",
   "HelpText_Cmd_Reply": "répondre à votre dernier message privé",
-  "HelpText_Cmd_AdminHelp": "ouvrir la liste des commandes d'administration",
   "HelpText_Cmd_Kick": "expulser un joueur (60 min par défaut)",
   "HelpText_Cmd_Ban": "bannir un joueur",
   "HelpText_Cmd_HwBan": "bannir un joueur et sa machine (il doit être en ligne)",

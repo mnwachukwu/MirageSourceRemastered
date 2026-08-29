@@ -968,6 +968,10 @@ public sealed partial class EditorPacketHandler
 
         _bg.Run(_persistence.SaveMapAsync(mapNum, map), nameof(IPersistenceService.SaveMapAsync));
 
+        // Which decks a body can be put on is a whole-world answer, and this save may have moved a deck, a
+        // ramp or a LINK — any of which is felt on the maps either side of it. Drop it and let it rebuild.
+        _world.InvalidateFringeReach();
+
         // Re-sync tile-defined map items to the freshly saved layout so newly placed item tiles appear
         // immediately instead of waiting for a /respawn or a restart.  Mirrors HandleMapRespawn — clear
         // every live item (player drops included) then re-spawn from the current tiles.
@@ -1015,7 +1019,6 @@ public sealed partial class EditorPacketHandler
         JoinSay = g.JoinSay,
         LeaveSay = g.LeaveSay,
         Territory = g.Territory,
-        ControllingGuild = g.ControllingGuild,
     };
 
     private void HandleEditorRequestMapGroup(int editorIndex, EditorRequestMapGroupPacket p)
@@ -1068,8 +1071,9 @@ public sealed partial class EditorPacketHandler
         if (!SlotValidation.IsValidMapGroupNum(n, _world.Limits.MapGroups)) return;
         if (LockedByAnother(editorIndex, "MapGroups", n)) return;
 
-        // Reuse the existing record so runtime-only state (ControllingGuild) survives an authoring save;
-        // create it on first save (groups are a sparse Dictionary, unlike the pre-sized record arrays).
+        // Reuse the existing record, or create it on first save (groups are a sparse Dictionary, unlike the
+        // pre-sized record arrays). Everything on a group is authored, so the whole of it is the editor's to
+        // overwrite — who holds the territory these maps make up is a TerritoryRecord and is not here.
         if (!_world.MapGroups.TryGetValue(n, out var group))
         {
             group = new MapGroupRecord { Index = n };

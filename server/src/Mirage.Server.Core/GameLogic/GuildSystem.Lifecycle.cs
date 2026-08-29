@@ -159,12 +159,12 @@ public sealed partial class GuildSystem : GameSystem
         }
 
         // A dissolved guild also gives up its territory: what it controlled falls unclaimed and any challenge it
-        // registered is withdrawn. Operates on the map groups directly — GuildSystem takes no GuildTerritorySystem
-        // dependency (that would be a cycle), the same reason the war forfeits above go through static helpers.
-        foreach (var group in _world.MapGroups.Values)
+        // registered is withdrawn. Operates on the territory records directly — GuildSystem takes no
+        // GuildTerritorySystem dependency (that would be a cycle), the same reason the war forfeits above go
+        // through static helpers.
+        foreach (var (_, terr) in _world.AllTerritories())
         {
-            if (group.Territory && ReleaseTerritory(group, id))
-                SaveMapGroup(group);
+            if (ReleaseTerritory(terr, id)) SaveTerritory(terr);
         }
 
         _world.Guilds.Remove(id);
@@ -181,17 +181,18 @@ public sealed partial class GuildSystem : GameSystem
         _logger.LogInformation("{Player} disbanded guild {Guild} (#{Id}).", sp.Char.TrimmedName, guildName, id);
     }
 
-    /// <summary>Release everything the guild at <paramref name="guildIndex"/> holds on one territory group: its
+    /// <summary>Release everything the guild at <paramref name="guildIndex"/> holds on one territory: its
     /// ownership falls unclaimed (weeks-held resets with it — a consecutive-hold streak is meaningless without an
-    /// owner) and its pending challenge, if any, is dropped. Returns whether the group actually changed, so the
-    /// caller persists only what it touched. Pure — mutates <paramref name="group"/> alone; exposed for tests.</summary>
-    public static bool ReleaseTerritory(MapGroupRecord group, int guildIndex)
+    /// owner) and its pending challenge, if any, is dropped. Returns whether the territory actually changed, so
+    /// the caller persists only what it touched. Pure — mutates <paramref name="terr"/> alone; exposed for
+    /// tests.</summary>
+    public static bool ReleaseTerritory(TerritoryRecord terr, int guildIndex)
     {
-        bool changed = group.Challengers.Remove(guildIndex);
-        if (group.ControllingGuild == guildIndex)
+        bool changed = terr.Challengers.Remove(guildIndex);
+        if (terr.ControllingGuild == guildIndex)
         {
-            group.ControllingGuild = 0;
-            group.WeeksHeld = 0;
+            terr.ControllingGuild = 0;
+            terr.WeeksHeld = 0;
             changed = true;
         }
         return changed;

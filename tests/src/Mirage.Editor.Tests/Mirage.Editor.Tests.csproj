@@ -36,4 +36,14 @@
     </AssemblyAttribute>
   </ItemGroup>
 
+
+  <!-- Source-scanning checks need the repo, not the output dir: a redirected build (how the suites run
+       while the editor holds a file lock) puts the binary outside the tree, so walking up from
+       AppContext.BaseDirectory would silently find nothing and skip the check instead of running it. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RepoRoot</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\..</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

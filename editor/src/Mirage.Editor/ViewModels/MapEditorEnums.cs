@@ -120,7 +120,13 @@ public enum NeighborCell { Up, Down, Left, Right, UpLeft, UpRight, DownLeft, Dow
 /// <see cref="Retain"/> re-uses the last dialog's values. Named rather than an
 /// <c>(int, int, bool, bool)</c> tuple — the two trailing bools mean opposite things, and nothing about the
 /// tuple made transposing them visible at either the raise or the handle site.</summary>
-public readonly record struct TileClick(int X, int Y, bool Alt, bool Retain);
+/// <summary>One tile touched by the left button.
+///
+/// <para><paramref name="Dragging"/> separates the press from the cells the pointer is then dragged across.
+/// They are otherwise the same event, and an authoring dialog must only ever open on the press: a drag that
+/// crosses a tile already holding the attribute would pop the dialog for it mid-stroke, which is what
+/// laying a run of walls across an existing one does.</para></summary>
+public readonly record struct TileClick(int X, int Y, bool Alt, bool Retain, bool Dragging = false);
 
 /// <summary>A marquee drag's current rectangle plus which end of the gesture produced it. The four ints are
 /// two CORNERS, not a position and a size, which is exactly the confusion a five-element tuple invited.</summary>

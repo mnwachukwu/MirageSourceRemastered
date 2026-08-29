@@ -8,7 +8,7 @@ namespace Mirage.Editor.ViewModels;
 
 /// <summary>One MapGroup slot in the MapGroup editor. Holds the authored fields; Moral + the two
 /// environment bools are tri-state (null = "(Inherit)"/don't-provide) so a group can decline to supply a value.
-/// ControllingGuild is runtime state shown read-only and preserved verbatim across a save.</summary>
+/// A group is authored end to end: who holds the territory its maps make up is the server's and is not here.</summary>
 public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRow
 {
     /// <inheritdoc/>
@@ -37,16 +37,11 @@ public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRo
     [ObservableProperty] private int _bootY;
     [ObservableProperty] private bool _territory;
 
-    private int _controllingGuild;   // runtime state; preserved on save, shown read-only
-
     public bool IsDirty => _dirty;
     private bool _dirty;
     private bool _loading;
 
     public string DisplayName => $"{Index}: {(string.IsNullOrEmpty(Name) ? EditorStrings.Get(EditorStrings.Common_EmptyName) : Name)}";
-    public string ControllingGuildText => _controllingGuild > 0
-        ? EditorStrings.Format(EditorStrings.MapGroupEditor_ControlledBy, ("Guild", _controllingGuild))
-        : EditorStrings.Get(EditorStrings.MapGroupEditor_Unclaimed);
 
     public IReadOnlyList<MoralChoice> MoralOptions { get; private set; } = MoralChoices.Build();
     public MoralChoice? SelectedMoral
@@ -84,7 +79,6 @@ public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRo
             BootX = r.BootX;
             BootY = r.BootY;
             Territory = r.Territory;
-            _controllingGuild = r.ControllingGuild;
         }
         finally { _loading = false; }
     }
@@ -197,7 +191,6 @@ public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRo
         CopyFrom(r);
         _dirty = false;
         OnPropertyChanged(nameof(DisplayName));
-        OnPropertyChanged(nameof(ControllingGuildText));
         OnPropertyChanged(nameof(IsDirty));
     }
 
@@ -220,7 +213,6 @@ public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRo
             BootX = pkt.BootX;
             BootY = pkt.BootY;
             Territory = pkt.Territory;
-            _controllingGuild = pkt.ControllingGuild;
         }
         finally { _loading = false; }
 
@@ -228,7 +220,6 @@ public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRo
         _dirty = false;
         OnPropertyChanged(nameof(IsLoaded));
         OnPropertyChanged(nameof(DisplayName));
-        OnPropertyChanged(nameof(ControllingGuildText));
         OnPropertyChanged(nameof(IsDirty));
     }
 
@@ -249,7 +240,6 @@ public sealed partial class MapGroupRowViewModel : ObservableObject, ILockableRo
         BootX = BootX,
         BootY = BootY,
         Territory = Territory,
-        ControllingGuild = _controllingGuild,   // runtime state preserved verbatim
     };
 
     /// <summary>Project the row into the online save packet. The single source of that mapping — both the

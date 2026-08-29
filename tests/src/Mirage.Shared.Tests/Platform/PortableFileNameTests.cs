@@ -141,17 +141,33 @@ public class PortableFileNameTests
     // ── The convention ──────────────────────────────────────────────────────────
 
     /// <summary>
-    /// 🔴 Production code never asks the OS what a legal filename is.
+    /// 🔴 Production code never asks the OS what a legal filename is, or which character separates a path.
     ///
-    /// <para>This is a source scan because it cannot be a behavioural test: on Windows
-    /// <c>Path.GetInvalidFileNameChars()</c> returns the same set <see cref="PortableFileName.InvalidChars"/>
-    /// declares, so a call to it behaves identically and every assertion above still passes. The difference
-    /// appears only on Linux and macOS — which means a reintroduction is invisible on the machine that writes
-    /// it and breaks CI for everyone else.</para>
+    /// <para>A source scan because it CANNOT be a behavioural test. On Windows every one of these members
+    /// returns what the portable replacement declares — the 41-character set, and a backslash plus a forward
+    /// slash — so code using them behaves identically here and no assertion can tell the two apart. They
+    /// diverge only on Linux and macOS, where the invalid set is two characters and BOTH separator members
+    /// are <c>/</c>. That is the whole shape of this bug class: invisible on the machine that writes it, red
+    /// on CI for everyone else. It has shipped twice.</para>
+    ///
+    /// <para>Both replacements live in Shared and are the only files allowed to name these:
+    /// <see cref="PortableFileName"/> for what a name may contain, <see cref="PortablePath"/> for reading a
+    /// path that travels. <c>Path.Combine</c>, <c>GetDirectoryName</c> and
+    /// <c>TrimEndingDirectorySeparator</c> are NOT on this list and stay correct for a local path — the
+    /// members below are the ones whose VALUE changes per platform.</para>
     /// </summary>
     [Test]
-    public void NoProductionCode_AsksThePlatformWhatALegalNameIs()
+    public void NoProductionCode_AsksThePlatformWhatALegalNameOrSeparatorIs()
     {
+        string[] platformDependent =
+        [
+            "GetInvalidFileNameChars",
+            "GetInvalidPathChars",
+            "DirectorySeparatorChar",     // also catches AltDirectorySeparatorChar
+            "VolumeSeparatorChar",
+            "PathSeparator",
+        ];
+
         string root = typeof(PortableFileNameTests).Assembly
             .GetCustomAttributes<AssemblyMetadataAttribute>()
             .First(a => a.Key == "RepoRoot").Value!;
@@ -164,21 +180,30 @@ public class PortableFileNameTests
             if (!Directory.Exists(dir)) continue;
             foreach (string file in Directory.EnumerateFiles(dir, "*.cs", SearchOption.AllDirectories))
             {
-                if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-                    || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
-                // The one file allowed to name them is the one that replaces them.
-                if (Path.GetFileName(file) == "PortableFileName.cs") continue;
+                string rel = Path.GetRelativePath(root, file).Replace('\\', '/');
+                if (rel.Contains("/obj/") || rel.Contains("/bin/")) continue;
+                // The two files allowed to name them are the two that replace them.
+                if (Path.GetFileName(file) is "PortableFileName.cs" or "PortablePath.cs") continue;
 
                 string text = File.ReadAllText(file);
-                if (text.Contains("GetInvalidFileNameChars") || text.Contains("GetInvalidPathChars"))
-                    offenders.Add(Path.GetRelativePath(root, file));
+                foreach (string member in platformDependent)
+                {
+                    if (!text.Contains(member)) continue;
+                    // TrimEndingDirectorySeparator is a method, not the char, and parses both on Windows.
+                    if (member == "DirectorySeparatorChar"
+                        && !text.Replace("TrimEndingDirectorySeparator", "").Contains(member)) continue;
+                    offenders.Add($"{rel}  ({member})");
+                }
             }
         }
 
         Assert.That(offenders, Is.Empty,
-            "These ask the CURRENT OS which characters a filename may hold. Windows names 41 and POSIX names "
-            + "2, so the rule they enforce depends on who ran the code, and a name accepted on Linux can be a "
-            + "file Windows cannot check out. Use PortableFileName.IsValid / .Sanitize instead:"
+            "These ask the CURRENT OS a question whose answer has to hold on every platform the game ships "
+            + "to. Windows rejects 41 filename characters and POSIX rejects 2; Windows separates paths with "
+            + "two different characters and POSIX with one. Code keyed on them enforces whatever the "
+            + "authoring machine happened to do. Use PortableFileName (names) or PortablePath (reading a "
+            + "path that travels); for a path that never leaves this machine, Path.Combine / "
+            + "GetDirectoryName / TrimEndingDirectorySeparator are correct:"
             + Environment.NewLine + string.Join(Environment.NewLine, offenders));
     }
 }

@@ -13,17 +13,21 @@ public static class PinnedRolls
 {
     /// <summary>Rolls 0, which is below any chance of 1 or more: every gate with a non-zero chance fires.
     /// The bounded <c>Next(min, max)</c> overloads return their minimum for the same reason.</summary>
-    public static IRandomSource Always { get; } = new Fixed(_ => 0, (min, _) => min);
+    public static IRandomSource Always { get; } = new Fixed(_ => 0, (min, _) => min, 0.0);
 
     /// <summary>Rolls the top of the space, which no chance can exceed: no gate fires. Chances are capped well
     /// below the roll ceiling, so this holds however they are tuned.</summary>
-    public static IRandomSource Never { get; } = new Fixed(max => max - 1, (_, max) => max - 1);
+    public static IRandomSource Never { get; } = new Fixed(max => max - 1, (_, max) => max - 1, Math.BitDecrement(1.0));
 
-    private sealed class Fixed(Func<int, int> bounded, Func<int, int, int> ranged) : IRandomSource
+    private sealed class Fixed(Func<int, int> bounded, Func<int, int, int> ranged, double unit) : IRandomSource
     {
         public int Next(int maxExclusive) => bounded(maxExclusive);
         public int Next(int minInclusive, int maxExclusive) => ranged(minInclusive, maxExclusive);
         public long NextInt64(long minInclusive, long maxExclusive) => minInclusive;
-        public double NextDouble() => 0.0;
+
+        // 🔴 The unit roll has to follow the SAME direction as the bounded ones. A shared 0.0 made Never behave
+        // as Always for every `NextDouble() < chance` gate — including the AI's cast/melee weave — so a test
+        // reaching for Never to pin melee would silently have pinned casting instead.
+        public double NextDouble() => unit;
     }
 }

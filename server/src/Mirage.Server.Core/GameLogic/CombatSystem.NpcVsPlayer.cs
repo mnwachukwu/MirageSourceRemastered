@@ -59,7 +59,7 @@ public sealed partial class CombatSystem : GameSystem
         if (!_pm[victimIndex].IsPlaying) return false;
         if (_pm[victimIndex].GettingMap) return false;
         if (_pm[victimIndex].Char.Dead) return false;  // a corpse can't be attacked/damaged/killed; this gate is above MarkPlayerCombat so it also blocks the combat re-stamp
-        if (_pm[victimIndex].GodMode) return false;    // an observer is not there to be swung at
+        if (_pm[victimIndex].Char.GodMode) return false;    // an observer is not there to be swung at
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return false;
 
         var vp = _pm[victimIndex].Char;
@@ -225,33 +225,21 @@ public sealed partial class CombatSystem : GameSystem
         var (aWX, aWY) = grid.CenterToWorld(mapNpc.X, mapNpc.Y);
         var strip = WorldCoordHelper.LeadingEdgeTiles(aWX, aWY, npcRec.EffectiveSize, mapNpc.Dir);
         var (edx, edy) = WorldCoordHelper.DirDelta(mapNpc.Dir);   // strip tile is one step in Dir from the NPC's front row
-        for (int s = 0; s < strip.Count; s++)
+        // Who is standing on the strip — asked of the tiles, not of every roster in the world.
+        foreach (var body in SweepTiles(in grid, in strip, view, mapNpc.Layer, edx, edy))
         {
-            var (swx, swy) = strip[s];
-            var (tMap, tx, ty) = grid.ResolveWorldTile(swx, swy);
-            if (tMap <= 0) continue;
-            foreach (int i in _world.MapObservers[tMap])
-            {
-                if (!_pm[i].IsPlaying) continue;
-                var pc = _pm[i].Char;
-                // Two-layer connect: the swing lands only if the NPC (one step back from this strip tile) and the
-                // player connect across layers — a ground mob doesn't hit a player up on the bridge (or vice-versa)
-                // unless one of them is on a ramp.
-                if (pc.Map == tMap && pc.X == tx && pc.Y == ty
-                    && LayerLogic.LayerConnects(view, swx - edx, swy - edy, mapNpc.Layer, swx, swy, pc.Layer))
-                {
-                    // A GUARD spares bystanders. An ordinary large mob swings at everything on the strip
-                    // — it does not care who is standing there — but a guard is not trying to kill
-                    // innocents, and a wide guard cutting down the crowd behind its actual target would
-                    // make the safest tiles in the world the most dangerous.
-                    //
-                    // The primary victim is always struck: the guard acquired them legitimately, which
-                    // includes the case of someone who attacked the guard itself and is neither PK nor
-                    // flagged. Everyone ELSE on the strip has to be fair game in their own right.
-                    if (npcRec.Behavior == NpcBehavior.Guard && i != victimIndex && !IsGuardFairGame(i, now)) continue;
-                    ApplyNpcMeleeHitOnPlayer(mapNum, mapNpc, npcRec, i, now);
-                }
-            }
+            int i = body.PlayerIndex;
+            if (i <= 0) continue;                  // other NPCs are the melee-on-npc path's business
+            // A GUARD spares bystanders. An ordinary large mob swings at everything on the strip — it does
+            // not care who is standing there — but a guard is not trying to kill innocents, and a wide guard
+            // cutting down the crowd behind its actual target would make the safest tiles in the world the
+            // most dangerous.
+            //
+            // The primary victim is always struck: the guard acquired them legitimately, which includes the
+            // case of someone who attacked the guard itself and is neither PK nor flagged. Everyone ELSE on
+            // the strip has to be fair game in their own right.
+            if (npcRec.Behavior == NpcBehavior.Guard && i != victimIndex && !IsGuardFairGame(i, now)) continue;
+            ApplyNpcMeleeHitOnPlayer(mapNum, mapNpc, npcRec, i, now);
         }
     }
 
@@ -326,7 +314,7 @@ public sealed partial class CombatSystem : GameSystem
         if (!_pm[victimIndex].IsPlaying) return;
         if (_pm[victimIndex].GettingMap) return;
         if (_pm[victimIndex].Char.Dead) return;  // a corpse can't be attacked/damaged/killed; above MarkPlayerCombat so no combat re-stamp
-        if (_pm[victimIndex].GodMode) return;    // an observer is not there to be cast at
+        if (_pm[victimIndex].Char.GodMode) return;    // an observer is not there to be cast at
         if (mapNpc.Num <= 0 || mapNpc.Hp <= 0) return;
         // NPC cast cost is the same trivial pool-fraction as the player's (GetSubHpSpellMpCost = round(maxMp/20)).
         // NPCs pay no reagent, and in-combat MP regen out-paces this drain, so a caster SUSTAINS its spell attack
@@ -391,6 +379,105 @@ public sealed partial class CombatSystem : GameSystem
         // so it doesn't also fire the zero-damage "didn't phase" taunt (reserved for truly over-mitigated hits).
         if (!negated)
             ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex, damage, wasCrit, isSpell: true);
+
+        // A wide caster's spell breaks over the tiles either side of where it landed — see the splash.
+        if (npcRec.EffectiveSize > 1)
+            SplashNpcSpellOnPlayers(mapNum, mapNpc, npcRec, victimIndex, now);
+    }
+
+    /// <summary>
+    /// The spell breaking either side of where it landed, for a caster wider than one tile.
+    ///
+    /// <para>🔴 A body that cleaves three tiles wide in melee should not become a single-tile threat by
+    /// raising a hand. The splash runs PERPENDICULAR to the line the spell travelled and reaches
+    /// <c>size - 1</c> tiles each way, so a 2x2 caster covers 3 tiles and a 3x3 covers 5 — the same width
+    /// its body would sweep. It is also what stops a player choosing the safe side of a friend to stand on:
+    /// there is no side of the impact that is not in it.</para>
+    ///
+    /// <para>The impact tile itself is already resolved by the caller, so this starts one tile out. The cast
+    /// is charged and broadcast once, by the caller — a splash is one spell, not several.</para>
+    /// </summary>
+    private void SplashNpcSpellOnPlayers(int mapNum, MapNpcRecord mapNpc, NpcRecord npcRec, int victimIndex, long now)
+    {
+        var vp = _pm[victimIndex].Char;
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, mapNum);
+        var cell = WorldCoordHelper.GridPosition(in grid, vp.Map);
+        if (cell is null) return;
+
+        var (iWX, iWY) = grid.ToWorld(cell.Value.col, cell.Value.row, vp.X, vp.Y);
+        var run = SplashRun(iWX, iWY, mapNpc.Dir, npcRec.EffectiveSize);
+        var view = new ServerTileView(_world, grid);
+
+        // Everything caught in the break, asked of the tiles. (0,0) for the step-back: a spell breaks where
+        // it landed, so there is no attacker's front row to measure the plane from — the impact's own plane
+        // is what it spreads across.
+        foreach (var body in SweepTiles(in grid, in run, view, vp.Layer, 0, 0))
+        {
+            if (body.PlayerIndex <= 0 || body.PlayerIndex == victimIndex) continue;
+            ApplyNpcSpellHitOnPlayer(mapNum, mapNpc, npcRec, body.PlayerIndex, now);
+        }
+    }
+
+    /// <summary>The tiles a wide caster's spell breaks across: the impact plus <c>size - 1</c> either side,
+    /// PERPENDICULAR to the caster's facing — the same axis its melee cleave sweeps, so a 2x2 covers 3 tiles
+    /// and a 3x3 covers 5.
+    ///
+    /// <para>🔴 Take the axis from the caster's FACING, not from anchor-to-victim. A wide body's anchor is
+    /// its top-left corner, so a victim pressed against its left face can sit further away in y than in x,
+    /// and an anchor-derived axis fans the spell ALONG its flight instead of across it — no splash at all
+    /// where a player is standing.</para></summary>
+    private static TileRun SplashRun(int impactWX, int impactWY, Direction facing, int size)
+    {
+        int reach = size - 1;
+        return facing is Direction.Left or Direction.Right
+            ? new TileRun(impactWX, impactWY - reach, 0, 1, size + reach)
+            : new TileRun(impactWX - reach, impactWY, 1, 0, size + reach);
+    }
+
+    /// <summary>Resolves one already-cast spell on a single splash victim: their own combat marks, negation
+    /// roll, crit and damage. Charges nothing and broadcasts no bolt — the caller did that once for the whole
+    /// cast — so this runs once per caught player. Mirrors the primary victim's resolution above.</summary>
+    private void ApplyNpcSpellHitOnPlayer(int mapNum, MapNpcRecord mapNpc, NpcRecord npcRec, int victimIndex, long now)
+    {
+        if (!_pm[victimIndex].IsPlaying || _pm[victimIndex].GettingMap) return;
+        if (_pm[victimIndex].Char.Dead || _pm[victimIndex].Char.GodMode) return;
+
+        MarkPlayerCombat(victimIndex, now, asAttacker: false);
+        BreakGraceForCombat(victimIndex, involvesPlayerOrGuard: npcRec.Behavior == NpcBehavior.Guard);
+
+        if (WindTearsItAway(mapNum))
+        {
+            SendMsg(victimIndex, ServerStrings.CombatSystem_AttackerSpellMissed, GameColor.BrightCyan, ("AttackerName", npcRec.TrimmedName));
+            BroadcastCombatText(_pm[victimIndex].Char.Map, isNpc: false, index: victimIndex, CombatTextKind.Miss);
+            return;
+        }
+
+        int magnitude = Math.Max(1, CombatFormulas.Vary(CombatFormulas.NpcSpellBaseMagnitude(npcRec.Int)));
+        int prot = GetPlayerProtection(victimIndex);
+        var victimForBlock = _pm[victimIndex].Char;
+        string blockShieldName = victimForBlock.ShieldSlot > 0 ? _world.Items[victimForBlock.Inv[victimForBlock.ShieldSlot].Num].TrimmedName : "";
+        var negation = TryPlayerNegateMagic(victimIndex);
+        bool wasCrit = negation == MagicNegation.None && CanNpcSpellCritical(mapNpc, mapNum);
+
+        switch (negation)
+        {
+            case MagicNegation.Blocked:
+                SendMsg(victimIndex, ServerStrings.CombatSystem_YourShieldBlockedSpellNpc, GameColor.BrightCyan, ("ShieldName", blockShieldName), ("NpcName", npcRec.TrimmedName));
+                return;
+            case MagicNegation.Dodged:
+                SendMsg(victimIndex, ServerStrings.CombatSystem_YouDodgedNpc, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+                return;
+        }
+
+        if (wasCrit)
+        {
+            mapNpc.Sp = Math.Max(mapNpc.Sp - NpcSpBlockOrCrit(npcRec, mapNum), 0);
+            magnitude = CombatFormulas.CritDamage(magnitude);
+            SendMsg(victimIndex, ServerStrings.CombatSystem_NpcCastsForce, GameColor.BrightCyan, ("NpcName", npcRec.TrimmedName));
+        }
+
+        ApplyNpcDamageToPlayer(mapNum, npcRec, victimIndex,
+            CombatFormulas.ResolveNpcVsPlayerDamage(magnitude, prot, npcRec.IsBoss), wasCrit, isSpell: true);
     }
 
     /// <summary>Spends the mana, stamps the beat and broadcasts the bolt for one NPC cast — everything a cast
@@ -425,7 +512,7 @@ public sealed partial class CombatSystem : GameSystem
         // Belt-and-suspenders: the single shared NPC→player damage chokepoint never touches a corpse or an
         // observer, so no future caller (DoT/AoE/trap) can reach either through a path that skipped the gates.
         if (_pm[victimIndex].Char.Dead) return;
-        if (_pm[victimIndex].GodMode) return;
+        if (_pm[victimIndex].Char.GodMode) return;
         // NPC-vs-player damage disfavor: on-level mobs are +20% HP (favor) AND hit players softer, so PvE fights
         // stay impactful without spiking a squishy build down.  PvE-only (player→NPC / NPC→NPC stay full mirror),
         // applied here post-mitigation.  Guard on damage>0 so a fully-phased-out hit stays 0.  The kill-EXP danger

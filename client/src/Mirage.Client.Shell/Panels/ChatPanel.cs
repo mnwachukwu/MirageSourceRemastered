@@ -88,7 +88,6 @@ public sealed partial class ChatPanel
     public Action? OnToggleTraining { get; set; }
     public Action? OnToggleStats { get; set; }
     public Action? OnToggleHelp { get; set; }
-    public Action? OnToggleAdminHelp { get; set; }
     public Action? OnToggleDebug { get; set; }
     public Action? OnToggleModeration { get; set; }
     /// <summary>Fired when the user right-clicks a player name span in the chat log.

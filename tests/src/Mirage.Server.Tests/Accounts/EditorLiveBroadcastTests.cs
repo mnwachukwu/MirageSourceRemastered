@@ -424,6 +424,9 @@ public class EditorLiveBroadcastTests
         public Task SaveSeasonArchiveAsync(int season, SeasonArchive archive) => Task.CompletedTask;
         public Task<List<SeasonArchive>> LoadAllSeasonArchivesAsync() => Task.FromResult(new List<SeasonArchive>());
         public Task DeleteMapGroupAsync(int num) => Task.CompletedTask;
+        public Task<Dictionary<int, TerritoryRecord>> LoadAllTerritoriesAsync() => Task.FromResult(new Dictionary<int, TerritoryRecord>());
+        public Task SaveTerritoryAsync(int mapGroup, TerritoryRecord territory) => Task.CompletedTask;
+        public Task DeleteTerritoryAsync(int mapGroup) => Task.CompletedTask;
         public Task<Dictionary<int, MarketListing>> LoadAllMarketListingsAsync() => Task.FromResult(new Dictionary<int, MarketListing>());
         public Task SaveMarketListingAsync(int id, MarketListing listing) => Task.CompletedTask;
         public Task DeleteMarketListingAsync(int id) => Task.CompletedTask;

@@ -305,7 +305,31 @@ public sealed partial class GameplayScreen : IGameScreen
             TargetKind.Traversal => state.TraversalNpcs.TryGetValue((t.A, t.B), out var g) ? g.Num : 0,
             _ => 0,   // player / none → size 1
         };
-        return num > 0 ? state.NpcDefs[num]?.EffectiveSize ?? 1 : 1;
+        return FootprintOfNpcNum(num);
+    }
+
+    /// <summary>How many tiles a side an NPC type covers. 0 (a player, or nothing resolved) is one tile.</summary>
+    private int FootprintOfNpcNum(int num) => num > 0 ? _ctx.State.NpcDefs[num]?.EffectiveSize ?? 1 : 1;
+
+    /// <summary>The footprint of the entity a popup belongs to, found from what a combat packet carries:
+    /// a player index, an NPC slot, or — for a traversal guest, which has no slot — the tile it stands on.
+    ///
+    /// <para>🔴 An NPC's position is its TOP-LEFT anchor, and its body grows from there toward +x/+y. Text
+    /// placed at the anchor of a 3x3 creature sits over its shoulder, a tile off centre, which is what
+    /// makes a readout look like it belongs to something else.</para></summary>
+    public int PopupFootprint(bool isNpc, int npcSlot, int mapNum, int lx, int ly)
+    {
+        if (!isNpc) return 1;
+        var state = _ctx.State;
+        if (npcSlot != 0)
+            return FootprintOfNpcNum(state.NpcsForMap(mapNum) is { } npcs && SlotValidation.IsValidNpcSlot(npcSlot)
+                ? npcs[npcSlot].Num : 0);
+
+        // A guest is keyed by where it CAME from, which a combat packet does not carry — so find the body
+        // standing on the tile the packet named instead.
+        foreach (var g in state.TraversalNpcs.Values)
+            if (g.CurrentMapNum == mapNum && g.X == lx && g.Y == ly) return FootprintOfNpcNum(g.Num);
+        return 1;
     }
 
     // World-tile offset of the grid cell holding a given map number, or null if it isn't loaded.

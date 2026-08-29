@@ -8,11 +8,14 @@ public static partial class ServerStrings
     // ── Player commands ───────────────────────────────────────────────────────
     // /played + the /info playtime line: current character + account total.
     public const string Command_Played = nameof(Command_Played);
-    // /home — the warp itself, and the three refusals: the cooldown still has time on it, the player is
-    // in combat, or the home point names a tile that does not exist.
+    // /home — the warp itself, and the four refusals: the player is dead, the cooldown still has time on
+    // it, the player is in combat, or the home point names a tile that does not exist.
     public const string Command_HomeWarped = nameof(Command_HomeWarped);
     public const string Command_HomeCooldown = nameof(Command_HomeCooldown);   // "{Remaining}"
     public const string Command_HomeInCombat = nameof(Command_HomeInCombat);
+    public const string Command_HomeWhileDead = nameof(Command_HomeWhileDead);
+    // The generic refusal for any other TYPED command a corpse may not run (/trade, /join, /leave).
+    public const string Command_WhileDead = nameof(Command_WhileDead);
     public const string Command_HomeDestinationMissing = nameof(Command_HomeDestinationMissing);
     // /homecd — the same timer, asked about rather than hit.
     public const string Command_HomeCooldownLeft = nameof(Command_HomeCooldownLeft);   // "{Remaining}"
@@ -39,6 +42,8 @@ public static partial class ServerStrings
     public const string AdminCommand_SummonedYou = nameof(AdminCommand_SummonedYou);
     public const string AdminCommand_PlayerSummoned = nameof(AdminCommand_PlayerSummoned);
     public const string AdminCommand_CannotWarpSelfToSelf = nameof(AdminCommand_CannotWarpSelfToSelf);
+    public const string AdminCommand_TargetIsDead = nameof(AdminCommand_TargetIsDead);   // "{Target}"
+    public const string AdminCommand_WarpWhileDead = nameof(AdminCommand_WarpWhileDead);
     public const string AdminCommand_WarpedToMap = nameof(AdminCommand_WarpedToMap);
     public const string AdminCommand_MapRespawned = nameof(AdminCommand_MapRespawned);
     public const string AdminCommand_CannotKickSelf = nameof(AdminCommand_CannotKickSelf);

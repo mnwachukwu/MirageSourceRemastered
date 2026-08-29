@@ -28,13 +28,13 @@ public sealed partial class PacketHandler
 
     private void HandleMarketCreate(int index, MarketCreatePacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _market.List(index, p.InvSlot, p.Quantity, p.Price);
     }
 
     private void HandleMarketBuy(int index, MarketBuyPacket p)
     {
-        if (!_pm[index].IsPlaying) return;
+        if (!IsActing(index)) return;
         _market.Buy(index, p.Id, p.Quantity);
     }
 

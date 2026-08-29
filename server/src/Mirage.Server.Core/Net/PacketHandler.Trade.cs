@@ -23,6 +23,14 @@ public sealed partial class PacketHandler
     private void HandleTradeInvite(int index, TradeInvitePacket p)
     {
         if (!_pm[index].IsPlaying) return;
+        // /trade is typed, so it says why. The other side is covered too: TradeSystem refuses a dead
+        // TARGET, so a living player cannot open a trade with a corpse either.
+        if (_pm[index].Char.Dead)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.Command_WhileDead,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            return;
+        }
         if (!TextValidation.IsValidText(p.Target))
         {
             HackingAttempt(index, "Trade Target Modification");
@@ -31,9 +39,9 @@ public sealed partial class PacketHandler
         _trade.Request(index, p.Target.Trim());
     }
 
-    private void HandleTradeRespond(int index, TradeRespondPacket p) { if (_pm[index].IsPlaying) _trade.Respond(index, p.Accept); }
-    private void HandleTradeOfferAdd(int index, TradeOfferAddPacket p) { if (_pm[index].IsPlaying) _trade.OfferAdd(index, p.InvSlot, p.Quantity); }
-    private void HandleTradeOfferRemove(int index, TradeOfferRemovePacket p) { if (_pm[index].IsPlaying) _trade.OfferRemove(index, p.Index); }
-    private void HandleTradeConfirm(int index, TradeConfirmPacket p) { if (_pm[index].IsPlaying) _trade.Confirm(index, p.Confirmed); }
+    private void HandleTradeRespond(int index, TradeRespondPacket p) { if (IsActing(index)) _trade.Respond(index, p.Accept); }
+    private void HandleTradeOfferAdd(int index, TradeOfferAddPacket p) { if (IsActing(index)) _trade.OfferAdd(index, p.InvSlot, p.Quantity); }
+    private void HandleTradeOfferRemove(int index, TradeOfferRemovePacket p) { if (IsActing(index)) _trade.OfferRemove(index, p.Index); }
+    private void HandleTradeConfirm(int index, TradeConfirmPacket p) { if (IsActing(index)) _trade.Confirm(index, p.Confirmed); }
     private void HandleTradeCancel(int index) { if (_pm[index].IsPlaying) _trade.Cancel(index); }
 }

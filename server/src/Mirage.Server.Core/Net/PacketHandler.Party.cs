@@ -31,12 +31,14 @@ public sealed partial class PacketHandler
     private void HandleJoinParty(int index, JoinPartyPacket p)
     {
         if (!_pm[index].IsPlaying) return;
+        if (RefuseWhileDead(index)) return;
         _party.JoinParty(index);
     }
 
     private void HandleLeaveParty(int index)
     {
         if (!_pm[index].IsPlaying) return;
+        if (RefuseWhileDead(index)) return;
         _party.LeaveParty(index);
     }
 }

@@ -246,13 +246,13 @@ public sealed class GuildScheduleSystem : GameSystem
     // a re-run/force (/guildreset week) never double-scores.
     private void AccrueWeeklyScores(DateOnly date)
     {
-        foreach (var group in _world.MapGroups.Values)
+        foreach (var (_, terr) in _world.AllTerritories())
         {
-            if (!group.Territory || group.ControllingGuild <= 0) continue;
-            var guild = _guilds.GuildById(group.ControllingGuild);
+            if (terr.ControllingGuild <= 0) continue;
+            var guild = _guilds.GuildById(terr.ControllingGuild);
             if (guild is null || guild.LastScoredDate == date) continue;   // already scored this date
             guild.LastScoredDate = date;
-            guild.SeasonScore += SeasonFormulas.WeeklyHoldScore(group.WeeksHeld);
+            guild.SeasonScore += SeasonFormulas.WeeklyHoldScore(terr.WeeksHeld);
             _guilds.SaveGuild(guild);
         }
     }
@@ -371,18 +371,17 @@ public sealed class GuildScheduleSystem : GameSystem
 
     /// <summary>Credit each controlled territory's accrued daily income to its owning guild's vault, then on
     /// the weekly-reset day roll IncomeThisWeek into PreviousWeekIncome. WeeksHeld itself ticks at war-night
-    /// retention, not here. Persists each changed group + credited guild.</summary>
+    /// retention, not here. Persists each changed territory + credited guild.</summary>
     private void SettleTerritoryIncome(DateOnly date, bool doWeekRoll)
     {
-        foreach (var group in _world.MapGroups.Values)
+        foreach (var (group, terr) in _world.AllTerritories())
         {
-            if (!group.Territory) continue;
             bool changed = false;
 
-            if (group.ControllingGuild > 0 && group.PendingIncome > 0)
+            if (terr.ControllingGuild > 0 && terr.PendingIncome > 0)
             {
-                long amount = CreditTerritoryIncome(group);   // zeroes PendingIncome, adds to IncomeThisWeek
-                var guild = _guilds.GuildById(group.ControllingGuild);
+                long amount = CreditTerritoryIncome(terr);   // zeroes PendingIncome, adds to IncomeThisWeek
+                var guild = _guilds.GuildById(terr.ControllingGuild);
                 if (guild is not null)
                 {
                     guild.VaultGold += amount;
@@ -398,41 +397,41 @@ public sealed class GuildScheduleSystem : GameSystem
 
             // Weekly roll of IncomeThisWeek → PreviousWeekIncome, guarded per date so a re-run/force can't wipe
             // the real previous-week figure by rolling a now-zeroed IncomeThisWeek over it (idempotent).
-            if (doWeekRoll && group.LastWeekRollDate != date)
+            if (doWeekRoll && terr.LastWeekRollDate != date)
             {
-                group.LastWeekRollDate = date;
-                if (group.IncomeThisWeek != 0 || group.PreviousWeekIncome != 0)
+                terr.LastWeekRollDate = date;
+                if (terr.IncomeThisWeek != 0 || terr.PreviousWeekIncome != 0)
                 {
-                    group.PreviousWeekIncome = group.IncomeThisWeek;
-                    group.IncomeThisWeek = 0;
+                    terr.PreviousWeekIncome = terr.IncomeThisWeek;
+                    terr.IncomeThisWeek = 0;
                 }
                 changed = true;
             }
 
-            if (changed) SaveMapGroup(group);
+            if (changed) SaveTerritory(terr);
         }
     }
 
     /// <summary>Move a territory's accrued daily income out of PendingIncome into IncomeThisWeek and return
     /// the amount (the caller credits the owning guild's vault). Runs AFTER guild debits. Pure; for tests.</summary>
-    public static long CreditTerritoryIncome(MapGroupRecord group)
+    public static long CreditTerritoryIncome(TerritoryRecord terr)
     {
-        long amount = group.PendingIncome;
+        long amount = terr.PendingIncome;
         if (amount <= 0) return 0;
-        group.PendingIncome = 0;
-        group.IncomeThisWeek += amount;
+        terr.PendingIncome = 0;
+        terr.IncomeThisWeek += amount;
         return amount;
     }
 
-    // Off-thread persist of a mutated map group (Clone so a concurrent per-kill accrual can't corrupt the write).
-    private void SaveMapGroup(MapGroupRecord group) =>
-        _bg.Run(_persistence.SaveMapGroupAsync(group.Index, group.Clone()), nameof(IPersistenceService.SaveMapGroupAsync));
+    // Off-thread persist of a mutated territory (Clone so a concurrent per-kill accrual can't corrupt the write).
+    private void SaveTerritory(TerritoryRecord terr) =>
+        _bg.Run(_persistence.SaveTerritoryAsync(terr.MapGroup, terr.Clone()), nameof(IPersistenceService.SaveTerritoryAsync));
 
     private static string TerritoryName(MapGroupRecord group) =>
         string.IsNullOrWhiteSpace(group.DisplayName) ? group.Name : group.DisplayName.Trim();
 
-    /// <summary>Persist any guild / map group flagged with unsaved per-kill income accrual
-    /// (<see cref="GameWorld.DirtyGuilds"/> / <see cref="GameWorld.DirtyMapGroups"/>), then clear the flags.
+    /// <summary>Persist any guild / territory flagged with unsaved per-kill income accrual
+    /// (<see cref="GameWorld.DirtyGuilds"/> / <see cref="GameWorld.DirtyTerritories"/>), then clear the flags.
     /// Called on the periodic save tick AND at shutdown, so <c>PendingVaultGold</c> + a territory's
     /// <c>PendingIncome</c> are never lost to a restart. Uses PersistGuild (no broadcast) — the vault
     /// dashboard refreshes on the next full sync.</summary>
@@ -444,11 +443,11 @@ public sealed class GuildScheduleSystem : GameSystem
                 if (_world.Guilds.TryGetValue(gid, out var g)) _guilds.PersistGuild(g);
             _world.DirtyGuilds.Clear();
         }
-        if (_world.DirtyMapGroups.Count > 0)
+        if (_world.DirtyTerritories.Count > 0)
         {
-            foreach (int mgid in _world.DirtyMapGroups)
-                if (_world.MapGroups.TryGetValue(mgid, out var mg)) SaveMapGroup(mg);
-            _world.DirtyMapGroups.Clear();
+            foreach (int mgid in _world.DirtyTerritories)
+                if (_world.Territories.TryGetValue(mgid, out var t)) SaveTerritory(t);
+            _world.DirtyTerritories.Clear();
         }
     }
 

@@ -224,10 +224,10 @@ public sealed partial class GuildTerritorySystem : GameSystem
     }
 
     // ── Officer-request queue (mirrors GuildWarSystem's) ──────────────────────
-    private void QueueChallengeRequest(GuildRecord guild, MapGroupRecord terr, ServerPlayer requester, int requesterIndex)
+    private void QueueChallengeRequest(GuildRecord guild, MapGroupRecord group, ServerPlayer requester, int requesterIndex)
     {
-        var result = GuildWarFormulas.TryQueueRequest(guild, GuildWarRequestKind.TerritoryChallenge, terr.Index,
-            TerritoryName(terr), requester.Login, requester.Char.TrimmedName, UtcNow(), Constants.GuildWarMaxPendingRequests);
+        var result = GuildWarFormulas.TryQueueRequest(guild, GuildWarRequestKind.TerritoryChallenge, group.Index,
+            TerritoryName(group), requester.Login, requester.Char.TrimmedName, UtcNow(), Constants.GuildWarMaxPendingRequests);
         switch (result)
         {
             case WarRequestQueueResult.AlreadyPending:
@@ -240,17 +240,17 @@ public sealed partial class GuildTerritorySystem : GameSystem
         _guilds.SaveGuild(guild);
         _dispatcher.SendLocalizedChatToGuildOfficers(guild.Index, ServerStrings.GuildTerritory_OfficerReqChallenge,
             new ChatMetadata(GameColor.BrightCyan, ChatChannel.GuildOfficer),
-            ("Name", requester.Char.TrimmedName), ("Territory", TerritoryName(terr)));
+            ("Name", requester.Char.TrimmedName), ("Territory", TerritoryName(group)));
         NotifyOk(requesterIndex, ServerStrings.GuildWar_RequestSent);
     }
 
     private static string TerritoryName(MapGroupRecord g) =>
         string.IsNullOrWhiteSpace(g.DisplayName) ? g.Name : g.DisplayName.Trim();
 
-    private string OwnerName(MapGroupRecord g) => _guilds.GuildById(g.ControllingGuild)?.Name ?? "";
+    private string OwnerName(TerritoryRecord t) => _guilds.GuildById(t.ControllingGuild)?.Name ?? "";
 
-    private void SaveMapGroup(MapGroupRecord group) =>
-        _bg.Run(_persistence.SaveMapGroupAsync(group.Index, group.Clone()), nameof(IPersistenceService.SaveMapGroupAsync));
+    private void SaveTerritory(TerritoryRecord terr) =>
+        _bg.Run(_persistence.SaveTerritoryAsync(terr.MapGroup, terr.Clone()), nameof(IPersistenceService.SaveTerritoryAsync));
 
     private void AnnounceWarPublic(string key, params (string Key, object? Value)[] args) =>
         _dispatcher.SendLocalizedChatToAll(key, new ChatMetadata(GameColor.BrightRed, ChatChannel.War), args);

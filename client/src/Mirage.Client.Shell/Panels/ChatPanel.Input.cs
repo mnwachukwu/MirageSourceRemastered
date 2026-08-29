@@ -487,10 +487,6 @@ public sealed partial class ChatPanel
             case "help":
                 OnToggleHelp?.Invoke();
                 break;
-            case "adminhelp":
-                if (state.Me.Access <= AdminLevel.Player) break;
-                OnToggleAdminHelp?.Invoke();
-                break;
             case "fps":
                 state.ShowFps = !state.ShowFps;
                 AddLine(ClientStrings.Get(state.ShowFps ? ClientStrings.ChatPanel_FpsOn : ClientStrings.ChatPanel_FpsOff),

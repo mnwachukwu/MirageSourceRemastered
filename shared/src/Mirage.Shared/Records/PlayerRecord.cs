@@ -154,9 +154,19 @@ public sealed class PlayerRecord
     // this to drive the flashing-red name during the 30 s window.
     [JsonIgnore] public long AggressorUntilUtc { get; set; }
 
-    /// <summary>Observer mode, as the CLIENT knows it: set from the wire so the overhead name renders grey.
-    /// The server keeps its own copy on ServerPlayer, which is the one every rule reads.</summary>
-    [JsonIgnore] public bool GodMode { get; set; }
+    /// <summary>Observer mode: this character passes through everything, spends no stamina, cannot act on
+    /// anyone and cannot be acted on. The one flag both sides read — the server's rules gate on it, and the
+    /// client sets it from the wire to render the overhead name grey.
+    ///
+    /// <para>PERSISTED, so a character left in observer mode is still in it at the next login. Access is
+    /// re-checked on join via <see cref="MayUseGodMode"/>, which covers a demotion that happened while the
+    /// character was offline.</para></summary>
+    public bool GodMode { get; set; }
+
+    /// <summary>Whether this character is allowed observer mode. The toggle refuses below the bar and the
+    /// join path drops a persisted <see cref="GodMode"/> that outlived the access which allowed it — one
+    /// threshold, so the two can never disagree.</summary>
+    [JsonIgnore] public bool MayUseGodMode => Access >= AdminLevel.Developer;
 
     // Guild display (client-only; wire-fed by SendPlayerData's nullable guild fields, never persisted —
     // guild membership persists per-account on AccountRecord, not on the character). GuildId 0 = guildless.

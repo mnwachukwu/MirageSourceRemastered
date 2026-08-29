@@ -59,6 +59,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
 
         NotifyMapProperties();
+        // Dirtiness is a property of the SELECTED map, so switching maps changes the answer without any
+        // row raising anything. Save's IsEnabled binds to it, and stale it reads as the previous map's
+        // state: enabled over a clean map, disabled over the dirty one you just came back to.
+        NotifyMapDirtyState();
         UpdateUndoRedo();
 
         // A placeholder row carries no tiles until it is fetched; selecting it is the lazy-load

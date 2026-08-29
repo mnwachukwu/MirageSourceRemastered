@@ -104,21 +104,20 @@ public sealed partial class GuildSystem : GameSystem
     private List<TerritoryView> TerritoryViews(int viewerGuildIndex)
     {
         var views = new List<TerritoryView>();
-        foreach (var g in _world.MapGroups.Values)
+        foreach (var (g, terr) in _world.AllTerritories())
         {
-            if (!g.Territory) continue;
-            var challengerNames = g.Challengers
+            var challengerNames = terr.Challengers
                 .Select(c => _world.Guilds.GetValueOrDefault(c)?.Name)
                 .Where(n => !string.IsNullOrEmpty(n));
             views.Add(new TerritoryView
             {
                 Index = g.Index,
                 Name = string.IsNullOrWhiteSpace(g.DisplayName) ? g.Name : g.DisplayName.Trim(),
-                Owner = g.ControllingGuild > 0 ? (_world.Guilds.GetValueOrDefault(g.ControllingGuild)?.Name ?? "") : "",
-                WeeksHeld = g.WeeksHeld,
-                PreviousWeekIncome = g.PreviousWeekIncome,
+                Owner = terr.ControllingGuild > 0 ? (_world.Guilds.GetValueOrDefault(terr.ControllingGuild)?.Name ?? "") : "",
+                WeeksHeld = terr.WeeksHeld,
+                PreviousWeekIncome = terr.PreviousWeekIncome,
                 Contesting = string.Join(", ", challengerNames),
-                ChallengedByUs = g.Challengers.Contains(viewerGuildIndex),
+                ChallengedByUs = terr.Challengers.Contains(viewerGuildIndex),
             });
         }
         views.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));

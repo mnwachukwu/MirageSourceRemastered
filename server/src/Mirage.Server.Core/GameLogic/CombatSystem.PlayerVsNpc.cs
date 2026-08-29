@@ -385,7 +385,7 @@ public sealed partial class CombatSystem : GameSystem
     private void AccrueTerritoryIncome(int mapNum, MapNpcRecord mapNpc, HashSet<int> contributors)
     {
         if (contributors.Count == 0) return;
-        if (_world.TerritoryGroupOf(mapNum) is not { ControllingGuild: > 0 } terr) return;
+        if (_world.TerritoryOf(mapNum) is not { ControllingGuild: > 0 } terr) return;
         if (Rng.Percent() >= Constants.TerritoryIncomeChancePercent) return;
 
         int topKiller = 0, topDmg = 0;
@@ -401,7 +401,7 @@ public sealed partial class CombatSystem : GameSystem
         bool killerInOwningGuild = topKiller > 0 && _pm[topKiller].Guild == terr.ControllingGuild;
         int income = TerritoryFormulas.IncomeForKill(killerInOwningGuild, terr.WeeksHeld);
         terr.PendingIncome = TerritoryFormulas.AccruePending(terr.PendingIncome, income, Constants.TerritoryIncomeDailyCap);
-        _world.DirtyMapGroups.Add(terr.Index);   // flushed on the periodic save + shutdown (never lost)
+        _world.DirtyTerritories.Add(terr.MapGroup);   // flushed on the periodic save + shutdown (never lost)
     }
 
     /// <summary>Resolve the loot-tag winner from <see cref="MapNpcRecord.DamageByPlayer"/> and roll

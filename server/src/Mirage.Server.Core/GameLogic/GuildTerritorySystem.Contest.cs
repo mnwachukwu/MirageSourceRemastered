@@ -147,7 +147,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
         if (_world.MapGroups.GetValueOrDefault(c.TerritoryIndex) is not { } group) return;
         int winner = TerritoryContestFormulas.DetermineWinner(c.Scores, c.DefenderGuild);
         var challengers = c.Participants.Where(p => p != c.DefenderGuild).ToList();
-        ApplyOutcome(group, winner, challengers);
+        ApplyOutcome(group, _world.TerritoryFor(c.TerritoryIndex), winner, challengers);
     }
 
     // The strict-plurality participant guild standing in a point's radius (0 = contested tie or empty).

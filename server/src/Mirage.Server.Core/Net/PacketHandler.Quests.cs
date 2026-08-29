@@ -26,7 +26,7 @@ public sealed partial class PacketHandler
     // is what stops one NPC's menu accepting another's quest. QuestSystem owns eligibility and rewards.
     private void HandleQuestAccept(int index, QuestAcceptPacket p)
     {
-        if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
+        if (!IsActing(index) || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
         int npcNum = _pm[index].ActiveQuestNpc(_world);
         if (npcNum <= 0) return;
         if (_world.Quests[p.QuestNum].GiverNpc != npcNum) return;   // accepting is only allowed at the giver
@@ -34,11 +34,11 @@ public sealed partial class PacketHandler
     }
     private void HandleQuestTurnIn(int index, QuestTurnInPacket p)
     {
-        if (!_pm[index].IsPlaying || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
+        if (!IsActing(index) || !SlotValidation.IsValidQuestNum(p.QuestNum, _world.Limits.Quests)) return;
         int npcNum = _pm[index].ActiveQuestNpc(_world);
         if (npcNum <= 0) return;
         if (_world.Quests[p.QuestNum].EffectiveTurnInNpc != npcNum) return;   // turning in is only allowed at the turn-in NPC
         _quests.TurnIn(index, p.QuestNum);
     }
-    private void HandleQuestAbandon(int index, QuestAbandonPacket p) { if (_pm[index].IsPlaying) _quests.Abandon(index, p.QuestNum); }
+    private void HandleQuestAbandon(int index, QuestAbandonPacket p) { if (IsActing(index)) _quests.Abandon(index, p.QuestNum); }
 }

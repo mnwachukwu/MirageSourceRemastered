@@ -25,6 +25,11 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         if (param is not TileClick click) return;
         (int x, int y, bool altHeld, bool retain) = (click.X, click.Y, click.Alt, click.Retain);
+        // 🔴 An authoring dialog opens on the PRESS and never on a dragged cell. A stroke laying a run of
+        // walls crosses tiles that already hold one, and each of those is an "edit this attribute" click —
+        // so the dialog fired mid-stroke, over and over. Alt+drag still lays runs, because the retained
+        // values path above never reaches a dialog.
+        bool dragging = click.Dragging;
         if (SelectedMap is null) return;
 
         // Select action: left-click is handled by the SelectionChanged event pipeline,
@@ -106,6 +111,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 _pendingTiles.Clear();
                 _pendingTiles.Add((x, y));
                 DialogError = "";
+                if (dragging) return;   // a dialog opens on the press, never on a dragged cell
                 ShowNpcSpawnDialog = true;
                 return;
             }
@@ -196,6 +202,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
                         if (_pendingTiles.Count == 0) return;  // all tiles blocked by other attributes
                         DialogError = "";
+                        if (dragging) return;   // a dialog opens on the press, never on a dragged cell
                         ShowWarpDialog = true;
                     }
                     return;
@@ -248,6 +255,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
                         if (_pendingTiles.Count == 0) return;  // all tiles blocked by other attributes
                         DialogError = "";
+                        if (dragging) return;   // a dialog opens on the press, never on a dragged cell
                         ShowItemDialog = true;
                     }
                     return;
@@ -299,6 +307,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
                         if (_pendingTiles.Count == 0) return;  // all tiles blocked by other attributes
                         DialogError = "";
+                        if (dragging) return;   // a dialog opens on the press, never on a dragged cell
                         ShowKeyDialog = true;
                     }
                     return;
@@ -350,6 +359,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         }
 
                         if (_pendingTiles.Count == 0) return;  // all tiles blocked by other attributes
+                        if (dragging) return;   // a dialog opens on the press, never on a dragged cell
                         ShowKeyOpenDialog = true;
                     }
                     return;
@@ -406,6 +416,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         _runAnchor = (x, y);
                         OnPropertyChanged(nameof(CanFillRun));
                         DialogError = "";
+                        if (dragging) return;   // a dialog opens on the press, never on a dragged cell
                         ShowBlockedDialog = true;
                     }
                     return;
@@ -454,6 +465,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             _pendingTiles.Clear();
             _pendingTiles.Add((x, y));
             DialogError = "";
+            if (dragging) return;   // a dialog opens on the press, never on a dragged cell
             ShowLightDialog = true;
         }
     }

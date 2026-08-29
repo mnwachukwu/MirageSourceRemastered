@@ -3,6 +3,7 @@ using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
+using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
@@ -61,8 +62,9 @@ public sealed class SpawnSystem : GameSystem
         mn.Mp = _world.EffectiveNpcMaxMp(npcRec);
         mn.Sp = _world.EffectiveNpcMaxSp(npcRec);
         mn.Dir = (Direction)Rng.Next(Constants.NumDirections);
-        // Two-layer world: default to the ground layer for a random spawn; a PINNED entry spawns on its own
-        // authored plane (entry.PinLayer) — see the pin branch below. A guest returning home reseeds through here.
+        // Two-layer world: a PINNED entry spawns on its own authored plane (entry.PinLayer) — see the pin
+        // branch below. A random one starts on the ground and may be moved up by the search. A guest
+        // returning home reseeds through here.
         mn.Layer = WorldLayer.Ground;
 
         bool spawned = false;
@@ -83,16 +85,25 @@ public sealed class SpawnSystem : GameSystem
             spawned = true;
         }
 
+        // Has this map any deck a body could be put on — one joined to a ramp, wherever in the world that
+        // ramp stands? Asked once, not per attempt.
+        bool upstairs = _world.HasSpawnableFringe(mapNum);
+
         // Try random walkable tiles before falling back to a full scan
         for (int i = 0; !spawned && i < SpawnSearchAttempts; i++)
         {
+            // A coin flip per attempt rather than a fixed share of spawns: a deck is a small part of a map
+            // and most fringe anchors fail the surface test, so what actually reaches the upper plane comes
+            // out proportional to how much of the map IS deck, with no ratio to pick.
+            var layer = upstairs && Rng.Next(2) == 0 ? WorldLayer.Fringe : WorldLayer.Ground;
             // Clamp the random anchor so the whole footprint fits on the map (no edge-straddle at spawn).
             int x = Rng.Next(map.Width + 1 - size);
             int y = Rng.Next(map.Height + 1 - size);
-            if (IsFootprintSpawnClear(mapNum, x, y, size, mapNpcSlot))
+            if (IsFootprintSpawnClear(mapNum, x, y, size, mapNpcSlot, layer))
             {
                 mn.X = x;
                 mn.Y = y;
+                mn.Layer = layer;
                 spawned = true;
                 break;
             }
@@ -133,17 +144,18 @@ public sealed class SpawnSystem : GameSystem
         }
     }
 
-    private bool IsTileOccupied(int mapNum, int x, int y, int excludeNpcSlot)
+    private bool IsTileOccupied(int mapNum, int x, int y, int excludeNpcSlot, WorldLayer layer)
     {
         // Footprint-aware via GameWorld.IsTileOccupiedByNpc (a big NPC's whole body counts), excluding the
-        // spawning slot's own record by reference so a respawn never blocks itself.
-        if (_world.IsTileOccupiedByNpc(mapNum, x, y, _world.MapNpcs[mapNum, excludeNpcSlot])) return true;
+        // spawning slot's own record by reference so a respawn never blocks itself. Layer-scoped: someone
+        // standing under a bridge is not standing on it.
+        if (_world.IsTileOccupiedByNpc(mapNum, x, y, _world.MapNpcs[mapNum, excludeNpcSlot], layer)) return true;
         // Players: iterate the pre-maintained observable-area set for this map (the players who can
         // see it, which includes everyone standing ON it) instead of the whole 1,000-slot roster.
         foreach (int i in _world.MapObservers[mapNum])
         {
             var p = _pm[i];
-            if (p.IsPlaying && p.Char.Map == mapNum && p.Char.X == x && p.Char.Y == y) return true;
+            if (p.IsPlaying && p.Char.Map == mapNum && p.Char.X == x && p.Char.Y == y && p.Char.Layer == layer) return true;
         }
         return false;
     }
@@ -165,16 +177,38 @@ public sealed class SpawnSystem : GameSystem
         return true;
     }
 
-    // True if the whole SxS footprint anchored (top-left) at (aX,aY) is on-map, all Walkable, and free of
-    // players and other NPCs.  Used so a big NPC spawns fully on clear ground rather than half-in-a-wall,
-    // straddling the map edge, or overlapping another body.
-    private bool IsFootprintSpawnClear(int mapNum, int aX, int aY, int size, int excludeNpcSlot)
+    /// <summary>Every tile of the footprint is a deck joined to a ramp — see
+    /// <see cref="GameWorld.IsFringeSpawnable"/>.
+    ///
+    /// <para>🔴 This is what keeps a random spawn INSIDE the railings. A deck is bounded by fringe Blocked
+    /// tiles, but only along its own edge; past them the plane reads Walkable again, so a search that asked
+    /// only "is this walkable up top" would drop bodies anywhere on the map, outside the barriers entirely
+    /// and with no way down. The deck is the surface, so the deck is the rule.</para>
+    ///
+    /// <para>A PINNED entry is exempt: an author naming a tile and a plane has said what they meant.</para></summary>
+    private bool IsFootprintOnDeck(int mapNum, int aX, int aY, int size)
     {
-        if (!IsFootprintOnWalkableGround(mapNum, aX, aY, size)) return false;
         for (int j = 0; j < size; j++)
         {
             for (int i = 0; i < size; i++)
-                if (IsTileOccupied(mapNum, aX + i, aY + j, excludeNpcSlot)) return false;
+                if (!_world.IsFringeSpawnable(mapNum, aX + i, aY + j)) return false;
+        }
+
+        return true;
+    }
+
+    // True if the whole SxS footprint anchored (top-left) at (aX,aY) is on-map, all Walkable on the given
+    // plane, and free of players and other NPCs on it.  Used so a big NPC spawns fully on clear ground rather
+    // than half-in-a-wall, straddling the map edge, or overlapping another body.
+    private bool IsFootprintSpawnClear(int mapNum, int aX, int aY, int size, int excludeNpcSlot,
+                                       WorldLayer layer = WorldLayer.Ground)
+    {
+        if (!IsFootprintOnWalkableGround(mapNum, aX, aY, size, layer)) return false;
+        if (layer == WorldLayer.Fringe && !IsFootprintOnDeck(mapNum, aX, aY, size)) return false;
+        for (int j = 0; j < size; j++)
+        {
+            for (int i = 0; i < size; i++)
+                if (IsTileOccupied(mapNum, aX + i, aY + j, excludeNpcSlot, layer)) return false;
         }
 
         return true;

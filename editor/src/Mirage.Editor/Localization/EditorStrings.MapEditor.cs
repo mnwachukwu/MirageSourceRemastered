@@ -133,6 +133,12 @@ public static partial class EditorStrings
     public const string MapEditor_LayerRampDir = nameof(MapEditor_LayerRampDir);
     public const string MapEditor_AttrLayer = nameof(MapEditor_AttrLayer);
     public const string MapEditor_AttrText_None = nameof(MapEditor_AttrText_None);
+    // The exploded view states what a wall stops, always — including when the answer is nothing.
+    public const string MapEditor_AttrText_BlockedStops = nameof(MapEditor_AttrText_BlockedStops);
+    public const string MapEditor_Blocked_Light = nameof(MapEditor_Blocked_Light);
+    public const string MapEditor_Blocked_Sight = nameof(MapEditor_Blocked_Sight);
+    public const string MapEditor_Blocked_LightAndSight = nameof(MapEditor_Blocked_LightAndSight);
+    public const string MapEditor_Blocked_Nothing = nameof(MapEditor_Blocked_Nothing);
     public const string MapEditor_AttrText_Warp = nameof(MapEditor_AttrText_Warp);
     public const string MapEditor_AttrText_Item = nameof(MapEditor_AttrText_Item);
     public const string MapEditor_AttrText_Key = nameof(MapEditor_AttrText_Key);

@@ -115,10 +115,10 @@ public sealed partial class GuildSystem : GameSystem
         ChainGuildWrite(guild.Index, () => _persistence.SaveGuildAsync(guild.Index, snapshot));
     }
 
-    // Off-thread persist of a mutated map group (Clone so a concurrent per-kill income accrual can't corrupt the
-    // write) — the same shape GuildTerritorySystem uses. Needed because a disband releases territory.
-    private void SaveMapGroup(MapGroupRecord group) =>
-        _bg.Run(_persistence.SaveMapGroupAsync(group.Index, group.Clone()), nameof(IPersistenceService.SaveMapGroupAsync));
+    // Off-thread persist of a mutated territory (Clone so a concurrent per-kill income accrual can't corrupt
+    // the write) — the same shape GuildTerritorySystem uses. Needed because a disband releases territory.
+    private void SaveTerritory(TerritoryRecord terr) =>
+        _bg.Run(_persistence.SaveTerritoryAsync(terr.MapGroup, terr.Clone()), nameof(IPersistenceService.SaveTerritoryAsync));
 
     // ── Progression & vault ───────────────────────────────────────────────────────
 

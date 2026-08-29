@@ -391,6 +391,19 @@ public sealed partial class NpcAiSystem : GameSystem
                 return;
             }
 
+            // The target left the face, but a wide body is likely still pressed against by others. It is
+            // already facing them and its beat is ready, so it swings at what is standing there rather than
+            // turning away to chase — the cleave covers the whole edge, and the edge is what decides.
+            if (_world.Npcs[mn.Num].EffectiveSize > 1 && _combat.FirstVictimOnFace(mapNum, mn, _pathNow) is { } onFace)
+            {
+                if (onFace.Npc is { } faceNpc)
+                    _combat.NpcAttackNpc(mapNum, slot, mn, onFace.NpcMap, onFace.NpcSlot, faceNpc, _pathNow);
+                else
+                    _combat.NpcAttackPlayer(mapNum, slot, onFace.PlayerIndex, _pathNow);
+                mn.AttackTimer = now;
+                return;
+            }
+
             // Not adjacent and on another observable map → chase across the border (the NPC becomes
             // a traversal guest), or drop the target if its map is no longer reachable.
             if (vp.Map != mapNum)

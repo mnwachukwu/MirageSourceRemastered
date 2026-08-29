@@ -59,7 +59,6 @@ public sealed class HelpPanel : IGamePanel
         new("/trade [name]",               ClientStrings.HelpText_Cmd_Trade,   AdminLevel.Player),
         new("/roll [N]",                   ClientStrings.HelpText_Cmd_Roll,    AdminLevel.Player),
         new("/r",                          ClientStrings.HelpText_Cmd_Reply,   AdminLevel.Player),
-        new("/adminhelp",                  ClientStrings.HelpText_Cmd_AdminHelp,     AdminLevel.Monitor),
         new("/kick name [minutes]",        ClientStrings.HelpText_Cmd_Kick,          AdminLevel.Monitor),
         new("/ban name",                   ClientStrings.HelpText_Cmd_Ban,           AdminLevel.Monitor),
         new("/mute name [minutes]",        ClientStrings.HelpText_Cmd_Mute,          AdminLevel.Monitor),

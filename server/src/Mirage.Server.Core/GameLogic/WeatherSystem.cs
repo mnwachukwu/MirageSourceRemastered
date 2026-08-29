@@ -225,13 +225,18 @@ public sealed class WeatherSystem : GameSystem
 
     private static double SnowFactor(bool snowing, double snowMultiplier) => snowing ? snowMultiplier : 1.0;
 
-    /// <summary>Scale a live NPC's current HP/MP/SP (kept >= 1) and its damage-contribution ledgers by the
-    /// Snow ratios. Ledger scaling (by hpRatio) preserves aggro ordering and EXP damage-share fractions.</summary>
-    private static void ScaleNpcVitalsForSnow(MapNpcRecord mn, double hpRatio, double mpRatio, double spRatio)
+    /// <summary>Scale a live NPC's current HP/MP/SP and its damage-contribution ledgers by the Snow ratios.
+    /// Ledger scaling (by hpRatio) preserves aggro ordering and EXP damage-share fractions.
+    ///
+    /// <para>Current vitals are held to both ends: capped at the NPC's effective max for the weather in
+    /// force (<c>_world.Weather</c> already holds it by the time this runs), with a >= 1 floor on HP only —
+    /// MP and SP may sit at 0. Rounding away from zero overfills without the cap.</para></summary>
+    private void ScaleNpcVitalsForSnow(MapNpcRecord mn, double hpRatio, double mpRatio, double spRatio)
     {
-        mn.Hp = Math.Max(1, (int)Math.Round(mn.Hp * hpRatio, MidpointRounding.AwayFromZero));
-        mn.Mp = Math.Max(1, (int)Math.Round(mn.Mp * mpRatio, MidpointRounding.AwayFromZero));
-        mn.Sp = Math.Max(1, (int)Math.Round(mn.Sp * spRatio, MidpointRounding.AwayFromZero));
+        var npc = _world.Npcs[mn.Num];
+        mn.Hp = Math.Min(Math.Max(1, (int)Math.Round(mn.Hp * hpRatio, MidpointRounding.AwayFromZero)), _world.EffectiveNpcMaxHp(npc));
+        mn.Mp = Math.Min((int)Math.Round(mn.Mp * mpRatio, MidpointRounding.AwayFromZero), _world.EffectiveNpcMaxMp(npc));
+        mn.Sp = Math.Min((int)Math.Round(mn.Sp * spRatio, MidpointRounding.AwayFromZero), _world.EffectiveNpcMaxSp(npc));
         var dmg = mn.DamageByPlayer;
         for (int i = 0; i < dmg.Length; i++)
             if (dmg[i] != 0) dmg[i] = (int)Math.Round(dmg[i] * hpRatio, MidpointRounding.AwayFromZero);

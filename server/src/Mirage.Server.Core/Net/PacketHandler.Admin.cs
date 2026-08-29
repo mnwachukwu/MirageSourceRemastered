@@ -53,15 +53,15 @@ public sealed partial class PacketHandler
     private void HandleGodMode(int index)
     {
         if (!_pm[index].IsPlaying) return;
-        if (_pm[index].Char.Access < AdminLevel.Developer)
+        if (!_pm[index].Char.MayUseGodMode)
         {
             HackingAttempt(index, "Admin Cloning");
             return;
         }
 
         var sp = _pm[index];
-        sp.GodMode = !sp.GodMode;
-        if (sp.GodMode)
+        sp.Char.GodMode = !sp.Char.GodMode;
+        if (sp.Char.GodMode)
         {
             sp.CombatExpiresAt = 0;
             sp.Target = 0;
@@ -72,13 +72,13 @@ public sealed partial class PacketHandler
         // toggle reaches nobody: the mover's own prediction keeps refusing blocked steps and every client
         // keeps drawing the name in its normal color.
         SendToMap(sp.Char.Map, PacketBuilder.PlayerData(index, sp.Char, sp.Char.Map,
-            sp.PkGraceUntilUtc, sp.AggressorUntilUtcNow, godMode: sp.GodMode));
+            sp.PkGraceUntilUtc, sp.AggressorUntilUtcNow, godMode: sp.Char.GodMode));
 
         _dispatcher.SendLocalizedChatTo(index,
-            sp.GodMode ? ServerStrings.AdminCommand_GodModeOn : ServerStrings.AdminCommand_GodModeOff,
+            sp.Char.GodMode ? ServerStrings.AdminCommand_GodModeOn : ServerStrings.AdminCommand_GodModeOff,
             new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice));
         _logger.LogInformation("{Name} turned god mode {State}.",
-            _pm[index].Char.Name.Trim(), sp.GodMode ? "on" : "off");
+            _pm[index].Char.Name.Trim(), sp.Char.GodMode ? "on" : "off");
     }
 
     private void HandleWarpMeTo(int index, WarpMeToPacket p)
@@ -87,6 +87,15 @@ public sealed partial class PacketHandler
         if (_pm[index].Char.Access < AdminLevel.Developer)
         {
             HackingAttempt(index, "Admin Cloning");
+            return;
+        }
+
+        // A corpse stays where it fell — including an admin's own. The target-side twin of this lives in
+        // HandleWarpToMe.
+        if (_pm[index].Char.Dead)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.AdminCommand_WarpWhileDead,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
             return;
         }
 
@@ -130,6 +139,15 @@ public sealed partial class PacketHandler
             return;
         }
 
+        // A corpse stays where it fell, and the admin who asked hears why rather than watching nothing
+        // happen.
+        if (_pm[n].Char.Dead)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.AdminCommand_TargetIsDead,
+                new ChatMetadata(GameColor.BrightRed, ChatChannel.Notice), ("Target", _pm[n].Char.Name.Trim()));
+            return;
+        }
+
         var my = _pm[index].Char;
         _movement.PlayerWarp(n, my.Map, my.X, my.Y);
         _dispatcher.SendLocalizedChatTo(n, ServerStrings.AdminCommand_SummonedYou, new ChatMetadata(GameColor.BrightBlue, ChatChannel.Notice), ("Admin", my.Name.Trim()));
@@ -145,6 +163,7 @@ public sealed partial class PacketHandler
             HackingAttempt(index, "Admin Cloning");
             return;
         }
+        if (RefuseWhileDead(index)) return;
 
         if (p.MapNum <= 0 || p.MapNum > _world.Limits.Maps)
         {

@@ -148,7 +148,7 @@ public sealed partial class TileGridControl : Control
                     continue;
                 }
                 if (InActiveMap(cx, cy))
-                    TileClicked?.Invoke(new TileClick(cx, cy, _altDown, _retainDown));
+                    TileClicked?.Invoke(new TileClick(cx, cy, _altDown, _retainDown, Dragging: true));
             }
         }
         else if (_rightDown && (x != _lastDragX || y != _lastDragY))

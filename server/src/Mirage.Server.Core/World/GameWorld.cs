@@ -48,19 +48,23 @@ public sealed class GameWorld
     public List<MarketSale> MarketSales { get; } = new();
 
     // Map groups are also UNBOUNDED (guild-style), keyed by group Index, backed by
-    // map_groups/map_group{Index}.json. Maps reference a group via MapRecord.MapGroup; a territory is a group
-    // with Territory = true.
+    // map_groups/map_group{Index}.json. Maps reference a group via MapRecord.MapGroup.
     public Dictionary<int, MapGroupRecord> MapGroups { get; } = new();
+
+    // What each territory has become since the server started running — owner, income, war-night queue.
+    // Keyed by the MAP GROUP index, because a territory IS the maps of its group and the key is the whole of
+    // the link. Backed by data/territories/territory{group}.json, so none of it rides along in a world.
+    public Dictionary<int, TerritoryRecord> Territories { get; } = new();
 
     // Perpetual season-leaderboard archive, loaded from seasons/season{N}.json on boot and appended
     // when a season ends; ascending by season number. Served to the historical-season browser (read-only).
     public List<SeasonArchive> SeasonArchives { get; } = new();
 
     // Income accumulators (guild PendingVaultGold + territory PendingIncome) mutate per-kill in memory; these
-    // sets flag which guilds/groups have unsaved accrual so the periodic save + shutdown flush persist them
-    // (GuildScheduleSystem.FlushDirtyAccumulators) — the accrual sites just Add here, no per-kill file write.
+    // sets flag which guilds/territories have unsaved accrual so the periodic save + shutdown flush persist
+    // them (GuildScheduleSystem.FlushDirtyAccumulators) — the accrual sites just Add here, no per-kill write.
     public HashSet<int> DirtyGuilds { get; } = new();
-    public HashSet<int> DirtyMapGroups { get; } = new();
+    public HashSet<int> DirtyTerritories { get; } = new();
 
     // ── Effective map properties ─────────────────────────────────────────────────
     // A map's inheritable properties (Moral/Music/Shop/Indoors/lighting/Boot) are nullable: null = inherit
@@ -214,12 +218,173 @@ public sealed class GameWorld
     private (int Map, int X, int Y) ClampToMap(int mapNum, int x, int y) =>
         (mapNum, Math.Clamp(x, 0, Maps[mapNum].Width - 1), Math.Clamp(y, 0, Maps[mapNum].Height - 1));
 
+    // ── The upper plane as somewhere to stand ────────────────────────────────────
+    // Which deck tiles a body can actually be PUT on: the ones joined to a ramp. Cached because it is a
+    // whole-world answer — see IsFringeSpawnable — and rebuilt whenever a map changes under it.
+    private Dictionary<int, bool[]>? _fringeReach;
+
+    /// <summary>Drop the cached fringe reachability. Called whenever a map is authored: its own deck, its
+    /// ramps or its LINKS may all have moved, and a link change is felt by the maps either side of it.</summary>
+    public void InvalidateFringeReach() => _fringeReach = null;
+
+    /// <summary>Can a body stand on the upper plane at this tile — is it a deck, joined to a ramp?
+    ///
+    /// <para>🔴 The question is not answerable one map at a time. The fringe plane runs on through a seam
+    /// exactly like the ground does, so a bridge can begin on one map and the ramp that reaches it stand on
+    /// another, a series of decks along. Asking only "does THIS map have a ramp" refuses every deck in such
+    /// a chain but the one, and accepts a stranded deck on a map that happens to have a ramp elsewhere on
+    /// it. So the reachable set is flooded once across the whole world, from every ramp, and cached.</para>
+    ///
+    /// <para>Deck ART is what makes a tile a surface: <see cref="LayerLogic.AttrFor"/> reads the fringe
+    /// plane as Walkable wherever nothing says otherwise, so "unblocked up there" is true of open sky over
+    /// most of every map.</para></summary>
+    public bool IsFringeSpawnable(int mapNum, int x, int y)
+    {
+        var reach = _fringeReach ??= BuildFringeReach();
+        if (!reach.TryGetValue(mapNum, out var cells)) return false;
+        var map = Maps[mapNum];
+        if (x < 0 || y < 0 || x >= map.Width || y >= map.Height) return false;
+        return cells[y * map.Width + x];
+    }
+
+    /// <summary>True when any tile of this map can take a spawn on the upper plane — the cheap gate that
+    /// keeps a ground-only map on exactly the path it was always on.</summary>
+    public bool HasSpawnableFringe(int mapNum) =>
+        (_fringeReach ??= BuildFringeReach()).ContainsKey(mapNum);
+
+    private static bool IsRamp(in TileRecord t, out Direction groundSide)
+    {
+        if (t.FringeAttr is { Type: TileType.LayerRamp } fa)
+        {
+            groundSide = fa.RampGroundSide;
+            return true;
+        }
+        groundSide = default;
+        return false;
+    }
+    private static bool IsRamp(in TileRecord t) => IsRamp(t, out _);
+
+    // A surface up top: authored fringe art with nothing blocking it. A ramp counts — it is how you arrive.
+    private static bool IsDeck(in TileRecord t) =>
+        !LayerCell.IsEmpty(t.Fringe[0])
+        && LayerLogic.AttrFor(t, WorldLayer.Fringe).Type == TileType.Walkable;
+
+    private static Direction Opposite(Direction d) => d switch
+    {
+        Direction.Up => Direction.Down,
+        Direction.Down => Direction.Up,
+        Direction.Left => Direction.Right,
+        _ => Direction.Left,
+    };
+
+    /// <summary>Is this one step legal ON the fringe plane, by <see cref="LayerLogic"/>'s ramp geometry?
+    ///
+    /// <para>🔴 A ramp is a CORRIDOR, not a doorway. Its sides are a wall on both planes, so the only way
+    /// off the top of one is up-ramp — the direction opposite its ground side — and the only way onto one
+    /// is along that same axis. Treating a ramp as joined to whatever it happens to touch marks decks
+    /// reachable that a player cannot actually mount, and mobs get put on them.</para>
+    ///
+    /// <para>The foot of a ramp is left out on purpose: stepping down it toward its ground side leaves the
+    /// fringe plane entirely (<see cref="LayerLogic.ResolveLayer"/>), which is the way DOWN, not a way along
+    /// the deck.</para></summary>
+    private static bool FringeStepAllowed(in TileRecord from, in TileRecord to, Direction dir)
+    {
+        bool fromRamp = IsRamp(from, out var fromGround), toRamp = IsRamp(to, out var toGround);
+        if (fromRamp == toRamp) return true;               // deck to deck, or along one ramp block
+        return fromRamp
+            ? dir == Opposite(fromGround)                  // off the top of the ramp onto the deck
+            : dir == toGround || dir == Opposite(toGround); // onto the ramp, along its mount axis
+    }
+
+    private Dictionary<int, bool[]> BuildFringeReach()
+    {
+        var reach = new Dictionary<int, bool[]>();
+        var seen = new HashSet<(int Map, int X, int Y)>();
+        var queue = new Queue<(int Map, int X, int Y)>();
+
+        // Every ramp in the world is a way up, so every ramp is a seed.
+        for (int m = 1; m <= Limits.Maps; m++)
+        {
+            var map = Maps[m];
+            if (map is null) continue;
+            for (int x = 0; x < map.Width; x++)
+                for (int y = 0; y < map.Height; y++)
+                    if (IsRamp(map.Tile[x, y]) && seen.Add((m, x, y))) queue.Enqueue((m, x, y));
+        }
+
+        while (queue.Count > 0)
+        {
+            var (m, x, y) = queue.Dequeue();
+            var map = Maps[m];
+            var here = map.Tile[x, y];
+            foreach (var (dx, dy, dir) in _adjacent)
+            {
+                // Off an edge is not off the world: step onto the neighbour's opposite edge. A map only ever
+                // links to maps its own size, so the crossing keeps its index.
+                int nx = x + dx, ny = y + dy, nm = m;
+                if (nx < 0) { nm = map.Left; nx = map.Width - 1; }
+                else if (nx >= map.Width) { nm = map.Right; nx = 0; }
+                else if (ny < 0) { nm = map.Up; ny = map.Height - 1; }
+                else if (ny >= map.Height) { nm = map.Down; ny = 0; }
+                if (nm <= 0 || nm > Limits.Maps) continue;
+
+                var next = Maps[nm];
+                if (next is null || nx >= next.Width || ny >= next.Height) continue;
+                var t = next.Tile[nx, ny];
+                if (!IsDeck(t) && !IsRamp(t)) continue;
+                if (!FringeStepAllowed(here, t, dir)) continue;
+                if (!seen.Add((nm, nx, ny))) continue;
+                queue.Enqueue((nm, nx, ny));
+
+                // Only a DECK is somewhere to be put down; a ramp is a way through, not a spawn post.
+                if (!IsDeck(t)) continue;
+                if (!reach.TryGetValue(nm, out var cells))
+                    reach[nm] = cells = new bool[next.Width * next.Height];
+                cells[ny * next.Width + nx] = true;
+            }
+        }
+        return reach;
+    }
+
+    private static readonly (int dx, int dy, Direction dir)[] _adjacent =
+    {
+        (0, -1, Direction.Up), (0, 1, Direction.Down), (-1, 0, Direction.Left), (1, 0, Direction.Right),
+    };
+
     /// <summary>The map's MapGroup iff it is a contestable TERRITORY (Territory = true), else null — the
     /// territory-income hook's fast gate (a group-less or non-territory map returns null).</summary>
     public MapGroupRecord? TerritoryGroupOf(int mapNum)
     {
         var g = GroupOf(mapNum);
         return g is { Territory: true } ? g : null;
+    }
+
+    /// <summary>The state of the territory that <paramref name="groupIndex"/>'s maps make up, made on first
+    /// ask.
+    ///
+    /// <para>A territory group with no file yet is simply unclaimed, so there is nothing to seed and nothing
+    /// to migrate: declaring a territory in the editor is enough, and the record reaches disk the moment
+    /// something changes it. Ask through here rather than indexing <see cref="Territories"/>, or a first
+    /// challenge on a fresh territory has nowhere to land.</para></summary>
+    public TerritoryRecord TerritoryFor(int groupIndex)
+    {
+        if (Territories.TryGetValue(groupIndex, out var t)) return t;
+        t = new TerritoryRecord { MapGroup = groupIndex };
+        Territories[groupIndex] = t;
+        return t;
+    }
+
+    /// <summary>The territory <paramref name="mapNum"/> stands in, or null when its map has no group or the
+    /// group is not contestable.</summary>
+    public TerritoryRecord? TerritoryOf(int mapNum) =>
+        TerritoryGroupOf(mapNum) is { } g ? TerritoryFor(g.Index) : null;
+
+    /// <summary>Every contestable group paired with its state, for the sweeps that visit all of them
+    /// (war-night resolution, the settlement, the Territories tab).</summary>
+    public IEnumerable<(MapGroupRecord Group, TerritoryRecord State)> AllTerritories()
+    {
+        foreach (var g in MapGroups.Values)
+            if (g.Territory) yield return (g, TerritoryFor(g.Index));
     }
 
     // ── Live territory contest coordination ──────────────────────────────────────
@@ -437,6 +602,25 @@ public sealed class GameWorld
         for (int m = 0; m <= Limits.Maps; m++) MapObservers[m].Remove(index);
     }
 
+    /// <summary>Two NPCs never attack each other on sight when they share a kind (same template
+    /// <see cref="MapNpcRecord.Num"/>) OR a non-zero <see cref="NpcRecord.Group"/>.  Group 0 is the
+    /// "ungrouped" sentinel, so two ungrouped NPCs are allied only if they are literally the same
+    /// kind — i.e. Group 0 preserves the original same-type-only behavior.  Equality on Group makes
+    /// the rule symmetric by construction: a one-sided group assignment grants no protection either
+    /// way, surfacing a mis-set group as in-game infighting during testing.
+    ///
+    /// <para>🔴 It lives on the WORLD because both halves of a fight ask it and neither owns it: the AI
+    /// decides who a mob walks at, and a wide swing's strike strip decides who else that swing catches.
+    /// Hanging it off either system gives the other a dependency it has no other reason to hold — routing
+    /// it through <c>CombatSystem</c> broke the AI targeting tests, which construct the brain with a null
+    /// combat system precisely because targeting has no business needing one.</para></summary>
+    public bool AreNpcsAllied(int numA, int numB)
+    {
+        if (numA == numB) return true;                    // same kind (original same-type peace)
+        int groupA = Npcs[numA].Group;
+        return groupA != 0 && groupA == Npcs[numB].Group;  // same non-zero group
+    }
+
     /// <summary>
     /// True when any live NPC — native slot or visiting traversal NPC — stands on (x,y) of a map,
     /// excluding the optional <paramref name="exclude"/> NPC (by reference).  Allocation-free; used
@@ -463,6 +647,29 @@ public sealed class GameWorld
             if (NeighborBigNpcCovers(in grid, 0, 0, qwx, qwy, exclude, layer)) return true;  // up-left
         }
         return false;
+    }
+
+    /// <summary>The NPC whose body covers this map tile — native or visiting — and the slot to address it by
+    /// (0 for a guest, which rides its own universal identity). Null when nothing stands there.
+    ///
+    /// <para>🔴 Ask the TILE, not the rosters. A sweep that walks the native slot array has to be taught
+    /// about every kind of body that can stand on a map, and forgets the ones added since — which is how a
+    /// wide mob came to swing straight through a visitor. Taught once, here, beside the occupancy test that
+    /// already knew about both.</para></summary>
+    public (MapNpcRecord Npc, int Slot)? NpcCoveringLocal(int mapNum, int x, int y, WorldLayer? layer = null)
+    {
+        for (int s = 1; s <= Constants.MaxMapNpcs; s++)
+        {
+            var n = MapNpcs[mapNum, s];
+            if (n.Num > 0 && n.Hp > 0 && LayerMatches(n, layer) && NpcFootprintCoversLocal(n, x, y)) return (n, s);
+        }
+        var guests = MapTraversalNpcs[mapNum];
+        for (int i = 0; i < guests.Count; i++)
+        {
+            var t = guests[i];
+            if (t.Num > 0 && t.Hp > 0 && LayerMatches(t, layer) && NpcFootprintCoversLocal(t, x, y)) return (t, 0);
+        }
+        return null;
     }
 
     private bool AnyNpcFootprintCoversLocal(int mapNum, int x, int y, MapNpcRecord? exclude, WorldLayer? layer)
