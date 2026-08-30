@@ -1,7 +1,7 @@
 {
   "name": "The Arena 7",
   "displayName": "",
-  "revision": 2,
+  "revision": 3,
   "up": 146,
   "down": 140,
   "left": 0,
@@ -55,19 +55,28 @@
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -125,19 +134,28 @@
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -195,19 +213,28 @@
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -265,13 +292,19 @@
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       }
     ],
     [
@@ -775,25 +808,29 @@
         "ground": [
           163,
           121
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           121
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           121
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           128
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -841,25 +878,29 @@
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -907,25 +948,29 @@
         "ground": [
           163,
           123
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           123
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           123
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           130
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [

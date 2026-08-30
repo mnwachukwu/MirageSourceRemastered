@@ -1,7 +1,7 @@
 {
   "name": "The Arena 4",
   "displayName": "",
-  "revision": 2,
+  "revision": 3,
   "up": 143,
   "down": 0,
   "left": 0,
@@ -25,19 +25,22 @@
         "ground": [
           163,
           115
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -90,19 +93,22 @@
         "ground": [
           163,
           115
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -155,19 +161,22 @@
         "ground": [
           163,
           115
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -220,19 +229,22 @@
         "ground": [
           163,
           115
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -285,19 +297,22 @@
         "ground": [
           163,
           115
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -350,19 +365,22 @@
         "ground": [
           163,
           115
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           122
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           129
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
@@ -388,13 +406,19 @@
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
@@ -417,18 +441,95 @@
         "ground": [
           163,
           116
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           123
-        ]
+        ],
+        "type": "Blocked"
       },
       {
         "ground": [
           163,
           130
+        ],
+        "type": "Blocked"
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
         ]
       },
       {
@@ -450,18 +551,171 @@
         "ground": [
           163,
           356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
         ]
       },
       {
         "ground": [
           163,
           356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      }
+    ],
+    [
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
+        ]
+      },
+      {
+        "ground": [
+          163
         ]
       },
       {
         "ground": [
           163,
           356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163,
+          356
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
+      },
+      {
+        "ground": [
+          163
         ]
       },
       {
@@ -515,207 +769,19 @@
         "ground": [
           163,
           356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
           163,
           356
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      }
-    ],
-    [
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
-      },
-      {
-        "ground": [
-          163,
-          356
-        ]
+        ],
+        "type": "Blocked",
+        "blocksLight": false,
+        "blocksSight": false
       },
       {
         "ground": [
