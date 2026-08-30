@@ -1,7 +1,7 @@
 {
   "name": "The Poacher's Hedge 3",
   "displayName": "",
-  "revision": 7,
+  "revision": 8,
   "up": 22,
   "down": 0,
   "left": 17,
@@ -21,108 +21,84 @@
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           121
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       }
     ],
     [
@@ -131,108 +107,84 @@
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       },
       {
         "ground": [
           2,
           123
         ],
-        "type": "Blocked",
-        "blocksLight": false,
-        "blocksSight": false
+        "type": "Blocked"
       }
     ],
     [
