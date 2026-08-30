@@ -77,11 +77,27 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <!-- Strip .pdb files from all publish output. DebugType=none suppresses
-       symbol generation entirely so nothing sneaks in via referenced libs. -->
+  <!-- Strip .pdb files from publish output.
+
+       DebugType covers the project BEING published and nothing else: PublishDir is set only for that
+       project, so a referenced one (Mirage.Shared, Mirage.Ui, Mirage.Updates, Mirage.Client.Core)
+       builds as an ordinary reference with the SDK's default portable symbols. Its .pdb then rides
+       into the output alongside it. The NATIVE ones are worse still: libSkiaSharp.pdb is 82 MB and
+       libHarfBuzzSharp.pdb another 20, and they arrive as native assets that no DebugType or
+       AllowedReferenceRelatedFileExtensions setting governs.
+
+       So the sweep below is what actually holds the line — it drops every .pdb from the publish list
+       whatever produced it. DebugType stays because suppressing a symbol file beats copying and then
+       removing one. The single-file server never showed any of this: bundling excludes them anyway. -->
   <PropertyGroup Condition="'$(PublishDir)' != ''">
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
+
+  <Target Name="_StripPdbsFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

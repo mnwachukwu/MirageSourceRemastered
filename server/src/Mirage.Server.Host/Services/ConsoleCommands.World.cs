@@ -38,19 +38,30 @@ public sealed partial class ConsoleCommands
 
     // ── /motd ────────────────────────────────────────────────────────────────
 
+    /// <summary>Set the message of the day, or CLEAR it by passing nothing.
+    ///
+    /// <para>Clearing is silent. The set announcement quotes the new text to every player, and the
+    /// clear has no text to quote — broadcasting it would put an empty "Message of the Day changed to:"
+    /// in front of everyone, which says nothing and looks broken. Players find out the next time they
+    /// would have been shown one.</para>
+    ///
+    /// <para>A blank argument is therefore an INSTRUCTION rather than a mistake, which is why there is
+    /// no usage line: an empty box on the Commands tab means "no message", and refusing it would leave
+    /// no way to take one down.</para></summary>
     private void CmdMotd(string args)
     {
-        if (string.IsNullOrWhiteSpace(args))
-        {
-            Write(ServerStrings.Console_MotdUsage);
-            return;
-        }
-        _world.Motd = args;
-        _bg.Run(_persistence.SaveMotdAsync(args), nameof(IPersistenceService.SaveMotdAsync));
-        _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_MotdChanged,
-            new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice), ("Motd", args));
-        Write(ServerStrings.Console_MotdSet, ("Motd", args));
-        _logger.LogInformation("Console changed Message of the Day to: {Motd}", args);
+        bool clearing = string.IsNullOrWhiteSpace(args);
+        string motd = clearing ? "" : args;
+
+        _world.Motd = motd;
+        _bg.Run(_persistence.SaveMotdAsync(motd), nameof(IPersistenceService.SaveMotdAsync));
+
+        if (!clearing)
+            _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_MotdChanged,
+                new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice), ("Motd", motd));
+
+        Write(clearing ? ServerStrings.Console_MotdCleared : ServerStrings.Console_MotdSet, ("Motd", motd));
+        _logger.LogInformation("Console {Action} the Message of the Day.", clearing ? "cleared" : "changed");
     }
 
     // ── /setaccess ───────────────────────────────────────────────────────────

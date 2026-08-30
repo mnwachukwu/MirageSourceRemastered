@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -32,10 +33,61 @@ public sealed partial class CommandParameter : ObservableObject
     public decimal Minimum { get; private init; }
     public decimal Maximum { get; private init; }
 
+    /// <summary>Marks an argument the command cannot run without — a name, an account. Run stays
+    /// disabled while it is blank, because posting the line without it asks the server a question it
+    /// can only refuse, and the refusal arrives as console text nobody is watching for.</summary>
+    public CommandParameter Required() { IsRequired = true; return this; }
+
+    public bool IsRequired { get; private set; }
+
+    /// <summary>Show this argument only while <paramref name="source"/> holds one of
+    /// <paramref name="values"/>.
+    ///
+    /// <para>A command whose arguments depend on a choice — /management, where only "port" takes a
+    /// value — otherwise shows a box that does nothing for three of its four actions, and an empty box
+    /// beside a control reads as something you forgot to fill in.</para></summary>
+    public CommandParameter ShownWhen(CommandParameter source, params string[] values)
+    {
+        _shownSource = source;
+        _shownValues = values;
+        // The source drives this one’s visibility, so its changes are this one’s changes too.
+        source.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(Value)) return;
+            OnPropertyChanged(nameof(IsShown));
+            NotifyControlVisibility();
+        };
+        return this;
+    }
+
+    private CommandParameter? _shownSource;
+    private string[] _shownValues = [];
+
+    /// <summary>Whether this argument applies at all right now.</summary>
+    public bool IsShown => _shownSource is null || _shownValues.Contains(_shownSource.Value);
+
+    /// <summary>Blank, and the command needs it. Only counts while the argument is shown — an
+    /// argument that does not apply cannot be missing.</summary>
+    public bool IsMissing => IsShown && IsRequired && AsArgument().Length == 0;
+
+    private void NotifyControlVisibility()
+    {
+        OnPropertyChanged(nameof(ShowText));
+        OnPropertyChanged(nameof(ShowChoice));
+        OnPropertyChanged(nameof(ShowNumber));
+        OnPropertyChanged(nameof(ShowParagraph));
+    }
+
     public bool IsText => Kind == ParameterKind.Text;
     public bool IsChoice => Kind == ParameterKind.Choice;
     public bool IsNumber => Kind == ParameterKind.Number;
     public bool IsParagraph => Kind == ParameterKind.Paragraph;
+
+    // What the view binds: the kind picks the control, IsShown decides whether it is there at all.
+    public bool ShowText => IsText && IsShown;
+    public bool ShowChoice => IsChoice && IsShown;
+    public bool ShowNumber => IsNumber && IsShown;
+    public bool ShowParagraph => IsParagraph && IsShown;
 
     [ObservableProperty]
     public partial string Value { get; set; } = "";
@@ -67,6 +119,12 @@ public sealed partial class ShellCommand : ObservableObject
         Description = description;
         _send = send;
         Parameters = new ObservableCollection<CommandParameter>(parameters);
+
+        // Run is disabled while a required argument is blank, so it has to re-ask as the operator
+        // types. Disabling beats refusing on click: a button that does nothing when pressed is
+        // indistinguishable from one that failed.
+        foreach (var p in Parameters)
+            p.PropertyChanged += (_, _) => RunCommand.NotifyCanExecuteChanged();
     }
 
     public string Verb { get; }
@@ -80,7 +138,11 @@ public sealed partial class ShellCommand : ObservableObject
     [ObservableProperty]
     public partial bool IsConfirming { get; private set; }
 
-    [RelayCommand]
+    /// <summary>Nothing required is blank. What the operator sees is a greyed Run rather than a line
+    /// posted for the server to reject into a console nobody is reading.</summary>
+    public bool CanRun => !Parameters.Any(p => p.IsMissing);
+
+    [RelayCommand(CanExecute = nameof(CanRun))]
     private void Run()
     {
         if (NeedsConfirmation && !IsConfirming) { IsConfirming = true; return; }
@@ -91,6 +153,9 @@ public sealed partial class ShellCommand : ObservableObject
         var text = Verb;
         foreach (var p in Parameters)
         {
+            // An argument that does not apply is not sent, whatever is still typed in it: switching
+            // /management from "port" to "off" must not carry the port number along.
+            if (!p.IsShown) continue;
             string arg = p.AsArgument();
             if (arg.Length > 0) text += " " + arg;
         }

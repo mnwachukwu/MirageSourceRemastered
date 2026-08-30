@@ -112,7 +112,24 @@ public static partial class ServerStrings
     public const string Console_TodSet = nameof(Console_TodSet);
     public const string Console_WeatherUsage = nameof(Console_WeatherUsage);
     public const string Console_WeatherSet = nameof(Console_WeatherSet);
-    public const string Console_MotdUsage = nameof(Console_MotdUsage);
+    public const string Console_MotdCleared = nameof(Console_MotdCleared);
+
+    // /management — remote operator access, set from the console rather than only from the shell.
+    public const string Console_ManagementUsage = nameof(Console_ManagementUsage);
+    public const string Console_ManagementPort = nameof(Console_ManagementPort);
+    public const string Console_ManagementToken = nameof(Console_ManagementToken);
+    public const string Console_ManagementTokenSet = nameof(Console_ManagementTokenSet);
+    public const string Console_ManagementTokenUnset = nameof(Console_ManagementTokenUnset);
+    public const string Console_ManagementTokenGenerated = nameof(Console_ManagementTokenGenerated);
+    public const string Console_ManagementListening = nameof(Console_ManagementListening);
+    public const string Console_ManagementBound = nameof(Console_ManagementBound);
+    public const string Console_ManagementNotBound = nameof(Console_ManagementNotBound);
+    public const string Console_ManagementOperators = nameof(Console_ManagementOperators);
+    public const string Console_ManagementNeedsToken = nameof(Console_ManagementNeedsToken);
+    public const string Console_ManagementRefused = nameof(Console_ManagementRefused);
+    public const string Console_ManagementOff = nameof(Console_ManagementOff);
+    public const string Console_ManagementSaveFailed = nameof(Console_ManagementSaveFailed);
+    public const string Console_ManagementPortUsage = nameof(Console_ManagementPortUsage);
     public const string Console_MotdSet = nameof(Console_MotdSet);
     public const string Console_SetAccessUsage = nameof(Console_SetAccessUsage);
     public const string Console_AccessSet = nameof(Console_AccessSet);

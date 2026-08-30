@@ -72,17 +72,23 @@ public class ShellCommandCoverageTests
             "These forms would post a line the console does not answer to: " + string.Join(", ", unknown));
     }
 
+    /// <summary>The reverse of the check above: every command the console answers to is offered by the
+    /// tab.
+    ///
+    /// <para>🔴 The tab is how an operator in the window finds out what exists, so a dispatched command
+    /// missing from it is invisible to everyone who is not reading source. Nine were: both machine-ban
+    /// commands, every moderation lift, and both editor commands.</para>
+    ///
+    /// <para><c>/help</c> is the exception. The tab IS the listing, rendered, so asking the server to
+    /// print one into the log would be a worse copy of what the operator is already looking at.</para></summary>
     [Test]
-    public void TheTabOffersTheServerCommands()
+    public void TheTabOffersEveryConsoleCommand()
     {
-        var verbs = TabVerbs();
+        var offered = TabVerbs().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var missing = ConsoleVerbs().Where(v => v != "/help" && !offered.Contains(v)).OrderBy(v => v).ToList();
 
-        Assert.Multiple(() =>
-        {
-            Assert.That(verbs, Does.Contain("/update"));
-            Assert.That(verbs, Does.Contain("/credits"));
-            Assert.That(verbs, Does.Contain("/shutdown"));
-        });
+        Assert.That(missing, Is.Empty,
+            "the console answers to these, but the Commands tab does not offer them: " + string.Join(" ", missing));
     }
 
     /// <summary>Shutting a server down disconnects everyone on it, so the form asks first — the same

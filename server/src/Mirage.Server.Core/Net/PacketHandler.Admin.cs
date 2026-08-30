@@ -703,10 +703,17 @@ public sealed partial class PacketHandler
             return;
         }
 
-        _world.Motd = p.Motd;
-        _bg.Run(_persistence.SaveMotdAsync(p.Motd), nameof(IPersistenceService.SaveMotdAsync));
-        _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_MotdChanged, new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice), ("Motd", p.Motd));
-        _logger.LogInformation("{Name} changed Message of the Day to: {Motd}", _pm[index].Char.Name.Trim(), p.Motd);
+        // Blank means TAKE IT DOWN, and a clear is silent. The announcement quotes the new text, so an
+        // empty one puts "Message of the Day changed to:" in front of every player and says nothing.
+        // Same rule as the console's /motd, because they are the same action arrived at from two sides.
+        bool clearing = string.IsNullOrWhiteSpace(p.Motd);
+        string motd = clearing ? "" : p.Motd;
+
+        _world.Motd = motd;
+        _bg.Run(_persistence.SaveMotdAsync(motd), nameof(IPersistenceService.SaveMotdAsync));
+        if (!clearing)
+            _dispatcher.SendLocalizedChatToAll(ServerStrings.AdminCommand_MotdChanged, new ChatMetadata(GameColor.BrightCyan, ChatChannel.Notice), ("Motd", motd));
+        _logger.LogInformation("{Name} {Action} the Message of the Day.", _pm[index].Char.Name.Trim(), clearing ? "cleared" : "changed");
     }
 
     private void HandleSetTimeOfDay(int index, SetTimeOfDayPacket p)

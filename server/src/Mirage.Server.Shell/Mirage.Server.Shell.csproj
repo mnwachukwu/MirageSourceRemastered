@@ -42,6 +42,12 @@
        land in separate bin folders. -->
   <ItemGroup>
     <Content Include="lang\shell\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The log settings this window edits live in the SERVER's appsettings.json, and the path is
+         resolved off AppContext.BaseDirectory. Published, that is the same folder — the server and this
+         shell publish side by side. Run from source they are two different bin folders, so without this
+         link "Save" reports a file it cannot find and the whole Configuration tab is dead in dev. -->
+    <Content Include="..\Mirage.Server.Host\appsettings.json" Link="appsettings.json"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

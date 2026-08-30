@@ -11,6 +11,11 @@
         MinWidth="640" MinHeight="420"
         Background="{DynamicResource MirageBgBrush}">
 
+  <!-- Window level: the two token boxes live in different tabs and both mask through it. -->
+  <Window.Resources>
+    <loc:MaskConverter x:Key="Mask"/>
+  </Window.Resources>
+
   <!-- The tabs stay BELOW the title bar. Putting them in it is the fashionable choice and was tried;
        it reads as a browser rather than as a tool, and the title bar only exists on Windows, so the two
        platforms would have diverged on layout and not just on the frame. -->
@@ -410,18 +415,18 @@
                                 <DataTemplate x:DataType="vm:CommandParameter">
                                   <Panel>
                                     <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Value}"
-                                              IsVisible="{Binding IsChoice}" MinWidth="130"/>
+                                              IsVisible="{Binding ShowChoice}" MinWidth="130"/>
                                     <!-- Bounded spinner: a map id is a number, so the box is one. -->
                                     <NumericUpDown Value="{Binding Amount}" Minimum="{Binding Minimum}"
                                                    Maximum="{Binding Maximum}" FormatString="0"
                                                    Increment="1" ParsingNumberStyle="Integer"
-                                                   IsVisible="{Binding IsNumber}" MinWidth="130"/>
+                                                   IsVisible="{Binding ShowNumber}" MinWidth="130"/>
                                     <TextBox Text="{Binding Value}" PlaceholderText="{Binding Name}"
-                                             IsVisible="{Binding IsText}" MinWidth="130"/>
+                                             IsVisible="{Binding ShowText}" MinWidth="130"/>
                                     <!-- A MOTD is a paragraph, so give it the room. Newlines are folded
                                          out on send (see AsArgument). -->
                                     <TextBox Text="{Binding Value}" PlaceholderText="{Binding Name}"
-                                             IsVisible="{Binding IsParagraph}" MinWidth="330"
+                                             IsVisible="{Binding ShowParagraph}" MinWidth="330"
                                              AcceptsReturn="True" TextWrapping="Wrap"
                                              MinHeight="64" MaxHeight="120"
                                              VerticalContentAlignment="Top"/>
@@ -504,9 +509,11 @@
             </Grid>
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="28,6,0,0" IsVisible="{Binding IsRemote}">
               <TextBlock Grid.Column="0" Text="{Binding TokenLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-              <!-- Masked until asked: a server console is the sort of thing that gets screen-shared. -->
-              <TextBox Grid.Column="1" Text="{Binding RemoteToken}" PasswordChar="•"
-                       RevealPassword="{Binding RevealTokens}" IsEnabled="{Binding CanEditConnection}"/>
+              <!-- Masked until asked: a server console is the sort of thing that gets screen-shared.
+                   Through PasswordChar, not RevealPassword, which the TextBox drops on lost focus. -->
+              <TextBox Grid.Column="1" Text="{Binding RemoteToken}"
+                       PasswordChar="{Binding RevealTokens, Converter={StaticResource Mask}}"
+                       IsEnabled="{Binding CanEditConnection}"/>
               <CheckBox Grid.Column="2" IsChecked="{Binding RevealTokens}" Content="{Binding RevealLabel}"
                         Margin="8,0,0,0"/>
             </Grid>
@@ -829,8 +836,8 @@
                  go and open the file for. -->
             <Grid ColumnDefinitions="Auto,*,Auto" Margin="28,6,0,0" IsVisible="{Binding ManagementEnabled}">
               <TextBlock Grid.Column="0" Text="{Binding ManagementTokenLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-              <TextBox Grid.Column="1" Text="{Binding ManagementToken}" PasswordChar="•"
-                       RevealPassword="{Binding RevealTokens}"/>
+              <TextBox Grid.Column="1" Text="{Binding ManagementToken}"
+                       PasswordChar="{Binding RevealTokens, Converter={StaticResource Mask}}"/>
               <CheckBox Grid.Column="2" IsChecked="{Binding RevealTokens}" Content="{Binding RevealLabel}"
                         Margin="8,0,0,0"/>
             </Grid>

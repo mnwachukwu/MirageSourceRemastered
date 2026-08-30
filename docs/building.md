@@ -27,6 +27,17 @@ msbuild publish/Mirage.Server.Publish.csproj -t:PublishAll   # one app, all plat
 
 Packaging runs **only for an explicit `-t:PublishAll*` target**. A plain `dotnet build` — of a publish project, or of `Mirage.slnx` — prints a one-line reminder and packages nothing. It used to package on every build, so an ordinary solution build ran nine `dotnet publish` passes plus `vpk`/`mgcb`/`tar`, taking 127s instead of ~9s. In Visual Studio, right-click → **Build** on a publish project therefore no longer packages; use the explicit target.
 
+**Republishing a version you have already packaged locally fails, on purpose.** Velopack stops with
+`There is a release in channel <name> which is equal or greater to the current version` rather than
+overwrite a release. On a dry run — where the version has not moved — clear the previous artifacts first:
+
+```sh
+rm -rf dist/installers
+```
+
+That is only safe because `dist/` is build output and gitignored. For a real release the version moves
+instead, and nothing needs clearing.
+
 Installer artifacts (`.exe`, AppImage, `.app.tar.gz`) land in `dist/installers/`. `dotnet tool restore` runs automatically on solution open. The server publishes as a single self-contained executable; the client and editor cannot be single-file because MonoGame and SkiaSharp native libraries must sit on disk beside the binary.
 
 ## Compiled content is committed

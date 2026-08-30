@@ -4,9 +4,17 @@
 <Project Sdk="Microsoft.Build.NoTargets/3.7.0" DefaultTargets="Build">
 
   <!-- Thin delegator — invokes each per-project orchestrator.
-       Right-click → Build (or msbuild /t:PublishAll) publishes and packages
-       all three apps for all three platforms.
-       Use Batch Build with PublishAll_Win/Linux/Osx for a single platform. -->
+
+       🔴 THERE IS NO BUTTON FOR THIS. Build, Rebuild and Publish in the IDE all do NOTHING here on
+       purpose (see the note on _PublishHint at the bottom), and Publish additionally needs a profile a
+       NoTargets project does not have. Packaging is reached only by naming the target:
+
+           dotnet msbuild publish/Mirage.Publish.csproj -t:PublishAll
+
+       PublishAll_Win / _Linux / _Osx do one platform. From inside Visual Studio, View -> Terminal.
+
+       Clear dist/installers/ first when republishing the same version: Velopack refuses to overwrite an
+       existing release in a channel, which is the guard working rather than a fault. -->
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

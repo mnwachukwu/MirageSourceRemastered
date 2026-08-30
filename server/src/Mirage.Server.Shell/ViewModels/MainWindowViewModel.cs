@@ -166,8 +166,21 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task StartAsync()
     {
         if (IsRemote)
+        {
+            // 🔴 Rebuild before dialling. A RemoteServerConnection takes the host, port and token it was
+            // CONSTRUCTED with, and the only other thing that builds one is the local/remote toggle — so
+            // editing any of the three left the object holding what it was born with while the boxes,
+            // the saved settings and the "Attaching to…" line all showed the new values.
+            //
+            // Pasting a fresh token and pressing Attach therefore presented the PREVIOUS one and came
+            // back "the server refused the token", with every visible piece of state agreeing it should
+            // have worked. Restarting the shell "fixed" it, because construction read the saved file.
+            _server.Dispose();
+            AttachConnection(CreateConnection());
+
             AppendLine(ShellStrings.Format(ShellStrings.Console_Attaching,
                 ("Host", RemoteHost), ("Port", RemotePort)));
+        }
 
         if (await _server.StartAsync() is not { } failure)
         {
@@ -657,6 +670,16 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>The command forms themselves, independent of any window. Takes the send action rather
     /// than reaching for one, so the list can be built and inspected without a settings file, a
     /// connection, or a running server behind it.</summary>
+    /// <summary>/management, whose value argument depends on the action chosen beside it. Built here
+    /// rather than inline because the value has to be handed the action to watch.</summary>
+    private static ShellCommand ManagementCommand(Action<string> send)
+    {
+        var action = CommandParameter.Choice("action", ["", "port", "token", "off"]);
+        var value = CommandParameter.Text("port").ShownWhen(action, "port").Required();
+        return new ShellCommand("/management", ShellStrings.Get(ShellStrings.Commands_Management),
+                                send, action, value);
+    }
+
     public static IReadOnlyList<CommandGroup> BuildCommandGroups(Action<string> Send)
     {
         static string[] Names<T>() where T : struct, Enum => Enum.GetNames<T>();
@@ -668,15 +691,30 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 new ShellCommand("/who", ShellStrings.Get(ShellStrings.Commands_Who), Send),
                 // The console's own bounds: 1 to 1440 minutes, defaulting to its 60.
                 new ShellCommand("/kick", ShellStrings.Get(ShellStrings.Commands_Kick), Send,
-                    CommandParameter.Text("name"), CommandParameter.Number("minutes", 1, 1440, 60)),
+                    CommandParameter.Text("name").Required(), CommandParameter.Number("minutes", 1, 1440, 60)),
                 new ShellCommand("/mute", ShellStrings.Get(ShellStrings.Commands_Mute), Send,
-                    CommandParameter.Text("name"), CommandParameter.Number("minutes", 1, 1440, 60)),
+                    CommandParameter.Text("name").Required(), CommandParameter.Number("minutes", 1, 1440, 60)),
                 new ShellCommand("/ban", ShellStrings.Get(ShellStrings.Commands_Ban), Send,
-                    CommandParameter.Text("name")) { NeedsConfirmation = true },
+                    CommandParameter.Text("name").Required()) { NeedsConfirmation = true },
                 new ShellCommand("/setaccess", ShellStrings.Get(ShellStrings.Commands_SetAccess), Send,
                     CommandParameter.Choice("level", Names<AdminLevel>()),
-                    CommandParameter.Text("name")) { NeedsConfirmation = true },
+                    CommandParameter.Text("name").Required()) { NeedsConfirmation = true },
                 new ShellCommand("/refreshbanlist", ShellStrings.Get(ShellStrings.Commands_RefreshBanList), Send),
+                new ShellCommand("/moderation", ShellStrings.Get(ShellStrings.Commands_Moderation), Send),
+                // The lifts take an ACCOUNT: the point of a lift is that the person is locked out and so
+                // cannot be found on the roster a name would be looked up in.
+                new ShellCommand("/unban", ShellStrings.Get(ShellStrings.Commands_Unban), Send,
+                    CommandParameter.Text("account").Required()),
+                new ShellCommand("/unkick", ShellStrings.Get(ShellStrings.Commands_Unkick), Send,
+                    CommandParameter.Text("account").Required()),
+                new ShellCommand("/unmute", ShellStrings.Get(ShellStrings.Commands_Unmute), Send,
+                    CommandParameter.Text("account").Required()),
+                // /hwban is the exception that takes a NAME: it reads the machine id off a live session,
+                // so the target has to be online for there to be anything to ban.
+                new ShellCommand("/hwban", ShellStrings.Get(ShellStrings.Commands_HwBan), Send,
+                    CommandParameter.Text("name").Required()) { NeedsConfirmation = true },
+                new ShellCommand("/hwunban", ShellStrings.Get(ShellStrings.Commands_HwUnban), Send,
+                    CommandParameter.Text("account").Required()),
             ]),
             new CommandGroup(ShellStrings.Get(ShellStrings.Commands_World),
             [
@@ -702,6 +740,28 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             // The tab doubles as the list of what the console accepts, so a command being reachable
             // another way is not a reason to leave it out. /shutdown is also available as the Stop
             // button on the Console tab; here it asks first, the same as the other destructive ones.
+            new CommandGroup(ShellStrings.Get(ShellStrings.Commands_Editors),
+            [
+                new ShellCommand("/editors", ShellStrings.Get(ShellStrings.Commands_Editors), Send),
+                new ShellCommand("/kickeditor", ShellStrings.Get(ShellStrings.Commands_KickEditor), Send,
+                    CommandParameter.Text("slot or account").Required()),
+            ]),
+            // Remote access. Reachable from the Connection tab too, but that sets what THIS shell dials;
+            // these set what the SERVER offers, which is the other half and has no other home.
+            new CommandGroup(ShellStrings.Get(ShellStrings.Commands_Remote),
+            [
+                // ONE row. The console dispatches on the first word, so the verb is /management and
+                // the action rides as an argument — the same grammar a hand-typed line uses. A row
+                // named "/management port" would post a line whose first word has no case, which is
+                // a form that renders, presses, and silently does nothing.
+                //
+                // Blank action reads the state back; the run composer drops empty arguments, so the
+                // one form covers "show", "port n", "token" and "off" without four of them.
+                // The value belongs to "port" alone. Shown only there, so three of the four actions do
+                // not present an empty box that does nothing, and required there, so Run stays disabled
+                // until a port is typed rather than posting "/management port" for the server to refuse.
+                ManagementCommand(Send),
+            ]),
             new CommandGroup(ShellStrings.Get(ShellStrings.Commands_Server),
             [
                 new ShellCommand("/update", ShellStrings.Get(ShellStrings.Commands_Update), Send),

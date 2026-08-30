@@ -109,8 +109,14 @@ public sealed record ServerConfig
     /// <summary>When the weekly territory contest runs.</summary>
     public ScheduleConfig Schedule { get; init; } = new();
 
-    /// <summary>Remote operator access. Off unless configured.</summary>
-    public ManagementConfig Management { get; init; } = new();
+    /// <summary>Remote operator access. Off unless configured.
+    ///
+    /// <para>The one member with a setter. `/management` changes it on a RUNNING server — the headless
+    /// deployment cannot edit a file and bounce the process casually, which is the whole reason the
+    /// command exists — so the live config has to be able to catch up with what was just applied.
+    /// Replacing the record wholesale rather than editing inside it keeps the swap a single reference
+    /// assignment, which the console thread and the game thread can both survive.</para></summary>
+    public ManagementConfig Management { get; set; } = new();
 
     /// <summary>What a machine ban does when it matches.</summary>
     public HardwareBanConfig HardwareBans { get; init; } = new();

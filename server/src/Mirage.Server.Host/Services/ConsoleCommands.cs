@@ -36,6 +36,11 @@ namespace Mirage.Server.Host.Services;
 ///   /tod phase                  — jump the time of day
 ///   /weather type               — set the weather
 ///   /motd text                  — set the message of the day
+/// Remote access:
+///   /management                 — show the port, the token's state, and who is attached
+///   /management port n          — set the listening port (0 turns it off) and rebind now
+///   /management token [value]   — set the shared secret, or generate one and print it once
+///   /management off             — stop listening
 ///   /respawn map                — reset one map's items and NPCs
 ///   /mapreport                  — list unauthored map numbers
 /// Guilds and territory:
@@ -84,6 +89,12 @@ public sealed partial class ConsoleCommands : IHostedService
     private readonly EditorLockRegistry _editorLocks;
     private readonly EditorPacketHandler _editorHandler;
 
+    // Resolved lazily, because ManagementListener takes THIS class as a dependency: asking for the
+    // instance directly would be a cycle the container cannot build. A factory defers the lookup to the
+    // moment a command needs it, by which time both singletons exist.
+    private readonly Func<Management.ManagementListener> _management;
+    private readonly ServerConfigPath _configPath;
+
     private Task? _loopTask;
     private CancellationTokenSource? _cts;
 
@@ -108,8 +119,12 @@ public sealed partial class ConsoleCommands : IHostedService
         EditorLockRegistry editorLocks,
         EditorPacketHandler editorHandler,
         ServerConfig config,
+        Func<Management.ManagementListener> management,
+        ServerConfigPath configPath,
         ILogger<ConsoleCommands> logger)
     {
+        _management = management;
+        _configPath = configPath;
         _status = status;
         _moderation = moderation;
         _editors = editors;
@@ -279,6 +294,10 @@ public sealed partial class ConsoleCommands : IHostedService
 
             case "/weather":
                 _gameLoop.Post(() => CmdWeather(args));
+                break;
+
+            case "/management":
+                _gameLoop.Post(() => CmdManagement(args));
                 break;
 
             case "/motd":

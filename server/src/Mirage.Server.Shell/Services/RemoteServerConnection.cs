@@ -1,3 +1,4 @@
+using Mirage.Shared.Protocol;
 using Mirage.Shared.Security;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -73,11 +74,21 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
             if (greeting != HandshakeOk)
             {
                 // A refusal closes without saying why, so this is the shell's reading of the silence
-                // rather than anything the server said.
+                // rather than anything the server said. That silence is deliberate — telling a caller
+                // WHICH refusal it hit is a hint worth giving nobody — but it costs the operator the one
+                // fact they need, because five wrong attempts lock the address out for five minutes and
+                // the CORRECT token is refused for the rest of it. Retrying is what sustains it. So the
+                // message names both possibilities rather than asserting the wrong one.
                 ssl.Dispose();
                 client.Dispose();
                 return RemoteError.Rejected;
             }
+
+            // Ask for status snapshots. Until this line the socket is a plain console, so BOTH the
+            // dashboard and the moderation tab stay empty — they ride the same opt-in stream, which
+            // is how one missing line blanked two tabs. A local shell asks by starting the server with
+            // --status-events; attached remotely there is no command line, so it asks here.
+            await writer.WriteLineAsync(ServerStatus.RequestStatus).ConfigureAwait(false);
 
             lock (_lock)
             {

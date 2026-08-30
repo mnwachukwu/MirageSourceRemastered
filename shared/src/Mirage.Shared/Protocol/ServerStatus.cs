@@ -15,6 +15,18 @@ public sealed record ServerStatus
     /// off unless a consumer asked for it.</summary>
     public const string LinePrefix = "@@MIRAGE-STATUS@@ ";
 
+    /// <summary>What an attached operator sends to start receiving <see cref="LinePrefix"/> lines.
+    ///
+    /// <para>Opt-in, because the management socket is otherwise a plain console and a client that did
+    /// not ask should not have to filter machine lines out of it. A LOCAL shell asks by starting the
+    /// server with <c>--status-events</c>; a REMOTE one has no command line to pass, so it sends this.</para>
+    ///
+    /// <para>It lives beside the prefix deliberately. The request and the thing it requests are one
+    /// protocol, and keeping the server’s copy inside its own listener is how the client came to never
+    /// send it at all — which left a remotely attached shell with a blank dashboard AND a blank
+    /// moderation tab, since both ride this one stream.</para></summary>
+    public const string RequestStatus = "MIRAGE-WANT-STATUS";
+
     public string TimePhase { get; init; } = "";
     public string Weather { get; init; } = "";
     public string Motd { get; init; } = "";

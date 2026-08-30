@@ -41,6 +41,7 @@ const readmePath = join(repoRoot, 'README.md');
 // The words the README uses -> the folder they describe. A count is only checked when the README
 // actually mentions it, so adding a collection to world/ never fails this on its own.
 const COLLECTIONS = {
+  maps: 'maps',
   classes: 'classes',
   items: 'items',
   spells: 'spells',

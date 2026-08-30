@@ -137,26 +137,30 @@ from source there is no bundled copy, so the first Open is yours to aim.
 >
 > Both default to sitting beside the executable and are set independently, `WorldDir` and `DataDir`.
 >
-> **Seed data:** `server/src/Mirage.Server.Host/world/` is the shipped default configuration — 10 classes, 558 items, 270 spells, 177 NPCs, 38 conversations, 54 quests and 21 shops. Any collection you leave out is created empty and written on first save, so a partial world folder boots fine.
+> **Seed data:** `server/src/Mirage.Server.Host/world/` is the shipped default configuration — 147 maps, 10 classes, 558 items, 270 spells, 177 NPCs, 38 conversations, 54 quests and 21 shops. Any collection you leave out is created empty and written on first save, so a partial world folder boots fine.
 >
 > Those counts are checked against the folder by `.github/checks/check-seed-counts.mjs`, which CI runs — they have gone stale twice.
 >
-> **There are no maps in it, and that is the important caveat.** The seed is a content *library*, not a world: it defines what exists — the items, the bestiary, the townsfolk, the shops they keep and the quests they give — but nothing places any of it on a tile. Start a server against this `data/` and you get the 177 NPCs as definitions and a set of blank maps with none of them standing anywhere. Placing them is map authoring, which is what the editor is for.
+> **It is a placed world, not just a library.** 133 of the maps carry spawns, and 175 of the 177 NPCs stand somewhere: three towns with their shops, inns and quest-givers, the routes between them, and the boss rooms at the end of each. You can start a server, make a character and walk it.
 >
-> **The seed is TEST data, not a game.** It was built to exercise the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there.
+> **It is still TEST data rather than a game.** It exercises the engine at three specific bands — **levels 1–20, 100–120, and 235–255** — and there is deliberately *nothing in between*. Levels 21–99 and 121–234 have no mobs, no gear and no spells at all: a character leveling normally runs out of world twice. The three bands exist so combat, gearing and party scaling could be measured at the bottom, middle and top of the curve without authoring 255 levels of content to get there. Each band is a self-contained region reached from the hub, so the gap between them is a wall you arrive at rather than a stretch of empty map.
 >
-> It is included as a courtesy — enough to start a server and see the systems work, and a worked example of what the record formats look like — but it is not a playable game and was never intended as one. It is regular enough to look machine-written because it is: the generators that wrote it are published, so the seed can be regenerated, retuned, or replaced wholesale rather than treated as fixed. See [Authoring tools](#authoring-tools). Placing any of it on a map is still the editor's job.
+> It is included as a courtesy — enough to start a server and see the systems work end to end, and a worked example of what the record formats look like — but it is not a finished game and was never intended as one. The content is regular enough to look machine-written because most of it is: the generators that wrote the records and laid out the route maps are published, so the seed can be regenerated, retuned, or replaced wholesale rather than treated as fixed. See [Authoring tools](#authoring-tools).
 
 ---
 
 ## Authoring tools
 
-The seed world in `data/` was not hand-authored. It was generated, and the generators that wrote it are
-published: **[MirageSourceRemastered.Tools.Public](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public)**.
+Most of the seed world in `world/` was not hand-authored. It was generated, and the generators that wrote
+it are published: **[MirageSourceRemastered.Tools.Public](https://github.com/mnwachukwu/MirageSourceRemastered.Tools.Public)**.
 
 They are there because a seed you cannot regenerate is a seed you can only edit. With them you can retune
 the whole economy, rescale the bestiary, or throw the shipped content away and generate your own to the
 same shape.
+
+The **records** — items, spells, the bestiary, classes, conversations, quests, shops — are generated
+outright. The **maps** started generated and were then edited by hand, so they are the one part of the
+seed a regeneration would not reproduce.
 
 | | |
 |---|---|
@@ -172,11 +176,13 @@ Two things worth knowing before running any of them:
   engine, because it has no second copy of the rule to drift from. That is also why the tools repository
   expects to sit beside this one — the reference is a relative path.
 - **They own their collections outright.** A generator clears its collection before writing, so hand
-  edits to `data/items/` are lost the next time the armory generator runs. Author in the editor, or
+  edits to `world/items/` are lost the next time the armory generator runs. Author in the editor, or
   author in the generator — not both.
 
-The pipeline reproduces the committed seed byte-identically, which makes `git status` on `data/` after a
-run a real check that nothing has drifted.
+The record generators reproduce the committed seed byte-identically, which makes `git status` on those
+collections after a run a real check that nothing has drifted. The map generators do **not**: the shipped
+maps carry hand edits made after they were laid out, so a rerun produces a valid world rather than the
+one in the repository. Regenerate maps into a scratch folder and diff, rather than over `world/`.
 
 Not published: the standalone balance simulators. They exist to answer design questions, their output is
 already baked into the numbers the generators use, and nothing here builds them.

@@ -12,6 +12,7 @@ using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Host.Net;
 using Mirage.Server.Host.Services;
+using Mirage.Shared.Protocol;
 
 namespace Mirage.Server.Host.Management;
 
@@ -28,7 +29,7 @@ namespace Mirage.Server.Host.Management;
 /// </summary>
 public sealed class ManagementListener : IHostedService, IDisposable
 {
-    private readonly ManagementConfig _config;
+    private ManagementConfig _config;
     private readonly ConsoleTee _tee;
     private readonly ConsoleCommands _commands;
     private readonly ILogger<ManagementListener> _logger;
@@ -55,30 +56,71 @@ public sealed class ManagementListener : IHostedService, IDisposable
         _logger = logger;
     }
 
-    /// <summary>The line a client sends after the token to ask for status snapshots. Opt-in, because
-    /// this socket is otherwise a plain console and a client that did not ask should not have to filter
-    /// machine lines out of it.</summary>
-    public const string RequestStatus = "MIRAGE-WANT-STATUS";
+    /// <summary>The line a client sends after the token to ask for status snapshots.
+    /// <see cref="ServerStatus.RequestStatus"/> is the definition; this alias keeps the accept loop
+    /// reading the name it always did.</summary>
+    public const string RequestStatus = ServerStatus.RequestStatus;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
+    /// <summary>Whether operators can attach right now. Distinct from <see cref="ManagementConfig.IsEnabled"/>,
+    /// which says what the CONFIG asks for — a port already in use leaves the two disagreeing, and the
+    /// operator needs to be told which.</summary>
+    public bool IsListening => _listener is not null;
+
+    /// <summary>The port actually bound, or 0. Reads off the socket rather than the config so a stale
+    /// setting cannot be reported as a live one.</summary>
+    public int BoundPort => (_listener?.LocalEndpoint as IPEndPoint)?.Port ?? 0;
+
+    /// <summary>How many operators are attached.</summary>
+    public int AttachedOperators => _sessions.Count;
+
+    /// <summary>The config as it stands, for a status readout.</summary>
+    public ManagementConfig Current => _config;
+
+    private CancellationToken _hostToken = CancellationToken.None;
+
     public Task StartAsync(CancellationToken ct)
     {
-        if (_config.Port <= 0) return Task.CompletedTask;
+        // Kept so a later Reconfigure links its own CTS to the same host lifetime rather than to nothing.
+        _hostToken = ct;
+        Listen();
+        return Task.CompletedTask;
+    }
 
-        // A port with no token would be an unauthenticated console. Refuse loudly rather than open it,
-        // and rather than fail quietly: an operator who set the port believes remote access works.
+    /// <summary>Bind and start accepting, or do nothing when the config says off.
+    ///
+    /// <para>Returns null on success, or the reason it did not start — which the console command surfaces
+    /// to the operator who just asked for it. Refusing a port with no token is deliberate: an open port
+    /// with no secret is an unauthenticated console, and half-enabling one is worse than staying off.</para></summary>
+    private string? Listen()
+    {
+        if (_config.Port <= 0) return null;
+
         if (_config.Token.Length == 0)
         {
             LocalizedLog.Error(_logger, ServerStrings.Management_TokenMissing);
-            return Task.CompletedTask;
+            return ServerStrings.Get(ServerStrings.Management_TokenMissing);
         }
 
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        // The same identity the game listener presents: one server, one fingerprint.
-        _cert = SelfSignedCertificate.LoadOrCreate();
-        _listener = new TcpListener(IPAddress.Any, _config.Port);
-        _listener.Start(backlog: 4);
+        try
+        {
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(_hostToken);
+            // The same identity the game listener presents: one server, one fingerprint.
+            _cert = SelfSignedCertificate.LoadOrCreate();
+            _listener = new TcpListener(IPAddress.Any, _config.Port);
+            _listener.Start(backlog: 4);
+        }
+        catch (SocketException ex)
+        {
+            // Almost always the port being in use. The listener stays off rather than half-built, so a
+            // later Reconfigure starts from a clean slate.
+            _listener = null;
+            _cts?.Dispose();
+            _cts = null;
+            return ex.Message;
+        }
+
         _tee.LineWritten += Broadcast;
         // Status rides the socket DIRECTLY, not the console tee: it must reach only the operators who
         // asked, and must never land in the local console the tee feeds.
@@ -86,16 +128,42 @@ public sealed class ManagementListener : IHostedService, IDisposable
 
         LocalizedLog.Info(_logger, ServerStrings.Management_Listening, ("Port", _config.Port));
         _ = AcceptLoopAsync(_cts.Token);
-        return Task.CompletedTask;
+        return null;
+    }
+
+    /// <summary>Stop listening, without ending the process. Attached operators are dropped — their socket
+    /// is the thing being turned off.</summary>
+    private void Unlisten()
+    {
+        if (_listener is null) return;
+        _tee.LineWritten -= Broadcast;
+        _status.MachineLineReady -= BroadcastStatus;
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+        try { _listener.Stop(); } catch (SocketException) { }
+        _listener = null;
+        foreach (var session in _sessions.Keys) session.Complete();
+        _sessions.Clear();
+        SyncOperatorCount();
+    }
+
+    /// <summary>Apply a new management config to the RUNNING server: stop, take the new settings, start
+    /// again. Returns null when the result is what the config asked for, or the reason it is not.
+    ///
+    /// <para>This is what lets a headless operator turn remote access on without a restart, which is the
+    /// deployment that most needs it and the one that cannot edit a file and bounce the process
+    /// casually.</para></summary>
+    public string? Reconfigure(ManagementConfig next)
+    {
+        Unlisten();
+        _config = next;
+        return Listen();
     }
 
     public Task StopAsync(CancellationToken ct)
     {
-        _tee.LineWritten -= Broadcast;
-        _status.MachineLineReady -= BroadcastStatus;
-        _cts?.Cancel();
-        try { _listener?.Stop(); } catch (SocketException) { }
-        foreach (var session in _sessions.Keys) session.Complete();
+        Unlisten();
         return Task.CompletedTask;
     }
 

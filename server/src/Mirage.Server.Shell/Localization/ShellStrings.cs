@@ -147,6 +147,16 @@ public static class ShellStrings
     public const string Commands_Cancel = nameof(Commands_Cancel);
 
     public const string Commands_Who = nameof(Commands_Who);
+    public const string Commands_Moderation = nameof(Commands_Moderation);
+    public const string Commands_Unban = nameof(Commands_Unban);
+    public const string Commands_Unkick = nameof(Commands_Unkick);
+    public const string Commands_Unmute = nameof(Commands_Unmute);
+    public const string Commands_HwBan = nameof(Commands_HwBan);
+    public const string Commands_HwUnban = nameof(Commands_HwUnban);
+    public const string Commands_Editors = nameof(Commands_Editors);
+    public const string Commands_KickEditor = nameof(Commands_KickEditor);
+    public const string Commands_Remote = nameof(Commands_Remote);
+    public const string Commands_Management = nameof(Commands_Management);
     public const string Commands_Kick = nameof(Commands_Kick);
     public const string Commands_Mute = nameof(Commands_Mute);
     public const string Commands_Ban = nameof(Commands_Ban);

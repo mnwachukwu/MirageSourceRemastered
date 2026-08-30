@@ -40,8 +40,11 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 // A bad config never blocks a boot: the server runs on stock settings and says so.
 // --config points at another file, so a second server can run from this install without disturbing the
 // one an operator configured. See StartupArgs.
-var (serverConfig, configError) = ServerConfigStore.Load(
-    StartupArgs.ConfigPath(args) ?? ServerConfigStore.DefaultPath);
+// 🔴 The path is kept, not just used. A server started with --config reads that file, so anything
+// writing settings back has to write THAT file — resolving the default a second time at save time
+// sends a scratch server’s settings into the real installation’s config.
+var configPath = StartupArgs.ConfigPath(args) ?? ServerConfigStore.DefaultPath;
+var (serverConfig, configError) = ServerConfigStore.Load(configPath);
 string langDir = Path.Combine(AppContext.BaseDirectory, "lang");
 ServerStrings.Load(langDir, serverConfig.Language);
 
@@ -212,7 +215,14 @@ var host = Host.CreateDefaultBuilder(args)
         // service, because the management listener runs commands through the same instance.
         services.AddSingleton<ConsoleCommands>();
         services.AddHostedService(sp => sp.GetRequiredService<ConsoleCommands>());
-        services.AddHostedService<ManagementListener>();
+        // Singleton first, hosted second, so /management reaches the SAME listener the host started —
+        // AddHostedService alone would hand a command its own second instance, bound to nothing.
+        // Where the config came from, so /management writes back to the file this server READ.
+        services.AddSingleton(new ServerConfigPath(configPath));
+        services.AddSingleton<ManagementListener>();
+        services.AddHostedService(sp => sp.GetRequiredService<ManagementListener>());
+        // Breaks the cycle: the listener takes ConsoleCommands, and ConsoleCommands needs the listener.
+        services.AddSingleton<Func<ManagementListener>>(sp => sp.GetRequiredService<ManagementListener>);
     })
     .Build();
 
