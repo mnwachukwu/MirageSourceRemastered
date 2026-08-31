@@ -31,7 +31,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private readonly GameWorld _world;
     private readonly PlayerManager _pm;
     private readonly GuildSystem _guilds;
-    private readonly MovementSystem _movement;
     private readonly SpawnSystem _spawn;
     private readonly IPersistenceService _persistence;
     private readonly IBackgroundPersistence _bg;
@@ -45,11 +44,11 @@ public sealed partial class GuildTerritorySystem : GameSystem
     private readonly List<TerritoryContest> _contests = new();
     private long _lastContestTickUtc;
 
-    // MovementSystem (push-out warps) + SpawnSystem (NPC despawn/resume) are plain constructor deps: neither
-    // references GuildTerritorySystem back, so this stays acyclic. The reverse reads (setup radius walls, entry
-    // warnings, spawn suppression) go through GameWorld.ContestZones, so those systems need no reference here.
+    // SpawnSystem (NPC despawn/resume) is a plain constructor dep: it does not reference GuildTerritorySystem
+    // back, so this stays acyclic. The reverse reads (entry warnings, spawn suppression) go through
+    // GameWorld.ContestZones, so those systems need no reference here.
     public GuildTerritorySystem(GameWorld world, PlayerManager pm, IPacketDispatcher dispatcher,
-                                GuildSystem guilds, MovementSystem movement, SpawnSystem spawn,
+                                GuildSystem guilds, SpawnSystem spawn,
                                 IPersistenceService persistence, IBackgroundPersistence bg,
                                 ILogger<GuildTerritorySystem> logger,
                                 IClock? clock = null, IRandomSource? rng = null)
@@ -58,7 +57,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
         _world = world;
         _pm = pm;
         _guilds = guilds;
-        _movement = movement;
         _spawn = spawn;
         _persistence = persistence;
         _bg = bg;
@@ -322,7 +320,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
             FinalizeContest(c);                                     // resolve + apply outcome (defender holds if unscored)
             c.Phase = ContestPhase.Cooldown;
             c.PhaseEndUtc = now + Constants.TerritoryContestCooldownSeconds;
-            if (ZoneFor(c.TerritoryIndex) is { } z) z.SetupPhase = false;   // lift any setup walls
             int mins = Constants.TerritoryContestCooldownSeconds / 60;
             foreach (int g in c.Participants)
                 GuildWarNotice(g, ServerStrings.GuildTerritory_CooldownBegun, ("Territory", TerritoryNameOf(c)), ("Minutes", mins));

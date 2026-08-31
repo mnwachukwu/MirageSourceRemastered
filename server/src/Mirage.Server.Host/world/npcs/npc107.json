@@ -33,7 +33,7 @@
   "def": 214,
   "spd": 57,
   "int": 346,
-  "extraHp": 603,
+  "extraHp": 0,
   "isBoss": false,
   "emitsLight": true
 }

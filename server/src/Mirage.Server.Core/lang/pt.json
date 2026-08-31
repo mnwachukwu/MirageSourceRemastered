@@ -248,6 +248,7 @@
   "Quest_AnyTarget": "o teu alvo",
   "Quest_RewardExp": "Recompensa da missão: {Exp} pontos de experiência.",
   "Quest_NotEligible": "Você não pode pegar essa missão agora.",
+  "Quest_NoGiverOpen": "Você não está falando com ninguém sobre essa missão.",
   "Quest_NotComplete": "Você não cumpriu os objetivos dessa missão.",
   "Quest_TooMany": "Você já tem missões demais em andamento.",
   "Quest_RewardMailSubject": "Recompensa da missão",

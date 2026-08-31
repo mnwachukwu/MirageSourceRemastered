@@ -97,13 +97,17 @@ public sealed partial class MapEditorViewModel : ObservableObject
         RedoCommand.NotifyCanExecuteChanged();
     }
 
-    private bool CanUndo() => _undoStack.Count > 0 && SelectedMap is not null;
-    private bool CanRedo() => _redoStack.Count > 0 && SelectedMap is not null;
+    // Both reach the map through a window-level hotkey rather than a control, so the lock has to be part of
+    // CanExecute — disabling the canvas and the panels does not stop Ctrl+Z.
+    private bool CanUndo() => _undoStack.Count > 0 && SelectedMap is not null && !IsSelectedLocked;
+    private bool CanRedo() => _redoStack.Count > 0 && SelectedMap is not null && !IsSelectedLocked;
 
     [RelayCommand(CanExecute = nameof(CanUndo))]
     private void Undo()
     {
-        if (!_undoStack.TryPop(out var batch) || SelectedMap is null) return;
+        // Tested before the pop, so a refusal leaves the history where it was. A RelayCommand runs whether
+        // or not CanExecute agrees, so the greyed button and the hotkey's own check are both affordances.
+        if (IsSelectedLocked || !_undoStack.TryPop(out var batch) || SelectedMap is null) return;
         var map = SelectedMap.Record;
         for (int i = batch.Count - 1; i >= 0; i--)
             ApplyUndoOp(map, batch[i], undo: true);
@@ -114,7 +118,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRedo))]
     private void Redo()
     {
-        if (!_redoStack.TryPop(out var batch) || SelectedMap is null) return;
+        if (IsSelectedLocked || !_redoStack.TryPop(out var batch) || SelectedMap is null) return;
         var map = SelectedMap.Record;
         foreach (var op in batch)
             ApplyUndoOp(map, op, undo: false);

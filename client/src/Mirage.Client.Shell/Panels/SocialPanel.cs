@@ -213,6 +213,12 @@ public sealed partial class SocialPanel : IGamePanel
                     t => string.IsNullOrEmpty(t.Owner) ? ClientStrings.Get(ClientStrings.SocialPanel_Unclaimed) : t.Owner, 96, 60)
             .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColWeeksHeld), t => t.WeeksHeld, width: 56, minWidth: 40)
             .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColPrevIncome), t => t.PreviousWeekIncome, width: 72, minWidth: 50)
+            .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColIncomeWeek),
+                    t => t.IncomeThisWeek,
+                    t => t.OwnedByUs ? t.IncomeThisWeek.ToString() : "-", 76, 52)
+            .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColPending),
+                    t => t.PendingIncome,
+                    t => t.OwnedByUs ? t.PendingIncome.ToString() : "-", 70, 50)
             .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColContesting), t => t.Contesting, width: 100, minWidth: 60)
             .WithRowKey(t => t.Index);   // selection follows a territory across pushes (for the Challenge button)
         _territoryTable.SortBy(0);   // default alphabetical by territory name (matches the server order)

@@ -190,11 +190,28 @@ public sealed class SpellPanel : IGamePanel
     /// <summary>Cast the prepared spell at the current target. NEVER at the caster: the prepared slot only
     /// ever holds a SubHp spell — the server refuses to prepare anything else — so aiming it inward is
     /// asking to be damaged. Self-casting belongs to the action bar and the book, which hold the rest.</summary>
+    /// <summary>The cast beat — how often a prepared spell may go off, and how often the key may be
+    /// re-tried while it is HELD.</summary>
+    private const long CastBeatMs = 1000L;
+
+    /// <summary>When the last attempt was sent, whatever became of it.
+    ///
+    /// <para>🔴 <see cref="PlayerRecord.AttackTimer"/> is stamped only when the server CONFIRMS a cast, so
+    /// it does not pace a cast that gets refused — no target, no MP, out of range. On a rising edge that is
+    /// fine and deliberate (a refusal must never lock out the retry), but a held key with only that gate
+    /// would re-send every frame for as long as the refusal lasts.</para></summary>
+    private long _lastAttemptMs;
+
     public void TryCastPrepared(ClientState state, ClientPacketSender sender)
     {
         if (_preparedSlot <= 0) return;
         if (state.Me is not { } me) return;
-        if (Environment.TickCount64 - me.AttackTimer < 1000L) return;
+
+        long now = Environment.TickCount64;
+        if (now - me.AttackTimer < CastBeatMs) return;   // the last cast the server accepted
+        if (now - _lastAttemptMs < CastBeatMs) return;   // and the last one it did not
+
+        _lastAttemptMs = now;
         AttemptCast(sender, _preparedSlot);
     }
 

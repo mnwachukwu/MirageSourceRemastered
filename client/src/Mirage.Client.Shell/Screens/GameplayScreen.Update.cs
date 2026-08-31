@@ -259,7 +259,10 @@ public sealed partial class GameplayScreen : IGameScreen
             // the caster, so the same four face buttons serve both without a two-trigger grip. Holding both
             // aims at the caster — see IsSelfTargetHeld — so aim can be switched without releasing first.
             bool hotkeyModifier = padActive && (input.IsGamePadLeftTriggerDown() || input.IsGamePadRightTriggerDown());
-            if ((kbActive && input.IsKeyPressed(Keys.Q)) || (padActive && input.IsGamePadButtonPressed(Buttons.Y) && !hotkeyModifier))
+            // HELD, like the attack key: a prepared spell is the caster's swing, so holding it should keep
+            // swinging. TryCastPrepared paces the repeat on the cast beat — both the beat the server confirms
+            // and a local one, so a refused cast cannot re-send every frame while the key stays down.
+            if ((kbActive && input.IsKeyDown(Keys.Q)) || (padActive && input.IsGamePadButtonDown(Buttons.Y) && !hotkeyModifier))
                 _spells.TryCastPrepared(_ctx.State, _ctx.Sender);
 
             // Each slot answers to the clock its contents keep: a spell to the action beat it shares
@@ -375,12 +378,18 @@ public sealed partial class GameplayScreen : IGameScreen
             _pickUpLatched = false;
             _attackPressLatched = false;
         }
-        else if (onTick)
+        else
         {
+            // Every frame, not only on the tick. The tick gates the ACTION sends inside Process; movement
+            // is rate-limited by the slide it is waiting on, and holding it to a tick boundary makes any
+            // run faster than one tile per tick finish early and then stand still until the next one.
             var snapshot = BuildInputSnapshot(input, _pickUpLatched, _attackPressLatched);
-            _pickUpLatched = false;
-            _attackPressLatched = false;
-            InputProcessor.Process(snapshot, _ctx.State, _ctx.Sender, nowMs);
+            if (onTick)
+            {
+                _pickUpLatched = false;
+                _attackPressLatched = false;
+            }
+            InputProcessor.Process(snapshot, _ctx.State, _ctx.Sender, nowMs, onTick);
             // Core refused a melee-key interact aimed across the two planes. It owns that decision (it resolves the
             // faced NPC) but has no chat, so the refusal is voiced here — drained immediately, never left stale.
             if (_ctx.State.NpcInteractWrongLayer)

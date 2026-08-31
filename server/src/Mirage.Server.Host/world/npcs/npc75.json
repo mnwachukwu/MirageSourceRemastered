@@ -4,7 +4,7 @@
   "sprite": 1,
   "size": 2,
   "spawnSecs": 80,
-  "behavior": "AttackOnSight",
+  "behavior": "AttackWhenAttacked",
   "group": 2,
   "range": 6,
   "drops": [
@@ -28,7 +28,7 @@
   "def": 148,
   "spd": 20,
   "int": 8,
-  "extraHp": 4792,
+  "extraHp": 714,
   "isBoss": false,
   "emitsLight": true
 }

@@ -389,9 +389,9 @@ public sealed class GameWorld
 
     // ── Live territory contest coordination ──────────────────────────────────────
     // Runtime-only projection of the active KotH contests, published by GuildTerritorySystem so MovementSystem
-    // (setup radius walls + non-participant entry warnings) and SpawnSystem (NPC spawn suppression) can read the
-    // war state without a GuildTerritorySystem reference (which would cycle — GuildTerritorySystem already
-    // depends on both for push-out warps + despawns). Empty whenever no contest is running.
+    // (non-participant entry warnings) and SpawnSystem (NPC spawn suppression) can read the war state without a
+    // GuildTerritorySystem reference (which would cycle — GuildTerritorySystem already depends on SpawnSystem
+    // for the despawns). Empty whenever no contest is running.
     public List<ContestZone> ContestZones { get; } = new();
 
     /// <summary>True while <paramref name="mapNum"/> is in a territory with a live contest — NPCs neither spawn

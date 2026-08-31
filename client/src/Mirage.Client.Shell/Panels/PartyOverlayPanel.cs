@@ -10,20 +10,26 @@ using Mirage.Shared;
 namespace Mirage.Client.Shell.Panels;
 
 /// <summary>
-/// Compact party-partner overlay anchored to the top-left of the game viewport.  Only drawn while
+/// Compact party-partner overlay, in the sidebar's free space below the Logout button.  Only drawn while
 /// the local player has a partner — the snapshot lives on <c>state.Party</c> and is pushed by the
 /// server.  Bars share fills and label format with the right-sidebar HUD (via
 /// <see cref="UiHelper.DrawVitalBar"/>) and stack flush against each other inside a panel; a single
 /// outline wraps the three-bar block.  Outline picks up the in-world bar treatment: amber while the
 /// partner is in combat, cyan when the local player is targeting them, otherwise white.  Proximity
 /// (partner's map in our 3×3 observable area, same rule the 1.2× party EXP bonus uses) drives a
-/// 0.7/0.4 alpha tint on the whole overlay so the panel never fights the world.
+/// 0.7/0.4 alpha tint on the whole overlay, so how close the partner is reads at a glance.
 /// </summary>
 public sealed class PartyOverlayPanel
 {
-    // Layout — top-left game viewport (game view is 512×384, sidebar starts at 513).
-    // Outer panel anchored at (X,Y); inner content padded by Pad.
-    private const int X = 4, Y = 4;
+    // Layout — the sidebar's free space, centered under the Logout button. Everything below is measured
+    // from (X,Y), so the whole panel and its hit boxes travel together.
+    private static readonly Point Anchor = HudPanel.FreeSpaceAnchor(PanelW);
+    private static int X => Anchor.X;
+    private static int Y => Anchor.Y;
+
+    /// <summary>The panel's outer rectangle, where it is drawn.</summary>
+    internal static Rectangle Bounds => new(X, Y, PanelW, PanelH);
+
     private const int InnerW = 152;
     private const int HeaderH = 14;
     private const int BarH = 12;

@@ -85,10 +85,12 @@ public sealed class ChangePasswordScreen : IGameScreen
             if (_connectTask!.IsCompleted)
             {
                 _connecting = false;
-                if (_connectTask.IsFaulted)
-                    _errorMsg = ConnectFailure.Describe(_connectTask);
-                else
+                // Succeeded, not merely finished: a cancelled attempt completes without faulting, and
+                // treating that as a connection sends the request into a socket that is already gone.
+                if (_connectTask.IsCompletedSuccessfully)
                     DoChange();
+                else
+                    _errorMsg = ConnectFailure.Describe(_connectTask);
             }
             return;
         }

@@ -245,7 +245,7 @@ public sealed partial class ItemSystem : GameSystem
 
         var item = items[itemNum];
         p.Inv[slot].Num = itemNum;
-        p.Inv[slot].Quantity = p.Inv[slot].Quantity + value;
+        p.Inv[slot].AddQuantity(value);
 
         if (item.Type is ItemType.Armor or ItemType.Weapon or ItemType.Helmet or ItemType.Shield)
             p.Inv[slot].Dur = dur > 0 ? dur : item.Durability;
@@ -338,7 +338,7 @@ public sealed partial class ItemSystem : GameSystem
         if (items[itemNum].Type == ItemType.Currency)
         {
             for (int i = 1; i <= Constants.MaxInv; i++)
-                if (p.Inv[i] is { } s && s.Num == itemNum) { s.Quantity += value; return true; }
+                if (p.Inv[i] is { } s && s.Num == itemNum) { s.AddQuantity(value); return true; }
         }
 
         for (int i = 1; i <= Constants.MaxInv; i++)

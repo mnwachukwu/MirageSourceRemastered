@@ -191,7 +191,7 @@ public static class HotkeyBarPanel
         int held = InventoryQuery.HeldCount(state, itemNum);
         if (held <= 0) return;
 
-        string label = held.ToString();
+        string label = HeldCountLabel(held);
         var size = font.MeasureString(label);
         var plate = new Rectangle(box.X + 1, box.Y + 1, (int)size.X + CountPadX * 2, BadgeH);
         UiHelper.DrawFilledRect(sb, plate, BadgePlate);
@@ -199,6 +199,16 @@ public static class HotkeyBarPanel
             new Vector2(plate.X + CountPadX, plate.Y + (plate.Height - size.Y) / 2f),
             Color.White);
     }
+
+    /// <summary>The count as the corner badge shows it, capped at four characters.
+    ///
+    /// <para>A stack runs to billions, and the badge sits inside a 32-pixel icon: past three digits the
+    /// plate grows over the art it belongs to. Above the cap the exact figure is not what the badge is for
+    /// anyway — it answers "have I got plenty", and the bag and the tooltip both carry the real number.</para></summary>
+    internal static string HeldCountLabel(int held) => held > MaxShownCount ? $"{MaxShownCount}+" : held.ToString();
+
+    /// <summary>The largest count shown exactly; more reads as "999+".</summary>
+    internal const int MaxShownCount = 999;
 
     private static void DrawKeyBadge(SpriteBatch sb, SpriteFont font, Rectangle box, int slot, bool gamepadActive)
     {

@@ -248,6 +248,7 @@
   "Quest_AnyTarget": "your target",
   "Quest_RewardExp": "Quest reward: {Exp} experience points.",
   "Quest_NotEligible": "You can't take that quest right now.",
+  "Quest_NoGiverOpen": "You are not speaking with anyone about that quest.",
   "Quest_NotComplete": "You haven't finished that quest's objectives.",
   "Quest_TooMany": "You already have too many quests in progress.",
   "Quest_RewardMailSubject": "Quest reward",

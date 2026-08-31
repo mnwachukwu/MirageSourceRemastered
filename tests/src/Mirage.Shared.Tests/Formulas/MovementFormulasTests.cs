@@ -21,13 +21,26 @@ public class MovementFormulasTests
         Assert.That(MovementFormulas.BaseWalkMsPerTile, Is.EqualTo(MovementFormulas.BaseRunMsPerTile * 2f));
     }
 
-    [TestCase(0, 100, TestName = "0 SPD sprints at twice walk pace (+100%)")]
-    [TestCase(75, 150, TestName = "Half the cap's SPD sprints at 2.5x walk (+150%)")]
-    [TestCase(150, 200, TestName = "Cap SPD sprints at three times walk (+200%)")]
-    [TestCase(300, 200, TestName = "Past the cap adds nothing further")]
-    public void SprintBonusPercent_IsMeasuredAgainstWalking(int spd, int expected)
+    // The label reports what SPD BOUGHT, over the sprint everyone starts with — so it and the 1.5x run cap
+    // are the same statement, and a reader cannot mistake it for a multiplier.
+    [TestCase(0, 0, TestName = "0 SPD has bought nothing yet (+0%)")]
+    [TestCase(75, 25, TestName = "Half the cap's SPD is half the bonus (+25%)")]
+    [TestCase(135, 45, TestName = "Just short of the cap (+45%)")]
+    [TestCase(150, 50, TestName = "Cap SPD is the full bonus (+50%), matching the 1.5x run cap")]
+    [TestCase(300, 50, TestName = "Past the cap adds nothing further")]
+    public void SprintBonusPercent_IsMeasuredAgainstTheBaseRun(int spd, int expected)
     {
         Assert.That(MovementFormulas.SprintBonusPercent(spd), Is.EqualTo(expected));
+    }
+
+    /// <summary>The label and the cap have to agree, or one of them is lying about the same fact.</summary>
+    [Test]
+    public void TheLabelAtTheCap_MatchesTheRunCapItself()
+    {
+        float capMultiplier = MovementFormulas.BaseRunMsPerTile / MovementFormulas.RunMsPerTile(1_000);
+
+        Assert.That(MovementFormulas.SprintBonusPercent(1_000),
+            Is.EqualTo((int)Math.Round((capMultiplier - 1f) * 100f)));
     }
 
     [Test]
@@ -35,7 +48,7 @@ public class MovementFormulasTests
     {
         // Base run is a hard floor: SPD is a pure additive bonus and a negative or zero SPD must not
         // make a character slower than the baseline everyone starts at.
-        Assert.That(MovementFormulas.SprintBonusPercent(-50), Is.EqualTo(100));
+        Assert.That(MovementFormulas.SprintBonusPercent(-50), Is.Zero);
     }
 
     [Test]

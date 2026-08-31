@@ -11,93 +11,25 @@ using Mirage.Shared.Records;
 
 namespace Mirage.Server.Core.GameLogic;
 
-/// <summary>The contest zone as a place — setup walls, pushing non-participants out, NPC suppression,
-/// the combat-integration queries CombatSystem asks of it, and the officer request queue.</summary>
+/// <summary>The contest zone as a place — NPC suppression, the combat-integration queries CombatSystem asks
+/// of it, and the officer request queue.</summary>
 public sealed partial class GuildTerritorySystem : GameSystem
 {
-    // ── Setup zone lifecycle (walls, push-out, NPC despawn/resume) ─────────────────
-    // The GameWorld projection for a live contest (radius walls + NPC suppression + entry warnings).
+    // ── Setup zone lifecycle (NPC despawn/resume) ─────────────────────────────────
+    // The GameWorld projection for a live contest (NPC suppression + entry warnings).
     private ContestZone? ZoneFor(int territoryIndex)
     {
         foreach (var z in _world.ContestZones) if (z.TerritoryIndex == territoryIndex) return z;
         return null;
     }
 
-    // Cooldown end: drop the projection (lifts the radius walls + NPC-spawn suppression), then resume the map
+    // Cooldown end: drop the projection (lifts NPC-spawn suppression), then resume the map
     // NPCs now that the whole war state is over (NPCs return only after the cooldown).
     private void EndContestZone(int territoryIndex)
     {
         var maps = ZoneFor(territoryIndex)?.Maps ?? TerritoryMaps(territoryIndex);
         _world.ContestZones.RemoveAll(z => z.TerritoryIndex == territoryIndex);
         foreach (int m in maps) _spawn.SpawnMapNpcs(m);
-    }
-
-    // Setup push-out: a non-defender caught inside a capture radius when setup begins is warped to a
-    // walkable tile OUTSIDE every radius on that map (attackers + non-participants alike; the defending guild
-    // may stay). Runs once at setup start; the radius walls then keep them out.
-    private void PushNonDefendersOutOfRadii(TerritoryContest c, int defenderId)
-    {
-        for (int i = 1; i <= _pm.Slots; i++)
-        {
-            var sp = _pm[i];
-            if (!sp.IsPlaying) continue;
-            if (defenderId > 0 && sp.Guild == defenderId) continue;   // defenders may stand in the radii
-            var ch = sp.Char;
-            bool inside = false;
-            foreach (var pt in c.Points)
-            {
-                if (ch.Map == pt.Map && ch.Layer == pt.Layer && WithinRadius(ch.X, ch.Y, pt.X, pt.Y))
-                {
-                    inside = true;
-                    break;
-                }
-            }
-
-            if (!inside) continue;
-            if (TryPickNearestTileOutsideRadii(ch.Map, ch.X, ch.Y, c.Points, out int x, out int y))
-                _movement.PlayerWarp(i, ch.Map, x, y);
-        }
-    }
-
-    // The NEAREST walkable tile outside every capture radius, found by BFS over walkable tiles out from the
-    // player's tile — a gentle push (least-disruptive, path-reachable relocation) rather than a random
-    // teleport across the map. False only if no such tile is reachable (every reachable tile is covered).
-    private bool TryPickNearestTileOutsideRadii(int mapNum, int fromX, int fromY, List<ContestPoint> points, out int x, out int y)
-    {
-        var map = _world.Maps[mapNum];
-        int w = map.Width, h = map.Height;
-        x = y = 0;
-        if (fromX < 0 || fromX >= w || fromY < 0 || fromY >= h) return false;
-        var seen = new bool[w, h];
-        var queue = new Queue<(int X, int Y)>();
-        seen[fromX, fromY] = true;
-        queue.Enqueue((fromX, fromY));  // start tile is walkable (the player stands on it)
-        while (queue.Count > 0)
-        {
-            var (cx, cy) = queue.Dequeue();
-            if (!AnyRadiusCovers(cx, cy, mapNum, points))
-            {
-                x = cx;
-                y = cy;
-                return true;
-            }  // first walkable tile clear of all radii
-            foreach (var (nx, ny) in Neighbors4(cx, cy))
-            {
-                if (nx >= 0 && nx < w && ny >= 0 && ny < h && !seen[nx, ny] && map.Tile[nx, ny].Type == TileType.Walkable)
-                {
-                    seen[nx, ny] = true;
-                    queue.Enqueue((nx, ny));
-                }
-            }
-        }
-        return false;
-    }
-
-    private static bool AnyRadiusCovers(int x, int y, int mapNum, List<ContestPoint> points)
-    {
-        foreach (var pt in points)
-            if (pt.Map == mapNum && WithinRadius(x, y, pt.X, pt.Y)) return true;
-        return false;
     }
 
     // Warn non-participants standing in the territory when setup begins — a courtesy so they can leave.

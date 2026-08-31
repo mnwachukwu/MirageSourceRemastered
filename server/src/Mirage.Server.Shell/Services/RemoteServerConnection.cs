@@ -4,6 +4,7 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
+using System.Threading.Channels;
 
 namespace Mirage.Server.Shell.Services;
 
@@ -29,6 +30,9 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
     private SslStream? _ssl;
     private StreamWriter? _writer;
     private CancellationTokenSource? _cts;
+    // Commands wait here instead of on the UI thread. Unbounded: an operator cannot type fast enough to
+    // matter, and dropping a command would be worse than queueing one.
+    private Channel<string>? _outbox;
 
     public event Action<string>? OutputReceived;
     public event Action<ServerState>? StateChanged;
@@ -96,9 +100,11 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
                 _ssl = ssl;
                 _writer = writer;
                 _cts = new CancellationTokenSource();
+                _outbox = Channel.CreateUnbounded<string>(new UnboundedChannelOptions { SingleReader = true });
             }
 
             _ = ReadLoopAsync(reader, _cts.Token);
+            _ = WriteLoopAsync(writer, _outbox.Reader, _cts.Token);
             SetState(ServerState.Running);
             return null;
         }
@@ -119,13 +125,29 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
         public const string IdentityChanged = nameof(IdentityChanged);
     }
 
-    public void SendCommand(string line)
+    /// <summary>Hands a command to the outbox and returns at once.
+    ///
+    /// <para>🔴 It never touches the socket. This is called from a button, on the UI thread, and a write to
+    /// a TLS stream is synchronous: it blocks until the bytes are away. A connection whose peer has gone but
+    /// whose TCP has not yet noticed accepts nothing, so that write waits — and the whole window stops
+    /// answering while still presenting its last frame, which reads as a freeze rather than a lost server.</para>
+    ///
+    /// <para>One channel with one reader also keeps commands in the order they were pressed, which a
+    /// write-per-thread would not.</para></summary>
+    public void SendCommand(string line) => _outbox?.Writer.TryWrite(line);
+
+    /// <summary>Drains the outbox onto the socket. The only place the writer is used, so no lock is needed
+    /// to keep two writes off each other.</summary>
+    private async Task WriteLoopAsync(StreamWriter writer, ChannelReader<string> outbox, CancellationToken ct)
     {
-        lock (_lock)
+        try
         {
-            if (_writer is null) return;
-            try { _writer.WriteLine(line); }
-            catch (Exception ex) when (ex is IOException or ObjectDisposedException) { Teardown(); }
+            await foreach (string line in outbox.ReadAllAsync(ct).ConfigureAwait(false))
+                await writer.WriteLineAsync(line.AsMemory(), ct).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException)
+        {
+            Teardown();
         }
     }
 
@@ -160,6 +182,8 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
         lock (_lock)
         {
             if (_client is null) return;
+            _outbox?.Writer.TryComplete();
+            _outbox = null;
             _cts?.Cancel();
             _cts?.Dispose();
             _writer?.Dispose();

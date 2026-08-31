@@ -35,7 +35,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     public void CutSelection()
     {
-        if (SelectedMap is null || SelectionRect is null) return;
+        // Ctrl+X is a window-level hotkey and reaches the map past every disabled control. Copy stays
+        // available on a locked map: reading takes nothing.
+        if (SelectedMap is null || SelectionRect is null || IsSelectedLocked) return;
         var sel = SelectionRect.Value;
         if (!CaptureRectToClipboard(sel.X1, sel.Y1, sel.X2, sel.Y2)) return;
 

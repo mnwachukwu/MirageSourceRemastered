@@ -105,10 +105,7 @@ public sealed partial class AccountEditorViewModel : ObservableObject
         SelectedAccessFilter = AccessFilters.FirstOrDefault(o => o.Level == keep) ?? AccessFilters[0];
     }
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelection))]
-    [NotifyPropertyChangedFor(nameof(CanSave))]
-    private EditorAccountRow? _selectedAccount;
+    [ObservableProperty] private EditorAccountRow? _selectedAccount;
 
     [ObservableProperty] private string _searchText = "";
     [ObservableProperty] private int _page;
@@ -118,13 +115,20 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 
     // The loaded record's own fields, held apart from the row so an edit in progress is not clobbered by
     // a list refresh.
-    [ObservableProperty] private string _login = "";
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
+    [NotifyPropertyChangedFor(nameof(CanEditAccess))]
+    [NotifyPropertyChangedFor(nameof(IsSelf))]
+    private string _login = "";
     [ObservableProperty] private AdminLevel _access;
     [ObservableProperty] private bool _isOnline;
     [ObservableProperty] private int _guild;
     [ObservableProperty] private GuildRank _guildRank;
 
-    public bool HasSelection => SelectedAccount is not null;
+    /// <summary>Whether an account is open in the form. Keyed on the loaded login rather than the list
+    /// selection, which comes and goes with every refresh of the page behind it.</summary>
+    public bool HasSelection => Login.Length > 0;
     public bool IsOffline => !_conn.IsConnected;
 
     /// <summary>True while the loaded account is the one this editor session signed in as. Its access
@@ -154,7 +158,11 @@ public sealed partial class AccountEditorViewModel : ObservableObject
     {
         Accounts.Clear();
         ClearChars();
+        Bank.Clear();
         SelectedAccount = null;
+        // Closing the form is explicit. A list refresh drops the selection without closing anything, so
+        // this is the only place an open account goes away on its own.
+        Login = "";
         Notify();
     }
 
@@ -186,6 +194,9 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 
             Accounts.Clear();
             foreach (var a in reply.Accounts) Accounts.Add(a);
+            // Clearing the list drops the ListBox's selection, so the open account is put back on its new
+            // row. Re-selecting the same login re-reads nothing — the form is already showing it.
+            SelectedAccount = Accounts.FirstOrDefault(a => string.Equals(a.Login, Login, StringComparison.OrdinalIgnoreCase));
             Total = reply.Total;
             Page = reply.Page;
             StatusMessage = "";
@@ -216,23 +227,28 @@ public sealed partial class AccountEditorViewModel : ObservableObject
 
     partial void OnSelectedAccountChanged(EditorAccountRow? value)
     {
-        if (value is null)
-        {
-            ClearChars();
-            Login = "";
-            return;
-        }
+        // The form belongs to the LOGIN it loaded, not to a row in the list. A refresh clears and refills
+        // Accounts, which drops the ListBox's selection — so treating that as "nothing is open" would empty
+        // a form full of unsaved changes every time the search box was typed into.
+        if (value is null || string.Equals(value.Login, Login, StringComparison.OrdinalIgnoreCase)) return;
         _ = LoadAccountAsync(value.Login);
     }
 
-    private async Task LoadAccountAsync(string login)
+    /// <summary>Read an account back from the server.
+    ///
+    /// <para><paramref name="keepEdits"/> is what a targeted operation passes. Those land immediately and
+    /// have to be re-read — the bag on screen must be the bag that exists — but the form may also be holding
+    /// typed changes that Save has not sent yet, and replacing it wholesale throws them away. See
+    /// <see cref="AdoptServerOwned"/>.</para></summary>
+    private async Task LoadAccountAsync(string login, bool keepEdits = false)
     {
         if (!_conn.IsConnected) return;
         try
         {
             var record = await _conn.RequestAccountAsync(login);
             if (record is null) return;
-            Apply(record);
+            if (keepEdits) AdoptServerOwned(record);
+            else Apply(record);
         }
         catch (Exception ex)
         {
@@ -264,6 +280,35 @@ public sealed partial class AccountEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(IsSelf));
         OnPropertyChanged(nameof(CanEditAccess));
         NotifyBudget();
+    }
+
+    /// <summary>Take back only what the SERVER owns — the vault, the online flag, the guild line, and each
+    /// character's name, bag, book and log. Access and every character's typed level, EXP, position and
+    /// stats are left where the operator put them, because those are what Save carries and nothing else has
+    /// touched them.
+    ///
+    /// <para>A different set of characters means the form is describing an account that has changed under
+    /// it, and none of its assumptions hold — that takes the whole record.</para></summary>
+    internal void AdoptServerOwned(EditorAccountPacket record)
+    {
+        if (record.Chars.Count != Chars.Count || record.Chars.Any(c => Chars.All(r => r.Slot != c.Slot)))
+        {
+            Apply(record);
+            return;
+        }
+
+        IsOnline = record.IsOnline;
+        Guild = record.Guild;
+        GuildRank = record.GuildRank;
+
+        Bank.Clear();
+        foreach (var b in record.Bank) Bank.Add(b);
+        OnPropertyChanged(nameof(HasNoBank));
+
+        foreach (var c in record.Chars)
+            Chars.First(r => r.Slot == c.Slot).AdoptServerState(c);
+
+        OnPropertyChanged(nameof(GuildText));
     }
 
     private void OnCharRowChanged(object? sender, PropertyChangedEventArgs e)
@@ -348,7 +393,7 @@ public sealed partial class AccountEditorViewModel : ObservableObject
             StatusMessage = notice.Message;
             if (!notice.Ok) return;
 
-            await LoadAccountAsync(Login);
+            await LoadAccountAsync(Login, keepEdits: true);
             await RefreshAsync();
         }
         catch (Exception ex)
@@ -436,7 +481,7 @@ public sealed partial class AccountEditorViewModel : ObservableObject
             var notice = await op();
             if (notice is null) return;
             StatusMessage = notice.Message;
-            if (notice.Ok) await LoadAccountAsync(Login);
+            if (notice.Ok) await LoadAccountAsync(Login, keepEdits: true);
         }
         catch (Exception ex)
         {
@@ -492,7 +537,7 @@ public sealed record AccessFilterOption(AdminLevel? Level, string Label);
 public sealed partial class AccountCharRowViewModel : ObservableObject
 {
     private readonly int _slot;
-    private readonly string _name;
+    private string _name;
     private readonly int _class;
 
     // What a level change measures from. Recomputing against a baseline rather than nudging the pool by a
@@ -713,6 +758,36 @@ public sealed partial class AccountCharRowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsWithinBudget));
         OnPropertyChanged(nameof(BudgetText));
         OnPropertyChanged(nameof(OverBudgetText));
+    }
+
+    /// <summary>Take back the parts of this character the SERVER owns — its name and the three collections
+    /// a targeted operation changes — and leave every typed field the account Save carries exactly as it is.
+    ///
+    /// <para>The bag, the book and the log are read-only here and only ever change through their own round
+    /// trips, so the server's copy is always the right one. Level, EXP, position and the stats are the
+    /// operator's until Save sends them, and re-reading over them throws away work they have not finished.</para></summary>
+    internal void AdoptServerState(EditorCharRow row)
+    {
+        if (!string.Equals(_name, row.Name, StringComparison.Ordinal))
+        {
+            _name = row.Name;
+            RenameTo = row.Name;            // the box tracks the accepted name, so Rename greys out again
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(CanRename));
+        }
+
+        Refill(Inv, row.Inv);
+        Refill(Spells, row.Spells);
+        Refill(Quests, row.Quests);
+        OnPropertyChanged(nameof(HasNoInv));
+        OnPropertyChanged(nameof(HasNoSpells));
+        OnPropertyChanged(nameof(HasNoQuests));
+    }
+
+    private static void Refill<T>(ObservableCollection<T> target, List<T> source)
+    {
+        target.Clear();
+        foreach (var x in source) target.Add(x);
     }
 
     public EditorCharRow ToRow() => new()

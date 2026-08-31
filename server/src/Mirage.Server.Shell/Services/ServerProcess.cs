@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading.Channels;
 using Mirage.Shared;
 
 namespace Mirage.Server.Shell.Services;
@@ -19,6 +20,9 @@ public sealed class ServerProcess : IServerConnection
 
     private readonly object _lock = new();
     private Process? _process;
+    // Commands wait here rather than on the UI thread. Unbounded: an operator cannot type fast enough
+    // to matter, and dropping a command would be worse than queueing one.
+    private Channel<string>? _outbox;
 
     public event Action<string>? OutputReceived;
     public event Action<ServerState>? StateChanged;
@@ -75,6 +79,8 @@ public sealed class ServerProcess : IServerConnection
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             _process = process;
+            _outbox = Channel.CreateUnbounded<string>(new UnboundedChannelOptions { SingleReader = true });
+            _ = WriteLoopAsync(process, _outbox.Reader);
         }
         SetState(ServerState.Running);
         return Task.FromResult<string?>(null);
@@ -83,14 +89,27 @@ public sealed class ServerProcess : IServerConnection
     /// <summary>Types a line at the server's console. Everything <c>ConsoleCommands</c> understands
     /// arrives this way, so the shell inherits the whole command set without reimplementing any of
     /// it.</summary>
-    public void SendCommand(string line)
+    /// <summary>Hands a line to the outbox and returns at once.
+    ///
+    /// <para>🔴 It never touches the pipe. This is called from a button, on the UI thread, and a write to
+    /// stdin blocks once the pipe buffer is full — which is exactly what a server that has stopped reading
+    /// its console does. The window then stops answering while still presenting its last frame, so a wedged
+    /// server reads as a broken shell.</para></summary>
+    public void SendCommand(string line) => _outbox?.Writer.TryWrite(line);
+
+    /// <summary>Drains the outbox into the process’s stdin, one line at a time and in order.</summary>
+    private static async Task WriteLoopAsync(Process process, ChannelReader<string> outbox)
     {
-        lock (_lock)
+        try
         {
-            if (_process is not { HasExited: false }) return;
-            try { _process.StandardInput.WriteLine(line); _process.StandardInput.Flush(); }
-            catch (IOException) { /* the pipe closed under us; Exited will follow */ }
+            await foreach (string line in outbox.ReadAllAsync().ConfigureAwait(false))
+            {
+                if (process.HasExited) return;
+                await process.StandardInput.WriteLineAsync(line).ConfigureAwait(false);
+            }
         }
+        // The pipe closed under us; Exited follows and the state goes with it.
+        catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException) { }
     }
 
     /// <summary>Asks the server to shut down and waits for it to finish draining. Kills it only if it
@@ -133,6 +152,8 @@ public sealed class ServerProcess : IServerConnection
         try { StopAsync().GetAwaiter().GetResult(); } catch (Exception ex) when (ex is IOException or InvalidOperationException) { }
         lock (_lock)
         {
+            _outbox?.Writer.TryComplete();
+            _outbox = null;
             _process?.Dispose();
             _process = null;
         }

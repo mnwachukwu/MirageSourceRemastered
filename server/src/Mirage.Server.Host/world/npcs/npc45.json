@@ -1,10 +1,10 @@
 {
-  "name": "Warlord's Guard",
+  "name": "Warlord\u0027s Guard",
   "attackSay": "None pass to the Warlord.",
   "sprite": 37,
   "size": 2,
   "spawnSecs": 100,
-  "behavior": "AttackOnSight",
+  "behavior": "AttackWhenAttacked",
   "group": 5,
   "range": 5,
   "drops": [
@@ -33,7 +33,7 @@
   "def": 27,
   "spd": 5,
   "int": 8,
-  "extraHp": 404,
+  "extraHp": 40,
   "isBoss": false,
   "emitsLight": true
 }

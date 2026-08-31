@@ -141,6 +141,10 @@ public sealed class PlayerRecord
     [JsonIgnore] public int MaxSp { get; set; }
     [JsonIgnore] public float XOffset { get; set; }
     [JsonIgnore] public float YOffset { get; set; }
+    /// <summary>Slide time left over when a tile finished part-way through a frame, carried into the next
+    /// one. Dropping it costs up to a frame per tile, which at run speeds that do not divide the frame time
+    /// shows as the step cadence alternating between two lengths. Client-side animation only.</summary>
+    [JsonIgnore] public float SlideCarryMs { get; set; }
     [JsonIgnore] public MovementType Moving { get; set; }
     [JsonIgnore] public bool Attacking { get; set; }
     [JsonIgnore] public long AttackTimer { get; set; }

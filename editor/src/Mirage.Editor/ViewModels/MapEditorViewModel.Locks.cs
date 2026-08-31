@@ -20,19 +20,16 @@ public sealed partial class MapEditorViewModel
     /// <summary>The shared table, assigned by the shell. Null offline.</summary>
     public EditorLockState? Locks { get; set; }
 
-    private readonly HashSet<int> _lockWatched = [];
-
-    /// <summary>Starts watching a row's dirty flag, so going dirty claims the map and coming clean gives it
-    /// back. Called as rows are built; watching twice is harmless.</summary>
-    public void WatchForLocks(MapRowViewModel row)
+    /// <summary>Claims a map the moment it goes dirty and gives it back when it comes clean, which is what
+    /// makes the table name only people with changes in hand.
+    ///
+    /// <para>Driven from the one row subscription in <c>HookMaps</c>, which every loader rebuilds along with
+    /// the rows themselves — a claim keyed on anything a reload does not rebuild goes quiet after the first
+    /// load and the map is edited with no lock behind it.</para>
+    ///
+    /// <para>Offline there is nobody to tell.</para></summary>
+    private void ClaimOrReleaseLock(object? sender)
     {
-        if (!_lockWatched.Add(row.Index)) return;
-        row.PropertyChanged += OnMapRowChanged;
-    }
-
-    private void OnMapRowChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(MapRowViewModel.IsDirty)) return;
         if (sender is not MapRowViewModel row || Locks is null || !_conn.IsConnected) return;
         _ = row.IsDirty
             ? _conn.SendLockAsync(LockSection, row.Index)
@@ -53,9 +50,12 @@ public sealed partial class MapEditorViewModel
             row.LockedByOther = Locks.IsHeldByOther(LockSection, row.Index);
         }
         OnPropertyChanged(nameof(IsSelectedLocked));
+        // Undo and Redo reach the map by hotkey, past every disabled control.
+        UpdateUndoRedo();
     }
 
-    /// <summary>Whether the open map is held by somebody else — the canvas and the panel both go dead.</summary>
+    /// <summary>Whether the open map is held by somebody else — the canvas and both side panels go dead,
+    /// and the edit hotkeys stop reaching it.</summary>
     public bool IsSelectedLocked => SelectedMap?.LockedByOther == true;
 
     /// <summary>Takes a map the server pushed after somebody else saved it. A row this session has dirtied is

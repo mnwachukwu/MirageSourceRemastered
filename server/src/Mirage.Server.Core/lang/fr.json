@@ -248,6 +248,7 @@
   "Quest_AnyTarget": "votre cible",
   "Quest_RewardExp": "Récompense de quête : {Exp} points d'expérience.",
   "Quest_NotEligible": "Vous ne pouvez pas prendre cette quête pour le moment.",
+  "Quest_NoGiverOpen": "Vous ne parlez à personne de cette quête.",
   "Quest_NotComplete": "Vous n'avez pas rempli les objectifs de cette quête.",
   "Quest_TooMany": "Vous avez déjà trop de quêtes en cours.",
   "Quest_RewardMailSubject": "Récompense de quête",

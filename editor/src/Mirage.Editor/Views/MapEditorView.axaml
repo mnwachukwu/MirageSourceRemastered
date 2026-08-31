@@ -99,7 +99,10 @@
         <ScrollViewer x:Name="MapScrollViewer" Grid.Row="1"
                       HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto">
+          <!-- Held by another session: the canvas takes no input. Zoom and the preview toggles above stay
+               live, so a locked map can still be read. -->
           <controls:TileGridControl x:Name="TileGrid"
+                                    IsEnabled="{Binding !IsSelectedLocked}"
                                     Map="{Binding SelectedMap.Record}"
                                     TileBitmap="{Binding TileBitmap}"
                                     EditorMode="{Binding SelectedMode}"
@@ -140,7 +143,9 @@
         </Grid.RowDefinitions>
 
         <!-- ── Tools sub-panel (no label) ── -->
-        <DockPanel Grid.Row="0" Background="{DynamicResource MirageBgAltBrush}" LastChildFill="True">
+        <!-- Disabled on a locked map: Fill, Clear Layer, Clear Attributes and Clear Lights all write. -->
+        <DockPanel Grid.Row="0" Background="{DynamicResource MirageBgAltBrush}" LastChildFill="True"
+                   IsEnabled="{Binding !IsSelectedLocked}">
           <StackPanel DockPanel.Dock="Top" Margin="6,6" Spacing="6">
 
             <!-- Mode toggle -->
@@ -304,7 +309,8 @@
                       HorizontalAlignment="Stretch"/>
 
         <!-- ── Properties sub-panel ── -->
-        <DockPanel Grid.Row="2" Background="{DynamicResource MirageBgAltBrush}">
+        <DockPanel Grid.Row="2" Background="{DynamicResource MirageBgAltBrush}"
+                   IsEnabled="{Binding !IsSelectedLocked}">
           <Border DockPanel.Dock="Top" Background="#241E42" BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="0,0,0,1" Padding="6,4">
             <TextBlock x:Name="_propertiesHeader" FontWeight="SemiBold" FontSize="11"/>
           </Border>

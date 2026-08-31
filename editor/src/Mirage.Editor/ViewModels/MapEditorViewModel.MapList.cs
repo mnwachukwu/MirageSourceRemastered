@@ -74,8 +74,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     private void OnMapItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == "IsDirty")
-            NotifyMapDirtyState();
+        if (e.PropertyName != "IsDirty") return;
+        NotifyMapDirtyState();
+        ClaimOrReleaseLock(sender);
     }
 
     public ObservableCollection<MapRowViewModel> Maps { get; } = [];

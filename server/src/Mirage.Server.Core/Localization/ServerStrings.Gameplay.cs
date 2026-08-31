@@ -152,6 +152,7 @@ public static partial class ServerStrings
     public const string Quest_AnyTarget = nameof(Quest_AnyTarget);
     public const string Quest_RewardExp = nameof(Quest_RewardExp);
     public const string Quest_NotEligible = nameof(Quest_NotEligible);
+    public const string Quest_NoGiverOpen = nameof(Quest_NoGiverOpen);
     public const string Quest_NotComplete = nameof(Quest_NotComplete);
     public const string Quest_TooMany = nameof(Quest_TooMany);
     public const string Quest_RewardMailSubject = nameof(Quest_RewardMailSubject);

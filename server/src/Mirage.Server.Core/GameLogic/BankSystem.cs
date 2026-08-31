@@ -69,7 +69,7 @@ public sealed class BankSystem : GameSystem
             }
 
             bank[bankSlot].Num = inv.Num;
-            bank[bankSlot].Quantity += depositAmt;
+            bank[bankSlot].AddQuantity(depositAmt);
 
             if (depositAmt >= inv.Quantity)
             {
@@ -144,7 +144,7 @@ public sealed class BankSystem : GameSystem
         {
             int withdrawAmt = (amount <= 0 || amount > bank.Quantity) ? bank.Quantity : amount;
             p.Inv[invSlot].Num = bank.Num;
-            p.Inv[invSlot].Quantity += withdrawAmt;
+            p.Inv[invSlot].AddQuantity(withdrawAmt);
 
             if (withdrawAmt >= bank.Quantity)
             {
@@ -326,7 +326,7 @@ public sealed class BankSystem : GameSystem
         if (slot == 0) return 0;
 
         bank[slot].Num = itemNum;
-        bank[slot].Quantity += value;
+        bank[slot].AddQuantity(value);
         if (item.Type is ItemType.Armor or ItemType.Weapon or ItemType.Helmet or ItemType.Shield)
             bank[slot].Dur = dur > 0 ? dur : item.Durability;
         return slot;

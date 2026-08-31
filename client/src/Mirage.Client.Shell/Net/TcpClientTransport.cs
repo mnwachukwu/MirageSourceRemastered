@@ -24,31 +24,57 @@ public sealed class TcpClientTransport : IClientTransport, IDisposable
     public bool IsConnected => _connected;
     public bool DroppedUnexpectedly => _droppedUnexpectedly;
 
+    /// <summary>How long an attempt may take before it is given up on.
+    ///
+    /// <para>It bounds the TLS handshake as well as the TCP connect, because BOTH can hang and neither
+    /// bounds itself. An address with nothing listening may never answer at all rather than refusing, and a
+    /// port that answers but belongs to something else accepts the socket and then never completes a
+    /// handshake it does not understand.</para></summary>
+    public TimeSpan ConnectTimeout { get; init; } = TimeSpan.FromSeconds(10);
+
     public async Task ConnectAsync(string host, int port, CancellationToken ct)
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        _client = new TcpClient();
-        await _client.ConnectAsync(host, port, _cts.Token);
-        _client.NoDelay = true;
-        _connected = true;
+        // Separate from _cts, which lives as long as the connection does — this one bounds the attempt only,
+        // so the receive loop is not killed a few seconds after a successful connect.
+        using var attempt = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        attempt.CancelAfter(ConnectTimeout);
 
-        var stream = _client.GetStream();
-        var pinned = new PinnedServer(ServerPinStore.Store, host, port);
-        var ssl = new SslStream(stream, leaveInnerStreamOpen: false, pinned.Validate);
+        _client = new TcpClient();
         try
         {
-            await ssl.AuthenticateAsClientAsync("mirage-server");
+            await _client.ConnectAsync(host, port, attempt.Token);
+            _client.NoDelay = true;
+            _connected = true;
+
+            var stream = _client.GetStream();
+            var pinned = new PinnedServer(ServerPinStore.Store, host, port);
+            var ssl = new SslStream(stream, leaveInnerStreamOpen: false, pinned.Validate);
+            try
+            {
+                await ssl.AuthenticateAsClientAsync(
+                    new SslClientAuthenticationOptions { TargetHost = "mirage-server" }, attempt.Token);
+            }
+            catch (AuthenticationException ex)
+            {
+                _connected = false;
+                throw pinned.Translate(ex);
+            }
+            pinned.Commit();
+            _writer = new StreamWriter(ssl, System.Text.Encoding.UTF8) { AutoFlush = true };
+            var reader = new StreamReader(ssl, System.Text.Encoding.UTF8);
+
+            _ = ReceiveLoopAsync(reader, _cts.Token);
         }
-        catch (AuthenticationException ex)
+        // Ran out of time rather than being called off by the caller. Thrown as a FAULT: a task that merely
+        // ends up cancelled completes without faulting, and the screens read that as a connection to log in on.
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             _connected = false;
-            throw pinned.Translate(ex);
+            _client.Dispose();
+            _client = null;
+            throw new TimeoutException($"No answer from {host}:{port} within {ConnectTimeout.TotalSeconds:0}s.");
         }
-        pinned.Commit();
-        _writer = new StreamWriter(ssl, System.Text.Encoding.UTF8) { AutoFlush = true };
-        var reader = new StreamReader(ssl, System.Text.Encoding.UTF8);
-
-        _ = ReceiveLoopAsync(reader, _cts.Token);
     }
 
     private async Task ReceiveLoopAsync(StreamReader reader, CancellationToken ct)

@@ -550,6 +550,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
             if (online) lo();
             else lof();
         }
+
+        // Every loader throws its rows away and builds new ones, and the padlock lives on the row. The table
+        // itself has not moved, so re-reading it is what puts the indicators back — otherwise a session that
+        // connects while somebody else is mid-edit shows nothing held until the next time the table changes.
+        foreach (var ed in RecordEditors) ed.RefreshLockState();
+        MapEditor.RefreshLockState();
     }
 
     // Every dirty row across every child editor, as one flat sequence for the push-changes dialog.

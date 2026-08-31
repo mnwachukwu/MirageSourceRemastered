@@ -292,7 +292,7 @@ public class PinnedRandomnessTests
 
         var rng = new Rolls(2);
         var territory = new GuildTerritorySystem(world, pm, new NoOpDispatcher(),
-            guilds: null!, movement: null!, spawn: null!, persistence: null!, bg: null!,
+            guilds: null!, spawn: null!, persistence: null!, bg: null!,
             NullLogger<GuildTerritorySystem>.Instance, rng: rng);
 
         var args = new object?[] { Map, 0, 0 };

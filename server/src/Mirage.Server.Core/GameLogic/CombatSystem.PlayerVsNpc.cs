@@ -443,8 +443,8 @@ public sealed partial class CombatSystem : GameSystem
 
         if (maxDmg > 0)
         {
-            // Clamp to 1 so 0-damage players never qualify: at maxDmg=1 the raw 95% truncates
-            // to 0 and would let everyone on the map roll.
+            // Clamp to 1 so 0-damage players never qualify: against a one-damage kill the fraction
+            // truncates to 0, and a threshold of 0 lets everyone on the map roll.
             int threshold = Math.Max(1, (int)(maxDmg * Constants.LootDamageContributionThreshold));
             for (int i = 1; i <= _pm.Slots; i++)
             {

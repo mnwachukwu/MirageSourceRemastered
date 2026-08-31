@@ -10,15 +10,27 @@ namespace Mirage.Client.Core.Logic;
 /// </summary>
 public static class InputProcessor
 {
+    /// <summary>Translates one frame of input.
+    ///
+    /// <para><paramref name="onTick"/> gates the ACTION sends only — attack and pick-up — so a rapid tap
+    /// cannot fire faster than the tick rate. Movement is deliberately outside it: a step already waits for
+    /// the previous slide to finish, which is a finer and more accurate limit than a fixed tick, and the
+    /// server's own move-credit budget is what actually bounds the pace.</para>
+    ///
+    /// <para>🔴 Gating movement on the tick quantises every step UP to the next tick boundary. At the base
+    /// 200 ms tile that is invisible — it lands exactly on one — but any faster run finishes its slide
+    /// mid-tick and then stands still waiting for the next one, so SPD buys a stutter instead of speed.</para></summary>
     public static void Process(
         InputSnapshot input,
         ClientState state,
         ClientPacketSender sender,
-        long nowMs)
+        long nowMs,
+        bool onTick = true)
     {
         if (!state.InGame || state.GettingMap) return;
 
         ProcessMovement(input, state, sender);
+        if (!onTick) return;
         ProcessAttack(input, state, sender, nowMs);
         ProcessPickUp(input, sender);
     }
@@ -101,7 +113,7 @@ public static class InputProcessor
                 for (int i = 1; i <= state.PlayerSlots; i++)
                 {
                     var p = state.Players[i];
-                    if (p == me || string.IsNullOrEmpty(p.Name)) continue;
+                    if (p == me || string.IsNullOrEmpty(p.Name) || p.Dead) continue;   // a corpse is walked over
                     // state.Players holds every visible player including those on neighbor maps —
                     // filter by map so a same-coords sprite on a different map can't false-block us.
                     if (p.Map == me.Map && p.X == nx && p.Y == ny && p.Layer == newLayer)
@@ -241,7 +253,7 @@ public static class InputProcessor
             for (int i = 1; i <= state.PlayerSlots; i++)
             {
                 var p = state.Players[i];
-                if (p == me || string.IsNullOrEmpty(p.Name)) continue;
+                if (p == me || string.IsNullOrEmpty(p.Name) || p.Dead) continue;   // a corpse is walked over
                 if (p.Map == destMapNum && p.X == dx && p.Y == dy && p.Layer == newLayer) return true;
             }
         }

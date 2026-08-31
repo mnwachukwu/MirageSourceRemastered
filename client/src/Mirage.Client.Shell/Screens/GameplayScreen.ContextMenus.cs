@@ -426,7 +426,13 @@ public sealed partial class GameplayScreen : IGameScreen
                 : ClientStrings.Format(ClientStrings.ContextMenu_QuestTurnIn, ("Name", qname));
             int qn = questNum, map = npc.B, slot = npc.A;
             var act = action;
-            items.Add(new(label, () => OpenQuestDialog(qn, act), (Func<bool>)InRange));
+            // Claim the NPC before the offer opens. Accept and turn-in name only the quest — the giver comes
+            // from the NPC the SERVER has recorded — so an offer opened without this is refused.
+            items.Add(new(label, () =>
+            {
+                _ctx.Sender.SendNpcInteract(map, slot, NpcInteractChoice.QuestOffer);
+                OpenQuestDialog(qn, act);
+            }, (Func<bool>)InRange));
         }
 
         return items.Count > 0 ? items : null;

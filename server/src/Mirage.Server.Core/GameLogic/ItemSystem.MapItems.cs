@@ -334,7 +334,7 @@ public sealed partial class ItemSystem : GameSystem
         p.Inv[slot].Num = mi.Num;
         if (item.Type == ItemType.Currency)
         {
-            p.Inv[slot].Quantity += mi.Quantity;
+            p.Inv[slot].AddQuantity(mi.Quantity);
             msgKey = ServerStrings.ItemSystem_PickedUpMultiple;
             msgArgs = [("Amount", mi.Quantity), ("Item", item.TrimmedName)];
         }

@@ -48,8 +48,9 @@ public static class CombatFormulas
     // mitigation already exceeds ~81% of raw, which is exactly and only a tank. A squishy player's
     // raw-minus-mitigation is above the floor either way and sees no change at all.
     public const double BossMinDamageFloorPercent = 0.19;
-    // Players deal half damage to each other, so PvP is markedly more survivable than PvE at equal level.
-    public const double PvpDamageMultiplier = 0.5;
+    // Players deal three quarters of their damage to each other, so PvP is somewhat more survivable than
+    // PvE at equal level without the exchange turning into a slog.
+    public const double PvpDamageMultiplier = 0.75;
 
     /// <summary>Player unarmed swing damage; weapon item bonus added by caller via
     /// <see cref="WeaponContribution"/>.  Sub-quadratic in Str via <c>Math.Pow(str+20, 1.5)/10</c>

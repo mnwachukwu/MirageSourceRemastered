@@ -74,22 +74,37 @@ public static class MovementProcessor
     {
         if (p.XOffset == 0f && p.YOffset == 0f)
         {
+            // Nothing in flight. A carry held across a pause would make the next step jump, so it goes.
+            p.SlideCarryMs = 0f;
             if (p.Moving != MovementType.Walking && p.Moving != MovementType.Running)
                 return;
             p.Moving = MovementType.None;
             return;
         }
 
-        float step = Constants.PicX / (p.Moving == MovementType.Running ? runMsPerTile : MovementFormulas.BaseWalkMsPerTile) * deltaMs;
+        float perTile = p.Moving == MovementType.Running ? runMsPerTile : MovementFormulas.BaseWalkMsPerTile;
+        // Time left over from the tile that finished mid-frame comes back here rather than being dropped.
+        float ms = deltaMs + p.SlideCarryMs;
+        p.SlideCarryMs = 0f;
+        float step = Constants.PicX / perTile * ms;
 
-        if (p.XOffset < 0f) p.XOffset = MathF.Min(p.XOffset + step, 0f);
-        else if (p.XOffset > 0f) p.XOffset = MathF.Max(p.XOffset - step, 0f);
-
-        if (p.YOffset < 0f) p.YOffset = MathF.Min(p.YOffset + step, 0f);
-        else if (p.YOffset > 0f) p.YOffset = MathF.Max(p.YOffset - step, 0f);
-
-        if (p.XOffset == 0f && p.YOffset == 0f)
+        // How much slide is actually left. When the step covers it, the tile lands exactly on zero and the
+        // unused remainder is banked as time, so the next tile starts where this one really ended.
+        float remaining = MathF.Max(MathF.Abs(p.XOffset), MathF.Abs(p.YOffset));
+        if (step >= remaining)
+        {
+            p.XOffset = 0f;
+            p.YOffset = 0f;
+            p.SlideCarryMs = MathF.Min((step - remaining) * perTile / Constants.PicX, perTile);
             p.Moving = MovementType.None;
+            return;
+        }
+
+        if (p.XOffset < 0f) p.XOffset += step;
+        else if (p.XOffset > 0f) p.XOffset -= step;
+
+        if (p.YOffset < 0f) p.YOffset += step;
+        else if (p.YOffset > 0f) p.YOffset -= step;
     }
 
     // A chasing NPC's run-slide is a FLAT baseline (NpcRunMsPerTile is SPD-independent now — players outrun

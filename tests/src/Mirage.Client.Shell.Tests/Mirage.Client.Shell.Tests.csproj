@@ -18,4 +18,13 @@
     <ProjectReference Include="..\..\..\client\src\Mirage.Client.Shell\Mirage.Client.Shell.csproj" />
   </ItemGroup>
 
+  <!-- Source-scanning conventions need the repository, not the test output: walking up from
+       AppContext.BaseDirectory would silently find nothing and skip the check instead of running it. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RepoRoot</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\..</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

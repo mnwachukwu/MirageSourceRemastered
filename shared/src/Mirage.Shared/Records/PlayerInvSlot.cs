@@ -10,4 +10,12 @@ public sealed class PlayerInvSlot
     public int Quantity { get; set; }
     /// <summary>Current durability of this copy; equipment wears per-instance, not per-item-type.</summary>
     public int Dur { get; set; }
+
+    /// <summary>Adds to the stack without wrapping.
+    ///
+    /// <para>🔴 Gold is a plain <c>int</c> with no ceiling of its own, so a large pile plus a large gift can
+    /// exceed what one holds — and a wrapped sum turns a fortune into a debt, silently. Every path that grows
+    /// a stack goes through here: a gift from the account editor, loot, a bank withdrawal, a pickup.</para></summary>
+    public void AddQuantity(int amount) =>
+        Quantity = (int)Math.Clamp((long)Quantity + amount, 0L, int.MaxValue);
 }

@@ -256,6 +256,46 @@ public sealed class MovementSystem : GameSystem
             SendMsg(index, ServerStrings.MapGreeting_LeaveSay, GameColor.Npc, ("Speaker", g.Speaker.TrimEnd()), ("LeaveSay", g.LeaveSay.TrimEnd()));
     }
 
+    // ── Zone-rule announcements ───────────────────────────────────────────────
+    // The map's MORAL, which decides whether PvP is off, one-sided or free. Split into a leaving and a
+    // joining half so a caller says everything about the old map before anything about the new one. A
+    // map holds exactly one moral, so within a half the branches are mutually exclusive.
+
+    /// <summary>Tell the player which zone rules stop applying. Silent unless a moral ends.</summary>
+    private void AnnounceLeavingZone(int index, MapMoral oldMoral, MapMoral newMoral, bool isPk, int level)
+    {
+        if (oldMoral == MapMoral.Safe && newMoral != MapMoral.Safe)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_LeaveSafeBase, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
+            if (!isPk && level >= 10)
+                _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_LeaveSafeNonPk, new ChatMetadata(GameColor.Gray, ChatChannel.System));
+        }
+        else if (oldMoral == MapMoral.Arena && newMoral != MapMoral.Arena)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_LeaveArena, new ChatMetadata(GameColor.Yellow, ChatChannel.System));
+        }
+    }
+
+    /// <summary>Tell the player which zone rules now apply. Silent unless a moral begins.</summary>
+    private void AnnounceEnteringZone(int index, MapMoral oldMoral, MapMoral newMoral, bool isPk, int level)
+    {
+        if (newMoral == MapMoral.Safe && oldMoral != MapMoral.Safe)
+        {
+            // Base line first (green), then the PvP-implications note on its own gray line for level 10+.
+            // PvP is asymmetric in safe zones: non-PKers can strike PKers without retaliation, PKers can
+            // only attack other PKers, and sub-level-10 players are outside PvP entirely.
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterSafeBase, new ChatMetadata(GameColor.BrightGreen, ChatChannel.System));
+            if (level >= 10)
+                _dispatcher.SendLocalizedChatTo(index, isPk ? ServerStrings.MovementSystem_EnterSafePk : ServerStrings.MovementSystem_EnterSafeNonPk, new ChatMetadata(GameColor.Gray, ChatChannel.System));
+        }
+        else if (newMoral == MapMoral.Arena && oldMoral != MapMoral.Arena)
+        {
+            _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterArenaBase, new ChatMetadata(GameColor.Yellow, ChatChannel.System));
+            if (level >= 10)
+                _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterArenaPvp, new ChatMetadata(GameColor.Gray, ChatChannel.System));
+        }
+    }
+
     /// <summary>True when <paramref name="mapNum"/> is a real map and (<paramref name="x"/>,
     /// <paramref name="y"/>) is a real tile on it.
     ///
@@ -298,20 +338,34 @@ public sealed class MovementSystem : GameSystem
 
         int oldMap = p.Map;
         var oldMoral = _world.MoralOf(oldMap);
+        var newMoral = _world.MoralOf(mapNum);
         var oldGreeting = _world.GreetingOf(oldMap);
         var newGreeting = _world.GreetingOf(mapNum);
         // Walking between contiguous map tiles that share the same greeting (e.g. two maps of one building that
         // inherit it from their group) stays silent — the player hasn't entered or left anything.
         bool greetingChanged = oldGreeting != newGreeting;
+        // Zone rules are announced only for a real map-to-map move made by someone already in the world.
+        bool moralChanged = sp.InGame && oldMap != mapNum;
+        bool isPk = p.IsPk(NowUtc);
 
-        // Shops/inns hang off a keeper NPC now, not the map, so leaving the map ends any open shop session
-        // (the r=5 re-check would catch it too, but a clean reset avoids a stale keeper reference lingering).
+        // A shop and a quest menu both hang off the keeper NPC that opened them, and both sessions end when
+        // the player leaves the map that NPC stands on — one lifetime, one gate. A warp that lands back on
+        // the same map keeps them: reach decides the opening and nothing after it, so a relocation the
+        // player did not walk is not what closes a panel. See ServerPlayer.ActiveShopNum /
+        // ActiveQuestNpcMap; the other clear point is JoinLeaveSystem.ClearGhost.
         if (oldMap != mapNum)
+        {
             sp.ClearActiveShop();
             sp.ClearActiveQuestNpc();
+        }
 
+        // Departure before arrival: every line about the map being left is spoken before any line about
+        // the map being joined. A single step can trip both halves — an Arena→Safe crossing exits the
+        // arena AND enters a safe zone.
         if (greetingChanged)
             OnLeaveMap(index);
+        if (moralChanged)
+            AnnounceLeavingZone(index, oldMoral, newMoral, isPk, p.Level);
 
         p.Map = mapNum;
         p.X = x;
@@ -330,38 +384,9 @@ public sealed class MovementSystem : GameSystem
         if (!suppressMapGreeting && greetingChanged)
             OnJoinMap(index);
 
-        if (sp.InGame && oldMap != mapNum)
+        if (moralChanged)
         {
-            var newMoral = _world.MoralOf(mapNum);
-            bool isPk = p.IsPk(NowUtc);
-            if (newMoral == MapMoral.Safe && oldMoral != MapMoral.Safe)
-            {
-                // Base line first (green), then the PvP-implications note on its own gray line for level 10+.
-                // PvP is asymmetric in safe zones: non-PKers can strike PKers without retaliation,
-                // PKers can only attack other PKers, and sub-level-10 players are outside PvP entirely.
-                _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterSafeBase, new ChatMetadata(GameColor.BrightGreen, ChatChannel.System));
-                if (p.Level >= 10)
-                    _dispatcher.SendLocalizedChatTo(index, isPk ? ServerStrings.MovementSystem_EnterSafePk : ServerStrings.MovementSystem_EnterSafeNonPk, new ChatMetadata(GameColor.Gray, ChatChannel.System));
-            }
-            else if (oldMoral == MapMoral.Safe && newMoral != MapMoral.Safe)
-            {
-                _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_LeaveSafeBase, new ChatMetadata(GameColor.BrightRed, ChatChannel.System));
-                if (!isPk && p.Level >= 10)
-                    _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_LeaveSafeNonPk, new ChatMetadata(GameColor.Gray, ChatChannel.System));
-            }
-
-            // Arena transition — a separate if/else (not chained to the safe block above) so an
-            // Arena↔Safe crossing correctly announces both "exit arena" and "enter safe".
-            if (newMoral == MapMoral.Arena && oldMoral != MapMoral.Arena)
-            {
-                _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterArenaBase, new ChatMetadata(GameColor.Yellow, ChatChannel.System));
-                if (p.Level >= 10)
-                    _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_EnterArenaPvp, new ChatMetadata(GameColor.Gray, ChatChannel.System));
-            }
-            else if (oldMoral == MapMoral.Arena && newMoral != MapMoral.Arena)
-            {
-                _dispatcher.SendLocalizedChatTo(index, ServerStrings.MovementSystem_LeaveArena, new ChatMetadata(GameColor.Yellow, ChatChannel.System));
-            }
+            AnnounceEnteringZone(index, oldMoral, newMoral, isPk, p.Level);
 
             // Territory war: warn a non-participant crossing INTO a territory that has a live
             // contest (any phase) — a courtesy so they can clear the area; participants already got the notice.
@@ -654,9 +679,6 @@ public sealed class MovementSystem : GameSystem
         if (attrType == TileType.Blocked) return false;
         if (attrType == TileType.Key && !_world.TempTiles[destMapNum].IsDoorOpen(x, y, newLayer)) return false;
 
-        // Territory contest setup: during the 10-min ramp-up only defenders may enter a capture
-        // radius — attackers + non-participants hit an invisible wall. Cheap: ContestZones is empty off war night.
-        if (_world.ContestZones.Count > 0 && IsBlockedBySetupWall(index, destMapNum, x, y, newLayer)) return false;
 
         // Block on any live NPC on the SAME layer — native slot or visiting traversal NPC.
         if (_world.IsTileOccupiedByNpc(destMapNum, x, y, null, newLayer)) return false;
@@ -675,31 +697,11 @@ public sealed class MovementSystem : GameSystem
             {
                 if (i == index || !_pm[i].IsPlaying) continue;
                 var pc = _pm[i].Char;
+                if (pc.Dead) continue;   // a corpse is scenery: it is walked over, not around
                 if (pc.Map == destMapNum && pc.X == x && pc.Y == y && pc.Layer == newLayer) return false;
             }
         }
         return true;
-    }
-
-    // Setup radius wall: a non-defender may not step into a capture-point radius while a contest is
-    // in its setup phase. The defending guild (DefenderGuild > 0 and it's the mover's guild) may enter freely.
-    private bool IsBlockedBySetupWall(int index, int mapNum, int x, int y, WorldLayer layer)
-    {
-        int guild = _pm[index].Guild;
-        foreach (var z in _world.ContestZones)
-        {
-            if (!z.SetupPhase) continue;
-            if (z.DefenderGuild > 0 && guild == z.DefenderGuild) continue;   // the defending guild may enter
-            foreach (var pt in z.Points)
-            {
-                if (pt.Map == mapNum && pt.Layer == layer &&   // the wall is on the point's own layer
-                    TerritoryContestFormulas.WithinRadius(x, y, pt.X, pt.Y, Constants.TerritoryCapturePointRadius))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     // Non-participant entry warning: fired on a map change into a contested territory from outside

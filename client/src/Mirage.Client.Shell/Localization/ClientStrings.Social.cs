@@ -55,6 +55,8 @@ public static partial class ClientStrings
     public const string SocialPanel_ColOwner = nameof(SocialPanel_ColOwner);
     public const string SocialPanel_ColWeeksHeld = nameof(SocialPanel_ColWeeksHeld);
     public const string SocialPanel_ColPrevIncome = nameof(SocialPanel_ColPrevIncome);
+    public const string SocialPanel_ColPending = nameof(SocialPanel_ColPending);
+    public const string SocialPanel_ColIncomeWeek = nameof(SocialPanel_ColIncomeWeek);
     public const string SocialPanel_ColContesting = nameof(SocialPanel_ColContesting);
     public const string SocialPanel_Unclaimed = nameof(SocialPanel_Unclaimed);
     // Territory war-night challenge actions.

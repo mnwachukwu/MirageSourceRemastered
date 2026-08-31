@@ -38,6 +38,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
     partial void OnSelectedMapChanged(MapRowViewModel? oldValue, MapRowViewModel? newValue)
     {
         OnPropertyChanged(nameof(IsSelectedLocked));
+        // Undo/Redo are gated on the open map's lock, so switching maps re-decides them.
+        UpdateUndoRedo();
         // Browser-style history: a normal switch records where we came from and forks the trail.
         // Back/Forward drive SelectedMap themselves, and set _isNavigatingHistory so their own
         // writes don't re-push what they just popped.

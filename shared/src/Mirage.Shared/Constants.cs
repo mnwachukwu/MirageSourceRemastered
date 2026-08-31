@@ -300,9 +300,10 @@ public static class Constants
     public const int NpcWeaveCommitMaxBeats = 5;
 
     // ── Loot rolling ─────────────────────────────────────────────────────────
-    // Players whose damage credit reaches this fraction of the top-damage contributor
-    // are eligible to roll for tagged loot on NPC death.
-    public const double LootDamageContributionThreshold = 0.95;
+    // Players whose damage credit reaches this fraction of the top-damage contributor are eligible to roll
+    // for tagged loot on NPC death, and to share the currency. Read it as "within a quarter of the top
+    // dealer": someone who did the work alongside the leader shares the kill, someone who chipped does not.
+    public const double LootDamageContributionThreshold = 0.75;
     public const int LootRollSides = 100;          // d100, +1 → roll in [1..100]
     public const long LootTagDurationMs = 30_000;  // 30 s exclusive pickup window
 

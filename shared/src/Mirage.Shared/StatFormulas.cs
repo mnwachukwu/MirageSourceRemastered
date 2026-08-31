@@ -225,7 +225,9 @@ public static class StatFormulas
     // Every pool clamps to a minimum of 2 so a 0-stat NPC still has a slot (no instant-death
     // 0-HP NPC, no 0-MP starve-on-spawn for an Int=0 mage spec, etc.).
 
-    private const int NpcHpFavorMaxPct = 30;   // max NPC HP favor over an equivalent player
+    // Favor scales with the mob's own Str+Def, so lowering it shortens the fights that HAVE a big basis —
+    // the upper bands — and barely moves a low-band mob, whose basis earns it almost none either way.
+    private const int NpcHpFavorMaxPct = 10;   // max NPC HP favor over an equivalent player
     private const int NpcHpFavorScalingStat = 500;  // basis stat at which favor reaches the cap
 
     // An NPC has no earned level, so one is inferred from its point spread via NpcLevel (below) — a

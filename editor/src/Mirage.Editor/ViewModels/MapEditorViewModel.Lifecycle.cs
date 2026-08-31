@@ -61,7 +61,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
         for (int i = 1; i < _data.OfflineMaps.Length; i++)
         {
             var row = new MapRowViewModel(i, _data.OfflineMaps[i]);
-            WatchForLocks(row);
             Maps.Add(row);
         }
         StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_LoadedOffline,
@@ -76,7 +75,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
         foreach (var entry in _data.OnlineMaps)
         {
             var row = new MapRowViewModel(entry.Num, new MapRecord { Name = entry.Name }, isLoaded: false);
-            WatchForLocks(row);
             Maps.Add(row);
         }
         StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_LoadedOnline,

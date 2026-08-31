@@ -334,4 +334,8 @@ public enum NpcInteractChoice : byte
     Shop = 1,
     Talk = 2,
     Quest = 3,
+    /// <summary>The player is opening ONE quest's offer, picked by name from the NPC's menu. Claims the NPC
+    /// so accept and turn-in can resolve it, and sends nothing back — a quest menu pushed in reply would land
+    /// on top of the offer they already have open.</summary>
+    QuestOffer = 4,
 }

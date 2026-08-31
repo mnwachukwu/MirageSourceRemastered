@@ -109,6 +109,10 @@ public sealed partial class GuildSystem : GameSystem
             var challengerNames = terr.Challengers
                 .Select(c => _world.Guilds.GetValueOrDefault(c)?.Name)
                 .Where(n => !string.IsNullOrEmpty(n));
+            // Last week's figure is public — a settled number saying what the land is worth, which is the
+            // point of listing it. The live ones are not: pending income tracks a guild's hunting hour by
+            // hour, so it goes only to the guild it belongs to.
+            bool ours = viewerGuildIndex > 0 && terr.ControllingGuild == viewerGuildIndex;
             views.Add(new TerritoryView
             {
                 Index = g.Index,
@@ -116,6 +120,9 @@ public sealed partial class GuildSystem : GameSystem
                 Owner = terr.ControllingGuild > 0 ? (_world.Guilds.GetValueOrDefault(terr.ControllingGuild)?.Name ?? "") : "",
                 WeeksHeld = terr.WeeksHeld,
                 PreviousWeekIncome = terr.PreviousWeekIncome,
+                PendingIncome = ours ? terr.PendingIncome : 0,
+                IncomeThisWeek = ours ? terr.IncomeThisWeek : 0,
+                OwnedByUs = ours,
                 Contesting = string.Join(", ", challengerNames),
                 ChallengedByUs = terr.Challengers.Contains(viewerGuildIndex),
             });

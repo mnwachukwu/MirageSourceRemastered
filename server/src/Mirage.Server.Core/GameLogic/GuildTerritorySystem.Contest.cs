@@ -22,7 +22,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
         var contest = new TerritoryContest
         {
             TerritoryIndex = group.Index,
-            DefenderGuild = defenderId,
             Phase = ContestPhase.Setup,
             PhaseEndUtc = UtcNow() + Constants.TerritoryContestSetupSeconds,
             Points = GenerateContestPoints(maps, defenderId),
@@ -31,23 +30,19 @@ public sealed partial class GuildTerritorySystem : GameSystem
         if (defenderId > 0) contest.Participants.Add(defenderId);
         _contests.Add(contest);
 
-        // Publish the movement/spawn projection (setup radius walls + NPC suppression + entry warnings) so those
+        // Publish the movement/spawn projection (NPC suppression + entry warnings) so those
         // systems act on the war state without a back-reference to this one (see GameWorld.ContestZones).
         _world.ContestZones.Add(new ContestZone
         {
             TerritoryIndex = group.Index,
             Name = TerritoryName(group),
-            DefenderGuild = defenderId,
-            SetupPhase = true,
             Participants = new HashSet<int>(contest.Participants),
             Maps = maps,
-            Points = contest.Points.Select(p => new ContestZone.CapturePoint(p.Map, p.X, p.Y, p.Layer)).ToList(),
         });
 
-        // NPCs vanish for the whole war state (no PvE / no income mid-war); a non-defender caught in a capture
-        // radius is pushed out; non-participants standing in the territory are warned to leave.
+        // NPCs vanish for the whole war state (no PvE / no income mid-war); non-participants standing in the
+        // territory are warned to leave.
         foreach (int m in maps) _spawn.DespawnMapNpcs(m);
-        PushNonDefendersOutOfRadii(contest, defenderId);
         WarnNonParticipantsPresent(contest);
 
         int mins = Constants.TerritoryContestSetupSeconds / 60;
@@ -105,7 +100,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
                     case ContestPhase.Setup:
                         c.Phase = ContestPhase.Contest;
                         c.PhaseEndUtc = now + Constants.TerritoryContestSeconds;
-                        if (ZoneFor(c.TerritoryIndex) is { } startZone) startZone.SetupPhase = false;   // radius walls lift
                         foreach (int g in c.Participants) GuildWarNotice(g, ServerStrings.GuildTerritory_ContestBegun, ("Territory", TerritoryNameOf(c)));
                         break;
                     case ContestPhase.Contest:

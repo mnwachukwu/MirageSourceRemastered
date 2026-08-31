@@ -173,10 +173,22 @@ public sealed class HudPanel
         _trainBtn.Bounds = BtnRect(1, 1, ButtonBaseY);
         _questLogBtn.Bounds = BtnRect(0, 2, ButtonBaseY);
         _socialBtn.Bounds = BtnRect(1, 2, ButtonBaseY);
-        // Logout sits alone on row 3, centered across the two columns — the lone-centered layout it had before
-        // Social shared its row; retiring the Shop/Inn buttons frees Social up to row 2 and restores it.
-        _quitBtn.Bounds = new Rectangle(InnerLeft + (InnerWidth - BtnW) / 2, ButtonBaseY + 3 * (BtnH + 4), BtnW, BtnH);
+        // Logout sits alone on row 3, centered across the two columns.
+        _quitBtn.Bounds = new Rectangle(InnerLeft + (InnerWidth - BtnW) / 2, LogoutY, BtnW, BtnH);
     }
+
+    // The lone Logout button's row, and the top of the empty sidebar below it.
+    private const int LogoutRow = 3;
+    private static int LogoutY => ButtonBaseY + LogoutRow * (BtnH + 4);
+
+    /// <summary>Where a panel of <paramref name="width"/> sits when it hangs in the sidebar's free space:
+    /// centered across the sidebar, one padding gap under the Logout button. The sidebar's layout is private
+    /// to this panel, so anything placed against it asks here rather than restating the arithmetic.</summary>
+    public static Point FreeSpaceAnchor(int width) =>
+        new(SidebarLeft + (SidebarWidth - width) / 2, LogoutY + BtnH + Pad);
+
+    /// <summary>The Logout button's rectangle — the bottom edge of the button block.</summary>
+    internal Rectangle LogoutBounds => _quitBtn.Bounds;
 
     // ── Tick — animation only, called every frame regardless of mouse position ──
 

@@ -137,14 +137,16 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
             </ScrollViewer>
-            <Grid ColumnDefinitions="*,70,Auto" MaxWidth="480" HorizontalAlignment="Left" Margin="0,4,0,0">
+            <Grid ColumnDefinitions="*,132,Auto" MaxWidth="540" HorizontalAlignment="Left" Margin="0,4,0,0">
               <controls:DropdownAutoCompleteBox Grid.Column="0"
                                ItemsSource="{Binding ItemEntries}"
                                SelectedItem="{Binding BankItem, Mode=TwoWay}"
                                ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrId}"
                                FilterMode="Custom" MinimumPrefixLength="0"/>
+              <!-- Maximum is what a stack holds, not a round number: gold is an int with no ceiling of
+                   its own, and PlayerInvSlot.AddQuantity saturates rather than wrapping. -->
               <NumericUpDown Grid.Column="1" Margin="6,0,0,0" Value="{Binding BankQuantity}"
-                             Minimum="1" Maximum="999999" FormatString="0"
+                             Minimum="1" Maximum="2147483647" FormatString="0"
                              ParsingNumberStyle="Integer" ShowButtonSpinner="False"/>
               <Button Grid.Column="2" Margin="6,0,0,0" Padding="10,3" x:Name="_bankGiveBtn"
                       IsEnabled="{Binding CanGiveToBank}"
@@ -273,7 +275,7 @@
                       </ItemsControl>
                       </ScrollViewer>
 
-                      <Grid ColumnDefinitions="*,70,Auto" Margin="0,4,0,0">
+                      <Grid ColumnDefinitions="*,132,Auto" Margin="0,4,0,0">
                         <controls:DropdownAutoCompleteBox Grid.Column="0"
                                          ItemsSource="{Binding ItemEntries}"
                                          SelectedItem="{Binding GiveItem, Mode=TwoWay}"
@@ -281,7 +283,7 @@
                                          FilterMode="Custom" MinimumPrefixLength="0"
                                          PlaceholderText="{Binding ItemPlaceholder}"/>
                         <NumericUpDown Grid.Column="1" Margin="6,0,0,0" Value="{Binding GiveQuantity}"
-                                       Minimum="1" Maximum="999999" FormatString="0"
+                                       Minimum="1" Maximum="2147483647" FormatString="0"
                                        ParsingNumberStyle="Integer" ShowButtonSpinner="False"/>
                         <Button Grid.Column="2" Margin="6,0,0,0" Padding="10,3"
                                 Content="{Binding GiveLabel}"

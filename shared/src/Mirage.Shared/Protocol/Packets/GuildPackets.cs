@@ -280,6 +280,16 @@ public sealed record TerritoryView
     [JsonPropertyName("owner")] public string Owner { get; init; } = "";
     [JsonPropertyName("weeksHeld")] public int WeeksHeld { get; init; }
     [JsonPropertyName("prevIncome")] public long PreviousWeekIncome { get; init; }
+    /// <summary>Gold accrued since the last midnight settlement, not yet in the vault. Sent only for the
+    /// viewer’s OWN territory (0 elsewhere) — it is a live read on how hard a guild is being farmed right
+    /// now, which is theirs to see and nobody else’s. Recipient-specific.</summary>
+    [JsonPropertyName("pendingIncome")] public long PendingIncome { get; init; }
+    /// <summary>Settled income so far this week, before the weekly roll into <see cref="PreviousWeekIncome"/>.
+    /// Own territory only, for the same reason. Recipient-specific.</summary>
+    [JsonPropertyName("incomeWeek")] public long IncomeThisWeek { get; init; }
+    /// <summary>True when the viewing player’s guild controls this territory — what tells a genuine zero
+    /// income from a figure that was never sent. Recipient-specific.</summary>
+    [JsonPropertyName("ours")] public bool OwnedByUs { get; init; }
     /// <summary>The registered challengers' guild names (comma-joined; blank when none) — the "contesting"
     /// flag for the Territories tab (esp. on the guild's own territory).</summary>
     [JsonPropertyName("contesting")] public string Contesting { get; init; } = "";
