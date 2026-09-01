@@ -476,6 +476,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 Description = c.Description,
                 SpriteMale = c.SpriteMale,
                 SpriteFemale = c.SpriteFemale,
+                SpriteSheet = c.SpriteSheet,
                 Str = c.Str,
                 Def = c.Def,
                 Spd = c.Spd,

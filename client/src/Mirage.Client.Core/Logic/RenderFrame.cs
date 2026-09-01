@@ -14,7 +14,8 @@ public readonly record struct TileDrawCmd(float ScreenX, float ScreenY, int Tile
 
 /// <summary>Draw one item sprite from the item atlas at the given screen position.  <paramref name="Layer"/>
 /// is the logical layer the item sits on, so it draws with the matching over/under entity pass.</summary>
-public readonly record struct ItemDrawCmd(float ScreenX, float ScreenY, short Pic, WorldLayer Layer = WorldLayer.Ground);
+public readonly record struct ItemDrawCmd(
+    float ScreenX, float ScreenY, short Pic, WorldLayer Layer = WorldLayer.Ground, short Sheet = 0);
 
 /// <summary>Draw a blood ground decal at the given screen position (tile origin).  <paramref name="Amount"/>
 /// (raw, 0..BloodMaxTileAmount) drives the pool-blob SIZE and droplet COUNT.  <paramref name="Freshness"/> (0..1)
@@ -35,7 +36,9 @@ public readonly record struct SpriteDrawCmd(
     int AnimFrame,
     Direction Dir,
     int Size = 1,
-    WorldLayer Layer = WorldLayer.Ground);
+    WorldLayer Layer = WorldLayer.Ground,
+    // Which sprite sheet SpriteRow is a row of. The size picks the folder, the sheet picks the file.
+    int Sheet = 0);
 
 /// <summary>A dead player's corpse marker: a tile-sized (32x32) red X drawn at the tile origin
 /// (<see cref="ScreenX"/>/<see cref="ScreenY"/>) in place of the live sprite.</summary>

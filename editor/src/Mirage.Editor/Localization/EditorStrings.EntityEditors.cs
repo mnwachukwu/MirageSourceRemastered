@@ -11,6 +11,7 @@ public static partial class EditorStrings
     public const string ItemEditor_SelectPrompt = nameof(ItemEditor_SelectPrompt);
     public const string ItemEditor_SectionTitle = nameof(ItemEditor_SectionTitle);
     public const string ItemEditor_PicLabel = nameof(ItemEditor_PicLabel);
+    public const string ItemEditor_PicSheetLabel = nameof(ItemEditor_PicSheetLabel);
     public const string ItemEditor_RestrictionsLabel = nameof(ItemEditor_RestrictionsLabel);
     public const string ItemEditor_NonTradeable = nameof(ItemEditor_NonTradeable);
     public const string ItemEditor_NonListable = nameof(ItemEditor_NonListable);
@@ -44,6 +45,7 @@ public static partial class EditorStrings
     public const string NpcEditor_SelectPrompt = nameof(NpcEditor_SelectPrompt);
     public const string NpcEditor_SectionTitle = nameof(NpcEditor_SectionTitle);
     public const string NpcEditor_AttackSayLabel = nameof(NpcEditor_AttackSayLabel);
+    public const string NpcEditor_SpriteSheetLabel = nameof(NpcEditor_SpriteSheetLabel);
     public const string NpcEditor_SpriteLabel = nameof(NpcEditor_SpriteLabel);
     public const string NpcEditor_SizeLabel = nameof(NpcEditor_SizeLabel);
     public const string NpcEditor_SpawnSecsLabel = nameof(NpcEditor_SpawnSecsLabel);
@@ -169,6 +171,7 @@ public static partial class EditorStrings
     public const string ClassEditor_SectionTitle = nameof(ClassEditor_SectionTitle);
     public const string ClassEditor_DescLabel = nameof(ClassEditor_DescLabel);
     public const string ClassEditor_DescHint = nameof(ClassEditor_DescHint);
+    public const string ClassEditor_SpriteSheetLabel = nameof(ClassEditor_SpriteSheetLabel);
     public const string ClassEditor_SpriteMaleLabel = nameof(ClassEditor_SpriteMaleLabel);
     public const string ClassEditor_SpriteFemaleLabel = nameof(ClassEditor_SpriteFemaleLabel);
     public const string ClassEditor_StrLabel = nameof(ClassEditor_StrLabel);

@@ -178,12 +178,13 @@ public static class Constants
     // is consumed as the walkable surface. Paint only: no gameplay attribute, no logical layer.
     public const int MaxCanopyLayers = 5;
     // A layer records which tileset ("sheet") its tile came from as a 0-based index packed into a
-    // byte (see LayerCell), so at most this many distinct sheets may exist.
+    // byte (see LayerCell), so at most this many distinct sheets may exist. The same ceiling bounds
+    // every asset class, so a sheet number spans the same range whichever folder it names.
     public const int MaxTilesets = 256;
     // Build-output subfolders under assets/graphics/ holding the graphics for each asset class.
-    // Tiles are multi-sheet (numbered 0_*.bmp, 1_*.bmp, ... — the leading number is the stable sheet
-    // index, scanned at launch and on the editor's Refresh Assets action).  Sprites and items are
-    // single-sheet: the loader takes the first file in the folder.
+    // Every class is multi-sheet: files are numbered 0_*.bmp, 1_*.png, ... and the leading number is
+    // the stable sheet index, scanned at launch and on the editor's Reload Assets action. Sprites are
+    // split again by footprint size (32x32/64x64/96x96), where one number is one character at every size.
     public const string TilesAssetSubfolder = "tiles";
     public const string SpritesAssetSubfolder = "sprites";
     public const string ItemsAssetSubfolder = "items";

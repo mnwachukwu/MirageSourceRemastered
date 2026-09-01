@@ -32,6 +32,8 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
     /// <summary>Line the NPC speaks when it engages a player; blank for silent.</summary>
     [ObservableProperty] private string _attackSay = "";
     [ObservableProperty] private int _sprite;
+    /// <summary>Which sprite sheet <see cref="Sprite"/> is a row of.</summary>
+    [ObservableProperty] private int _spriteSheet;
     // Footprint size class 1..3 (1 = 32x32, 2 = 64x64, 3 = 96x96); the form spinner clamps to [1, MaxNpcSize].
     [ObservableProperty] private int _size = 1;
     /// <summary>Seconds between despawn and respawn for this template's spawn slots.</summary>
@@ -266,6 +268,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
         _name = r.Name;
         _attackSay = r.AttackSay;
         _sprite = r.Sprite;
+        _spriteSheet = r.SpriteSheet;
         _size = r.EffectiveSize;
         _spawnSecs = r.SpawnSecs;
         _behavior = r.Behavior;
@@ -300,6 +303,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
     }
     partial void OnAttackSayChanged(string value) => MarkDirty();
     partial void OnSpriteChanged(int value) => MarkDirty();
+    partial void OnSpriteSheetChanged(int value) => MarkDirty();
     partial void OnSizeChanged(int value) => MarkDirty();
     partial void OnSpawnSecsChanged(int value) => MarkDirty();
     partial void OnBehaviorChanged(NpcBehavior value) => MarkDirty();
@@ -418,6 +422,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
             Name = r.Name;
             AttackSay = r.AttackSay;
             Sprite = r.Sprite;
+            SpriteSheet = r.SpriteSheet;
             Size = r.EffectiveSize;
             SpawnSecs = r.SpawnSecs;
             Behavior = r.Behavior;
@@ -454,6 +459,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
             Name = pkt.Name;
             AttackSay = pkt.AttackSay;
             Sprite = pkt.Sprite;
+            SpriteSheet = pkt.SpriteSheet;
             Size = pkt.Size;
             SpawnSecs = pkt.SpawnSecs;
             Behavior = pkt.Behavior;
@@ -488,6 +494,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
         Name = Name,
         AttackSay = AttackSay,
         Sprite = Sprite,
+        SpriteSheet = SpriteSheet,
         Size = Size,
         SpawnSecs = SpawnSecs,
         Behavior = Behavior,
@@ -514,6 +521,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
         Name = Name,
         AttackSay = AttackSay,
         Sprite = Sprite,
+        SpriteSheet = SpriteSheet,
         Size = Size,
         SpawnSecs = SpawnSecs,
         Behavior = Behavior,

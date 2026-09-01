@@ -20,10 +20,7 @@ public static partial class EditorStrings
     public const string MapEditor_AnimLayerTooltip = nameof(MapEditor_AnimLayerTooltip);
     public const string MapEditor_AnimDialogTitle = nameof(MapEditor_AnimDialogTitle);
     public const string MapEditor_TilesetHeader = nameof(MapEditor_TilesetHeader);
-    public const string MapEditor_TilesetUnnamed = nameof(MapEditor_TilesetUnnamed);
     public const string MapEditor_TilesetSearchPlaceholder = nameof(MapEditor_TilesetSearchPlaceholder);
-    public const string MapEditor_ReloadAssetsButton = nameof(MapEditor_ReloadAssetsButton);
-    public const string MapEditor_ReloadAssetsTooltip = nameof(MapEditor_ReloadAssetsTooltip);
     public const string MapEditor_FillButton = nameof(MapEditor_FillButton);
     public const string MapEditor_FillTooltip = nameof(MapEditor_FillTooltip);
     public const string MapEditor_ClearLayerButton = nameof(MapEditor_ClearLayerButton);
@@ -38,6 +35,9 @@ public static partial class EditorStrings
     public const string MapEditor_ClearLightsTooltip = nameof(MapEditor_ClearLightsTooltip);
     public const string MapEditor_LightText = nameof(MapEditor_LightText);
     public const string MapEditor_LightText_None = nameof(MapEditor_LightText_None);
+    public const string MapEditor_HiddenLayerPrompt = nameof(MapEditor_HiddenLayerPrompt);
+    public const string MapEditor_HiddenLayerTitle = nameof(MapEditor_HiddenLayerTitle);
+    public const string MapEditor_HiddenLayerShow = nameof(MapEditor_HiddenLayerShow);
     public const string MapEditor_AttrLabel = nameof(MapEditor_AttrLabel);
     public const string MapEditor_BrushSizeHeader = nameof(MapEditor_BrushSizeHeader);
     public const string MapEditor_BrushW = nameof(MapEditor_BrushW);

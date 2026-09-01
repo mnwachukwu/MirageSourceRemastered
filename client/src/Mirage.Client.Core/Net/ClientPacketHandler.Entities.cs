@@ -21,6 +21,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         var player = _state.Players[p.Index];
         player.Name = p.Name;
         player.Sprite = p.Sprite;
+        player.SpriteSheet = p.SpriteSheet;
         player.X = p.X;
         player.Y = p.Y;
         player.Dir = p.Dir;

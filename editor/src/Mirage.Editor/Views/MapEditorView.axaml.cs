@@ -129,8 +129,6 @@ public partial class MapEditorView : LocalizedUserControl
         _brushHLabel.Text = EditorStrings.Get(EditorStrings.MapEditor_BrushH);
         _tilesetHeader.Text = EditorStrings.Get(EditorStrings.MapEditor_TilesetHeader);
         _searchTileset.PlaceholderText = EditorStrings.Get(EditorStrings.MapEditor_TilesetSearchPlaceholder);
-        _btnReloadAssets.Content = EditorStrings.Get(EditorStrings.MapEditor_ReloadAssetsButton);
-        ToolTip.SetTip(_btnReloadAssets, EditorStrings.Get(EditorStrings.MapEditor_ReloadAssetsTooltip));
         _paletteHeader.Text = EditorStrings.Get(EditorStrings.MapEditor_PaletteHeader);
 
         // Properties panel
@@ -248,6 +246,9 @@ public partial class MapEditorView : LocalizedUserControl
         _lightConfirm.Content = EditorStrings.Get(EditorStrings.Common_Confirm);
 
         // Key Tile dialog
+        _hiddenLayerTitle.Text = EditorStrings.Get(EditorStrings.MapEditor_HiddenLayerTitle);
+        _hiddenLayerCancel.Content = EditorStrings.Get(EditorStrings.Common_Cancel);
+        _hiddenLayerConfirm.Content = EditorStrings.Get(EditorStrings.MapEditor_HiddenLayerShow);
         _blockedTitle.Text = EditorStrings.Get(EditorStrings.BlockedTileDialog_Title);
         _blockedDesc.Text = EditorStrings.Get(EditorStrings.BlockedTileDialog_Description);
         _blockedLightCheck.Content = EditorStrings.Get(EditorStrings.BlockedTileDialog_BlocksLight);

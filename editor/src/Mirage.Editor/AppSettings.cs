@@ -73,6 +73,16 @@ public sealed class AppSettings
     public double? WorldPreviewY { get; set; }
     public double? WorldPreviewWidth { get; set; }
     public double? WorldPreviewHeight { get; set; }
+
+    // Layer Visibility window, on the same terms.
+    /// <summary>Whether the Layer Visibility window is showing. The WINDOW is remembered; which layers
+    /// were hidden is deliberately not. A layer left put away from a previous session is exactly the trap
+    /// this window exists to prevent, and the author has no reason to suspect it.</summary>
+    public bool LayerVisibilityOpen { get; set; }
+    public double? LayerVisibilityX { get; set; }
+    public double? LayerVisibilityY { get; set; }
+    public double? LayerVisibilityWidth { get; set; }
+    public double? LayerVisibilityHeight { get; set; }
     /// <summary>Canvas scale; 1.0 is one screen pixel per map pixel. A quarter scale on a world nobody has
     /// opened before: readable tiles, and enough maps in view to see the shape of a region.
     ///

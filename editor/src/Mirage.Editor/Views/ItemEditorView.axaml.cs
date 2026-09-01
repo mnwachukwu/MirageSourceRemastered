@@ -26,6 +26,7 @@ public partial class ItemEditorView : LocalizedUserControl
         _selectPrompt.Text = EditorStrings.Get(EditorStrings.ItemEditor_SelectPrompt);
         _sectionTitle.Text = EditorStrings.Get(EditorStrings.ItemEditor_SectionTitle);
         _nameLabel.Text = EditorStrings.Get(EditorStrings.Common_NameLabel);
+        _picSheetLabel.Text = EditorStrings.Get(EditorStrings.ItemEditor_PicSheetLabel);
         _picLabel.Text = EditorStrings.Get(EditorStrings.ItemEditor_PicLabel);
         _typeLabel.Text = EditorStrings.Get(EditorStrings.Common_TypeLabel);
         _restrictionsLabel.Text = EditorStrings.Get(EditorStrings.ItemEditor_RestrictionsLabel);

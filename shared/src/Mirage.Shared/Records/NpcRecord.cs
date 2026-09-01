@@ -22,6 +22,12 @@ public sealed class NpcRecord
 
     public string AttackSay { get; set; } = string.Empty;
     public int Sprite { get; set; }
+    /// <summary>Which sprite sheet <see cref="Sprite"/> is a row of.
+    ///
+    /// <para>Always written, including when it is 0: a record states which sheet it draws from rather than
+    /// leaving a reader to infer it. Absent from an older file it still reads as 0, which is the sheet
+    /// every such file meant.</para></summary>
+    public int SpriteSheet { get; set; }
     /// <summary>Sprite/footprint size class: 1 = 32x32 (one tile, the default), 2 = 64x64 (a 2x2 tile
     /// footprint), 3 = 96x96 (a 3x3 footprint).  A larger NPC occupies its whole SxS block, anchored at
     /// its top-left tile, and obeys the same blocking/attribute rules as a one-tile NPC.  A 0 in a legacy

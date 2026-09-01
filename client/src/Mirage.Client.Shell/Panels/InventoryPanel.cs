@@ -299,7 +299,7 @@ public sealed class InventoryPanel : IGamePanel
         return h.ToHashCode();
     }
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, long nowMs, Texture2D? itemsTex, bool isActive = false, bool canHover = true)
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, long nowMs, IReadOnlyList<Texture2D?> itemsTex, bool isActive = false, bool canHover = true)
     {
         if (!IsOpen) return;
         _cachedFont = font;
@@ -358,7 +358,7 @@ public sealed class InventoryPanel : IGamePanel
         if (canHover && !_prompt.IsOpen && !_contextMenu.IsOpen && !_dropConfirm.IsOpen) NotifyHover(state, itemsTex);
     }
 
-    private void NotifyHover(ClientState state, Texture2D? itemsTex)
+    private void NotifyHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         int hovered = _list.HoveredIndex;
         if (hovered < 0) return;
@@ -374,7 +374,7 @@ public sealed class InventoryPanel : IGamePanel
 
     // Equipment-view counterpart to NotifyHover: shows the item tooltip for the equipped piece under
     // the mouse, keyed like the list so it re-pins when the hovered slot/item changes.
-    private void NotifyHoverEquip(ClientState state, Rectangle c, Texture2D? itemsTex)
+    private void NotifyHoverEquip(ClientState state, Rectangle c, IReadOnlyList<Texture2D?> itemsTex)
     {
         if (_cachedFont is null) return;
         if (EquipmentHitTest(state, c, _cachedFont, _input.MousePosition) is not { } hit) return;
@@ -604,7 +604,7 @@ public sealed class InventoryPanel : IGamePanel
         return null;
     }
 
-    private void DrawEquipment(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle content, Texture2D? itemsTex)
+    private void DrawEquipment(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle content, IReadOnlyList<Texture2D?> itemsTex)
     {
         var me = state.Me;
         if (me is null) return;
@@ -648,7 +648,7 @@ public sealed class InventoryPanel : IGamePanel
         EqDrawTotal(sb, font, ClientStrings.Get(ClientStrings.Stats_MDmg), 0, blockX, y, halfW);
     }
 
-    private static void EqDrawSlot(SpriteBatch sb, SpriteFont font, Texture2D? itemsTex,
+    private static void EqDrawSlot(SpriteBatch sb, SpriteFont font, IReadOnlyList<Texture2D?> itemsTex,
         Rectangle iconRect, ItemRecord? item, string statLabel, int bonus, int dur)
     {
         UiHelper.DrawFilledRect(sb, iconRect, EqSlotBg);
@@ -661,7 +661,7 @@ public sealed class InventoryPanel : IGamePanel
             return;
         }
         if (itemsTex is not null && item.Pic >= 0)
-            sb.Draw(itemsTex, iconRect, ItemAtlas.GetSourceRect(item.Pic), Color.White);
+            sb.DrawItemIcon(itemsTex, item, iconRect, Color.White);
         UiHelper.DrawBorder(sb, iconRect, UiHelper.UiControlBorder);
 
         // Bonus line (MIT / P-DMG) — one universal MIT axis, so a defensive piece shows a single line.

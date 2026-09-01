@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
+using Mirage.Editor.Models;
 using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using Mirage.Shared;
@@ -431,7 +432,7 @@ public sealed partial class TileGridControl : Control
                 RenderCell(ctx, tilesets, cells[row, col], pixOff,
                     applyOverlay: !isCenter, animFrame: isCenter ? centerAnimFrame : -1,
                     doorPreview: doorPreview, showAttributes: showAttributes, showLights: showLights,
-                    attrLayer: attrLayer, npcSize: npcSize, activeStack: activeStack);
+                    attrLayer: attrLayer, npcSize: npcSize, activeStack: activeStack, visible: LayerVisibility);
 
                 // Arrivals are computed for the open map only, so they are drawn only on the center cell.
                 // A neighbor's would need the same world-wide scan per cell, which the 3x3 does not pay for.
@@ -443,7 +444,7 @@ public sealed partial class TileGridControl : Control
 
     private static void RenderCell(DrawingContext ctx, IReadOnlyList<Bitmap?> tilesets,
         MapRecord? map, Point pixOff, bool applyOverlay, int animFrame, bool doorPreview, bool showAttributes, bool showLights,
-        WorldLayer attrLayer, Func<int, int> npcSize, LayerType activeStack)
+        WorldLayer attrLayer, Func<int, int> npcSize, LayerType activeStack, LayerVisibility visible)
     {
         var cellRect = new Rect(pixOff.X, pixOff.Y, Cols(map) * TileW, Rows(map) * TileH);
 
@@ -460,7 +461,7 @@ public sealed partial class TileGridControl : Control
             for (int y = 0; y < Rows(map); y++)
             {
                 RenderTileAt(ctx, map, tilesets, x, y,
-                    new Point(pixOff.X + x * TileW, pixOff.Y + y * TileH), animFrame, doorPreview, showAttributes, attrLayer, focusStack);
+                    new Point(pixOff.X + x * TileW, pixOff.Y + y * TileH), animFrame, doorPreview, showAttributes, attrLayer, focusStack, visible);
             }
         }
 
@@ -714,7 +715,8 @@ public sealed partial class TileGridControl : Control
     }
 
     private static void RenderTileAt(DrawingContext ctx, MapRecord map, IReadOnlyList<Bitmap?> tilesets,
-        int x, int y, Point pixPt, int animFrame, bool doorPreview, bool showAttributes, WorldLayer attrLayer, LayerType? focusStack)
+        int x, int y, Point pixPt, int animFrame, bool doorPreview, bool showAttributes, WorldLayer attrLayer,
+        LayerType? focusStack, LayerVisibility visible)
     {
         var tile = map.Tile[x, y];
         var dstRect = new Rect(pixPt.X, pixPt.Y, TileW, TileH);
@@ -728,9 +730,12 @@ public sealed partial class TileGridControl : Control
         // On the center cell (focusStack != null) every stack but the active one dims, so the layer being
         // authored stands out; neighbors pass null and render at full strength (they dim as a whole cell).
         bool Dim(LayerType s) => focusStack is { } f && f != s;
-        DrawLayerStack(ctx, tilesets, tile.Ground, dstRect, animFrame, hideGround, Dim(LayerType.Ground));
-        DrawLayerStack(ctx, tilesets, tile.Fringe, dstRect, animFrame, -1, Dim(LayerType.Fringe));
-        DrawLayerStack(ctx, tilesets, tile.Canopy, dstRect, animFrame, -1, Dim(LayerType.Canopy));   // topmost visual stack (over everything)
+        DrawLayerStack(ctx, tilesets, tile.Ground, dstRect, animFrame, hideGround,
+            visible.VisibleBits(LayerType.Ground), Dim(LayerType.Ground));
+        DrawLayerStack(ctx, tilesets, tile.Fringe, dstRect, animFrame, -1,
+            visible.VisibleBits(LayerType.Fringe), Dim(LayerType.Fringe));
+        DrawLayerStack(ctx, tilesets, tile.Canopy, dstRect, animFrame, -1,
+            visible.VisibleBits(LayerType.Canopy), Dim(LayerType.Canopy));   // topmost visual stack (over everything)
 
         // Attribute tints are only drawn in Attribute mode, for the ACTIVE logical layer (a ramp shows on both).
         if (showAttributes)
@@ -846,7 +851,9 @@ public sealed partial class TileGridControl : Control
     // Draws every non-empty cell of a layer stack, skipping the layer at hideIndex (door-open reveal,
     // -1 = none).  animFrame < 0 = not animating (all anim layers drawn statically); animFrame >= 0 = show
     // only the current frame's anim layer (LayerCell.VisibleAnimIndex), hiding the other anim layers.
-    private static void DrawLayerStack(DrawingContext ctx, IReadOnlyList<Bitmap?> tilesets, ReadOnlySpan<int> layers, Rect dst, int animFrame, int hideIndex, bool dim = false)
+    // visibleBits is one bit per layer index, clear when the author has hidden that layer.
+    private static void DrawLayerStack(DrawingContext ctx, IReadOnlyList<Bitmap?> tilesets, ReadOnlySpan<int> layers,
+        Rect dst, int animFrame, int hideIndex, int visibleBits, bool dim = false)
     {
         int visibleAnim = animFrame >= 0 ? LayerCell.VisibleAnimIndex(layers, animFrame) : 0;
 
@@ -860,6 +867,7 @@ public sealed partial class TileGridControl : Control
             int p = layers[k];
             if (LayerCell.IsEmpty(p)) continue;
             if (k == hideIndex) continue;
+            if ((visibleBits >> k & 1) == 0) continue;
             if (animFrame >= 0 && LayerCell.Anim(p) && k != visibleAnim) continue;
             DrawPackedLayer(ctx, tilesets, p, dst);
         }

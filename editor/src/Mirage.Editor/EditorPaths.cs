@@ -61,23 +61,35 @@ internal static class EditorPaths
 
     // The bundled default graphics shipped next to the executable (read-only on AppImage/.app);
     // the seed source for the editable assets dir.
-    private static string BundledAssets => Path.Combine(AppContext.BaseDirectory, "assets", "graphics");
+    internal static string BundledAssets => Path.Combine(AppContext.BaseDirectory, "assets", "graphics");
 
     /// <summary>
     /// Ensures the editable assets dir holds the bundled defaults. Copies each bundled file that is
     /// missing at the destination (per-file, if-missing): populates on first run, fills in new
     /// defaults from an app update, and never overwrites a sheet the user has replaced or added.
     /// </summary>
-    public static void SeedAssets()
+    public static void SeedAssets() => SeedAssetsFrom(BundledAssets, Assets);
+
+    /// <summary>The seeding rule itself, over explicit folders so it can be exercised without an install
+    /// beside it.</summary>
+    internal static void SeedAssetsFrom(string source, string dest)
     {
-        string source = BundledAssets;
         if (!Directory.Exists(source)) return;
-        string dest = Assets;
+
+        // Sheets deliberately deleted through the asset manager. Without this the seeder undoes every one
+        // of them: it restores whatever is missing, so a shipped sheet moved to the recycle bin is back
+        // before anyone sees it gone.
+        var tombstoned = Services.SheetLibrary.ReadTombstones(
+            Path.Combine(dest, Services.SheetLibrary.RecycleFolder));
+
         foreach (string srcFile in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
             try
             {
-                string destFile = Path.Combine(dest, Path.GetRelativePath(source, srcFile));
+                // Recorded with forward slashes so a world deleted on one platform stays deleted on another.
+                string relative = Path.GetRelativePath(source, srcFile).Replace('\\', '/');
+                if (tombstoned.Contains(relative)) continue;
+                string destFile = Path.Combine(dest, relative);
                 if (File.Exists(destFile)) continue;
                 Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
                 File.Copy(srcFile, destFile);

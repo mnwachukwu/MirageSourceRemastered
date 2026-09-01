@@ -29,6 +29,11 @@ public sealed class PlayerRecord
     public Sex Sex { get; set; }
     public int Class { get; set; }
     public int Sprite { get; set; }
+    /// <summary>Which sprite sheet <see cref="Sprite"/> is a row of. Copied from the class at creation
+    /// alongside the row, so re-arting a class never restyles a character already made.
+    ///
+    /// <para>Always written, including when it is 0.</para></summary>
+    public int SpriteSheet { get; set; }
     public int Level { get; set; }
     public long Exp { get; set; }
     /// <summary>Cumulative seconds this character has been online (across all sessions), persisted. The active

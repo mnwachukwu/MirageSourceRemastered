@@ -67,6 +67,7 @@ public partial class MainWindow : FAAppWindow
         _helpLoggingItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpLogging);
         _helpAboutItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpAbout);
         _dataMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_DataMenu);
+        _dataReloadAssetsItem.Header = EditorStrings.Get(EditorStrings.MainWindow_DataReloadAssets);
         _worldMenu.Header = EditorStrings.Get(EditorStrings.World_Menu);
         _worldNewItem.Header = EditorStrings.Get(EditorStrings.World_New);
         _worldOpenItem.Header = EditorStrings.Get(EditorStrings.World_Open);
@@ -81,8 +82,11 @@ public partial class MainWindow : FAAppWindow
         _emptyWorldNew.Content = EditorStrings.Get(EditorStrings.World_New);
         _emptyWorldOpen.Content = EditorStrings.Get(EditorStrings.World_Open);
         _languageMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_LanguageMenu);
+        _assetsMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_AssetsMenu);
+        _assetsManageItem.Header = EditorStrings.Get(EditorStrings.AssetManager_MenuItem);
         _viewMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ViewMenu);
         _viewWorldPreviewItem.Header = EditorStrings.Get(EditorStrings.WorldPreview_MenuItem);
+        _viewLayerVisibilityItem.Header = EditorStrings.Get(EditorStrings.LayerVisibility_MenuItem);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
         _exportMapItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportMapButton);
         _exportAreaItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportAreaButton);
@@ -169,6 +173,7 @@ public partial class MainWindow : FAAppWindow
         if (!settings.WindowMaximized && settings.WindowX.HasValue && settings.WindowY.HasValue)
             Position = new PixelPoint((int)settings.WindowX.Value, (int)settings.WindowY.Value);
         RestoreWorldPreview();
+        RestoreLayerVisibility();
     }
 
     /// <summary>Close guard. With unsaved work or a live connection the close is canceled and
@@ -397,6 +402,47 @@ public partial class MainWindow : FAAppWindow
         await dlg.ShowDialog(this);
     }
 
+    /// <summary>The asset manager. Every change it makes is on disk, so it re-reads the editor's sheets as
+    /// it goes rather than only on close — a rename the palette does not show is a rename that looks like
+    /// it failed.</summary>
+    private async void AssetsManage_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+
+        var dlgVm = new AssetManagerDialogViewModel(EditorPaths.Assets, EditorPaths.BundledAssets)
+        {
+            UsageProvider = vm.DescribeSheetUsage,
+            PreviewProvider = vm.SheetsOf,
+        };
+
+        dlgVm.PickSheetFileAsync = async () =>
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = EditorStrings.Get(EditorStrings.AssetManager_PickTitle),
+                AllowMultiple = false,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType(EditorStrings.Get(EditorStrings.AssetManager_PickFilter))
+                    {
+                        Patterns = [.. Mirage.Shared.SheetFile.Extensions.Select(x => $"*{x}")],
+                    },
+                ],
+            });
+            return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+        };
+        dlgVm.ConfirmAsync = async msg => await new ConfirmDialog(msg).ShowDialog<bool>(this);
+        dlgVm.RevealFolderAsync = async path =>
+            await Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(path));
+        dlgVm.AssetsChanged += vm.ReloadAssetsFromDisk;
+
+        var dlg = new AssetManagerDialog { DataContext = dlgVm };
+        dlg.CloseWhen(h => dlgVm.Closed += h);
+        dlgVm.Refresh();
+        EditorLog.Debug("Asset manager opened.");
+        await dlg.ShowDialog(this);
+    }
+
     // ── World Preview ─────────────────────────────────────────────────────────
     // The one window the editor shows modelessly, so its lifetime is held here rather than awaited.
 
@@ -440,5 +486,49 @@ public partial class MainWindow : FAAppWindow
         if (!AppSettings.Current.WorldPreviewOpen) return;
         _viewWorldPreviewItem.IsChecked = true;
         OpenWorldPreview();
+    }
+
+    // ── Layer Visibility ──────────────────────────────────────────────────────
+
+    private LayerVisibilityWindow? _layerVisibility;
+
+    private void ViewLayerVisibility_Click(object? sender, RoutedEventArgs e)
+    {
+        bool wanted = _viewLayerVisibilityItem.IsChecked;
+        if (wanted) OpenLayerVisibility(); else _layerVisibility?.CloseDeferred();
+
+        AppSettings.Current.LayerVisibilityOpen = wanted;
+        AppSettings.Current.Save();
+    }
+
+    private void OpenLayerVisibility()
+    {
+        if (_layerVisibility is not null)
+        {
+            _layerVisibility.Activate();
+            return;
+        }
+        if (DataContext is not MainWindowViewModel vm) return;
+
+        // A closed window cannot be shown again, so each toggle builds a fresh one.
+        var window = new LayerVisibilityWindow { DataContext = new LayerVisibilityViewModel(vm.MapEditor) };
+        window.Closed += (_, _) =>
+        {
+            _layerVisibility = null;
+            _viewLayerVisibilityItem.IsChecked = false;
+            AppSettings.Current.LayerVisibilityOpen = false;
+            AppSettings.Current.Save();
+        };
+        _layerVisibility = window;
+        window.Show(this);
+    }
+
+    // The window comes back where it was; the layers do not. Only the window's open state is remembered,
+    // so a session always starts with the whole map on screen.
+    private void RestoreLayerVisibility()
+    {
+        if (!AppSettings.Current.LayerVisibilityOpen) return;
+        _viewLayerVisibilityItem.IsChecked = true;
+        OpenLayerVisibility();
     }
 }

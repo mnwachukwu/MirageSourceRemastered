@@ -10,6 +10,7 @@ public static partial class EditorStrings
 
     // ── Common ────────────────────────────────────────────────────────────────
     // Shared across editors and dialogs — single source of truth for these values.
+    public const string Editor_SheetUnnamed = nameof(Editor_SheetUnnamed);   // "(unnamed)" - any art sheet
     public const string Common_NameLabel = nameof(Common_NameLabel);          // "Name:"
     public const string Common_DisplayNameLabel = nameof(Common_DisplayNameLabel);   // "Display Name:"
     public const string Common_TypeLabel = nameof(Common_TypeLabel);          // "Type:"
@@ -74,7 +75,72 @@ public static partial class EditorStrings
     public const string MainWindow_ExportMenu = nameof(MainWindow_ExportMenu);
     public const string MainWindow_ViewMenu = nameof(MainWindow_ViewMenu);
 
+    // ── Asset manager ─────────────────────────────────────────────────────────
+    public const string MainWindow_AssetsMenu = nameof(MainWindow_AssetsMenu);
+    public const string AssetManager_MenuItem = nameof(AssetManager_MenuItem);
+    public const string AssetManager_Title = nameof(AssetManager_Title);
+    public const string AssetManager_Intro = nameof(AssetManager_Intro);
+    public const string AssetManager_Summary = nameof(AssetManager_Summary);
+    public const string AssetManager_Empty = nameof(AssetManager_Empty);
+    public const string AssetManager_SheetDetail = nameof(AssetManager_SheetDetail);
+    public const string AssetManager_SheetDetailUnknown = nameof(AssetManager_SheetDetailUnknown);
+    public const string AssetManager_Usage = nameof(AssetManager_Usage);
+    public const string AssetManager_UsagePartial = nameof(AssetManager_UsagePartial);
+    public const string AssetManager_UsageNone = nameof(AssetManager_UsageNone);
+    public const string AssetManager_UsageNonePartial = nameof(AssetManager_UsageNonePartial);
+    public const string AssetManager_Import = nameof(AssetManager_Import);
+    public const string AssetManager_OpenFolder = nameof(AssetManager_OpenFolder);
+    public const string AssetManager_Rename = nameof(AssetManager_Rename);
+    public const string AssetManager_Replace = nameof(AssetManager_Replace);
+    public const string AssetManager_Delete = nameof(AssetManager_Delete);
+    public const string AssetManager_Restore = nameof(AssetManager_Restore);
+    public const string AssetManager_Repair = nameof(AssetManager_Repair);
+    public const string AssetManager_ProblemsHeader = nameof(AssetManager_ProblemsHeader);
+    public const string AssetManager_RecycleHeader = nameof(AssetManager_RecycleHeader);
+    public const string AssetManager_ProblemDuplicate = nameof(AssetManager_ProblemDuplicate);
+    public const string AssetManager_ProblemNoIndex = nameof(AssetManager_ProblemNoIndex);
+    public const string AssetManager_ProblemOutOfRange = nameof(AssetManager_ProblemOutOfRange);
+    public const string AssetManager_ProblemNotAligned = nameof(AssetManager_ProblemNotAligned);
+    public const string AssetManager_ProblemNoAlpha = nameof(AssetManager_ProblemNoAlpha);
+    public const string AssetManager_ProblemMissingSize = nameof(AssetManager_ProblemMissingSize);
+    public const string AssetManager_ProblemSizeRows = nameof(AssetManager_ProblemSizeRows);
+    public const string AssetManager_CategoryTiles = nameof(AssetManager_CategoryTiles);
+    public const string AssetManager_CategorySprites = nameof(AssetManager_CategorySprites);
+    public const string AssetManager_CategoryItems = nameof(AssetManager_CategoryItems);
+    public const string AssetManager_CategoryLabel = nameof(AssetManager_CategoryLabel);
+    public const string AssetManager_SizeLabel = nameof(AssetManager_SizeLabel);
+    public const string AssetManager_ConsequenceTiles = nameof(AssetManager_ConsequenceTiles);
+    public const string AssetManager_ConsequenceSprites = nameof(AssetManager_ConsequenceSprites);
+    public const string AssetManager_ConsequenceItems = nameof(AssetManager_ConsequenceItems);
+    public const string AssetManager_UsageSprites = nameof(AssetManager_UsageSprites);
+    public const string AssetManager_UsageItems = nameof(AssetManager_UsageItems);
+    public const string AssetManager_UsageNoneRecords = nameof(AssetManager_UsageNoneRecords);
+    public const string AssetManager_TransparencyKey = nameof(AssetManager_TransparencyKey);
+    public const string AssetManager_TransparencyAlpha = nameof(AssetManager_TransparencyAlpha);
+    public const string AssetManager_TransparencyNone = nameof(AssetManager_TransparencyNone);
+    public const string AssetManager_ConfirmDelete = nameof(AssetManager_ConfirmDelete);
+    public const string AssetManager_ConfirmRestoreMoved = nameof(AssetManager_ConfirmRestoreMoved);
+    public const string AssetManager_Imported = nameof(AssetManager_Imported);
+    public const string AssetManager_Renamed = nameof(AssetManager_Renamed);
+    public const string AssetManager_Replaced = nameof(AssetManager_Replaced);
+    public const string AssetManager_Deleted = nameof(AssetManager_Deleted);
+    public const string AssetManager_Restored = nameof(AssetManager_Restored);
+    public const string AssetManager_Repaired = nameof(AssetManager_Repaired);
+    public const string AssetManager_Failed = nameof(AssetManager_Failed);
+    public const string AssetManager_FullNoIndex = nameof(AssetManager_FullNoIndex);
+    public const string AssetManager_PickTitle = nameof(AssetManager_PickTitle);
+    public const string AssetManager_PickFilter = nameof(AssetManager_PickFilter);
+
     // ── World Preview ─────────────────────────────────────────────────────────
+    // ── Layer Visibility ──────────────────────────────────────────────────────
+    public const string LayerVisibility_MenuItem = nameof(LayerVisibility_MenuItem);
+    public const string LayerVisibility_Title = nameof(LayerVisibility_Title);
+    public const string LayerVisibility_Intro = nameof(LayerVisibility_Intro);
+    public const string LayerVisibility_ShowAll = nameof(LayerVisibility_ShowAll);
+    public const string LayerVisibility_HideAll = nameof(LayerVisibility_HideAll);
+    public const string LayerVisibility_AllShown = nameof(LayerVisibility_AllShown);
+    public const string LayerVisibility_SomeHidden = nameof(LayerVisibility_SomeHidden);
+
     public const string WorldPreview_MenuItem = nameof(WorldPreview_MenuItem);
     public const string WorldPreview_Title = nameof(WorldPreview_Title);
     public const string WorldPreview_NoMaps = nameof(WorldPreview_NoMaps);
@@ -383,6 +449,7 @@ public static partial class EditorStrings
     // ── Data / Refresh ────────────────────────────────────────────────────────
     public const string MainWindow_DataMenu = nameof(MainWindow_DataMenu);
     public const string MainWindow_DataRefresh = nameof(MainWindow_DataRefresh);
+    public const string MainWindow_DataReloadAssets = nameof(MainWindow_DataReloadAssets);
     public const string World_NotFound = nameof(World_NotFound);
     public const string World_Open = nameof(World_Open);
     public const string World_Close = nameof(World_Close);

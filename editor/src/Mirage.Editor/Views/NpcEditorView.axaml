@@ -92,6 +92,18 @@
             <TextBox   Grid.Column="1" Text="{Binding SelectedNpc.AttackSay}" />
           </mui:FormRow>
 
+          <!-- Which sheet, then which row of it. The number is what the record stores, so the sheet is
+               picked by index-prefixed name the same way the map editor picks a tileset. -->
+          <mui:FormRow LabelWidth="130">
+            <TextBlock x:Name="_spriteSheetLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <controls:DropdownAutoCompleteBox Grid.Column="1"
+                                 ItemsSource="{Binding SpriteSheetEntries}"
+                                 SelectedItem="{Binding SelectedSpriteSheetEntry, Mode=TwoWay}"
+                                 ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
+                                 FilterMode="Custom"
+                                 MinimumPrefixLength="0"/>
+          </mui:FormRow>
+
           <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spriteLabel"    Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
@@ -105,6 +117,7 @@
                     <controls:AtlasFramePreview
                         FrameIndex="{Binding}"
                         Atlas="{Binding $parent[ComboBox].DataContext.SpriteBitmap}"
+                        CellSize="{Binding $parent[ComboBox].DataContext.SpriteCellSize}"
                         Mode="SpriteStrip"
                         Animated="True"
                         IsHighlighted="{Binding $parent[ComboBoxItem].IsPointerOver}"/>

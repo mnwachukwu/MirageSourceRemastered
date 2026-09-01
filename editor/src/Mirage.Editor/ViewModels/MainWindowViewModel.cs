@@ -273,7 +273,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
             await Task.Run(EditorPaths.SeedAssets);
             _bitmaps.Load(EditorPaths.Assets);
             ApplyBitmaps();
-            MapEditor.ReloadAssetsRequested = ReloadAssets;
 
             // No world by default. Opening one is a decision, and starting on whatever was open last would
             // attach the editor to a world somebody had finished with.
@@ -293,18 +292,29 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         MapEditor.TilesetNames = _bitmaps.TilesetNames;
         MapEditor.Tilesets = _bitmaps.Tilesets;
-        ItemEditor.ItemBitmap = _bitmaps.Items;
-        NpcEditor.SpriteBitmap = _bitmaps.Sprites;
-        ClassEditor.SpriteBitmap = _bitmaps.Sprites;
+        ItemEditor.SetItemSheets(_bitmaps.Items, _bitmaps.ItemNames);
+        NpcEditor.SetSpriteSheets(_bitmaps.Sprites, _bitmaps.Sprites64, _bitmaps.Sprites96, _bitmaps.SpriteNames);
+        ClassEditor.SetSpriteSheets(_bitmaps.Sprites, _bitmaps.SpriteNames);
     }
 
-    // Re-scans the asset folders at runtime (the map editor's Refresh Assets button) so newly added
-    // tile sheets appear without restarting.
+    /// <summary>Re-scans every asset folder so sheets added, renamed or removed on disk appear without a
+    /// restart. Available while connected: the graphics are this machine's, and a server has no say in
+    /// them — only the world is the server's to hand out.</summary>
+    [RelayCommand]
     private void ReloadAssets()
+    {
+        ReloadAssetsFromDisk();
+        MapEditor.StatusMessage = EditorStrings.Get(EditorStrings.MapEditorStatus_AssetsReloaded);
+    }
+
+    /// <summary>Re-reads every sheet from disk and pushes it into the editors that draw with it.
+    ///
+    /// <para>Without the status line, because the asset manager reports its own outcomes: it says what it
+    /// just did to which file, which is more use than "Assets reloaded" appearing behind an open dialog.</para></summary>
+    internal void ReloadAssetsFromDisk()
     {
         _bitmaps.Reload(EditorPaths.Assets);
         ApplyBitmaps();
-        MapEditor.StatusMessage = EditorStrings.Get(EditorStrings.MapEditorStatus_AssetsReloaded);
     }
 
     partial void OnSelectedSectionChanged(SectionViewModel? value) => SwitchToSection(value?.Name);

@@ -947,12 +947,14 @@ public class SeedIntegrityTests
     public void EveryCreatureRow_IsOneSide()
     {
         RequireSeed();
-        // Rows of Sprites.bmp that draw a creature rather than a person: 8/11/12/13/14/18/19 monsters,
-        // 20/21/22 birds, 46 orc.
+        // Rows of sheet 0 that draw a creature rather than a person: 8/11/12/13/14/18/19 monsters,
+        // 20/21/22 birds, 46 orc. The sheet has to be named: a row number is only unique within one
+        // sheet, so row 8 of a second sheet is a different creature entirely.
+        const int creatureSheet = 0;
         int[] creatureRows = [8, 11, 12, 13, 14, 18, 19, 20, 21, 22, 46];
         var byRow = _npcs.Values
             .Where(n => n.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.AttackWhenAttacked)
-            .Where(n => creatureRows.Contains(n.Sprite))
+            .Where(n => n.SpriteSheet == creatureSheet && creatureRows.Contains(n.Sprite))
             .GroupBy(n => n.Sprite);
 
         Assert.Multiple(() =>

@@ -33,10 +33,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     private void RebuildTilesetEntries()
     {
-        var arr = new NamedEntry[Tilesets.Count];
-        for (int i = 0; i < arr.Length; i++)
-            arr[i] = new NamedEntry(i, TilesetDisplayName(i));
-        _tilesetEntries = arr;
+        _tilesetEntries = SheetEntries.Build(Tilesets.Count, TilesetNames);
         OnPropertyChanged(nameof(TilesetEntries));
         OnPropertyChanged(nameof(SelectedTilesetEntry));
     }
@@ -50,10 +47,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     // Sheet index → display name (filename minus numeric prefix), falling back to the shared
     // "(unnamed)" string. Shared by the tileset picker entries and the Used Tilesheets list.
-    private string TilesetDisplayName(int sheet) =>
-        sheet >= 0 && sheet < TilesetNames.Count && !string.IsNullOrWhiteSpace(TilesetNames[sheet])
-            ? TilesetNames[sheet]
-            : EditorStrings.Get(EditorStrings.MapEditor_TilesetUnnamed);
+    private string TilesetDisplayName(int sheet) => SheetEntries.DisplayName(TilesetNames, sheet);
 
     // Index-prefixed labels ("0: Tiles", the same form the tileset picker uses) for every sheet used by
     // a non-empty Ground/Fringe layer on the current map, one per line, ordered by sheet index. Read-only
@@ -142,11 +136,6 @@ public sealed partial class MapEditorViewModel : ObservableObject
     // it is also interpolated into the "Filled {Layer}" / "Cleared {Layer}" status messages.
     public string StatusLayerText =>
         EditorStrings.Format(EditorStrings.MapEditor_StatusLayer, ("Layer", SelectedLayerLabel));
-
-    // Re-scans the asset folders at runtime; wired by MainWindowViewModel.
-    public Action? ReloadAssetsRequested { get; set; }
-    [RelayCommand]
-    private void ReloadAssets() => ReloadAssetsRequested?.Invoke();
 
     // ── Fill / Clear layer ────────────────────────────────────────────────────
 

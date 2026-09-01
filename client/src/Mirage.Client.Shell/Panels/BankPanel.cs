@@ -397,7 +397,7 @@ public sealed class BankPanel : IGamePanel
         return h.ToHashCode();
     }
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex, bool isActive = false, bool canHover = true)
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex, bool isActive = false, bool canHover = true)
     {
         if (!IsOpen) return;
         _cachedFont = font;
@@ -463,7 +463,7 @@ public sealed class BankPanel : IGamePanel
         }
     }
 
-    private void NotifyInvHover(ClientState state, Texture2D? itemsTex)
+    private void NotifyInvHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         int hovered = _invList.HoveredIndex;
         if (hovered < 0) return;
@@ -476,7 +476,7 @@ public sealed class BankPanel : IGamePanel
             state.SpellDefs, state.Items, state.Weather);
     }
 
-    private void NotifyBankHover(ClientState state, Texture2D? itemsTex)
+    private void NotifyBankHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         int hovered = _bankList.HoveredIndex;
         if (hovered < 0) return;

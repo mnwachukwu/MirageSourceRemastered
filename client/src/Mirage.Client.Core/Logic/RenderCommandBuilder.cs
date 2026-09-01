@@ -655,7 +655,7 @@ public static class RenderCommandBuilder
 
             var (screenX, screenY) = camera.WorldTileToScreen(offX + mi.X, offY + mi.Y, 0, 0);
             if (!OnScreen(screenX, screenY)) continue;
-            frame.Items.Add(new ItemDrawCmd(screenX, screenY, itemDef.Pic, mi.Layer));
+            frame.Items.Add(new ItemDrawCmd(screenX, screenY, itemDef.Pic, mi.Layer, itemDef.PicSheet));
         }
     }
 
@@ -799,7 +799,7 @@ public static class RenderCommandBuilder
         int spriteRow = def.Sprite;
 
         frame.Npcs.Add(new SpriteDrawCmd(screenX, screenY, spriteRow, animFrame, n.Dir, size,
-            SlideRenderLayer(n.Layer, n.PrevLayer, n.XOffset, n.YOffset)));
+            SlideRenderLayer(n.Layer, n.PrevLayer, n.XOffset, n.YOffset), def.SpriteSheet));
 
         bool isSightAggro = def.Behavior is NpcBehavior.AttackOnSight or NpcBehavior.Guard;
         bool isHostile = isSightAggro || def.Behavior == NpcBehavior.AttackWhenAttacked;
@@ -1085,7 +1085,7 @@ public static class RenderCommandBuilder
         int spriteRow = p.Sprite;
 
         frame.Players.Add(new SpriteDrawCmd(screenX, screenY, spriteRow, animFrame, p.Dir,
-            Layer: SlideRenderLayer(p.Layer, p.PrevLayer, p.XOffset, p.YOffset)));
+            Layer: SlideRenderLayer(p.Layer, p.PrevLayer, p.XOffset, p.YOffset), Sheet: p.SpriteSheet));
 
         long nowUtcForGrace = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         bool showAsPk = p.IsPk(nowUtcForGrace) && p.PkGraceUntilUtc <= nowUtcForGrace;

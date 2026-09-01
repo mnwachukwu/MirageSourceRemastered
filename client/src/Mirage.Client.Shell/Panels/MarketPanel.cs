@@ -282,7 +282,7 @@ public sealed class MarketPanel : IGamePanel
 
     // ── Draw ─────────────────────────────────────────────────────────────────────
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex, bool isActive = false)
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex, bool isActive = false)
     {
         if (!IsOpen) return;
         _itemDefs = state.Items;
@@ -354,7 +354,7 @@ public sealed class MarketPanel : IGamePanel
         _panel.DrawOverlay(sb);
     }
 
-    private void DrawListing(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex)
+    private void DrawListing(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         long nowMs = Environment.TickCount64;
         var c = _panel.ContentBounds;
@@ -422,7 +422,7 @@ public sealed class MarketPanel : IGamePanel
             : m.Price.ToString("N0");
     }
 
-    private void ShowItemTooltip(ClientState state, Texture2D itemsTex, int itemNum, int value, int dur, object key)
+    private void ShowItemTooltip(ClientState state, IReadOnlyList<Texture2D?> itemsTex, int itemNum, int value, int dur, object key)
     {
         if (itemNum <= 0 || itemNum >= state.Items.Length) return;
         var def = state.Items[itemNum];

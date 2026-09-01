@@ -21,6 +21,11 @@ public sealed class ItemRecord
     public string TrimmedName => _trimmedName ??= _name.TrimEnd();
 
     public short Pic { get; set; }
+    /// <summary>Which item sheet <see cref="Pic"/> is a row of.
+    ///
+    /// <para>Always written, including when it is 0: a record states which sheet it draws from rather than
+    /// leaving a reader to infer it. Absent from an older file it still reads as 0.</para></summary>
+    public short PicSheet { get; set; }
     public ItemType Type { get; set; }
 
     // ── Type-specific fields ──────────────────────────────────────────────────

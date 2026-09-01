@@ -21,7 +21,8 @@ public static class PacketBuilder
         new()
         {
             Classes = classes.Select(c => new SendClassesPacket.ClassData(
-                c.Name, c.SpriteMale, c.SpriteFemale, c.Str, c.Def, c.Spd, c.Int, c.Description)).ToArray()
+                c.Name, c.SpriteMale, c.SpriteFemale, c.Str, c.Def, c.Spd, c.Int, c.Description,
+                Worn: null, Carried: null, Spells: null, SpriteSheet: c.SpriteSheet)).ToArray()
         };
 
     /// <summary>The class list for the character-create screen, with each class's resolved starting
@@ -62,7 +63,8 @@ public static class PacketBuilder
                 c.Name, c.SpriteMale, c.SpriteFemale, c.Str, c.Def, c.Spd, c.Int, c.Description,
                 worn.Length > 0 ? worn : null,
                 carried.Length > 0 ? carried : null,
-                known.Count > 0 ? [.. known] : null);
+                known.Count > 0 ? [.. known] : null,
+                c.SpriteSheet);
         }
 
         // The casting reagent rides along if any starting spell drains HP. It is not granted to anyone —
@@ -84,7 +86,8 @@ public static class PacketBuilder
     }
 
     private static NewCharClassesPacket.ItemDef ItemDefOf(int num, ItemRecord it) =>
-        new(num, it.Name, it.Pic, it.Type, it.Durability, it.VitalAmount, it.Power, it.LevelReq, it.AllowedClasses);
+        new(num, it.Name, it.Pic, it.Type, it.Durability, it.VitalAmount, it.Power, it.LevelReq,
+            it.AllowedClasses, it.PicSheet);
 
     private static NewCharClassesPacket.SpellDef SpellDefOf(int num, SpellRecord sp) =>
         new(num, sp.Name, sp.Type, sp.VitalAmount, sp.IntReq, sp.LevelReq, sp.AllowedClasses);
@@ -98,7 +101,7 @@ public static class PacketBuilder
                     return new SendCharsPacket.CharSlot("", 0, 0, 0, "");
                 string cls = p.Class > 0 && p.Class < classes.Length && classes[p.Class]?.Name is { Length: > 0 } n
                     ? n.Trim() : "";
-                return new SendCharsPacket.CharSlot(p.Name, p.Level, p.Class, p.Sprite, cls);
+                return new SendCharsPacket.CharSlot(p.Name, p.Level, p.Class, p.Sprite, cls, p.SpriteSheet);
             }).ToArray()
         };
 
@@ -118,6 +121,7 @@ public static class PacketBuilder
             Index = index,
             Name = p.Name,
             Sprite = p.Sprite,
+            SpriteSheet = p.SpriteSheet,
             X = p.X,
             Y = p.Y,
             Dir = p.Dir,
@@ -293,7 +297,7 @@ public static class PacketBuilder
                 // Copied, not aliased: a packet outlives this call and the record stays editable.
                 x.item.AllowedClasses is null ? null : new List<short>(x.item.AllowedClasses),
                 x.item.NonTradeable, x.item.NonListable, x.item.NonMailable, x.item.DestroyOnDrop,
-                x.item.NonJunkable, x.item.Price)).ToArray()
+                x.item.NonJunkable, x.item.Price, x.item.PicSheet)).ToArray()
         };
 
     public static UpdateItemPacket UpdateItem(int itemNum, ItemRecord item) =>
@@ -302,6 +306,7 @@ public static class PacketBuilder
             ItemNum = itemNum,
             Name = item.Name,
             Pic = item.Pic,
+            PicSheet = item.PicSheet,
             Type = item.Type,
             Durability = item.Durability,
             VitalAmount = item.VitalAmount,
@@ -349,6 +354,7 @@ public static class PacketBuilder
             Name = npc.Name,
             AttackSay = npc.AttackSay,
             Sprite = npc.Sprite,
+            SpriteSheet = npc.SpriteSheet,
             Size = npc.EffectiveSize,
             SpawnSecs = npc.SpawnSecs,
             Behavior = npc.Behavior,
@@ -393,6 +399,7 @@ public static class PacketBuilder
             Description = cls.Description,
             SpriteMale = cls.SpriteMale,
             SpriteFemale = cls.SpriteFemale,
+            SpriteSheet = cls.SpriteSheet,
             Str = cls.Str,
             Def = cls.Def,
             Spd = cls.Spd,

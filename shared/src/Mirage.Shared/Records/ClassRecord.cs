@@ -31,6 +31,13 @@ public sealed class ClassRecord
     public int SpriteMale { get; set; }
     public int SpriteFemale { get; set; }
 
+    /// <summary>Which sprite sheet the two above are rows of. One sheet for the pair: a class's male and
+    /// female art is authored together, and splitting them across sheets would be a way to get a class
+    /// half-drawn rather than a capability anyone wants.
+    ///
+    /// <para>Always written, including when it is 0.</para></summary>
+    public int SpriteSheet { get; set; }
+
     /// <summary>Legacy single sprite, kept only so a world authored before the split still loads.
     /// <see cref="Normalize"/> folds it into both of the above and clears it, so it is written back out
     /// only for as long as a file still carries it.</summary>

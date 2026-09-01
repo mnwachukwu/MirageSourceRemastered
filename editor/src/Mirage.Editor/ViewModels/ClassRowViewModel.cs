@@ -35,6 +35,8 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
     /// creation, so re-arting a class here changes who is CREATED next, never who already exists.</summary>
     [ObservableProperty] private int _spriteMale;
     [ObservableProperty] private int _spriteFemale;
+    /// <summary>Which sprite sheet both of the above are rows of.</summary>
+    [ObservableProperty] private int _spriteSheet;
     [ObservableProperty] private int _str;
     [ObservableProperty] private int _def;
     [ObservableProperty] private int _spd;
@@ -227,6 +229,7 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
         _description = r.Description;
         _spriteMale = r.SpriteMale;
         _spriteFemale = r.SpriteFemale;
+        _spriteSheet = r.SpriteSheet;
         _str = r.Str;
         _def = r.Def;
         _spd = r.Spd;
@@ -256,6 +259,7 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
     partial void OnDescriptionChanged(string value) => MarkDirty();
     partial void OnSpriteMaleChanged(int value) => MarkDirty();
     partial void OnSpriteFemaleChanged(int value) => MarkDirty();
+    partial void OnSpriteSheetChanged(int value) => MarkDirty();
     // Each stat re-raises only the previews it feeds: STR is offense-only, DEF drives HP + regen +
     // mitigation, SPD the stamina pool, INT the mana pool and spell power.
     // STR and DEF also gate EQUIPMENT, and INT gates spells, so each of the three re-raises the loadout:
@@ -332,6 +336,7 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
             Description = r.Description;
             SpriteMale = r.SpriteMale;
             SpriteFemale = r.SpriteFemale;
+            SpriteSheet = r.SpriteSheet;
             Str = r.Str;
             Def = r.Def;
             Spd = r.Spd;
@@ -357,6 +362,7 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
             Description = pkt.Description;
             SpriteMale = pkt.SpriteMale;
             SpriteFemale = pkt.SpriteFemale;
+            SpriteSheet = pkt.SpriteSheet;
             Str = pkt.Str;
             Def = pkt.Def;
             Spd = pkt.Spd;
@@ -380,6 +386,7 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
         Description = Description,
         SpriteMale = SpriteMale,
         SpriteFemale = SpriteFemale,
+        SpriteSheet = SpriteSheet,
         Str = Str,
         Def = Def,
         Spd = Spd,
@@ -397,6 +404,7 @@ public sealed partial class ClassRowViewModel : ObservableObject, ILockableRow
         Description = Description,
         SpriteMale = SpriteMale,
         SpriteFemale = SpriteFemale,
+        SpriteSheet = SpriteSheet,
         Str = Str,
         Def = Def,
         Spd = Spd,

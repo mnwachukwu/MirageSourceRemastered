@@ -19,6 +19,47 @@ namespace Mirage.Editor.ViewModels;
 /// the tools panel shows for the selected attribute.</summary>
 public sealed partial class MapEditorViewModel : ObservableObject
 {
+    /// <summary>Stamps the selected tiles onto the selected layer, anchored at (x, y).
+    ///
+    /// <para>Its own method because the hidden-layer prompt replays exactly this: the tile it refused is
+    /// laid once the author has said to turn the layer back on.</para></summary>
+    private void PaintTileAt(int x, int y)
+    {
+        if (SelectedMap is null) return;
+        // A tile placed on a layer you cannot see lands correctly and is invisible, which reads as the
+        // editor ignoring the click. Nothing is painted until the author says what they meant.
+        if (BlockedByHiddenLayer(x, y)) return;
+
+        var map = SelectedMap.Record;
+        // Stamp all cells in the selection; skip out-of-bounds and occupied layer slots.
+        var stamp = SelectedStamp;
+        int stampCols = stamp?.Cols ?? 1;
+        int stampRows = stamp?.Rows ?? 1;
+
+        for (int dr = 0; dr < stampRows; dr++)
+        {
+            for (int dc = 0; dc < stampCols; dc++)
+            {
+                int tileIdx = stamp?.Indices[dc, dr] ?? 0;
+                if (tileIdx == 0) continue;
+
+                int tx = x + dc, ty = y + dr;
+                if (!InMapBounds(tx, ty)) continue;
+
+                var tTile = map.Tile[tx, ty];
+                int li = SelectedLayerArrayIndex;
+                if (!LayerCell.IsEmpty(SelectedLayers(tTile)[li])) continue;
+
+                var before = Snap(tTile);
+                tTile = tTile.WithCell(SelectedLayerType, li, PackSelected(tileIdx));
+                map.Tile[tx, ty] = tTile;
+                SelectedMap.UpdateRecord(map);
+                RepaintTile(tx, ty);
+                Record(tx, ty, before, Snap(tTile));
+            }
+        }
+    }
+
     /// <summary>Called by TileGridControl on left-click at tile (x, y).</summary>
     [RelayCommand]
     public void TileClicked(object? param)
@@ -58,33 +99,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
         if (SelectedMode == EditorMode.Tile)
         {
-            // Stamp all cells in the selection; skip out-of-bounds and occupied layer slots.
-            var stamp = SelectedStamp;
-            int stampCols = stamp?.Cols ?? 1;
-            int stampRows = stamp?.Rows ?? 1;
-
-            for (int dr = 0; dr < stampRows; dr++)
-            {
-                for (int dc = 0; dc < stampCols; dc++)
-                {
-                    int tileIdx = stamp?.Indices[dc, dr] ?? 0;
-                    if (tileIdx == 0) continue;
-
-                    int tx = x + dc, ty = y + dr;
-                    if (!InMapBounds(tx, ty)) continue;
-
-                    var tTile = map.Tile[tx, ty];
-                    int li = SelectedLayerArrayIndex;
-                    if (!LayerCell.IsEmpty(SelectedLayers(tTile)[li])) continue;
-
-                    var before = Snap(tTile);
-                    tTile = tTile.WithCell(SelectedLayerType, li, PackSelected(tileIdx));
-                    map.Tile[tx, ty] = tTile;
-                    SelectedMap.UpdateRecord(map);
-                    RepaintTile(tx, ty);
-                    Record(tx, ty, before, Snap(tTile));
-                }
-            }
+            PaintTileAt(x, y);
         }
         else if (SelectedMode == EditorMode.Attribute)
         {

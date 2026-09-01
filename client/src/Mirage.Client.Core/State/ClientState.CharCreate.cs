@@ -72,6 +72,7 @@ public sealed partial class ClientState
             {
                 Name = d.Name,
                 Pic = d.Pic,
+                PicSheet = d.PicSheet,
                 Type = d.Type,
                 Durability = d.Durability,
                 VitalAmount = d.VitalAmount,

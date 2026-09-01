@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Core.State;
 using Mirage.Client.Shell.Input;
+using Mirage.Client.Shell.Rendering;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Logic;
 using Mirage.Client.Shell.Ui;
@@ -107,7 +108,7 @@ public static class HotkeyBarPanel
     /// <param name="cooldownOf">How much of a slot's cooldown is still to run, 1→0, asked per slot.
     /// There are two clocks — drinking and the action beat — so a bar holding a potion beside a spell
     /// shows two different sweeps, and one value could not describe the row.</param>
-    public static void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex,
+    public static void Draw(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex,
                             Func<PlayerHotkey, float> cooldownOf, bool gamepadActive, InputState input, bool canHover)
     {
         var me = state.Me;
@@ -157,12 +158,10 @@ public static class HotkeyBarPanel
         if (canHover) NotifyHover(state, input, itemsTex);
     }
 
-    private static void DrawItemIcon(SpriteBatch sb, Rectangle box, ClientState state, Texture2D? itemsTex, int itemNum, Color tint)
+    private static void DrawItemIcon(SpriteBatch sb, Rectangle box, ClientState state, IReadOnlyList<Texture2D?> itemsTex, int itemNum, Color tint)
     {
-        if (itemsTex is null || itemNum <= 0 || itemNum >= state.Items.Length) return;
-        int pic = state.Items[itemNum]?.Pic ?? -1;
-        if (pic < 0) return;
-        sb.Draw(itemsTex, box, Rendering.ItemAtlas.GetSourceRect((short)pic), tint);
+        if (itemNum <= 0 || itemNum >= state.Items.Length) return;
+        sb.DrawItemIcon(itemsTex, state.Items[itemNum], box, tint);
     }
 
     /// <summary>A spell has no art of its own, so every spell slot shows the same book and the hover
@@ -272,7 +271,7 @@ public static class HotkeyBarPanel
 
     // ── Hover ────────────────────────────────────────────────────────────────
 
-    private static void NotifyHover(ClientState state, InputState input, Texture2D? itemsTex)
+    private static void NotifyHover(ClientState state, InputState input, IReadOnlyList<Texture2D?> itemsTex)
     {
         var me = state.Me;
         if (me?.Hotkeys is null) return;

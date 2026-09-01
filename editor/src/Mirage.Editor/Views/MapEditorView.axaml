@@ -111,6 +111,7 @@
                                     AttributeBrushSizeY="{Binding AttributeBrushSizeY}"
                                     SelectedAttribute="{Binding SelectedAttribute}"
                                     AttributeLayer="{Binding SelectedAttributeLayer, Mode=TwoWay}"
+                                    LayerVisibility="{Binding LayerVisibility}"
                                     NpcPlacementActive="{Binding IsPlacingNpc}"
                                     NpcPlacementSize="{Binding PlacingNpcSize}"
                                     SelectedLayerType="{Binding SelectedLayerType, Mode=TwoWay}"
@@ -266,19 +267,16 @@
                       Padding="10,2" FontSize="11"/>
             </StackPanel>
 
-            <!-- Tileset selector (typeahead by name or index) + runtime reload — Tile mode only -->
+            <!-- Tileset selector (typeahead by name or index) — Tile mode only -->
             <TextBlock x:Name="_tilesetHeader" FontWeight="SemiBold" Margin="0,4,0,0"
                        IsVisible="{Binding IsTileMode}"/>
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" IsVisible="{Binding IsTileMode}">
-              <controls:DropdownAutoCompleteBox Grid.Column="0" x:Name="_searchTileset"
-                                   ItemsSource="{Binding TilesetEntries}"
-                                   SelectedItem="{Binding SelectedTilesetEntry, Mode=TwoWay}"
-                                   ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
-                                   FilterMode="Custom"
-                                   MinimumPrefixLength="0"/>
-              <Button Grid.Column="1" x:Name="_btnReloadAssets"
-                      Command="{Binding ReloadAssetsCommand}" Padding="8,2" FontSize="11"/>
-            </Grid>
+            <controls:DropdownAutoCompleteBox x:Name="_searchTileset"
+                                 IsVisible="{Binding IsTileMode}"
+                                 ItemsSource="{Binding TilesetEntries}"
+                                 SelectedItem="{Binding SelectedTilesetEntry, Mode=TwoWay}"
+                                 ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
+                                 FilterMode="Custom"
+                                 MinimumPrefixLength="0"/>
 
             <!-- Tile palette header — Tile mode only -->
             <TextBlock x:Name="_paletteHeader" FontWeight="SemiBold" Margin="0,4,0,0"
@@ -727,7 +725,8 @@
               <ItemsControl ItemsSource="{Binding HoveredGroundLayers}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1"
+                                Opacity="{Binding CellOpacity}">
                       <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="{DynamicResource MirageFaintBrush}" VerticalAlignment="Center"/>
                       <controls:SingleTileControl TileBitmap="{Binding Bitmap}" TileIndex="{Binding TileIndex}"/>
                       <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#6B6491" VerticalAlignment="Center" TextAlignment="Center"
@@ -742,7 +741,8 @@
               <ItemsControl ItemsSource="{Binding HoveredFringeLayers}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1"
+                                Opacity="{Binding CellOpacity}">
                       <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="{DynamicResource MirageFaintBrush}" VerticalAlignment="Center"/>
                       <controls:SingleTileControl TileBitmap="{Binding Bitmap}" TileIndex="{Binding TileIndex}"/>
                       <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#6B6491" VerticalAlignment="Center" TextAlignment="Center"
@@ -757,7 +757,8 @@
               <ItemsControl ItemsSource="{Binding HoveredCanopyLayers}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,1"
+                                Opacity="{Binding CellOpacity}">
                       <TextBlock Text="{Binding Label}" Width="16" FontSize="10" Foreground="{DynamicResource MirageFaintBrush}" VerticalAlignment="Center"/>
                       <controls:SingleTileControl TileBitmap="{Binding Bitmap}" TileIndex="{Binding TileIndex}"/>
                       <TextBlock Text="{Binding SheetText}" Width="14" FontSize="9" Foreground="#6B6491" VerticalAlignment="Center" TextAlignment="Center"
@@ -955,6 +956,24 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
           <Button x:Name="_lightCancel"  Command="{Binding CancelLightCommand}"/>
           <Button x:Name="_lightConfirm" Command="{Binding ConfirmLightCommand}" IsDefault="True"/>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Painting onto a layer that is put away. There is no third button that places the tile and leaves
+         the layer hidden: a tile you cannot see is not a tile you can judge. -->
+    <Border Grid.Row="0"
+            IsVisible="{Binding ShowHiddenLayerDialog}"
+            Background="#CC000000"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Padding="20" CornerRadius="8">
+      <StackPanel Spacing="10" Width="320">
+        <TextBlock x:Name="_hiddenLayerTitle" FontSize="14" FontWeight="Bold"/>
+        <TextBlock Text="{Binding HiddenLayerPrompt}" FontSize="11" Foreground="#8B84AE" TextWrapping="Wrap"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+          <Button x:Name="_hiddenLayerCancel"  Command="{Binding CancelHiddenLayerCommand}" IsCancel="True"/>
+          <Button x:Name="_hiddenLayerConfirm" Command="{Binding ConfirmHiddenLayerCommand}" IsDefault="True"/>
         </StackPanel>
       </StackPanel>
     </Border>

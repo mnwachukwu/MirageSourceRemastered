@@ -195,7 +195,8 @@ public sealed record SendClassesPacket : IPacket
         [property: JsonPropertyName("desc")] string Description = "",
         [property: JsonPropertyName("worn")] int[]? Worn = null,
         [property: JsonPropertyName("carried")] CarriedItem[]? Carried = null,
-        [property: JsonPropertyName("spells")] int[]? Spells = null
+        [property: JsonPropertyName("spells")] int[]? Spells = null,
+        [property: JsonPropertyName("spriteSheet")] int SpriteSheet = 0
     );
 
     /// <summary>A carried starting item: its number, plus the stack size for currency (0 for everything
@@ -237,7 +238,8 @@ public sealed record NewCharClassesPacket : IPacket
         [property: JsonPropertyName("vitalAmount")] short VitalAmount,
         [property: JsonPropertyName("power")] short Power,
         [property: JsonPropertyName("levelReq")] short LevelReq,
-        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses
+        [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses,
+        [property: JsonPropertyName("picSheet")] short PicSheet = 0
     );
 
     /// <summary>A spell definition, narrowed to what the spell tooltip reads — MP cost, magnitude, and
@@ -266,6 +268,7 @@ public sealed record SendCharsPacket : IPacket
         [property: JsonPropertyName("level")] int Level,
         [property: JsonPropertyName("class")] int Class,
         [property: JsonPropertyName("sprite")] int Sprite,
-        [property: JsonPropertyName("className")] string ClassName
+        [property: JsonPropertyName("className")] string ClassName,
+        [property: JsonPropertyName("spriteSheet")] int SpriteSheet = 0
     );
 }

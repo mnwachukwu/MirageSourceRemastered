@@ -8,7 +8,11 @@ namespace Mirage.Editor.Controls;
 
 public enum AtlasMode { ItemStrip, SpriteStrip }
 
-/// <summary>Renders a single 32×32 frame from an item or sprite atlas bitmap.</summary>
+/// <summary>Renders a single frame from an item or sprite atlas bitmap, always at 32×32 on screen.
+///
+/// <para>The source cell may be larger than that: a size-2 or size-3 NPC is drawn on a 64 or 96 px grid,
+/// and <see cref="CellSize"/> says which. The frame is scaled to the same 32×32 box either way, so a
+/// picker's rows stay one height whatever size the creature is.</para></summary>
 public sealed class AtlasFramePreview : Control
 {
     private const int W = 32;
@@ -28,6 +32,8 @@ public sealed class AtlasFramePreview : Control
         AvaloniaProperty.Register<AtlasFramePreview, bool>(nameof(Animated));
     public static readonly StyledProperty<bool> IsHighlightedProperty =
         AvaloniaProperty.Register<AtlasFramePreview, bool>(nameof(IsHighlighted));
+    public static readonly StyledProperty<int> CellSizeProperty =
+        AvaloniaProperty.Register<AtlasFramePreview, int>(nameof(CellSize), defaultValue: W);
 
     public Bitmap? Atlas
     {
@@ -54,6 +60,12 @@ public sealed class AtlasFramePreview : Control
         get => GetValue(IsHighlightedProperty);
         set => SetValue(IsHighlightedProperty, value);
     }
+    /// <summary>Source cell size in the atlas, in pixels (32/64/96). The frame still draws at 32×32.</summary>
+    public int CellSize
+    {
+        get => GetValue(CellSizeProperty);
+        set => SetValue(CellSizeProperty, value);
+    }
 
     private static readonly IBrush EmptyBrush = new SolidColorBrush(Color.FromRgb(30, 30, 30));
     private static readonly Pen BorderPen = new(new SolidColorBrush(Color.FromRgb(80, 80, 80)), 1);
@@ -65,7 +77,8 @@ public sealed class AtlasFramePreview : Control
 
     static AtlasFramePreview()
     {
-        AffectsRender<AtlasFramePreview>(AtlasProperty, FrameIndexProperty, ModeProperty, IsHighlightedProperty);
+        AffectsRender<AtlasFramePreview>(AtlasProperty, FrameIndexProperty, ModeProperty,
+            IsHighlightedProperty, CellSizeProperty);
         AnimatedProperty.Changed.AddClassHandler<AtlasFramePreview>((c, _) => c.UpdateTimer());
     }
 
@@ -123,9 +136,10 @@ public sealed class AtlasFramePreview : Control
         int idx = FrameIndex;
         if (idx >= 0 && bmp is not null)
         {
+            int cell = CellSize > 0 ? CellSize : W;
             var src = Mode == AtlasMode.ItemStrip
-                ? new Rect(0, idx * H, W, H)
-                : new Rect(_animFrameOffset * W, idx * H, W, H);
+                ? new Rect(0, idx * cell, cell, cell)
+                : new Rect(_animFrameOffset * cell, idx * cell, cell, cell);
             ctx.DrawImage(bmp, src, dst);
         }
 

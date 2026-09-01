@@ -11,34 +11,64 @@ public sealed class EditorBitmapCache
     public IReadOnlyList<Bitmap?> Tilesets { get; private set; } = [];
     // Display names per sheet (the filename minus its numeric prefix and extension; "" for gaps).
     public IReadOnlyList<string> TilesetNames { get; private set; } = [];
-    public Bitmap? Sprites { get; private set; }
-    public Bitmap? Items { get; private set; }
+
+    // Character sheets, indexed the same way and split by footprint size. One number is one character
+    // at every size, so index 1 is 1_* in each of the three folders.
+    public IReadOnlyList<Bitmap?> Sprites { get; private set; } = [];
+    public IReadOnlyList<Bitmap?> Sprites64 { get; private set; } = [];
+    public IReadOnlyList<Bitmap?> Sprites96 { get; private set; } = [];
+    // Sprite sheet names come from the 32x32 folder, which is the one every size class has.
+    public IReadOnlyList<string> SpriteNames { get; private set; } = [];
+
+    public IReadOnlyList<Bitmap?> Items { get; private set; } = [];
+    public IReadOnlyList<string> ItemNames { get; private set; } = [];
 
     public void Load(string assetsPath)
     {
-        (Tilesets, TilesetNames) = LoadTilesets(assetsPath);
-        // Character sheets are size-keyed now (sprites/32x32, /64x64, /96x96); the preview uses the 32x32 sheet
-        // (the size-1 / player sheet, whose Sprite rows index every size class).
-        Sprites = LoadSingleFromFolder(assetsPath, Path.Combine(Constants.SpritesAssetSubfolder, $"{Constants.PicX}x{Constants.PicX}"), "Sprites.bmp");
-        Items = LoadSingleFromFolder(assetsPath, Constants.ItemsAssetSubfolder, "Items.bmp");
+        // The outgoing sheets are released before the incoming ones replace them. One press of a Reload
+        // button would never have shown it; the asset manager reloads after every rename, import and
+        // delete, and each of those would otherwise strand a whole set of surfaces.
+        var retired = new List<Bitmap?>(Tilesets);
+        retired.AddRange(Sprites);
+        retired.AddRange(Sprites64);
+        retired.AddRange(Sprites96);
+        retired.AddRange(Items);
+
+        (Tilesets, TilesetNames) = LoadSheetSet(Path.Combine(assetsPath, Constants.TilesAssetSubfolder));
+        (Sprites, SpriteNames) = LoadSpriteSheets(assetsPath, Constants.PicX);
+        (Sprites64, _) = LoadSpriteSheets(assetsPath, Constants.PicX * 2);
+        (Sprites96, _) = LoadSpriteSheets(assetsPath, Constants.PicX * 3);
+        (Items, ItemNames) = LoadSheetSet(Path.Combine(assetsPath, Constants.ItemsAssetSubfolder));
+
+        foreach (var old in retired)
+        {
+            // A reload that produced the very same instance must not dispose it out from under the new one.
+            if (old is null) continue;
+            if (Tilesets.Contains(old) || Sprites.Contains(old) || Sprites64.Contains(old)
+                || Sprites96.Contains(old) || Items.Contains(old)) continue;
+            try { old.Dispose(); }
+            catch { /* a sheet already released is not worth failing a reload over */ }
+        }
     }
 
-    /// <summary>Re-scans the asset folders at runtime (the editor's Refresh Assets button).</summary>
+    /// <summary>Re-scans the asset folders at runtime (the editor's Reload Assets action).</summary>
     public void Reload(string assetsPath) => Load(assetsPath);
 
-    // Scans assets/graphics/tiles/ for numbered sheets (0_*.bmp, 1_*.bmp, ...). The leading number in
-    // each filename is the stable sheet index.
-    private static (Bitmap?[] sheets, string[] names) LoadTilesets(string assetsPath)
+    // The sheets for one footprint size class, from sprites/<cell>x<cell>/.
+    private static (Bitmap?[] sheets, string[] names) LoadSpriteSheets(string assetsPath, int cell) =>
+        LoadSheetSet(Path.Combine(assetsPath, Constants.SpritesAssetSubfolder, $"{cell}x{cell}"));
+
+    // Scans one asset folder for numbered sheets (0_*.bmp, 1_*.png, ...). The leading number in each
+    // filename is the stable sheet index; gaps stay null so a missing file never shifts a later index.
+    private static (Bitmap?[] sheets, string[] names) LoadSheetSet(string dir)
     {
-        string dir = Path.Combine(assetsPath, Constants.TilesAssetSubfolder);
         var byIndex = new Dictionary<int, string>();
         if (Directory.Exists(dir))
         {
             foreach (var path in Directory.EnumerateFiles(dir))
             {
-                string ext = Path.GetExtension(path).ToLowerInvariant();
-                if (ext != ".bmp" && ext != ".png") continue;
-                int idx = ParseSheetIndex(Path.GetFileNameWithoutExtension(path));
+                if (!SheetFile.IsSupported(path)) continue;
+                int idx = SheetFile.ParseIndex(Path.GetFileNameWithoutExtension(path));
                 if (idx >= 0 && idx < Constants.MaxTilesets) byIndex[idx] = path;
             }
         }
@@ -51,50 +81,55 @@ public sealed class EditorBitmapCache
         foreach (var kv in byIndex)
         {
             sheets[kv.Key] = TryLoad(kv.Value);
-            names[kv.Key] = SheetDisplayName(Path.GetFileNameWithoutExtension(kv.Value));
+            names[kv.Key] = SheetFile.DisplayName(Path.GetFileNameWithoutExtension(kv.Value));
         }
         return (sheets, names);
     }
 
-    // Single-sheet load for sprites/items: first image file in the subfolder (alphabetical), else the
-    // legacy flat file. Multi-file stitching is intentionally not handled yet.
-    private static Bitmap? LoadSingleFromFolder(string assetsPath, string subfolder, string legacyFlatName)
-    {
-        string dir = Path.Combine(assetsPath, subfolder);
-        if (Directory.Exists(dir))
-        {
-            var file = Directory.EnumerateFiles(dir)
-                .Where(p => Path.GetExtension(p).ToLowerInvariant() is ".bmp" or ".png")
-                .OrderBy(p => p, StringComparer.OrdinalIgnoreCase)
-                .FirstOrDefault();
-            if (file is not null) return TryLoad(file);
-        }
-        return TryLoad(Path.Combine(assetsPath, legacyFlatName));
-    }
-
-    private static int ParseSheetIndex(string fileName)
-    {
-        int i = 0;
-        while (i < fileName.Length && char.IsDigit(fileName[i])) i++;
-        return i > 0 && int.TryParse(fileName[..i], out int n) ? n : -1;
-    }
-
-    // "0_Tiles" → "Tiles", "12_dungeon" → "dungeon": strip the leading digit run and one following
-    // separator (_, -, or space). If nothing remains, fall back to the full stem.
-    public static string SheetDisplayName(string fileNameNoExt)
-    {
-        int i = 0;
-        while (i < fileNameNoExt.Length && char.IsDigit(fileNameNoExt[i])) i++;
-        if (i > 0 && i < fileNameNoExt.Length && fileNameNoExt[i] is '_' or '-' or ' ') i++;
-        string name = fileNameNoExt[i..];
-        return name.Length > 0 ? name : fileNameNoExt;
-    }
-
+    /// <summary>
+    /// Loads a sheet under the format contract: a BMP is color-keyed, a PNG keeps its own alpha.
+    ///
+    /// <para>The extension decides. Every BMP is keyed whichever way it decoded — the fast reader handles
+    /// the 24-bit uncompressed files the art is authored as, and a 32-bit or compressed one is decoded
+    /// normally and keyed afterwards.</para>
+    /// </summary>
     private static Bitmap? TryLoad(string path)
     {
         if (!File.Exists(path)) return null;
-        try { return LoadWithColorKey(path) ?? new Bitmap(path); }
+        try
+        {
+            return SheetFile.UsesColorKey(path)
+                ? LoadWithColorKey(path) ?? DecodeAndColorKey(path)
+                : new Bitmap(path);
+        }
         catch { return null; }
+    }
+
+    // Decodes an image and makes every pixel matching its top-left one transparent. Channel order is
+    // whatever the decoder produced: the key is compared against the same layout it was read from, so the
+    // match holds without knowing which of BGRA or RGBA it is.
+    private static Bitmap DecodeAndColorKey(string path)
+    {
+        using var fs = File.OpenRead(path);
+        var wb = WriteableBitmap.Decode(fs);
+        using var fb = wb.Lock();
+
+        unsafe
+        {
+            byte* pixels = (byte*)fb.Address;
+            byte k0 = pixels[0], k1 = pixels[1], k2 = pixels[2];
+            for (int y = 0; y < fb.Size.Height; y++)
+            {
+                byte* row = pixels + y * fb.RowBytes;
+                for (int x = 0; x < fb.Size.Width; x++)
+                {
+                    byte* p = row + x * 4;
+                    if (p[0] == k0 && p[1] == k1 && p[2] == k2) p[0] = p[1] = p[2] = p[3] = 0;
+                    else p[3] = 255;
+                }
+            }
+        }
+        return wb;
     }
 
     // Loads a BMP file and returns a WriteableBitmap with the top-left pixel made

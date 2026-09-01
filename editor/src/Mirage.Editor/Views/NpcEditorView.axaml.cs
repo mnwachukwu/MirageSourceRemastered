@@ -29,6 +29,7 @@ public partial class NpcEditorView : LocalizedUserControl
 
         _nameLabel.Text = EditorStrings.Get(EditorStrings.Common_NameLabel);
         _attackSayLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_AttackSayLabel);
+        _spriteSheetLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_SpriteSheetLabel);
         _spriteLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_SpriteLabel);
         _sizeLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_SizeLabel);
         _spawnSecsLabel.Text = EditorStrings.Get(EditorStrings.NpcEditor_SpawnSecsLabel);

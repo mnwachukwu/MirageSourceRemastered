@@ -46,10 +46,10 @@ public sealed partial class MirageGame : Game
 
     // Tileset textures indexed by sheet number (gaps may be null). See LoadTilesets / TileAtlas.
     private Texture2D?[] _tilesets = [];
-    private Texture2D? _sprites;
-    private Texture2D? _sprites64;
-    private Texture2D? _sprites96;
-    private Texture2D? _items;
+    private Texture2D?[] _sprites = [];
+    private Texture2D?[] _sprites64 = [];
+    private Texture2D?[] _sprites96 = [];
+    private Texture2D?[] _items = [];
     private Texture2D? _menuArt;
     private RenderTarget2D? _renderTarget;
     // Supersampled target for the scrolling world: rendered at _worldSS× the 512×384 viewport (crisp),

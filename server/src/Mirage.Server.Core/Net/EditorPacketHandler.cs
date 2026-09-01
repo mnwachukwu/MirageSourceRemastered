@@ -502,6 +502,7 @@ public sealed partial class EditorPacketHandler
         cls.Name = p.Name;
         cls.Description = p.Description;
         cls.SpriteMale = p.SpriteMale;
+        cls.SpriteSheet = p.SpriteSheet;
         cls.SpriteFemale = p.SpriteFemale;
         cls.Str = p.Str;
         cls.Def = p.Def;
@@ -541,6 +542,7 @@ public sealed partial class EditorPacketHandler
         var item = _world.Items[n];
         item.Name = p.Name;
         item.Pic = p.Pic;
+        item.PicSheet = p.PicSheet;
         item.Type = p.Type;
         item.Durability = p.Durability;
         item.VitalAmount = p.VitalAmount;
@@ -578,6 +580,7 @@ public sealed partial class EditorPacketHandler
         npc.Name = p.Name;
         npc.AttackSay = p.AttackSay;
         npc.Sprite = p.Sprite;
+        npc.SpriteSheet = p.SpriteSheet;
         // Clamp to a valid footprint class on save so a malformed packet never persists a bad size
         // (mirrors the DropItemQuantity normalization below).
         npc.Size = Math.Clamp(p.Size, 1, Constants.MaxNpcSize);

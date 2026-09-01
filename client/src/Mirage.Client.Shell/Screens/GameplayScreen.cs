@@ -291,8 +291,8 @@ public sealed partial class GameplayScreen : IGameScreen
     private AccountConfig? _config;
 
     private readonly Texture2D?[] _tilesets;
-    private readonly Texture2D? _sprites;
-    private readonly Texture2D? _items;
+    private readonly IReadOnlyList<Texture2D?> _sprites;
+    private readonly IReadOnlyList<Texture2D?> _items;
     private readonly SpriteFont? _gameFont;
     private readonly SpriteFont? _bubbleFont;
 
@@ -406,7 +406,7 @@ public sealed partial class GameplayScreen : IGameScreen
 
     // Bar and sidebar colors live in UiHelper.
 
-    public GameplayScreen(ShellContext ctx, Texture2D?[] tilesets, Texture2D? sprites, Texture2D? items, SpriteFont? gameFont = null, SpriteFont? bubbleFont = null)
+    public GameplayScreen(ShellContext ctx, Texture2D?[] tilesets, IReadOnlyList<Texture2D?> sprites, IReadOnlyList<Texture2D?> items, SpriteFont? gameFont = null, SpriteFont? bubbleFont = null)
     {
         _ctx = ctx;
         _tilesets = tilesets;

@@ -28,7 +28,7 @@ public class PushChangesPacketCoverageTests
     // property is caught alongside one that assigns nothing at all.
     private static NpcRecord FullNpc() => new()
     {
-        Name = "Cave Troll", AttackSay = "Rrraagh!", Sprite = 42, Size = 3, SpawnSecs = 90,
+        Name = "Cave Troll", AttackSay = "Rrraagh!", Sprite = 42, SpriteSheet = 2, Size = 3, SpawnSecs = 90,
         Behavior = NpcBehavior.AttackOnSight, Group = 7, Range = 5,
         Drops = [new NpcDrop { ItemNum = 12, Quantity = 250, Chance = 35 },
                  new NpcDrop { ItemNum = 7, Chance = 3 }],
@@ -75,6 +75,7 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.IsBoss, Is.True, "a pushed NPC must keep its boss flag");
             Assert.That(pkt.EmitsLight, Is.True, "a pushed NPC must keep emitting light");
             Assert.That(pkt.Light, Is.EqualTo(Lantern), "a pushed NPC must keep its light attributes");
+            Assert.That(pkt.SpriteSheet, Is.EqualTo(2), "a pushed NPC must keep the sheet its sprite is on");
         });
     }
 
@@ -83,7 +84,7 @@ public class PushChangesPacketCoverageTests
     {
         var vm = new ItemRowViewModel(4, new ItemRecord
         {
-            Name = "Bound Blade", Pic = 21, Type = ItemType.Weapon, Durability = 120, Power = 14, AllowedClasses = [3, 1],
+            Name = "Bound Blade", Pic = 21, PicSheet = 3, Type = ItemType.Weapon, Durability = 120, Power = 14, AllowedClasses = [3, 1],
             NonTradeable = true, NonListable = true, NonMailable = true, DestroyOnDrop = true,
         });
 
@@ -94,6 +95,7 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.ItemNum, Is.EqualTo(4));
             Assert.That(pkt.Name, Is.EqualTo("Bound Blade"));
             Assert.That(pkt.Pic, Is.EqualTo((short)21));
+            Assert.That(pkt.PicSheet, Is.EqualTo((short)3), "a pushed item must keep the sheet its picture is on");
             Assert.That(pkt.Type, Is.EqualTo(ItemType.Weapon));
             Assert.That(pkt.Durability, Is.EqualTo((short)120));
             Assert.That(pkt.Power, Is.EqualTo((short)14));
@@ -114,7 +116,7 @@ public class PushChangesPacketCoverageTests
     {
         var vm = new ClassRowViewModel(2, new ClassRecord
         {
-            Name = "Ranger", SpriteMale = 17, SpriteFemale = 27, Str = 8, Def = 6, Spd = 9, Int = 4,
+            Name = "Ranger", SpriteMale = 17, SpriteFemale = 27, SpriteSheet = 4, Str = 8, Def = 6, Spd = 9, Int = 4,
         });
 
         var pkt = vm.BuildSavePacket();
@@ -125,6 +127,7 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.Name, Is.EqualTo("Ranger"));
             Assert.That(pkt.SpriteMale, Is.EqualTo(17));
             Assert.That(pkt.SpriteFemale, Is.EqualTo(27));
+            Assert.That(pkt.SpriteSheet, Is.EqualTo(4), "a pushed class must keep the sheet its sprites are on");
             Assert.That(pkt.Str, Is.EqualTo(8));
             Assert.That(pkt.Def, Is.EqualTo(6));
             Assert.That(pkt.Spd, Is.EqualTo(9));

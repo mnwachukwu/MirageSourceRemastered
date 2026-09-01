@@ -204,10 +204,10 @@ public sealed partial class MirageGame : Game
         var tilesetWidths = new int[_tilesets.Length];
         for (int i = 0; i < _tilesets.Length; i++) tilesetWidths[i] = _tilesets[i]?.Width ?? 0;
         TileAtlas.Init(tilesetWidths);
-        _sprites = LoadSpriteSheetForCell(Constants.PicX);        // 32x32: players + size-1 NPCs
-        _sprites64 = LoadSpriteSheetForCell(Constants.PicX * 2);  // 64x64: size-2 NPCs (null until art added)
-        _sprites96 = LoadSpriteSheetForCell(Constants.PicX * 3);  // 96x96: size-3 NPCs (null until art added)
-        _items = LoadSingleFromFolder(Constants.ItemsAssetSubfolder, AppPaths.Asset("assets", "graphics", "Items.bmp"));
+        _sprites = LoadSpriteSheetsForCell(Constants.PicX);        // 32x32: players + size-1 NPCs
+        _sprites64 = LoadSpriteSheetsForCell(Constants.PicX * 2);  // 64x64: size-2 NPCs (empty until art added)
+        _sprites96 = LoadSpriteSheetsForCell(Constants.PicX * 3);  // 96x96: size-3 NPCs (empty until art added)
+        _items = LoadSheetSet(Constants.ItemsAssetSubfolder);
         _menuArt = LoadTexture(AppPaths.Asset("assets", "graphics", "MenuArt.jpg"));
         if (_ctx is not null)
         {
@@ -302,18 +302,35 @@ public sealed partial class MirageGame : Game
         catch { return null; }
     }
 
-    /// <summary>Loads a .bmp and applies the color key, returning null when the file is missing.</summary>
-    private Texture2D? LoadBitmap(string path)
+    /// <summary>
+    /// Loads a graphics sheet under the format contract, returning null when the file is missing.
+    ///
+    /// <para>A BMP names its transparent color with its top-left pixel; a PNG carries its own alpha. The
+    /// extension decides, and it decides the same way here as it does in the editor — see
+    /// <see cref="SheetFile.UsesColorKey"/>.</para>
+    /// </summary>
+    private Texture2D? LoadSheet(string path)
     {
         if (!File.Exists(path)) return null;
         try
         {
             using var stream = File.OpenRead(path);
             var tex = Texture2D.FromStream(GraphicsDevice, stream);
-            ApplyColorKey(tex);
+            if (SheetFile.UsesColorKey(path)) ApplyColorKey(tex);
+            else Premultiply(tex);
             return tex;
         }
         catch { return null; }
+    }
+
+    /// <summary>Premultiplies a decoded sheet, which is what a PNG needs before a premultiplied blend can
+    /// draw it. See <see cref="SheetPixels.Premultiply"/>.</summary>
+    private static void Premultiply(Texture2D tex)
+    {
+        var pixels = new Color[tex.Width * tex.Height];
+        tex.GetData(pixels);
+        SheetPixels.Premultiply(pixels);
+        tex.SetData(pixels);
     }
 
     // Scans assets/graphics/tiles/ for numbered tile sheets (0_*.bmp, 1_*.bmp, ...). The leading number
@@ -328,9 +345,8 @@ public sealed partial class MirageGame : Game
         {
             foreach (var path in Directory.EnumerateFiles(dir))
             {
-                string ext = Path.GetExtension(path).ToLowerInvariant();
-                if (ext != ".bmp" && ext != ".png") continue;
-                int idx = ParseSheetIndex(Path.GetFileNameWithoutExtension(path));
+                if (!SheetFile.IsSupported(path)) continue;
+                int idx = SheetFile.ParseIndex(Path.GetFileNameWithoutExtension(path));
                 if (idx >= 0 && idx < Constants.MaxTilesets) byIndex[idx] = path;
             }
         }
@@ -341,7 +357,7 @@ public sealed partial class MirageGame : Game
         TileOpacity.Reset();
         foreach (var kv in byIndex)
         {
-            var tex = LoadBitmap(kv.Value);
+            var tex = LoadSheet(kv.Value);
             sheets[kv.Key] = tex;
             if (tex is not null) ReadTileCoverage(kv.Key, tex);
         }
@@ -361,57 +377,46 @@ public sealed partial class MirageGame : Game
         TileOpacity.SetSheet(sheet, alpha, tex.Width, tex.Height);
     }
 
-    // Parses the leading run of digits in a filename as its sheet index; -1 when there is none.
-    /// <summary>Reads the leading sheet index off a tile-sheet filename ("3_forest.bmp" → 3);
-    /// -1 when the name doesn't start with one.</summary>
-    private static int ParseSheetIndex(string fileName)
-    {
-        int i = 0;
-        while (i < fileName.Length && char.IsDigit(fileName[i])) i++;
-        return i > 0 && int.TryParse(fileName[..i], out int n) ? n : -1;
-    }
 
     // Single-sheet load for sprites/items: the first image file in assets/graphics/<subfolder>
     // (alphabetical), else the legacy flat path. Multi-file handling is intentionally deferred.
     /// <summary>Loads the single sheet an asset folder is expected to hold (sprites, items), falling back
-    /// to a flat file path when the folder is absent.</summary>
-    private Texture2D? LoadSingleFromFolder(string subfolder, string legacyFlatPath)
+    /// <summary>
+    /// Every numbered sheet in one asset folder, indexed by the number in its filename.
+    /// </summary>
+    /// <remarks>
+    /// Gaps stay null, so a missing sheet draws nothing rather than shifting every later sheet's index —
+    /// the number is what records store, and it has to mean the same thing whatever else is on disk.
+    /// </remarks>
+    private Texture2D?[] LoadSheetSet(string subfolder)
     {
         string dir = AppPaths.Asset("assets", "graphics", subfolder);
+        var byIndex = new Dictionary<int, string>();
         if (Directory.Exists(dir))
         {
-            foreach (var p in Directory.EnumerateFiles(dir).OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
+            foreach (string path in Directory.EnumerateFiles(dir))
             {
-                string ext = Path.GetExtension(p).ToLowerInvariant();
-                if (ext == ".bmp" || ext == ".png") return LoadBitmap(p);
+                if (!SheetFile.IsSupported(path)) continue;
+                int idx = SheetFile.ParseIndex(Path.GetFileNameWithoutExtension(path));
+                if (idx >= 0 && idx < Constants.MaxTilesets) byIndex[idx] = path;
             }
         }
-        return LoadBitmap(legacyFlatPath);
+        if (byIndex.Count == 0) return [];
+
+        int max = 0;
+        foreach (int k in byIndex.Keys) if (k > max) max = k;
+        var sheets = new Texture2D?[max + 1];
+        foreach (var kv in byIndex) sheets[kv.Key] = LoadSheet(kv.Value);
+        return sheets;
     }
 
-    // Size-keyed character sprite sheet loader for variable-size NPCs: reads the first .bmp/.png in
-    // assets/graphics/sprites/{cell}x{cell}/ (color-keyed via LoadBitmap like every other sheet).  The 32x32
-    // sheet falls back to the legacy sprites/ folder + flat Sprites.bmp, so players keep loading even before
-    // the sheet is relocated into sprites/32x32/.  A missing 64/96 sheet returns null (art not added yet) and
-    // those NPCs simply draw no sprite; their bars/name/collision still work.
-    /// <summary>Loads the sprite sheet for one NPC footprint size class (32/64/96 px cells).</summary>
-    private Texture2D? LoadSpriteSheetForCell(int cell)
-    {
-        string sizeSub = Path.Combine(Constants.SpritesAssetSubfolder, $"{cell}x{cell}");
-        string dir = AppPaths.Asset("assets", "graphics", sizeSub);
-        if (Directory.Exists(dir))
-        {
-            foreach (var p in Directory.EnumerateFiles(dir).OrderBy(p => p, StringComparer.OrdinalIgnoreCase))
-            {
-                string ext = Path.GetExtension(p).ToLowerInvariant();
-                if (ext == ".bmp" || ext == ".png") return LoadBitmap(p);
-            }
-        }
-
-        return cell == Constants.PicX
-            ? LoadSingleFromFolder(Constants.SpritesAssetSubfolder, AppPaths.Asset("assets", "graphics", "Sprites.bmp"))
-            : null;
-    }
+    /// <summary>The sprite sheets for one NPC footprint size class (32/64/96 px cells).
+    ///
+    /// <para>A sheet number means the same character at all three sizes, so index 1 is <c>1_*</c> in each
+    /// size folder. A size with no such sheet leaves that entry null and those NPCs draw no sprite; their
+    /// bars, name and collision still work.</para></summary>
+    private Texture2D?[] LoadSpriteSheetsForCell(int cell) =>
+        LoadSheetSet(Path.Combine(Constants.SpritesAssetSubfolder, $"{cell}x{cell}"));
 
     // Replace the top-left pixel's color with transparent throughout the texture.
     // Color-key convention: the top-left pixel defines the transparent color.
@@ -421,12 +426,7 @@ public sealed partial class MirageGame : Game
     {
         var pixels = new Color[tex.Width * tex.Height];
         tex.GetData(pixels);
-        byte kr = pixels[0].R, kg = pixels[0].G, kb = pixels[0].B;
-        for (int i = 0; i < pixels.Length; i++)
-        {
-            if (pixels[i].R == kr && pixels[i].G == kg && pixels[i].B == kb)
-                pixels[i] = Color.Transparent;
-        }
+        SheetPixels.ApplyColorKey(pixels);
         tex.SetData(pixels);
     }
 }

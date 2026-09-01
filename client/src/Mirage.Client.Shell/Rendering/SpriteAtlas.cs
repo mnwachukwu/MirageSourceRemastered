@@ -4,8 +4,9 @@ using Mirage.Shared;
 namespace Mirage.Client.Shell.Rendering;
 
 /// <summary>
-/// Maps (spriteNum, dir, animFrame) to a source rectangle in sprites.bmp.
-/// Layout: sprite number maps directly to atlas row (sprite 0 = row 0, sprite 1 = row 1, etc.).
+/// Maps (spriteNum, dir, animFrame) to a source rectangle in its sprite sheet.
+/// Layout: sprite number maps directly to atlas row (sprite 0 = row 0, sprite 1 = row 1, etc.),
+/// counted within one sheet - which sheet is the record's to name.
 /// animFrame: 0 = idle, 1 = walk, 2 = attack.
 /// </summary>
 public static class SpriteAtlas

@@ -7,8 +7,15 @@ using Mirage.Shared.Records;
 namespace Mirage.Editor.ViewModels;
 
 /// <summary>One cell of the hovered-tile exploded preview: a layer's tile drawn from its own sheet.
-/// <paramref name="SheetText"/> is the source sheet index (blank for an empty layer).</summary>
-public sealed record HoveredLayerPreview(string Label, Bitmap? Bitmap, int TileIndex, string SheetText);
+/// <paramref name="SheetText"/> is the source sheet index (blank for an empty layer).
+/// <paramref name="IsHidden"/> marks a layer the canvas is not currently drawing — it is still reported,
+/// because a layer left out of this list reads as a layer with nothing on it.</summary>
+public sealed record HoveredLayerPreview(string Label, Bitmap? Bitmap, int TileIndex, string SheetText,
+    bool IsHidden = false)
+{
+    /// <summary>Fades a hidden layer's cell so the readout shows what is there and that it is put away.</summary>
+    public double CellOpacity => IsHidden ? 0.35 : 1.0;
+}
 
 /// <summary>One row of the tile-animation editor: an occupied layer with a toggleable Anim flag.
 /// <see cref="Type"/> + <see cref="ArrayIndex"/> locate it back in the tile's Ground/Fringe stack.</summary>

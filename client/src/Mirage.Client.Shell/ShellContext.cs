@@ -41,8 +41,8 @@ public sealed class ShellContext
     public SpriteFont? MenuFont { get; set; }
     public SpriteFont? TitleFont { get; set; }
     public Texture2D? MenuArt { get; set; }
-    public Texture2D? Sprites { get; set; }
-    public Texture2D? Sprites64 { get; set; }
-    public Texture2D? Sprites96 { get; set; }
-    public Texture2D? Items { get; set; }
+    public IReadOnlyList<Texture2D?> Sprites { get; set; } = [];
+    public IReadOnlyList<Texture2D?> Sprites64 { get; set; } = [];
+    public IReadOnlyList<Texture2D?> Sprites96 { get; set; } = [];
+    public IReadOnlyList<Texture2D?> Items { get; set; } = [];
 }

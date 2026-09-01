@@ -40,7 +40,10 @@ public sealed partial class GameplayScreen : IGameScreen
         // Pick the size-matched atlas (32/64/96 cell). A larger NPC draws at its native cell size from
         // (ScreenX,ScreenY) - the top-left of its footprint - so no scaling or offset is needed. A missing
         // size sheet (art not added yet) draws nothing; the NPC's bars/name/collision still work.
-        var tex = cmd.Size >= 3 ? _ctx.Sprites96 : cmd.Size == 2 ? _ctx.Sprites64 : _sprites;
+        // Two independent choices: the size picks which folder's sheets to read, and the sheet number picks
+        // one of them. A sheet the install has not got draws nothing, same as a missing size.
+        var sizeSet = cmd.Size >= 3 ? _ctx.Sprites96 : cmd.Size == 2 ? _ctx.Sprites64 : _sprites;
+        var tex = sizeSet.Sheet(cmd.Sheet);
         if (tex is null) return;
         int cell = cmd.Size * Constants.PicX;
         var src = SpriteAtlas.GetSourceRect(cmd.SpriteRow, cmd.Dir, cmd.AnimFrame, cell);
@@ -51,7 +54,9 @@ public sealed partial class GameplayScreen : IGameScreen
     {
         var src = ItemAtlas.GetSourceRect(cmd.Pic);
         if (src == Rectangle.Empty) return;
-        sb.Draw(_items!, new Vector2(cmd.ScreenX, cmd.ScreenY), src, Color.White);
+        var tex = _items.Sheet(cmd.Sheet);
+        if (tex is null) return;
+        sb.Draw(tex, new Vector2(cmd.ScreenX, cmd.ScreenY), src, Color.White);
     }
 
     // Reused across all DrawStringFixed calls; avoids one string allocation per character.

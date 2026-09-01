@@ -30,6 +30,8 @@ public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
     [ObservableProperty] private string _name = "";
     /// <summary>Index into the item graphics strip.</summary>
     [ObservableProperty] private short _pic;
+    /// <summary>Which item sheet <see cref="Pic"/> is a row of.</summary>
+    [ObservableProperty] private short _picSheet;
     [ObservableProperty] private ItemType _type;
 
     // Type-specific fields — see ItemRecord for which apply to which type.
@@ -75,6 +77,7 @@ public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
         IsLoaded = isLoaded;
         _name = r.Name;
         _pic = r.Pic;
+        _picSheet = r.PicSheet;
         _type = r.Type;
         _durability = r.Durability;
         _vitalAmount = r.VitalAmount;
@@ -166,6 +169,7 @@ public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
         {
             Name = r.Name;
             Pic = r.Pic;
+            PicSheet = r.PicSheet;
             Type = r.Type;
             Durability = r.Durability;
             VitalAmount = r.VitalAmount;
@@ -198,6 +202,7 @@ public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
         {
             Name = pkt.Name;
             Pic = pkt.Pic;
+            PicSheet = pkt.PicSheet;
             Type = pkt.Type;
             Durability = pkt.Durability;
             VitalAmount = pkt.VitalAmount;
@@ -232,6 +237,7 @@ public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
         {
             Name = Name,
             Pic = Pic,
+            PicSheet = PicSheet,
             Type = Type,
             Durability = Durability,
             VitalAmount = VitalAmount,
@@ -261,6 +267,7 @@ public sealed partial class ItemRowViewModel : ObservableObject, ILockableRow
             ItemNum = Index,
             Name = r.Name,
             Pic = r.Pic,
+            PicSheet = r.PicSheet,
             Type = r.Type,
             Durability = r.Durability,
             VitalAmount = r.VitalAmount,

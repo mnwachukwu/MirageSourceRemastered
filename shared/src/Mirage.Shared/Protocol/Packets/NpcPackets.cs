@@ -25,7 +25,11 @@ public sealed record SendNpcsPacket : IPacket
         // Keeper-shop KIND assigned to this NPC number (recomputed from ShopRecord.Keeper on shop edits):
         // 0 = none, 1 = store, 2 = inn. Drives the client's $ vendor glyph, the attack-key/right-click
         // interact routing, and the right-click menu label (Shop vs Inn). Static per template.
-        [property: JsonPropertyName("keeperShop")] int KeeperShop = 0
+        [property: JsonPropertyName("keeperShop")] int KeeperShop = 0,
+        // Which sprite sheet Sprite is a row of. Appended with a default rather than placed beside Sprite:
+        // this is a positional record, so a field inserted mid-list silently re-reads every argument after
+        // it at every construction site.
+        [property: JsonPropertyName("spriteSheet")] int SpriteSheet = 0
     );
 }
 
@@ -144,6 +148,7 @@ public sealed record UpdateNpcPacket : IPacket
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("attackSay")] public string AttackSay { get; init; } = "";
     [JsonPropertyName("sprite")] public int Sprite { get; init; }
+    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
     [JsonPropertyName("size")] public int Size { get; init; }
     [JsonPropertyName("behavior")] public NpcBehavior Behavior { get; init; }
     [JsonPropertyName("group")] public int Group { get; init; }

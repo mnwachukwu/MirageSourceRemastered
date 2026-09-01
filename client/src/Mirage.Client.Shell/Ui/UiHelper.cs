@@ -586,11 +586,13 @@ public static class UiHelper
         sb.DrawString(font, msg, new Vector2(dlg.X + (dlg.Width - size.X) / 2f, dlg.Bottom + 8f), color);
     }
 
-    public static void DrawMenuSpritePreview(SpriteBatch sb, Texture2D sprites, int spriteRow, int animFrame, Rectangle dest, Direction direction = Direction.Down)
+    public static void DrawMenuSpritePreview(SpriteBatch sb, IReadOnlyList<Texture2D?> sprites, int spriteRow, int spriteSheet, int animFrame, Rectangle dest, Direction direction = Direction.Down)
     {
         if (spriteRow < 0) return;
+        var sheet = sprites.Sheet(spriteSheet);
+        if (sheet is null) return;
         var src = SpriteAtlas.GetSourceRect(spriteRow, direction, animFrame);
-        sb.Draw(sprites, dest, src, Color.White);
+        sb.Draw(sheet, dest, src, Color.White);
     }
 
     // ── Word wrap ─────────────────────────────────────────────────────────────

@@ -29,6 +29,7 @@ public sealed record SendPlayerDataPacket : IPacket
     [JsonPropertyName("index")] public int Index { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("sprite")] public int Sprite { get; init; }
+    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
     [JsonPropertyName("x")] public int X { get; init; }
     [JsonPropertyName("y")] public int Y { get; init; }
     [JsonPropertyName("dir")] public Direction Dir { get; init; }

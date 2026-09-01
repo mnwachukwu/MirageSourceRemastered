@@ -84,6 +84,18 @@
                      AcceptsReturn="False" TextWrapping="Wrap" MaxLength="120"/>
           </mui:FormRow>
 
+          <!-- One sheet for the class, then one row of it per sex. The number is what the record
+               stores, so the sheet is picked by index-prefixed name the way a tileset is. -->
+          <mui:FormRow LabelWidth="130">
+            <TextBlock x:Name="_spriteSheetLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <controls:DropdownAutoCompleteBox Grid.Column="1"
+                                 ItemsSource="{Binding SpriteSheetEntries}"
+                                 SelectedItem="{Binding SelectedSpriteSheetEntry, Mode=TwoWay}"
+                                 ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
+                                 FilterMode="Custom"
+                                 MinimumPrefixLength="0"/>
+          </mui:FormRow>
+
           <!-- One sprite per sex: the create screen previews whichever the player picked, and the choice
                is copied onto the character, so editing these restyles who is CREATED next, not who
                already plays this class. -->

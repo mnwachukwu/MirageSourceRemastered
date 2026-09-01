@@ -187,13 +187,13 @@ public sealed class CharSelectScreen : IGameScreen
         }
         int sel = _charList.SelectedIndex;
         var slots = _ctx.State.CharSlots;
-        if (_ctx.Sprites is not null && sel >= 0 && sel < slots.Length && slots[sel].Name.Length > 0 && slots[sel].Sprite >= 0)
+        if (sel >= 0 && sel < slots.Length && slots[sel].Name.Length > 0 && slots[sel].Sprite >= 0)
         {
             var pb = _playBtn.Bounds;
             var spriteDest = new Rectangle(pb.Right + 8, pb.Y + (pb.Height - Constants.PicY) / 2,
                 Constants.PicX, Constants.PicY);
             var dir = _playBtn.IsHovered(_input) ? Direction.Right : Direction.Down;
-            UiHelper.DrawMenuSpritePreview(sb, _ctx.Sprites, slots[sel].Sprite, _animFrame, spriteDest, dir);
+            UiHelper.DrawMenuSpritePreview(sb, _ctx.Sprites, slots[sel].Sprite, slots[sel].SpriteSheet, _animFrame, spriteDest, dir);
         }
 
         _playBtn.Draw(sb, font, _input, UiHelper.PrimaryButtonNormal, UiHelper.PrimaryButtonHover);

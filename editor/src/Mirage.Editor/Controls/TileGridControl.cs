@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
+using Mirage.Editor.Models;
 using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using Mirage.Shared;
@@ -66,6 +67,11 @@ public sealed partial class TileGridControl : Control
     // you see and author. A LayerRamp occupies both planes and shows on either.
     public static readonly StyledProperty<WorldLayer> AttributeLayerProperty =
         AvaloniaProperty.Register<TileGridControl, WorldLayer>(nameof(AttributeLayer));
+
+    // Which art layers this canvas draws. View state: it changes what is on screen and nothing about the
+    // map. The PNG export deliberately does not read it — an export is of the map, not of the view.
+    public static readonly StyledProperty<LayerVisibility> LayerVisibilityProperty =
+        AvaloniaProperty.Register<TileGridControl, LayerVisibility>(nameof(LayerVisibility));
 
     // MODE 2 transient NPC placement: when active, the grid draws a live footprint brush at
     // the hover cell (green/red per NpcPlacementValidAt) and routes clicks to place/cancel instead of painting.
@@ -169,6 +175,11 @@ public sealed partial class TileGridControl : Control
     {
         get => GetValue(AttributeLayerProperty);
         set => SetValue(AttributeLayerProperty, value);
+    }
+    public LayerVisibility LayerVisibility
+    {
+        get => GetValue(LayerVisibilityProperty);
+        set => SetValue(LayerVisibilityProperty, value);
     }
     public bool NpcPlacementActive
     {
@@ -406,7 +417,7 @@ public sealed partial class TileGridControl : Control
         AffectsRender<TileGridControl>(
             MapProperty, TileBitmapProperty,
             EditorModeProperty, SelectedStampProperty, AttributeBrushSizeXProperty, AttributeBrushSizeYProperty,
-            SelectedAttributeProperty, AttributeLayerProperty, SelectedLayerTypeProperty, SelectedLayerIndexProperty, TilesetsProperty,
+            SelectedAttributeProperty, AttributeLayerProperty, LayerVisibilityProperty, SelectedLayerTypeProperty, SelectedLayerIndexProperty, TilesetsProperty,
             ActionProperty, ClipboardKindProperty, ClipboardTilesProperty, ClipboardAttrsProperty, ClipboardLightsProperty, SelectionRectProperty,
             NpcPlacementActiveProperty, NpcPlacementSizeProperty,
             NeighborUpProperty, NeighborDownProperty,
@@ -439,6 +450,10 @@ public sealed partial class TileGridControl : Control
 
         // Switching the active attribute layer changes which plane's attributes the cached overlay shows → rebuild.
         AttributeLayerProperty.Changed.AddClassHandler<TileGridControl>(
+            (c, _) => { c._tileCacheDirty = true; c._rtbRetryCount = 0; });
+
+        // Hiding a layer changes what the cached render holds, not merely what is drawn over it → rebuild.
+        LayerVisibilityProperty.Changed.AddClassHandler<TileGridControl>(
             (c, _) => { c._tileCacheDirty = true; c._rtbRetryCount = 0; });
 
         // Arrival markers are drawn into the cached render alongside the attribute overlay → rebuild.

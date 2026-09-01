@@ -45,7 +45,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
             string sheetText = tileIndex > 0 ? sheet.ToString() : "";
             // Star-mark animated layers so a tile's anim state is visible at a glance in the hover preview.
             string label = LayerCell.Anim(packed) ? $"{i + 1}*" : $"{i + 1}";
-            list[i] = new HoveredLayerPreview(label, bmp, tileIndex, sheetText);
+            // A hidden layer is still ON the tile, so it is still listed — dimmed rather than dropped.
+            // Omitting it is how somebody concludes a layer is empty and paints over what is there.
+            list[i] = new HoveredLayerPreview(label, bmp, tileIndex, sheetText,
+                IsHidden: !LayerVisibility.IsVisible(type, i));
         }
         return list;
     }

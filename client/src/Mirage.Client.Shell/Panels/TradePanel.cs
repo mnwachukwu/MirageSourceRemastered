@@ -129,7 +129,7 @@ public sealed class TradePanel : IGamePanel
 
     /// <param name="canHover">False when another panel sits over the mouse, so a hovered row here cannot
     /// push its tooltip through the window on top of it. Every other panel with row tooltips takes this.</param>
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex,
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex,
                      bool isActive = false, bool canHover = true)
     {
         if (!IsOpen) return;
@@ -174,7 +174,7 @@ public sealed class TradePanel : IGamePanel
         UiHelper.DrawLabel(sb, font, s, new Vector2(offerRect.X, offerRect.Bottom + 2), confirmed ? Color.LightGreen : Color.Gray, offerRect.Width);
     }
 
-    private void ShowTooltips(ClientState state, Texture2D itemsTex)
+    private void ShowTooltips(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         if (_myOffer.HoveredIndex >= 0 && _myOffer.HoveredIndex < state.TradeMine.Count)
         {
@@ -191,7 +191,7 @@ public sealed class TradePanel : IGamePanel
         }
     }
 
-    private void ShowItemTooltip(ClientState state, Texture2D itemsTex, PlayerInvSlot it, object key)
+    private void ShowItemTooltip(ClientState state, IReadOnlyList<Texture2D?> itemsTex, PlayerInvSlot it, object key)
     {
         if (it.Num <= 0 || it.Num >= state.Items.Length) return;
         var def = state.Items[it.Num];

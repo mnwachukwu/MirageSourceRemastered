@@ -22,15 +22,52 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
     public override ObservableCollection<ClassRowViewModel> Items => Classes;
     /// <inheritdoc/>
     protected override string GetFilterText(ClassRowViewModel row) => row.DisplayName;
-    [ObservableProperty] private Bitmap? _spriteBitmap;
+    // The 32x32 sprite sheets, indexed by sheet number. A class is a player sprite, so it is always
+    // size 1 and only this set applies.
+    private IReadOnlyList<Bitmap?> _sprites = [];
+    public NamedEntry[] SpriteSheetEntries { get; private set; } = [];
+
+    public void SetSpriteSheets(IReadOnlyList<Bitmap?> sheets, IReadOnlyList<string> names)
+    {
+        _sprites = sheets;
+        SpriteSheetEntries = SheetEntries.Build(sheets.Count, names);
+        OnPropertyChanged(nameof(SpriteSheetEntries));
+        NotifySpriteChanged();
+    }
+
+    /// <summary>The sheet the selected class draws from; both its sprites come from the one sheet.</summary>
+    public Bitmap? SpriteBitmap
+    {
+        get
+        {
+            int sheet = SelectedClass?.SpriteSheet ?? 0;
+            return (uint)sheet < (uint)_sprites.Count ? _sprites[sheet] : null;
+        }
+    }
+
     /// <summary>Selectable sprite indices, derived from the loaded sheet's height (one 32px row each),
     /// so the picker can't offer a sprite the art doesn't have.</summary>
     public IReadOnlyList<int> SpriteEntries { get; private set; } = [];
-    partial void OnSpriteBitmapChanged(Bitmap? value)
+
+    // Two-way bridge for the sheet typeahead.
+    public NamedEntry? SelectedSpriteSheetEntry
     {
-        int count = value is null ? 0 : (int)(value.Size.Height / 32) - 1;
-        SpriteEntries = Enumerable.Range(0, Math.Max(0, count) + 1).ToArray();
+        get
+        {
+            int sheet = SelectedClass?.SpriteSheet ?? 0;
+            return sheet >= 0 && sheet < SpriteSheetEntries.Length ? SpriteSheetEntries[sheet] : null;
+        }
+        set { if (SelectedClass is not null && value is not null) SelectedClass.SpriteSheet = value.Id; }
+    }
+
+    private void NotifySpriteChanged()
+    {
+        var bmp = SpriteBitmap;
+        int rows = bmp is null ? 0 : (int)(bmp.Size.Height / Constants.PicY);
+        SpriteEntries = Enumerable.Range(0, Math.Max(0, rows)).ToArray();
+        OnPropertyChanged(nameof(SpriteBitmap));
         OnPropertyChanged(nameof(SpriteEntries));
+        OnPropertyChanged(nameof(SelectedSpriteSheetEntry));
     }
 
     public ClassEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
@@ -80,6 +117,16 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
         // Wire on selection rather than at construction: rows are built in bulk (and lazily for online
         // placeholders), and only the selected one ever shows its loadout tables.
         AttachLoadoutProviders(newValue);
+        if (oldValue is not null) oldValue.PropertyChanged -= OnClassPropertyChanged;
+        if (newValue is not null) newValue.PropertyChanged += OnClassPropertyChanged;
+        NotifySpriteChanged();
+    }
+
+    // The sheet number chooses which bitmap both sprite pickers read, so it is the one row property the
+    // editor VM has to mirror.
+    private void OnClassPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ClassRowViewModel.SpriteSheet)) NotifySpriteChanged();
     }
 
     protected override string SectionId => "Classes";

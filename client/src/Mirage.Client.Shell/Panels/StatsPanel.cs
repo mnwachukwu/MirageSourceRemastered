@@ -81,7 +81,7 @@ public sealed class StatsPanel : IGamePanel
         if (_panel.WasClosed) IsOpen = false;
     }
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, InputState input, Texture2D? sprites,
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, InputState input, IReadOnlyList<Texture2D?> sprites,
         float dispHp, float dispMp, float dispSp, float dispExp, bool isActive = false)
     {
         if (!IsOpen) return;
@@ -149,7 +149,8 @@ public sealed class StatsPanel : IGamePanel
         }
 
         // ── Sprite preview ────────────────────────────────────────────────────
-        if (sprites is not null && me.Sprite >= 0 && y + 32 + 4 <= c.Bottom)
+        var spriteSheet = sprites.Sheet(me.SpriteSheet);
+        if (spriteSheet is not null && me.Sprite >= 0 && y + 32 + 4 <= c.Bottom)
         {
             long nowMs = Environment.TickCount64;
             if (nowMs - _lastAnimToggleMs >= 250)
@@ -158,7 +159,7 @@ public sealed class StatsPanel : IGamePanel
                 _lastAnimToggleMs = nowMs;
             }
             var src = SpriteAtlas.GetSourceRect(me.Sprite, Direction.Down, _animFrame);
-            sb.Draw(sprites, new Rectangle(c.X + (c.Width - Constants.PicX) / 2, y, Constants.PicX, Constants.PicY), src, Color.White);
+            sb.Draw(spriteSheet, new Rectangle(c.X + (c.Width - Constants.PicX) / 2, y, Constants.PicX, Constants.PicY), src, Color.White);
             y += 32 + 4;
         }
 

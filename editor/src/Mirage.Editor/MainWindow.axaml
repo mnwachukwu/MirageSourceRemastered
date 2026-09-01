@@ -85,11 +85,21 @@
                       Header="{Binding RefreshMenuItemLabel}"
                       Command="{Binding RefreshFromDiskCommand}"
                       InputGesture="F5"/>
+            <!-- Enabled while connected: the graphics are this machine's, and a server has no say in
+                 them. Only the world is the server's to hand out. -->
+            <MenuItem x:Name="_dataReloadAssetsItem"
+                      Command="{Binding ReloadAssetsCommand}"/>
+          </MenuItem>
+          <MenuItem x:Name="_assetsMenu">
+            <MenuItem x:Name="_assetsManageItem" Click="AssetsManage_Click"/>
           </MenuItem>
           <MenuItem x:Name="_viewMenu">
             <MenuItem x:Name="_viewWorldPreviewItem"
                       ToggleType="CheckBox"
                       Click="ViewWorldPreview_Click"/>
+            <MenuItem x:Name="_viewLayerVisibilityItem"
+                      ToggleType="CheckBox"
+                      Click="ViewLayerVisibility_Click"/>
           </MenuItem>
           <MenuItem x:Name="_languageMenu" />
           <MenuItem x:Name="_helpMenu">

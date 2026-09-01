@@ -397,6 +397,7 @@ public sealed partial class PacketHandler
         // Copied onto the character, not looked up through the class later: re-arting a class must not
         // silently restyle everyone who already plays one.
         chr.Sprite = cls.SpriteFor(sex);
+        chr.SpriteSheet = cls.SpriteSheet;
         chr.Level = 1;
         chr.Str = cls.Str;
         chr.Def = cls.Def;

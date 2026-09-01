@@ -712,7 +712,8 @@ public sealed class JoinLeaveSystem : GameSystem
                 _world.Npcs[i].Spd,
                 _world.Npcs[i].EmitsLight,
                 _world.Npcs[i].Light,
-                _world.KeeperShopKind(i)))
+                _world.KeeperShopKind(i),
+                _world.Npcs[i].SpriteSheet))
             .ToArray();
         return new SendNpcsPacket { Npcs = npcs };
     }

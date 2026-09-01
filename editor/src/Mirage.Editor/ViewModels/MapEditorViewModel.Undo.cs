@@ -41,6 +41,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
     {
         _batch.Clear();
         _batchOpen = true;
+        // A batch is one gesture, and the hidden-layer prompt is asked once per gesture: a drag crosses
+        // many cells with the pointer still down, and a question per cell would be unusable.
+        _hiddenLayerAsked = false;
     }
 
     public void CommitBatch()

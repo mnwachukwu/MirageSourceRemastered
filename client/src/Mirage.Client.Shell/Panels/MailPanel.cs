@@ -354,7 +354,7 @@ public sealed class MailPanel : IGamePanel
 
     // ── Draw ─────────────────────────────────────────────────────────────────────
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex, bool isActive = false)
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex, bool isActive = false)
     {
         if (!IsOpen) return;
 
@@ -419,7 +419,7 @@ public sealed class MailPanel : IGamePanel
         _panel.DrawOverlay(sb);
     }
 
-    private void DrawCompose(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex)
+    private void DrawCompose(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         long nowMs = Environment.TickCount64;
         var c = _panel.ContentBounds;
@@ -619,7 +619,7 @@ public sealed class MailPanel : IGamePanel
         => UiHelper.DrawLabel(sb, font, label, new Vector2(fieldRect.X, fieldRect.Y - 14), Color.LightGray, fieldRect.Width);
 
     // Feed the shared item Tooltip for a hovered inventory slot (compose lists).
-    private void ShowSlotTooltip(ClientState state, Texture2D itemsTex, int invSlot, object key)
+    private void ShowSlotTooltip(ClientState state, IReadOnlyList<Texture2D?> itemsTex, int invSlot, object key)
     {
         var slot = state.Me?.Inv?[invSlot];
         if (slot is null || slot.Num <= 0 || slot.Num >= state.Items.Length) return;
@@ -629,7 +629,7 @@ public sealed class MailPanel : IGamePanel
             state.SpellDefs, state.Items, state.Weather);
     }
 
-    private void DrawReadingPane(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle r, Texture2D? itemsTex)
+    private void DrawReadingPane(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle r, IReadOnlyList<Texture2D?> itemsTex)
     {
         UiHelper.DrawFilledRect(sb, r, UiHelper.ConfirmOverlayBg);
         UiHelper.DrawBorder(sb, r, UiHelper.ConfirmOverlayBorder);

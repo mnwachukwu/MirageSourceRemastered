@@ -48,8 +48,10 @@ public sealed partial class TileGridControl : Control
                 {
                     var tile = map.Tile[x, y];
                     var dst = new Rect(ox + x * TileW, tileTop - bandTopPx, TileW, TileH);
-                    DrawLayerStack(ctx, tilesets, tile.Ground, dst, animFrame: -1, hideIndex: -1);
-                    DrawLayerStack(ctx, tilesets, tile.Fringe, dst, animFrame: -1, hideIndex: -1);
+                    // Every layer, whatever the canvas is currently showing: an export is of the map, and a
+                    // layer put away to work on another one is not a layer the map does not have.
+                    DrawLayerStack(ctx, tilesets, tile.Ground, dst, animFrame: -1, hideIndex: -1, visibleBits: ~0);
+                    DrawLayerStack(ctx, tilesets, tile.Fringe, dst, animFrame: -1, hideIndex: -1, visibleBits: ~0);
                 }
             }
         }

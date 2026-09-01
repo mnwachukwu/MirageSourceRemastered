@@ -24,6 +24,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             {
                 Name = item.Name,
                 Pic = item.Pic,
+                PicSheet = item.PicSheet,
                 Type = item.Type,
                 Durability = item.Durability,
                 VitalAmount = item.VitalAmount,
@@ -50,6 +51,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             {
                 Name = n.Name,
                 Sprite = n.Sprite,
+                SpriteSheet = n.SpriteSheet,
                 Size = n.Size,   // footprint size class 1/2/3; drives the sprite/bar/hit-test scale
                 Behavior = n.Behavior,
                 SpawnSecs = n.SpawnSecs,
@@ -204,6 +206,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         {
             Name = p.Name,
             Pic = p.Pic,
+            PicSheet = p.PicSheet,
             Type = p.Type,
             Durability = p.Durability,
             VitalAmount = p.VitalAmount,
@@ -227,6 +230,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         {
             Name = p.Name,
             Sprite = p.Sprite,
+            SpriteSheet = p.SpriteSheet,
             Size = p.Size,   // footprint size class 1/2/3; drives the sprite/bar/hit-test scale
             Behavior = p.Behavior,
             SpawnSecs = p.SpawnSecs,
@@ -296,6 +300,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             Description = p.Description,
             SpriteMale = p.SpriteMale,
             SpriteFemale = p.SpriteFemale,
+            SpriteSheet = p.SpriteSheet,
             Str = p.Str,
             Def = p.Def,
             Spd = p.Spd,

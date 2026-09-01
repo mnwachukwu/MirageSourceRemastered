@@ -64,7 +64,7 @@ public static class Tooltip
     private static string? _text;   // Kind.Text: the full string a truncated label shows on hover
     private static PlayerRecord? _me;
     private static ClassRecord?[] _classes = Array.Empty<ClassRecord?>();
-    private static Texture2D? _itemsTex;
+    private static IReadOnlyList<Texture2D?> _itemsTex = [];
     private static SpellRecord?[] _spellDefs = Array.Empty<SpellRecord?>();   // spell definitions (for a scroll's spell half)
     private static ItemRecord?[] _itemDefs = Array.Empty<ItemRecord?>();   // item definitions (for the SubHp reagent name)
     private static WeatherType _weather;                                    // current weather (for the rain "(x2)" reagent hint)
@@ -84,7 +84,7 @@ public static class Tooltip
     /// alone, which is what it did everywhere before.</para>
     /// </summary>
     public static void NotifyHoverItem(string scope, object key, ItemRecord item, PlayerInvSlot? slot,
-        PlayerRecord? me, ClassRecord?[] classes, Texture2D? itemsTex, Point mousePos,
+        PlayerRecord? me, ClassRecord?[] classes, IReadOnlyList<Texture2D?> itemsTex, Point mousePos,
         SpellRecord?[]? spellDefs = null, ItemRecord?[]? itemDefs = null, WeatherType weather = default)
     {
         if (_kind != Kind.Item || !Equals(_key, key))
@@ -126,7 +126,7 @@ public static class Tooltip
         _weather = weather;
         _item = null;
         _slot = null;
-        _itemsTex = null;
+        _itemsTex = [];
         _hoverPersists = true;
     }
 
@@ -146,7 +146,7 @@ public static class Tooltip
         _item = null;
         _slot = null;
         _spell = null;
-        _itemsTex = null;
+        _itemsTex = [];
         _hoverPersists = true;
     }
 
@@ -190,7 +190,7 @@ public static class Tooltip
         _slot = null;
         _spell = null;
         _me = null;
-        _itemsTex = null;
+        _itemsTex = [];
         _text = null;
     }
 
@@ -224,25 +224,29 @@ public static class Tooltip
         string header;
         bool hasIcon;
         short pic;
+        short picSheet;
 
         switch (_kind)
         {
             case Kind.Item when _item is not null:
                 header = _item.Name?.TrimEnd() ?? "Unknown";
                 BuildItemLines(_item, _slot, _me, _classes, _spellDefs, _itemDefs, _weather);
-                hasIcon = _itemsTex is not null && _item.Pic >= 0;
+                hasIcon = _item.Pic >= 0 && _itemsTex.Sheet(_item.PicSheet) is not null;
                 pic = _item.Pic;
+                picSheet = _item.PicSheet;
                 break;
             case Kind.Spell when _spell is not null:
                 header = _spell.Name?.TrimEnd() ?? "Unknown";
                 BuildSpellLines(_spell, _me, _classes, _itemDefs, _weather);
                 hasIcon = false;
                 pic = 0;
+                picSheet = 0;
                 break;
             case Kind.Text when _text is not null:
                 header = _text;   // a single-line tooltip: just the full (un-truncated) label text
                 hasIcon = false;
                 pic = 0;
+                picSheet = 0;
                 break;
             default:
                 return;
@@ -279,7 +283,7 @@ public static class Tooltip
 
         if (hasIcon)
         {
-            sb.Draw(_itemsTex!, new Rectangle(cx, cy, IconSize, IconSize), ItemAtlas.GetSourceRect(pic), Color.White);
+            sb.DrawItemIcon(_itemsTex, pic, picSheet, new Rectangle(cx, cy, IconSize, IconSize), Color.White);
             float headerY = cy + (IconSize - lineH) / 2f;
             sb.DrawString(font, header, new Vector2(cx + IconSize + IconRightGap, headerY), HeaderColor);
             cy += IconSize;

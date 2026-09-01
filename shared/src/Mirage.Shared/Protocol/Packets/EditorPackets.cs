@@ -144,6 +144,7 @@ public sealed record EditorSaveClassPacket : IPacket
     /// <summary>One sprite per sex; the character-create screen previews whichever the player picked.</summary>
     [JsonPropertyName("spriteMale")] public int SpriteMale { get; init; }
     [JsonPropertyName("spriteFemale")] public int SpriteFemale { get; init; }
+    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }
@@ -161,6 +162,7 @@ public sealed record EditorSaveItemPacket : IPacket
     [JsonPropertyName("itemNum")] public int ItemNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("pic")] public short Pic { get; init; }
+    [JsonPropertyName("picSheet")] public short PicSheet { get; init; }
     [JsonPropertyName("type")] public ItemType Type { get; init; }
     // Type-specific fields; see ItemRecord for which apply to which ItemType.
     [JsonPropertyName("durability")] public short Durability { get; init; }
@@ -185,6 +187,7 @@ public sealed record EditorSaveNpcPacket : IPacket
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("attackSay")] public string AttackSay { get; init; } = "";
     [JsonPropertyName("sprite")] public int Sprite { get; init; }
+    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
     [JsonPropertyName("size")] public int Size { get; init; }
     [JsonPropertyName("spawnSecs")] public int SpawnSecs { get; init; }
     [JsonPropertyName("behavior")] public NpcBehavior Behavior { get; init; }
@@ -384,6 +387,7 @@ public sealed record UpdateClassPacket : IPacket
     [JsonPropertyName("desc")] public string Description { get; init; } = "";
     [JsonPropertyName("spriteMale")] public int SpriteMale { get; init; }
     [JsonPropertyName("spriteFemale")] public int SpriteFemale { get; init; }
+    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }

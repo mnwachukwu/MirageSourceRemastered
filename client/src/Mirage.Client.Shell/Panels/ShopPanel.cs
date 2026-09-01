@@ -6,6 +6,7 @@ using Mirage.Client.Core.State;
 using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Logic;
+using Mirage.Client.Shell.Rendering;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
@@ -464,7 +465,7 @@ public sealed class ShopPanel : IGamePanel
         }
     }
 
-    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, Texture2D? itemsTex, bool isActive = false, bool canHover = true)
+    public void Draw(SpriteBatch sb, SpriteFont font, ClientState state, IReadOnlyList<Texture2D?> itemsTex, bool isActive = false, bool canHover = true)
     {
         if (!IsOpen) return;
         if (_labelsGeneration != ClientStrings.Generation)
@@ -702,7 +703,7 @@ public sealed class ShopPanel : IGamePanel
         ClientStrings.Format(ClientStrings.ShopPanel_EachPrice,
             ("Item", name?.TrimEnd() ?? "?"), ("Gold", gold));
 
-    private void NotifyFixSlotHover(ClientState state, Texture2D? itemsTex)
+    private void NotifyFixSlotHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         int hovered = _fixSlotList.HoveredIndex;
         if (hovered < 0 || hovered >= _fixSlotNums.Count) return;
@@ -711,7 +712,7 @@ public sealed class ShopPanel : IGamePanel
 
     // Tooltips for the tab that is showing. Barter rows name two items at once, so a single-item tooltip
     // would be ambiguous there; that list keeps its truncation tooltip instead.
-    private void NotifyTabHover(ClientState state, Texture2D? itemsTex)
+    private void NotifyTabHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         switch (_tab)
         {
@@ -723,7 +724,7 @@ public sealed class ShopPanel : IGamePanel
     /// <summary>A shopfront row is an item the player does not own yet, so it is described by a stand-in bag
     /// slot at full durability — the same shape the character-create kit uses. Quantity is 1 because that is
     /// what a purchase grants (see DrawBuyConfirm's barter row).</summary>
-    private void NotifySalesHover(ClientState state, Texture2D? itemsTex)
+    private void NotifySalesHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         int hovered = _salesList.HoveredIndex;
         if (hovered < 0 || hovered >= state.ActiveSales.Length) return;
@@ -737,7 +738,7 @@ public sealed class ShopPanel : IGamePanel
             state.SpellDefs, state.Items, state.Weather);
     }
 
-    private void NotifySellSlotHover(ClientState state, Texture2D? itemsTex)
+    private void NotifySellSlotHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex)
     {
         int hovered = _sellList.HoveredIndex;
         if (hovered < 0 || hovered >= _sellSlotNums.Count) return;
@@ -747,7 +748,7 @@ public sealed class ShopPanel : IGamePanel
     // A row backed by a real bag slot, so the tooltip shows its true wear and stack. Key on
     // (panel, list, slotIdx, itemNum) so it re-pins when the user moves to a different slot, when the
     // slot's item changes underneath them, or when the same slot is reached from a different list.
-    private void NotifyInvSlotHover(ClientState state, Texture2D? itemsTex, int slotIdx, string list)
+    private void NotifyInvSlotHover(ClientState state, IReadOnlyList<Texture2D?> itemsTex, int slotIdx, string list)
     {
         var slot = state.Me?.Inv?[slotIdx];
         if (slot is null || slot.Num <= 0 || slot.Num > state.Limits.Items) return;
@@ -758,7 +759,7 @@ public sealed class ShopPanel : IGamePanel
             state.SpellDefs, state.Items, state.Weather);
     }
 
-    private void DrawRepairConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
+    private void DrawRepairConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, IReadOnlyList<Texture2D?> itemsTex)
     {
         var inv = state.Me.Inv[_pendingFixSlot];
         var item = inv.Num > 0 && inv.Num <= state.Limits.Items ? state.Items[inv.Num] : null;
@@ -773,7 +774,7 @@ public sealed class ShopPanel : IGamePanel
         textY += 18;
         UiHelper.DrawLabel(sb, font, name, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
         textY += 18;
-        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, textY);
+        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, item?.PicSheet ?? 0, textY);
 
         int maxDur = item?.Durability ?? 0;
         int durNeeded = maxDur - inv.Dur;
@@ -824,7 +825,7 @@ public sealed class ShopPanel : IGamePanel
     /// spell" warning are all things a buyer needs exactly as much as a barterer, and there is now one
     /// copy of them.</para></summary>
     private void DrawBarterConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c,
-        Texture2D? itemsTex, ShopContentsPacket.BarterRow row, Button confirmBtn, Button cancelBtn)
+        IReadOnlyList<Texture2D?> itemsTex, ShopContentsPacket.BarterRow row, Button confirmBtn, Button cancelBtn)
     {
         var get = row.GetItem > 0 && row.GetItem <= state.Limits.Items ? state.Items[row.GetItem] : null;
         var give = row.GiveItem > 0 && row.GiveItem <= state.Limits.Items ? state.Items[row.GiveItem] : null;
@@ -857,7 +858,7 @@ public sealed class ShopPanel : IGamePanel
         float textY = c.Y + 12;
         UiHelper.DrawLabel(sb, font, nameLine, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
         textY += 18;
-        textY = DrawItemPreview(sb, c, itemsTex, get?.Pic ?? -1, textY);
+        textY = DrawItemPreview(sb, c, itemsTex, get?.Pic ?? -1, get?.PicSheet ?? 0, textY);
         // Hoisted so the stat-req and INT-req blocks further down all share the same class record:
         // the class-affinity head-start discounts equip STR/DEF reqs and the spell INT req alike.
         // Player's own Int (me.Int) is what drives M-DMG via RawSpellPower.
@@ -1048,7 +1049,7 @@ public sealed class ShopPanel : IGamePanel
 
     /// <summary>Buying renders through the shared acquisition confirm by describing the purchase as the
     /// barter row it actually is — gold in, item out.</summary>
-    private void DrawBuyConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
+    private void DrawBuyConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, IReadOnlyList<Texture2D?> itemsTex)
     {
         int itemNum = _pendingBuySlot >= 1 && _pendingBuySlot <= state.ActiveSales.Length
             ? state.ActiveSales[_pendingBuySlot - 1] : 0;
@@ -1060,7 +1061,7 @@ public sealed class ShopPanel : IGamePanel
     /// <summary>Selling gets its own compact confirm rather than the acquisition one: the player already
     /// owns the thing, so requirements and effect previews are noise. What matters is what is being given
     /// up, its condition — which is what sets the offer — and what the shop pays.</summary>
-    private void DrawSellConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, Texture2D? itemsTex)
+    private void DrawSellConfirm(SpriteBatch sb, SpriteFont font, ClientState state, Rectangle c, IReadOnlyList<Texture2D?> itemsTex)
     {
         var inv = state.Me?.Inv?[_pendingSellSlot];
         var item = inv is not null && inv.Num > 0 && inv.Num <= state.Limits.Items ? state.Items[inv.Num] : null;
@@ -1077,7 +1078,7 @@ public sealed class ShopPanel : IGamePanel
         textY += 18;
         UiHelper.DrawLabel(sb, font, quantity > 1 ? $"{name} x{quantity}" : name, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
         textY += 18;
-        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, textY);
+        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, item?.PicSheet ?? 0, textY);
 
         if (item is not null && item.Durability > 0)
         {
@@ -1124,12 +1125,12 @@ public sealed class ShopPanel : IGamePanel
     // 32×32 item icon left-justified to the same x as the surrounding text on both confirm
     // overlays. No-ops cleanly when the texture is missing or the item has no pic, so the
     // caller can blindly add the gap and continue laying out text below.
-    private static float DrawItemPreview(SpriteBatch sb, Rectangle c, Texture2D? itemsTex, int pic, float textY)
+    private static float DrawItemPreview(SpriteBatch sb, Rectangle c, IReadOnlyList<Texture2D?> itemsTex, int pic, int picSheet, float textY)
     {
-        if (itemsTex is null || pic < 0) return textY;
+        if (pic < 0) return textY;
         const int iconSize = 32;
         var iconRect = new Rectangle(c.X + 8, (int)textY, iconSize, iconSize);
-        sb.Draw(itemsTex, iconRect, Rendering.ItemAtlas.GetSourceRect((short)pic), Color.White);
+        sb.DrawItemIcon(itemsTex, pic, picSheet, iconRect, Color.White);
         UiHelper.DrawBorder(sb, iconRect, UiHelper.ConfirmOverlayBorder);
         return textY + iconSize + 6;
     }

@@ -104,8 +104,8 @@ public sealed partial class MirageGame : Game
     {
         _transport.Disconnect();
         foreach (var t in _tilesets) t?.Dispose();
-        _sprites?.Dispose();
-        _items?.Dispose();
+        foreach (var s in _sprites) s?.Dispose();
+        foreach (var s in _items) s?.Dispose();
         _menuArt?.Dispose();
         _renderTarget?.Dispose();
         _worldRT?.Dispose();

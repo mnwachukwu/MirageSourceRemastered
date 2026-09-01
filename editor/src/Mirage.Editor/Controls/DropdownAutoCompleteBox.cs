@@ -20,6 +20,9 @@ public class DropdownAutoCompleteBox : AutoCompleteBox
     // null that immediately follows still clears the text box even while the control has focus.
     private bool _clearTextOnNextNull;
 
+    // The configured filter, parked while the list is being browsed rather than searched.
+    private AutoCompleteFilterPredicate<object?>? _parkedFilter;
+
     public DropdownAutoCompleteBox()
     {
         // Only open on Tab navigation. Pointer-driven GotFocus events (including focus
@@ -27,7 +30,7 @@ public class DropdownAutoCompleteBox : AutoCompleteBox
         GotFocus += (_, e) =>
         {
             if (e.NavigationMethod == NavigationMethod.Tab)
-                Dispatcher.UIThread.Post(() => IsDropDownOpen = true);
+                Dispatcher.UIThread.Post(() => { ShowEveryItem(); IsDropDownOpen = true; });
         };
 
         // Capture IsDropDownOpen synchronously at press time, before AutoCompleteBox
@@ -37,10 +40,42 @@ public class DropdownAutoCompleteBox : AutoCompleteBox
             (_, _) =>
             {
                 bool wasOpen = IsDropDownOpen;
-                Dispatcher.UIThread.Post(() => { if (!wasOpen) IsDropDownOpen = true; });
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (wasOpen) return;
+                    ShowEveryItem();
+                    IsDropDownOpen = true;
+                });
             },
             RoutingStrategies.Bubble,
             handledEventsToo: true);
+
+        // Typing turns the list back into a search. Anything else — arrows, Enter, a click on an item —
+        // leaves the full list up.
+        AddHandler(TextInputEvent, (_, _) => FilterAsTyped(), RoutingStrategies.Bubble, handledEventsToo: true);
+        DropDownClosed += (_, _) => FilterAsTyped();
+    }
+
+    /// <summary>
+    /// Drops the filter so opening the list offers every entry.
+    ///
+    /// <para><see cref="AutoCompleteBox"/> filters against its own <c>Text</c>, and once something is
+    /// selected that text is the selected entry's caption. Filtering against it offers only the entry
+    /// already chosen — a list of one that reads as "there is nothing else here".</para>
+    /// </summary>
+    private void ShowEveryItem()
+    {
+        if (FilterMode == AutoCompleteFilterMode.None) return;
+        _parkedFilter = ItemFilter;
+        FilterMode = AutoCompleteFilterMode.None;
+    }
+
+    // Restores the configured filter. Assigning ItemFilter is what puts FilterMode back to Custom.
+    private void FilterAsTyped()
+    {
+        if (_parkedFilter is null) return;
+        ItemFilter = _parkedFilter;
+        _parkedFilter = null;
     }
 
     /// <summary>Makes the text box agree with an empty selection, discarding anything typed into it. The map
