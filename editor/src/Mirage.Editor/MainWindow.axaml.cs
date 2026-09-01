@@ -21,8 +21,8 @@ namespace Mirage.Editor;
 ///
 /// <para><see cref="FAAppWindow"/> rather than <see cref="Window"/>, matching the server window: on
 /// Windows it draws its own title bar, so the frame carries the app's palette instead of the system's
-/// grey. It does that ONLY under <c>OperatingSystem.IsWindows()</c> — elsewhere the window keeps native
-/// decorations and every bit of native window behaviour with them. The editor was left on a plain
+/// gray. It does that ONLY under <c>OperatingSystem.IsWindows()</c> — elsewhere the window keeps native
+/// decorations and every bit of native window behavior with them. The editor was left on a plain
 /// Window when the shell was converted, which is why the two apps disagreed about their own chrome.</para>
 /// </summary>
 public partial class MainWindow : FAAppWindow
@@ -81,6 +81,8 @@ public partial class MainWindow : FAAppWindow
         _emptyWorldNew.Content = EditorStrings.Get(EditorStrings.World_New);
         _emptyWorldOpen.Content = EditorStrings.Get(EditorStrings.World_Open);
         _languageMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_LanguageMenu);
+        _viewMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ViewMenu);
+        _viewWorldPreviewItem.Header = EditorStrings.Get(EditorStrings.WorldPreview_MenuItem);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
         _exportMapItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportMapButton);
         _exportAreaItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportAreaButton);
@@ -166,6 +168,7 @@ public partial class MainWindow : FAAppWindow
         var settings = AppSettings.Current;
         if (!settings.WindowMaximized && settings.WindowX.HasValue && settings.WindowY.HasValue)
             Position = new PixelPoint((int)settings.WindowX.Value, (int)settings.WindowY.Value);
+        RestoreWorldPreview();
     }
 
     /// <summary>Close guard. With unsaved work or a live connection the close is canceled and
@@ -392,5 +395,50 @@ public partial class MainWindow : FAAppWindow
     {
         var dlg = new AboutDialog();
         await dlg.ShowDialog(this);
+    }
+
+    // ── World Preview ─────────────────────────────────────────────────────────
+    // The one window the editor shows modelessly, so its lifetime is held here rather than awaited.
+
+    private WorldPreviewWindow? _worldPreview;
+
+    private void ViewWorldPreview_Click(object? sender, RoutedEventArgs e)
+    {
+        bool wanted = _viewWorldPreviewItem.IsChecked;
+        if (wanted) OpenWorldPreview(); else _worldPreview?.CloseDeferred();
+
+        AppSettings.Current.WorldPreviewOpen = wanted;
+        AppSettings.Current.Save();
+    }
+
+    private void OpenWorldPreview()
+    {
+        if (_worldPreview is not null)
+        {
+            _worldPreview.Activate();
+            return;
+        }
+        if (DataContext is not MainWindowViewModel vm) return;
+
+        // A closed window cannot be shown again, so each toggle builds a fresh one.
+        var window = new WorldPreviewWindow { DataContext = new WorldPreviewViewModel(vm.MapEditor) };
+        window.Closed += (_, _) =>
+        {
+            _worldPreview = null;
+            _viewWorldPreviewItem.IsChecked = false;
+            AppSettings.Current.WorldPreviewOpen = false;
+            AppSettings.Current.Save();
+        };
+        _worldPreview = window;
+        window.Show(this);
+    }
+
+    // Reopened after the main window exists so it has an owner to sit above. A world need not be open
+    // yet: the preview shows its empty state and fills in when a map is selected.
+    private void RestoreWorldPreview()
+    {
+        if (!AppSettings.Current.WorldPreviewOpen) return;
+        _viewWorldPreviewItem.IsChecked = true;
+        OpenWorldPreview();
     }
 }

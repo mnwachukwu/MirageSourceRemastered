@@ -68,5 +68,6 @@ public sealed partial class MapEditorViewModel
         // LoadRecord announces Record, and the selected row is already subscribed to that — so the open
         // map redraws from this without a second call.
         row.LoadRecord(EditorDataService.MapRecordFromPacket(p));
+        RaiseMapContentChanged(p.MapNum);
     }
 }

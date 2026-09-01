@@ -64,6 +64,22 @@ public sealed class AppSettings
     public double MapGroupEditorLeftWidth { get; set; } = 200;
     public double MapGroupEditorRightWidth { get; set; } = 220;
 
+    // World Preview window. It is not a child of the main window, so it carries its own geometry rather
+    // than being swept up by MainWindow.SaveWindowState.
+    /// <summary>Whether the World Preview window is showing. Saved the moment it is toggled, so the
+    /// window comes back on next launch even if the session ends badly.</summary>
+    public bool WorldPreviewOpen { get; set; }
+    public double? WorldPreviewX { get; set; }
+    public double? WorldPreviewY { get; set; }
+    public double? WorldPreviewWidth { get; set; }
+    public double? WorldPreviewHeight { get; set; }
+    /// <summary>Canvas scale; 1.0 is one screen pixel per map pixel. A quarter scale on a world nobody has
+    /// opened before: readable tiles, and enough maps in view to see the shape of a region.
+    ///
+    /// <para>Only the starting point. Every zoom is written straight back here, so an existing install keeps
+    /// whatever it was last left at and never sees this value again.</para></summary>
+    public double WorldPreviewZoom { get; set; } = 0.25;
+
     /// <summary>Per-editor auto-save, keyed by the section id ("Maps", "Items", …). A section missing
     /// from the map is off with the defaults; Accounts never appears, because those records are the
     /// server's and are saved one deliberate press at a time.</summary>

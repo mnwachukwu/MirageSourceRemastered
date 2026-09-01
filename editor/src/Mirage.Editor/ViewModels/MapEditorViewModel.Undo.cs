@@ -51,6 +51,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         _redoStack.Clear();
         _batch.Clear();
         UpdateUndoRedo();
+        NotifyMapContentChanged();
     }
 
     // Records a tile change.  If a batch is open it's accumulated; otherwise pushed immediately.
@@ -144,7 +145,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 break;
         }
         SelectedMap!.UpdateRecord(map);
-        InvalidateTileGrid?.Invoke(op.X, op.Y);
+        RepaintTile(op.X, op.Y);
     }
 
     // A row removal shifts entry indices, so fix up the entry-index keys in every queued NPC-spawn pin op (undo

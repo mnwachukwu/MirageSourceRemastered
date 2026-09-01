@@ -13,7 +13,7 @@
        as "this server has no accounts". -->
   <Grid RowDefinitions="Auto,*">
 
-    <!-- Spans both rows and centres in them: the browser it replaces is never visible at the same time,
+    <!-- Spans both rows and centers in them: the browser it replaces is never visible at the same time,
          and a notice pinned to the top-left of an otherwise empty pane reads as a caption for nothing. -->
     <TextBlock Grid.Row="0" Grid.RowSpan="2" x:Name="_offlineNotice" Margin="16"
                HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -229,7 +229,7 @@
 
                       <!-- What the sheet holds against what the level allows. Two TextBlocks rather than
                            one with a switched brush: the bindings here resolve by reflection, so a
-                           visibility flag is the shape that cannot silently fall back to a wrong colour.
+                           visibility flag is the shape that cannot silently fall back to a wrong color.
                            Red blocks the save — the server refuses the row too. -->
                       <TextBlock Text="{Binding BudgetText}" FontSize="11"
                                  IsVisible="{Binding IsWithinBudget}"

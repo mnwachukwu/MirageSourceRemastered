@@ -27,12 +27,12 @@ public class LinkSizeTests
         return vm;
     }
 
-    // Slot 1 is the map being edited; slots 2 and 3 are candidate neighbours.
-    private static MapRecord[] World(MapSize centre, MapSize match, MapSize other)
+    // Slot 1 is the map being edited; slots 2 and 3 are candidate neighbors.
+    private static MapRecord[] World(MapSize center, MapSize match, MapSize other)
     {
         var all = new MapRecord[4];
         for (int i = 0; i < all.Length; i++) all[i] = new MapRecord();
-        all[1] = new MapRecord(centre.Width, centre.Height) { Name = "Centre" };
+        all[1] = new MapRecord(center.Width, center.Height) { Name = "Center" };
         all[2] = new MapRecord(match.Width, match.Height) { Name = "Same size" };
         all[3] = new MapRecord(other.Width, other.Height) { Name = "Different size" };
         return all;
@@ -51,7 +51,7 @@ public class LinkSizeTests
         vm.MapEntries.First(e => e.Id == id);
 
     [Test]
-    public void AMatchingNeighbour_Links()
+    public void AMatchingNeighbor_Links()
     {
         var (vm, _) = SceneWithAlert();
 
@@ -63,7 +63,7 @@ public class LinkSizeTests
     /// <summary>The case that matters: a differently-sized target is refused and the map keeps the link
     /// it already had, rather than being left pointing at something it cannot join.</summary>
     [Test]
-    public void ADifferentlySizedNeighbour_IsRefused()
+    public void ADifferentlySizedNeighbor_IsRefused()
     {
         var (vm, alert) = SceneWithAlert();
         vm.SelectedMapRight = Entry(vm, 2);
@@ -79,7 +79,7 @@ public class LinkSizeTests
     }
 
     [Test]
-    public void ADifferentlySizedNeighbour_IsRefusedOnEveryEdge()
+    public void ADifferentlySizedNeighbor_IsRefusedOnEveryEdge()
     {
         foreach (var set in new Action<MapEditorViewModel, NamedEntry>[]
                  {

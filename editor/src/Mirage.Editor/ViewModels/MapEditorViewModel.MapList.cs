@@ -128,10 +128,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
 
     /// <summary>Duplicate the open map into the first blank slot and select it.
     ///
-    /// <para>The four neighbour links are dropped. They are the one part of a map that cannot be copied:
+    /// <para>The four neighbor links are dropped. They are the one part of a map that cannot be copied:
     /// each names a map whose own link still points back at the ORIGINAL, so a copy that kept them would
     /// claim an adjacency the other side does not agree with. Warps, boot point and group membership are
-    /// kept — those are properties of the map rather than edges of the neighbour graph.</para>
+    /// kept — those are properties of the map rather than edges of the neighbor graph.</para>
     ///
     /// <para>The revision resets to zero rather than being carried over. It counts saves of THIS slot, and
     /// the copy has never been saved; the first save takes it to 1. Clients compare revisions for equality

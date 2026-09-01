@@ -9,10 +9,10 @@ namespace Mirage.Editor.Tests;
 /// <summary>
 /// Copying a map, and the three things that make it different from copying any other record.
 ///
-/// <para><b>The neighbour links cannot come along.</b> Every link is half of a pair: map 2 says "up is 3"
+/// <para><b>The neighbor links cannot come along.</b> Every link is half of a pair: map 2 says "up is 3"
 /// only because map 3 says "down is 2". A copy that kept them would claim an adjacency the other side has
 /// never heard of, and the map editor walks those links to render and to navigate — so the copy would sit
-/// inside somebody else's neighbourhood.</para>
+/// inside somebody else's neighborhood.</para>
 ///
 /// <para><b>The revision belongs to the SLOT.</b> Clients cache map data per slot number and compare
 /// revisions to decide whether what they hold is stale. A copy carrying the source's revision into a slot
@@ -56,7 +56,7 @@ public class MapCopyTests
     private static MapRowViewModel Row(MapEditorViewModel vm, int index) => vm.Maps.First(m => m.Index == index);
 
     [Test]
-    public void CopiedMap_DropsItsNeighbourLinks()
+    public void CopiedMap_DropsItsNeighborLinks()
     {
         var vm = BuildOffline(World(Authored()));
         vm.SelectedMap = Row(vm, 1);
@@ -73,7 +73,7 @@ public class MapCopyTests
         });
     }
 
-    /// <summary>Everything that is a PROPERTY of the map rather than an edge of the neighbour graph comes
+    /// <summary>Everything that is a PROPERTY of the map rather than an edge of the neighbor graph comes
     /// along — otherwise the copy is not a starting point, it is a blank with a name.</summary>
     [Test]
     public void CopiedMap_KeepsItsBootPointGroupAndContent()

@@ -26,7 +26,7 @@ namespace Mirage.Editor.Controls;
 /// <para>Everything drawn is derived from the conversation on every layout pass
 /// (<see cref="ConversationGraphLayout"/>), so the picture cannot disagree with the data. The two things
 /// worth spotting at a glance are drawn differently rather than annotated: the opening node wears the
-/// accent, and a node the opening node cannot reach sits below a gap in the bad colour.</para>
+/// accent, and a node the opening node cannot reach sits below a gap in the bad color.</para>
 ///
 /// <para>Rendered rather than composed from templates. The editor resolves its bindings by reflection, so a
 /// canvas built out of an ItemsControl and a DataTemplate would fail silently a control at a time; here the
@@ -224,7 +224,7 @@ public sealed class ConversationGraphControl : Control
     }
 
     /// <summary>Puts the whole drawing in view when a conversation is first shown: shrink to fit if it is
-    /// larger than the canvas, never magnify, and centre what is left over.</summary>
+    /// larger than the canvas, never magnify, and center what is left over.</summary>
     private void FrameGraph(Size viewport)
     {
         _framed = true;

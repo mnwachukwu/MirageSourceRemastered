@@ -181,7 +181,7 @@ public class AccountEditsSurviveTests
             Assert.That(vm.Login, Is.EqualTo(Login));
             Assert.That(vm.Chars, Is.Not.Empty);
             Assert.That(vm.HasSelection, Is.True, "the form is open, so it is not 'no account selected'");
-            Assert.That(vm.CanSave, Is.True, "Save went grey with unsaved changes on screen");
+            Assert.That(vm.CanSave, Is.True, "Save went gray with unsaved changes on screen");
         });
         AssertStillTyped(vm);
     }

@@ -13,7 +13,7 @@ namespace Mirage.Editor.ViewModels;
 /// is to make sure the author knows exactly what goes before they agree to it, and to say plainly that a
 /// backup of the world folder is the only way to get it back.</para>
 ///
-/// <para>A map joined to a neighbour is refused outright: a neighbourhood measures in one size, so resizing
+/// <para>A map joined to a neighbor is refused outright: a neighborhood measures in one size, so resizing
 /// one map alone would make every seam it shares lie about where a step lands.</para>
 /// </summary>
 public sealed partial class MapResizeDialogViewModel : ObservableObject

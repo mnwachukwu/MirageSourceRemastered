@@ -182,7 +182,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 tile = tile.WithCell(SelectedLayerType, idx, packed);
                 map.Tile[x, y] = tile;
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(x, y);
+                RepaintTile(x, y);
                 Record(x, y, before, Snap(tile));
             }
         }
@@ -219,7 +219,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 tile = tile.WithCell(SelectedLayerType, idx, LayerCell.Empty);
                 map.Tile[x, y] = tile;
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(x, y);
+                RepaintTile(x, y);
                 Record(x, y, before, Snap(tile));
             }
         }
@@ -254,7 +254,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 tile = (tile with { Type = TileType.Walkable }).Normalized();
                 map.Tile[x, y] = tile;
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(x, y);
+                RepaintTile(x, y);
                 Record(x, y, before, Snap(tile));
             }
         }
@@ -265,7 +265,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             if (!e.HasPin) continue;
             int px = e.PinX!.Value, py = e.PinY!.Value;
             map.Npcs[i] = e with { PinX = null, PinY = null };
-            InvalidateTileGrid?.Invoke(px, py);
+            RepaintTile(px, py);
             RecordNpcSpawn(px, py, e.PinLayer, i, null);
             RefreshNpcRow(i);
         }

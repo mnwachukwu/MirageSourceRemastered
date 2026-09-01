@@ -53,7 +53,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     if (lb is null) continue;
                     SetLightSlot(map, x, y, SelectedAttributeLayer, null);
                     SelectedMap.UpdateRecord(map);
-                    InvalidateTileGrid?.Invoke(x, y);
+                    RepaintTile(x, y);
                     RecordLight(x, y, lb, null);
                     continue;
                 }
@@ -73,7 +73,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     map.Tile[x, y] = t;
                 }
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(x, y);
+                RepaintTile(x, y);
                 Record(x, y, before, Snap(t));
             }
         }
@@ -281,7 +281,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 t = t.WithCell(SelectedLayerType, li, idx);
                 map.Tile[tx, ty] = t;
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(tx, ty);
+                RepaintTile(tx, ty);
                 Record(tx, ty, before, Snap(t));
             }
         }
@@ -310,7 +310,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 var pl = new PlacedLight(Guid.NewGuid(), tx, ty, spec, SelectedAttributeLayer);   // fresh identity per pasted light
                 SetLightSlot(map, tx, ty, SelectedAttributeLayer, pl);
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(tx, ty);
+                RepaintTile(tx, ty);
                 RecordLight(tx, ty, before, pl);
             }
         }
@@ -391,7 +391,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 t = WithActiveAttr(t, src);
                 map.Tile[tx, ty] = t;
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(tx, ty);
+                RepaintTile(tx, ty);
                 Record(tx, ty, before, Snap(t));
             }
         }

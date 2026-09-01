@@ -155,6 +155,10 @@ public sealed partial class MapEditorViewModel : ObservableObject
         return rec;
     }
 
+    /// <summary>Reads one map by number with no side effects, for anything drawing maps it does not own.
+    /// Offline the record is already resident; online it is fetched once and cached without dirtying.</summary>
+    public ValueTask<MapRecord?> ReadMapAsync(int id) => new(FetchMapForExportAsync(id));
+
     // "map-0007-Town Square-world.png" — id-padded + sanitized map name; `suffix` distinguishes variants.
     private static string SuggestPngName(MapRowViewModel map, string suffix = "")
     {
@@ -227,64 +231,29 @@ public sealed partial class MapEditorViewModel : ObservableObject
         string? path = null;
         try
         {
-            // Flood the neighbor graph onto an integer grid from the origin at (0,0); first-placement-wins
-            // per map id and per cell (handles cycles and inconsistent links). Only side-effect-free reads
-            // and non-dirtying LoadRecord (in FetchMapForExportAsync) are used — no SelectedMap change.
-            var coordOf = new Dictionary<int, (int X, int Y)>();
-            var cellUsed = new HashSet<(int, int)>();
-            var recordOf = new Dictionary<int, MapRecord>();
-            var queue = new Queue<int>();
+            // Radius 0 floods the whole graph. Only side-effect-free reads and non-dirtying LoadRecord
+            // (in FetchMapForExportAsync) are used, so SelectedMap never changes.
+            var layout = await MapLinkLayout.FloodAsync(origin.Index, radius: 0,
+                ReadMapAsync,
+                count => StatusMessage = EditorStrings.Format(
+                    EditorStrings.MapEditorStatus_ExportDiscovering, ("Count", count)));
+            if (layout.Placements.Count == 0) return;
 
-            void Place(int id, int x, int y)
-            {
-                if (id <= 0 || coordOf.ContainsKey(id) || !cellUsed.Add((x, y))) return;
-                coordOf[id] = (x, y);
-                queue.Enqueue(id);
-            }
-
-            Place(origin.Index, 0, 0);
-            while (queue.Count > 0)
-            {
-                int id = queue.Dequeue();
-                var rec = await FetchMapForExportAsync(id);
-                if (rec is null) continue; // unreachable/failed → left as a black gap
-                recordOf[id] = rec;
-                var (x, y) = coordOf[id];
-                Place(rec.Up, x, y - 1);
-                Place(rec.Down, x, y + 1);
-                Place(rec.Left, x - 1, y);
-                Place(rec.Right, x + 1, y);
-                StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_ExportDiscovering,
-                    ("Count", recordOf.Count));
-            }
-            if (recordOf.Count == 0) return;
-
-            int minX = int.MaxValue, minY = int.MaxValue, maxX = int.MinValue, maxY = int.MinValue;
-            foreach (var (x, y) in recordOf.Keys.Select(id => coordOf[id]))
-            {
-                minX = Math.Min(minX, x);
-                maxX = Math.Max(maxX, x);
-                minY = Math.Min(minY, y);
-                maxY = Math.Max(maxY, y);
-            }
-            int worldW = (maxX - minX + 1) * mw, worldH = (maxY - minY + 1) * mh;
+            int worldW = layout.CellsWide * mw, worldH = layout.CellsHigh * mh;
 
             path = await SaveFilePngAsync(SuggestPngName(origin, "-world"));
             if (path is null) return;
 
-            var placements = new List<(MapRecord, int, int)>(recordOf.Count);
-            foreach (var (id, rec) in recordOf)
-            {
-                var (x, y) = coordOf[id];
-                placements.Add((rec, (x - minX) * mw, (y - minY) * mh));
-            }
+            var placements = new List<(MapRecord, int, int)>(layout.Placements.Count);
+            foreach (var p in layout.Placements)
+                placements.Add((p.Record, (p.CellX - layout.MinX) * mw, (p.CellY - layout.MinY) * mh));
 
             StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_ExportRendering,
                 ("Width", worldW), ("Height", worldH));
             await Task.Yield(); // let the "Rendering..." status paint before the synchronous stream
             MapImageExport.ExportWorldPng(placements, Tilesets, worldW, worldH, path);
             StatusMessage = EditorStrings.Format(EditorStrings.MapEditorStatus_ExportedWorld,
-                ("Count", recordOf.Count), ("Path", path));
+                ("Count", layout.Placements.Count), ("Path", path));
         }
         catch (Exception ex)
         {

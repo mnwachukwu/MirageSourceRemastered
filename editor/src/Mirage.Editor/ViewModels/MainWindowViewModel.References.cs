@@ -32,7 +32,7 @@ public sealed partial class MainWindowViewModel
         // Shops and conversations are pointed FROM, never TO: a shop names its keeper, a conversation names
         // its speaker. Nothing in the world names a shop or a conversation, so those two editors get no panel.
         // The map editor gets none either, though plenty points at a map: its own Up/Down/Left/Right fields
-        // and the group panel above already say who a map's neighbours are, and a mapper is placing tiles.
+        // and the group panel above already say who a map's neighbors are, and a mapper is placing tiles.
     }
 
     /// <summary>Re-read the reference panel on whichever editor is showing. The referring records live in

@@ -158,7 +158,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         if (SelectedMap is null || newId <= 0 || newId == SelectedMap.Index) return false;
 
         var target = RowFor(newId);
-        // Online, a neighbour that never loaded has a placeholder record whose size means nothing. The
+        // Online, a neighbor that never loaded has a placeholder record whose size means nothing. The
         // eager load above is what usually settles this; anything still unloaded is left alone.
         if (target is null || (_data.IsOnline && !target.IsLoaded)) return false;
 
@@ -215,6 +215,9 @@ public sealed partial class MapEditorViewModel : ObservableObject
         if (changed.Count > 0)
         {
             NotifyNeighborProperties();
+            // A link edit moves maps around the grid rather than repainting one, so every map whose links
+            // were rewritten is reported — the reciprocal side included.
+            foreach (int id in changed) RaiseMapContentChanged(id);
             if (newId != 0)
             {
                 StatusMessage = conflicts.Count == 0

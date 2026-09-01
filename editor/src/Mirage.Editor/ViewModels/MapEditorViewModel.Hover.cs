@@ -161,5 +161,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(HoveredLightText));
         OnPropertyChanged(nameof(HoveredHasLight));
         OnPropertyChanged(nameof(HoveredLightBrush));
+        OnPropertyChanged(nameof(HoveredHasInboundWarps));
+        OnPropertyChanged(nameof(HoveredInboundWarpText));
     }
 }

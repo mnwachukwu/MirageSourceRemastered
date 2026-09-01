@@ -398,7 +398,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         {
             NotifyMapProperties();
             NotifyHoveredTile();
-            InvalidateAllTiles?.Invoke();
+            RepaintMap();
         }
     }
 }

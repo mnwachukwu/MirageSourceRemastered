@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
+using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using Mirage.Shared;
 using Mirage.Shared.Records;
@@ -431,6 +432,11 @@ public sealed partial class TileGridControl : Control
                     applyOverlay: !isCenter, animFrame: isCenter ? centerAnimFrame : -1,
                     doorPreview: doorPreview, showAttributes: showAttributes, showLights: showLights,
                     attrLayer: attrLayer, npcSize: npcSize, activeStack: activeStack);
+
+                // Arrivals are computed for the open map only, so they are drawn only on the center cell.
+                // A neighbor's would need the same world-wide scan per cell, which the 3x3 does not pay for.
+                if (isCenter && showAttributes && cells[row, col] is { } centerMap)
+                    RenderInboundWarps(ctx, centerMap, pixOff, InboundWarps);
             }
         }
     }
@@ -563,6 +569,34 @@ public sealed partial class TileGridControl : Control
             ctx.DrawEllipse(NpcSpawnMarkerBrush, NpcSpawnMarkerPen, new Point(cx, cy), r, r);
             var ft = new FormattedText((i + 1).ToString(), CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight, Typeface.Default, TileH * 0.42, Brushes.White);
+            ctx.DrawText(ft, new Point(cx - ft.Width / 2, cy - ft.Height / 2));
+        }
+    }
+
+    // Draws each tile another map warps INTO as a violet badge carrying the source map's number, so the
+    // receiving map shows what opens onto it — a warp is authored wholly on the departing side, and without
+    // this the destination tile looks like any other. Several maps arriving on one tile compound into one
+    // badge showing "+N": a tile is one doorway however many doors open onto it, and the hover read-out is
+    // where the rest of them are named. Already filtered to the active plane by the caller.
+    private static void RenderInboundWarps(DrawingContext ctx, MapRecord map, Point pixOff,
+        IReadOnlyList<InboundWarp> inbound)
+    {
+        foreach (var w in inbound)
+        {
+            if (w.X < 0 || w.X >= Cols(map) || w.Y < 0 || w.Y >= Rows(map)) continue;
+            var tileRect = new Rect(pixOff.X + w.X * TileW, pixOff.Y + w.Y * TileH, TileW, TileH);
+            ctx.FillRectangle(InboundWarpTileBrush, tileRect);
+
+            double cx = pixOff.X + (w.X + 0.5) * TileW;
+            double cy = pixOff.Y + (w.Y + 0.5) * TileH;
+            double r = TileW * 0.34;
+            ctx.DrawEllipse(InboundWarpMarkerBrush, InboundWarpMarkerPen, new Point(cx, cy), r, r);
+
+            string label = w.SourceMaps.Count == 1
+                ? w.SourceMaps[0].ToString(CultureInfo.CurrentCulture)
+                : $"+{w.SourceMaps.Count}";
+            var ft = new FormattedText(label, CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, Typeface.Default, TileH * 0.40, Brushes.White);
             ctx.DrawText(ft, new Point(cx - ft.Width / 2, cy - ft.Height / 2));
         }
     }

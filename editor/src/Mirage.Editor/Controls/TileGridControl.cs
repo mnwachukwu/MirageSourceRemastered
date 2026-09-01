@@ -6,6 +6,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
+using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using Mirage.Shared;
 using Mirage.Shared.Records;
@@ -82,6 +83,12 @@ public sealed partial class TileGridControl : Control
     // layers from any tileset and resolve clipboard cells back to their source sheet.
     public static readonly StyledProperty<IReadOnlyList<Bitmap?>> TilesetsProperty =
         AvaloniaProperty.Register<TileGridControl, IReadOnlyList<Bitmap?>>(nameof(Tilesets), defaultValue: []);
+
+    /// <summary>Tiles on the open map that another map's warp lands on, already filtered to the active
+    /// plane. Marked in Attribute mode so the receiving map shows what opens onto it.</summary>
+    public static readonly StyledProperty<IReadOnlyList<InboundWarp>> InboundWarpsProperty =
+        AvaloniaProperty.Register<TileGridControl, IReadOnlyList<InboundWarp>>(
+            nameof(InboundWarps), defaultValue: []);
 
     public static readonly StyledProperty<EditorAction> ActionProperty =
         AvaloniaProperty.Register<TileGridControl, EditorAction>(nameof(Action));
@@ -187,6 +194,11 @@ public sealed partial class TileGridControl : Control
     {
         get => GetValue(TilesetsProperty);
         set => SetValue(TilesetsProperty, value);
+    }
+    public IReadOnlyList<InboundWarp> InboundWarps
+    {
+        get => GetValue(InboundWarpsProperty);
+        set => SetValue(InboundWarpsProperty, value);
     }
     public EditorAction Action
     {
@@ -308,6 +320,12 @@ public sealed partial class TileGridControl : Control
     private static readonly Pen NpcSpawnMarkerPen = new(new SolidColorBrush(Color.FromArgb(230, 0, 0, 0)), 1.0);
     // Size-aware spawn footprint: a translucent teal fill + outline over the NPC's SxS body.
     private static readonly IBrush NpcSpawnFootprintBrush = new SolidColorBrush(Color.FromArgb(60, 20, 150, 90));
+
+    // Arrival markers: violet, matching the World Preview's warp badge, and distinct from the teal NPC pin
+    // and the colored light bulb so three overlapping conventions stay readable on one tile.
+    private static readonly IBrush InboundWarpMarkerBrush = new SolidColorBrush(Color.FromArgb(215, 120, 60, 165));
+    private static readonly Pen InboundWarpMarkerPen = new(new SolidColorBrush(Color.FromArgb(230, 0, 0, 0)), 1.0);
+    private static readonly IBrush InboundWarpTileBrush = new SolidColorBrush(Color.FromArgb(58, 150, 90, 200));
     private static readonly Pen NpcSpawnFootprintPen = new(new SolidColorBrush(Color.FromArgb(180, 20, 150, 90)), 1.0);
     // MODE 2 placement brush: green when the hovered footprint is a legal pin, red otherwise.
     private static readonly IBrush NpcPlaceOkBrush = new SolidColorBrush(Color.FromArgb(90, 40, 220, 90));
@@ -422,6 +440,10 @@ public sealed partial class TileGridControl : Control
         // Switching the active attribute layer changes which plane's attributes the cached overlay shows → rebuild.
         AttributeLayerProperty.Changed.AddClassHandler<TileGridControl>(
             (c, _) => { c._tileCacheDirty = true; c._rtbRetryCount = 0; });
+
+        // Arrival markers are drawn into the cached render alongside the attribute overlay → rebuild.
+        InboundWarpsProperty.Changed.AddClassHandler<TileGridControl>(
+            (c, _) => { c._tileCacheDirty = true; c._rtbRetryCount = 0; c.InvalidateVisual(); });
 
         // The active VISUAL stack (Tile mode) drives the non-active-stack dim baked into the cached render → rebuild.
         SelectedLayerTypeProperty.Changed.AddClassHandler<TileGridControl>(

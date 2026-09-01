@@ -12,7 +12,7 @@ namespace Mirage.Editor.Tests;
 /// <para>Most of what these pin is what copy REFUSES to carry. Three record types point at an NPC through
 /// a side-mapping the game resolves by SCANNING — a conversation's speaker, a quest's giver, a shop's
 /// keeper — so a verbatim copy leaves two records claiming one NPC and the loser silently never fires.
-/// A map's neighbour links are the same shape: the map on the other side still points at the original, so
+/// A map's neighbor links are the same shape: the map on the other side still points at the original, so
 /// a copy that kept them would assert an adjacency only one side agrees with. None of that is visible in
 /// the editor; it shows up as a door that goes nowhere or an NPC with nothing to say.</para>
 ///

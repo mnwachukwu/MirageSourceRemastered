@@ -26,7 +26,7 @@ public class NpcRangeWarningTests
         Assert.That(Row(behavior, range).HasRangeWarning, Is.False);
     }
 
-    /// <summary>Past what a player can see, whatever the behaviour: the surprise is the same.</summary>
+    /// <summary>Past what a player can see, whatever the behavior: the surprise is the same.</summary>
     [TestCase(NpcBehavior.AttackOnSight)]
     [TestCase(NpcBehavior.AttackWhenAttacked)]
     [TestCase(NpcBehavior.Guard)]

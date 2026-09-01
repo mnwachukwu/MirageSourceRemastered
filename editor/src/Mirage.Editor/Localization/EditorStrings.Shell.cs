@@ -72,6 +72,20 @@ public static partial class EditorStrings
     public const string About_Version = nameof(About_Version);
     public const string About_CreatorDeveloper = nameof(About_CreatorDeveloper);
     public const string MainWindow_ExportMenu = nameof(MainWindow_ExportMenu);
+    public const string MainWindow_ViewMenu = nameof(MainWindow_ViewMenu);
+
+    // ── World Preview ─────────────────────────────────────────────────────────
+    public const string WorldPreview_MenuItem = nameof(WorldPreview_MenuItem);
+    public const string WorldPreview_Title = nameof(WorldPreview_Title);
+    public const string WorldPreview_NoMaps = nameof(WorldPreview_NoMaps);
+    public const string WorldPreview_Count = nameof(WorldPreview_Count);
+    public const string WorldPreview_CountTruncated = nameof(WorldPreview_CountTruncated);
+    public const string WorldPreview_Hint = nameof(WorldPreview_Hint);
+    public const string WorldPreview_WarpsLabel = nameof(WorldPreview_WarpsLabel);
+    public const string WarpTargets_Title = nameof(WarpTargets_Title);
+    public const string WarpTargets_Intro = nameof(WarpTargets_Intro);
+    public const string WarpTargets_None = nameof(WarpTargets_None);
+    public const string WarpTargets_EntryCount = nameof(WarpTargets_EntryCount);
     public const string MainWindow_DisconnectButton = nameof(MainWindow_DisconnectButton);
     public const string MainWindow_Section_Maps = nameof(MainWindow_Section_Maps);
     public const string MainWindow_Section_MapGroups = nameof(MainWindow_Section_MapGroups);

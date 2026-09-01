@@ -113,7 +113,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             });
             SelectedMap.Record.Tile[tx, ty] = t;
             SelectedMap.UpdateRecord(SelectedMap.Record);
-            InvalidateTileGrid?.Invoke(tx, ty);
+            RepaintTile(tx, ty);
             Record(tx, ty, before, Snap(t));
         }
         CommitBatch();
@@ -173,7 +173,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             var before = EntryPinnedAt(map, tx, ty, SelectedAttributeLayer);
             SetEntryPinAt(map, tx, ty, SelectedAttributeLayer, choice.RowIndex);
             SelectedMap.UpdateRecord(map);
-            InvalidateTileGrid?.Invoke(tx, ty);
+            RepaintTile(tx, ty);
             RecordNpcSpawn(tx, ty, SelectedAttributeLayer, before, choice.RowIndex);
         }
         CommitBatch();
@@ -265,13 +265,13 @@ public sealed partial class MapEditorViewModel : ObservableObject
         {
             int ox = entry.PinX!.Value, oy = entry.PinY!.Value;
             SetEntryPinAt(map, ox, oy, entry.PinLayer, null);
-            InvalidateTileGrid?.Invoke(ox, oy);
+            RepaintTile(ox, oy);
             RecordNpcSpawn(ox, oy, entry.PinLayer, rowIndex, null);
         }
         var before = EntryPinnedAt(map, x, y, SelectedAttributeLayer);   // null for a valid placement (overlap is rejected above)
         SetEntryPinAt(map, x, y, SelectedAttributeLayer, rowIndex);
         SelectedMap.UpdateRecord(map);
-        InvalidateTileGrid?.Invoke(x, y);
+        RepaintTile(x, y);
         RecordNpcSpawn(x, y, SelectedAttributeLayer, before, rowIndex);
         CommitBatch();
         RowAt(rowIndex)?.Refresh();
@@ -411,7 +411,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             var pl = new PlacedLight(before?.Id ?? Guid.NewGuid(), tx, ty, spec, SelectedAttributeLayer);   // keep Id on edit
             SetLightSlot(map, tx, ty, SelectedAttributeLayer, pl);
             SelectedMap.UpdateRecord(map);
-            InvalidateTileGrid?.Invoke(tx, ty);
+            RepaintTile(tx, ty);
             RecordLight(tx, ty, before, pl);
         }
         CommitBatch();
@@ -517,7 +517,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             map.Tile[_animDialogX, _animDialogY] = tile;
             BeginBatch();
             SelectedMap.UpdateRecord(map);
-            InvalidateTileGrid?.Invoke(_animDialogX, _animDialogY);
+            RepaintTile(_animDialogX, _animDialogY);
             Record(_animDialogX, _animDialogY, before, Snap(tile));
             CommitBatch();
         }
@@ -542,7 +542,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         foreach (var pl in map.Lights.ToArray())
         {
             SetLightSlot(map, pl.X, pl.Y, pl.Layer, null);
-            InvalidateTileGrid?.Invoke(pl.X, pl.Y);
+            RepaintTile(pl.X, pl.Y);
             RecordLight(pl.X, pl.Y, pl, null);
         }
         SelectedMap.UpdateRecord(map);

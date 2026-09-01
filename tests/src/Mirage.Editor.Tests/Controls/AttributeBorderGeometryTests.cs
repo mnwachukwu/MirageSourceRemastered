@@ -29,10 +29,10 @@ public class AttributeBorderGeometryTests
         });
     }
 
-    /// <summary>The reported case, horizontally: this cell's right edge and its neighbour's left edge are the
+    /// <summary>The reported case, horizontally: this cell's right edge and its neighbor's left edge are the
     /// same grid line at x=96.</summary>
     [Test]
-    public void FacingBandsOfHorizontalNeighbours_AreFlushAndDisjoint()
+    public void FacingBandsOfHorizontalNeighbors_AreFlushAndDisjoint()
     {
         var left = AttributeBorderGeometry.Band(CellX, CellY, W, H, Side.Right, T);
         var right = AttributeBorderGeometry.Band(CellX + W, CellY, W, H, Side.Left, T);
@@ -46,7 +46,7 @@ public class AttributeBorderGeometryTests
     }
 
     [Test]
-    public void FacingBandsOfVerticalNeighbours_AreFlushAndDisjoint()
+    public void FacingBandsOfVerticalNeighbors_AreFlushAndDisjoint()
     {
         var above = AttributeBorderGeometry.Band(CellX, CellY, W, H, Side.Bottom, T);
         var below = AttributeBorderGeometry.Band(CellX, CellY + H, W, H, Side.Top, T);

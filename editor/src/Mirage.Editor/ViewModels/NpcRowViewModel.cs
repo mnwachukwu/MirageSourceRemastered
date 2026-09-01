@@ -160,7 +160,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
     // The same non-blocking guard, for a reach that reads as a slip at either end. Both are advisory:
     // the record is legal and occasionally deliberate, so this says so and writes it anyway.
     //
-    // Too far is judged for every behaviour that acquires; too near only for attack-on-sight, since a
+    // Too far is judged for every behavior that acquires; too near only for attack-on-sight, since a
     // Guard watches the whole observable area and never reads its Range, and everything else waits to be
     // struck.
     /// <summary>Warning text for a reach that will read as a surprise in play; empty otherwise.</summary>

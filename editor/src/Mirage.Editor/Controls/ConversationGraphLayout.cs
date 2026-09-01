@@ -178,8 +178,8 @@ public static class ConversationGraphLayout
             }
         }
 
-        // A loop needs room to be drawn in. A link between two neighbours on one row, or a node answering
-        // itself, is a curve that has to live somewhere other than through a box — so the neighbour is pushed
+        // A loop needs room to be drawn in. A link between two neighbors on one row, or a node answering
+        // itself, is a curve that has to live somewhere other than through a box — so the neighbor is pushed
         // one column further along and the curve gets a whole column to itself.
         var loops = new HashSet<int>();                    // node ids that answer themselves
         var sideBySide = new HashSet<(int, int)>();        // unordered pairs joined along a row

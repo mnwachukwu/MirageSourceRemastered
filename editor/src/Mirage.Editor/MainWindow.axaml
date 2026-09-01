@@ -86,6 +86,11 @@
                       Command="{Binding RefreshFromDiskCommand}"
                       InputGesture="F5"/>
           </MenuItem>
+          <MenuItem x:Name="_viewMenu">
+            <MenuItem x:Name="_viewWorldPreviewItem"
+                      ToggleType="CheckBox"
+                      Click="ViewWorldPreview_Click"/>
+          </MenuItem>
           <MenuItem x:Name="_languageMenu" />
           <MenuItem x:Name="_helpMenu">
             <MenuItem x:Name="_helpMapEditorItem" Click="HelpMapControls_Click"/>
@@ -101,8 +106,8 @@
           <Button x:Name="_disconnectBtn"
                   Command="{Binding DisconnectCommand}"
                   IsVisible="{Binding IsOnline}" />
-          <!-- State as a SHAPE as well as a colour, the same badge the server window wears: a dot plus a
-               word survives a screenshot and a colourblind reader, where a hue on its own does not. The
+          <!-- State as a SHAPE as well as a color, the same badge the server window wears: a dot plus a
+               word survives a screenshot and a colorblind reader, where a hue on its own does not. The
                server it is attached to sits OUTSIDE the badge — a pill that stretches to fit a host and
                port is no longer a badge. -->
           <Border Classes="pill" Classes.ok="{Binding IsOnline}" Classes.bad="{Binding !IsOnline}"
@@ -165,7 +170,7 @@
                           Width="15" Height="15"
                           VerticalAlignment="Center"/>
                 <!-- The gap belongs to the label, not the icon — hiding the label has to take its
-                     spacing with it, or the icon sits off-centre in a 64px rail. -->
+                     spacing with it, or the icon sits off-center in a 64px rail. -->
                 <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
                            VerticalAlignment="Center" FontSize="13" Margin="11,0,0,0"
                            IsVisible="{Binding IsLabelVisible}"/>
@@ -187,7 +192,7 @@
          its LAST child only, and a sibling here would dock to an edge instead of centring.
 
          The editor is bound to the same condition rather than left to whatever last set CurrentEditor:
-         a message centred over a populated editor reads as a broken window, and only one code path has
+         a message centered over a populated editor reads as a broken window, and only one code path has
          to forget for that to happen. -->
     <Grid>
       <ContentControl Content="{Binding CurrentEditor}" Margin="0"

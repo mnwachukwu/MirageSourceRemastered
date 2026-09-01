@@ -116,6 +116,7 @@
                                     SelectedLayerType="{Binding SelectedLayerType, Mode=TwoWay}"
                                     SelectedLayerIndex="{Binding SelectedLayerIndex, Mode=TwoWay}"
                                     Tilesets="{Binding Tilesets}"
+                                    InboundWarps="{Binding InboundWarpsOnActiveLayer}"
                                     Action="{Binding SelectedAction}"
                                     ClipboardKind="{Binding ClipboardKind}"
                                     ClipboardTiles="{Binding ClipboardTiles}"
@@ -653,7 +654,7 @@
     </Grid>
 
     <!-- ── Action footer (Undo / Redo / Save / Discard — always visible) ── -->
-    <!-- Chrome, so it wears the toolbar's own surface rather than a neutral grey: this strip and the
+    <!-- Chrome, so it wears the toolbar's own surface rather than a neutral gray: this strip and the
          toolbar at the top of the window are the two frames around the canvas and should read as a pair. -->
     <Border Classes="actionBar" Grid.Row="1" Background="{DynamicResource MirageSurfaceBrush}" Padding="6,4"
             BorderBrush="{DynamicResource MirageLineSoftBrush}" BorderThickness="0,1,0,0">
@@ -774,6 +775,9 @@
                      FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CFC9E4"/>
           <TextBlock Text="{Binding HoveredNpcSpawnText}" IsVisible="{Binding HoveredHasNpcSpawn}"
                      FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#CFC9E4"/>
+          <!-- Every map arriving on this tile, named. The marker can only carry one number and a count. -->
+          <TextBlock Text="{Binding HoveredInboundWarpText}" IsVisible="{Binding HoveredHasInboundWarps}"
+                     FontSize="10" TextWrapping="Wrap" MaxWidth="220" Foreground="#D9C2F0"/>
           <StackPanel Orientation="Horizontal" Spacing="4">
             <Border Width="12" Height="12" CornerRadius="2" BorderBrush="#8B84AE" BorderThickness="1"
                     Background="{Binding HoveredLightBrush}" IsVisible="{Binding HoveredHasLight}"

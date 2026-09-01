@@ -142,6 +142,10 @@ public sealed partial class MapEditorViewModel : ObservableObject, IAutoSaveTarg
     partial void OnSelectedAttributeLayerChanged(WorldLayer value)
     {
         OnPropertyChanged(nameof(AttrLayerIsFringe));
+        // Arrival markers follow the plane being authored, the same as the attribute overlay and the pins.
+        OnPropertyChanged(nameof(InboundWarpsOnActiveLayer));
+        OnPropertyChanged(nameof(HoveredHasInboundWarps));
+        OnPropertyChanged(nameof(HoveredInboundWarpText));
         InvalidateAllTiles?.Invoke();   // the attribute overlay shows the ACTIVE layer's attrs — repaint on switch
     }
 

@@ -69,7 +69,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         _data.UpdateOnlineNpcSize(npcNum, newSize);
 
         if (SelectedMap is not null && MapPinsNpc(SelectedMap.Record, npcNum))
-            InvalidateAllTiles?.Invoke();   // full render-cache rebuild so footprints redraw at the new size
+            RepaintMap();   // full render-cache rebuild so footprints redraw at the new size
 
         foreach (var m in Maps)
         {
@@ -99,7 +99,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         if (id == 0)
         {
             npcs[index] = cur with { Npc = 0, PinX = null, PinY = null };
-            if (cur.HasPin) InvalidateTileGrid?.Invoke(cur.PinX!.Value, cur.PinY!.Value);
+            if (cur.HasPin) RepaintTile(cur.PinX!.Value, cur.PinY!.Value);
         }
         else
         {
@@ -155,7 +155,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         AddNpcRowCommand.NotifyCanExecuteChanged();
         // The reindex shifted every later pin's post-number label (and dropped the removed row's pin), so redraw
         // all markers rather than a single tile.
-        InvalidateAllTiles?.Invoke();
+        RepaintMap();
     }
 
     // Re-stamp each row's Index to its list position after a removal so the facades track the shifted entries.

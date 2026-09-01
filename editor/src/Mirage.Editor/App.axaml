@@ -27,7 +27,7 @@
 
   <Application.Styles>
     <!-- Same theme and the same accent as the server shell: the two are siblings, told apart by their
-         shape rather than by their colour, exactly as their icons are. -->
+         shape rather than by their color, exactly as their icons are. -->
     <sty:FluentAvaloniaTheme PreferSystemTheme="False"
                              PreferUserAccentColor="False"
                              CustomAccentColor="#9AA8F5"/>

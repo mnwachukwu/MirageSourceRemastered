@@ -40,6 +40,8 @@ public sealed partial class MapEditorViewModel : ObservableObject
         OnPropertyChanged(nameof(IsSelectedLocked));
         // Undo/Redo are gated on the open map's lock, so switching maps re-decides them.
         UpdateUndoRedo();
+        // Arrivals belong to the map being viewed, so they are re-read for the new one.
+        InvalidateInboundWarps();
         // Browser-style history: a normal switch records where we came from and forks the trail.
         // Back/Forward drive SelectedMap themselves, and set _isNavigatingHistory so their own
         // writes don't re-push what they just popped.

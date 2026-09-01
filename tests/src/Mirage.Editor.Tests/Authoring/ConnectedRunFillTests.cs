@@ -58,7 +58,7 @@ public class ConnectedRunFillTests
         Assert.Multiple(() =>
         {
             Assert.That(map.Tile[3, 2].BlocksLight, Is.False, "the clicked wall took the change");
-            Assert.That(map.Tile[2, 2].BlocksLight, Is.True, "its neighbour did not");
+            Assert.That(map.Tile[2, 2].BlocksLight, Is.True, "its neighbor did not");
         });
     }
 

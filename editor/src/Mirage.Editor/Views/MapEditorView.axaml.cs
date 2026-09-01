@@ -659,7 +659,7 @@ public partial class MapEditorView : LocalizedUserControl
     {
         Dispatcher.UIThread.Post(() =>
         {
-            // The centre cell starts one map in on each axis, so the offset is the open map's own size.
+            // The center cell starts one map in on each axis, so the offset is the open map's own size.
             var grid = this.FindControl<TileGridControl>("TileGrid");
             if (grid is null) return;
             MapScrollViewer.Offset = new Vector(

@@ -81,7 +81,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     tTile = tTile.WithCell(SelectedLayerType, li, PackSelected(tileIdx));
                     map.Tile[tx, ty] = tTile;
                     SelectedMap.UpdateRecord(map);
-                    InvalidateTileGrid?.Invoke(tx, ty);
+                    RepaintTile(tx, ty);
                     Record(tx, ty, before, Snap(tTile));
                 }
             }
@@ -130,7 +130,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                     t = t with { FringeAttr = new FringeAttr { Type = TileType.LayerRamp, RampGroundSide = LayerRampDirection } };
                     map.Tile[tx, ty] = t;
                     SelectedMap.UpdateRecord(map);
-                    InvalidateTileGrid?.Invoke(tx, ty);
+                    RepaintTile(tx, ty);
                     Record(tx, ty, before, Snap(t));
                 }
                 return;
@@ -167,7 +167,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 t = WithActiveAttr(t, new TileAttr { Type = TileType.Warp, WarpMap = _retWarpMapNum, WarpX = _retWarpX, WarpY = _retWarpY, WarpLayer = _retWarpDestLayer });
                                 map.Tile[tx, ty] = t;
                                 SelectedMap.UpdateRecord(map);
-                                InvalidateTileGrid?.Invoke(tx, ty);
+                                RepaintTile(tx, ty);
                                 Record(tx, ty, before, Snap(t));
                             }
                         }
@@ -221,7 +221,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 t = WithActiveAttr(t, new TileAttr { Type = TileType.Item, ItemNum = _retItemNum, ItemQuantity = _retItemQuantity, ItemRespawnSecs = _retItemRespawn });
                                 map.Tile[tx, ty] = t;
                                 SelectedMap.UpdateRecord(map);
-                                InvalidateTileGrid?.Invoke(tx, ty);
+                                RepaintTile(tx, ty);
                                 Record(tx, ty, before, Snap(t));
                             }
                         }
@@ -274,7 +274,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 t = WithActiveAttr(t, new TileAttr { Type = TileType.Key, KeyItemNum = _retKeyItemNum, KeyIsConsumed = _retKeyTake });
                                 map.Tile[tx, ty] = t;
                                 SelectedMap.UpdateRecord(map);
-                                InvalidateTileGrid?.Invoke(tx, ty);
+                                RepaintTile(tx, ty);
                                 Record(tx, ty, before, Snap(t));
                             }
                         }
@@ -326,7 +326,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 t = WithActiveAttr(t, new TileAttr { Type = TileType.KeyOpen, DoorX = _retKeyOpenDoorX, DoorY = _retKeyOpenDoorY, DoorLayer = _retKeyOpenDoorLayer });
                                 map.Tile[tx, ty] = t;
                                 SelectedMap.UpdateRecord(map);
-                                InvalidateTileGrid?.Invoke(tx, ty);
+                                RepaintTile(tx, ty);
                                 Record(tx, ty, before, Snap(t));
                             }
                         }
@@ -383,7 +383,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                             });
                             map.Tile[tx, ty] = t;
                             SelectedMap.UpdateRecord(map);
-                            InvalidateTileGrid?.Invoke(tx, ty);
+                            RepaintTile(tx, ty);
                             Record(tx, ty, before, Snap(t));
                         }
                         return;
@@ -402,7 +402,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                                 t = WithActiveAttr(t, TileType.Blocked);
                                 map.Tile[tx, ty] = t;
                                 SelectedMap.UpdateRecord(map);
-                                InvalidateTileGrid?.Invoke(tx, ty);
+                                RepaintTile(tx, ty);
                                 Record(tx, ty, before, Snap(t));
                             }
                             return;
@@ -433,7 +433,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                         t = WithActiveAttr(t, SelectedAttribute);
                         map.Tile[tx, ty] = t;
                         SelectedMap.UpdateRecord(map);
-                        InvalidateTileGrid?.Invoke(tx, ty);
+                        RepaintTile(tx, ty);
                         Record(tx, ty, before, Snap(t));
                     }
                     return;
@@ -451,7 +451,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
                 var pl = new PlacedLight(existing?.Id ?? Guid.NewGuid(), x, y, _retLight, SelectedAttributeLayer);
                 SetLightSlot(map, x, y, SelectedAttributeLayer, pl);
                 SelectedMap.UpdateRecord(map);
-                InvalidateTileGrid?.Invoke(x, y);
+                RepaintTile(x, y);
                 RecordLight(x, y, existing, pl);
                 return;
             }
@@ -535,7 +535,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         // Writes the ACTIVE plane (Ground inline vs FringeAttr) so a warp can be authored on a bridge deck.
         SelectedMap.Record.Tile[x, y] = WithActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Warp, WarpMap = WarpMapNum, WarpX = WarpX, WarpY = WarpY, WarpLayer = WarpDestLayer });
         SelectedMap.UpdateRecord(SelectedMap.Record);
-        InvalidateTileGrid?.Invoke(x, y);
+        RepaintTile(x, y);
     }
 
     private void ApplyItem(int x, int y)
@@ -543,7 +543,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         if (SelectedMap is null) return;
         SelectedMap.Record.Tile[x, y] = WithActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Item, ItemNum = ItemTileNum, ItemQuantity = ItemTileQuantity, ItemRespawnSecs = ItemTileRespawnSeconds });
         SelectedMap.UpdateRecord(SelectedMap.Record);
-        InvalidateTileGrid?.Invoke(x, y);
+        RepaintTile(x, y);
     }
 
     private void ApplyKey(int x, int y)
@@ -551,7 +551,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         if (SelectedMap is null) return;
         SelectedMap.Record.Tile[x, y] = WithActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.Key, KeyItemNum = KeyItemNum, KeyIsConsumed = KeyTake });
         SelectedMap.UpdateRecord(SelectedMap.Record);
-        InvalidateTileGrid?.Invoke(x, y);
+        RepaintTile(x, y);
     }
 
     private void ApplyKeyOpen(int x, int y)
@@ -560,7 +560,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         // DoorLayer lets a KeyOpen open a Key door on either plane.
         SelectedMap.Record.Tile[x, y] = WithActiveAttr(SelectedMap.Record.Tile[x, y], new TileAttr { Type = TileType.KeyOpen, DoorX = KeyOpenDoorX, DoorY = KeyOpenDoorY, DoorLayer = KeyOpenDoorLayer });
         SelectedMap.UpdateRecord(SelectedMap.Record);
-        InvalidateTileGrid?.Invoke(x, y);
+        RepaintTile(x, y);
     }
 
     /// <summary>Called by TileGridControl on right-click — clears based on current mode.</summary>
@@ -591,7 +591,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
             if (lb is null) return;
             SetLightSlot(map, x, y, SelectedAttributeLayer, null);
             SelectedMap!.UpdateRecord(map);
-            InvalidateTileGrid?.Invoke(x, y);
+            RepaintTile(x, y);
             RecordLight(x, y, lb, null);
             return;
         }
@@ -603,7 +603,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         {
             SetEntryPinAt(map, x, y, SelectedAttributeLayer, null);
             SelectedMap!.UpdateRecord(map);
-            InvalidateTileGrid?.Invoke(x, y);
+            RepaintTile(x, y);
             RecordNpcSpawn(x, y, SelectedAttributeLayer, pinBefore, null);
             RefreshNpcRow(pinBefore);
             return;
@@ -631,7 +631,7 @@ public sealed partial class MapEditorViewModel : ObservableObject
         }
         map.Tile[x, y] = tile;
         SelectedMap!.UpdateRecord(map);
-        InvalidateTileGrid?.Invoke(x, y);
+        RepaintTile(x, y);
         Record(x, y, before, Snap(tile));
     }
 

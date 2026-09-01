@@ -8,7 +8,7 @@ namespace Mirage.Editor.Tests;
 /// What the record lists show, given the server's lock table.
 ///
 /// <para>The indicator is "held by another SESSION", not "held". A lock this window took is its own unsaved
-/// work and must never grey out the row it belongs to — and a lock another window took is a conflict even
+/// work and must never gray out the row it belongs to — and a lock another window took is a conflict even
 /// when that window is signed in as the same person, which is the case a single-author project meets first.</para>
 ///
 /// <para>The account name survives only to word the tooltip: telling the reader "matt is editing this" when
