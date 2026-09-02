@@ -32,7 +32,7 @@ public class SheetFieldTests
         Assert.Multiple(() =>
         {
             Assert.That(Write(new NpcRecord { Name = "Rat", Sprite = 8 }), Does.Contain("\"spriteSheet\": 0"));
-            Assert.That(Write(new ItemRecord { Name = "Dagger", Pic = 14 }), Does.Contain("\"picSheet\": 0"));
+            Assert.That(Write(new ItemRecord { Name = "Dagger", Pic = 14 }), Does.Contain("\"itemSheet\": 0"));
             Assert.That(Write(new ClassRecord { Name = "Warrior", SpriteMale = 34 }),
                 Does.Contain("\"spriteSheet\": 0"));
             Assert.That(Write(new PlayerRecord { Name = "Matt", Sprite = 34 }),
@@ -48,7 +48,7 @@ public class SheetFieldTests
         {
             Assert.That(Read<NpcRecord>(Write(new NpcRecord { Sprite = 8, SpriteSheet = 3 })).SpriteSheet,
                 Is.EqualTo(3));
-            Assert.That(Read<ItemRecord>(Write(new ItemRecord { Pic = 14, PicSheet = 2 })).PicSheet,
+            Assert.That(Read<ItemRecord>(Write(new ItemRecord { Pic = 14, ItemSheet = 2 })).ItemSheet,
                 Is.EqualTo((short)2));
             Assert.That(Read<ClassRecord>(Write(new ClassRecord { SpriteMale = 1, SpriteSheet = 5 })).SpriteSheet,
                 Is.EqualTo(5));
@@ -66,7 +66,7 @@ public class SheetFieldTests
         Assert.Multiple(() =>
         {
             Assert.That(Read<NpcRecord>("""{"name":"Rat","sprite":8}""").SpriteSheet, Is.EqualTo(0));
-            Assert.That(Read<ItemRecord>("""{"name":"Dagger","pic":14}""").PicSheet, Is.EqualTo((short)0));
+            Assert.That(Read<ItemRecord>("""{"name":"Dagger","pic":14}""").ItemSheet, Is.EqualTo((short)0));
             Assert.That(Read<ClassRecord>("""{"name":"Warrior","spriteMale":34}""").SpriteSheet, Is.EqualTo(0));
             Assert.That(Read<PlayerRecord>("""{"name":"Matt","sprite":34}""").SpriteSheet, Is.EqualTo(0));
         });
@@ -78,7 +78,7 @@ public class SheetFieldTests
     public void TheRowNumberIsUnaffected()
     {
         var npc = Read<NpcRecord>(Write(new NpcRecord { Sprite = 8, SpriteSheet = 3 }));
-        var item = Read<ItemRecord>(Write(new ItemRecord { Pic = 14, PicSheet = 2 }));
+        var item = Read<ItemRecord>(Write(new ItemRecord { Pic = 14, ItemSheet = 2 }));
 
         Assert.That(npc.Sprite, Is.EqualTo(8));
         Assert.That(item.Pic, Is.EqualTo((short)14));

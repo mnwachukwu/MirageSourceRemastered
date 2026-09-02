@@ -2,6 +2,7 @@
   "name": "Tollman's Thug",
   "attackSay": "The road is not free.",
   "sprite": 15,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 30,
   "behavior": "AttackWhenAttacked",

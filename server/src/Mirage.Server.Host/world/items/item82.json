@@ -1,6 +1,7 @@
 {
   "name": "Runed Cap",
   "pic": 36,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 770,
   "power": 100,

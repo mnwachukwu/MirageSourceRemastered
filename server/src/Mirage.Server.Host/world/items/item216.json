@@ -1,6 +1,7 @@
 {
   "name": "Greater Vigor Elixir",
   "pic": 21,
+  "itemSheet": 0,
   "type": "PotionAddSp",
   "vitalAmount": 90,
   "levelReq": 100,

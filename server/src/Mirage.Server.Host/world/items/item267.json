@@ -1,6 +1,7 @@
 {
   "name": "Ineffable Enervating Vial",
   "pic": 26,
+  "itemSheet": 0,
   "type": "PotionSubSp",
   "vitalAmount": 221,
   "levelReq": 250,

@@ -1,6 +1,7 @@
 {
   "name": "Potent Healing Elixir",
   "pic": 25,
+  "itemSheet": 0,
   "type": "PotionAddHp",
   "vitalAmount": 47,
   "levelReq": 20,

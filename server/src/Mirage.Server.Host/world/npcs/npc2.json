@@ -2,6 +2,7 @@
   "name": "Ragged Vagrant",
   "attackSay": "Stay back! I warned you!",
   "sprite": 17,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 25,
   "behavior": "AttackWhenAttacked",

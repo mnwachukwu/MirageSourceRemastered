@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Master Focus",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 103,
   "nonTradeable": false,

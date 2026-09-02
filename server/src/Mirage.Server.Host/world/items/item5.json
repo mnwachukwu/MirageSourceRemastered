@@ -1,6 +1,7 @@
 {
   "name": "Rusted Sword",
   "pic": 13,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 100,
   "power": 8,

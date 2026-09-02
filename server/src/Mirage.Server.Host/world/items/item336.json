@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Journeyman Restoration",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 48,
   "nonTradeable": false,

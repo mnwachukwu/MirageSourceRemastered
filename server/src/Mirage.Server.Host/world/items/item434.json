@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Elder Life Siphon",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 146,
   "nonTradeable": false,

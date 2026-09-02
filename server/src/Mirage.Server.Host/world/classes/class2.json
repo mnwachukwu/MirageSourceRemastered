@@ -3,6 +3,7 @@
   "description": "Fights for order. Even melee.",
   "spriteMale": 0,
   "spriteFemale": 32,
+  "spriteSheet": 0,
   "str": 10,
   "def": 10,
   "spd": 0,

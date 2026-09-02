@@ -1,6 +1,7 @@
 {
   "name": "Dawnforged Tunic",
   "pic": 8,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 820,
   "power": 113,

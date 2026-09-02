@@ -1,6 +1,7 @@
 {
   "name": "Deathless",
   "pic": 12,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1600,
   "power": 313,

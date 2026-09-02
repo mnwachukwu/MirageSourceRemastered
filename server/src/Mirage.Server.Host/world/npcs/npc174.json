@@ -2,6 +2,7 @@
   "name": "Emberspeaker Warden",
   "attackSay": "Eight of us. You are not making it seven.",
   "sprite": 36,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Expert Exhaustion",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 81,
   "nonTradeable": false,

@@ -11,7 +11,7 @@ public static partial class EditorStrings
     public const string ItemEditor_SelectPrompt = nameof(ItemEditor_SelectPrompt);
     public const string ItemEditor_SectionTitle = nameof(ItemEditor_SectionTitle);
     public const string ItemEditor_PicLabel = nameof(ItemEditor_PicLabel);
-    public const string ItemEditor_PicSheetLabel = nameof(ItemEditor_PicSheetLabel);
+    public const string ItemEditor_ItemSheetLabel = nameof(ItemEditor_ItemSheetLabel);
     public const string ItemEditor_RestrictionsLabel = nameof(ItemEditor_RestrictionsLabel);
     public const string ItemEditor_NonTradeable = nameof(ItemEditor_NonTradeable);
     public const string ItemEditor_NonListable = nameof(ItemEditor_NonListable);

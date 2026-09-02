@@ -1,6 +1,7 @@
 {
   "name": "Mythic Cap",
   "pic": 35,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1200,
   "power": 235,

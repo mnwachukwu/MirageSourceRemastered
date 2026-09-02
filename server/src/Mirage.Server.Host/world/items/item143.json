@@ -1,6 +1,7 @@
 {
   "name": "Sundered Helm",
   "pic": 38,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1550,
   "power": 295,

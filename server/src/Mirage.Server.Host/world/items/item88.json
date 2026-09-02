@@ -1,6 +1,7 @@
 {
   "name": "Warded Dagger",
   "pic": 9,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 790,
   "power": 104,

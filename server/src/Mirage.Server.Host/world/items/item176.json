@@ -1,6 +1,7 @@
 {
   "name": "Mythic Hauberk",
   "pic": 6,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1600,
   "power": 313,

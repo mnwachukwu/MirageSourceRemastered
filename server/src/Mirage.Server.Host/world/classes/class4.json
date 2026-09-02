@@ -3,6 +3,7 @@
   "description": "Innately talented. High power range.",
   "spriteMale": 45,
   "spriteFemale": 9,
+  "spriteSheet": 0,
   "str": 0,
   "def": 5,
   "spd": 0,

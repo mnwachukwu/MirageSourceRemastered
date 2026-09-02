@@ -25,7 +25,7 @@ public sealed class ItemRecord
     ///
     /// <para>Always written, including when it is 0: a record states which sheet it draws from rather than
     /// leaving a reader to infer it. Absent from an older file it still reads as 0.</para></summary>
-    public short PicSheet { get; set; }
+    public short ItemSheet { get; set; }
     public ItemType Type { get; set; }
 
     // ── Type-specific fields ──────────────────────────────────────────────────

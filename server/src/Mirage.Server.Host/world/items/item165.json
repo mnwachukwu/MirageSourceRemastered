@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Plate",
   "pic": 6,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1980,
   "power": 384,

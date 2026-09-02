@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Tunic",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 750,
   "power": 95,

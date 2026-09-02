@@ -1,6 +1,7 @@
 {
   "name": "Astral Greataxe",
   "pic": 11,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1920,
   "power": 361,

@@ -1,6 +1,7 @@
 {
   "name": "Eternal Greathelm",
   "pic": 35,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1960,
   "power": 376,

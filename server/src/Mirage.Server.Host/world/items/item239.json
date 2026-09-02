@@ -1,6 +1,7 @@
 {
   "name": "Resplendent Mana Elixir",
   "pic": 27,
+  "itemSheet": 0,
   "type": "PotionAddMp",
   "vitalAmount": 778,
   "levelReq": 120,

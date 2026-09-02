@@ -3,6 +3,7 @@
   "description": "Fights to defend. High defense melee.",
   "spriteMale": 3,
   "spriteFemale": 32,
+  "spriteSheet": 0,
   "str": 5,
   "def": 15,
   "spd": 0,

@@ -1,6 +1,7 @@
 {
   "name": "Runed Greataxe",
   "pic": 9,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1280,
   "power": 166,

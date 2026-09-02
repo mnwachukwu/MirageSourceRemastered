@@ -2,6 +2,7 @@
   "name": "Slagborn Pikeman",
   "attackSay": "Forward. Always forward.",
   "sprite": 17,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 90,
   "behavior": "AttackOnSight",

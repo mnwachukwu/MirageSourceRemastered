@@ -1,6 +1,7 @@
 {
   "name": "Superior Bloodletting Vial",
   "pic": 23,
+  "itemSheet": 0,
   "type": "PotionSubHp",
   "vitalAmount": 613,
   "levelReq": 105,

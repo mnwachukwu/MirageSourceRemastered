@@ -2,6 +2,7 @@
   "name": "Sellsword",
   "attackSay": "Nothing personal.",
   "sprite": 44,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 45,
   "behavior": "AttackWhenAttacked",

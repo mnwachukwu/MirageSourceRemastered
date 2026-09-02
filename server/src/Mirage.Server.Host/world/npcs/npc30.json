@@ -2,6 +2,7 @@
   "name": "Orc Shieldbearer",
   "attackSay": "Come on then!",
   "sprite": 46,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 45,
   "behavior": "AttackOnSight",

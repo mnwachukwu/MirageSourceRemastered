@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Celestial Endurance",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 252,
   "nonTradeable": false,

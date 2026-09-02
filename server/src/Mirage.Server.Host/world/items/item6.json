@@ -1,6 +1,7 @@
 {
   "name": "Rusted Greataxe",
   "pic": 13,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 130,
   "power": 10,

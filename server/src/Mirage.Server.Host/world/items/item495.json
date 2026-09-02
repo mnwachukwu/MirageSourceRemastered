@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Void Exhaustion",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 207,
   "nonTradeable": false,

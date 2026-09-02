@@ -1,6 +1,7 @@
 {
   "name": "Iron Hauberk",
   "pic": 7,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 220,
   "power": 13,

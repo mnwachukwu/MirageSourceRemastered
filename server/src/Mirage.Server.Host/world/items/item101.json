@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Sword",
   "pic": 14,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1070,
   "power": 145,

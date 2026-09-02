@@ -2,6 +2,7 @@
   "name": "Plague Herald",
   "attackSay": "Breathe deep. It is faster that way.",
   "sprite": 0,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 55,
   "behavior": "AttackOnSight",

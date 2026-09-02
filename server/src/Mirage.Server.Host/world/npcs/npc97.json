@@ -2,6 +2,7 @@
   "name": "Cinderwatch Pikeman",
   "attackSay": "Turn back to the cold country.",
   "sprite": 16,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 95,
   "behavior": "AttackOnSight",

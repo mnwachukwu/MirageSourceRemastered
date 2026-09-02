@@ -1,6 +1,7 @@
 {
   "name": "Runed Greathelm",
   "pic": 36,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1280,
   "power": 166,

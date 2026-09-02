@@ -1,6 +1,7 @@
 {
   "name": "Iron Sword",
   "pic": 13,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 220,
   "power": 13,

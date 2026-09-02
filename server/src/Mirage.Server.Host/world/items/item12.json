@@ -1,6 +1,7 @@
 {
   "name": "Rusted Greathelm",
   "pic": 34,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 130,
   "power": 10,

@@ -655,7 +655,7 @@ public static class RenderCommandBuilder
 
             var (screenX, screenY) = camera.WorldTileToScreen(offX + mi.X, offY + mi.Y, 0, 0);
             if (!OnScreen(screenX, screenY)) continue;
-            frame.Items.Add(new ItemDrawCmd(screenX, screenY, itemDef.Pic, mi.Layer, itemDef.PicSheet));
+            frame.Items.Add(new ItemDrawCmd(screenX, screenY, itemDef.Pic, mi.Layer, itemDef.ItemSheet));
         }
     }
 

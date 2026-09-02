@@ -1,6 +1,7 @@
 {
   "name": "Tempered Buckler",
   "pic": 16,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 290,
   "power": 19,

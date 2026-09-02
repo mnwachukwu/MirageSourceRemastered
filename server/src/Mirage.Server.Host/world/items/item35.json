@@ -1,6 +1,7 @@
 {
   "name": "Steel Helm",
   "pic": 34,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 320,
   "power": 19,

@@ -2,6 +2,7 @@
   "name": "Cantor Wex",
   "attackSay": "Mending words, mostly. They're the ones people come back for.",
   "sprite": 4,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

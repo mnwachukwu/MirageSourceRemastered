@@ -2,6 +2,7 @@
   "name": "The Drowned Hulk",
   "attackSay": "GROOOAAANNN...",
   "sprite": 28,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 420,
   "behavior": "AttackWhenAttacked",
@@ -38,7 +39,7 @@
   "def": 32,
   "spd": 2,
   "int": 5,
-  "extraHp": 2599,
+  "extraHp": 2539,
   "isBoss": true,
   "emitsLight": false
 }

@@ -2,6 +2,7 @@
   "name": "Crag Birdman",
   "attackSay": "SKRAAAAA!",
   "sprite": 14,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 50,
   "behavior": "AttackOnSight",

@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Empyrean Exhaustion",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 189,
   "nonTradeable": false,

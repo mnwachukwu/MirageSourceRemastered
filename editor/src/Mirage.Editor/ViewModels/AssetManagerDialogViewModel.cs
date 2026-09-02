@@ -130,8 +130,7 @@ public sealed partial class AssetManagerDialogViewModel : ObservableObject
         _bundledDir = bundledDir;
         _categories = [.. Enum.GetValues<AssetCategoryKind>().Select(k => new AssetCategoryOption(k))];
         _category = _categories[0];
-        _sizes = AssetFolder.For(AssetCategoryKind.Tiles);
-        _size = _sizes[0];
+        _spriteSize = SpriteSizes[0];
     }
 
     /// <summary>The assets root being managed. Shown in full, because the AssetsDir setting means this is
@@ -146,24 +145,33 @@ public sealed partial class AssetManagerDialogViewModel : ObservableObject
 
     [ObservableProperty] private AssetCategoryOption _category;
 
-    /// <summary>The folders inside the selected category. Only sprites have more than one, so the size
-    /// selector shows for them and nothing else.</summary>
-    public IReadOnlyList<AssetFolder> Sizes => _sizes;
-    private IReadOnlyList<AssetFolder> _sizes;
+    /// <summary>
+    /// The footprint sizes a sprite sheet is split across. A FIXED list: built once, and the same list
+    /// whatever category is showing.
+    ///
+    /// <para>🔴 It must stay fixed. A ComboBox whose ItemsSource stops containing its SelectedItem clears
+    /// that selection and writes the null back through the two-way binding, and the generated setter
+    /// stores the null before any hook can refuse it — leaving the backing field empty underneath code
+    /// that is still running. Neither ordering the notifications nor guarding the hook can prevent that,
+    /// because by then the null is already in the field. A list that never changes cannot clear a
+    /// selection, which is what keeps the failure impossible rather than merely handled.</para>
+    /// </summary>
+    public IReadOnlyList<AssetFolder> SpriteSizes { get; } = AssetFolder.For(AssetCategoryKind.Sprites);
 
-    [ObservableProperty] private AssetFolder _size;
+    [ObservableProperty] private AssetFolder _spriteSize;
 
-    public bool HasSizes => Sizes.Count > 1;
+    /// <summary>Sprites are the one class split across more than one folder, so they are the only
+    /// category that offers the size selector.</summary>
+    public bool HasSizes => Category.Kind == AssetCategoryKind.Sprites;
 
     partial void OnCategoryChanged(AssetCategoryOption value)
     {
-        _sizes = AssetFolder.For(value.Kind);
-        OnPropertyChanged(nameof(Sizes));
         OnPropertyChanged(nameof(HasSizes));
-        Size = _sizes[0];   // raises OnSizeChanged, which refreshes
+        Status = "";
+        Refresh();
     }
 
-    partial void OnSizeChanged(AssetFolder value)
+    partial void OnSpriteSizeChanged(AssetFolder value)
     {
         Status = "";
         Refresh();
@@ -174,7 +182,11 @@ public sealed partial class AssetManagerDialogViewModel : ObservableObject
     public string Intro => EditorStrings.Format(EditorStrings.AssetManager_Intro,
         ("Category", Category.Label), ("Path", SheetDir));
 
-    private AssetFolder Folder => Size;
+    // The folder being managed is DERIVED rather than selected: a category has exactly one, unless it is
+    // sprites, where the size picks one of three. Nothing binds to this, so nothing can clear it.
+    private AssetFolder Folder => Category.Kind == AssetCategoryKind.Sprites
+        ? SpriteSize ?? SpriteSizes[0]
+        : AssetFolder.For(Category.Kind)[0];
     private string SheetDir => Folder.Under(AssetsDir);
     private string BundledSheetDir => Folder.Under(_bundledDir);
 

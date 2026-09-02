@@ -1,6 +1,7 @@
 {
   "name": "Tempered Hauberk",
   "pic": 4,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 390,
   "power": 25,

@@ -266,6 +266,30 @@
 
       </StackPanel>
 
+      <!-- == Views ============================================================= -->
+      <StackPanel Spacing="6">
+        <TextBlock x:Name="_viewsHeader" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource MirageMutedBrush}"/>
+        <Separator Background="{DynamicResource MirageLineSoftBrush}"/>
+        <TextBlock x:Name="_viewsIntro" TextWrapping="Wrap" Foreground="#6B6491" FontSize="11"/>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_viewsWorldPreview" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_viewsWorldPreviewDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_viewsLayerVisibility" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_viewsLayerVisibilityDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+
     </StackPanel>
   </ScrollViewer>
 

@@ -1,6 +1,7 @@
 {
   "name": "Strong Enervating Vial",
   "pic": 26,
+  "itemSheet": 0,
   "type": "PotionSubSp",
   "vitalAmount": 15,
   "levelReq": 15,

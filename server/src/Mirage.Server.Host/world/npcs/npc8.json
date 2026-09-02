@@ -2,6 +2,7 @@
   "name": "Bandit Enforcer",
   "attackSay": "Should have paid the toll.",
   "sprite": 6,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 40,
   "behavior": "AttackOnSight",

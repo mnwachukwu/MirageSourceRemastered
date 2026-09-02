@@ -1,6 +1,7 @@
 {
   "name": "Peerless Bloodletting Vial",
   "pic": 23,
+  "itemSheet": 0,
   "type": "PotionSubHp",
   "vitalAmount": 2822,
   "levelReq": 240,

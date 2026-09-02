@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Greathelm",
   "pic": 37,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 560,
   "power": 38,

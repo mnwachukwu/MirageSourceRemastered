@@ -1,6 +1,7 @@
 {
   "name": "Rusted Helm",
   "pic": 34,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 100,
   "power": 8,

@@ -1,6 +1,7 @@
 {
   "name": "Eternal Cap",
   "pic": 35,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1170,
   "power": 226,

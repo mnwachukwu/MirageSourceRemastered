@@ -2,6 +2,7 @@
   "name": "Grip",
   "attackSay": "No questions asked. That's not a slogan, it's a policy, and it's load-bearing.",
   "sprite": 27,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

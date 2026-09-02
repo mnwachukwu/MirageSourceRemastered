@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Dagger",
   "pic": 12,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1190,
   "power": 230,

@@ -1,6 +1,7 @@
 {
   "name": "Rusted Kite Shield",
   "pic": 31,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 100,
   "power": 8,

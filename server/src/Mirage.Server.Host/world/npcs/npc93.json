@@ -2,6 +2,7 @@
   "name": "Iconoclast",
   "attackSay": "Your Throne is a picture. I break pictures.",
   "sprite": 39,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 95,
   "behavior": "AttackOnSight",

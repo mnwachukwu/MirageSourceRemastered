@@ -87,7 +87,7 @@ public static class PacketBuilder
 
     private static NewCharClassesPacket.ItemDef ItemDefOf(int num, ItemRecord it) =>
         new(num, it.Name, it.Pic, it.Type, it.Durability, it.VitalAmount, it.Power, it.LevelReq,
-            it.AllowedClasses, it.PicSheet);
+            it.AllowedClasses, it.ItemSheet);
 
     private static NewCharClassesPacket.SpellDef SpellDefOf(int num, SpellRecord sp) =>
         new(num, sp.Name, sp.Type, sp.VitalAmount, sp.IntReq, sp.LevelReq, sp.AllowedClasses);
@@ -297,7 +297,7 @@ public static class PacketBuilder
                 // Copied, not aliased: a packet outlives this call and the record stays editable.
                 x.item.AllowedClasses is null ? null : new List<short>(x.item.AllowedClasses),
                 x.item.NonTradeable, x.item.NonListable, x.item.NonMailable, x.item.DestroyOnDrop,
-                x.item.NonJunkable, x.item.Price, x.item.PicSheet)).ToArray()
+                x.item.NonJunkable, x.item.Price, x.item.ItemSheet)).ToArray()
         };
 
     public static UpdateItemPacket UpdateItem(int itemNum, ItemRecord item) =>
@@ -306,7 +306,7 @@ public static class PacketBuilder
             ItemNum = itemNum,
             Name = item.Name,
             Pic = item.Pic,
-            PicSheet = item.PicSheet,
+            ItemSheet = item.ItemSheet,
             Type = item.Type,
             Durability = item.Durability,
             VitalAmount = item.VitalAmount,

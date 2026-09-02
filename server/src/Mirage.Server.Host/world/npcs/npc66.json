@@ -2,6 +2,7 @@
   "name": "Shoal Prowler",
   "attackSay": "SKRRT",
   "sprite": 42,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 55,
   "behavior": "AttackWhenAttacked",

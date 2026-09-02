@@ -1,6 +1,7 @@
 {
   "name": "Modest Enervating Vial",
   "pic": 26,
+  "itemSheet": 0,
   "type": "PotionSubSp",
   "vitalAmount": 11,
   "levelReq": 10,

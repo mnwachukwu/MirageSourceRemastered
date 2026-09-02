@@ -2,6 +2,7 @@
   "name": "Company Halberdier",
   "attackSay": "Form up! Form up!",
   "sprite": 4,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 40,
   "behavior": "AttackOnSight",

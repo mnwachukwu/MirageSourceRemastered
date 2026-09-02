@@ -2,6 +2,7 @@
   "name": "Kelp Stalker",
   "attackSay": "SHHHK-SHHHK",
   "sprite": 41,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 55,
   "behavior": "AttackWhenAttacked",

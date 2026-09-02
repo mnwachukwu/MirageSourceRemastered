@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Dagger",
   "pic": 9,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 750,
   "power": 95,

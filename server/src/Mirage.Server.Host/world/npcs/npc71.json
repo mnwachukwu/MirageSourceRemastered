@@ -2,6 +2,7 @@
   "name": "Abyssal Reader",
   "attackSay": "I have read what the deep wrote.",
   "sprite": 30,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 75,
   "behavior": "AttackOnSight",

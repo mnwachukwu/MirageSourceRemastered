@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Greataxe",
   "pic": 9,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1250,
   "power": 158,

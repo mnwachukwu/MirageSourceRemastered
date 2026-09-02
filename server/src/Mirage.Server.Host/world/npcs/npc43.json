@@ -2,6 +2,7 @@
   "name": "Kiln Ironside",
   "attackSay": "Ironsides do not break.",
   "sprite": 23,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 90,
   "behavior": "AttackWhenAttacked",

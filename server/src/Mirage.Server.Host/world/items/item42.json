@@ -1,6 +1,7 @@
 {
   "name": "Tempered Greataxe",
   "pic": 10,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 480,
   "power": 31,

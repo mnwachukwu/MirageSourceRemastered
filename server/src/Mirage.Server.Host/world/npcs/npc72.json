@@ -2,6 +2,7 @@
   "name": "Deepwatch Serjeant",
   "attackSay": "The watch changed. Nobody came.",
   "sprite": 36,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 70,
   "behavior": "AttackOnSight",

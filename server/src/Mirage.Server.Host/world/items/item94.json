@@ -1,6 +1,7 @@
 {
   "name": "Warded Cap",
   "pic": 36,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 790,
   "power": 104,

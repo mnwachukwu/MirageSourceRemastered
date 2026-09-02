@@ -2,6 +2,7 @@
   "name": "Carrion Strider",
   "attackSay": "",
   "sprite": 21,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 25,
   "behavior": "AttackWhenAttacked",

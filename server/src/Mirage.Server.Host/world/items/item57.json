@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Plate",
   "pic": 4,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 560,
   "power": 38,

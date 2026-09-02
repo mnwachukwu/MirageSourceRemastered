@@ -1,6 +1,7 @@
 {
   "name": "Sundered Tunic",
   "pic": 5,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1160,
   "power": 221,

@@ -1,7 +1,8 @@
 {
-  "name": "Warlord\u0027s Guard",
+  "name": "Warlord's Guard",
   "attackSay": "None pass to the Warlord.",
   "sprite": 37,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 100,
   "behavior": "AttackWhenAttacked",

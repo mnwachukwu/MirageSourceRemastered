@@ -32,7 +32,7 @@ public sealed record SendItemsPacket : IPacket
         [property: JsonPropertyName("price")] int Price = 0,
         // Which item sheet Pic is a row of. Appended with a default: a positional record re-reads every
         // argument after an inserted field, at every construction site, without a compile error.
-        [property: JsonPropertyName("picSheet")] short PicSheet = 0
+        [property: JsonPropertyName("itemSheet")] short ItemSheet = 0
     );
 }
 
@@ -43,7 +43,7 @@ public sealed record UpdateItemPacket : IPacket
     [JsonPropertyName("itemNum")] public int ItemNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("pic")] public short Pic { get; init; }
-    [JsonPropertyName("picSheet")] public short PicSheet { get; init; }
+    [JsonPropertyName("itemSheet")] public short ItemSheet { get; init; }
     [JsonPropertyName("type")] public ItemType Type { get; init; }
     // Type-specific fields; see ItemRecord for which apply to which ItemType.
     [JsonPropertyName("durability")] public short Durability { get; init; }

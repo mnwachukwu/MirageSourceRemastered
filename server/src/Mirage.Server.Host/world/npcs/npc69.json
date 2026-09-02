@@ -2,6 +2,7 @@
   "name": "Trench Colossus",
   "attackSay": "BRRROOOOOM",
   "sprite": 5,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 170,
   "behavior": "AttackWhenAttacked",

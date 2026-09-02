@@ -25,7 +25,7 @@ public static class SheetSet
     public static void DrawItemIcon(this SpriteBatch sb, IReadOnlyList<Texture2D?> sheets,
         ItemRecord? item, Rectangle dest, Color tint)
     {
-        if (item is not null) sb.DrawItemIcon(sheets, item.Pic, item.PicSheet, dest, tint);
+        if (item is not null) sb.DrawItemIcon(sheets, item.Pic, item.ItemSheet, dest, tint);
     }
 
     /// <inheritdoc cref="DrawItemIcon(SpriteBatch, IReadOnlyList{Texture2D}, ItemRecord, Rectangle, Color)"/>

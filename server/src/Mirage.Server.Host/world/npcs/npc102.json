@@ -2,6 +2,7 @@
   "name": "Slag Legionary",
   "attackSay": "We were poured, not born.",
   "sprite": 0,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 100,
   "behavior": "AttackOnSight",

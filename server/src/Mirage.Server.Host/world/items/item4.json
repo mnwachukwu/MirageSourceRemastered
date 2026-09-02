@@ -1,6 +1,7 @@
 {
   "name": "Rusted Dagger",
   "pic": 13,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 80,
   "power": 6,

@@ -2,6 +2,7 @@
   "name": "The Tollman's Widow",
   "attackSay": "He worked for them. I didn't. People forget that.",
   "sprite": 9,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

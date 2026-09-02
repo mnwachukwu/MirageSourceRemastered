@@ -1,6 +1,7 @@
 {
   "name": "Warded Buckler",
   "pic": 15,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 790,
   "power": 104,

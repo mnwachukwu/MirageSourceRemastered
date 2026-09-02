@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Hauberk",
   "pic": 8,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1070,
   "power": 145,

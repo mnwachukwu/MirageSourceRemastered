@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Tower Shield",
   "pic": 32,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1340,
   "power": 181,

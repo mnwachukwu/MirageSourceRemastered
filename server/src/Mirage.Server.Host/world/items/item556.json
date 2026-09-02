@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Absolute Second Wind",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 268,
   "nonTradeable": false,

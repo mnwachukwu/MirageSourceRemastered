@@ -3,6 +3,7 @@
   "description": "Wise caster. High defense range.",
   "spriteMale": 33,
   "spriteFemale": 41,
+  "spriteSheet": 0,
   "str": 0,
   "def": 15,
   "spd": 0,

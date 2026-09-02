@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Greathelm",
   "pic": 35,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1980,
   "power": 384,

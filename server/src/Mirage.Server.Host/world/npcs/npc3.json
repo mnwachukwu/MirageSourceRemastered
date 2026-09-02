@@ -2,6 +2,7 @@
   "name": "Deserter",
   "attackSay": "I will not hang for this.",
   "sprite": 30,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 30,
   "behavior": "AttackWhenAttacked",

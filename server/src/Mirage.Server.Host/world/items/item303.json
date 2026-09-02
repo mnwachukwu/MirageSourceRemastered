@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Novice Attunement",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 15,
   "nonTradeable": false,

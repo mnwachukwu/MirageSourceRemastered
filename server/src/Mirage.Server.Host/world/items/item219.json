@@ -1,6 +1,7 @@
 {
   "name": "Greater Enervating Vial",
   "pic": 26,
+  "itemSheet": 0,
   "type": "PotionSubSp",
   "vitalAmount": 90,
   "levelReq": 100,

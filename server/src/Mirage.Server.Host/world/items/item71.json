@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Helm",
   "pic": 37,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1000,
   "power": 127,

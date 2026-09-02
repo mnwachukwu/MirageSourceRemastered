@@ -1,6 +1,7 @@
 {
   "name": "Runed Tower Shield",
   "pic": 32,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1280,
   "power": 166,

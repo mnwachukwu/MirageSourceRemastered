@@ -1,6 +1,7 @@
 {
   "name": "Dawnforged Hauberk",
   "pic": 8,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1100,
   "power": 151,

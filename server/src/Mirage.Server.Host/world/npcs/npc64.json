@@ -2,6 +2,7 @@
   "name": "Undertow Acolyte",
   "attackSay": "Down is a direction you can be taught.",
   "sprite": 27,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "AttackOnSight",

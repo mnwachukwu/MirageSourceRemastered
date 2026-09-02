@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Buckler",
   "pic": 15,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 750,
   "power": 95,

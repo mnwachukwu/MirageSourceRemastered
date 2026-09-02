@@ -1,6 +1,7 @@
 {
   "name": "Resplendent Enervating Vial",
   "pic": 26,
+  "itemSheet": 0,
   "type": "PotionSubSp",
   "vitalAmount": 107,
   "levelReq": 120,

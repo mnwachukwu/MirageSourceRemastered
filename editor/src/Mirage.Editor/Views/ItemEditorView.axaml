@@ -90,10 +90,10 @@
           <!-- Which sheet, then which row of it. The number is what the record stores, so the sheet is
                picked by index-prefixed name the same way the map editor picks a tileset. -->
           <mui:FormRow LabelWidth="120">
-            <TextBlock x:Name="_picSheetLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="_itemSheetLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox Grid.Column="1"
-                                 ItemsSource="{Binding PicSheetEntries}"
-                                 SelectedItem="{Binding SelectedPicSheetEntry, Mode=TwoWay}"
+                                 ItemsSource="{Binding ItemSheetEntries}"
+                                 SelectedItem="{Binding SelectedItemSheetEntry, Mode=TwoWay}"
                                  ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
                                  FilterMode="Custom"
                                  MinimumPrefixLength="0"/>

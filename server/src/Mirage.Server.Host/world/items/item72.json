@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Greathelm",
   "pic": 37,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1250,
   "power": 158,

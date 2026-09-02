@@ -2,6 +2,7 @@
   "name": "Bandit Cutpurse",
   "attackSay": "Purse or throat. Choose.",
   "sprite": 43,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 30,
   "behavior": "AttackWhenAttacked",

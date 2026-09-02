@@ -1,6 +1,7 @@
 {
   "name": "Eternal Hauberk",
   "pic": 5,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1570,
   "power": 301,

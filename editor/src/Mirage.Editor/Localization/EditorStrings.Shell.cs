@@ -67,6 +67,7 @@ public static partial class EditorStrings
     public const string MainWindow_Title = nameof(MainWindow_Title);
     public const string MainWindow_LanguageMenu = nameof(MainWindow_LanguageMenu);
     public const string MainWindow_HelpMenu = nameof(MainWindow_HelpMenu);
+    public const string MainWindow_HelpGeneral = nameof(MainWindow_HelpGeneral);
     public const string MainWindow_HelpMapEditor = nameof(MainWindow_HelpMapEditor);
     public const string MainWindow_HelpAbout = nameof(MainWindow_HelpAbout);
     public const string About_Title = nameof(About_Title);
@@ -298,6 +299,27 @@ public static partial class EditorStrings
     public const string HelpDialog_World_Properties = nameof(HelpDialog_World_Properties);
     public const string HelpDialog_World_PropertiesDesc = nameof(HelpDialog_World_PropertiesDesc);
     public const string HelpDialog_World_Planes = nameof(HelpDialog_World_Planes);
+
+    public const string HelpDialog_ViewsHeader = nameof(HelpDialog_ViewsHeader);
+    public const string HelpDialog_ViewsIntro = nameof(HelpDialog_ViewsIntro);
+    public const string HelpDialog_Views_WorldPreview = nameof(HelpDialog_Views_WorldPreview);
+    public const string HelpDialog_Views_WorldPreviewDesc = nameof(HelpDialog_Views_WorldPreviewDesc);
+    public const string HelpDialog_Views_LayerVisibility = nameof(HelpDialog_Views_LayerVisibility);
+    public const string HelpDialog_Views_LayerVisibilityDesc = nameof(HelpDialog_Views_LayerVisibilityDesc);
+
+    // ── General help ──────────────────────────────────────────────────────────
+    // The editor-wide reference: what is not about a map. Its own prefix rather than HelpDialog_*,
+    // because the site's page generator asserts every string of a prefix reaches the page.
+    public const string GeneralHelp_Title = nameof(GeneralHelp_Title);
+    public const string GeneralHelp_Header = nameof(GeneralHelp_Header);
+    public const string GeneralHelp_AssetsHeader = nameof(GeneralHelp_AssetsHeader);
+    public const string GeneralHelp_AssetsIntro = nameof(GeneralHelp_AssetsIntro);
+    public const string GeneralHelp_Assets_Sheets = nameof(GeneralHelp_Assets_Sheets);
+    public const string GeneralHelp_Assets_SheetsDesc = nameof(GeneralHelp_Assets_SheetsDesc);
+    public const string GeneralHelp_Assets_Manager = nameof(GeneralHelp_Assets_Manager);
+    public const string GeneralHelp_Assets_ManagerDesc = nameof(GeneralHelp_Assets_ManagerDesc);
+    public const string GeneralHelp_Assets_Reload = nameof(GeneralHelp_Assets_Reload);
+    public const string GeneralHelp_Assets_ReloadDesc = nameof(GeneralHelp_Assets_ReloadDesc);
     public const string HelpDialog_World_PlanesDesc = nameof(HelpDialog_World_PlanesDesc);
     public const string HelpDialog_LayerGround = nameof(HelpDialog_LayerGround);
     public const string HelpDialog_LayerGroundDesc = nameof(HelpDialog_LayerGroundDesc);

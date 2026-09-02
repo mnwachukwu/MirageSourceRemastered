@@ -1,6 +1,7 @@
 {
   "name": "Sundered Cap",
   "pic": 38,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1160,
   "power": 221,

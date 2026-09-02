@@ -774,7 +774,7 @@ public sealed class ShopPanel : IGamePanel
         textY += 18;
         UiHelper.DrawLabel(sb, font, name, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
         textY += 18;
-        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, item?.PicSheet ?? 0, textY);
+        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, item?.ItemSheet ?? 0, textY);
 
         int maxDur = item?.Durability ?? 0;
         int durNeeded = maxDur - inv.Dur;
@@ -858,7 +858,7 @@ public sealed class ShopPanel : IGamePanel
         float textY = c.Y + 12;
         UiHelper.DrawLabel(sb, font, nameLine, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
         textY += 18;
-        textY = DrawItemPreview(sb, c, itemsTex, get?.Pic ?? -1, get?.PicSheet ?? 0, textY);
+        textY = DrawItemPreview(sb, c, itemsTex, get?.Pic ?? -1, get?.ItemSheet ?? 0, textY);
         // Hoisted so the stat-req and INT-req blocks further down all share the same class record:
         // the class-affinity head-start discounts equip STR/DEF reqs and the spell INT req alike.
         // Player's own Int (me.Int) is what drives M-DMG via RawSpellPower.
@@ -1078,7 +1078,7 @@ public sealed class ShopPanel : IGamePanel
         textY += 18;
         UiHelper.DrawLabel(sb, font, quantity > 1 ? $"{name} x{quantity}" : name, new Vector2(c.X + 8, textY), Color.White, c.Width - 16);
         textY += 18;
-        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, item?.PicSheet ?? 0, textY);
+        textY = DrawItemPreview(sb, c, itemsTex, item?.Pic ?? -1, item?.ItemSheet ?? 0, textY);
 
         if (item is not null && item.Durability > 0)
         {
@@ -1125,12 +1125,12 @@ public sealed class ShopPanel : IGamePanel
     // 32×32 item icon left-justified to the same x as the surrounding text on both confirm
     // overlays. No-ops cleanly when the texture is missing or the item has no pic, so the
     // caller can blindly add the gap and continue laying out text below.
-    private static float DrawItemPreview(SpriteBatch sb, Rectangle c, IReadOnlyList<Texture2D?> itemsTex, int pic, int picSheet, float textY)
+    private static float DrawItemPreview(SpriteBatch sb, Rectangle c, IReadOnlyList<Texture2D?> itemsTex, int pic, int itemSheet, float textY)
     {
         if (pic < 0) return textY;
         const int iconSize = 32;
         var iconRect = new Rectangle(c.X + 8, (int)textY, iconSize, iconSize);
-        sb.DrawItemIcon(itemsTex, pic, picSheet, iconRect, Color.White);
+        sb.DrawItemIcon(itemsTex, pic, itemSheet, iconRect, Color.White);
         UiHelper.DrawBorder(sb, iconRect, UiHelper.ConfirmOverlayBorder);
         return textY + iconSize + 6;
     }

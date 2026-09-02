@@ -2,6 +2,7 @@
   "name": "Court Drowned",
   "attackSay": "The court does not adjourn.",
   "sprite": 0,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 70,
   "behavior": "AttackOnSight",

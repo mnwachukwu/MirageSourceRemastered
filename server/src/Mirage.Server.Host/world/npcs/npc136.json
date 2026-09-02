@@ -2,6 +2,7 @@
   "name": "Nell Saltbraid",
   "attackSay": "Hold still. No, I'm guessing your size. Force of habit.",
   "sprite": 40,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

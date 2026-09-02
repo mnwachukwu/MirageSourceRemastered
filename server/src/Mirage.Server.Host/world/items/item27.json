@@ -1,6 +1,7 @@
 {
   "name": "Iron Tower Shield",
   "pic": 32,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 280,
   "power": 16,

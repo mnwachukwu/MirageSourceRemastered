@@ -2,6 +2,7 @@
   "name": "Ordinal Kesh",
   "attackSay": "Mending words, mostly. They're the ones people come back for.",
   "sprite": 31,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

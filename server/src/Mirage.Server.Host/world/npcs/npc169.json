@@ -2,6 +2,7 @@
   "name": "Clearing Warden",
   "attackSay": "This is a safe place. I am why.",
   "sprite": 10,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

@@ -2,6 +2,7 @@
   "name": "Oathbreaker",
   "attackSay": "I sold the oath. I kept the sword.",
   "sprite": 17,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 120,
   "behavior": "AttackWhenAttacked",

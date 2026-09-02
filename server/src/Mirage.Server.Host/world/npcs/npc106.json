@@ -2,6 +2,7 @@
   "name": "Slag Titan",
   "attackSay": "MMMMOOOLLLTEN",
   "sprite": 36,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 220,
   "behavior": "AttackWhenAttacked",

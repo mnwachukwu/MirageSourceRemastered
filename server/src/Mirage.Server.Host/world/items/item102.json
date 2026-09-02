@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Greataxe",
   "pic": 14,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1340,
   "power": 181,

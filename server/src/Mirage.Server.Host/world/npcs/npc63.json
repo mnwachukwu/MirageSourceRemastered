@@ -2,6 +2,7 @@
   "name": "Pale Leviathan",
   "attackSay": "GLLLLRRRRHHH...",
   "sprite": 16,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 150,
   "behavior": "AttackWhenAttacked",

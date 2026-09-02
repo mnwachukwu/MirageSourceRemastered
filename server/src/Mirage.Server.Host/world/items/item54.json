@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Greataxe",
   "pic": 10,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 560,
   "power": 38,

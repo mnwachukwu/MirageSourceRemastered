@@ -2,6 +2,7 @@
   "name": "Charcoal Burner",
   "attackSay": "Mind the stack - mind it!",
   "sprite": 24,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 30,
   "behavior": "AttackWhenAttacked",

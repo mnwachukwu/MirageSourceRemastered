@@ -24,7 +24,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             {
                 Name = item.Name,
                 Pic = item.Pic,
-                PicSheet = item.PicSheet,
+                ItemSheet = item.ItemSheet,
                 Type = item.Type,
                 Durability = item.Durability,
                 VitalAmount = item.VitalAmount,
@@ -206,7 +206,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         {
             Name = p.Name,
             Pic = p.Pic,
-            PicSheet = p.PicSheet,
+            ItemSheet = p.ItemSheet,
             Type = p.Type,
             Durability = p.Durability,
             VitalAmount = p.VitalAmount,

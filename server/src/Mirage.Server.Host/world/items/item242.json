@@ -1,6 +1,7 @@
 {
   "name": "Resplendent Siphon Vial",
   "pic": 22,
+  "itemSheet": 0,
   "type": "PotionSubMp",
   "vitalAmount": 778,
   "levelReq": 120,

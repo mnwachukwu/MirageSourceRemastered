@@ -2,6 +2,7 @@
   "name": "Reef Darter",
   "attackSay": "SSSHK",
   "sprite": 15,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 50,
   "behavior": "AttackWhenAttacked",

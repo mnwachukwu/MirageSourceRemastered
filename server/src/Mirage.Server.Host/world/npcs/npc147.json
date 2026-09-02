@@ -2,6 +2,7 @@
   "name": "The Unburnt",
   "attackSay": "Everything here costs you something to cast. That's the honest part.",
   "sprite": 37,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

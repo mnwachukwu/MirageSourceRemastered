@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Void Restoration",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 210,
   "nonTradeable": false,

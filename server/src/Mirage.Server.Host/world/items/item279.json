@@ -1,6 +1,7 @@
 {
   "name": "Pearl Diadem",
   "pic": 1,
+  "itemSheet": 0,
   "type": "None",
   "nonTradeable": false,
   "nonListable": false,

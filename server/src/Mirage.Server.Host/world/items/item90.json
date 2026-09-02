@@ -1,6 +1,7 @@
 {
   "name": "Warded Greataxe",
   "pic": 9,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1310,
   "power": 174,

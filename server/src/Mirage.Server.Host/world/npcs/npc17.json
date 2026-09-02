@@ -2,6 +2,7 @@
   "name": "Skyclaw",
   "attackSay": "",
   "sprite": 22,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "AttackWhenAttacked",

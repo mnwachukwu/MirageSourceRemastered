@@ -1,6 +1,7 @@
 {
   "name": "Rusted Hauberk",
   "pic": 7,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 100,
   "power": 8,

@@ -1,6 +1,7 @@
 {
   "name": "Tempered Helm",
   "pic": 37,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 390,
   "power": 25,

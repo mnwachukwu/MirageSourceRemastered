@@ -2,6 +2,7 @@
   "name": "Coral Warden",
   "attackSay": "RRRRUUUMMBLE",
   "sprite": 1,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 80,
   "behavior": "AttackWhenAttacked",

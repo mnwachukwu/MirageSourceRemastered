@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Eternal Attunement",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 231,
   "nonTradeable": false,

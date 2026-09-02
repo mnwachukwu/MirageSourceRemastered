@@ -1,6 +1,7 @@
 {
   "name": "Iron Buckler",
   "pic": 19,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 170,
   "power": 10,

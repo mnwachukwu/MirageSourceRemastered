@@ -1,6 +1,7 @@
 {
   "name": "Eternal Tunic",
   "pic": 5,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1170,
   "power": 226,

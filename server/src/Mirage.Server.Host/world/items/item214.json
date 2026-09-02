@@ -1,6 +1,7 @@
 {
   "name": "Greater Healing Elixir",
   "pic": 25,
+  "itemSheet": 0,
   "type": "PotionAddHp",
   "vitalAmount": 561,
   "levelReq": 100,

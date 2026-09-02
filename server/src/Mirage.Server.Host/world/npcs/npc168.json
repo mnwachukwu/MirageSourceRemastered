@@ -2,6 +2,7 @@
   "name": "The Counter",
   "attackSay": "Two hundred and eleven days since the last one. I keep the number.",
   "sprite": 42,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

@@ -2,6 +2,7 @@
   "name": "Quencher Sib",
   "attackSay": "Mind the shelf. The green one's finally settled and I'd like it kept that way.",
   "sprite": 23,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

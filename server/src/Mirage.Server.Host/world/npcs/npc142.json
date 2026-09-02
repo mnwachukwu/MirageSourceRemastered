@@ -2,6 +2,7 @@
   "name": "Last Legate Muren",
   "attackSay": "Everyone wants something. I mostly just write it down.",
   "sprite": 26,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

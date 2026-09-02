@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Arch Enervation",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 134,
   "nonTradeable": false,

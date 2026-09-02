@@ -1,6 +1,7 @@
 {
   "name": "Phoenix Ashglass",
   "pic": 2,
+  "itemSheet": 0,
   "type": "None",
   "nonTradeable": false,
   "nonListable": false,

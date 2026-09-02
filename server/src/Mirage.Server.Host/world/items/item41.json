@@ -1,6 +1,7 @@
 {
   "name": "Tempered Sword",
   "pic": 10,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 390,
   "power": 25,

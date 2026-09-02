@@ -1,6 +1,7 @@
 {
   "name": "Warded Greathelm",
   "pic": 36,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1310,
   "power": 174,

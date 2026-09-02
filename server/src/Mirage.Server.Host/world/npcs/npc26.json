@@ -2,6 +2,7 @@
   "name": "Kiln Acolyte",
   "attackSay": "The Kiln remembers every name.",
   "sprite": 9,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 35,
   "behavior": "AttackOnSight",

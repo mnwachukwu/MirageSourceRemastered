@@ -2,6 +2,7 @@
   "name": "Tidewatch Sentinel",
   "attackSay": "The tide watches. So do I.",
   "sprite": 32,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 110,
   "behavior": "AttackWhenAttacked",

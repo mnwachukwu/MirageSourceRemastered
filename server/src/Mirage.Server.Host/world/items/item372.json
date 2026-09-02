@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Expert Restoration",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 84,
   "nonTradeable": false,

@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Hauberk",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1000,
   "power": 127,

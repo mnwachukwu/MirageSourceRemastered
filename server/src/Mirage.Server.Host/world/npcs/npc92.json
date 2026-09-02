@@ -2,6 +2,7 @@
   "name": "Ashen Halberdier",
   "attackSay": "Come no closer to the coals.",
   "sprite": 34,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 95,
   "behavior": "AttackOnSight",

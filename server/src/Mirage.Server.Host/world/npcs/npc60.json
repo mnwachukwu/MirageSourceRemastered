@@ -2,6 +2,7 @@
   "name": "Barnacled Knight",
   "attackSay": "I have held this gate nine hundred years.",
   "sprite": 9,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "AttackOnSight",

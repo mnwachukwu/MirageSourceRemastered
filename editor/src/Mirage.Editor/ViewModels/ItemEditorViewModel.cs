@@ -39,13 +39,13 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
     // The item sheets, indexed by sheet number. An item names one, and its pic number is a row inside
     // that sheet rather than a position across all of them.
     private IReadOnlyList<Bitmap?> _itemSheets = [];
-    public NamedEntry[] PicSheetEntries { get; private set; } = [];
+    public NamedEntry[] ItemSheetEntries { get; private set; } = [];
 
     public void SetItemSheets(IReadOnlyList<Bitmap?> sheets, IReadOnlyList<string> names)
     {
         _itemSheets = sheets;
-        PicSheetEntries = SheetEntries.Build(sheets.Count, names);
-        OnPropertyChanged(nameof(PicSheetEntries));
+        ItemSheetEntries = SheetEntries.Build(sheets.Count, names);
+        OnPropertyChanged(nameof(ItemSheetEntries));
         NotifyPicChanged();
     }
 
@@ -54,7 +54,7 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
     {
         get
         {
-            int sheet = SelectedItem?.PicSheet ?? 0;
+            int sheet = SelectedItem?.ItemSheet ?? 0;
             return (uint)sheet < (uint)_itemSheets.Count ? _itemSheets[sheet] : null;
         }
     }
@@ -62,14 +62,14 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
     public IReadOnlyList<int> ItemPicEntries { get; private set; } = [];
 
     // Two-way bridge for the sheet typeahead.
-    public NamedEntry? SelectedPicSheetEntry
+    public NamedEntry? SelectedItemSheetEntry
     {
         get
         {
-            int sheet = SelectedItem?.PicSheet ?? 0;
-            return sheet >= 0 && sheet < PicSheetEntries.Length ? PicSheetEntries[sheet] : null;
+            int sheet = SelectedItem?.ItemSheet ?? 0;
+            return sheet >= 0 && sheet < ItemSheetEntries.Length ? ItemSheetEntries[sheet] : null;
         }
-        set { if (SelectedItem is not null && value is not null) SelectedItem.PicSheet = (short)value.Id; }
+        set { if (SelectedItem is not null && value is not null) SelectedItem.ItemSheet = (short)value.Id; }
     }
 
     private void NotifyPicChanged()
@@ -79,7 +79,7 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
         ItemPicEntries = Enumerable.Range(0, count).ToArray();
         OnPropertyChanged(nameof(ItemBitmap));
         OnPropertyChanged(nameof(ItemPicEntries));
-        OnPropertyChanged(nameof(SelectedPicSheetEntry));
+        OnPropertyChanged(nameof(SelectedItemSheetEntry));
     }
 
     public ItemEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
@@ -194,7 +194,7 @@ public sealed partial class ItemEditorViewModel : EditorViewModelBase<ItemRowVie
         if (e.PropertyName is nameof(ItemRowViewModel.SpellNum) or nameof(ItemRowViewModel.Type))
             OnPropertyChanged(nameof(SelectedSpellItem));
         // The sheet number chooses which bitmap the pic picker reads.
-        if (e.PropertyName == nameof(ItemRowViewModel.PicSheet)) NotifyPicChanged();
+        if (e.PropertyName == nameof(ItemRowViewModel.ItemSheet)) NotifyPicChanged();
         // A row whose list changed from anywhere other than the checkboxes — a packet landing, a discard —
         // has to re-tick them. The guard skips the author's own clicks, which set the row FROM the
         // toggles; rebuilding there would clear and refill the list the click is still walking.

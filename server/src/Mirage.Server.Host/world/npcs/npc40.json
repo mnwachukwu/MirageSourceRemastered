@@ -2,6 +2,7 @@
   "name": "Ferry of Ash",
   "attackSay": "CREEEAAAK... HSSSSS!",
   "sprite": 29,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 420,
   "behavior": "AttackWhenAttacked",
@@ -103,7 +104,7 @@
   "def": 32,
   "spd": 2,
   "int": 5,
-  "extraHp": 2599,
+  "extraHp": 2539,
   "isBoss": true,
   "emitsLight": true
 }

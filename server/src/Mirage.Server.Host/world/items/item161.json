@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Sword",
   "pic": 12,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1580,
   "power": 307,

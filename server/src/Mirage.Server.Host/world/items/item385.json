@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Master Weariness",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 97,
   "nonTradeable": false,

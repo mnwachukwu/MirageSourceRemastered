@@ -1,6 +1,7 @@
 {
   "name": "Mythic Tower Shield",
   "pic": 32,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 2000,
   "power": 391,

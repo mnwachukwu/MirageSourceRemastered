@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Eternal Enervation",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 224,
   "nonTradeable": false,

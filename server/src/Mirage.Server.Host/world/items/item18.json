@@ -1,6 +1,7 @@
 {
   "name": "Iron Greataxe",
   "pic": 13,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 280,
   "power": 16,

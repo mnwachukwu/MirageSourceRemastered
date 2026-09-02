@@ -2,6 +2,7 @@
   "name": "Tide Marshal Orun",
   "attackSay": "The Reach answers to me.",
   "sprite": 7,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 900,
   "behavior": "AttackWhenAttacked",

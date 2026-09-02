@@ -2,6 +2,7 @@
   "name": "Tide Chanter",
   "attackSay": "The water remembers your name.",
   "sprite": 25,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "AttackOnSight",

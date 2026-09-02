@@ -2,6 +2,7 @@
   "name": "Ashen Colossus",
   "attackSay": "GRRRRIND",
   "sprite": 45,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 200,
   "behavior": "AttackWhenAttacked",

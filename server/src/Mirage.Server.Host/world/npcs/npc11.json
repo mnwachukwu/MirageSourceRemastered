@@ -2,6 +2,7 @@
   "name": "Fen Horror",
   "attackSay": "RRRAAAAGH!",
   "sprite": 19,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 100,
   "behavior": "AttackWhenAttacked",

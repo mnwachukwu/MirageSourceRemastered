@@ -1,6 +1,7 @@
 {
   "name": "Warded Plate",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1310,
   "power": 174,

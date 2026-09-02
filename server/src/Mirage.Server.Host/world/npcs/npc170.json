@@ -2,6 +2,7 @@
   "name": "Fen Hexwarden",
   "attackSay": "Turn around. I will not say it twice.",
   "sprite": 0,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

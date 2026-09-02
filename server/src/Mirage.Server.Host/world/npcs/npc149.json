@@ -2,6 +2,7 @@
   "name": "The Ferryman",
   "attackSay": "Been further out than most. Couldn't tell you why, if you asked.",
   "sprite": 33,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

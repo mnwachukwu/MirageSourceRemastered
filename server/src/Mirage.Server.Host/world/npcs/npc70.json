@@ -2,6 +2,7 @@
   "name": "Fathom Scribe",
   "attackSay": "I am still taking the minutes.",
   "sprite": 17,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 70,
   "behavior": "AttackOnSight",

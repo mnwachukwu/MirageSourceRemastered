@@ -2,6 +2,7 @@
   "name": "Kiln Serjeant",
   "attackSay": "Stoke it. Stoke it higher.",
   "sprite": 3,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 90,
   "behavior": "AttackOnSight",

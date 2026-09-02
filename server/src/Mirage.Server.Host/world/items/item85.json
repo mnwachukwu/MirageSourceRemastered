@@ -1,6 +1,7 @@
 {
   "name": "Runed Buckler",
   "pic": 15,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 770,
   "power": 100,

@@ -162,7 +162,7 @@ public sealed record EditorSaveItemPacket : IPacket
     [JsonPropertyName("itemNum")] public int ItemNum { get; init; }
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("pic")] public short Pic { get; init; }
-    [JsonPropertyName("picSheet")] public short PicSheet { get; init; }
+    [JsonPropertyName("itemSheet")] public short ItemSheet { get; init; }
     [JsonPropertyName("type")] public ItemType Type { get; init; }
     // Type-specific fields; see ItemRecord for which apply to which ItemType.
     [JsonPropertyName("durability")] public short Durability { get; init; }

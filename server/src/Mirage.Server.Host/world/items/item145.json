@@ -1,6 +1,7 @@
 {
   "name": "Sundered Buckler",
   "pic": 17,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1160,
   "power": 221,

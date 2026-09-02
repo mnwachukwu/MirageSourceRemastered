@@ -1,6 +1,7 @@
 {
   "name": "Runed Helm",
   "pic": 36,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1020,
   "power": 133,

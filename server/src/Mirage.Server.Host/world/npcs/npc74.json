@@ -2,6 +2,7 @@
   "name": "Riptide Skirmisher",
   "attackSay": "The current is on my side.",
   "sprite": 26,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 65,
   "behavior": "AttackOnSight",

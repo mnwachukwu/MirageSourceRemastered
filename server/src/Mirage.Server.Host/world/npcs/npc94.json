@@ -2,6 +2,7 @@
   "name": "Pyre Scribe",
   "attackSay": "I am writing your name in the embers.",
   "sprite": 9,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 95,
   "behavior": "AttackOnSight",

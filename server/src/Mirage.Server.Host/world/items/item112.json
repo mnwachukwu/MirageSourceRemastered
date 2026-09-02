@@ -1,6 +1,7 @@
 {
   "name": "Dawnforged Dagger",
   "pic": 14,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 820,
   "power": 113,

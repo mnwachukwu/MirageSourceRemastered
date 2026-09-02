@@ -2,6 +2,7 @@
   "name": "Ash Legionary",
   "attackSay": "The line held. The line is ash.",
   "sprite": 24,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 90,
   "behavior": "AttackOnSight",

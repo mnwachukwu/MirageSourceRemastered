@@ -1,6 +1,7 @@
 {
   "name": "Steel Dagger",
   "pic": 13,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 240,
   "power": 14,

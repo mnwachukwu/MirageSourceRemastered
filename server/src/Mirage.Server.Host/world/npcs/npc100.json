@@ -2,6 +2,7 @@
   "name": "Kiln-Forged",
   "attackSay": "I remember being iron.",
   "sprite": 42,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 100,
   "behavior": "AttackOnSight",

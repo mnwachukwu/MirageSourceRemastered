@@ -1,6 +1,7 @@
 {
   "name": "Dawnforged Buckler",
   "pic": 20,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 820,
   "power": 113,

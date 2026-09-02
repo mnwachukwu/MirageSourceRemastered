@@ -1,6 +1,7 @@
 {
   "name": "Angelmaker",
   "pic": 12,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 2000,
   "power": 391,

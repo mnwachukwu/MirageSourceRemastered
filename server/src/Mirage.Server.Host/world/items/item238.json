@@ -1,6 +1,7 @@
 {
   "name": "Resplendent Healing Elixir",
   "pic": 25,
+  "itemSheet": 0,
   "type": "PotionAddHp",
   "vitalAmount": 778,
   "levelReq": 120,

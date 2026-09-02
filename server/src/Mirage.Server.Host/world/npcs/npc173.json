@@ -2,6 +2,7 @@
   "name": "Forge Warden",
   "attackSay": "The cold room stays cold. Step back.",
   "sprite": 30,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 120,
   "behavior": "Guard",

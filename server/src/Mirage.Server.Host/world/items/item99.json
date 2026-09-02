@@ -1,6 +1,7 @@
 {
   "name": "Warded Tower Shield",
   "pic": 32,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1310,
   "power": 174,

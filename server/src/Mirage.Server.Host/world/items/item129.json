@@ -1,6 +1,7 @@
 {
   "name": "Astral Plate",
   "pic": 5,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1920,
   "power": 361,

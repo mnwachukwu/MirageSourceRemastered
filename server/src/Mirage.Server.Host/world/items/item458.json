@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Sovereign Enervation",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 170,
   "nonTradeable": false,

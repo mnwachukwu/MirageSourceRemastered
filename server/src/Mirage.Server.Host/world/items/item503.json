@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Void Vigor",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 215,
   "nonTradeable": false,

@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Buckler",
   "pic": 16,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 340,
   "power": 23,

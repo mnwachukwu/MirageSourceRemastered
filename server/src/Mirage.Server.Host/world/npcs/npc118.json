@@ -2,6 +2,7 @@
   "name": "The Deep Chorus",
   "attackSay": "WE SPEAK AS ONE.",
   "sprite": 24,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 900,
   "behavior": "AttackWhenAttacked",

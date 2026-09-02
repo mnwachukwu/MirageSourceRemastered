@@ -1,6 +1,7 @@
 {
   "name": "Meteoric Plate",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1250,
   "power": 158,

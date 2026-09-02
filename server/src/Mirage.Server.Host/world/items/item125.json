@@ -1,6 +1,7 @@
 {
   "name": "Astral Sword",
   "pic": 11,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1530,
   "power": 289,

@@ -2,6 +2,7 @@
   "name": "The Sunken Crown",
   "attackSay": "A drowned king needs a court.",
   "sprite": 38,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 1200,
   "behavior": "AttackWhenAttacked",

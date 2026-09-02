@@ -2,6 +2,7 @@
   "name": "Marsh Reiver",
   "attackSay": "Off the water, and off the road.",
   "sprite": 1,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 45,
   "behavior": "AttackWhenAttacked",

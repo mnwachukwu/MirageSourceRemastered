@@ -1,6 +1,7 @@
 {
   "name": "Steel Kite Shield",
   "pic": 31,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 320,
   "power": 19,

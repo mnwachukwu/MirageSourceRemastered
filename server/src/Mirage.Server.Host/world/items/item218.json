@@ -1,6 +1,7 @@
 {
   "name": "Greater Siphon Vial",
   "pic": 22,
+  "itemSheet": 0,
   "type": "PotionSubMp",
   "vitalAmount": 561,
   "levelReq": 100,

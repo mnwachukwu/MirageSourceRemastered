@@ -1,6 +1,7 @@
 {
   "name": "Modest Healing Elixir",
   "pic": 25,
+  "itemSheet": 0,
   "type": "PotionAddHp",
   "vitalAmount": 23,
   "levelReq": 10,

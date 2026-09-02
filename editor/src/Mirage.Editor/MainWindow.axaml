@@ -103,6 +103,7 @@
           </MenuItem>
           <MenuItem x:Name="_languageMenu" />
           <MenuItem x:Name="_helpMenu">
+            <MenuItem x:Name="_helpGeneralItem" Click="HelpGeneral_Click"/>
             <MenuItem x:Name="_helpMapEditorItem" Click="HelpMapControls_Click"/>
             <Separator/>
             <MenuItem x:Name="_helpLoggingItem" Click="HelpLogging_Click"/>

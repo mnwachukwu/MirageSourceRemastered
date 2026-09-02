@@ -2,6 +2,7 @@
   "name": "Company Outrider",
   "attackSay": "Riders! To me!",
   "sprite": 6,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 50,
   "behavior": "AttackOnSight",

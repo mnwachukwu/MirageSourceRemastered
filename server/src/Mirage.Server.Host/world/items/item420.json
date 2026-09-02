@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Arch Mana Rupture",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 132,
   "nonTradeable": false,

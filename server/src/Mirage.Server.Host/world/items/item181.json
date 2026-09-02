@@ -1,6 +1,7 @@
 {
   "name": "Mythic Buckler",
   "pic": 18,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1200,
   "power": 235,

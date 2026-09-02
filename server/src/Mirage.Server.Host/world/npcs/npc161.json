@@ -2,6 +2,7 @@
   "name": "Goodwife Alder",
   "attackSay": "If you're going out past the causeway, tell someone. That's all I ask.",
   "sprite": 41,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

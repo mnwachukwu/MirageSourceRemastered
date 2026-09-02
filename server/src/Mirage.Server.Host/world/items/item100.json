@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Dagger",
   "pic": 14,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 800,
   "power": 109,

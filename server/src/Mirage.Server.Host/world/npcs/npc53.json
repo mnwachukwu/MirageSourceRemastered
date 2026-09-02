@@ -2,6 +2,7 @@
   "name": "Reach Drowned",
   "attackSay": "Come down. It is quiet here.",
   "sprite": 45,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 50,
   "behavior": "AttackOnSight",

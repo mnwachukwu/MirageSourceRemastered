@@ -2,6 +2,7 @@
   "name": "The First Flame",
   "attackSay": "I am what the Kiln was for.",
   "sprite": 15,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 1800,
   "behavior": "AttackWhenAttacked",

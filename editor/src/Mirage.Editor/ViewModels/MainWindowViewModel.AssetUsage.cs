@@ -69,7 +69,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         foreach (var row in ItemEditor.Items)
         {
             if (!row.IsLoaded || string.IsNullOrWhiteSpace(row.Name)) continue;
-            items[row.PicSheet] = items.GetValueOrDefault(row.PicSheet) + 1;
+            items[row.ItemSheet] = items.GetValueOrDefault(row.ItemSheet) + 1;
         }
 
         var text = items.ToDictionary(

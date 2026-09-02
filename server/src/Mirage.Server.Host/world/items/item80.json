@@ -1,6 +1,7 @@
 {
   "name": "Runed Hauberk",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1020,
   "power": 133,

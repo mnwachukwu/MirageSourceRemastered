@@ -2,6 +2,7 @@
   "name": "Bone-Reader",
   "attackSay": "I have already read your ending.",
   "sprite": 16,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 45,
   "behavior": "AttackOnSight",

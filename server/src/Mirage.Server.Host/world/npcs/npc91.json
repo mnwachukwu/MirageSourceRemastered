@@ -2,6 +2,7 @@
   "name": "Sparkrunner",
   "attackSay": "Too slow. Everyone is too slow.",
   "sprite": 25,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 85,
   "behavior": "AttackWhenAttacked",

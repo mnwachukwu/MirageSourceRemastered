@@ -1,6 +1,7 @@
 {
   "name": "Eternal Sword",
   "pic": 11,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1570,
   "power": 301,

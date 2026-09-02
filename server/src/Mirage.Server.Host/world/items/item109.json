@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Buckler",
   "pic": 20,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 800,
   "power": 109,

@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Greataxe",
   "pic": 12,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1980,
   "power": 384,

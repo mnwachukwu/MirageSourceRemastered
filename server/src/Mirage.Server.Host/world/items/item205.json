@@ -1,6 +1,7 @@
 {
   "name": "Strong Bloodletting Vial",
   "pic": 23,
+  "itemSheet": 0,
   "type": "PotionSubHp",
   "vitalAmount": 34,
   "levelReq": 15,

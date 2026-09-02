@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Helm",
   "pic": 35,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1580,
   "power": 307,

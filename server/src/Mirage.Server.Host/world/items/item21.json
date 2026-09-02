@@ -1,6 +1,7 @@
 {
   "name": "Iron Plate",
   "pic": 7,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 280,
   "power": 16,

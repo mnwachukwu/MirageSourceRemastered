@@ -1,6 +1,7 @@
 {
   "name": "Rusted Tunic",
   "pic": 7,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 80,
   "power": 6,

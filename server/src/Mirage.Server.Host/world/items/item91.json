@@ -1,6 +1,7 @@
 {
   "name": "Warded Tunic",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 790,
   "power": 104,

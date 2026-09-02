@@ -1,6 +1,7 @@
 {
   "name": "Dawnforged Sword",
   "pic": 14,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1100,
   "power": 151,

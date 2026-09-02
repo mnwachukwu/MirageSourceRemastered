@@ -2,6 +2,7 @@
   "name": "Leviathan Prime",
   "attackSay": "HHHHOOOOOOORRRRNNNN",
   "sprite": 33,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 1200,
   "behavior": "AttackWhenAttacked",

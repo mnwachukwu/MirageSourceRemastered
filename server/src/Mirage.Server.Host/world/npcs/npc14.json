@@ -2,6 +2,7 @@
   "name": "Sister Ivane",
   "attackSay": "You will drown with the rest!",
   "sprite": 2,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 240,
   "behavior": "AttackWhenAttacked",
@@ -103,7 +104,7 @@
   "def": 16,
   "spd": 4,
   "int": 26,
-  "extraHp": 134,
+  "extraHp": 133,
   "isBoss": true,
   "emitsLight": true
 }

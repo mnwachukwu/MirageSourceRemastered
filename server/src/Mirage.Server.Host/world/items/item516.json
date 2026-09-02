@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Eternal Restoration",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 228,
   "nonTradeable": false,

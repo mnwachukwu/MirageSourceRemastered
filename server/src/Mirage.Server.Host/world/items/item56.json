@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Hauberk",
   "pic": 4,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 450,
   "power": 31,

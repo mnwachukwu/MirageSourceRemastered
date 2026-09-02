@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Sword",
   "pic": 10,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 450,
   "power": 31,

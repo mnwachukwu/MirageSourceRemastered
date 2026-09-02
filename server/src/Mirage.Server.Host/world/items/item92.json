@@ -1,6 +1,7 @@
 {
   "name": "Warded Hauberk",
   "pic": 3,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1050,
   "power": 139,

@@ -2,6 +2,7 @@
   "name": "Orc Warbrute",
   "attackSay": "RRRAAAGH!",
   "sprite": 46,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 120,
   "behavior": "AttackWhenAttacked",

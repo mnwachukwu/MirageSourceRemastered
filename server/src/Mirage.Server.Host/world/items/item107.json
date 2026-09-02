@@ -1,6 +1,7 @@
 {
   "name": "Obsidian Helm",
   "pic": 36,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1070,
   "power": 145,

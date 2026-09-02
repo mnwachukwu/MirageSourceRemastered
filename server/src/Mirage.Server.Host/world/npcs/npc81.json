@@ -2,6 +2,7 @@
   "name": "Tidewatch Pikeman",
   "attackSay": "The Crown keeps its own hours.",
   "sprite": 25,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 80,
   "behavior": "AttackOnSight",

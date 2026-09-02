@@ -1,6 +1,7 @@
 {
   "name": "Sundered Greataxe",
   "pic": 11,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1940,
   "power": 368,

@@ -1,6 +1,7 @@
 {
   "name": "Modest Bloodletting Vial",
   "pic": 23,
+  "itemSheet": 0,
   "type": "PotionSubHp",
   "vitalAmount": 23,
   "levelReq": 10,

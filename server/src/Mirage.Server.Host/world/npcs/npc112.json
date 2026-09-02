@@ -2,6 +2,7 @@
   "name": "Last Legionary",
   "attackSay": "There is no one left to relieve me.",
   "sprite": 31,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 110,
   "behavior": "AttackOnSight",

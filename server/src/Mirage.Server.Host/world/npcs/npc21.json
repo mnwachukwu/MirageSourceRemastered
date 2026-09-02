@@ -2,6 +2,7 @@
   "name": "Mud Lark",
   "attackSay": "Get off! It is mine!",
   "sprite": 3,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 20,
   "behavior": "AttackWhenAttacked",

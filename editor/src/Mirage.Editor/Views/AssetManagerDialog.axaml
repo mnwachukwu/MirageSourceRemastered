@@ -19,7 +19,7 @@
                 MinWidth="160"/>
       <TextBlock x:Name="_sizeLabel" VerticalAlignment="Center" Margin="8,0,0,0"
                  IsVisible="{Binding HasSizes}"/>
-      <ComboBox ItemsSource="{Binding Sizes}" SelectedItem="{Binding Size, Mode=TwoWay}"
+      <ComboBox ItemsSource="{Binding SpriteSizes}" SelectedItem="{Binding SpriteSize, Mode=TwoWay}"
                 IsVisible="{Binding HasSizes}" MinWidth="110">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="services:AssetFolder">

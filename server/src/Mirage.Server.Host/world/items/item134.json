@@ -1,6 +1,7 @@
 {
   "name": "Astral Kite Shield",
   "pic": 31,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1530,
   "power": 289,

@@ -224,29 +224,29 @@ public static class Tooltip
         string header;
         bool hasIcon;
         short pic;
-        short picSheet;
+        short itemSheet;
 
         switch (_kind)
         {
             case Kind.Item when _item is not null:
                 header = _item.Name?.TrimEnd() ?? "Unknown";
                 BuildItemLines(_item, _slot, _me, _classes, _spellDefs, _itemDefs, _weather);
-                hasIcon = _item.Pic >= 0 && _itemsTex.Sheet(_item.PicSheet) is not null;
+                hasIcon = _item.Pic >= 0 && _itemsTex.Sheet(_item.ItemSheet) is not null;
                 pic = _item.Pic;
-                picSheet = _item.PicSheet;
+                itemSheet = _item.ItemSheet;
                 break;
             case Kind.Spell when _spell is not null:
                 header = _spell.Name?.TrimEnd() ?? "Unknown";
                 BuildSpellLines(_spell, _me, _classes, _itemDefs, _weather);
                 hasIcon = false;
                 pic = 0;
-                picSheet = 0;
+                itemSheet = 0;
                 break;
             case Kind.Text when _text is not null:
                 header = _text;   // a single-line tooltip: just the full (un-truncated) label text
                 hasIcon = false;
                 pic = 0;
-                picSheet = 0;
+                itemSheet = 0;
                 break;
             default:
                 return;
@@ -283,7 +283,7 @@ public static class Tooltip
 
         if (hasIcon)
         {
-            sb.DrawItemIcon(_itemsTex, pic, picSheet, new Rectangle(cx, cy, IconSize, IconSize), Color.White);
+            sb.DrawItemIcon(_itemsTex, pic, itemSheet, new Rectangle(cx, cy, IconSize, IconSize), Color.White);
             float headerY = cy + (IconSize - lineH) / 2f;
             sb.DrawString(font, header, new Vector2(cx + IconSize + IconRightGap, headerY), HeaderColor);
             cy += IconSize;

@@ -48,6 +48,13 @@ public partial class HelpDialog : Window
         _worldPlanes.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_Planes);
         _worldPlanesDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_World_PlanesDesc);
 
+        _viewsHeader.Text = EditorStrings.Get(EditorStrings.HelpDialog_ViewsHeader);
+        _viewsIntro.Text = EditorStrings.Get(EditorStrings.HelpDialog_ViewsIntro);
+        _viewsWorldPreview.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_WorldPreview);
+        _viewsWorldPreviewDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_WorldPreviewDesc);
+        _viewsLayerVisibility.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_LayerVisibility);
+        _viewsLayerVisibilityDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_LayerVisibilityDesc);
+
         _ctrlLeftClick.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_LeftClick);
         _ctrlLeftClickDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_LeftClickDesc);
         _ctrlAltClick.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_AltClick);

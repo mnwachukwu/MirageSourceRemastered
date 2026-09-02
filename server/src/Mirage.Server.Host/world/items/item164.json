@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Hauberk",
   "pic": 6,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1580,
   "power": 307,

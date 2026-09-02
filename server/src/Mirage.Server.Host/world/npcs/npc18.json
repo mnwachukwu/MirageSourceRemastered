@@ -2,6 +2,7 @@
   "name": "Wolfman Alpha",
   "attackSay": "AWOOOOOOOOO!",
   "sprite": 13,
+  "spriteSheet": 0,
   "size": 2,
   "spawnSecs": 300,
   "behavior": "AttackWhenAttacked",
@@ -38,7 +39,7 @@
   "def": 29,
   "spd": 4,
   "int": 2,
-  "extraHp": 817,
+  "extraHp": 797,
   "isBoss": true,
   "emitsLight": false
 }

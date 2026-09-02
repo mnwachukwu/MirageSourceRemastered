@@ -1,6 +1,7 @@
 {
   "name": "Rusted Buckler",
   "pic": 19,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 80,
   "power": 6,

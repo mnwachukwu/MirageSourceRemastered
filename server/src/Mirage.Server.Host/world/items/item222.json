@@ -1,6 +1,7 @@
 {
   "name": "Superior Vigor Elixir",
   "pic": 21,
+  "itemSheet": 0,
   "type": "PotionAddSp",
   "vitalAmount": 94,
   "levelReq": 105,

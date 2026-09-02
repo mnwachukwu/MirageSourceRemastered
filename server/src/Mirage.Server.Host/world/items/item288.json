@@ -1,6 +1,7 @@
 {
   "name": "Heart of the First Flame",
   "pic": 2,
+  "itemSheet": 0,
   "type": "None",
   "nonTradeable": false,
   "nonListable": false,

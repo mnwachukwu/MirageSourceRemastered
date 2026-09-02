@@ -1,6 +1,7 @@
 {
   "name": "Tempered Dagger",
   "pic": 10,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 290,
   "power": 19,

@@ -2,6 +2,7 @@
   "name": "Kiln Halberdier",
   "attackSay": "The Kiln keeps its own.",
   "sprite": 26,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 105,
   "behavior": "AttackOnSight",

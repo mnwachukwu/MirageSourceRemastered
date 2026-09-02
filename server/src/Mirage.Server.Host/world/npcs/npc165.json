@@ -2,6 +2,7 @@
   "name": "The Quiet Diver",
   "attackSay": "...I went down once. I came up. I don't discuss the middle part.",
   "sprite": 16,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

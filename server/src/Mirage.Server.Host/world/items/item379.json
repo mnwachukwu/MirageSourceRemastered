@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Master Bloodletting",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 91,
   "nonTradeable": false,

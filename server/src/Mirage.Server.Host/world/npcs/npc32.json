@@ -2,6 +2,7 @@
   "name": "Company Captain",
   "attackSay": "I buried better men than you.",
   "sprite": 42,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 240,
   "behavior": "AttackWhenAttacked",
@@ -118,7 +119,7 @@
   "def": 19,
   "spd": 3,
   "int": 6,
-  "extraHp": 414,
+  "extraHp": 409,
   "isBoss": true,
   "emitsLight": true
 }

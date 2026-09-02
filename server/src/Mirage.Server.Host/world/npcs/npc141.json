@@ -2,6 +2,7 @@
   "name": "Bellowswoman Ost",
   "attackSay": "Bed's cheap, stew's free with it. Don't ask what's in the stew.",
   "sprite": 32,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

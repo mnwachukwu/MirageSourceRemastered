@@ -2,6 +2,7 @@
   "name": "The Kiln Warden",
   "attackSay": "The Kiln takes what it is owed.",
   "sprite": 36,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 300,
   "behavior": "AttackWhenAttacked",
@@ -118,7 +119,7 @@
   "def": 29,
   "spd": 4,
   "int": 2,
-  "extraHp": 465,
+  "extraHp": 454,
   "isBoss": true,
   "emitsLight": true
 }

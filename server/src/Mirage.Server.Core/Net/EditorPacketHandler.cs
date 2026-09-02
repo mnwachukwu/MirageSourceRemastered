@@ -542,7 +542,7 @@ public sealed partial class EditorPacketHandler
         var item = _world.Items[n];
         item.Name = p.Name;
         item.Pic = p.Pic;
-        item.PicSheet = p.PicSheet;
+        item.ItemSheet = p.ItemSheet;
         item.Type = p.Type;
         item.Durability = p.Durability;
         item.VitalAmount = p.VitalAmount;

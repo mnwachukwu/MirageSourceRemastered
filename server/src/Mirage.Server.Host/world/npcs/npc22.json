@@ -2,6 +2,7 @@
   "name": "Reed Cutter",
   "attackSay": "I have nothing worth taking.",
   "sprite": 15,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 25,
   "behavior": "AttackWhenAttacked",

@@ -2,6 +2,7 @@
   "name": "Salter Bly",
   "attackSay": "Salt keeps things. That's all salt has ever done, and look where we are.",
   "sprite": 4,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

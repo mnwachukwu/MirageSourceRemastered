@@ -239,7 +239,7 @@ public sealed record NewCharClassesPacket : IPacket
         [property: JsonPropertyName("power")] short Power,
         [property: JsonPropertyName("levelReq")] short LevelReq,
         [property: JsonPropertyName("allowedClasses")] List<short>? AllowedClasses,
-        [property: JsonPropertyName("picSheet")] short PicSheet = 0
+        [property: JsonPropertyName("itemSheet")] short ItemSheet = 0
     );
 
     /// <summary>A spell definition, narrowed to what the spell tooltip reads — MP cost, magnitude, and

@@ -1,6 +1,7 @@
 {
   "name": "Sundered Plate",
   "pic": 5,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1940,
   "power": 368,

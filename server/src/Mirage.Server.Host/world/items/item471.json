@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Empyrean Exsanguination",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 183,
   "nonTradeable": false,

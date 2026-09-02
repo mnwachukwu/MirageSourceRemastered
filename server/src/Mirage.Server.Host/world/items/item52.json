@@ -1,6 +1,7 @@
 {
   "name": "Kilnforged Dagger",
   "pic": 10,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 340,
   "power": 23,

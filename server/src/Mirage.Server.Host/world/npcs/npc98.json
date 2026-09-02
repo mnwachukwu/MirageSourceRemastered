@@ -2,6 +2,7 @@
   "name": "Flarewing",
   "attackSay": "KREEE-AAAK!",
   "sprite": 27,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 90,
   "behavior": "AttackWhenAttacked",

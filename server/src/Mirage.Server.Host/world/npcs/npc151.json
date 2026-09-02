@@ -2,6 +2,7 @@
   "name": "Peck",
   "attackSay": "Warm enough today. Don't waste it standing about with me.",
   "sprite": 7,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

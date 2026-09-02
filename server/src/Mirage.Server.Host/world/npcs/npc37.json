@@ -2,6 +2,7 @@
   "name": "Storm Roc",
   "attackSay": "",
   "sprite": 22,
+  "spriteSheet": 0,
   "size": 3,
   "spawnSecs": 140,
   "behavior": "AttackWhenAttacked",

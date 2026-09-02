@@ -1,6 +1,7 @@
 {
   "name": "Jade Seal",
   "pic": 0,
+  "itemSheet": 0,
   "type": "None",
   "nonTradeable": false,
   "nonListable": false,

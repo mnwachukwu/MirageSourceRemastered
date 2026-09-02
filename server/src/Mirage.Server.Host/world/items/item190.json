@@ -1,6 +1,7 @@
 {
   "name": "Lesser Healing Elixir",
   "pic": 25,
+  "itemSheet": 0,
   "type": "PotionAddHp",
   "vitalAmount": 14,
   "levelReq": 5,

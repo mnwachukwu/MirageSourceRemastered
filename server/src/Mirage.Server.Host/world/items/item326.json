@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Journeyman Life Siphon",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 38,
   "nonTradeable": false,

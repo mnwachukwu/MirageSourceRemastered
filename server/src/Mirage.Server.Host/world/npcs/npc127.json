@@ -2,6 +2,7 @@
   "name": "Osric Tallow",
   "attackSay": "Careful - everything on that wall is sharper than it looks.",
   "sprite": 39,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

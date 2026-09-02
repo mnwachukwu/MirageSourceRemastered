@@ -2,6 +2,7 @@
   "name": "Last Ashwalker",
   "attackSay": "I walked out of the fire once.",
   "sprite": 6,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 110,
   "behavior": "AttackOnSight",

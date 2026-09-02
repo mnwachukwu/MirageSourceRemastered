@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Cap",
   "pic": 35,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1190,
   "power": 230,

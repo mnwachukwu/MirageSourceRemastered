@@ -63,6 +63,7 @@ public partial class MainWindow : FAAppWindow
     {
         ApplyTitle();
         _helpMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMenu);
+        _helpGeneralItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpGeneral);
         _helpMapEditorItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpMapEditor);
         _helpLoggingItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpLogging);
         _helpAboutItem.Header = EditorStrings.Get(EditorStrings.MainWindow_HelpAbout);
@@ -366,6 +367,12 @@ public partial class MainWindow : FAAppWindow
                 await dlg.ShowDialog(this);
             };
         }
+    }
+
+    private async void HelpGeneral_Click(object? sender, RoutedEventArgs e)
+    {
+        var dlg = new GeneralHelpDialog();
+        await dlg.ShowDialog(this);
     }
 
     private async void HelpMapControls_Click(object? sender, RoutedEventArgs e)

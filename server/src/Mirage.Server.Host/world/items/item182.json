@@ -1,6 +1,7 @@
 {
   "name": "Mythic Kite Shield",
   "pic": 31,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1600,
   "power": 313,

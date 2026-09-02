@@ -2,6 +2,7 @@
   "name": "Tide-Picker",
   "attackSay": "I was here first!",
   "sprite": 2,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 20,
   "behavior": "AttackWhenAttacked",

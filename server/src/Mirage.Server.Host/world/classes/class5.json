@@ -3,6 +3,7 @@
   "description": "Studious caster. Even range.",
   "spriteMale": 39,
   "spriteFemale": 40,
+  "spriteSheet": 0,
   "str": 0,
   "def": 10,
   "spd": 0,

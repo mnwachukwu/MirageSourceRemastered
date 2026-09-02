@@ -1,6 +1,7 @@
 {
   "name": "Astral Helm",
   "pic": 38,
+  "itemSheet": 0,
   "type": "Helmet",
   "durability": 1530,
   "power": 289,

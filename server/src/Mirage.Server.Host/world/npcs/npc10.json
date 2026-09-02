@@ -2,6 +2,7 @@
   "name": "Orc Raider",
   "attackSay": "Blood for the warband!",
   "sprite": 46,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 45,
   "behavior": "AttackOnSight",

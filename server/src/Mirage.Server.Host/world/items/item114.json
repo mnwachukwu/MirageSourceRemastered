@@ -1,6 +1,7 @@
 {
   "name": "Dawnforged Greataxe",
   "pic": 14,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 1370,
   "power": 188,

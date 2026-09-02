@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Grand Endurance",
   "pic": 29,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 126,
   "nonTradeable": false,

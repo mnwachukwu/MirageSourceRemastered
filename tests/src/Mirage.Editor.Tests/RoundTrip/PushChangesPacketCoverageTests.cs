@@ -84,7 +84,7 @@ public class PushChangesPacketCoverageTests
     {
         var vm = new ItemRowViewModel(4, new ItemRecord
         {
-            Name = "Bound Blade", Pic = 21, PicSheet = 3, Type = ItemType.Weapon, Durability = 120, Power = 14, AllowedClasses = [3, 1],
+            Name = "Bound Blade", Pic = 21, ItemSheet = 3, Type = ItemType.Weapon, Durability = 120, Power = 14, AllowedClasses = [3, 1],
             NonTradeable = true, NonListable = true, NonMailable = true, DestroyOnDrop = true,
         });
 
@@ -95,7 +95,7 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.ItemNum, Is.EqualTo(4));
             Assert.That(pkt.Name, Is.EqualTo("Bound Blade"));
             Assert.That(pkt.Pic, Is.EqualTo((short)21));
-            Assert.That(pkt.PicSheet, Is.EqualTo((short)3), "a pushed item must keep the sheet its picture is on");
+            Assert.That(pkt.ItemSheet, Is.EqualTo((short)3), "a pushed item must keep the sheet its picture is on");
             Assert.That(pkt.Type, Is.EqualTo(ItemType.Weapon));
             Assert.That(pkt.Durability, Is.EqualTo((short)120));
             Assert.That(pkt.Power, Is.EqualTo((short)14));

@@ -1,6 +1,7 @@
 {
   "name": "Sundered Hauberk",
   "pic": 5,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1550,
   "power": 295,

@@ -1,6 +1,7 @@
 {
   "name": "Runed Dagger",
   "pic": 9,
+  "itemSheet": 0,
   "type": "Weapon",
   "durability": 770,
   "power": 100,

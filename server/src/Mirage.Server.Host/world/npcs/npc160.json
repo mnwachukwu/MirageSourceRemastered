@@ -2,6 +2,7 @@
   "name": "Reed-Cutter Wend",
   "attackSay": "Mind the stilts - third one's rotten and I'm not fixing it twice.",
   "sprite": 34,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

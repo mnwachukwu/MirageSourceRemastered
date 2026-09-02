@@ -2,6 +2,7 @@
   "name": "Sera Quill",
   "attackSay": "Everyone wants something. I mostly just write it down.",
   "sprite": 9,
+  "spriteSheet": 0,
   "size": 1,
   "spawnSecs": 60,
   "behavior": "Friendly",

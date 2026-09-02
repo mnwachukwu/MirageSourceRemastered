@@ -1,6 +1,7 @@
 {
   "name": "Godmarked Tunic",
   "pic": 6,
+  "itemSheet": 0,
   "type": "Armor",
   "durability": 1190,
   "power": 230,

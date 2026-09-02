@@ -1,6 +1,7 @@
 {
   "name": "Scroll of Absolute Enervation",
   "pic": 30,
+  "itemSheet": 0,
   "type": "Spell",
   "spellNum": 260,
   "nonTradeable": false,

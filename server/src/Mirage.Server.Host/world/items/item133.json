@@ -1,6 +1,7 @@
 {
   "name": "Astral Buckler",
   "pic": 17,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 1150,
   "power": 217,

@@ -1,6 +1,7 @@
 {
   "name": "Tempered Tower Shield",
   "pic": 32,
+  "itemSheet": 0,
   "type": "Shield",
   "durability": 480,
   "power": 31,
