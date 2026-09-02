@@ -80,9 +80,14 @@ public class RegenerationSystemTests
         });
     }
 
-    // The headline rule: in combat HP is frozen, but MP/SP keep ticking (on the in-combat cadence).
+    /// <summary>The headline rule: in combat HP and SP are both frozen and only MP keeps ticking.
+    ///
+    /// <para>MP is the odd one out on purpose. It is spent in discrete casts a caster chooses, so a
+    /// mid-fight trickle just paces them. Stamina is spent CONTINUOUSLY — a sprint is five to seven
+    /// points a second — so any rate that felt like recovery would refund the spending as fast as it
+    /// happened, and the pool would stop being a budget at all.</para></summary>
     [Test]
-    public void InCombat_HpIsFrozen_ButMpAndSpStillRegen()
+    public void InCombat_HpAndSpAreFrozen_ButMpStillRegens()
     {
         var (pm, regen, baseline) = Setup();
         var p = WoundedPlayer(pm);
@@ -93,9 +98,26 @@ public class RegenerationSystemTests
         Assert.Multiple(() =>
         {
             Assert.That(p.Hp, Is.EqualTo(50), "HP does not regenerate while in combat");
+            Assert.That(p.Sp, Is.EqualTo(0), "and neither does stamina");
             Assert.That(p.Mp, Is.GreaterThan(0), "but MP still regenerates in combat");
-            Assert.That(p.Sp, Is.GreaterThan(0), "and SP");
         });
+    }
+
+    /// <summary>A sprint holds stamina off even out of combat. Without the hold, a rest rate sized to
+    /// feel like recovery hands a running player their steps back about as fast as they spend them.</summary>
+    [Test]
+    public void Sprinting_HoldsStaminaOff_ThenItResumes()
+    {
+        var (pm, regen, baseline) = Setup();
+        var p = WoundedPlayer(pm);
+        pm[Idx].LastRunAt = baseline + BigDelta;   // a run step landed on this very tick
+
+        regen.Tick(baseline + BigDelta);
+        Assert.That(p.Sp, Is.EqualTo(0), "stamina is held while the sprint is still running");
+
+        // Far enough past the last step that the hold has lapsed.
+        regen.Tick(baseline + BigDelta + 60_000);
+        Assert.That(p.Sp, Is.GreaterThan(0), "and resumes once the running stops");
     }
 
     [Test]

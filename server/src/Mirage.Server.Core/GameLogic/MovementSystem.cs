@@ -160,14 +160,19 @@ public sealed class MovementSystem : GameSystem
 
         if (stepped && movement == MovementType.Running && !_pm[index].Char.GodMode)
         {
-            // Shield doubles run-stamina drain — wearing a shield trades mobility for the
-            // magic-mit chip + physical block. Positional tradeoff: shield up = better defense
-            // (especially against magic for non-Int builds), but slower to close gaps.
-            int drain = (p.ShieldSlot > 0) ? 2 : 1;
+            // One stamina a step, whatever is worn. A shield already pays for itself in the fight: it is
+            // the only slot whose defense is rolled for rather than applied, and every block it wins
+            // costs stamina the moment it lands. Charging for the walk as well taxed the same choice
+            // twice, and it fell hardest in the low band, where a walk between two mobs cost most of a
+            // pool before the fight had started.
+            int drain = 1;
             // Heat Wave doubles all stamina costs, including run drain.
             if (_world.WeatherOn(p.Map) == WeatherType.HeatWave)
                 drain *= Constants.WeatherHeatWaveSpCostMultiplier;
             p.Sp = Math.Max(p.Sp - drain, 0);
+            // Stamped so RegenerationSystem can see the sprint is still running. Without it the rest
+            // rate refunds a sprint about as fast as it is spent.
+            _pm[index].LastRunAt = Environment.TickCount64;
             SendToMap(_world, p.Map, PacketBuilder.SendSp(index, p.Sp, p.MaxSp));
         }
 

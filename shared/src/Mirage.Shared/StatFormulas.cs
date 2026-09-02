@@ -183,8 +183,19 @@ public static class StatFormulas
     // a low-stat regen below the normal floor without ever stalling to 0.
 
     private const double RegenDivisor = 100.0;
-    private const double SpRegenWeight = 0.5;          // Spd / 2 — shared by player AND NPC SP regen
+    // Spd / 4 — shared by player AND NPC SP regen. This is a RESTING rate and nothing else: stamina does
+    // not tick while its owner is spending it (RegenerationSystem holds the tick through combat and
+    // through a sprint), so the rate never has to be small enough to lose a race against a 5-7 point a
+    // second sprint. It is sized for how long a bar should take to come back once you stop, and the pool
+    // is what decides how long you could go in the first place.
+    private const double SpRegenWeight = 0.25;
     private const int PlayerVitalRegenFloor = 2;
+    // SP's own floor, separate from HP and MP's because it is the only one a player ever sits on: HP and
+    // MP regen are quadratic in their stat and shifted, so even a stat of zero clears 2, while SP is
+    // linear and starts at nothing. It is a comfort dial rather than a balance lever — what stops a
+    // sprint being free is the held tick, not a small rate — so it is set by how long a build that
+    // bought no SPD should wait, and raising it costs nothing anywhere else.
+    private const int PlayerSpRegenFloor = 4;
     private const int NpcVitalRegenFloor = 1;
     private const int NpcMpRegenFloor = 2;
     private const int ReducedRegenFloor = 1;           // floor for a weather-reduced tick (all vital types)
@@ -198,8 +209,11 @@ public static class StatFormulas
         RoundRegen(SquaredShifted(def, VitalCurveShift) / RegenDivisor * mult * HpPoolMultiplier, mult, PlayerVitalRegenFloor);
     public static int GetPlayerMpRegen(int @int, double mult = 1.0) =>
         RoundRegen(SquaredShifted(@int, VitalCurveShift) / RegenDivisor * mult * MpPoolMultiplier, mult, PlayerVitalRegenFloor);
+    // SP carries its own pool's multiplier the way HP and MP carry theirs, so all three regens are the
+    // stat times the vital's scale. The shape still differs because the POOLS differ: HP and MP are
+    // shifted-quadratic and take a squared stat, SP is linear and takes a linear one.
     public static int GetPlayerSpRegen(int spd, double mult = 1.0) =>
-        RoundRegen(spd * SpRegenWeight * mult, mult, PlayerVitalRegenFloor);
+        RoundRegen(spd * SpRegenWeight * mult * LinearSpPoolMultiplier, mult, PlayerSpRegenFloor);
 
     public static int GetPlayerHpRegen(PlayerRecord p, double mult = 1.0) => GetPlayerHpRegen(p.Def, mult);
     public static int GetPlayerMpRegen(PlayerRecord p, double mult = 1.0) => GetPlayerMpRegen(p.Int, mult);
@@ -347,10 +361,10 @@ public static class StatFormulas
         RoundRegen(SquaredShifted(def, VitalCurveShift) / RegenDivisor * mult * HpPoolMultiplier, mult, NpcVitalRegenFloor);
     public static int GetNpcMpRegen(int @int, double mult = 1.0) =>
         RoundRegen(SquaredShifted(@int, VitalCurveShift) / RegenDivisor * mult * MpPoolMultiplier, mult, NpcMpRegenFloor);
-    // SP regen is mirrored to the player: same Spd/2 weight AND same floor, so GetNpcSpRegen == GetPlayerSpRegen
-    // at every Spd.
+    // SP regen is mirrored to the player: same weight, same pool multiplier AND same floor, so
+    // GetNpcSpRegen == GetPlayerSpRegen at every Spd.
     public static int GetNpcSpRegen(int spd, double mult = 1.0) =>
-        RoundRegen(spd * SpRegenWeight * mult, mult, PlayerVitalRegenFloor);
+        RoundRegen(spd * SpRegenWeight * mult * LinearSpPoolMultiplier, mult, PlayerSpRegenFloor);
 
     public static int GetNpcHpRegen(NpcRecord npc, double mult = 1.0) => GetNpcHpRegen(npc.Def, mult);
     public static int GetNpcMpRegen(NpcRecord npc, double mult = 1.0) => GetNpcMpRegen(npc.Int, mult);

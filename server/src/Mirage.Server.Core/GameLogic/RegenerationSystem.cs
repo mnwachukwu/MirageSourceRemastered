@@ -35,6 +35,10 @@ public sealed class RegenerationSystem : GameSystem
     // MP/SP out-of-combat fast cadence.
     private const long FastRegenIntervalMs = 2_500;
     private const long FastSafeRegenIntervalMs = 1_000;
+    /// <summary>How long after a run step stamina stays held. Slightly over one tick of the fast cadence
+    /// so a sustained sprint never slips a refund between steps, and short enough that stopping starts
+    /// paying back within a step or two.</summary>
+    private const long SprintRegenHoldMs = 3_000;
     private long _lastHpRegenTick;
     private long _lastHpSafeRegenTick;
     private long _lastInCombatMpSpRegenTick;
@@ -102,13 +106,23 @@ public sealed class RegenerationSystem : GameSystem
 
             bool inSafeZone = _world.MoralOf(p.Map) == MapMoral.Safe;
             bool hpTick = inSafeZone ? hpSafeRegenTick : hpRegenTick;
-            // MP/SP: combat status supplants safe-zone status — in combat, the single in-combat
-            // cadence applies regardless of map type.  Out of combat, the safe-zone modifier kicks
-            // in for the fast cadence.
-            bool manaStaminaTick = inCombat
+            // MP: combat status supplants safe-zone status — in combat, the single in-combat cadence
+            // applies regardless of map type.  Out of combat, the safe-zone modifier kicks in for the
+            // fast cadence.
+            bool manaTick = inCombat
                 ? inCombatMpSpRegenTick
                 : (inSafeZone ? fastSafeRegenTick : fastRegenTick);
-            if (!hpTick && !manaStaminaTick) continue;
+
+            // SP does not tick AT ALL while the player is spending it — not in combat, and not while a
+            // sprint is still running. Stamina is the one vital whose costs are paid continuously (a run
+            // is five to seven points a SECOND), so any rate large enough to feel like recovery would
+            // refund a sprint as fast as it was spent. Gating the tick instead of shrinking it is what
+            // lets the resting rate stay generous while the pool remains a real budget.
+            bool sprinting = now - _pm[i].LastRunAt < SprintRegenHoldMs;
+            bool staminaTick = !inCombat && !sprinting
+                            && (inSafeZone ? fastSafeRegenTick : fastRegenTick);
+
+            if (!hpTick && !manaTick && !staminaTick) continue;
 
             // Heat Wave / Snow halve regen magnitude (folded before the formula's round + floor).
             double regenMult = WeatherEffects.RegenMultiplier(_world.WeatherOn(p.Map));
@@ -118,18 +132,15 @@ public sealed class RegenerationSystem : GameSystem
                 p.Hp = Math.Min(p.Hp + StatFormulas.GetPlayerHpRegen(p, regenMult), p.MaxHp);
                 changed = true;
             }
-            if (manaStaminaTick)
+            if (manaTick && p.Mp < p.MaxMp)
             {
-                if (p.Mp < p.MaxMp)
-                {
-                    p.Mp = Math.Min(p.Mp + StatFormulas.GetPlayerMpRegen(p, regenMult), p.MaxMp);
-                    changed = true;
-                }
-                if (p.Sp < p.MaxSp)
-                {
-                    p.Sp = Math.Min(p.Sp + StatFormulas.GetPlayerSpRegen(p, regenMult), p.MaxSp);
-                    changed = true;
-                }
+                p.Mp = Math.Min(p.Mp + StatFormulas.GetPlayerMpRegen(p, regenMult), p.MaxMp);
+                changed = true;
+            }
+            if (staminaTick && p.Sp < p.MaxSp)
+            {
+                p.Sp = Math.Min(p.Sp + StatFormulas.GetPlayerSpRegen(p, regenMult), p.MaxSp);
+                changed = true;
             }
             if (changed)
             {

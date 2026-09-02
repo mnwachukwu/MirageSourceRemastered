@@ -137,15 +137,28 @@ public class NpcPlayerFormulaParityTests
         }
     }
 
-    // The SP reaction-cost FORMULA is shared (one function each): block/crit = 10% of MaxSp, dodge = 20%.
+    // The SP reaction-cost FORMULA is shared (one function each): block/crit = 2% of MaxSp, dodge = 4%.
     // Only the POOL the % is taken of differs (see the SP-pool asymmetry) — the cost rule itself is mirrored.
     [Test]
     public void SpReactionCost_SharedFormula()
     {
         foreach (int maxSp in new[] { 10, 50, 100, 300, 500 })
         {
-            Assert.That(CombatFormulas.SpCostForBlockOrCrit(maxSp), Is.EqualTo(System.Math.Max((int)System.Math.Round(maxSp * 0.10, System.MidpointRounding.AwayFromZero), 1)));
-            Assert.That(CombatFormulas.SpCostForDodge(maxSp), Is.EqualTo(System.Math.Max((int)System.Math.Round(maxSp * 0.20, System.MidpointRounding.AwayFromZero), 1)));
+            Assert.That(CombatFormulas.SpCostForBlockOrCrit(maxSp), Is.EqualTo(System.Math.Max((int)System.Math.Round(maxSp * 0.02, System.MidpointRounding.AwayFromZero), 1)));
+            Assert.That(CombatFormulas.SpCostForDodge(maxSp), Is.EqualTo(System.Math.Max((int)System.Math.Round(maxSp * 0.04, System.MidpointRounding.AwayFromZero), 1)));
+        }
+    }
+
+    /// <summary>What the price actually buys, which is the figure worth tuning: a full pool is fifty
+    /// blocks or twenty-five dodges, at every level. The percentage on its own says nothing, because the
+    /// pool it is taken from grows with level and so does the cost.</summary>
+    [Test]
+    public void AFullPool_BuysFiftyBlocksOrTwentyFiveDodges()
+    {
+        foreach (int maxSp in new[] { 100, 300, 500, 900 })
+        {
+            Assert.That(maxSp / CombatFormulas.SpCostForBlockOrCrit(maxSp), Is.EqualTo(50), $"blocks at {maxSp}");
+            Assert.That(maxSp / CombatFormulas.SpCostForDodge(maxSp), Is.EqualTo(25), $"dodges at {maxSp}");
         }
     }
 

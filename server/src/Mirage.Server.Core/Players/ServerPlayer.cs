@@ -103,6 +103,11 @@ public sealed class ServerPlayer
 
     public long CombatExpiresAt { get; set; }
     public bool WasInCombat { get; set; }
+
+    /// <summary>Tick of the last run step, which is what stamina regen watches to know the player is
+    /// still spending. A sprint costs a point a tile — five to seven a second — so a rest rate that
+    /// felt like recovery would refund a sprint as fast as it was paid for.</summary>
+    public long LastRunAt { get; set; }
     public long PvpAttackerUntil { get; set; }
     public long PkGraceUntilUtc { get; set; }
     // UTC-seconds the current session's playtime was last banked into Char.PlayTimeSeconds — set at JoinGame,

@@ -13,7 +13,7 @@ namespace Mirage.Server.Tests;
 
 /// <summary>Player + NPC movement validity. Pure tile-type rules (guards alone ignore NpcAvoid); the
 /// authoritative server-side PlayerMove (step into open tiles, refuse walls / closed doors / map edges with
-/// no neighbor, run-stamina drain that a shield doubles and no-SP downgrades, and warp-tile teleport); and
+/// no neighbor, run-stamina drain that no-SP downgrades, and warp-tile teleport); and
 /// NPC tile-freedom checks.</summary>
 [TestFixture]
 public class MovementSystemTests
@@ -133,15 +133,18 @@ public class MovementSystemTests
         });
     }
 
+    /// <summary>A shield costs nothing extra to carry. It is already paid for in the fight — the only
+    /// slot whose defense is rolled for rather than applied, and every block it wins spends stamina — so
+    /// charging for the walk as well taxed the same choice twice.</summary>
     [Test]
-    public void PlayerMove_Running_WithShield_DrainsDouble()
+    public void PlayerMove_Running_WithShield_DrainsTheSame()
     {
         var (_, _, move, p) = Setup(5, 5);
         p.MaxSp = 20;
         p.Sp = 20;
         p.ShieldSlot = 1;
         move.PlayerMove(Idx, Direction.Down, MovementType.Running);
-        Assert.That(p.Sp, Is.EqualTo(18), "a shield doubles run-stamina drain");
+        Assert.That(p.Sp, Is.EqualTo(19), "a shield does not add to run-stamina drain");
     }
 
     [Test]

@@ -260,13 +260,20 @@ public static class CombatFormulas
         Math.Min((int)Math.Round(def / NpcDodgeChanceDivisor, MidpointRounding.AwayFromZero), NpcDodgeChanceCapPerMille);
 
     // ── SP costs for combat actions ───────────────────────────────────────────
-    // Block/crit cost 10% of MaxSP; dodge costs 20% (twice the price), which keeps reactions a rationed
+    // Block/crit cost 2% of MaxSP; dodge costs 4% (twice the price), which keeps reactions a rationed
     // resource rather than something in-combat SP regen makes free.  Negating a spell costs exactly the
     // same SP as negating a melee hit — magic and melee defense are the same action.  Computed in double
     // and rounded once so small pools don't floor at 1.
+    //
+    // 🔴 THE PRICE BUYS A FIXED NUMBER OF REACTIONS, at every level: 50 blocks or 25 dodges from a full
+    // pool.  That is the figure to tune against, not the percentage, because the pool grows with level
+    // and so does the cost.  Measured with .Tools/Simulations/StaminaSim: a max-band fight wants about
+    // 4.5 reactions and takes 65 seconds, so 50 is a long chain of fights rather than a single one.
+    // Priced at 10/20% it was ten blocks, a max-band fight spent 44% of the bar, and a grind ran dry on
+    // the fourth kill — with block, dodge AND crit switching off together, since all three gate on SP > 0.
 
-    private const double SpBlockCritPercent = 0.10;
-    private const double SpDodgePercent = 0.20;
+    private const double SpBlockCritPercent = 0.02;
+    private const double SpDodgePercent = 0.04;
 
     public static int SpCostForBlockOrCrit(int maxSp) => Math.Max((int)Math.Round(maxSp * SpBlockCritPercent, MidpointRounding.AwayFromZero), 1);
 
@@ -425,10 +432,20 @@ public static class CombatFormulas
 
     // ── Caster resource model: SubHp is the sustainable weapon; MP is utility; a reagent is the per-cast sink ──
     // SubHp (basic damage) does NOT pay the utility cost above.  Its MP cost is a flat, trivial fraction of the
-    // caster's pool — mana is a distant "don't marathon forever" ceiling that regen covers over a normal fight,
-    // not a per-cast damage gate.  /20 gives a hybrid caster ~55-65 casts before OOM; a pure-Int caster's regen
-    // fully sustains it.  Level-independent because in-combat MP regen is ~a constant % of the pool at every level.
-    private const int SubHpMpCostDivisor = 20;
+    // caster's pool — mana is a distant "don't marathon forever" ceiling, not a per-cast damage gate.  The
+    // REAGENT is what limits sustained casting; see SubHpReagentCostExact, which is fitted against a warrior's
+    // weapon-repair upkeep.
+    //
+    // 🔴 THE UNIT TO TUNE IN IS FIGHTS, NOT CASTS.  A max-band fight runs about 65 seconds and the cast
+    // cooldown is 1 s, so a single endgame fight is ~65 casts — a budget quoted in casts reads as a whole
+    // session and buys one fight.  /25 is about ten fights at level 240.
+    //
+    // 🔴 AND THE KNOB IS TWITCHY.  An MP pool is only worth ~26 seconds of its own in-combat regen, so what
+    // decides how long mana lasts is almost entirely how far cost-per-second exceeds regen-per-second — the
+    // difference of two large, nearly equal numbers.  /24 is five fights, /25 is ten, /26 never runs out at
+    // all.  Anything that moves the MP pool or MP regen moves this with it, so re-measure rather than
+    // assuming the divisor still means what it meant (.Tools/Simulations has the arithmetic).
+    private const int SubHpMpCostDivisor = 25;
     public static int GetSubHpSpellMpCost(int maxMp) =>
         Math.Max(1, (int)Math.Round((double)maxMp / SubHpMpCostDivisor, MidpointRounding.AwayFromZero));
 

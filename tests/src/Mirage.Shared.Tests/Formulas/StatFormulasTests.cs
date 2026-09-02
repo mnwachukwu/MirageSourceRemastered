@@ -40,14 +40,37 @@ public class StatFormulasTests
 
     // ── Regen floors + reduced-tick rounding ─────────────────────────────────────
 
-    // At full strength a low stat still gets the normal floor (SP shows it cleanly: linear + low magnitude).
+    // At full strength a low stat still gets its vital's floor (SP shows it cleanly: linear + low magnitude).
     [Test]
-    public void PlayerSpRegen_FullStrength_FloorsAtTwo()
+    public void PlayerSpRegen_FullStrength_FloorsAtFour()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(StatFormulas.GetPlayerSpRegen(0, 1.0), Is.EqualTo(2), "0-SPD still ticks the floor");
-            Assert.That(StatFormulas.GetPlayerSpRegen(4, 1.0), Is.EqualTo(2), "still at the floor here");
+            Assert.That(StatFormulas.GetPlayerSpRegen(0, 1.0), Is.EqualTo(4), "0-SPD still ticks the floor");
+            Assert.That(StatFormulas.GetPlayerSpRegen(4, 1.0), Is.EqualTo(4), "still at the floor here");
+        });
+    }
+
+    /// <summary>SP's floor is the only one a player ever actually sits on, which is why it is its own
+    /// number rather than the shared one.
+    ///
+    /// <para>HP and MP regen are quadratic in their stat and shifted by 15, so even a stat of ZERO
+    /// produces 3 — their floor is a safety net nothing reaches. SP is linear and starts at nothing, so
+    /// its floor is the live resting rate for every build that bought no SPD. That makes it a comfort
+    /// dial: what stops a sprint being free is the held tick, not a small rate, so this can be set purely
+    /// by how long such a build should wait.</para></summary>
+    [Test]
+    public void SpFloorIsTheOnlyOneReached_SoItIsItsOwnNumber()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(StatFormulas.GetPlayerSpRegen(0, 1.0), Is.EqualTo(4), "SP sits on its floor");
+            Assert.That(StatFormulas.GetPlayerHpRegen(0, 1.0), Is.GreaterThan(2), "HP clears its floor at once");
+            Assert.That(StatFormulas.GetPlayerMpRegen(0, 1.0), Is.GreaterThan(2), "so does MP");
+            // SPD still has to pay: a real investment must out-tick the floor.
+            Assert.That(StatFormulas.GetPlayerSpRegen(75, 1.0),
+                Is.GreaterThan(StatFormulas.GetPlayerSpRegen(0, 1.0)),
+                "a mid SPD investment must beat no investment at all");
         });
     }
 
@@ -55,16 +78,18 @@ public class StatFormulasTests
     [Test]
     public void PlayerSpRegen_ReducedTick_RoundsDown()
         => Assert.That(StatFormulas.GetPlayerSpRegen(10, 0.5), Is.EqualTo(2),
-            "10*0.5(weight)*0.5(weather) = 2.5 floors to 2, not rounds to 3");
+            "10*0.25(weight)*2(pool scale)*0.5(weather) = 2.5 floors to 2, not rounds to 3");
 
-    // ...and its lower floor (1) can dip below the normal floor (2), but never to 0.
+    // ...and a reduced tick can fall BELOW the normal floor of 2, but never to 0. Shown on HP, which is
+    // the vital with room to fall — SP already sits at 1, so it has none left.
     [Test]
-    public void PlayerSpRegen_ReducedTick_DipsBelowNormalFloor_ButNotZero()
+    public void PlayerRegen_ReducedTick_DipsBelowNormalFloor_ButNotZero()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(StatFormulas.GetPlayerSpRegen(1, 1.0), Is.EqualTo(2), "normal floor is 2");
-            Assert.That(StatFormulas.GetPlayerSpRegen(1, 0.5), Is.EqualTo(1), "a reduced tick can fall to 1");
+            Assert.That(StatFormulas.GetPlayerHpRegen(0, 1.0), Is.GreaterThan(2), "full strength clears the floor");
+            Assert.That(StatFormulas.GetPlayerHpRegen(0, 0.5), Is.EqualTo(1), "a reduced tick falls under it");
+            Assert.That(StatFormulas.GetPlayerSpRegen(0, 0.5), Is.EqualTo(1), "and never to 0");
         });
     }
 
