@@ -28,7 +28,9 @@ public class AssetSeedingTests
         _root = Path.Combine(Path.GetTempPath(), "mirage-seed-" + Guid.NewGuid().ToString("N"));
         _bundled = Path.Combine(_root, "bundled");
         _assets = Path.Combine(_root, "assets");
-        _bin = Path.Combine(_assets, SheetLibrary.RecycleFolder);
+        // Asked of the editor rather than rebuilt here: the bin sits beside the assets folder, and a test
+        // that hard-coded the location would keep passing if the rule moved underneath it.
+        _bin = EditorPaths.RecycleBinFor(_assets);
 
         Directory.CreateDirectory(Path.Combine(_bundled, "tiles"));
         File.WriteAllText(Path.Combine(_bundled, "tiles", "0_Tiles.bmp"), "shipped art");
@@ -41,6 +43,32 @@ public class AssetSeedingTests
     }
 
     private string SeededSheet => Path.Combine(_assets, "tiles", "0_Tiles.bmp");
+
+    /// <summary>The bin sits in the assets folder alongside the sheet folders, not below one of them. A bin
+    /// inside <c>tiles/</c> is a folder of deleted art in the middle of the art the loaders walk.</summary>
+    [Test]
+    public void TheRecycleBinSitsAlongsideTheSheetFolders()
+    {
+        string assets = Path.Combine("C:", "editor", "assets");
+
+        string bin = EditorPaths.RecycleBinFor(assets);
+
+        Assert.That(Path.GetDirectoryName(bin), Is.EqualTo(assets));
+        Assert.That(Path.GetFileName(bin), Is.EqualTo(SheetLibrary.RecycleFolder));
+    }
+
+    /// <summary>The sheet folders sit DIRECTLY under the assets dir. The game nests its art under a
+    /// graphics/ folder because it carries music and interface art beside it; the editor reads only
+    /// sheets, so that level would be one folder deep on the way to everything.</summary>
+    [Test]
+    public void TheSheetFoldersSitDirectlyUnderTheAssetsFolder()
+    {
+        EditorPaths.SeedAssetsFrom(_bundled, _assets);
+
+        Assert.That(Directory.Exists(Path.Combine(_assets, "tiles")), Is.True);
+        Assert.That(Directory.Exists(Path.Combine(_assets, "graphics")), Is.False,
+            "the editor's assets dir has no graphics/ level");
+    }
 
     /// <summary>The ordinary job: a missing bundled file is put back. Without this half the test below
     /// would pass against a seeder that copies nothing at all.</summary>

@@ -15,10 +15,14 @@ internal static class EditorPaths
     private static readonly UserPaths Paths = new($"{Constants.GameName} Editor");
 
     /// <summary>
-    /// Editable tile/sprite/item graphics. Operator-configurable via the AssetsDir setting; defaults
+    /// Editable tile/sprite/item art. Operator-configurable via the AssetsDir setting; defaults
     /// to the per-user data dir so users can replace the shipped sheets or add their own. Populated
     /// from the bundled defaults by <see cref="SeedAssets"/>. A relative configured path is anchored
     /// to the install dir (never the CWD).
+    ///
+    /// <para>It holds the sheet folders and the recycle bin directly. The game nests its art under a
+    /// <c>graphics/</c> folder because it also carries music and interface art beside it; the editor
+    /// reads only sheets, so that level would be one folder deep on the way to everything.</para>
     /// </summary>
     public static string Assets
     {
@@ -26,10 +30,17 @@ internal static class EditorPaths
         {
             string? configured = AppSettings.Current.AssetsDir;
             return string.IsNullOrWhiteSpace(configured)
-                ? Paths.Data("assets", "graphics")
+                ? Paths.Data("assets")
                 : Path.GetFullPath(configured, AppContext.BaseDirectory);
         }
     }
+
+    /// <summary>Where deleted sheets go: alongside the sheet folders, inside the assets dir.</summary>
+    public static string RecycleBin => RecycleBinFor(Assets);
+
+    /// <summary>The bin that belongs to one assets folder.</summary>
+    internal static string RecycleBinFor(string assetsDir) =>
+        Path.Combine(assetsDir, Services.SheetLibrary.RecycleFolder);
 
     /// <summary>The editor's per-user config dir (holds its appsettings.json).</summary>
     public static string Config => Paths.Config();
@@ -61,7 +72,7 @@ internal static class EditorPaths
 
     // The bundled default graphics shipped next to the executable (read-only on AppImage/.app);
     // the seed source for the editable assets dir.
-    internal static string BundledAssets => Path.Combine(AppContext.BaseDirectory, "assets", "graphics");
+    internal static string BundledAssets => Path.Combine(AppContext.BaseDirectory, "assets");
 
     /// <summary>
     /// Ensures the editable assets dir holds the bundled defaults. Copies each bundled file that is
@@ -79,8 +90,7 @@ internal static class EditorPaths
         // Sheets deliberately deleted through the asset manager. Without this the seeder undoes every one
         // of them: it restores whatever is missing, so a shipped sheet moved to the recycle bin is back
         // before anyone sees it gone.
-        var tombstoned = Services.SheetLibrary.ReadTombstones(
-            Path.Combine(dest, Services.SheetLibrary.RecycleFolder));
+        var tombstoned = Services.SheetLibrary.ReadTombstones(RecycleBinFor(dest));
 
         foreach (string srcFile in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {

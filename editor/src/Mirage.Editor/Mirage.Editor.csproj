@@ -42,18 +42,19 @@
   </ItemGroup>
 
   <!-- Tile/sprite/item bitmaps live alongside the client shell; reference them directly so there is
-       only one copy in the repo. Link preserves each per-class subfolder under assets/graphics/ in the
-       output, matching the assets root resolved by EditorPaths and the folder-based loaders. -->
+       only one copy in the repo. The client nests these under graphics/ because it carries music and
+       interface art beside them; the editor reads only sheets, so Link drops that level and puts each
+       per-class folder straight under assets/ — the root EditorPaths resolves and the loaders open. -->
   <ItemGroup>
     <Content Include="..\..\..\client\src\Mirage.Client.Shell\assets\graphics\tiles\**\*.*"
              CopyToOutputDirectory="PreserveNewest"
-             Link="assets\graphics\tiles\%(RecursiveDir)%(Filename)%(Extension)" />
+             Link="assets\tiles\%(RecursiveDir)%(Filename)%(Extension)" />
     <Content Include="..\..\..\client\src\Mirage.Client.Shell\assets\graphics\sprites\**\*.*"
              CopyToOutputDirectory="PreserveNewest"
-             Link="assets\graphics\sprites\%(RecursiveDir)%(Filename)%(Extension)" />
+             Link="assets\sprites\%(RecursiveDir)%(Filename)%(Extension)" />
     <Content Include="..\..\..\client\src\Mirage.Client.Shell\assets\graphics\items\**\*.*"
              CopyToOutputDirectory="PreserveNewest"
-             Link="assets\graphics\items\%(RecursiveDir)%(Filename)%(Extension)" />
+             Link="assets\items\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

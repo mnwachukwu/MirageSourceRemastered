@@ -63,6 +63,46 @@ public class LayoutConventionTests
             + string.Join(", ", offenders));
     }
 
+    /// <summary>
+    /// A window the reader cannot resize has to size itself to its content.
+    /// 🔴 Pinning <c>Height</c> on a <c>CanResize="False"</c> window is a cap with no way out of it: the
+    /// content is clipped from the bottom, and what a dialog keeps at the bottom is its buttons. It fails
+    /// the moment a message grows — a longer warning, a translation, an extra line of detail — and it fails
+    /// silently, because a clipped window still builds and still opens.
+    ///
+    /// <para>A fixed height is fine where the content can scroll, which is what a <c>ScrollViewer</c>
+    /// settles, and fine on a resizable window, where the reader can always drag it open.</para>
+    /// </summary>
+    [Test]
+    public void NoFixedHeightWindow_RefusesToResizeAndRefusesToGrow()
+    {
+        var offenders = new List<string>();
+
+        foreach (string file in Directory.GetFiles(EditorSourceRoot(), "*.axaml", SearchOption.AllDirectories))
+        {
+            string xaml = File.ReadAllText(file);
+            if (!xaml.Contains("<Window", StringComparison.Ordinal)) continue;
+
+            // Only the root element's own attributes; a nested Height belongs to some child control.
+            int rootEnd = xaml.IndexOf('>', xaml.IndexOf("<Window", StringComparison.Ordinal));
+            if (rootEnd < 0) continue;
+            string root = xaml[..rootEnd];
+
+            bool pinsHeight = Regex.IsMatch(root, @"\bHeight=""\d");
+            bool cannotResize = root.Contains("CanResize=\"False\"", StringComparison.Ordinal);
+            bool sizesItself = root.Contains("SizeToContent=", StringComparison.Ordinal);
+            bool canScroll = xaml.Contains("<ScrollViewer", StringComparison.Ordinal);
+
+            if (pinsHeight && cannotResize && !sizesItself && !canScroll)
+                offenders.Add(Path.GetFileName(file));
+        }
+
+        Assert.That(offenders, Is.Empty,
+            "these windows pin a Height, refuse to resize, and cannot scroll, so anything that grows is "
+            + "clipped along with the buttons underneath it. Use SizeToContent=\"Height\" and let the "
+            + "Width be the wrap measure: " + string.Join(", ", offenders));
+    }
+
     private static string EditorSourceRoot()
     {
         string root = typeof(LayoutConventionTests).Assembly

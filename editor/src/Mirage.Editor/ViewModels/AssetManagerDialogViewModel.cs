@@ -190,9 +190,10 @@ public sealed partial class AssetManagerDialogViewModel : ObservableObject
     private string SheetDir => Folder.Under(AssetsDir);
     private string BundledSheetDir => Folder.Under(_bundledDir);
 
-    // Each asset folder keeps its own bin under the one root, so a restore knows which folder the sheet
-    // came out of. One shared bin could only guess, and would put a deleted tile back among the sprites.
-    private string RecycleRoot => Path.Combine(AssetsDir, SheetLibrary.RecycleFolder);
+    // The bin sits beside the graphics folder rather than inside it, and each asset folder keeps its own
+    // subfolder of it, so a restore knows which folder the sheet came out of. One shared bin could only
+    // guess, and would put a deleted tile back among the sprites.
+    private string RecycleRoot => EditorPaths.RecycleBinFor(AssetsDir);
     private string RecycleDir => Folder.Under(RecycleRoot);
 
     /// <summary>Set by the shell: the usage line for every sheet in one category, counted once per

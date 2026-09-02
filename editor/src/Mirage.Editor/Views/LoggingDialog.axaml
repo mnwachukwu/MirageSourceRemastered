@@ -3,7 +3,8 @@
         xmlns:vm="using:Mirage.Editor.ViewModels"
         x:Class="Mirage.Editor.Views.LoggingDialog"
         x:DataType="vm:LoggingDialogViewModel"
-        Width="560" Height="400"
+        Width="560"
+        SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
 
