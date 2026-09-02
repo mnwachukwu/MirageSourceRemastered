@@ -453,7 +453,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
     private void HandleSendClasses(SendClassesPacket p) => ApplyClasses(p.Classes);
 
     /// <summary>The character-create variant. Same class list, plus the starting loadout each class
-    /// grants and the definitions that describe it — see <see cref="ClientState.ClassLoadouts"/>.</summary>
+    /// grants and the definitions that describe it — see <see cref="ClientState.LoadoutFor"/>.</summary>
     private void HandleNewCharClasses(NewCharClassesPacket p)
     {
         // Before ApplyClasses: it raises ClassListReceived, and a listener that redraws the create
@@ -476,7 +476,8 @@ public sealed partial class ClientPacketHandler : IClientEvents
                 Description = c.Description,
                 SpriteMale = c.SpriteMale,
                 SpriteFemale = c.SpriteFemale,
-                SpriteSheet = c.SpriteSheet,
+                SpriteSheetMale = c.SpriteSheetMale,
+                SpriteSheetFemale = c.SpriteSheetFemale,
                 Str = c.Str,
                 Def = c.Def,
                 Spd = c.Spd,

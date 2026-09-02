@@ -133,9 +133,9 @@ public sealed partial class GameplayScreen : IGameScreen
         }
     }
 
-    /// <summary>Ground pass: the ground tile stack, ground blood, the ground-layer entity group and its
-    /// spell/combat particles, then the "lift" dim quad (when the local player is up on the bridge). Drawn into
-    /// whatever target is bound — the single world target (flat path) or the split ground target.</summary>
+    /// <summary>Ground pass: the ground tile stack, ground blood, and the ground-layer entity group with its
+    /// spell/combat particles. Drawn into whatever target is bound — the single world target (flat path) or the
+    /// split ground target.</summary>
     public void DrawWorldGround(SpriteBatch sb, SpriteFont font, Matrix transform)
     {
         SpriteFont nameFont = _gameFont ?? font;
@@ -214,7 +214,7 @@ public sealed partial class GameplayScreen : IGameScreen
     /// bubbles / floating text). The two-light-map split calls this TWICE into a scratch target that MirageGame
     /// then lights and composites on top: once for GROUND labels + the extras (lit by ALL lights) and once for
     /// FRINGE labels (lit by fringe lights only). The flat / daylight path calls it once with the defaults (all
-    /// labels + extras). Ground labels dim with the lift while the local player is on the bridge.</summary>
+    /// labels + extras).</summary>
     public void DrawWorldOverlay(SpriteBatch sb, SpriteFont font, Matrix transform, WorldLayer? nameLayer = null, bool includeExtras = true)
     {
         SpriteFont nameFont = _gameFont ?? font;

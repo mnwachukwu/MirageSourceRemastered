@@ -96,8 +96,9 @@ public sealed record SheetScan(IReadOnlyList<SheetEntry> Sheets, IReadOnlyList<S
 /// </summary>
 public static class SheetLibrary
 {
-    /// <summary>Folder deleted sheets are moved to, beside the sheet folders rather than inside one.</summary>
-    public const string RecycleFolder = "recycle_bin";
+    /// <summary>Folder deleted sheets are moved to, beside the sheet folders rather than inside one. The
+    /// leading underscore sorts it above them, so the folders holding live art stay together.</summary>
+    public const string RecycleFolder = "_recycle_bin";
 
     private const string TombstoneFile = "deleted.json";
 

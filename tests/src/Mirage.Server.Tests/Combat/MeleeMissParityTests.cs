@@ -27,7 +27,7 @@ namespace Mirage.Server.Tests;
 /// miss, which must differ in the word alone.</para>
 ///
 /// <para>Reach is the load-bearing field. An attack-on-sight NPC gives up on a target it has not reached in
-/// <c>NpcAggroGiveUpMs</c>, so a mob whose swings keep being turned aside must still count as having reached
+/// <c>NpcAiSystem.NpcAosUnreachableGiveUpMs</c>, so a mob whose swings keep being turned aside must still count as having reached
 /// what it is standing next to and hitting — or it walks away mid-fight.</para>
 ///
 /// <para>Block, dodge and miss are all rolls, so each is swung for until it occurs. Heavy Wind supplies the

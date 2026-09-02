@@ -346,9 +346,9 @@ public sealed partial class TileGridControl : Control
     private static readonly IBrush NeighborOverlayBrush = new SolidColorBrush(Color.FromArgb(140, 0, 0, 0));
     private static readonly IBrush LayerNumBgBrush = new SolidColorBrush(Color.FromArgb(190, 0, 0, 0));
     // Opacity applied to the non-active visual stacks on the CENTER cell so the layer you're authoring stands
-    // out (Tile mode: the selected stack; Attribute/Light mode: the active logical plane's surface stack) —
-    // the editor mirror of the in-game "lift" dim. Faded rather than black-overlaid so an active stack drawn
-    // BENEATH a dimmed one still reads (a black overlay would darken it too).
+    // out (Tile mode: the selected stack; Attribute/Light mode: the active logical plane's surface stack).
+    // Faded rather than black-overlaid so an active stack drawn BENEATH a dimmed one still reads (a black
+    // overlay would darken it too).
     private const double DimmedStackOpacity = 0.30;
 
     private static readonly Pen GridLinePen = new(GridLineBrush, 0.5);

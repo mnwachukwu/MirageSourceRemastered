@@ -16,7 +16,7 @@ namespace Mirage.Shared.Tests;
 /// <see cref="TheSeparators_AreBothOfThem"/>, so treat these as the Linux and macOS legs' assertions.</para>
 ///
 /// <para>The check that bites on Windows is
-/// <c>PortableFileNameTests.NoProductionCode_AsksThePlatformWhatALegalNameIs</c>, which reads the source
+/// <c>PortableFileNameTests.NoProductionCode_AsksThePlatformWhatALegalNameOrSeparatorIs</c>, which reads the source
 /// instead of running it. A platform difference cannot be observed from the platform that lacks it.</para>
 /// </summary>
 [TestFixture]

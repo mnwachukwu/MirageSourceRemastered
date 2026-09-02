@@ -624,7 +624,7 @@ public static class Constants
     public const int TerritoryUnclaimedChallengeCost = 35_000;
 
     // ── Seasonal leaderboard ─────────────────────────────────────────────────
-    // A season is this many whole weeks (4 x 13 = 52/yr). Boundaries roll on TerritoryWeekResetDay (Sunday,
+    // A season is this many whole weeks (4 x 13 = 52/yr). Boundaries roll on the configured week reset day (Sunday,
     // the day after war night). Scoring skips the season's first week so established control carries in.
     public const int TerritorySeasonWeeks = 13;
     public const int TerritorySeasonScoringStartWeek = 1;

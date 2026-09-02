@@ -33,8 +33,10 @@ public class SheetFieldTests
         {
             Assert.That(Write(new NpcRecord { Name = "Rat", Sprite = 8 }), Does.Contain("\"spriteSheet\": 0"));
             Assert.That(Write(new ItemRecord { Name = "Dagger", Pic = 14 }), Does.Contain("\"itemSheet\": 0"));
-            Assert.That(Write(new ClassRecord { Name = "Warrior", SpriteMale = 34 }),
-                Does.Contain("\"spriteSheet\": 0"));
+            // A class names one per sex, and both are written at 0.
+            string cls = Write(new ClassRecord { Name = "Warrior", SpriteMale = 34 });
+            Assert.That(cls, Does.Contain("\"spriteSheetMale\": 0"));
+            Assert.That(cls, Does.Contain("\"spriteSheetFemale\": 0"));
             Assert.That(Write(new PlayerRecord { Name = "Matt", Sprite = 34 }),
                 Does.Contain("\"spriteSheet\": 0"));
         });
@@ -50,8 +52,13 @@ public class SheetFieldTests
                 Is.EqualTo(3));
             Assert.That(Read<ItemRecord>(Write(new ItemRecord { Pic = 14, ItemSheet = 2 })).ItemSheet,
                 Is.EqualTo((short)2));
-            Assert.That(Read<ClassRecord>(Write(new ClassRecord { SpriteMale = 1, SpriteSheet = 5 })).SpriteSheet,
-                Is.EqualTo(5));
+            // Distinct values, so a projection carrying one to both fields fails here.
+            var cls = Read<ClassRecord>(Write(new ClassRecord
+            {
+                SpriteMale = 1, SpriteSheetMale = 5, SpriteFemale = 2, SpriteSheetFemale = 9,
+            }));
+            Assert.That(cls.SpriteSheetMale, Is.EqualTo(5));
+            Assert.That(cls.SpriteSheetFemale, Is.EqualTo(9));
             Assert.That(Read<PlayerRecord>(Write(new PlayerRecord { Sprite = 1, SpriteSheet = 7 })).SpriteSheet,
                 Is.EqualTo(7));
         });
@@ -67,7 +74,9 @@ public class SheetFieldTests
         {
             Assert.That(Read<NpcRecord>("""{"name":"Rat","sprite":8}""").SpriteSheet, Is.EqualTo(0));
             Assert.That(Read<ItemRecord>("""{"name":"Dagger","pic":14}""").ItemSheet, Is.EqualTo((short)0));
-            Assert.That(Read<ClassRecord>("""{"name":"Warrior","spriteMale":34}""").SpriteSheet, Is.EqualTo(0));
+            var cls = Read<ClassRecord>("""{"name":"Warrior","spriteMale":34}""");
+            Assert.That(cls.SpriteSheetMale, Is.EqualTo(0));
+            Assert.That(cls.SpriteSheetFemale, Is.EqualTo(0));
             Assert.That(Read<PlayerRecord>("""{"name":"Matt","sprite":34}""").SpriteSheet, Is.EqualTo(0));
         });
     }

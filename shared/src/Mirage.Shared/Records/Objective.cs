@@ -5,7 +5,7 @@ namespace Mirage.Shared.Records;
 /// <summary>One progress-tracked goal in the shared objective kernel: "do <see cref="Kind"/> to
 /// <see cref="Target"/>, <see cref="Count"/> times." Deliberately scope-agnostic — it carries no notion
 /// of who owns it — so the guild-quest layer (<c>GuildQuestDef</c>, its first customer) and a future
-/// player-quest system (<c>QuestDef</c>) both ride it without the kernel knowing about either. v1 only
+/// player-quest system (<c>QuestRecord</c>) both ride it without the kernel knowing about either. v1 only
 /// wires <see cref="ObjectiveKind.Kill"/>; the other kinds are declared plumbing. A plain POCO: it
 /// embeds in a persisted record (a guild's active quest) and travels whole on the wire to drive a quest
 /// board, so keep it serializable.</summary>

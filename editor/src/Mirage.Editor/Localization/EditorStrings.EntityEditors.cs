@@ -171,7 +171,8 @@ public static partial class EditorStrings
     public const string ClassEditor_SectionTitle = nameof(ClassEditor_SectionTitle);
     public const string ClassEditor_DescLabel = nameof(ClassEditor_DescLabel);
     public const string ClassEditor_DescHint = nameof(ClassEditor_DescHint);
-    public const string ClassEditor_SpriteSheetLabel = nameof(ClassEditor_SpriteSheetLabel);
+    public const string ClassEditor_SpriteSheetMaleLabel = nameof(ClassEditor_SpriteSheetMaleLabel);
+    public const string ClassEditor_SpriteSheetFemaleLabel = nameof(ClassEditor_SpriteSheetFemaleLabel);
     public const string ClassEditor_SpriteMaleLabel = nameof(ClassEditor_SpriteMaleLabel);
     public const string ClassEditor_SpriteFemaleLabel = nameof(ClassEditor_SpriteFemaleLabel);
     public const string ClassEditor_StrLabel = nameof(ClassEditor_StrLabel);

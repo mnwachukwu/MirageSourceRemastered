@@ -27,8 +27,9 @@ public partial class ClassEditorView : LocalizedUserControl
         _nameLabel.Text = EditorStrings.Get(EditorStrings.Common_NameLabel);
         _descLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_DescLabel);
         _descBox.PlaceholderText = EditorStrings.Get(EditorStrings.ClassEditor_DescHint);
-        _spriteSheetLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteSheetLabel);
+        _spriteSheetMaleLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteSheetMaleLabel);
         _spriteMaleLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteMaleLabel);
+        _spriteSheetFemaleLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteSheetFemaleLabel);
         _spriteFemaleLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_SpriteFemaleLabel);
         _strLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_StrLabel);
         _defLabel.Text = EditorStrings.Get(EditorStrings.ClassEditor_DefLabel);

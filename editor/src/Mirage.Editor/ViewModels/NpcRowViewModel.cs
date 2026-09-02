@@ -44,7 +44,7 @@ public sealed partial class NpcRowViewModel : ObservableObject, ILockableRow
     private NpcBehavior _behavior;
     /// <summary>Comrade group id — same-group NPCs come to each other's aid (0 = no group).</summary>
     [ObservableProperty] private int _group;
-    /// <summary>Aggro / sight radius in tiles, capped at <see cref="Constants.MaxNpcRange"/>.</summary>
+    /// <summary>Aggro / sight radius in tiles, capped at <see cref="Constants.NpcRangeSoftCap"/>.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RangeWarning))]
     [NotifyPropertyChangedFor(nameof(HasRangeWarning))]

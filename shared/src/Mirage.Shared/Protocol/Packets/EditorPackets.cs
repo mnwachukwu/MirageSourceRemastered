@@ -144,7 +144,8 @@ public sealed record EditorSaveClassPacket : IPacket
     /// <summary>One sprite per sex; the character-create screen previews whichever the player picked.</summary>
     [JsonPropertyName("spriteMale")] public int SpriteMale { get; init; }
     [JsonPropertyName("spriteFemale")] public int SpriteFemale { get; init; }
-    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
+    [JsonPropertyName("spriteSheetMale")] public int SpriteSheetMale { get; init; }
+    [JsonPropertyName("spriteSheetFemale")] public int SpriteSheetFemale { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }
@@ -387,7 +388,8 @@ public sealed record UpdateClassPacket : IPacket
     [JsonPropertyName("desc")] public string Description { get; init; } = "";
     [JsonPropertyName("spriteMale")] public int SpriteMale { get; init; }
     [JsonPropertyName("spriteFemale")] public int SpriteFemale { get; init; }
-    [JsonPropertyName("spriteSheet")] public int SpriteSheet { get; init; }
+    [JsonPropertyName("spriteSheetMale")] public int SpriteSheetMale { get; init; }
+    [JsonPropertyName("spriteSheetFemale")] public int SpriteSheetFemale { get; init; }
     [JsonPropertyName("str")] public int Str { get; init; }
     [JsonPropertyName("def")] public int Def { get; init; }
     [JsonPropertyName("spd")] public int Spd { get; init; }

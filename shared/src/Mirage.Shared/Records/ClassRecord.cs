@@ -31,12 +31,9 @@ public sealed class ClassRecord
     public int SpriteMale { get; set; }
     public int SpriteFemale { get; set; }
 
-    /// <summary>Which sprite sheet the two above are rows of. One sheet for the pair: a class's male and
-    /// female art is authored together, and splitting them across sheets would be a way to get a class
-    /// half-drawn rather than a capability anyone wants.
-    ///
-    /// <para>Always written, including when it is 0.</para></summary>
-    public int SpriteSheet { get; set; }
+    /// <summary>Which sprite sheet each of the two above is a row of. Always written, including at 0.</summary>
+    public int SpriteSheetMale { get; set; }
+    public int SpriteSheetFemale { get; set; }
 
     /// <summary>Legacy single sprite, kept only so a world authored before the split still loads.
     /// <see cref="Normalize"/> folds it into both of the above and clears it, so it is written back out
@@ -48,6 +45,9 @@ public sealed class ClassRecord
     /// made, so the create screen's preview, the grant at creation, and anything later cannot disagree
     /// about which art a character of a given sex gets.</summary>
     public int SpriteFor(Sex sex) => sex == Sex.Female ? SpriteFemale : SpriteMale;
+
+    /// <summary>The sheet <see cref="SpriteFor"/>'s row is on. Both are read for the same sex.</summary>
+    public int SpriteSheetFor(Sex sex) => sex == Sex.Female ? SpriteSheetFemale : SpriteSheetMale;
 
     public int Str { get; set; }
     public int Def { get; set; }

@@ -228,7 +228,7 @@ public sealed class NewCharScreen : IGameScreen
         // Swings while the pointer is over Create — a small promise of what the button does.
         bool attacking = _createBtn.IsHovered(_input);
         int frame = attacking ? (nowMs % 1000L < 500L ? 2 : 0) : _animFrame;
-        UiHelper.DrawMenuSpritePreview(sb, _ctx.Sprites, cls.SpriteFor(_sex), cls.SpriteSheet, frame, SpriteRect);
+        UiHelper.DrawMenuSpritePreview(sb, _ctx.Sprites, cls.SpriteFor(_sex), cls.SpriteSheetFor(_sex), frame, SpriteRect);
 
         DrawNumbers(sb, font, cls, me, loadout);
         DrawDescription(sb, font, cls);

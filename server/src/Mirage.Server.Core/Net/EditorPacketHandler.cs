@@ -502,7 +502,8 @@ public sealed partial class EditorPacketHandler
         cls.Name = p.Name;
         cls.Description = p.Description;
         cls.SpriteMale = p.SpriteMale;
-        cls.SpriteSheet = p.SpriteSheet;
+        cls.SpriteSheetMale = p.SpriteSheetMale;
+        cls.SpriteSheetFemale = p.SpriteSheetFemale;
         cls.SpriteFemale = p.SpriteFemale;
         cls.Str = p.Str;
         cls.Def = p.Def;

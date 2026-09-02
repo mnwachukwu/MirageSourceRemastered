@@ -458,7 +458,7 @@ public sealed partial class CombatSystem : GameSystem
 
         // ── Roll the table ───────────────────────────────────────────────────────
         // EVERY LINE ROLLS INDEPENDENTLY, so a kill can yield nothing, one thing, or several. Chance is a
-        // direct percent (1 = 1%, 50 = 50%, 100+ = always) and RollPercent() returns [0..99], so a line
+        // direct percent (1 = 1%, 50 = 50%, 100+ = always) and Rng.Percent() returns [0..99], so a line
         // lands when its roll is BELOW its chance.
         //
         // The guild perks keep their old meaning against the new shape: L1 lifts the rate of every line

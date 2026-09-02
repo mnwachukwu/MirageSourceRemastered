@@ -116,7 +116,9 @@ public class PushChangesPacketCoverageTests
     {
         var vm = new ClassRowViewModel(2, new ClassRecord
         {
-            Name = "Ranger", SpriteMale = 17, SpriteFemale = 27, SpriteSheet = 4, Str = 8, Def = 6, Spd = 9, Int = 4,
+            Name = "Ranger", SpriteMale = 17, SpriteFemale = 27,
+            SpriteSheetMale = 4, SpriteSheetFemale = 6,
+            Str = 8, Def = 6, Spd = 9, Int = 4,
         });
 
         var pkt = vm.BuildSavePacket();
@@ -127,7 +129,8 @@ public class PushChangesPacketCoverageTests
             Assert.That(pkt.Name, Is.EqualTo("Ranger"));
             Assert.That(pkt.SpriteMale, Is.EqualTo(17));
             Assert.That(pkt.SpriteFemale, Is.EqualTo(27));
-            Assert.That(pkt.SpriteSheet, Is.EqualTo(4), "a pushed class must keep the sheet its sprites are on");
+            Assert.That(pkt.SpriteSheetMale, Is.EqualTo(4), "a pushed class must keep the sheet its male sprite is on");
+            Assert.That(pkt.SpriteSheetFemale, Is.EqualTo(6), "and the separate sheet its female sprite is on");
             Assert.That(pkt.Str, Is.EqualTo(8));
             Assert.That(pkt.Def, Is.EqualTo(6));
             Assert.That(pkt.Spd, Is.EqualTo(9));

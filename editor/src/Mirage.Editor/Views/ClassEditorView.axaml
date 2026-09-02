@@ -84,25 +84,25 @@
                      AcceptsReturn="False" TextWrapping="Wrap" MaxLength="120"/>
           </mui:FormRow>
 
-          <!-- One sheet for the class, then one row of it per sex. The number is what the record
-               stores, so the sheet is picked by index-prefixed name the way a tileset is. -->
+          <!-- A sheet and a row per sex, each sheet directly above the sprite it indexes. The number is
+               what the record stores, so a sheet is picked by index-prefixed name the way a tileset is.
+               The create screen previews whichever sex the player picked, and the choice is copied onto
+               the character, so editing these restyles who is CREATED next, not who already plays this
+               class. -->
           <mui:FormRow LabelWidth="130">
-            <TextBlock x:Name="_spriteSheetLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="_spriteSheetMaleLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <controls:DropdownAutoCompleteBox Grid.Column="1"
                                  ItemsSource="{Binding SpriteSheetEntries}"
-                                 SelectedItem="{Binding SelectedSpriteSheetEntry, Mode=TwoWay}"
+                                 SelectedItem="{Binding SelectedSpriteSheetMaleEntry, Mode=TwoWay}"
                                  ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
                                  FilterMode="Custom"
                                  MinimumPrefixLength="0"/>
           </mui:FormRow>
 
-          <!-- One sprite per sex: the create screen previews whichever the player picked, and the choice
-               is copied onto the character, so editing these restyles who is CREATED next, not who
-               already plays this class. -->
           <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spriteMaleLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SpriteEntries}"
+                      ItemsSource="{Binding SpriteEntriesMale}"
                       SelectedItem="{Binding SelectedClass.SpriteMale, Mode=TwoWay}"
                       HorizontalAlignment="Stretch"
                       MaxDropDownHeight="320">
@@ -111,7 +111,7 @@
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <controls:AtlasFramePreview
                         FrameIndex="{Binding}"
-                        Atlas="{Binding $parent[ComboBox].DataContext.SpriteBitmap}"
+                        Atlas="{Binding $parent[ComboBox].DataContext.SpriteBitmapMale}"
                         Mode="SpriteStrip"
                         Animated="True"
                         IsHighlighted="{Binding $parent[ComboBoxItem].IsPointerOver}"/>
@@ -124,9 +124,19 @@
           </mui:FormRow>
 
           <mui:FormRow LabelWidth="130">
+            <TextBlock x:Name="_spriteSheetFemaleLabel" Grid.Column="0" VerticalAlignment="Center"/>
+            <controls:DropdownAutoCompleteBox Grid.Column="1"
+                                 ItemsSource="{Binding SpriteSheetEntries}"
+                                 SelectedItem="{Binding SelectedSpriteSheetFemaleEntry, Mode=TwoWay}"
+                                 ItemFilter="{x:Static models:NamedEntryFilter.ByNameOrIndex}"
+                                 FilterMode="Custom"
+                                 MinimumPrefixLength="0"/>
+          </mui:FormRow>
+
+          <mui:FormRow LabelWidth="130">
             <TextBlock x:Name="_spriteFemaleLabel" Grid.Column="0" VerticalAlignment="Center"/>
             <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SpriteEntries}"
+                      ItemsSource="{Binding SpriteEntriesFemale}"
                       SelectedItem="{Binding SelectedClass.SpriteFemale, Mode=TwoWay}"
                       HorizontalAlignment="Stretch"
                       MaxDropDownHeight="320">
@@ -135,7 +145,7 @@
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <controls:AtlasFramePreview
                         FrameIndex="{Binding}"
-                        Atlas="{Binding $parent[ComboBox].DataContext.SpriteBitmap}"
+                        Atlas="{Binding $parent[ComboBox].DataContext.SpriteBitmapFemale}"
                         Mode="SpriteStrip"
                         Animated="True"
                         IsHighlighted="{Binding $parent[ComboBoxItem].IsPointerOver}"/>

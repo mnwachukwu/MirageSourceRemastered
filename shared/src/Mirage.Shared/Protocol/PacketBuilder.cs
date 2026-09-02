@@ -22,7 +22,8 @@ public static class PacketBuilder
         {
             Classes = classes.Select(c => new SendClassesPacket.ClassData(
                 c.Name, c.SpriteMale, c.SpriteFemale, c.Str, c.Def, c.Spd, c.Int, c.Description,
-                Worn: null, Carried: null, Spells: null, SpriteSheet: c.SpriteSheet)).ToArray()
+                Worn: null, Carried: null, Spells: null,
+                SpriteSheetMale: c.SpriteSheetMale, SpriteSheetFemale: c.SpriteSheetFemale)).ToArray()
         };
 
     /// <summary>The class list for the character-create screen, with each class's resolved starting
@@ -64,7 +65,7 @@ public static class PacketBuilder
                 worn.Length > 0 ? worn : null,
                 carried.Length > 0 ? carried : null,
                 known.Count > 0 ? [.. known] : null,
-                c.SpriteSheet);
+                c.SpriteSheetMale, c.SpriteSheetFemale);
         }
 
         // The casting reagent rides along if any starting spell drains HP. It is not granted to anyone —
@@ -399,7 +400,8 @@ public static class PacketBuilder
             Description = cls.Description,
             SpriteMale = cls.SpriteMale,
             SpriteFemale = cls.SpriteFemale,
-            SpriteSheet = cls.SpriteSheet,
+            SpriteSheetMale = cls.SpriteSheetMale,
+            SpriteSheetFemale = cls.SpriteSheetFemale,
             Str = cls.Str,
             Def = cls.Def,
             Spd = cls.Spd,

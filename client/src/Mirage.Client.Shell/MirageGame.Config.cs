@@ -234,7 +234,7 @@ public sealed partial class MirageGame : Game
 
     /// <summary>
     /// The single place a language change is applied. BOTH entry points funnel here — the pre-game
-    /// options panel (via <c>ApplyOptionsChanges</c>) and the in-game one (GameplayScreen through
+    /// options panel (via <c>UpdateOptionsPanel</c>) and the in-game one (GameplayScreen through
     /// <c>ShellContext.OnLanguageChanged</c>) — so the client and the SERVER SESSION can never
     /// disagree about the locale.
     /// <para>The send is gated on the TRANSPORT, not on being in-game: a change made at character

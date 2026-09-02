@@ -12,7 +12,7 @@ namespace Mirage.Shared;
 /// travel between machines — cloned, zipped, synced — so a name Linux accepts and Windows refuses is a file
 /// that cannot be checked out or unpacked there at all, and the failure lands on someone who never chose the
 /// name. The strictest platform's rules are written out here as literals so every platform gives the same
-/// answer, and <c>PortableFileNameConventionTests</c> holds production code to using them.</para>
+/// answer, and <c>PortableFileNameTests</c> holds production code to using them.</para>
 /// </summary>
 public static class PortableFileName
 {

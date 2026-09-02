@@ -7,7 +7,7 @@ namespace Mirage.Shared;
 /// and durability wear.
 ///
 /// <para>Each chance helper returns an integer bounded by its cap and leaves the roll to the caller
-/// (<see cref="RollPerMille"/>), along with any prerequisite gate. At
+/// (<c>Rng.PerMille</c>), along with any prerequisite gate. At
 /// <see cref="Constants.ChanceScaleFactor"/> = 1 that integer IS the percent; at 10 the same numbers
 /// read as per-mille, which keeps single-percent caps and tenth-of-a-percent mid-range values
 /// representable as integers. Vary and CritDamage are the exception and roll internally, because there
@@ -199,7 +199,7 @@ public static class CombatFormulas
         ResolveDamage(variedRaw, protection, 1.0, PveMinDamageFloorPercent);
 
     // ── Block / dodge / crit chance ───────────────────────────────────────────
-    // No hidden gate. The returned value IS the actual probability rolled against RollPerMille();
+    // No hidden gate. The returned value IS the actual probability rolled against Rng.PerMille();
     // divide by Constants.ChanceScaleFactor (= 1 today) for the displayed percent.
     // Live caps: player block/crit/spellcrit 35%, player dodge 15%, NPC block/crit 25%, NPC dodge 10%
     // (NPC caps are lower because NPC DEF also drives HP/EXP). Bump Constants.ChanceScaleFactor to 10
@@ -334,7 +334,7 @@ public static class CombatFormulas
 
     /// <summary>Percent chance that a single hit reduces a worn item's durability by 1, scaled by
     /// current condition (<paramref name="dur"/> as a percent of <paramref name="maxDur"/>). Fresher
-    /// gear chips less often; badly worn gear chips every hit. Caller rolls via <see cref="RollPercent"/>
+    /// gear chips less often; badly worn gear chips every hit. Caller rolls via <c>Rng.Percent</c>
     /// (degrade when the roll is below this value). <paramref name="maxDur"/> must be > 0.</summary>
     public static int DurabilityDegradeChancePercent(int dur, int maxDur)
     {

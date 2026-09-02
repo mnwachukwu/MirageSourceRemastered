@@ -196,7 +196,8 @@ public sealed record SendClassesPacket : IPacket
         [property: JsonPropertyName("worn")] int[]? Worn = null,
         [property: JsonPropertyName("carried")] CarriedItem[]? Carried = null,
         [property: JsonPropertyName("spells")] int[]? Spells = null,
-        [property: JsonPropertyName("spriteSheet")] int SpriteSheet = 0
+        [property: JsonPropertyName("spriteSheetM")] int SpriteSheetMale = 0,
+        [property: JsonPropertyName("spriteSheetF")] int SpriteSheetFemale = 0
     );
 
     /// <summary>A carried starting item: its number, plus the stack size for currency (0 for everything

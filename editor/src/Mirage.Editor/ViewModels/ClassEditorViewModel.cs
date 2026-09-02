@@ -35,39 +35,50 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
         NotifySpriteChanged();
     }
 
-    /// <summary>The sheet the selected class draws from; both its sprites come from the one sheet.</summary>
-    public Bitmap? SpriteBitmap
-    {
-        get
-        {
-            int sheet = SelectedClass?.SpriteSheet ?? 0;
-            return (uint)sheet < (uint)_sprites.Count ? _sprites[sheet] : null;
-        }
-    }
+    /// <summary>The sheet each sex's sprite is a row of.</summary>
+    public Bitmap? SpriteBitmapMale => SheetBitmap(SelectedClass?.SpriteSheetMale ?? 0);
+    public Bitmap? SpriteBitmapFemale => SheetBitmap(SelectedClass?.SpriteSheetFemale ?? 0);
+
+    private Bitmap? SheetBitmap(int sheet) => (uint)sheet < (uint)_sprites.Count ? _sprites[sheet] : null;
 
     /// <summary>Selectable sprite indices, derived from the loaded sheet's height (one 32px row each),
-    /// so the picker can't offer a sprite the art doesn't have.</summary>
-    public IReadOnlyList<int> SpriteEntries { get; private set; } = [];
+    /// so the picker can't offer a sprite the art doesn't have. One list per sex, because the two can be
+    /// on sheets of different heights.</summary>
+    public IReadOnlyList<int> SpriteEntriesMale { get; private set; } = [];
+    public IReadOnlyList<int> SpriteEntriesFemale { get; private set; } = [];
 
-    // Two-way bridge for the sheet typeahead.
-    public NamedEntry? SelectedSpriteSheetEntry
+    // Two-way bridges for the two sheet typeaheads.
+    public NamedEntry? SelectedSpriteSheetMaleEntry
     {
-        get
-        {
-            int sheet = SelectedClass?.SpriteSheet ?? 0;
-            return sheet >= 0 && sheet < SpriteSheetEntries.Length ? SpriteSheetEntries[sheet] : null;
-        }
-        set { if (SelectedClass is not null && value is not null) SelectedClass.SpriteSheet = value.Id; }
+        get => SheetEntry(SelectedClass?.SpriteSheetMale ?? 0);
+        set { if (SelectedClass is not null && value is not null) SelectedClass.SpriteSheetMale = value.Id; }
     }
+
+    public NamedEntry? SelectedSpriteSheetFemaleEntry
+    {
+        get => SheetEntry(SelectedClass?.SpriteSheetFemale ?? 0);
+        set { if (SelectedClass is not null && value is not null) SelectedClass.SpriteSheetFemale = value.Id; }
+    }
+
+    private NamedEntry? SheetEntry(int sheet) =>
+        sheet >= 0 && sheet < SpriteSheetEntries.Length ? SpriteSheetEntries[sheet] : null;
 
     private void NotifySpriteChanged()
     {
-        var bmp = SpriteBitmap;
-        int rows = bmp is null ? 0 : (int)(bmp.Size.Height / Constants.PicY);
-        SpriteEntries = Enumerable.Range(0, Math.Max(0, rows)).ToArray();
-        OnPropertyChanged(nameof(SpriteBitmap));
-        OnPropertyChanged(nameof(SpriteEntries));
-        OnPropertyChanged(nameof(SelectedSpriteSheetEntry));
+        SpriteEntriesMale = RowsOf(SpriteBitmapMale);
+        SpriteEntriesFemale = RowsOf(SpriteBitmapFemale);
+        OnPropertyChanged(nameof(SpriteBitmapMale));
+        OnPropertyChanged(nameof(SpriteBitmapFemale));
+        OnPropertyChanged(nameof(SpriteEntriesMale));
+        OnPropertyChanged(nameof(SpriteEntriesFemale));
+        OnPropertyChanged(nameof(SelectedSpriteSheetMaleEntry));
+        OnPropertyChanged(nameof(SelectedSpriteSheetFemaleEntry));
+    }
+
+    private static IReadOnlyList<int> RowsOf(Bitmap? sheet)
+    {
+        int rows = sheet is null ? 0 : (int)(sheet.Size.Height / Constants.PicY);
+        return Enumerable.Range(0, Math.Max(0, rows)).ToArray();
     }
 
     public ClassEditorViewModel(EditorDataService data, EditorConnection conn) : base(data, conn)
@@ -122,11 +133,12 @@ public sealed partial class ClassEditorViewModel : EditorViewModelBase<ClassRowV
         NotifySpriteChanged();
     }
 
-    // The sheet number chooses which bitmap both sprite pickers read, so it is the one row property the
-    // editor VM has to mirror.
+    // Either sheet number chooses which bitmap its sprite picker reads, so those are the row properties
+    // the editor VM has to mirror.
     private void OnClassPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ClassRowViewModel.SpriteSheet)) NotifySpriteChanged();
+        if (e.PropertyName is nameof(ClassRowViewModel.SpriteSheetMale)
+                           or nameof(ClassRowViewModel.SpriteSheetFemale)) NotifySpriteChanged();
     }
 
     protected override string SectionId => "Classes";

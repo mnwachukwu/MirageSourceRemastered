@@ -52,7 +52,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         foreach (var row in ClassEditor.Classes)
         {
             if (!row.IsLoaded || string.IsNullOrWhiteSpace(row.Name)) continue;
-            classes[row.SpriteSheet] = classes.GetValueOrDefault(row.SpriteSheet) + 1;
+            // One count per sprite, so a class on one sheet counts twice against it.
+            classes[row.SpriteSheetMale] = classes.GetValueOrDefault(row.SpriteSheetMale) + 1;
+            classes[row.SpriteSheetFemale] = classes.GetValueOrDefault(row.SpriteSheetFemale) + 1;
         }
 
         var text = new Dictionary<int, string>();

@@ -28,7 +28,7 @@ public sealed record EnvironmentState(long TodPositionMs, WeatherType Weather, l
     /// 1 on the first weekly boundary). Advances when a 13-week season ends. Wall-clock, like the settlement.</summary>
     public int SeasonNumber { get; init; }
 
-    /// <summary>Server-local date the current season began (a <see cref="Constants.TerritoryWeekResetDay"/>).
+    /// <summary>Server-local date the current season began (a <c>ScheduleConfig.WeekResetDay</c>).
     /// <see cref="DateOnly.MinValue"/> (the default) = uninitialized: adopted on the first weekly boundary,
     /// with no scoring or payout that week (established control carries in).</summary>
     public DateOnly SeasonStartDate { get; init; }

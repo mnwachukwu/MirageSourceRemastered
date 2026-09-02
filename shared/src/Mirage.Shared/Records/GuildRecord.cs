@@ -100,7 +100,7 @@ public sealed class GuildRecord
 
     // ── Weekly financial-health running totals (vault dashboard) ──────────────────────────────────────────
     // Discrete per-type weekly figures shown on the vault page. Reset every week at the settlement's weekly
-    // boundary (Constants.TerritoryWeekResetDay). NOT part of the daily debit/credit math — purely a health
+    // boundary (ScheduleConfig.WeekResetDay). NOT part of the daily debit/credit math — purely a health
     // readout of the week's flows. Persisted with the guild (survive restarts).
     /// <summary>Gold CREDITED to the vault this week from income sources (L5 perk gold + territory income).</summary>
     public long WeeklyIncome { get; set; }
