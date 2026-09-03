@@ -975,7 +975,7 @@
   "Logging_Retain30": "30 days",
   "Logging_RetainForever": "Keep everything",
   "MainWindow_DataMenu": "Reload",
-  "MainWindow_DataRefresh": "Reload World (F5)",
+  "MainWindow_DataRefresh": "Reload World",
   "MainWindow_DataReloadAssets": "Reload Assets",
   "Refresh_FromDisk": "Reloaded from the offline store.",
   "Refresh_SectionMoved": "{Section}: {Before} → {After}",

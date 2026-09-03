@@ -34,7 +34,8 @@
                       IsVisible="{Binding !IsOnline}"/>
             <MenuItem x:Name="_worldCloseItem" Command="{Binding CloseWorldCommand}"
                       IsVisible="{Binding !IsOnline}" IsEnabled="{Binding HasWorld}"/>
-            <MenuItem x:Name="_worldCheckItem" Command="{Binding CheckWorldCommand}"/>
+            <MenuItem x:Name="_worldCheckItem" Command="{Binding CheckWorldCommand}"
+                      IsEnabled="{Binding HasWorld}"/>
             <MenuItem x:Name="_worldSettingsItem" Command="{Binding WorldSettingsCommand}"
                       IsVisible="{Binding !IsOnline}" IsEnabled="{Binding HasWorld}"/>
             <Separator IsVisible="{Binding !IsOnline}"/>

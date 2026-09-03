@@ -975,7 +975,7 @@
   "Logging_Retain30": "30 días",
   "Logging_RetainForever": "Conservar todo",
   "MainWindow_DataMenu": "Recargar",
-  "MainWindow_DataRefresh": "Recargar mundo (F5)",
+  "MainWindow_DataRefresh": "Recargar mundo",
   "MainWindow_DataReloadAssets": "Recargar recursos",
   "Refresh_FromDisk": "Recargado desde el almacén sin conexión.",
   "Refresh_SectionMoved": "{Section}: {Before} → {After}",
