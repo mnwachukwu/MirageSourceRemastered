@@ -1,4 +1,5 @@
 using Mirage.Client.Core.Cache;
+using Mirage.Client.Core.Diagnostics;
 using Mirage.Client.Core.Logic;
 using Mirage.Client.Core.State;
 using Mirage.Shared;
@@ -25,6 +26,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
             _state.ClearMapState();
             _state.CenterMapNum = p.MapNum;
             _state.NeighborMapNums[1, 1] = p.MapNum;
+            ClientLog.Debug("Loading map {Map} rev {Revision}.", p.MapNum, p.Revision);
             _ = ResolveMapAsync(p);
         }
         // Neighbor pre-load: cache-aware, non-blocking — never touches GettingMap.
@@ -75,14 +77,7 @@ public sealed partial class ClientPacketHandler : IClientEvents
         // Guard: the crossed-into map should already be loaded as the neighbor in the crossing
         // direction at the server's current revision.  If it's missing OR cached stale, fall back to
         // a normal blocking reload rather than shifting null/stale data into the center.
-        (int dc, int dr) = p.Dir switch
-        {
-            Direction.Up => (1, 0),
-            Direction.Down => (1, 2),
-            Direction.Left => (0, 1),
-            Direction.Right => (2, 1),
-            _ => (1, 1),
-        };
+        (int dc, int dr) = ClientState.CellToward(p.Dir);
         var neighbor = _state.NeighborMaps[dc, dr];
         if (neighbor is null || _state.NeighborMapNums[dc, dr] != p.MapNum || neighbor.Revision != p.Revision)
         {
@@ -142,7 +137,10 @@ public sealed partial class ClientPacketHandler : IClientEvents
             // Cache miss/stale: ask the server for this specific neighbor's full data.
             _sender.SendNeedNeighborMap(p.MapNum, p.Col, p.Row);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            ClientLog.Warn(ex, "Neighbor map {Map} for cell {Col},{Row} could not be resolved.", p.MapNum, p.Col, p.Row);
+        }
     }
 
     private async Task ResolveMapAsync(CheckForMapPacket p)
@@ -162,7 +160,10 @@ public sealed partial class ClientPacketHandler : IClientEvents
             }
             _sender.SendNeedMap(p.MapNum, cachedRev < 0 ? 0 : cachedRev);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            ClientLog.Error(ex, "Center map {Map} rev {Revision} could not be resolved.", p.MapNum, p.Revision);
+        }
     }
 
     private void HandleSendMap(SendMapPacket p)
@@ -228,13 +229,16 @@ public sealed partial class ClientPacketHandler : IClientEvents
             await _mapCache.SaveAsync(mapNum, map);
             _sender.SendMapData(mapNum);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            ClientLog.Warn(ex, "Map {Map} arrived but could not be cached.", mapNum);
+        }
     }
 
     private async Task SaveNeighborAsync(int mapNum, MapRecord map)
     {
         try { await _mapCache.SaveAsync(mapNum, map); }
-        catch { }
+        catch (Exception ex) { ClientLog.Warn(ex, "Neighbor map {Map} could not be cached.", mapNum); }
     }
 
     private void HandleMapItems(MapItemsPacket p)

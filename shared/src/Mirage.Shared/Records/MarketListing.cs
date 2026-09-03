@@ -15,7 +15,10 @@ public sealed class MarketListing
     ///
     /// <para>NOT serialized. The number lives in the filename, <c>market/listing{Id}.json</c>, and the
     /// loader fills this in from it, so a file copied to another slot cannot claim an id that is not
-    /// its own.</para></summary>
+    /// its own.</para>
+    ///
+    /// <para>A browsing client still needs it — it is the only handle a buyer has — so the id travels in
+    /// <c>MarketListPacket.Entry</c>, which states it explicitly rather than inheriting this rule.</para></summary>
     [JsonIgnore]
     public int Id { get; set; }
     /// <summary>Seller account login — the sale payout and any cancellation return go here.</summary>

@@ -42,6 +42,9 @@ public class GamePanelBehaviorTests
         yield return new QuestDialogPanel();
         yield return new ConversationPanel();
         yield return new ModerationPanel();
+        // Owned by MirageGame rather than the GameplayScreen registry — backtick opens it on every
+        // screen — but it is a DraggablePanel like the rest and answers the contract the same way.
+        yield return new ConsolePanel();
     }
 
     static string Name(IGamePanel p) => p.GetType().Name;

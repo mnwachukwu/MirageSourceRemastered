@@ -59,6 +59,7 @@ public sealed partial class MirageGame : Game
             RememberedLogin = _rememberedLogin,
             Dialog = _dialog,
             OptionsPanel = _optionsPanel,
+            ConsolePanel = _consolePanel,
             OnAspectRatioChanged = v => { _maintainAspectRatio = v; SaveConfig(); },
             OnAlwaysShowBarsChanged = v => { _alwaysShowBars = v; },
             OnShowCombatNumbersChanged = v => { _showCombatNumbers = v; },

@@ -137,6 +137,14 @@ public static partial class EditorStrings
     public const string LayerVisibility_MenuItem = nameof(LayerVisibility_MenuItem);
     public const string LayerVisibility_Title = nameof(LayerVisibility_Title);
     public const string LayerVisibility_Intro = nameof(LayerVisibility_Intro);
+
+    // The Console window: the third of the View menu's modeless windows.
+    public const string Console_MenuItem = nameof(Console_MenuItem);
+    public const string Console_Title = nameof(Console_Title);
+    public const string Console_Intro = nameof(Console_Intro);
+    public const string Console_Clear = nameof(Console_Clear);
+    public const string Console_OpenFolder = nameof(Console_OpenFolder);
+    public const string Console_Status = nameof(Console_Status);
     public const string LayerVisibility_ShowAll = nameof(LayerVisibility_ShowAll);
     public const string LayerVisibility_HideAll = nameof(LayerVisibility_HideAll);
     public const string LayerVisibility_AllShown = nameof(LayerVisibility_AllShown);

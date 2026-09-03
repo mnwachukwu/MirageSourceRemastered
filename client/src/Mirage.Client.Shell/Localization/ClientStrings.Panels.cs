@@ -13,6 +13,7 @@ public static partial class ClientStrings
 
     // ── MarketPanel ─────────────────────────────────────────────────────────────
     public const string MarketPanel_Title = nameof(MarketPanel_Title);
+    public const string ConsolePanel_Title = nameof(ConsolePanel_Title);
     public const string MarketPanel_TabBrowse = nameof(MarketPanel_TabBrowse);
     public const string MarketPanel_TabMine = nameof(MarketPanel_TabMine);
     public const string MarketPanel_ColItem = nameof(MarketPanel_ColItem);

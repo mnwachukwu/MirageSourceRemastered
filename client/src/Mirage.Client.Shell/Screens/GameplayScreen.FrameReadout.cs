@@ -3,17 +3,21 @@ using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Panels;
 using Mirage.Client.Shell.Ui;
-using Mirage.Shared;
 
 namespace Mirage.Client.Shell.Screens;
 
 /// <summary>
-/// The frame readout, stacked upward from just above the action bar. Toggled with <c>/fps</c>.
+/// The frame readout, stacked upward from just above the action bar.
 ///
-/// <para>Everyone sees the rate. A Developer or above also sees the DISTRIBUTION and the catch-up counters,
-/// because a rate cannot show a stutter: one 100 ms frame a second moves 60 fps to 58, which reads as fine.
-/// The median says how it runs, the 99th and the worst say how it hitches, and the catch-up count says
-/// whether the fixed timestep is compounding an overrun into the frames after it.</para>
+/// <para><c>/fps</c> shows the RATE, and only the rate. It is a number to glance at while playing, and one
+/// line is what that wants.</para>
+///
+/// <para>The diagnostics console shows the whole thing — the rate AND the distribution — whatever
+/// <c>/fps</c> is set to. Opening it is the gesture that means "something is wrong here", and having to
+/// also remember a command to see the numbers would be a second step for no reason. A rate cannot show a
+/// stutter: one 100 ms frame a second moves 60 fps to 58, which reads as fine. The median says how it runs,
+/// the 99th and the worst say how it hitches, and the catch-up count says whether the fixed timestep is
+/// compounding an overrun into the frames after it.</para>
 /// </summary>
 public sealed partial class GameplayScreen
 {
@@ -29,6 +33,7 @@ public sealed partial class GameplayScreen
     private readonly List<(string Text, Color Color)> _readoutLines = [];
     private double _readoutBuiltMs = double.NegativeInfinity;
     private float _readoutWidth;
+    private bool _readoutDetailed;
 
     /// <summary>
     /// Where the block starts: at the action bar, unless that would run it off the screen.
@@ -44,12 +49,21 @@ public sealed partial class GameplayScreen
     private void DrawFrameReadout(SpriteBatch sb, SpriteFont font, double nowMs)
     {
         var state = _ctx.State;
-        if (!state.ShowFps) return;
+
+        // Read every frame, not once per rebuild: toggling the console has to change the block on the next
+        // refresh rather than whenever the 250 ms timer next comes round.
+        bool detailed = _ctx.ConsolePanel.IsOpen;
+        if (!state.ShowFps && !detailed) return;
+        if (detailed != _readoutDetailed)
+        {
+            _readoutDetailed = detailed;
+            _readoutBuiltMs = double.NegativeInfinity;   // rebuild now; the block just changed shape
+        }
 
         if (nowMs - _readoutBuiltMs >= ReadoutRefreshMs)
         {
             _readoutBuiltMs = nowMs;
-            BuildFrameReadout(state);
+            BuildFrameReadout(state, detailed);
             _readoutWidth = 0f;
             foreach (var (text, _) in _readoutLines)
                 _readoutWidth = MathF.Max(_readoutWidth, font.MeasureString(text).X);
@@ -68,7 +82,7 @@ public sealed partial class GameplayScreen
         }
     }
 
-    private void BuildFrameReadout(Mirage.Client.Core.State.ClientState state)
+    private void BuildFrameReadout(Mirage.Client.Core.State.ClientState state, bool detailed)
     {
         // Built bottom-up, then drawn upward from the bar, so adding a line pushes the stack away from the
         // action bar rather than over it.
@@ -76,7 +90,7 @@ public sealed partial class GameplayScreen
         lines.Clear();
         lines.Add((ClientStrings.Format(ClientStrings.ChatPanel_FpsDisplay, ("Fps", state.GameFps)), ReadoutRate));
 
-        if (state.Me.Access >= AdminLevel.Developer)
+        if (detailed)
         {
             var s = state.Frames.Take();
             if (s.Frames > 0)

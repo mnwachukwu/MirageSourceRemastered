@@ -227,6 +227,14 @@ public sealed partial class MirageGame : Game
     private int _currentMusicTrack;
     private readonly OptionsPanel _optionsPanel = new();
     private bool _optionsPanelFocused;
+    // Owned here rather than by GameplayScreen, because backtick opens it on every screen.
+    private readonly ConsolePanel _consolePanel = new();
+
+    // Holding the world while a map loads: whether there is a complete frame to hold at all, and how the
+    // one being held was lit. See the hold in MirageGame.Draw.
+    private bool _worldDrawn;
+    private bool _heldSplitPath;
+    private bool _heldNeedsLightPass;
     private readonly ConfigPanel _configPanel = new();
     private bool _configPanelFocused;
     // Z-order for the two pre-connect panels: true = Config above Options, false = Options above

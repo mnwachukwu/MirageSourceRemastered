@@ -160,7 +160,15 @@ public static class InputProcessor
                 _ => false
             };
 
-            if (!hasAdjacentMap || EdgeDestBlocked(state, dir.Value, me.X, me.Y, out newLayer))
+            // 🔴 And only if that neighbor is actually LOADED. The prediction below shifts the grid on
+            // the spot, so the cell it crosses into becomes the center map — an empty one makes
+            // ClientState.Map null, which every draw path treats as impossible. The declaration and the
+            // delivery are separate: a warp empties the grid and the server refills it a packet at a
+            // time, so stepping straight off a fresh map's edge can arrive before the cell does.
+            // Refusing here costs the frames until it lands; crossing anyway costs the process.
+            bool neighborLoaded = state.NeighborToward(dir.Value) is not null;
+
+            if (!hasAdjacentMap || !neighborLoaded || EdgeDestBlocked(state, dir.Value, me.X, me.Y, out newLayer))
             {
                 if (me.Dir != dir.Value)
                 {

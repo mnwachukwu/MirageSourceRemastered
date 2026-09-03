@@ -88,6 +88,7 @@
   "InnPanel_AccessBankButton": "Access Bank",
   "InnPanel_MarketplaceButton": "Marketplace",
   "MarketPanel_Title": "Marketplace",
+  "ConsolePanel_Title": "Console",
   "MarketPanel_TabBrowse": "Browse",
   "MarketPanel_TabMine": "My Listings",
   "MarketPanel_ColItem": "Item",

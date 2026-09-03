@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
@@ -118,6 +119,16 @@ public sealed partial class MirageGame : Game
         _input.SetMouseTransform(lb.X, lb.Y, scaleX, scaleY);
         if (IsActive)
             _input.Update();
+
+        // The console, above every screen so it opens on the login screen and character select as well as
+        // in game — the moments worth reading a log for include the ones before a world exists. The key is
+        // CONSUMED so nothing downstream also acts on it, and the panel takes no other input.
+        if (_input.IsKeyPressed(Keys.OemTilde))
+        {
+            _input.ConsumeKey(Keys.OemTilde);
+            _consolePanel.Toggle();
+        }
+        _consolePanel.Update(_input);
 
         // Alt+F4 was intercepted by the SDL filter; show quit confirm directly (bypass open panels).
         if (_pendingAltF4)

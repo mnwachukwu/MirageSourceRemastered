@@ -100,6 +100,9 @@
             <MenuItem x:Name="_viewLayerVisibilityItem"
                       ToggleType="CheckBox"
                       Click="ViewLayerVisibility_Click"/>
+            <MenuItem x:Name="_viewConsoleItem"
+                      ToggleType="CheckBox"
+                      Click="ViewConsole_Click"/>
           </MenuItem>
           <MenuItem x:Name="_languageMenu" />
           <MenuItem x:Name="_helpMenu">

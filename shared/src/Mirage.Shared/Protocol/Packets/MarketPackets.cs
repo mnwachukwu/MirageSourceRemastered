@@ -11,11 +11,44 @@ namespace Mirage.Shared.Protocol.Packets;
 public sealed record MarketListPacket : IPacket
 {
     [JsonPropertyName("cmd")] public string Cmd => PacketNames.MarketList;
-    [JsonPropertyName("listings")] public List<MarketListing> Listings { get; init; } = new();
+    [JsonPropertyName("listings")] public List<Entry> Listings { get; init; } = new();
     [JsonPropertyName("sales")] public List<MarketSale> MySales { get; init; } = new();
     [JsonPropertyName("me")] public string MeLogin { get; init; } = "";
     [JsonPropertyName("open")] public bool Open { get; init; }
     [JsonPropertyName("now")] public long NowUtc { get; init; }   // server UTC-seconds, so the client can render each listing's time-left
+
+    /// <summary>One listing as a browser sees it.
+    ///
+    /// <para>🔴 Its own shape rather than <see cref="MarketListing"/> because the two want opposite things
+    /// from the id. On disk the FILENAME owns it and a copy inside the file would be a second source of
+    /// truth able to disagree with the name it is stored under, so the record marks it
+    /// <c>[JsonIgnore]</c>. Here it is the only handle there is: a buyer names a listing back to the
+    /// server by this number, and one that arrives without it can be neither bought nor canceled — the
+    /// server is handed 0, finds no listing 0, and answers that the listing is gone.</para>
+    ///
+    /// <para>Everything else is a straight copy. <see cref="From"/> is the one place that mapping is
+    /// made.</para></summary>
+    public sealed record Entry
+    {
+        [JsonPropertyName("id")] public int Id { get; init; }
+        [JsonPropertyName("seller")] public string Seller { get; init; } = "";
+        [JsonPropertyName("itemNum")] public int ItemNum { get; init; }
+        [JsonPropertyName("quantity")] public int Quantity { get; init; }
+        [JsonPropertyName("dur")] public int Dur { get; init; }
+        [JsonPropertyName("price")] public int Price { get; init; }
+        [JsonPropertyName("listedUtc")] public long ListedUtc { get; init; }
+
+        public static Entry From(MarketListing listing) => new()
+        {
+            Id = listing.Id,
+            Seller = listing.Seller,
+            ItemNum = listing.ItemNum,
+            Quantity = listing.Quantity,
+            Dur = listing.Dur,
+            Price = listing.Price,
+            ListedUtc = listing.ListedUtc,
+        };
+    }
 }
 
 // ── C→S ─────────────────────────────────────────────────────────────────────

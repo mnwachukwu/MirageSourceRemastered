@@ -116,6 +116,31 @@ public sealed partial class ClientState
     /// scrolls off is dropped and the newly-revealed edge is left empty for the server to fill.
     /// Traversal NPCs need no shifting — they're keyed by identity and placed by CurrentMapNum each frame.
     /// </summary>
+    /// <summary>The 3×3 cell a step in <paramref name="dir"/> crosses into; the center for anything else.
+    /// One definition, because both the client's predicted cross and the server's confirmed one have to
+    /// agree about which cell is about to become the center.</summary>
+    public static (int Col, int Row) CellToward(Direction dir) => dir switch
+    {
+        Direction.Up => (1, 0),
+        Direction.Down => (1, 2),
+        Direction.Left => (0, 1),
+        Direction.Right => (2, 1),
+        _ => (1, 1),
+    };
+
+    /// <summary>The map loaded in that cell, or null if nothing is there yet.
+    ///
+    /// <para>🔴 Not the same question as whether the center map DECLARES a neighbor that way. The grid is
+    /// filled asynchronously — a warp empties it and the server re-pushes each cell — so there is a real
+    /// window where <see cref="MapRecord.Down"/> names a map and the cell below is still empty. Crossing
+    /// on the declaration alone shifts that emptiness into the center, and <see cref="Map"/> is typed as
+    /// though it can never be null.</para></summary>
+    public MapRecord? NeighborToward(Direction dir)
+    {
+        (int col, int row) = CellToward(dir);
+        return NeighborMaps[col, row];
+    }
+
     public void ShiftGrid(Direction crossDir)
     {
         (int dc, int dr) = crossDir switch

@@ -27,6 +27,9 @@ public sealed class ShellContext
     public required string RememberedLogin { get; set; }
     public required AlertDialog Dialog { get; init; }
     public required OptionsPanel OptionsPanel { get; init; }
+    /// <summary>The diagnostics console, owned by the game rather than by a screen because backtick opens
+    /// it on all of them. Handed over so the frame readout can ask whether it is showing.</summary>
+    public required ConsolePanel ConsolePanel { get; init; }
     public required Action<bool> OnAspectRatioChanged { get; init; }
     public required Action<bool> OnAlwaysShowBarsChanged { get; init; }
     public required Action<bool> OnShowCombatNumbersChanged { get; init; }

@@ -18,6 +18,10 @@ public static class EditorLog
 {
     private static readonly LoggingLevelSwitch LevelSwitch = new(LogEventLevel.Information);
     private static Logger? _logger;
+
+    /// <summary>The in-memory sink the Console window shows. It survives a <see cref="Reconfigure"/>,
+    /// which builds a new file sink — changing retention must not throw away what has been logged.</summary>
+    public static readonly ConsoleSink Console = new();
     private static DispatcherTimer? _heartbeat;
     private static System.Threading.Timer? _stallObserver;
     private static long _lastHeartbeatMs;
@@ -62,6 +66,7 @@ public static class EditorLog
                     retainedFileCountLimit: setting.RetainedFileCount,
                     shared: true,
                     outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Sink(Console)
                 .CreateLogger();
         }
         catch

@@ -7,6 +7,7 @@ using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Localization;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
+using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using System.Globalization;
 using System.Linq;
@@ -67,7 +68,7 @@ public sealed class MarketPanel : IGamePanel
     private readonly Button _salesTab = new();
 
     // ── Tables ──────────────────────────────────────────────────────────────────────
-    private readonly Table<MarketListing> _table = new();      // Browse + My Listings
+    private readonly Table<MarketListPacket.Entry> _table = new();      // Browse + My Listings
     private readonly Table<MarketSale> _salesTable = new();    // Sales history
     private int _lastMarketVersion = -1;
     private long _serverNowUtc;         // server clock from the last market push (drives the Time Left column)
@@ -401,7 +402,7 @@ public sealed class MarketPanel : IGamePanel
     private static int ParsePrice(string s) => int.TryParse(s, out int p) && p > 0 ? Math.Min(p, Constants.MarketMaxPrice) : 0;
 
     // Most units of a currency listing the buyer can afford at its per-unit price (capped at the stock).
-    private static int MaxBuyable(MarketListing l, long gold) => l.Price <= 0 ? 0 : (int)Math.Min(l.Quantity, gold / l.Price);
+    private static int MaxBuyable(MarketListPacket.Entry l, long gold) => l.Price <= 0 ? 0 : (int)Math.Min(l.Quantity, gold / l.Price);
 
     private bool IsCurrency(ClientState state, int itemNum)
         => itemNum > 0 && itemNum < state.Items.Length && state.Items[itemNum]?.Type == ItemType.Currency;
@@ -414,7 +415,7 @@ public sealed class MarketPanel : IGamePanel
     }
 
     // A currency listing prices per unit, so its Price column shows the "/ea" form; anything else is a total.
-    private string PriceText(MarketListing m)
+    private string PriceText(MarketListPacket.Entry m)
     {
         bool currency = _itemDefs is not null && m.ItemNum > 0 && m.ItemNum < _itemDefs.Length && _itemDefs[m.ItemNum]?.Type == ItemType.Currency;
         return currency
@@ -500,7 +501,7 @@ public sealed class MarketPanel : IGamePanel
 
     // Compact "time left" for a listing — the largest non-zero unit until it expires (returns to the seller),
     // from the frozen server clock. Rounds up to the minute and reuses the mail countdown's localized unit strings.
-    private string FormatTimeLeft(MarketListing m)
+    private string FormatTimeLeft(MarketListPacket.Entry m)
     {
         long remaining = m.ListedUtc + Constants.MarketListingLifetimeSeconds - _serverNowUtc;
         long totalMinutes = (Math.Max(0, remaining) + 59) / 60;   // round up, like the mail countdown

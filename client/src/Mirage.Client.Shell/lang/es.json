@@ -88,6 +88,7 @@
   "InnPanel_AccessBankButton": "Entrar al banco",
   "InnPanel_MarketplaceButton": "Mercado",
   "MarketPanel_Title": "Mercado",
+  "ConsolePanel_Title": "Consola",
   "MarketPanel_TabBrowse": "Explorar",
   "MarketPanel_TabMine": "Mis anuncios",
   "MarketPanel_ColItem": "Objeto",

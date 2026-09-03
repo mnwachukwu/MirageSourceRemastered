@@ -49,6 +49,51 @@ second half this would be an ordinary bad idea. See
 Nothing else in the tree works this way — the seed data is generated but its generators run anywhere, and
 `git status` after a regeneration is the same review this uses.
 
+## Diagnostics: every app keeps a log
+
+All three deployables log to a daily-rolling Serilog file, with the same output template, so one report
+reads like another and a timeline can be assembled across them. This is the whole troubleshooting story:
+**there is always a file to ask for.**
+
+| App | Files | Kept | Where |
+|---|---|---|---|
+| Client | `client-*.log` | 10 days | its **cache** dir (beside the map cache) |
+| Editor | `editor-*.log` | 3 days, configurable to 30 or forever | its **data** dir (`logs/`) |
+| Server | `server-*.log` | 7 days | `logs/` beside the executable |
+| Server | `network-*.log` | 3 days | packet traffic, split out because it is noisy |
+| Server | `chat/*.log` | 30 days | what was said, kept longest — it is the moderation record |
+
+Each also has a way to watch the log live, which is the same stream, not a second one:
+
+- **Client** — backtick (`` ` ``) opens an in-game console, on every screen including the login screen.
+- **Editor** — View > Console, a modeless window beside World Preview and Layer Visibility. How much
+  detail it shows is Help > Logging's business, not the window's: the level switch governs the file and
+  this sink together, so raising it to `Debug` fills both with no restart, and the window can never
+  disagree with the file it is showing.
+- **Server** — the shell's Console tab, which attaches and detaches without stopping the server.
+
+Three properties are what make these useful for a bug report rather than only for live watching:
+
+- **They record before anyone thinks to look.** Nothing here starts when a window is opened. The client's
+  console reads a sink that has been filling since launch, so opening it after something odd still shows
+  the odd thing.
+- **A crash is the last thing in the file.** This matters most on the client: it is a `WinExe`, so standard
+  output goes nowhere on Windows, and a crash reaches the server as an ordinary disconnect —
+  indistinguishable from someone closing the window. Unhandled exceptions on the game thread and on
+  background threads both land in the log, which is the only artifact a crashed client leaves behind.
+- **A failure that was handled still leaves a mark.** The paths that swallow an exception to keep running —
+  a map that would not cache, a neighbor that would not resolve — log it on the way past. A silent
+  `catch` is how a reproducible bug becomes an unreproducible one.
+
+🔴 **Client log lines are shown on screen, so treat them as public.** A player can open the console and
+screenshot it. What the client already knows and displays is safe to log; a credential, a session token,
+or a server-side input the client is merely passing through is not. The server's log has no such audience
+and is held to the ordinary rule instead: it is an operator's record.
+
+**The client console displays and nothing else** — no command line, no input of any kind. It answers "what
+just happened"; a console that also *did* things would need a permission model, a parser, and a reason to
+trust whoever is typing. The server shell is where commands belong, and it has them.
+
 ## Per-user file locations (why the map cache is under Local, not Roaming)
 
 > Author's note-to-self: this is written down purely so future-me remembers *why* the split is the way it is — it's an easy detail to second-guess or "tidy up" into one folder later. Don't.

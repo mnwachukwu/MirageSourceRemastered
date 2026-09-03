@@ -74,6 +74,15 @@ public sealed class AppSettings
     public double? WorldPreviewWidth { get; set; }
     public double? WorldPreviewHeight { get; set; }
 
+    // Console window, on the same terms.
+    /// <summary>Whether the Console window is showing. It reads a log that is kept whether the window is
+    /// open or not, so reopening it costs nothing and loses nothing.</summary>
+    public bool ConsoleOpen { get; set; }
+    public double? ConsoleX { get; set; }
+    public double? ConsoleY { get; set; }
+    public double? ConsoleWidth { get; set; }
+    public double? ConsoleHeight { get; set; }
+
     // Layer Visibility window, on the same terms.
     /// <summary>Whether the Layer Visibility window is showing. The WINDOW is remembered; which layers
     /// were hidden is deliberately not. A layer left put away from a previous session is exactly the trap

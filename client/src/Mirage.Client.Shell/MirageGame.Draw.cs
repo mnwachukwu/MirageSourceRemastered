@@ -35,6 +35,18 @@ public sealed partial class MirageGame : Game
         var gs = _screens.Current as GameplayScreen;
         var lb = GetLetterbox();
 
+        // 🔴 While a map is being fetched the world is half torn down: ClearMapState has dropped all eight
+        // neighbors and the center cell still holds the map being LEFT, so drawing it shows the old map
+        // ringed in black, then the tiles swap, then the creatures pop in — three visible steps for one
+        // warp, and warping repeatedly stacks them.
+        //
+        // So the last COMPLETE frame is held instead, and the cut happens once, when the new map is ready.
+        // Both world and light targets are PreserveContents, so holding is simply not redrawing them:
+        // the composite in Pass 2 blits whatever they last held, at a fixed rect, with the camera already
+        // baked in. The frame is frozen for the length of the fetch — milliseconds from cache — which reads
+        // as an instant cut rather than a flicker.
+        bool holdWorld = gs is not null && _state.GettingMap && _worldDrawn;
+
         // Pass 1a: render ONLY the scrolling world into its own supersampled target (gameplay only), so it
         // can be composited to the screen with a sub-pixel slide instead of being baked into the reference
         // target's whole-pixel grid (which judders under non-integer window upscaling).
@@ -52,7 +64,15 @@ public sealed partial class MirageGame : Game
         // Set when the two-light-map occlusion split ran this frame (it bakes lighting per layer), so Pass 2
         // below skips its whole-view light multiply. Hoisted here to reach that second `gs is not null` block.
         bool splitPath = false;
-        if (gs is not null)
+        if (holdWorld)
+        {
+            // Pass 2 has to light the held frame exactly the way the frame it is holding was lit, so it
+            // reuses that frame's answers rather than this frame's. Recomputing them against a torn-down
+            // grid is how a held night frame would come back either doubly dark or not dark at all.
+            splitPath = _heldSplitPath;
+            needsLightPass = _heldNeedsLightPass;
+        }
+        else if (gs is not null)
         {
             EnsureWorldTarget(lb);
             var wt = Matrix.CreateScale(_worldSS);
@@ -190,6 +210,11 @@ public sealed partial class MirageGame : Game
                     _lightTicks += Stopwatch.GetTimestamp() - _lightStart;
                 }
             }
+
+            // What Pass 2 needs to light this frame, kept so a later held frame can be lit the same way.
+            _heldSplitPath = splitPath;
+            _heldNeedsLightPass = needsLightPass;
+            _worldDrawn = true;
         }
 
         // Pass 1b: draw the UI / everything else into the 800×600 reference render target.  In gameplay
@@ -234,6 +259,9 @@ public sealed partial class MirageGame : Game
         {
             HudPanel.OptionsLink.Draw(_sb!, _font!, _input);
         }
+        // Last, so it sits over every screen and every panel. It is the thing you open to read while
+        // something else is wrong on screen, which only works if nothing can cover it.
+        _consolePanel.Draw(_sb!, _font!, Environment.TickCount64, isActive: true);
         _sb.End();
 
         // Pass 2: composite the world UNDER the UI.  World first into its map area, then darkness + glow,

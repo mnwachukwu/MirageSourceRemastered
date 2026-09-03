@@ -86,7 +86,7 @@ public sealed partial class ClientState
     // ── Marketplace (global listings; opened from an inn, replaced wholesale by MarketListPacket) ──
 
     /// <summary>The current marketplace listings, replaced whole each <c>MarketListPacket</c>.</summary>
-    public List<MarketListing> Market { get; private set; } = new();
+    public List<MarketListPacket.Entry> Market { get; private set; } = new();
 
     /// <summary>The local account login (stamped on each market push), so the Market panel can pick out the
     /// player's own listings for its "My Listings" tab.</summary>
@@ -106,7 +106,7 @@ public sealed partial class ClientState
     /// (a frozen snapshot between pushes, like <see cref="MailNowUtc"/>).</summary>
     public long MarketNowUtc { get; private set; }
 
-    public void SetMarket(List<MarketListing> listings, List<MarketSale> sales, string meLogin, bool open, long nowUtc)
+    public void SetMarket(List<MarketListPacket.Entry> listings, List<MarketSale> sales, string meLogin, bool open, long nowUtc)
     {
         Market = listings;
         MarketSales = sales;

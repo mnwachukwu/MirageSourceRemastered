@@ -313,7 +313,7 @@ public sealed class MarketSystem : GameSystem
         if (!sp.IsPlaying) return;
         _dispatcher.SendTo(index, new MarketListPacket
         {
-            Listings = _world.MarketListings.Values.Select(l => l.Clone()).ToList(),
+            Listings = _world.MarketListings.Values.Select(MarketListPacket.Entry.From).ToList(),
             MySales = _world.MarketSales.Where(s => string.Equals(s.Seller, sp.Login, StringComparison.OrdinalIgnoreCase))
                 .Select(s => s.Clone()).ToList(),
             MeLogin = sp.Login,

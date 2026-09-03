@@ -88,6 +88,7 @@ public partial class MainWindow : FAAppWindow
         _viewMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ViewMenu);
         _viewWorldPreviewItem.Header = EditorStrings.Get(EditorStrings.WorldPreview_MenuItem);
         _viewLayerVisibilityItem.Header = EditorStrings.Get(EditorStrings.LayerVisibility_MenuItem);
+        _viewConsoleItem.Header = EditorStrings.Get(EditorStrings.Console_MenuItem);
         _exportMenu.Header = EditorStrings.Get(EditorStrings.MainWindow_ExportMenu);
         _exportMapItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportMapButton);
         _exportAreaItem.Header = EditorStrings.Get(EditorStrings.MapEditor_ExportAreaButton);
@@ -175,6 +176,7 @@ public partial class MainWindow : FAAppWindow
             Position = new PixelPoint((int)settings.WindowX.Value, (int)settings.WindowY.Value);
         RestoreWorldPreview();
         RestoreLayerVisibility();
+        RestoreConsole();
     }
 
     /// <summary>Close guard. With unsaved work or a live connection the close is canceled and
@@ -381,9 +383,15 @@ public partial class MainWindow : FAAppWindow
         await dlg.ShowDialog(this);
     }
 
+    private async void HelpLogging_Click(object? sender, RoutedEventArgs e) => await ShowLoggingDialogAsync(this);
+
     /// <summary>Capture level and retention. A confirmed change is applied to the live sink at once and
-    /// persisted, so the next thing logged is already at the new level.</summary>
-    private async void HelpLogging_Click(object? sender, RoutedEventArgs e)
+    /// persisted, so the next thing logged is already at the new level.
+    ///
+    /// <para>One method for both ways in — the Help menu and the Console window's button — so the two can
+    /// never offer different controls over the same setting. <paramref name="owner"/> is whichever window
+    /// asked, because a dialog modal to the wrong one is a dialog you cannot reach.</para></summary>
+    internal async Task ShowLoggingDialogAsync(Window owner)
     {
         var dlgVm = new LoggingDialogViewModel(AppSettings.Current.Logging);
         var dlg = new LoggingDialog { DataContext = dlgVm };
@@ -400,7 +408,7 @@ public partial class MainWindow : FAAppWindow
         };
         dlg.CloseWhen(h => dlgVm.Confirmed += h, h => dlgVm.Canceled += h);
         EditorLog.Debug("Logging configuration opened.");
-        await dlg.ShowDialog(this);
+        await dlg.ShowDialog(owner);
     }
 
     private async void HelpAbout_Click(object? sender, RoutedEventArgs e)
@@ -537,5 +545,45 @@ public partial class MainWindow : FAAppWindow
         if (!AppSettings.Current.LayerVisibilityOpen) return;
         _viewLayerVisibilityItem.IsChecked = true;
         OpenLayerVisibility();
+    }
+
+    private ConsoleWindow? _console;
+
+    private void ViewConsole_Click(object? sender, RoutedEventArgs e)
+    {
+        bool wanted = _viewConsoleItem.IsChecked;
+        if (wanted) OpenConsole(); else _console?.CloseDeferred();
+
+        AppSettings.Current.ConsoleOpen = wanted;
+        AppSettings.Current.Save();
+    }
+
+    private void OpenConsole()
+    {
+        if (_console is not null)
+        {
+            _console.Activate();
+            return;
+        }
+
+        // A closed window cannot be shown again, so each toggle builds a fresh one. The log it shows
+        // outlives it either way — the sink is on EditorLog, not on this.
+        var window = new ConsoleWindow { DataContext = new ConsoleViewModel() };
+        window.Closed += (_, _) =>
+        {
+            _console = null;
+            _viewConsoleItem.IsChecked = false;
+            AppSettings.Current.ConsoleOpen = false;
+            AppSettings.Current.Save();
+        };
+        _console = window;
+        window.Show(this);
+    }
+
+    private void RestoreConsole()
+    {
+        if (!AppSettings.Current.ConsoleOpen) return;
+        _viewConsoleItem.IsChecked = true;
+        OpenConsole();
     }
 }
