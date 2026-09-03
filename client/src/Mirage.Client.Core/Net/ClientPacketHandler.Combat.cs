@@ -46,8 +46,15 @@ public sealed partial class ClientPacketHandler : IClientEvents
         player.AttackTimer = Environment.TickCount64;
         // Heals on a peaceful target don't flip combat status — server gates this with InCombat.
         if (p.InCombat) player.LastCombatMs = Environment.TickCount64;
+
+        // A cast that found nothing still costs the pose and the cooldown, both stamped above — the same
+        // way a swing into thin air does. What it does NOT get is the spell itself: a bolt with nowhere to
+        // fly would burst on the caster, which reads as the spell landing on them.
+        var target = TargetRefFrom(p.TargetType, p.Target, p.TargetMap, p.SpawnMap, p.SpawnSlot);
+        if (target.Kind == TargetKind.None) return;
+
         SpellCast?.Invoke(new SpellCastFx(player.Map, player.X, player.Y, player.XOffset, player.YOffset, 1,
-            SpellTypeFor(p.SpellNum), TargetRefFrom(p.TargetType, p.Target, p.TargetMap, p.SpawnMap, p.SpawnSlot)));
+            SpellTypeFor(p.SpellNum), target));
     }
 
     private void HandlePlayerDeath(PlayerDeathPacket p)
@@ -64,9 +71,10 @@ public sealed partial class ClientPacketHandler : IClientEvents
     private void HandleSetTarget(SetTargetPacket p)
         => TargetAssigned?.Invoke(TargetRefFrom(p.TargetType, p.Target, p.TargetMap, p.SpawnMap, p.SpawnSlot));
 
-    // Translates the server's TargetType convention (0=player, 1=npc, 2=self, 3=traversal) into the client's
-    // TargetRef shape. Self collapses to a Player ref on the local index, matching the click-own-tile path in
-    // HandleSearch. Shared by target assignment and the cast-FX projectile homing.
+    // Translates the server's TargetType convention (0=player, 1=npc, 2=self, 3=traversal, and
+    // Constants.CastTargetNone for a cast that found nothing) into the client's TargetRef shape. Self
+    // collapses to a Player ref on the local index, matching the click-own-tile path in HandleSearch.
+    // Shared by target assignment and the cast-FX projectile homing.
     private TargetRef TargetRefFrom(byte targetType, int target, int targetMap, int spawnMap, int spawnSlot)
         => targetType switch
         {

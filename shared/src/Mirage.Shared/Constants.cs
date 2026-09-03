@@ -278,6 +278,10 @@ public static class Constants
     public const long NpcAttackCooldownMs = 1000;
     public const long SpellCastCooldownMs = 1000;
 
+    /// <summary>Cast-packet <c>TargetType</c> for a cast that found nothing: the pose and the cooldown play,
+    /// no projectile does. The rest of the convention is 0=player, 1=npc, 2=self, 3=traversal.</summary>
+    public const byte CastTargetNone = 4;
+
     // Drinking runs on its OWN clock, and a slower one. Sharing the action beat made a potion cost a
     // swing, which turned self-healing into a straight substitute for a second body in the fight; on a
     // separate 2s track it stays useful without replacing the healer standing next to you.

@@ -592,6 +592,14 @@ public sealed class SpellSystem : GameSystem
                 // into thin air does. Everything above this point is the spell being turned down (unknown,
                 // too low a level, not enough mana, out of sight), and a refusal costs nothing because
                 // nothing was attempted. Here the player did cast; there was simply no one to cast at.
+                //
+                // Broadcast so the caster's own client can show the cooldown it just started, the same way
+                // it learns about a cast that landed. TargetType NONE says there is nothing to fly at, so
+                // the pose and the timer play and no projectile does.
+                SendToMap(_world, p.Map, new PlayerCastPacket
+                {
+                    Index = index, SpellNum = spellNum, TargetType = Constants.CastTargetNone,
+                });
                 whiffed = true;
             }
         }
