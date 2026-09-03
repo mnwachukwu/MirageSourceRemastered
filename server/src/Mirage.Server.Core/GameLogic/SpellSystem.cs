@@ -93,9 +93,10 @@ public sealed class SpellSystem : GameSystem
     //   9. NPC-target branch
     //      - Non-friendly/shopkeeper → all six spell types + deduct MP + Casted=true
     //      - Friendly/shopkeeper     → "Could not cast spell!"
-    //  10. If Casted — or if the cast found no target at all — set AttackTimer. A cast at nothing is a
-    //      whiff and pays the cooldown, the way a swing into thin air does; a REFUSAL above (unknown spell,
-    //      level, INT, mana, line of sight) pays nothing, because nothing was attempted.
+    //  10. If Casted: set AttackTimer. A cast that finds NO TARGET is a whiff — it pays the same cooldown a
+    //      swing into thin air does, stamped by Whiff() where it is discovered. A REFUSAL (unknown spell,
+    //      level, INT, mana, range, line of sight, aiming a harmful spell at yourself) pays nothing,
+    //      because nothing was attempted.
 
     public void CastSpell(int index, int spellSlot, bool forceSelf = false)
     {
@@ -272,9 +273,6 @@ public sealed class SpellSystem : GameSystem
         // own friendly-target gate); the player/self branches emit inline below.
         int n = sp.Target;
         bool casted = false;
-        // The cast happened but found nothing to land on. Costs the cooldown like a missed swing, and
-        // nothing else — no mana, no reagent, no effect.
-        bool whiffed = false;
         // For the player/self branches: whether this cast draws the caster into combat, passed to the cast-FX
         // broadcast so observer clients stamp the bar. Sub spells always set it; Add (heal) spells only when the
         // target is already fighting — healing in peace is a non-combat action.
@@ -320,7 +318,13 @@ public sealed class SpellSystem : GameSystem
             bool addType = spell.Type >= SpellType.AddHp && spell.Type <= SpellType.AddSp;
             if (!addType)
             {
-                SendMsg(index, (!forceSelf && n == 0) ? ServerStrings.SpellSystem_NoTarget : ServerStrings.SpellSystem_CannotHarmSelf, GameColor.BrightRed, ChatChannel.System);
+                // Casting a harmful spell with nothing selected is a WHIFF and pays the cooldown; aiming one
+                // at yourself is a refusal and pays nothing. The difference is whether there was a target at
+                // all — a refusal tells you the target is wrong, a whiff tells you there wasn't one.
+                bool noTarget = !forceSelf && n == 0;
+                SendMsg(index, noTarget ? ServerStrings.SpellSystem_NoTarget : ServerStrings.SpellSystem_CannotHarmSelf,
+                    GameColor.BrightRed, ChatChannel.System);
+                if (noTarget) Whiff(index, p.Map, spellNum);
                 return;
             }
             // Self-target heal: target == caster, so the "target in combat" rule resolves to the caster's own
@@ -588,26 +592,15 @@ public sealed class SpellSystem : GameSystem
             else
             {
                 SendMsg(index, ServerStrings.SpellSystem_NoTarget, GameColor.BrightRed, ChatChannel.System);
-                // 🔴 A cast at nothing is a WHIFF, not a refusal, and a whiff costs the cooldown — a swing
-                // into thin air does. Everything above this point is the spell being turned down (unknown,
-                // too low a level, not enough mana, out of sight), and a refusal costs nothing because
-                // nothing was attempted. Here the player did cast; there was simply no one to cast at.
-                //
-                // Broadcast so the caster's own client can show the cooldown it just started, the same way
-                // it learns about a cast that landed. TargetType NONE says there is nothing to fly at, so
-                // the pose and the timer play and no projectile does.
-                SendToMap(_world, p.Map, new PlayerCastPacket
-                {
-                    Index = index, SpellNum = spellNum, TargetType = Constants.CastTargetNone,
-                });
-                whiffed = true;
+                Whiff(index, p.Map, spellNum);
             }
         }
 
-        if (casted || whiffed)
+        if (casted)
         {
-            // The cast FX packet already went out above (before the damage) so observers could time the
-            // number/death to the projectile.
+            // Cast succeeded: stamp the cooldown. The cast FX packet already went out above (before the
+            // damage) so observers could time the number/death to the projectile. A cast that found nothing
+            // is stamped by Whiff at the point it is discovered, since those paths return early.
             sp.AttackTimer = Environment.TickCount64;
         }
     }
@@ -623,6 +616,27 @@ public sealed class SpellSystem : GameSystem
     /// cast's success path — after every range/LoS/target/PvP gate passes but BEFORE the effect sends its
     /// damage/death — so a rejected cast produces no phantom projectile and no combat bar, while a valid one still
     /// lets the client register the in-flight bolt and defer the damage number / death onto its arrival.</summary>
+    /// <summary>A cast that found nothing to land on: the caster pays the cooldown and nothing else.
+    ///
+    /// <para>🔴 A whiff is not a refusal. Everything the spell can be turned down for — not known, level,
+    /// INT, mana, out of range, no line of sight — costs nothing, because nothing was attempted. Here the
+    /// player did cast and there was simply no one to cast at, which is a swing into thin air and is priced
+    /// like one.</para>
+    ///
+    /// <para>Broadcast rather than only stamped, because the cooldown BAR is drawn from the client's own
+    /// copy of the timer and the client learns it from this packet. <see cref="Constants.CastTargetNone"/>
+    /// says there is nothing to fly at, so the pose and the timer play and no projectile does — a bolt with
+    /// nowhere to go bursts on the caster, which reads as the spell landing on them. No mana, no reagent,
+    /// and no combat flag: a whiff starts no fight.</para></summary>
+    private void Whiff(int index, int casterMap, int spellNum)
+    {
+        SendToMap(_world, casterMap, new PlayerCastPacket
+        {
+            Index = index, SpellNum = spellNum, TargetType = Constants.CastTargetNone,
+        });
+        _pm[index].AttackTimer = Environment.TickCount64;
+    }
+
     private void BroadcastCastFx(int index, int casterMap, int spellNum, bool inCombat, CastFxTarget t) =>
         SendToMap(_world, casterMap, new PlayerCastPacket
         {

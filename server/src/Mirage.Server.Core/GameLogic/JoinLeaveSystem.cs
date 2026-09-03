@@ -165,6 +165,18 @@ public sealed class JoinLeaveSystem : GameSystem
         // changes when the player edits it, and each edit is echoed by its own handler.
         _dispatcher.SendTo(index, PacketHandler.BuildHotkeysPacket(p));
 
+        // 🔴 The mailbox and the social lists, on the same terms and for a sharper reason: SendRegionSync
+        // runs on every SEAM CROSSING as well as every warp, and neither of these changes because the
+        // player walked over a border. The mailbox is the whole inbox AND outbox with every attachment —
+        // at a sprint, crossing seams several times a second, re-sending it is a packet burst the client
+        // drains in one frame. Both are re-pushed by their own handlers whenever they actually change.
+        //
+        // Guild sync stays in SendRegionSync: unlike these, it IS regional — it walks the observer set and
+        // teaches the client the guild of every player newly in view, which is exactly what a crossing
+        // changes.
+        _mail.SyncTo(index);
+        _social.SyncTo(index);
+
         // Vitals
         _dispatcher.SendTo(index, PacketBuilder.SendHp(index, p.Hp, p.MaxHp));
         _dispatcher.SendTo(index, PacketBuilder.SendMp(index, p.Mp, p.MaxMp));
@@ -277,10 +289,10 @@ public sealed class JoinLeaveSystem : GameSystem
         }
 
         // Sync guild membership across the observable area (the joiner learns others' guilds and
-        // observers learn the joiner's) — change-broadcasts alone don't reach a fresh login.
+        // observers learn the joiner's) — change-broadcasts alone don't reach a fresh login, and a seam
+        // crossing brings players into view the same way a login does. The mailbox and social lists are
+        // NOT here: they belong to the account, not the region, and are sent once at JoinGame.
         _guilds.SyncOnJoin(index);
-        _mail.SyncTo(index);
-        _social.SyncTo(index);
 
         SendMapItemsSnapshot(index, p.Map);
         _blood.SendSnapshot(index, p.Map);

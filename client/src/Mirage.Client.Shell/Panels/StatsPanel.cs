@@ -318,7 +318,10 @@ public sealed class StatsPanel : IGamePanel
         string mdmgVal = FormatBreakdown(mdmgBase, mdmgGear);
         string mitVal = FormatBreakdown(mitBase, mitGear);
 
-        string mdmgLabel = GetMagicEffectLabel(me, state);
+        // Always magic damage: the prepared slot is the caster's weapon, and only a SubHp spell may occupy
+        // it (PacketHandler.Spells enforces that). Every other type lives on the action bar and never
+        // reaches this row.
+        string mdmgLabel = ClientStrings.Get(ClientStrings.Stats_MDmg);
         if (y + RowH <= c.Bottom)
         {
             DrawTwoColRow(sb, font, rowLayout, y, new ColData(ClientStrings.Get(ClientStrings.Stats_PDmg), pdmgVal, Color.White), new ColData(ClientStrings.Get(ClientStrings.Stats_Mit), mitVal, Color.White));
@@ -445,30 +448,6 @@ public sealed class StatsPanel : IGamePanel
             }
         }
         return (baseVal, gearVal);
-    }
-
-    /// <summary>Label for the magic combat-output row — switches from "M-DMG" to the prepared spell's
-    /// own restore label when an Add* spell is prepared, naming the vital it refills, since the same
-    /// SpellPower formula drives both directions and the player cares which one they will produce.</summary>
-    private static string GetMagicEffectLabel(Mirage.Shared.Records.PlayerRecord me, ClientState state)
-    {
-        int preparedSlot = me.PreparedSpell;
-        if (preparedSlot > 0 && me.Spell is not null && preparedSlot < me.Spell.Length)
-        {
-            int spellNum = me.Spell[preparedSlot];
-            if (spellNum > 0 && state.SpellDefs is not null && spellNum < state.SpellDefs.Length
-                && state.SpellDefs[spellNum] is { } spell)
-            {
-                switch (spell.Type)
-                {
-                    case SpellType.AddHp: return ClientStrings.Get(ClientStrings.Stats_Healing);
-                    case SpellType.AddMp: return ClientStrings.Get(ClientStrings.Stats_MpRestore);
-                    case SpellType.AddSp: return ClientStrings.Get(ClientStrings.Stats_SpRestore);
-                    default: break;
-                }
-            }
-        }
-        return ClientStrings.Get(ClientStrings.Stats_MDmg);
     }
 
     /// <summary>MIT = PlayerProtection(Level, Def) + full GearMitigation for armor + helmet + a 1/4 chip from the

@@ -902,8 +902,10 @@ public sealed class ShopPanel : IGamePanel
             // only, not base + gear). GiveItem is suppressed since it carries an item id, not a magnitude.
             string? effectLabel = spell.Type switch
             {
-                SpellType.SubHp or SpellType.SubMp or SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_MDmg),
-                SpellType.AddHp => ClientStrings.Get(ClientStrings.Stats_Healing),
+                SpellType.SubHp => ClientStrings.Get(ClientStrings.Stats_MDmg),
+                SpellType.SubMp => ClientStrings.Get(ClientStrings.Stats_MpDmg),
+                SpellType.SubSp => ClientStrings.Get(ClientStrings.Stats_SpDmg),
+                SpellType.AddHp => ClientStrings.Get(ClientStrings.Stats_HpRestore),
                 SpellType.AddMp => ClientStrings.Get(ClientStrings.Stats_MpRestore),
                 SpellType.AddSp => ClientStrings.Get(ClientStrings.Stats_SpRestore),
                 _ => null,

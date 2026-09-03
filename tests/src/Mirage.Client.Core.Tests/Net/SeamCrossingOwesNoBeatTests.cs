@@ -1,5 +1,6 @@
 using Mirage.Client.Core.Net;
 using Mirage.Client.Core.State;
+using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 

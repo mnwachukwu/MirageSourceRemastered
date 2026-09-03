@@ -51,7 +51,9 @@ public static partial class ClientStrings
     public const string Stats_Dodge = nameof(Stats_Dodge);
     public const string Stats_PDmg = nameof(Stats_PDmg);
     public const string Stats_MDmg = nameof(Stats_MDmg);
-    public const string Stats_Healing = nameof(Stats_Healing);
+    public const string Stats_MpDmg = nameof(Stats_MpDmg);
+    public const string Stats_SpDmg = nameof(Stats_SpDmg);
+    public const string Stats_HpRestore = nameof(Stats_HpRestore);
     public const string Stats_MpRestore = nameof(Stats_MpRestore);
     public const string Stats_SpRestore = nameof(Stats_SpRestore);
     public const string Stats_Mit = nameof(Stats_Mit);
