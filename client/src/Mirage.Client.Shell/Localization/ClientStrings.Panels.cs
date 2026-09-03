@@ -21,6 +21,7 @@ public static partial class ClientStrings
     public const string MarketPanel_ColPrice = nameof(MarketPanel_ColPrice);
     public const string MarketPanel_ColTimeLeft = nameof(MarketPanel_ColTimeLeft);
     public const string MarketPanel_Buy = nameof(MarketPanel_Buy);
+    public const string MarketPanel_ConfirmBuy = nameof(MarketPanel_ConfirmBuy);
     public const string MarketPanel_CancelListing = nameof(MarketPanel_CancelListing);
     public const string MarketPanel_ListItem = nameof(MarketPanel_ListItem);
     public const string MarketPanel_Empty = nameof(MarketPanel_Empty);

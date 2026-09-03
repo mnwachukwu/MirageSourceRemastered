@@ -96,6 +96,7 @@
   "MarketPanel_ColPrice": "Price",
   "MarketPanel_ColTimeLeft": "Time Left",
   "MarketPanel_Buy": "Buy",
+  "MarketPanel_ConfirmBuy": "Buy {Item} for {Gold} gold?",
   "MarketPanel_CancelListing": "Cancel",
   "MarketPanel_ListItem": "List Item",
   "MarketPanel_Empty": "No listings.",

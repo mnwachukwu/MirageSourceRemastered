@@ -96,6 +96,7 @@
   "MarketPanel_ColPrice": "Prix",
   "MarketPanel_ColTimeLeft": "Temps restant",
   "MarketPanel_Buy": "Acheter",
+  "MarketPanel_ConfirmBuy": "Acheter {Item} pour {Gold} pièces d'or ?",
   "MarketPanel_CancelListing": "Annuler",
   "MarketPanel_ListItem": "Mettre en vente",
   "MarketPanel_Empty": "Aucune annonce.",

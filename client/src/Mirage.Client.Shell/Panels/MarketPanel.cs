@@ -34,7 +34,7 @@ public sealed class MarketPanel : IGamePanel
     public bool ContainsMouse(Point p) => IsOpen && _panel.ContainsMouse(p);
 
     // Owns the keyboard while typing a price or a buy amount, so GameplayScreen suppresses world hotkeys.
-    public bool IsCapturingInput => IsOpen && (_listing || _buyAmountPrompt.IsOpen);
+    public bool IsCapturingInput => IsOpen && (_listing || _buyAmountPrompt.IsOpen || _buyConfirm.IsOpen);
 
     public void Open()
     {
@@ -44,6 +44,7 @@ public sealed class MarketPanel : IGamePanel
         _lastMarketVersion = -1;
         _buyAmountPrompt.Close();
         _listQtyPrompt.Close();
+        _buyConfirm.Close();
     }
     public void Close()
     {
@@ -51,6 +52,7 @@ public sealed class MarketPanel : IGamePanel
         _listing = false;
         _buyAmountPrompt.Close();
         _listQtyPrompt.Close();
+        _buyConfirm.Close();
         Tooltip.CloseScope(TooltipScope);
     }
     public void Toggle()
@@ -84,6 +86,10 @@ public sealed class MarketPanel : IGamePanel
     private readonly Button _listItemBtn = new();
     private readonly Button _refreshBtn = new();                    // manual re-fetch (live sync also pushes changes)
     private readonly NumberPromptDialog _buyAmountPrompt = new();   // partial-buy amount for a currency listing
+    // Buying spends gold on someone else's goods and cannot be undone: the listing is gone, and what you
+    // bought arrives as delayed mail rather than in your hands. One misclick in a table whose rows move as
+    // other people list and sell is enough, so the price is put in front of you before it leaves.
+    private readonly ConfirmDialog _buyConfirm = new();
 
     // ── List sub-view ───────────────────────────────────────────────────────────────
     private bool _listing;
@@ -162,6 +168,13 @@ public sealed class MarketPanel : IGamePanel
             return;
         }
 
+        // So is the buy confirmation.
+        if (_buyConfirm.IsOpen)
+        {
+            _buyConfirm.Update(input);
+            return;
+        }
+
         if (_refreshBtn.IsClicked(input)) sender.SendMarketRefresh();   // manual re-fetch (live sync also pushes)
 
         if (_tab != Tab.Browse && _browseTab.IsClicked(input)) SetTab(Tab.Browse);
@@ -207,17 +220,34 @@ public sealed class MarketPanel : IGamePanel
         if (canBuy && _buyBtn.IsClicked(input))
         {
             int listingId = sel!.Id;
+            string itemName = ItemName(sel.ItemNum);
             if (partial)
             {
-                _buyAmountPrompt.Open(ClientStrings.Get(ClientStrings.MarketPanel_Buy), ItemName(sel.ItemNum), maxUnits,
-                    amt => sender.SendMarketBuy(listingId, amt));
+                // The amount prompt already makes the player state a number, so the confirmation comes
+                // after it and quotes the total that number actually costs.
+                _buyAmountPrompt.Open(ClientStrings.Get(ClientStrings.MarketPanel_Buy), itemName, maxUnits,
+                    amt => ConfirmBuy(sender, listingId, amt, itemName, (long)amt * sel.Price));
             }
             else
             {
-                sender.SendMarketBuy(listingId, 0);
+                ConfirmBuy(sender, listingId, 0, itemName, sel.Price);
             }
         }
     }
+
+    /// <summary>Puts the price in front of the player, then sends the buy if they say yes.
+    ///
+    /// <para>Quotes the TOTAL rather than the per-unit price: for a partial currency buy those differ, and
+    /// the number that matters is the one leaving the purse.</para>
+    ///
+    /// <para>The listing id is captured by the closure, so the purchase stays pointed at the row the
+    /// player was looking at even if a live sync reorders the table while the dialog is open. Should that
+    /// listing sell in the meantime, the server answers that it is gone.</para></summary>
+    private void ConfirmBuy(ClientPacketSender sender, int listingId, int amount, string itemName, long totalCost) =>
+        _buyConfirm.Open(
+            ClientStrings.Format(ClientStrings.MarketPanel_ConfirmBuy,
+                ("Item", itemName), ("Gold", totalCost.ToString("N0"))),
+            () => sender.SendMarketBuy(listingId, amount));
 
     private void UpdateListing(InputState input, ClientState state, ClientPacketSender sender, bool isActive)
     {
@@ -352,6 +382,8 @@ public sealed class MarketPanel : IGamePanel
         else _buyBtn.Draw(sb, font, _input);
 
         _buyAmountPrompt.Draw(sb, font, c, nowMs);
+        // After the amount prompt: on a partial buy the confirmation follows it, so it draws on top.
+        _buyConfirm.Draw(sb, font, c);
         _panel.DrawOverlay(sb);
     }
 

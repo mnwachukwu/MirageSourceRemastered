@@ -63,12 +63,21 @@ public sealed partial class ClientState
         MailVersion++;
     }
 
-    /// <summary>Count of unread messages — drives the sidebar Mail link's attention color. Mail from
-    /// ignored accounts is hidden client-side, so it doesn't count toward the unread badge either.</summary>
+    /// <summary>Count of unread messages — drives the sidebar Mail link's attention color.
+    ///
+    /// <para>Counts exactly what the inbox SHOWS, which is the only thing the light can honestly mean.
+    /// Mail from an ignored account is hidden client-side, and mail still in transit is hidden until it
+    /// lands — a light for a message you cannot open, and will not find when you go looking, is worse
+    /// than no light.</para>
+    ///
+    /// <para><see cref="MailNowUtc"/> is the server's clock as of the last mailbox push rather than this
+    /// machine's, so the count and the list agree on what has arrived. The server re-pushes when a message
+    /// matures, which is what moves one from hidden to counted.</para></summary>
     public int UnreadMailCount()
     {
         int n = 0;
-        foreach (var m in Mail) if (!m.IsRead && !IsSenderIgnored(m.Sender)) n++;
+        foreach (var m in Mail)
+            if (!m.IsRead && m.DeliverAt <= MailNowUtc && !IsSenderIgnored(m.Sender)) n++;
         return n;
     }
 

@@ -93,7 +93,9 @@ public sealed class SpellSystem : GameSystem
     //   9. NPC-target branch
     //      - Non-friendly/shopkeeper → all six spell types + deduct MP + Casted=true
     //      - Friendly/shopkeeper     → "Could not cast spell!"
-    //  10. If Casted: set AttackTimer
+    //  10. If Casted — or if the cast found no target at all — set AttackTimer. A cast at nothing is a
+    //      whiff and pays the cooldown, the way a swing into thin air does; a REFUSAL above (unknown spell,
+    //      level, INT, mana, line of sight) pays nothing, because nothing was attempted.
 
     public void CastSpell(int index, int spellSlot, bool forceSelf = false)
     {
@@ -270,6 +272,9 @@ public sealed class SpellSystem : GameSystem
         // own friendly-target gate); the player/self branches emit inline below.
         int n = sp.Target;
         bool casted = false;
+        // The cast happened but found nothing to land on. Costs the cooldown like a missed swing, and
+        // nothing else — no mana, no reagent, no effect.
+        bool whiffed = false;
         // For the player/self branches: whether this cast draws the caster into combat, passed to the cast-FX
         // broadcast so observer clients stamp the bar. Sub spells always set it; Add (heal) spells only when the
         // target is already fighting — healing in peace is a non-combat action.
@@ -583,13 +588,18 @@ public sealed class SpellSystem : GameSystem
             else
             {
                 SendMsg(index, ServerStrings.SpellSystem_NoTarget, GameColor.BrightRed, ChatChannel.System);
+                // 🔴 A cast at nothing is a WHIFF, not a refusal, and a whiff costs the cooldown — a swing
+                // into thin air does. Everything above this point is the spell being turned down (unknown,
+                // too low a level, not enough mana, out of sight), and a refusal costs nothing because
+                // nothing was attempted. Here the player did cast; there was simply no one to cast at.
+                whiffed = true;
             }
         }
 
-        if (casted)
+        if (casted || whiffed)
         {
-            // Cast succeeded: stamp the cooldown. The cast FX packet already went out above (before the
-            // damage) so observers could time the number/death to the projectile.
+            // The cast FX packet already went out above (before the damage) so observers could time the
+            // number/death to the projectile.
             sp.AttackTimer = Environment.TickCount64;
         }
     }
