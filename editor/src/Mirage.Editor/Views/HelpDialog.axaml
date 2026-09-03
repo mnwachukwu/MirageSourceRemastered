@@ -288,6 +288,14 @@
           </StackPanel>
         </Border>
 
+        <Border BorderThickness="4,0,0,0" BorderBrush="{DynamicResource MirageAccentDimBrush}"
+                Background="{DynamicResource MirageBgAltBrush}" CornerRadius="0,4,4,0" Padding="10,8">
+          <StackPanel Spacing="3">
+            <TextBlock x:Name="_viewsConsole" FontWeight="SemiBold" Foreground="{DynamicResource MirageAccentBrush}"/>
+            <TextBlock x:Name="_viewsConsoleDesc" TextWrapping="Wrap" Foreground="#CFC9E4" FontSize="11"/>
+          </StackPanel>
+        </Border>
+
       </StackPanel>
 
     </StackPanel>

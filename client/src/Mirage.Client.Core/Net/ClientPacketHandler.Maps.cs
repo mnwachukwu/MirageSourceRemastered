@@ -294,6 +294,10 @@ public sealed partial class ClientPacketHandler : IClientEvents
         if (IsCenter(p.MapNum))
         {
             _state.GettingMap = false;
+            // Landing is a step, and it owes the beat before the next one — see ClientState.ArrivedAtMs.
+            // Stamped here rather than at the announcement, so the beat runs from the moment the player can
+            // see where they are rather than overlapping a load they were watching nothing during.
+            _state.ArrivedAtMs = Environment.TickCount64;
             MapReady?.Invoke();
         }
     }

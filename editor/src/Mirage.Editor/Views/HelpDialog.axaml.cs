@@ -54,6 +54,8 @@ public partial class HelpDialog : Window
         _viewsWorldPreviewDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_WorldPreviewDesc);
         _viewsLayerVisibility.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_LayerVisibility);
         _viewsLayerVisibilityDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_LayerVisibilityDesc);
+        _viewsConsole.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_Console);
+        _viewsConsoleDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Views_ConsoleDesc);
 
         _ctrlLeftClick.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_LeftClick);
         _ctrlLeftClickDesc.Text = EditorStrings.Get(EditorStrings.HelpDialog_Ctrl_LeftClickDesc);

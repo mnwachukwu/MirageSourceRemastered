@@ -535,14 +535,42 @@ public sealed partial class GameplayScreen : IGameScreen
 
     /// <summary>
     /// Recompute the seamless-scroll camera from the local player's position.
-    /// The camera follows the player and clamps at any border whose neighbor map
-    /// isn't loaded; with no neighbors it locks to the single center map.
+    /// The camera follows the player and clamps at any border the center map does not link across;
+    /// a map with no links locks the view to itself.
     /// </summary>
     private void UpdateCamera()
     {
         var me = _ctx.State.Me;
-        _camera.Update(me.X, me.Y, me.XOffset, me.YOffset, _ctx.State.NeighborMapNums,
+        _camera.Update(me.X, me.Y, me.XOffset, me.YOffset, DeclaredNeighbors(),
                        _ctx.State.MapTilesX, _ctx.State.MapTilesY);
+    }
+
+    // Reused, because this runs every frame and the frame readout counts the KB/s.
+    private readonly int[,] _scrollBounds = new int[3, 3];
+
+    /// <summary>Which sides the camera may scroll toward, taken from the center map's own LINKS rather
+    /// than from which neighbor cells have arrived.
+    ///
+    /// <para>🔴 The difference is a visible slide after every warp. A warp empties the grid and the server
+    /// refills it a cell at a time, so the loaded set grows over several frames — and the camera's clamp is
+    /// derived from it, so the bounds widen in steps and the view creeps to its final position after the
+    /// player has already arrived. It reads as overshooting the destination and settling back.</para>
+    ///
+    /// <para>A map's links are known the instant the map itself is, so the bounds are right on the first
+    /// frame and never move again. They are also the better answer on their own terms: what the camera is
+    /// asking is whether there is anywhere to scroll TO, and a declared neighbor is somewhere the player
+    /// can walk whether or not its tiles have landed yet.</para>
+    ///
+    /// <para>Only the four side cells are filled. The clamp asks whether a row or column holds anything at
+    /// all, so a side answers for its whole row, and the corners never need setting.</para></summary>
+    private int[,] DeclaredNeighbors()
+    {
+        var map = _ctx.State.NeighborMaps[1, 1];
+        _scrollBounds[1, 0] = map?.Up ?? 0;
+        _scrollBounds[1, 2] = map?.Down ?? 0;
+        _scrollBounds[0, 1] = map?.Left ?? 0;
+        _scrollBounds[2, 1] = map?.Right ?? 0;
+        return _scrollBounds;
     }
 
     private InputSnapshot BuildInputSnapshot(InputState input, bool pickUpLatched, bool attackPressLatched)

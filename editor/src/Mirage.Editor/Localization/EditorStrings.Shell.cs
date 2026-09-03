@@ -314,6 +314,8 @@ public static partial class EditorStrings
     public const string HelpDialog_Views_WorldPreviewDesc = nameof(HelpDialog_Views_WorldPreviewDesc);
     public const string HelpDialog_Views_LayerVisibility = nameof(HelpDialog_Views_LayerVisibility);
     public const string HelpDialog_Views_LayerVisibilityDesc = nameof(HelpDialog_Views_LayerVisibilityDesc);
+    public const string HelpDialog_Views_Console = nameof(HelpDialog_Views_Console);
+    public const string HelpDialog_Views_ConsoleDesc = nameof(HelpDialog_Views_ConsoleDesc);
 
     // ── General help ──────────────────────────────────────────────────────────
     // The editor-wide reference: what is not about a map. Its own prefix rather than HelpDialog_*,

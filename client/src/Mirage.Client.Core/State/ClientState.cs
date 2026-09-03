@@ -17,6 +17,21 @@ public sealed partial class ClientState
     public bool InGame { get; set; }
     public bool GettingMap { get; set; }
 
+    /// <summary>When the player last arrived somewhere by a blocking load — a warp, a teleport, a join.
+    /// 0 once the beat it owes has been served.
+    ///
+    /// <para>🔴 Arriving IS a step, and it costs the beat every other step costs. The movement gate in
+    /// <c>InputProcessor.ProcessMovement</c> otherwise opens the instant the player lands: it opens as
+    /// soon as the slide offsets are zero, and arriving sets them to zero outright rather than sliding
+    /// them there. A warp is asked for by walking onto a tile, so the key that asked for it is still down
+    /// on landing — and that is the whole distinction this draws. A tap ends inside the beat and moves
+    /// nobody; a key still held when it expires walks on at the ordinary cadence.</para>
+    ///
+    /// <para>The beat runs from the ARRIVAL, so the wait is the load plus the beat. It starts when the
+    /// player can see where they are, rather than overlapping a load during which there was nothing to
+    /// look at.</para></summary>
+    public long ArrivedAtMs { get; set; }
+
     /// <summary>
     /// Raised at the end of <see cref="ShiftGrid"/> with the world-pixel offset the data slid
     /// (dxPixels, dyPixels). Subscribers like the floating-text layer that store positions in the

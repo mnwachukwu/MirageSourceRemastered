@@ -29,7 +29,7 @@ public static class InputProcessor
     {
         if (!state.InGame || state.GettingMap) return;
 
-        ProcessMovement(input, state, sender);
+        ProcessMovement(input, state, sender, nowMs);
         if (!onTick) return;
         ProcessAttack(input, state, sender, nowMs);
         ProcessPickUp(input, sender);
@@ -37,12 +37,30 @@ public static class InputProcessor
 
     // ── Movement ──────────────────────────────────────────────────────────────
 
-    private static void ProcessMovement(InputSnapshot input, ClientState state, ClientPacketSender sender)
+    /// <summary>The beat an arrival owes before the next step may be taken.
+    ///
+    /// <para>🔴 One figure, not a step at the current pace. What the beat has to outlast is a TAP — about a
+    /// tenth of a second — and that is the same length whether the player is walking or running. Deriving
+    /// it from pace makes arriving at a walk feel different from arriving at a run for no reason the player
+    /// can see, and a walk step (400 ms) is long enough that the pause reads as the game hanging.</para>
+    ///
+    /// <para>Tuned by feel rather than computed: it is the shortest pause that a tap cannot get through.</para></summary>
+    private const float ArrivalBeatMs = 200f;
+
+    private static void ProcessMovement(InputSnapshot input, ClientState state, ClientPacketSender sender, long nowMs)
     {
         var me = state.Me;
 
         // Only start a new move when the previous animation has fully settled.
         if (me.XOffset != 0 || me.YOffset != 0) return;
+
+        // An arrival is a step with no slide to wait out, so it owes the beat one directly — see
+        // ClientState.ArrivedAtMs.
+        if (state.ArrivedAtMs != 0)
+        {
+            if (nowMs - state.ArrivedAtMs < ArrivalBeatMs) return;
+            state.ArrivedAtMs = 0;
+        }
 
         // The dominant direction is already resolved by press-order in the Shell (see
         // MovementInputStack) — most-recently-pressed still-held key wins.
