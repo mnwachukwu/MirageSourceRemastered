@@ -781,10 +781,10 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public string ConnectionHeading => ShellStrings.Get(ShellStrings.Connection_Heading);
     public string ConnectionBlurb => ShellStrings.Get(ShellStrings.Connection_Blurb);
-    public string LocalLabel => ShellStrings.Get(ShellStrings.Connection_Local);
-    public string LocalHint => ShellStrings.Get(ShellStrings.Connection_LocalHint);
-    public string RemoteLabel => ShellStrings.Get(ShellStrings.Connection_Remote);
-    public string RemoteHint => ShellStrings.Get(ShellStrings.Connection_RemoteHint);
+    public string LaunchLabel => ShellStrings.Get(ShellStrings.Connection_Launch);
+    public string LaunchHint => ShellStrings.Get(ShellStrings.Connection_LaunchHint);
+    public string AttachLabel => ShellStrings.Get(ShellStrings.Connection_Attach);
+    public string AttachHint => ShellStrings.Get(ShellStrings.Connection_AttachHint);
     public string HostLabel => ShellStrings.Get(ShellStrings.Connection_Host);
     public string PortLabel => ShellStrings.Get(ShellStrings.Connection_Port);
     public string TokenLabel => ShellStrings.Get(ShellStrings.Connection_Token);

@@ -207,10 +207,10 @@ public static class ShellStrings
     // ── Connection ────────────────────────────────────────────────────────────
     public const string Connection_Heading = nameof(Connection_Heading);
     public const string Connection_Blurb = nameof(Connection_Blurb);
-    public const string Connection_Local = nameof(Connection_Local);
-    public const string Connection_LocalHint = nameof(Connection_LocalHint);
-    public const string Connection_Remote = nameof(Connection_Remote);
-    public const string Connection_RemoteHint = nameof(Connection_RemoteHint);
+    public const string Connection_Launch = nameof(Connection_Launch);
+    public const string Connection_LaunchHint = nameof(Connection_LaunchHint);
+    public const string Connection_Attach = nameof(Connection_Attach);
+    public const string Connection_AttachHint = nameof(Connection_AttachHint);
     public const string Connection_Host = nameof(Connection_Host);
     public const string Connection_KnownServers = nameof(Connection_KnownServers);
     public const string Connection_ServerName = nameof(Connection_ServerName);

@@ -489,15 +489,15 @@
           </StackPanel>
 
           <StackPanel Spacing="2">
-            <RadioButton GroupName="Target" IsChecked="{Binding IsLocal}" Content="{Binding LocalLabel}"
+            <RadioButton GroupName="Target" IsChecked="{Binding IsLocal}" Content="{Binding LaunchLabel}"
                          IsEnabled="{Binding CanEditConnection}"/>
-            <TextBlock Classes="hint" Text="{Binding LocalHint}" Margin="28,0,0,0"/>
+            <TextBlock Classes="hint" Text="{Binding LaunchHint}" Margin="28,0,0,0"/>
           </StackPanel>
 
           <StackPanel Spacing="2">
-            <RadioButton GroupName="Target" IsChecked="{Binding IsRemote}" Content="{Binding RemoteLabel}"
+            <RadioButton GroupName="Target" IsChecked="{Binding IsRemote}" Content="{Binding AttachLabel}"
                          IsEnabled="{Binding CanEditConnection}"/>
-            <TextBlock Classes="hint" Text="{Binding RemoteHint}" Margin="28,0,0,0"/>
+            <TextBlock Classes="hint" Text="{Binding AttachHint}" Margin="28,0,0,0"/>
             <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="28,6,0,0" IsVisible="{Binding IsRemote}">
               <TextBlock Grid.Column="0" Text="{Binding HostLabel}" VerticalAlignment="Center" Margin="0,0,8,0"/>
               <TextBox Grid.Column="1" Text="{Binding RemoteHost}" IsEnabled="{Binding CanEditConnection}"
