@@ -43,6 +43,7 @@ public static partial class ServerStrings
     public const string CombatSystem_TargetIsAdmin = nameof(CombatSystem_TargetIsAdmin);
     public const string CombatSystem_SafeZone = nameof(CombatSystem_SafeZone);
     public const string CombatSystem_ContestTruce = nameof(CombatSystem_ContestTruce);
+    public const string CombatSystem_ContestSettled = nameof(CombatSystem_ContestSettled);
     public const string CombatSystem_YouTooLowLevel = nameof(CombatSystem_YouTooLowLevel);
     public const string CombatSystem_TargetTooLowLevel = nameof(CombatSystem_TargetTooLowLevel);
     public const string CombatSystem_CannotAttackParty = nameof(CombatSystem_CannotAttackParty);

@@ -65,17 +65,21 @@ public sealed partial class GuildTerritorySystem : GameSystem
 
     /// <summary>True if both are participants of the same contest standing in its territory during SETUP or
     /// COOLDOWN — PvP between participants is suppressed in those phases.</summary>
-    public bool IsContestPvpSuppressed(int a, int b)
+    /// <summary>The PHASE whose truce is stopping <paramref name="a"/> from attacking
+    /// <paramref name="b"/>, or null when nothing is. Returns the phase rather than a bare yes, because
+    /// the two that suppress mean opposite things to the player: Setup is a truce that is about to lift,
+    /// Cooldown is one that has closed behind them.</summary>
+    public ContestPhase? ContestTrucePhase(int a, int b)
     {
         int ga = _pm[a].Guild, gb = _pm[b].Guild;
-        if (ga <= 0 || gb <= 0) return false;
+        if (ga <= 0 || gb <= 0) return null;
         foreach (var c in _contests)
         {
             if (c.Phase == ContestPhase.Contest) continue;   // combat is allowed during the contest itself
             if (!c.Participants.Contains(ga) || !c.Participants.Contains(gb)) continue;
-            if (IsInTerritory(a, c.TerritoryIndex) && IsInTerritory(b, c.TerritoryIndex)) return true;
+            if (IsInTerritory(a, c.TerritoryIndex) && IsInTerritory(b, c.TerritoryIndex)) return c.Phase;
         }
-        return false;
+        return null;
     }
 
     /// <summary>The territory index of the live contest this player is participating in AND standing in, else

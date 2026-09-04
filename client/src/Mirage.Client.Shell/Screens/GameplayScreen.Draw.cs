@@ -76,6 +76,7 @@ public sealed partial class GameplayScreen : IGameScreen
     private const float ContestFlagPennantBotY = 10f;  // pennant base y, below the pole top
     private const float ContestLabelGap = 2f;          // gap between the flag top and the name label
     private const float ContestZoneEdgeAlpha = 0.85f;  // the staircase boundary, the line that answers "in or out"
+    private const float ContestEdgeMargin = 6f;        // how far an off-screen marker sits inside the viewport edge
     private const float ContestZoneEdgeThickness = 1.5f;
 
     // Draw one contest capture point in the world layer: the capture zone, a small triangular flag, and the
@@ -88,6 +89,24 @@ public sealed partial class GameplayScreen : IGameScreen
             ContestControl.Enemy => UiHelper.ContestEnemyColor,
             _ => UiHelper.ContestNeutralColor,
         };
+
+        // A point outside the viewport is a BEARING: its label alone, pinned to the edge it lies past, with
+        // the other axis left where the point really is. Walk that way on that axis and the label slides to
+        // the corner, then onto the screen with the flag under it. Drawing the flag or the zone here would
+        // put a landmark on ground that does not hold one.
+        if (cp.OffScreen)
+        {
+            float totalW = nameCellW * cp.Label.Length;
+            var edgeCmd = new TextDrawCmd(
+                Math.Clamp(cp.ScreenX + Constants.PicX / 2f, totalW / 2f + ContestEdgeMargin,
+                           Camera.ViewW - totalW / 2f - ContestEdgeMargin),
+                Math.Clamp(cp.ScreenY, ContestEdgeMargin + nameLineH, Camera.ViewH - ContestEdgeMargin),
+                cp.Label, 0, AlignBottom: true,
+                RgbOverride: (color.R << 16) | (color.G << 8) | color.B);
+            DrawWorldName(sb, nameFont, edgeCmd, nameCellW, nameLineH);
+            return;
+        }
+
         DrawContestZone(sb, cp, color);
 
         // Flag: a dark pole + a colored triangular pennant near its top, centered on the tile.

@@ -11,7 +11,7 @@ using Mirage.Shared.Records;
 namespace Mirage.Server.Core.GameLogic;
 
 /// <summary>Why a player-versus-player attack was refused, or <c>None</c> when it is allowed.</summary>
-public enum PvpBlock { None, AttackerAdmin, VictimAdmin, SafeZone, AttackerLevel, VictimLevel, ContestTruce }
+public enum PvpBlock { None, AttackerAdmin, VictimAdmin, SafeZone, AttackerLevel, VictimLevel, ContestTruce, ContestSettled }
 
 /// <summary>Why two players are on the same side for friendly-fire gating (see
 /// <see cref="CombatSystem.GetFriendlyRelation"/>). None = they may harm each other.</summary>

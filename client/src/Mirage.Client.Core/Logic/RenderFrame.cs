@@ -56,7 +56,11 @@ public enum ContestControl { Neutral, Own, Enemy }
 /// <see cref="Constants.TerritoryCapturePointRadius"/>, which the shell walks a tile at a time.</summary>
 public readonly record struct ContestPointCmd(
     float ScreenX, float ScreenY, ContestControl Control, string Label,
-    WorldLayer Layer = WorldLayer.Ground);
+    WorldLayer Layer = WorldLayer.Ground,
+    /// <summary>True when the point itself is outside the viewport. Its flag, zone and light are not drawn
+    /// at all — only the label survives, pinned to the edge the point lies past, so it reads as a bearing on
+    /// an objective rather than a thing standing in the room.</summary>
+    bool OffScreen = false);
 
 // FlickerStyle now lives in Mirage.Shared (shared by LightSpec + records); resolved via `using Mirage.Shared`.
 

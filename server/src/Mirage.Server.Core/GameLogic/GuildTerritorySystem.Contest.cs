@@ -26,6 +26,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
             PhaseEndUtc = UtcNow() + Constants.TerritoryContestSetupSeconds,
             Points = GenerateContestPoints(maps, defenderId),
             Participants = new HashSet<int>(challengers),
+            Layout = BuildTerritoryLayout(maps),
         };
         if (defenderId > 0) contest.Participants.Add(defenderId);
         _contests.Add(contest);
@@ -75,6 +76,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
             {
                 GuildId = g, GuildName = _guilds.GuildById(g)?.Name ?? "", Score = c.Scores.GetValueOrDefault(g),
             }).ToList(),
+            Layout = c.Layout,
         };
         foreach (int g in c.Participants) _dispatcher.SendToGuild(g, packet);
     }
@@ -116,6 +118,9 @@ public sealed partial class GuildTerritorySystem : GameSystem
                         if (_contests.Count == 0) AnnounceWarPublic(ServerStrings.GuildTerritory_WarNightEnd);
                         continue;                           // removed — skip the live broadcast below
                 }
+
+                // The zone carries the phase for the systems that read it without a reference here.
+                if (ZoneFor(c.TerritoryIndex) is { } zone) zone.Phase = c.Phase;
             }
             BroadcastContest(c);   // push the live render state (flags/meters/scores) to participants each tick
         }

@@ -104,6 +104,7 @@ public static partial class ServerStrings
     public const string GuildTerritory_CooldownBegun = nameof(GuildTerritory_CooldownBegun);
     // Non-participant courtesy warning (setup-present + on entering a contested territory).
     public const string GuildTerritory_NonParticipantWarning = nameof(GuildTerritory_NonParticipantWarning);
+    public const string GuildTerritory_ContestSettling = nameof(GuildTerritory_ContestSettling);
     // Guild quests.
     public const string Guild_QuestActive = nameof(Guild_QuestActive);
     public const string Guild_QuestDailyCap = nameof(Guild_QuestDailyCap);
@@ -144,6 +145,7 @@ public static partial class ServerStrings
     // Public announcements (grudge declarations / retractions / reciprocation-to-mutual).
     public const string GuildWar_Declared = nameof(GuildWar_Declared);
     public const string GuildWar_Retracted = nameof(GuildWar_Retracted);
+    public const string GuildWar_UpkeepLapsed = nameof(GuildWar_UpkeepLapsed);
     public const string GuildWar_ReachesElevatedPitch = nameof(GuildWar_ReachesElevatedPitch);
     // Attrition / resolution (mutual wars): bankruptcy warning (guild notice) + the decisive/cold end lines.
     public const string GuildWar_UncoveredDeath = nameof(GuildWar_UncoveredDeath);

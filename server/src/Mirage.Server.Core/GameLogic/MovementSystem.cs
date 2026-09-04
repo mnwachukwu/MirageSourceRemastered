@@ -718,7 +718,12 @@ public sealed class MovementSystem : GameSystem
         {
             if (!z.Maps.Contains(newMap) || z.Maps.Contains(oldMap)) continue;   // only when crossing IN from outside
             if (z.Participants.Contains(guild)) return;                          // a participant — no warning
-            _dispatcher.SendLocalizedChatTo(index, ServerStrings.GuildTerritory_NonParticipantWarning,
+            // Cooldown is the same zone but not the same situation: the contest is already settled, so
+            // there is nothing left to take part in and telling someone to clear the area for it is
+            // wrong. What still holds is that the ground has not gone back to normal yet.
+            bool settled = z.Phase == ContestPhase.Cooldown;
+            _dispatcher.SendLocalizedChatTo(index,
+                settled ? ServerStrings.GuildTerritory_ContestSettling : ServerStrings.GuildTerritory_NonParticipantWarning,
                 new ChatMetadata(GameColor.BrightRed, ChatChannel.System), ("Territory", z.Name));
             return;
         }

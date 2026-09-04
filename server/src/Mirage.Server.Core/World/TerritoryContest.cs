@@ -1,4 +1,5 @@
 using Mirage.Shared;
+using Mirage.Shared.Protocol.Packets;
 
 namespace Mirage.Server.Core.World;
 
@@ -31,4 +32,7 @@ public sealed class TerritoryContest
     public List<ContestPoint> Points = new();
     public Dictionary<int, long> Scores = new();    // KotH score per guild
     public HashSet<int> Participants = new();        // the defender (if any) + all challengers
+    // Every map of the territory on one tile grid, built once at start. The layout cannot change while the
+    // contest runs, and a client needs it to place a point on a map it has not loaded.
+    public List<ContestMapView> Layout = new();
 }

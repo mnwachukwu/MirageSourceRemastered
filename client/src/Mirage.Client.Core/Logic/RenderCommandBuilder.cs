@@ -1,5 +1,6 @@
 using Mirage.Client.Core.State;
 using Mirage.Shared;
+using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 
 namespace Mirage.Client.Core.Logic;
@@ -612,19 +613,51 @@ public static class RenderCommandBuilder
     {
         var contest = state.Contest;
         if (contest is null) return;
+
+        // Markers are for finding an objective while you are AT the war. Standing somewhere else in the
+        // world during war night is not that, so they are gated on being in the contested territory — or on
+        // holding a point, which a border point's spill lets you do from a tile outside it.
+        var layout = ContestLayout(state, contest);
+        if (layout is null) return;
+
         int myGuild = state.Me.GuildId;
         float radiusPx = Constants.TerritoryCapturePointRadius * Constants.PicX;
         int lightId = ContestLightIdBase;
         foreach (var pt in contest.Points)
         {
+            // A point on one of the nine loaded maps is placed from the grid, exactly as everything else is.
+            // Anything further is placed through the territory layout, which reaches maps this client has
+            // never seen — that is the whole point of an off-screen marker.
             var off = CellOffsetForMap(state, pt.Map);
-            if (off is null) continue;
-            int wx = off.Value.offX + pt.X, wy = off.Value.offY + pt.Y;
+            int wx, wy;
+            if (off is not null)
+            {
+                wx = off.Value.offX + pt.X;
+                wy = off.Value.offY + pt.Y;
+            }
+            else if (layout.Value.TryPlace(pt.Map, pt.X, pt.Y, out int lx, out int ly))
+            {
+                wx = lx;
+                wy = ly;
+            }
+            else
+            {
+                continue;   // a point on a map the layout could not reach
+            }
+
             var (screenX, screenY) = camera.WorldTileToScreen(wx, wy, 0f, 0f);
             ContestControl control =
                 pt.OwnerGuild <= 0 ? ContestControl.Neutral :
                 pt.OwnerGuild == myGuild ? ContestControl.Own : ContestControl.Enemy;
-            frame.ContestPoints.Add(new ContestPointCmd(screenX, screenY, control, pt.Label, pt.Layer));
+            bool offScreen = screenX < 0 || screenY < 0
+                             || screenX >= Camera.ViewW - Constants.PicX
+                             || screenY >= Camera.ViewH - Constants.PicY;
+            frame.ContestPoints.Add(new ContestPointCmd(screenX, screenY, control, pt.Label, pt.Layer, offScreen));
+            if (offScreen)
+            {
+                lightId++;
+                continue;   // a bearing, not a place: no zone, no flag, no light
+            }
 
             // The flag lights its own capture radius, in the viewer's control color, so the zone reads at
             // night without hunting for the ring. Steady (a flag is not a flame) and UNOCCLUDED — the capture
@@ -638,6 +671,47 @@ public static class RenderCommandBuilder
             }
             lightId++;
         }
+    }
+
+    /// <summary>The territory's map layout, anchored on the player, or null when they are not at the war.
+    ///
+    /// <para>The server sends every map of the territory placed on one tile grid. Anchoring that grid on the
+    /// player's own map turns it into the same world-tile space the 3x3 already uses, so a point five maps
+    /// away and a point on the next screen are placed by the same arithmetic.</para></summary>
+    private readonly record struct ContestGrid(
+        Dictionary<int, (int X, int Y)> Origins, int AnchorX, int AnchorY, int MyOriginX, int MyOriginY)
+    {
+        /// <summary>World-tile position of a tile on one of the territory's maps.</summary>
+        public bool TryPlace(int map, int x, int y, out int wx, out int wy)
+        {
+            wx = wy = 0;
+            if (!Origins.TryGetValue(map, out var o)) return false;
+            wx = AnchorX + (o.X + x) - MyOriginX;
+            wy = AnchorY + (o.Y + y) - MyOriginY;
+            return true;
+        }
+    }
+
+    private static ContestGrid? ContestLayout(ClientState state, TerritoryContestPacket contest)
+    {
+        if (contest.Layout.Count == 0 || !state.AtContest()) return null;
+        var origins = new Dictionary<int, (int X, int Y)>(contest.Layout.Count);
+        foreach (var m in contest.Layout) origins[m.Map] = (m.OriginX, m.OriginY);
+
+        // Anchored on ANY loaded map the territory knows, not on the player's own. Usually they are the
+        // same map — but a border point can be held from a tile just outside the territory, and there the
+        // player's map is not in the layout at all while a neighbour of it is.
+        for (int col = 0; col < 3; col++)
+        {
+            for (int row = 0; row < 3; row++)
+            {
+                int m = state.NeighborMapNums[col, row];
+                if (m <= 0 || !origins.TryGetValue(m, out var o)) continue;
+                var (ax, ay) = state.ToWorld(col, row, 0, 0);
+                return new ContestGrid(origins, ax, ay, o.X, o.Y);
+            }
+        }
+        return null;
     }
 
     // Flag-light ids sit in their own range, like the NPC/traversal seeds above.

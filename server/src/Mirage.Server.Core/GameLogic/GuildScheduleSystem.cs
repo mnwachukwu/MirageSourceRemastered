@@ -475,7 +475,10 @@ public sealed class GuildScheduleSystem : GameSystem
             _guilds.SaveGuild(opponent);
         }
         Announce(guild, ServerStrings.GuildWar_MaintenanceDropped, ("GuildName", oppName));
-        _dispatcher.SendLocalizedChatToAll(ServerStrings.GuildWar_Retracted,
+        // The public line says the declaration LAPSED, not that the guild retracted it. Only the guild
+        // sees the private notice naming the vault, so a shared "retracted" line would tell everyone
+        // else that a guild which ran out of gold had chosen to back down.
+        _dispatcher.SendLocalizedChatToAll(ServerStrings.GuildWar_UpkeepLapsed,
             new ChatMetadata(GameColor.BrightRed, ChatChannel.War),
             ("Guild1", guild.Name), ("Guild2", oppName));
     }

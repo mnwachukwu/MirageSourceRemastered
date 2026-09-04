@@ -185,6 +185,23 @@ public sealed record TerritoryContestPacket : IPacket
     [JsonPropertyName("phase")] public int Phase { get; init; }
     [JsonPropertyName("points")] public List<ContestPointView> Points { get; init; } = new();
     [JsonPropertyName("scores")] public List<ContestScoreView> Scores { get; init; } = new();
+    /// <summary>Where every map of the territory sits in one shared tile space, so a client can place a
+    /// capture point on a map it has not loaded.
+    ///
+    /// <para>🔴 Without this the client can only locate a point on one of the nine maps around it — a map
+    /// number alone says nothing about direction or distance. The territory's maps are joined by their
+    /// edge links, so flooding those links lays them all out on one grid; the layout cannot change while
+    /// a contest runs, so it is computed once and sent with every tick rather than recomputed.</para></summary>
+    [JsonPropertyName("layout")] public List<ContestMapView> Layout { get; init; } = new();
+}
+
+/// <summary>One map of a contested territory, placed in the territory's shared tile space. A tile on that
+/// map is at (<see cref="OriginX"/> + x, <see cref="OriginY"/> + y).</summary>
+public sealed record ContestMapView
+{
+    [JsonPropertyName("map")] public int Map { get; init; }
+    [JsonPropertyName("ox")] public int OriginX { get; init; }
+    [JsonPropertyName("oy")] public int OriginY { get; init; }
 }
 
 /// <summary>One capture point in a <see cref="TerritoryContestPacket"/> — its label + world tile, the guild

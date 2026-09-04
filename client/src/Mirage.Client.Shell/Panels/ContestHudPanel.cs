@@ -30,14 +30,18 @@ public sealed class ContestHudPanel
         var contest = state.Contest;
         if (contest is null || !contest.Active) return;
         int myGuild = state.Me.GuildId;
-        DrawScoreList(sb, font, contest, state, myGuild);
-        DrawCaptureStatus(sb, font, contest, state, myGuild);
+
+        // Holding a point and standing in the territory are not the same thing — see ClientState.AtContest,
+        // which the off-screen point markers gate on too so the HUD and the world agree about being at the war.
+        var inPoint = state.ContestPointHeld();
+
+        if (state.AtContest()) DrawScoreList(sb, font, contest, myGuild);
+        if (inPoint is not null) DrawCaptureStatus(sb, font, inPoint, myGuild);
     }
 
-    // Top-right KotH score list — only while the player stands in the contested territory (current map's group).
-    private static void DrawScoreList(SpriteBatch sb, SpriteFont font, TerritoryContestPacket contest, ClientState state, int myGuild)
+    // Top-right KotH score list.
+    private static void DrawScoreList(SpriteBatch sb, SpriteFont font, TerritoryContestPacket contest, int myGuild)
     {
-        if (state.Map.MapGroup != contest.TerritoryIndex) return;
         var scores = contest.Scores.OrderByDescending(s => s.Score).ToList();
         int panelW = ScoreInnerW + Pad * 2;
         int panelH = Pad * 2 + RowH + scores.Count * RowH;   // header + one row per guild
@@ -69,29 +73,9 @@ public sealed class ContestHudPanel
         return false;
     }
 
-    // Top-center capture status — only while the player stands inside a capture point's radius.
-    private static void DrawCaptureStatus(SpriteBatch sb, SpriteFont font, TerritoryContestPacket contest, ClientState state, int myGuild)
+    // Top-center capture status for the point the player is standing in.
+    private static void DrawCaptureStatus(SpriteBatch sb, SpriteFont font, ContestPointView p, int myGuild)
     {
-        var me = state.Me;
-        ContestPointView? inPoint = null;
-        // World coordinates across the 3x3, so a point whose zone spills over a seam onto the tile I am
-        // standing on reads as held — the same reach the server scores with.
-        var (myWx, myWy) = state.CenterToWorld(me.X, me.Y);
-        foreach (var pt in contest.Points)
-        {
-            if (pt.Layer != me.Layer) continue;
-            if (!CellOf(state, pt.Map, out int col, out int row)) continue;
-            var (ptWx, ptWy) = state.ToWorld(col, row, pt.X, pt.Y);
-            if (TerritoryContestFormulas.WithinRadius(myWx, myWy, ptWx, ptWy, Constants.TerritoryCapturePointRadius))
-            {
-                inPoint = pt;
-                break;
-            }
-        }
-
-        if (inPoint is null) return;
-        var p = inPoint;
-
         Color ctrlColor;
         string ctrlText;
         if (p.OwnerGuild <= 0)

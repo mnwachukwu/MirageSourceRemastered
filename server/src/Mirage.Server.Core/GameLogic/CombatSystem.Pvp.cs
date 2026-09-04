@@ -43,8 +43,11 @@ public sealed partial class CombatSystem : GameSystem
         if (ap.Level < 10) return PvpBlock.AttackerLevel;
         if (vp.Level < 10) return PvpBlock.VictimLevel;
         // Territory-contest truce: participants may not PvP each other in the territory during setup/cooldown
-        // — the contest window itself lifts this (AreContestOpponents drives the war combat instead).
-        if (_territory?.IsContestPvpSuppressed(attacker, victim) == true) return PvpBlock.ContestTruce;
+        // — the contest window itself lifts this (AreContestOpponents drives the war combat instead). The two
+        // suppressing phases are told apart because a truce before the contest and one after it are opposite
+        // situations from where the player stands.
+        if (_territory?.ContestTrucePhase(attacker, victim) is { } trucePhase)
+            return trucePhase == ContestPhase.Cooldown ? PvpBlock.ContestSettled : PvpBlock.ContestTruce;
         return PvpBlock.None;
     }
 
@@ -58,6 +61,7 @@ public sealed partial class CombatSystem : GameSystem
         PvpBlock.AttackerLevel => (ServerStrings.CombatSystem_YouTooLowLevel, []),
         PvpBlock.VictimLevel => (ServerStrings.CombatSystem_TargetTooLowLevel, [("VictimName", victimName)]),
         PvpBlock.ContestTruce => (ServerStrings.CombatSystem_ContestTruce, []),
+        PvpBlock.ContestSettled => (ServerStrings.CombatSystem_ContestSettled, []),
         _ => ("", [])
     };
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Mirage.Shared;
+using Mirage.Shared.Protocol.Packets;
 
 namespace Mirage.Server.Core.GameLogic;
 
@@ -56,6 +57,50 @@ public sealed partial class GuildTerritorySystem : GameSystem
             g.IdOf[m] = grid;
         }
         return g;
+    }
+
+    /// <summary>Lays the territory's maps out on ONE tile grid by walking their edge links, so a point on
+    /// any of them can be placed relative to a player standing on any other.
+    ///
+    /// <para>Origins are in tiles rather than map cells because the maps are not all the same size: a
+    /// neighbour's origin is this map's origin plus THIS map's width or height, which is exactly the step a
+    /// player takes across that seam.</para>
+    ///
+    /// <para>🔴 A territory whose links disagree with themselves — a loop that returns to a map at a
+    /// different offset — keeps the FIRST placement. Breadth-first from the lowest map number makes that
+    /// choice stable rather than dependent on enumeration order, and a marker a few tiles out on a
+    /// malformed layout is better than one that moves every tick.</para></summary>
+    private List<ContestMapView> BuildTerritoryLayout(List<int> maps)
+    {
+        var origin = new Dictionary<int, (int X, int Y)>();
+        var queue = new Queue<int>();
+        var inTerritory = new HashSet<int>(maps);
+
+        foreach (int start in maps.OrderBy(m => m))
+        {
+            if (origin.ContainsKey(start)) continue;   // a second component: place it at its own origin
+            origin[start] = (0, 0);
+            queue.Enqueue(start);
+            while (queue.Count > 0)
+            {
+                int m = queue.Dequeue();
+                var map = _world.Maps[m];
+                var (ox, oy) = origin[m];
+                Step(map.Up, ox, oy - _world.Maps[map.Up > 0 ? map.Up : m].Height);
+                Step(map.Down, ox, oy + map.Height);
+                Step(map.Left, ox - _world.Maps[map.Left > 0 ? map.Left : m].Width, oy);
+                Step(map.Right, ox + map.Width, oy);
+
+                void Step(int next, int nx, int ny)
+                {
+                    if (next <= 0 || !inTerritory.Contains(next) || origin.ContainsKey(next)) return;
+                    origin[next] = (nx, ny);
+                    queue.Enqueue(next);
+                }
+            }
+        }
+
+        return [.. origin.Select(kv => new ContestMapView { Map = kv.Key, OriginX = kv.Value.X, OriginY = kv.Value.Y })];
     }
 
     /// <summary>The node ids reachable in one step from <paramref name="node"/>, appended to
