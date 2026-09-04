@@ -2,7 +2,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// The world check's results window.

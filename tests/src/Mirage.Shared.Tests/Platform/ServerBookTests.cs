@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>The address book of servers an installation knows about: what it starts with, how entries
 /// are keyed, and what survives a reload.</summary>

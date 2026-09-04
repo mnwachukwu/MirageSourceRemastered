@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.State;
 
 /// <summary>Central client game-state helpers: time-of-day darkness, gold scan, unread-mail count, the
 /// map-number → grid-cell routing used to place incoming entity packets, guest collision, and the warp reset.</summary>

@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// Which decks can take a spawn is CACHED on <see cref="GameWorld"/>, and the cache is only as good as the

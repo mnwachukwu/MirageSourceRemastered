@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>Stable structural invariants of the player vital/regen formulas — the properties that must hold
 /// across balance retunes (so these don't pin exact tuned magnitudes, which the parity/combat suites already

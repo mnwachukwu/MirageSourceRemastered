@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Records;
 
 /// <summary>
 /// Which of a quest's two reward sets a given run pays.

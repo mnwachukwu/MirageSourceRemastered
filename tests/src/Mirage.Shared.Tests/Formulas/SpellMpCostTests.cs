@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>Invariants of <see cref="CombatFormulas.GetSpellMpCost"/>, and above all the one AddMp has to
 /// satisfy: <b>a cast must never restore more mana than it costs.</b> AddMp is the only spell type whose

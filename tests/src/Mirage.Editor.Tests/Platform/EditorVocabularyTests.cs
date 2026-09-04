@@ -3,7 +3,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// The editor's structural vocabulary — layer types, tile attributes, tool enums — is English in

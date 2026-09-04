@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Social;
 
 /// <summary>Locks the access-rank → name color mapping after the chat-overhaul recolor: each rank maps to
 /// an appended color slot (Monitor orange, Mapper turquoise, Developer royal-blue, Creator amethyst, Player

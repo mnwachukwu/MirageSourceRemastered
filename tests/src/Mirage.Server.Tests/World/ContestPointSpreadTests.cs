@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.Platform;
 using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// Capture points spread by WALKING distance across the whole territory.

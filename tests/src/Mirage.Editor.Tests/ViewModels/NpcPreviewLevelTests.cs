@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// Locks the NPC editor's "experience at level" preview spinner (<see cref="NpcRowViewModel.PreviewLevel"/>):

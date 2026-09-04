@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Ai;
 
 // Size-aware fixed-spawn placement validation: a pin's SxS footprint (top-left anchor) must
 // be fully on-map, all Walkable, and not overlap another pinned entry. Shared by the editor (place/render) + the

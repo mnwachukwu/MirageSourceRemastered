@@ -1,7 +1,7 @@
 using Mirage.Shared.Localization;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>The shared localization engine (Mirage.Shared.StringLoader). The LocalizationParity suites lean on
 /// <see cref="StringLoader.Validate"/> to guard translations, but they only assert it finds NOTHING wrong in

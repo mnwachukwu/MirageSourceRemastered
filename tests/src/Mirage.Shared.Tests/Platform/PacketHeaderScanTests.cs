@@ -2,7 +2,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>
 /// <see cref="PacketSerializer.ReadHeader"/> — the allocation-free top-level scan that replaced a

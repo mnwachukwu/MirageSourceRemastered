@@ -4,7 +4,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// A map-wide area light covers the map, not the viewport.

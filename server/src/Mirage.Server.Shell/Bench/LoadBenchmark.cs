@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using Mirage.Server.Core.Configuration;
 using Mirage.Shared.Protocol;
+using System.Diagnostics;
 
 namespace Mirage.Server.Shell.Bench;
 

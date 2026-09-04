@@ -1,6 +1,6 @@
+using Mirage.Shared.Records;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Mirage.Shared.Records;
 
 namespace Mirage.Shared.Serialization;
 

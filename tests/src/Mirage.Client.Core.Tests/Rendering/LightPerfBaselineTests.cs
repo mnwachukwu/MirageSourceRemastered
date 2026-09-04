@@ -5,7 +5,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Diagnostics;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// What the occlusion masks actually cost. <b>[Explicit] — run manually.</b>

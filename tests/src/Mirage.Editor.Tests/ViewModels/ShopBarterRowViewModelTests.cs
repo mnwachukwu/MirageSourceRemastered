@@ -2,7 +2,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>Trade-slot quantity coercion — the authoritative editor-side backstop that keeps a shop trade
 /// well-formed: an empty side carries 0, a non-currency item pins to exactly 1 (gear never stacks), and a

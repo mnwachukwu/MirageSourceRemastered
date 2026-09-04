@@ -4,7 +4,7 @@ using Mirage.Shared.Localization;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Platform;
 
 /// <summary>
 /// Guards <c>lang/*.json</c> against the ways it rots silently. The rest of the suite only ever

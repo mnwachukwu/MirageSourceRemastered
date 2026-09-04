@@ -2,7 +2,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// Ctrl+S saves the open record and Ctrl+Shift+S saves every dirty one, on whichever section is

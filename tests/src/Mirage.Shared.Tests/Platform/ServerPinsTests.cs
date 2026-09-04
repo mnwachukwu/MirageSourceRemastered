@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>Trust-on-first-use bookkeeping: what each server's certificate was last time, and whether
 /// the one being offered now matches it.</summary>

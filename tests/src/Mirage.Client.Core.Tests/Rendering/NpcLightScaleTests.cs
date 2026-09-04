@@ -3,7 +3,7 @@ using Mirage.Shared;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>A big NPC's light reach scales with its footprint (authored Radius + (size-1) tiles), so
 /// the LightSpec.Radius stays "how far the glow spills past the body" at any size and the bright inner core

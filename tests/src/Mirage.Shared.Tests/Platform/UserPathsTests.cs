@@ -1,7 +1,7 @@
-using System.Runtime.InteropServices;
 using NUnit.Framework;
+using System.Runtime.InteropServices;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>
 /// <see cref="UserPaths"/>, which is the one place the engine knows where a per-user file belongs on

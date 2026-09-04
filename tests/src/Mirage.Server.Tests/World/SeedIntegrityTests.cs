@@ -1,9 +1,9 @@
-using System.Text.Json;
 using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
+using System.Text.Json;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>The shipped seed in <c>server/src/Mirage.Server.Host/world</c>, checked against the engine that
 /// has to load it.

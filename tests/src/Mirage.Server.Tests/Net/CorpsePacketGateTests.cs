@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Net;
 
 /// <summary>
 /// The corpse gate: which packets a dead player may still have delivered to a handler.

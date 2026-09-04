@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>Regression: a dying large NPC's delayed-death sprite (held in place until a killing spell bolt
 /// lands, per the cast-animation deferral) must keep its footprint SIZE instead of shrinking to a 32x32

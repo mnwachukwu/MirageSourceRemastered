@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Combat;
 
 // Deterministic locks on the damage/vital invariants that Simulations/CombatSim only checks by printed
 // eyeball (the sim reimplements the math standalone, so it can silently drift from Mirage.Shared).  These

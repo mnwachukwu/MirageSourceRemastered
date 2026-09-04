@@ -5,7 +5,7 @@ using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// The blood-pool wire decode. A BloodUpdatePacket carries a map's WHOLE pool list,

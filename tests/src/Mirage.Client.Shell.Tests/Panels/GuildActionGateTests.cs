@@ -2,7 +2,7 @@ using Mirage.Client.Shell.Logic;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>The Social panel's Guild-tab rank gates (<see cref="GuildActionGate"/>) — which member/guild
 /// actions each rank may take against a selected member. These mirror the server's authoritative checks;

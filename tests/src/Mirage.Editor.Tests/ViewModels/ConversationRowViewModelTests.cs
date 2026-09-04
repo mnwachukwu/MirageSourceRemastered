@@ -5,7 +5,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The conversation-editor row: a dynamic NODES table where each node owns its own dynamic CHOICES table
 /// (two levels over the quest pattern). Covers blank-start, add/remove + ceilings at both levels, nested dirty

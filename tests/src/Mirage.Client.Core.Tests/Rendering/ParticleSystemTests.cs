@@ -1,7 +1,7 @@
 using Mirage.Client.Core.Logic;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>The pooled, allocation-free particle subsystem: bounded capacity, swap-remove of dead particles,
 /// the rain→splash and homing-projectile arrival morphs, and the pure fade/velocity/flight-time helpers the

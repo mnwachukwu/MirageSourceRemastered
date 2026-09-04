@@ -4,7 +4,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// <see cref="LightOcclusion.Fill"/> against <see cref="LightOcclusion.Reaches"/>, which answers the same

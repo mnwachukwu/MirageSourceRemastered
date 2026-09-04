@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Progression;
 
 /// <summary>The objective kernel's tracker + mob-kill hook (#5): predicate-gated crediting, one KO =
 /// one advance, per-objective credit on a shared kill, the one-shot completion callback + auto-untrack,

@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Guilds;
 
 /// <summary>Guild progression (#10): the XP→level curve, its inverse, and the perk-active gate
 /// (level threshold AND tax-paid PerksActive) that every perk site consults.</summary>

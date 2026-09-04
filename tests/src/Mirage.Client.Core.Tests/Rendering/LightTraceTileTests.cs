@@ -5,7 +5,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// How a walking emitter's shadows get from one tile to the next.

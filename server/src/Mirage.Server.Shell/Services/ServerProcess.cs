@@ -1,6 +1,6 @@
+using Mirage.Shared;
 using System.Diagnostics;
 using System.Threading.Channels;
-using Mirage.Shared;
 
 namespace Mirage.Server.Shell.Services;
 

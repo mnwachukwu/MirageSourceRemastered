@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Social;
 
 /// <summary>The chat overhaul gives every labeled channel and every name rank its own palette slot so
 /// they read as visually distinct on the near-black chat background. This locks that invariant: a future

@@ -2,7 +2,7 @@ using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// What the window shows after a live session ends.

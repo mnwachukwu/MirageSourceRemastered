@@ -3,12 +3,13 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Configuration;
 
 /// <summary>
 /// The three death-penalty switches, pinned one at a time, all off, and all on — that last being the

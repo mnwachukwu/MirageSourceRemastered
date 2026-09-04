@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.State;
 
 /// <summary>Client-side quest derivation: the overhead ?/! glyph + the interaction menu are
 /// computed from the quest DEFS (SendQuests) + the per-player LOG + the server's ELIGIBLE set (QuestLog), with

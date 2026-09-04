@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Services;
 
 /// <summary>
 /// One sprite sheet number is one character at every footprint size.

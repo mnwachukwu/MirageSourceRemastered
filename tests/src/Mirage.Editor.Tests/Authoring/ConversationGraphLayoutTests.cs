@@ -1,7 +1,7 @@
 using Mirage.Editor.Controls;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 /// <summary>Placement of a dialogue graph on the canvas. Positions are derived rather than authored, so this
 /// is the whole of what the picture knows — the control only turns grid slots into pixels.</summary>

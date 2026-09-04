@@ -7,7 +7,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>Player vital-regen cadence + the combat-suppression rule (RegenerationSystem — newly unit-testable
 /// via the GameSystem clock seam and the parameterized Tick(now)). The load-bearing invariant: HP regen PAUSES

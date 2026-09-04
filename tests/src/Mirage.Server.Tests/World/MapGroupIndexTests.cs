@@ -5,7 +5,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A map group's number lives in exactly one place: its filename. <c>MapGroupRecord.Index</c> is

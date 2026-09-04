@@ -7,7 +7,7 @@ using NUnit.Framework;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 // Locks the per-pass shared BFS direction-field cache (CachedStepTowardObservableArea / FillPathField) to the
 // single-source BFS it deduplicates: for EVERY possible source tile the cached decode must return exactly what

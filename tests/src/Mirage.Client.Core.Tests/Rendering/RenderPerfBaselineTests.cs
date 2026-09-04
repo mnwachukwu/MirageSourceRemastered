@@ -5,7 +5,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Diagnostics;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// Client render-path performance baseline. <b>[Explicit] — run manually.</b>

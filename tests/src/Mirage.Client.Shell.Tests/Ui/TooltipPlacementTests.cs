@@ -3,7 +3,7 @@ using Mirage.Client.Shell.Panels;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Ui;
 
 /// <summary>
 /// Where the hover tooltip lands. It opens below the cursor, and flips above when the card will not

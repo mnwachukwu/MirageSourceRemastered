@@ -1,4 +1,3 @@
-using System.Buffers;
 using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
@@ -7,6 +6,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
+using System.Buffers;
 
 namespace Mirage.Server.Core.GameLogic;
 

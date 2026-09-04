@@ -7,7 +7,7 @@ using Mirage.Shared.Protocol;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A live contest changes who may hit whom, not where anybody may walk.

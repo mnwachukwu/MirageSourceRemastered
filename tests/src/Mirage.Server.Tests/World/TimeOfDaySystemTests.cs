@@ -3,7 +3,7 @@ using Mirage.Shared;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>The day/night cycle's phase mapping (TimeOfDaySystem.PhaseAt, private static): a cycle position in
 /// ms maps to the phase (Day→Dusk→Night→Dawn) and the 0..1 progress within it. These boundaries drive the

@@ -4,7 +4,7 @@ using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Platform;
 
 /// <summary>
 /// Stops live language switching from rotting as screens are added. Screens are rebuilt on a menu

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Services;
 
 /// <summary>
 /// Which transparency model a sheet uses, and whether it has any.

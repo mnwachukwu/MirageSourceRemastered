@@ -3,7 +3,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The class-editor row: record round-trip, the dirty lifecycle + wire-load guard, and the fresh-Lv.1
 /// stat previews wiring — each preview must key off the RIGHT stat (HP off DEF, MP off INT, SP off SPD, phys

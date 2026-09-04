@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>
 /// Reading a path that travels between machines.

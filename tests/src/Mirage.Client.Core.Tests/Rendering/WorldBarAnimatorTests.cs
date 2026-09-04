@@ -2,7 +2,7 @@ using Mirage.Client.Core.Logic;
 using Mirage.Client.Core.State;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>World-space HP/MP/SP bar animation: snap on first appearance (DispHp < 0) or on an explicit
 /// SnapVitals (respawn), otherwise lerp the display fraction toward the true fraction.</summary>

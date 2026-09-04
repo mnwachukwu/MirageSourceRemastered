@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Guilds;
 
 /// <summary><see cref="GuildSystem.QuestTargetsNpc"/> — the gate for the per-contributor quest-valor roll:
 /// true only when the guild has an active KILL quest whose target matches the slain NPC (0 = wildcard).</summary>

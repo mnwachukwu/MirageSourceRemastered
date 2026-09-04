@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.State;
 
 /// <summary>The seamless-crossing grid re-frame. Crossing an edge slides the whole 3x3 one cell opposite the
 /// travel direction so the cell entered becomes the new center, preserving every loaded map + its entities,

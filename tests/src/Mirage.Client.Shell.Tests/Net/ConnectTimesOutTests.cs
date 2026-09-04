@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Net;
 
 /// <summary>
 /// A connection attempt always ends.

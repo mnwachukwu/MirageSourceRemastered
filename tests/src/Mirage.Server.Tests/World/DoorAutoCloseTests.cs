@@ -9,7 +9,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>The Key-door auto-close sweep (NpcAiSystem.CheckDoorAutoClose). Every open door carries its own
 /// TickCount64 stamp in TempTileState.DoorOpenedAt, so each shuts exactly DoorAutoCloseMs after IT opened —

@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>
 /// What depositing and withdrawing mean to a vault ARRAY — the half of <see cref="BankSystem"/> with no

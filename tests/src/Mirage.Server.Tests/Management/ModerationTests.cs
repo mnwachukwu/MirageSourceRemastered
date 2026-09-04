@@ -2,7 +2,7 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Shared.Protocol;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Management;
 
 /// <summary>
 /// The moderation report's arithmetic and its place on the wire.

@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Combat;
 
 /// <summary>Pure spellbook slot helpers on <see cref="SpellSystem"/>: 1-based first-empty-slot search
 /// (0 = book full) and membership lookup. These gate learning a scroll (ItemSystem.UseItem) and casting.</summary>

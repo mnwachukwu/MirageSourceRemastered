@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>
 /// The one gate every class restriction routes through — items, spells and quests alike. Pins the two

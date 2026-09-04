@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Accounts;
 
 /// <summary>
 /// Whether a character may take a name — the whole decision the editor's rename runs, minus the one lookup

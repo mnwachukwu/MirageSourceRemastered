@@ -3,7 +3,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// The record folders a world is made of: created with it, and put back if they go missing.

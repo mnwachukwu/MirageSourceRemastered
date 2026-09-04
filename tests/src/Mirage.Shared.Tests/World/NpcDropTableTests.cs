@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>An NPC's drop table and the canonical form <c>Normalize</c> puts it in.
 ///

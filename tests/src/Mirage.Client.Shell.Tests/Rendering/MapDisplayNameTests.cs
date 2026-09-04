@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System;
 using System.IO;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Rendering;
 
 /// <summary>The map-name fallback chain shown in the HUD sidebar: authored DisplayName, else the map's MapGroup
 /// DisplayName (resolved client-side against the cached group), else the internal Name, else a generic "Map N".

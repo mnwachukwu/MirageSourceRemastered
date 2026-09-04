@@ -1,7 +1,7 @@
 using Mirage.Client.Shell.Panels;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// The per-panel policy table: five facts about every panel, held as data rather than as switches and

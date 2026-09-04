@@ -2,6 +2,7 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
@@ -12,7 +13,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Social;
 
 /// <summary>NPC conversations: the world resolver (<see cref="GameWorld.ConversationForNpc"/>), the per-character
 /// visited-log (<see cref="ConversationSystem"/>.MarkSpoken / OnPlayerJoin — the source of the yellow→gray

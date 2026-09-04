@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Platform;
 
 /// <summary>
 /// An empty MOTD means take it down, and taking it down says nothing to anybody.

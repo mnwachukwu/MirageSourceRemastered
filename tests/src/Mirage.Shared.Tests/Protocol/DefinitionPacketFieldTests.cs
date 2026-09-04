@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System.Collections;
 using System.Reflection;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Protocol;
 
 /// <summary>
 /// A definition packet carries a record's fields to the client and the editor. Any field the builder

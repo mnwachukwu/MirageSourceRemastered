@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// Stops live language switching from rotting as views are added. The editor's section views

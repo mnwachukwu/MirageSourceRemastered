@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
-using Mirage.Shared.Records;
 using Microsoft.Xna.Framework.Graphics;
+using Mirage.Shared.Records;
 
 namespace Mirage.Client.Shell.Rendering;
 

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Mirage.Server.Core.Configuration;
 using Mirage.Server.Core.GameLogic;
@@ -7,6 +6,7 @@ using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
+using System.Text.Json;
 
 namespace Mirage.Server.Host.Management;
 

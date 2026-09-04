@@ -2,13 +2,14 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 // Dynamic map-NPC list + fixed placement. A map's NPCs are a dense List<MapNpcEntry>: entry
 // [i] drives runtime spawn post i+1, and each entry carries the NPC type + an OPTIONAL pin (PinX/PinY). A pinned

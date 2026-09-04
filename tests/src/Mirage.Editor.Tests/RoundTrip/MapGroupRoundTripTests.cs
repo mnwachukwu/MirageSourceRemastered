@@ -5,7 +5,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.RoundTrip;
 
 /// <summary>
 /// Locks the MapGroup editor's round-trips: the group row's packet apply/save, the tri-state Moral

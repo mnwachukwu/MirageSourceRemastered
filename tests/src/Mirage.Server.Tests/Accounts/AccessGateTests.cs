@@ -4,7 +4,7 @@ using Mirage.Server.Core.World;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>The access-gate rule: Monitor+ (any admin access) cannot engage in PvP on either side.
 /// <see cref="CombatSystem.GetPvpBlock"/> is the authority; this locks the threshold at Monitor and

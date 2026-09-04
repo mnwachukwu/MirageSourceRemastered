@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 /// <summary>
 /// Uniform two-plane authoring (post-pivot): attributes are placed on a chosen logical layer

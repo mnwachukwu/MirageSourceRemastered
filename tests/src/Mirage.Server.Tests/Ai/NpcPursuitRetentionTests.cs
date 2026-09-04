@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 /// <summary>
 /// Who keeps a fleeing target, and who lets it go.

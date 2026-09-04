@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Progression;
 
 /// <summary>
 /// Whether a character may learn a spell — the one answer the scroll and the editor's account browser both

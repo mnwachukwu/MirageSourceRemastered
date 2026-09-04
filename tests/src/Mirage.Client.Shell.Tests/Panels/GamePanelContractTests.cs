@@ -2,7 +2,7 @@ using Mirage.Client.Shell.Panels;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// Guards the <see cref="IGamePanel"/> contract that GameplayScreen's panel registry depends on.

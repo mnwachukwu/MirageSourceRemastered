@@ -2,12 +2,14 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.Platform;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Combat;
 
 /// <summary>How gear wears: WHICH slots a combat event touches, and HOW the sliding chip scale behaves.
 /// Both are load-bearing for the repair economy.

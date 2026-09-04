@@ -2,7 +2,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Configuration;
 
 /// <summary>
 /// The editor learns what world it reached from the same greeting the game client gets. That greeting

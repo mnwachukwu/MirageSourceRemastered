@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.RoundTrip;
 
 /// <summary>
 /// Locks the ONLINE round-trip of <see cref="NpcRowViewModel.Size"/> - the NPC footprint size class

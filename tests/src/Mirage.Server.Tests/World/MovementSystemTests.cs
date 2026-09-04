@@ -9,7 +9,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>Player + NPC movement validity. Pure tile-type rules (guards alone ignore NpcAvoid); the
 /// authoritative server-side PlayerMove (step into open tiles, refuse walls / closed doors / map edges with

@@ -1,7 +1,7 @@
-using System.Reflection;
 using Mirage.Server.Shell.Localization;
 using Mirage.Shared.Localization;
 using NUnit.Framework;
+using System.Reflection;
 
 namespace Mirage.Server.Shell.Tests;
 

@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Ui;
 
 /// <summary>
 /// <c>Mirage.Ui</c> is three XAML resource dictionaries and no C#, so what can break in it is the XAML

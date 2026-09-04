@@ -1,7 +1,7 @@
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// That the suite is actually reading and writing somewhere disposable.

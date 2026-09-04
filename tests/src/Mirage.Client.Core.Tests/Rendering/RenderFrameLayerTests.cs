@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// Two-layer ("bridge") world render frame (Stage 1g-B): RenderFrame gained the Canopy tile stack (drawn over

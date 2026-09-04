@@ -1,11 +1,12 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.Logging;
 using Mirage.Server.Core.Persistence;
+using Mirage.Server.Tests.World;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>
 /// Marketplace listings and trade journals are numbered by their filename, the same way every other

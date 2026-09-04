@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.State;
 
 /// <summary>Client-side step prediction: the 6-field mutation that starts the local walk/run animation BEFORE
 /// the server echo. Locks the collapsed prediction contract so the call sites can't drift.</summary>

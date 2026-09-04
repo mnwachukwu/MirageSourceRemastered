@@ -2,7 +2,7 @@ using Mirage.Editor.Services;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Services;
 
 /// <summary>
 /// What the record lists show, given the server's lock table.

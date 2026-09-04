@@ -2,7 +2,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Economy;
 
 /// <summary>The sales table: the plain item-number list a shop sells for gold, alongside — not instead of —
 /// the barter trade table. Covers canonicalization and the round-trips a generated shopfront has to survive.</summary>

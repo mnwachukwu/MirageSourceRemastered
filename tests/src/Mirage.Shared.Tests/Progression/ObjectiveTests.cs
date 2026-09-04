@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Progression;
 
 /// <summary>The shared objective primitive (kernel #5): kind/target-gated advance, the single
 /// completion edge, progress clamping, and independent Clone.</summary>

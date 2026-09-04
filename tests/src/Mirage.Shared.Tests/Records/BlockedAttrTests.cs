@@ -3,7 +3,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Records;
 
 /// <summary>
 /// What a wall stops.

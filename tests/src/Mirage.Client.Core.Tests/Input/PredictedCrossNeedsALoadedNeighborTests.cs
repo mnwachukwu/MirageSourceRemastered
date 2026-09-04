@@ -6,7 +6,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>
 /// 🔴 A step off a map edge is predicted on the spot: the grid shifts and the cell in that direction

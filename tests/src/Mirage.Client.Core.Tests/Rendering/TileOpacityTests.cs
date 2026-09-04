@@ -4,7 +4,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// The shape a tile casts a shadow in comes from its ART, so a mountain whose lower third is transparent

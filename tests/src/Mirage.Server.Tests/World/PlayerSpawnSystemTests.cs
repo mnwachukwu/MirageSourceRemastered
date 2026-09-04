@@ -9,7 +9,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>Setting a personal spawn point at an Inn (ConfirmSetSpawn): only works standing in an Inn, costs
 /// a level-scaled amount of gold (floored at SpawnCostMinimum), and on success charges the gold and records

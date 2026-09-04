@@ -4,7 +4,7 @@ using Mirage.Client.Shell.Panels;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// Guards the Options panel's two reset buttons.

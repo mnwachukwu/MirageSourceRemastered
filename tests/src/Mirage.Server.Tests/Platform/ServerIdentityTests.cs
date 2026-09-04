@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Platform;
 
 /// <summary>
 /// The server's TLS identity, which is the thing certificate pinning stands on.

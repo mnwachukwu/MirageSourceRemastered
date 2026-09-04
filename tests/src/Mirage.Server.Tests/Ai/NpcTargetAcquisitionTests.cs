@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 // Focused coverage for NPC target ACQUISITION picking the nearest eligible candidate within the
 // existing priority order (NpcAiSystem.Find*; see the "Target acquisition: line of sight,

@@ -4,7 +4,7 @@ using Mirage.Server.Core.Persistence;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// Where territory state lives, and what a world folder is left holding.

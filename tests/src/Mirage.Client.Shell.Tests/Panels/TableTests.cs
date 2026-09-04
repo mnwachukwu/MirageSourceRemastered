@@ -2,7 +2,7 @@ using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>The data-bound generic table (<see cref="Table{T}"/>): feed it a collection, declare columns
 /// from a row's properties, and it renders/sorts as asked. These cover the pure data path — column

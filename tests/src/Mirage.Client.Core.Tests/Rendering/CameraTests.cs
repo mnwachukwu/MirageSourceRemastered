@@ -2,7 +2,7 @@ using Mirage.Client.Core.Logic;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>The seamless-world camera follows the local player on the center map but clamps to the known
 /// 3x3 grid's extent, and its tile↔screen transforms round-trip. With no neighbors it locks to the

@@ -4,7 +4,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Protocol;
 
 /// <summary>
 /// The marketplace listings a browsing client is sent.

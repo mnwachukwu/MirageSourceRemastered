@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>
 /// Naming rules that answer the same on every platform.

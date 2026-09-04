@@ -1,11 +1,12 @@
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Social;
 
 /// <summary>The two-player party state machine: an invite wires up a pending pair (starter flag on the
 /// inviter only, not yet joined); accepting completes it; a mutual cross-invite auto-joins; leave/disband/

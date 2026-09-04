@@ -1,13 +1,14 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.Logging;
 using Mirage.Server.Core.Persistence;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using NUnit.Framework;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>
 /// The machine-ban store: salting, matching, and the two rules that make the difference between a

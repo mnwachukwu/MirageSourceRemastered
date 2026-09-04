@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The spell-editor row: record round-trip, the dirty lifecycle + wire-load guard (ApplyPacket must
 /// not read as an edit), the type-driven flags — only GiveItem shows the item/quantity/INT fields, and the

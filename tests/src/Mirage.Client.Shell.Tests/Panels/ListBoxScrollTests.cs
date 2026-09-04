@@ -3,7 +3,7 @@ using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// A list's scroll position against contents it does not own.

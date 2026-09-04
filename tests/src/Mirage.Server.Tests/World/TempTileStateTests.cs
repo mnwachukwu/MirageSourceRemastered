@@ -2,7 +2,7 @@ using Mirage.Server.Core.World;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// <see cref="TempTileState"/> — the per-map runtime tile state, and the two work lists the game loop's

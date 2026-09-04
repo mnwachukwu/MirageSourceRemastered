@@ -1,6 +1,6 @@
 using Mirage.Shared;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Platform;
 
 /// <summary>
 /// Chance sources that make a gate fire, or not fire, on demand.

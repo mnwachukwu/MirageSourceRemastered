@@ -8,7 +8,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A map's boot point: where it puts a player who leaves it other than by walking off it — by dying, or by

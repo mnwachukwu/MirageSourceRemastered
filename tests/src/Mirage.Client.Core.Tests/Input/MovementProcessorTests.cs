@@ -3,7 +3,7 @@ using Mirage.Client.Core.State;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>Per-frame movement interpolation: XOffset/YOffset advance toward 0 at the walk/run rate, then the
 /// Moving flag demotes to None when the tile-step settles. The LOCAL player's RUN rate is SPD-scaled (the

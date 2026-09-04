@@ -3,7 +3,7 @@ using Mirage.Editor.Controls;
 using NUnit.Framework;
 using Side = Mirage.Editor.Controls.AttributeBorderGeometry.Side;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Controls;
 
 /// <summary>Where an attribute outline lands relative to the grid line it marks. Two cells carrying different
 /// attributes each draw the edge they share, so the two bands have to land on opposite sides of that line —

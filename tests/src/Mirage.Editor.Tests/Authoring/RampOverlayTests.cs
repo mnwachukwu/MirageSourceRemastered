@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 // The editor overlay's ramp-block color-coding (amber = mixed-direction block; red = invalid/dead block).
 // Pure MapRecord analysis, so no Avalonia render context is needed.  A fresh MapRecord is open walkable ground

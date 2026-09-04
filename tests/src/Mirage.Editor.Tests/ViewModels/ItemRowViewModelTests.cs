@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The item-editor row view-model: faithful record round-trip, the dirty-flag lifecycle, the
 /// load-clobbers-save guard (applying a server packet must NOT flip a clean row to "edited"), the

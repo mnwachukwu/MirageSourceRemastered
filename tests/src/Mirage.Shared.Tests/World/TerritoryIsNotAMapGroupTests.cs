@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>
 /// A map group and a territory are two things, and the whole of the link between them is that a territory

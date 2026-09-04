@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Mirage.Client.Shell.Rendering;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Rendering;
 
 /// <summary>
 /// How a decoded sheet becomes something a premultiplied blend can draw.

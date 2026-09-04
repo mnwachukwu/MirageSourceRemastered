@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Progression;
 
 /// <summary>
 /// Whether a character meets what a quest asks of them — the one answer the accept path and the editor's

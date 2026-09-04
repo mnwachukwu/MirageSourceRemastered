@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// The map editor claims a map the moment it is dirtied — from the same row subscription that raises the

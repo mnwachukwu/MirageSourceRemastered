@@ -4,7 +4,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Collections;
 using System.Reflection;
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.RoundTrip;
 
 /// <summary>
 /// Locks the map's online round-trip: every authored field on <see cref="MapRecord"/> survives

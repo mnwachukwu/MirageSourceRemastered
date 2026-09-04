@@ -3,7 +3,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// Which folders the editor will open as a world, and where the picker starts.

@@ -2,7 +2,7 @@ using Mirage.Server.Core.Net;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>
 /// The rule that a record lock belongs to a SESSION and not to an account.

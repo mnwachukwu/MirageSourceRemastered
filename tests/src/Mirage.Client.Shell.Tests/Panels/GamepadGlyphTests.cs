@@ -1,7 +1,7 @@
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>Controller-brand detection. Deliberately one-sided: an unrecognized pad reads as Xbox, which
 /// is what generic drivers report anyway, so a miss shows the right button in the wrong alphabet rather

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// The give-item and give-to-vault boxes accept any amount a stack can actually hold.

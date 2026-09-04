@@ -1,9 +1,9 @@
-using System.Text.Json;
 using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
+using System.Text.Json;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// The recent-worlds menu shows a world's name, and says an unnamed one is unnamed.

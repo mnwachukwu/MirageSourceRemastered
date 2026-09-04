@@ -5,7 +5,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.RoundTrip;
 
 /// <summary>
 /// Guards the push-changes prompt (the unsaved-edits dialog raised on connect / reconnect / disconnect /

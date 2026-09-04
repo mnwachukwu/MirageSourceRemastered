@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.World;
 
 /// <summary>MapGroup is an independent client-cached def: the client holds the group and resolves a
 /// map's effective inheritable values against it on demand (ClientState.*Of), the client-side mirror of the

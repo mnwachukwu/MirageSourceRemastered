@@ -2,12 +2,13 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>Store trade + item repair. Trade swaps GiveItem*GiveQuantity for GetItem*GetQuantity with the gates
 /// (at the shop, a Store, well-formed slot, enough to give, room to receive); FixItem prices durability off

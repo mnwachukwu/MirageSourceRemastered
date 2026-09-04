@@ -1,7 +1,7 @@
 using Mirage.Client.Core.Logic;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// The frame-time distribution, which exists because an average cannot see a stutter.

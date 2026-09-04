@@ -4,6 +4,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
@@ -13,7 +14,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>The player marketplace on <see cref="MarketSystem"/>: listing escrows the item off the seller,
 /// buying charges the buyer and delivers goods + post-tax payout as delayed mail, canceling returns the item,

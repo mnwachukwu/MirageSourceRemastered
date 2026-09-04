@@ -1,7 +1,7 @@
 using Mirage.Server.Core.Configuration;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Configuration;
 
 /// <summary>
 /// Loading and saving <c>serverconfig.json</c>. What matters is the WRONG file: silently reverting to

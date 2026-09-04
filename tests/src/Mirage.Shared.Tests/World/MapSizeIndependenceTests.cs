@@ -2,7 +2,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>
 /// Three sizes are 16x12, and they are three different things: how big a map is, how big the camera's

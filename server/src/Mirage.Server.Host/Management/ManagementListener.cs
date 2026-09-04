@@ -1,3 +1,10 @@
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Mirage.Server.Core.Configuration;
+using Mirage.Server.Core.Localization;
+using Mirage.Server.Host.Net;
+using Mirage.Server.Host.Services;
+using Mirage.Shared.Protocol;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Security;
@@ -6,13 +13,6 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Mirage.Server.Core.Configuration;
-using Mirage.Server.Core.Localization;
-using Mirage.Server.Host.Net;
-using Mirage.Server.Host.Services;
-using Mirage.Shared.Protocol;
 
 namespace Mirage.Server.Host.Management;
 

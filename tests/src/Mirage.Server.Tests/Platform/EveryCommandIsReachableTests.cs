@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Platform;
 
 /// <summary>
 /// <c>/help</c> lists every command the console answers to.

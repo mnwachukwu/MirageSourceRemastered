@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Accounts;
 
 /// <summary>The SpriteFont charset gate (TextValidation): IsValidChar defines exactly which characters the
 /// game font can draw — ASCII printable, Latin-1 accents/marks, and the Œ/œ ligature — and must stay in

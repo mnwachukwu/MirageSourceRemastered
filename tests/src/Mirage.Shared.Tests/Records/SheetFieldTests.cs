@@ -3,7 +3,7 @@ using Mirage.Shared.Serialization;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Records;
 
 /// <summary>
 /// Which graphics sheet a record draws from.

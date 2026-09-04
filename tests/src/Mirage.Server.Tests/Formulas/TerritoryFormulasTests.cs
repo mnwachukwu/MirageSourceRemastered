@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Formulas;
 
 /// <summary>Territory income math: the weeks-held multiplier, per-kill gold, the daily accrual
 /// clamp, and the settlement credit that moves a day's income into the weekly tally.</summary>

@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Records;
 
 /// <summary>
 /// A stack that grows past what an int holds stops at the ceiling instead of wrapping.

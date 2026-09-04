@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>Pure footprint math for variable-size NPCs: FootprintContains, LeadingEdgeTiles (the melee/
 /// movement strip), TileRun membership, and cross-seam resolution. No world state needed.</summary>

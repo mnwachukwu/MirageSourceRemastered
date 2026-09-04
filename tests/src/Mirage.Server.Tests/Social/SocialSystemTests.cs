@@ -3,10 +3,11 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
+using Mirage.Server.Tests.World;
 using Mirage.Shared.Protocol;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Social;
 
 /// <summary>Per-account friends/ignore lists (stored by account LOGIN). Locks the invariants: the two lists
 /// are mutually exclusive (adding to one clears the other), a target must be ONLINE and can't be yourself

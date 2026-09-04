@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>
 /// Who shared a kill: everyone within a quarter of the top damage dealer.

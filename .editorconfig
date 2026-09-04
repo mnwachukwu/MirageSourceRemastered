@@ -100,8 +100,13 @@ csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 
 # ── using directives ──────────────────────────────────────────────────────────
-# System-first is NOT enforced: the existing files group project usings in a deliberate order and
-# re-sorting them would be churn with no readability gain.
+# One block above the namespace, sorted by NAMESPACE — plain directives first, then `using static`,
+# then aliases. Ordinal, so `System` lands at the bottom on its own and needs no rule of its own;
+# that is what `sort_system_directives_first = false` says here. No blank lines between groups.
+#
+# Sort on the namespace and not on the line: with the trailing `;` included, '.' sorts before ';',
+# which files a child namespace ahead of its own parent (`Mirage.Shared.Records` before
+# `Mirage.Shared`).
 csharp_using_directive_placement = outside_namespace:silent
 dotnet_sort_system_directives_first = false
 dotnet_separate_import_directive_groups = false

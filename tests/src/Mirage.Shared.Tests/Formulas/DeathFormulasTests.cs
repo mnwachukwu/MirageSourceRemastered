@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>The escalating / decaying / capped non-war respawn penalty.</summary>
 [TestFixture]

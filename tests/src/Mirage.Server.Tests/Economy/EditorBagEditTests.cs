@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>
 /// What giving and taking mean to a character RECORD — the half of <see cref="ItemSystem"/> with no player

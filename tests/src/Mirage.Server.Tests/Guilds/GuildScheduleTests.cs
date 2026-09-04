@@ -4,7 +4,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Guilds;
 
 /// <summary>The guild daily-settlement logic (#3): wall-clock catch-up date enumeration, founding-weekday
 /// tax gating, and the tax/perks state machine (pay, suspend on shortfall, restore, no back taxes).</summary>

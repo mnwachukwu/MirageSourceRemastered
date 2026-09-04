@@ -1,8 +1,8 @@
+using Mirage.Server.Core.Configuration;
+using Mirage.Shared.Protocol;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using Mirage.Server.Core.Configuration;
-using Mirage.Shared.Protocol;
 
 namespace Mirage.Server.Shell.Bench;
 

@@ -2,7 +2,7 @@ using Mirage.Client.Core.Logic;
 using Mirage.Client.Core.State;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>Client-side blood-pool decay replays the shared linear dissipation between server events.  Amount
 /// (size) and Freshness (opacity) fade in lockstep, and a pool that dries below the visibility floor is dropped

@@ -2,7 +2,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Records;
 
 /// <summary>
 /// How far an NPC can notice anything.

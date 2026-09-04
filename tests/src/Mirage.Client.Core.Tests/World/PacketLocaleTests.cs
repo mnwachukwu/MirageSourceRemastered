@@ -1,10 +1,11 @@
 using Mirage.Client.Core.Net;
+using Mirage.Client.Core.Tests.Input;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.World;
 
 /// <summary>
 /// The session locale is carried on packets, not inferred, and this pins that contract.

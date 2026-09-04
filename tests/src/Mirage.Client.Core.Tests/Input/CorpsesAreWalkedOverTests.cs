@@ -8,7 +8,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>
 /// A dead player is scenery, not an obstacle — walked over, not around.

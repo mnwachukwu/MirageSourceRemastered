@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 /// <summary>
 /// An authoring dialog opens on the PRESS and never on a cell the pointer is dragged across.

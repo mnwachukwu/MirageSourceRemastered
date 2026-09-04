@@ -2,7 +2,7 @@ using Mirage.Editor.Localization;
 using Mirage.Editor.ViewModels;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The nav rail collapses to icons, and when it does the icon is the ONLY thing naming a section.
 /// These lock the two halves of that rule: a tooltip exists exactly when the label does not, and it says

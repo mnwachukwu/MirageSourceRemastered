@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Accounts;
 
 /// <summary>The per-class starting loadout — <see cref="ClassRecord.StartingItems"/> and
 /// <see cref="ClassRecord.StartingSpells"/>, their canonicalization, and the resolver that decides what

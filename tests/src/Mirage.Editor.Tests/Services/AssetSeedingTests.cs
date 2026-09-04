@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System;
 using System.IO;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Services;
 
 /// <summary>
 /// Deleting a shipped sheet has to outlive a restart.

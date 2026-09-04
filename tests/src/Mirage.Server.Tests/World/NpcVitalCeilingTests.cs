@@ -9,7 +9,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A live NPC's current vitals never exceed its max for the weather in force.

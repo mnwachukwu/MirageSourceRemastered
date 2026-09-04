@@ -3,7 +3,7 @@ using Mirage.Server.Core.World;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>
 /// ServerPlayer.ActiveShop resolution: reach opens a session, and nothing after it closes one.

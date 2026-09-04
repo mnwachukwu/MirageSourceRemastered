@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>The pure map/MapGroup property-fallback resolver. Int/enum fields use their default
 /// (0 / None) as the "not set → inherit" sentinel; the environment bools are nullable (null = inherit,

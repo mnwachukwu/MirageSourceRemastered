@@ -1,4 +1,4 @@
-﻿using Mirage.Server.Core.Localization;
+using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;

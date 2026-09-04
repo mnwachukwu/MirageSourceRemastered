@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Social;
 
 /// <summary><see cref="GameColor"/> is the single source of truth for the game's 16-color palette and the
 /// packed-RGB (0xRRGGBB) representation shared across client and server. These cover the pack/unpack

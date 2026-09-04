@@ -7,7 +7,7 @@ using Mirage.Shared.Protocol;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A shop session and a quest-menu session share ONE lifetime: both end when the player leaves the map

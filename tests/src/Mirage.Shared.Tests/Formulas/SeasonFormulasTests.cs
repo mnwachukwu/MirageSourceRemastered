@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>The seasonal-leaderboard math: whole-week counting, the weekly hold score with its
 /// capped consecutive-hold bonus, and the placing payout table.</summary>

@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>Weather's effect on vital regen (WeatherEffects): Heat Wave and Snow halve the regen magnitude;
 /// every other weather leaves it at full. This one multiplier gates the regen amount in RegenerationSystem,

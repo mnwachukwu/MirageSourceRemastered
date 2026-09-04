@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.World;
 
 /// <summary>
 /// Item definitions surviving the trip onto the client.

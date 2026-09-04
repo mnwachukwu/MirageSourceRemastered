@@ -6,7 +6,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>The action bar's non-drawing behavior: where its four boxes are, and how a bound item or
 /// spell NUMBER is resolved to a live inventory/spellbook slot at the moment of use. That resolution is

@@ -5,7 +5,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The account editor's level/EXP/points coupling. Setting a level here has to produce the
 /// character the game itself would have produced at that level — EXP on the level's floor and a point pool

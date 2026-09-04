@@ -4,6 +4,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
@@ -13,7 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Progression;
 
 /// <summary>Player quests on <see cref="QuestSystem"/> — the first customer of the objective kernel. Covers
 /// accept + eligibility gates (level/stat/prereq), kill-progress through the kernel, turn-in rewards, abandon,

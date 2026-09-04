@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>The min-damage floors — the rule that mitigation is never immunity, and the boss variant that
 /// keeps a dedicated tank under pressure.

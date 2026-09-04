@@ -3,7 +3,7 @@ using Mirage.Client.Shell.Panels;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Input;
 
 /// <summary>Regression net for "typing into a panel text box leaks gameplay hotkeys". GameplayScreen
 /// gates its menu/potion hotkeys, pickup, and movement on <see cref="WorldInputGate.IsSuppressed"/>;

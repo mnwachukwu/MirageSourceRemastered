@@ -2,7 +2,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Economy;
 
 /// <summary>The stored <see cref="ItemRecord.Price"/> and the <see cref="ItemRecord.NonJunkable"/> flag:
 /// what <see cref="ItemRecord.Normalize"/> is and is not allowed to do to a price, that the value survives

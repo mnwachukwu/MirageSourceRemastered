@@ -2,7 +2,7 @@ using Mirage.Client.Shell.Config;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>Pins the full column-layout persistence round-trip a Table goes through — user resize/reorder →
 /// host saves via <see cref="AccountConfig"/> (keyed by table id) → a new session loads +

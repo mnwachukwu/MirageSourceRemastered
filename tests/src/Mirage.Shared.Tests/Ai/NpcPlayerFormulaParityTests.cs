@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Ai;
 
 // NPC ↔ PLAYER FORMULA PARITY.
 //

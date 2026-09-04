@@ -5,6 +5,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
@@ -13,7 +14,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Economy;
 
 /// <summary>Direct player-to-player trade on <see cref="TradeSystem"/>: the request/accept handshake, the r=5
 /// proximity gate, escrow-on-offer with confirm invalidation, the atomic all-or-nothing swap (incl. the

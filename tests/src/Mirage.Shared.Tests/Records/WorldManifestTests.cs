@@ -1,9 +1,9 @@
-using System.Text.Json;
 using Mirage.Shared.Records;
 using Mirage.Shared.Serialization;
 using NUnit.Framework;
+using System.Text.Json;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Records;
 
 /// <summary>
 /// A world's manifest says only what the stock answers do not.

@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>The gold economy: the income backbone every price is quoted against, the derived item prices,
 /// the repair rule (shared by the shop repair path and the guild-war vault-repair sink) and the on-death

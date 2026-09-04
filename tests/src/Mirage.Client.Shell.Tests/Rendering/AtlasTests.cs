@@ -3,7 +3,7 @@ using Mirage.Client.Shell.Rendering;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Rendering;
 
 /// <summary>Sprite-sheet source-rect math. ItemAtlas is a vertical 32px strip (pic 0 = top). TileAtlas is a
 /// grid whose column count is derived from each sheet's pixel width, with 1-based tile numbers wrapping to the

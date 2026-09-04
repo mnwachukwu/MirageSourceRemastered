@@ -4,7 +4,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Formulas;
 
 /// <summary>Pure inventory helpers on <see cref="ItemSystem"/> — no world/dispatcher needed. Locks the two
 /// rules everything else builds on: currency STACKS onto an existing slot while gear takes the first empty

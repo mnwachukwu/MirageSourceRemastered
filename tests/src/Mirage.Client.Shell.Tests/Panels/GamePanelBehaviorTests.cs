@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Mirage.Client.Shell.Panels;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// The <see cref="IGamePanel"/> contract exercised BEHAVIORALLY on every registry panel, not just

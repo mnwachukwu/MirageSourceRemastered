@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.Logging;
 using Mirage.Server.Core.Persistence;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Guilds;
 
 /// <summary>
 /// A guild's number lives in its filename. <c>GuildRecord.Index</c> is <c>[JsonIgnore]</c>d and filled in

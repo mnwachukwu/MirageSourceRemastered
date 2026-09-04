@@ -2,7 +2,7 @@ using Mirage.Client.Core.Cache;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.World;
 
 /// <summary>The client's on-disk map cache: JSON round-trip, the in-memory revision index (drives the
 /// revision-keyed staleness check without disk I/O), and re-indexing existing files when reopened.</summary>

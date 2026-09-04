@@ -5,9 +5,9 @@ using Avalonia.Headless.NUnit;
 using NUnit.Framework;
 using System.Reflection;
 
-[assembly: AvaloniaTestApplication(typeof(Mirage.Editor.Tests.ViewTestApp))]
+[assembly: AvaloniaTestApplication(typeof(Mirage.Editor.Tests.Platform.ViewTestApp))]
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>The editor's own <see cref="App"/> on a headless platform: the real styles, resources and
 /// theme, so a view that resolves a brush or a control theme is checked against the ones it ships

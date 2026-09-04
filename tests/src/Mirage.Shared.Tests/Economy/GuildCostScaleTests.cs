@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Economy;
 
 /// <summary>The guild gold family is a CLOSED SUB-ECONOMY and must be retuned as a unit.
 ///

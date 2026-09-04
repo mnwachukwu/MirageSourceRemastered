@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Mirage.Client.Shell.Input;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Input;
 
 /// <summary>Regression net for the pointer state machine — the invariants that kill mouse bleed-through.
 /// Each case here is one a per-widget workaround could only patch for a single widget, so they are

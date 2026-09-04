@@ -2,7 +2,7 @@ using Mirage.Client.Shell.Panels;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// Where the party overlay is drawn: the sidebar's free space, under the Logout button.

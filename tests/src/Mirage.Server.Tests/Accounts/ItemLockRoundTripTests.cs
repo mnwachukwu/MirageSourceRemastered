@@ -3,6 +3,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
@@ -12,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>
 /// Two editors, one item: the whole exchange the padlock stands for.

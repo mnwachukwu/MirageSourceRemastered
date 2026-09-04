@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Guilds;
 
 /// <summary>Guild overhead colors are free 24-bit RGB except for the 16 named palette colors (and a small
 /// tolerance sphere around each). <see cref="GuildColorPolicy"/> is the authority both the server and the

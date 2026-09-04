@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// Typed changes in the account form live until Save sends them, and nothing else in the section throws

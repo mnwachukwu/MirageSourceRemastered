@@ -2,7 +2,7 @@ using Mirage.Server.Core.World;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// <see cref="GameWorld.RepairPosition"/> — the half of the warp bound that must never say no.

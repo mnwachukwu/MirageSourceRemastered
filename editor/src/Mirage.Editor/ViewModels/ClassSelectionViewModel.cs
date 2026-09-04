@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Models;
 using Mirage.Shared;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Mirage.Editor.ViewModels;
 

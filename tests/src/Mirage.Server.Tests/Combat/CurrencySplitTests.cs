@@ -1,7 +1,7 @@
 using Mirage.Server.Core.GameLogic;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Combat;
 
 /// <summary>
 /// The one place in the engine that divides currency.

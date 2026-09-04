@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.State;
 
 /// <summary>
 /// A client compiles against the PROTOCOL ceiling — the largest slot the wire can carry — but a server

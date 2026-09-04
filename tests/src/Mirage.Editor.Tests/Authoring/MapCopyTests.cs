@@ -4,7 +4,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 /// <summary>
 /// Copying a map, and the three things that make it different from copying any other record.

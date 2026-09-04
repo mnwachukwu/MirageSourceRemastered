@@ -5,7 +5,7 @@ using Mirage.Shared.Security;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 // Records which entities were persisted; every read returns an empty/default result (boot loads aren't
 // exercised here).

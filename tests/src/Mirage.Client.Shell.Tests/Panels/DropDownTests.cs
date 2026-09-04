@@ -3,7 +3,7 @@ using Mirage.Client.Shell.Input;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>Headless coverage for <see cref="DropDown"/>'s pointer handling, driving a real
 /// <see cref="InputState"/> through synthetic press/release frames (no MonoGame window). The focus is the

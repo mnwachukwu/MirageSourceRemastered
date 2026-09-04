@@ -3,11 +3,12 @@ using Mirage.Server.Core.Localization;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Combat;
 
 /// <summary>Friendly-fire gating (party + guild). Partymates and guildmates cannot harm each other
 /// through the two player→player damage gates, with ONE asymmetry: party protection is unconditional,

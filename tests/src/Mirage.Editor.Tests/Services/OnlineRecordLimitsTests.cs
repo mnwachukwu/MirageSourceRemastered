@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Services;
 
 /// <summary>
 /// A connected editor's slot range belongs to the SERVER. The editor's offline folder is a different

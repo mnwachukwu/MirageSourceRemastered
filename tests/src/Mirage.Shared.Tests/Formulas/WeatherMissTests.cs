@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>
 /// Heavy Wind tears a share of attacks and casts off course. It is an ATTACKER-side failure, checked before

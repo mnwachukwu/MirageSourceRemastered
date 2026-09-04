@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.Logging;
 using Mirage.Server.Core.Persistence;
+using Mirage.Server.Tests.World;
 using NUnit.Framework;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>
 /// Account-name identity in persistence draws a deliberate line:

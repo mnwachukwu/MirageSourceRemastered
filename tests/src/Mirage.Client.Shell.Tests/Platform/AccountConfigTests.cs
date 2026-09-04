@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Mirage.Client.Shell.Config;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Platform;
 
 /// <summary>The per-account config's in-memory accessors (no filesystem): per-character panel bounds + social
 /// tab + saved table-column layouts round-trip, unknown lookups return null/0, a Set auto-creates the

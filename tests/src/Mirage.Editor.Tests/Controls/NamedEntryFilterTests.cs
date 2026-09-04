@@ -2,7 +2,7 @@ using Mirage.Editor.Models;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Controls;
 
 /// <summary>
 /// The typeahead filter behind every "pick a record" box in the editor.

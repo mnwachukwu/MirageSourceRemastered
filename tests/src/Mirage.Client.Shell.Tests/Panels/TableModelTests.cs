@@ -1,7 +1,7 @@
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>The pure state behind the <see cref="Table{T}"/> control (<see cref="TableModel"/>): column
 /// reorder, resize-with-min-clamp, the asc/desc sort toggle, and the stable row-order permutation. The

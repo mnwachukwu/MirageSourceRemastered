@@ -1,7 +1,7 @@
 using Mirage.Server.Core.GameLogic;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 /// <summary>
 /// When a tick that just ran is next due.

@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using System.Diagnostics;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Mirage.Client.Core.Cache;
@@ -16,6 +15,7 @@ using Mirage.Client.Shell.Sound;
 using Mirage.Client.Shell.Ui;
 using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;

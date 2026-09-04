@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 /// <summary>The action bar's storage rules. Most of this guards the load path: a character file predates
 /// the bar, or was written when <see cref="Constants.MaxHotkeys"/> was a different width, and every read

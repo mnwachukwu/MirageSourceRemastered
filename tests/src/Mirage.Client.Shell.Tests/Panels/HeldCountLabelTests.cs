@@ -1,7 +1,7 @@
 using Mirage.Client.Shell.Panels;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Panels;
 
 /// <summary>
 /// The hotkey bar's count badge, which lives inside a 32-pixel icon.

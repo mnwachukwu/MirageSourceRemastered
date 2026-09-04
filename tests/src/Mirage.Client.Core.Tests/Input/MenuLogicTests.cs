@@ -5,7 +5,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>The pre-game menu state machine. Shell-driven Go* methods and server-driven events (character
 /// list, in-game, class list) move MenuState. The class list arrives in two situations, so it must open the

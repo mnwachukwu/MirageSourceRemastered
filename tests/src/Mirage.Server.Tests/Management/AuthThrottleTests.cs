@@ -1,8 +1,9 @@
 using Mirage.Server.Host.Management;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Management;
 
 /// <summary>
 /// The management port is a console behind one secret, so what stops it being a guessing game is the

@@ -1,7 +1,7 @@
 using Mirage.Server.Core.Configuration;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Configuration;
 
 /// <summary>
 /// Editing appsettings.json without regenerating it. The file is hand-authored structure that no typed

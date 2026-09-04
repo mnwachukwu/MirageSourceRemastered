@@ -1,5 +1,5 @@
-using System.ComponentModel;
 using Avalonia.Controls;
+using System.ComponentModel;
 // SetTextAsync is an EXTENSION here, not a member: Avalonia 12 moved IClipboard to a data-transfer model
 // and left the text convenience in ClipboardExtensions.
 using Avalonia.Input.Platform;

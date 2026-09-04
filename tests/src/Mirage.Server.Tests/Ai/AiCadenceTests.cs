@@ -2,7 +2,7 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 /// <summary>
 /// The rule that decides whether an NPC may act this tick.

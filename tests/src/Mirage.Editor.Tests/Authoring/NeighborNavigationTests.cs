@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 /// <summary>
 /// Reproduces the reported bug: Ctrl+Alt+Shift+Click on a neighbor map (NeighborMapClicked) should

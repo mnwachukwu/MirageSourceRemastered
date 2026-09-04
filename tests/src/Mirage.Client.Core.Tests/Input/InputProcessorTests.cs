@@ -7,7 +7,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>Input → C2S packet translation + client-side movement prediction/collision: a clear step predicts
 /// and sends a move; a wall / another player / an NPC on the destination faces-only; safe zones let players

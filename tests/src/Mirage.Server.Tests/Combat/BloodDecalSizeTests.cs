@@ -2,7 +2,7 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.World;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Combat;
 
 /// <summary>The blood POOL model: blood is a per-map list of size×size rectangles that overlap freely.  A bleed
 /// merges into the list by rectangle math — ENVELOPED (a bigger pool already covers the footprint) feeds that

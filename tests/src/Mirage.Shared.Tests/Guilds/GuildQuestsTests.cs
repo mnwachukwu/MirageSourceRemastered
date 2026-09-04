@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Guilds;
 
 /// <summary>Guild-quest math, including the boss and max-level scaling: the level-weighted NPC pick, the
 /// difficulty/level-scaled kill count + rewards, the compressed BOSS curve, and the max-level XP=0/gold-bonus.</summary>

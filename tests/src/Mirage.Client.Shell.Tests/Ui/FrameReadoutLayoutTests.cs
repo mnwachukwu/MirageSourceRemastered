@@ -3,7 +3,7 @@ using Mirage.Client.Shell.Screens;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Ui;
 
 /// <summary>
 /// The frame readout stacks above the action bar, which sits in the bottom-right corner — its left edge is at

@@ -3,7 +3,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// Locks the rule that a REFRESH is not an author edit.

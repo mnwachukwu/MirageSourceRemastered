@@ -2,7 +2,7 @@ using Mirage.Client.Core.Logic;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// The mapping that puts a light's reach mask under its halo.

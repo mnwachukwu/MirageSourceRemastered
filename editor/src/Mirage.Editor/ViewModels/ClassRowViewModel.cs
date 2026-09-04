@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
@@ -6,6 +5,7 @@ using Mirage.Editor.Models;
 using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
+using System.Collections.ObjectModel;
 
 namespace Mirage.Editor.ViewModels;
 

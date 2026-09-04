@@ -1,7 +1,7 @@
 using Mirage.Client.Core.Logic;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>
 /// The mask is a signed distance field, and this is why.

@@ -3,6 +3,7 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.Platform;
 using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
@@ -10,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A capture point on a Safe map can never change hands — no PvP resolves there — so a war would hand the

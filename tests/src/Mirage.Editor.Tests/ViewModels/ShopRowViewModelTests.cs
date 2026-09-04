@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol.Packets;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The shop-editor row: the Store/Inn radio facade over ShopType is mutually exclusive; the shop's
 /// dirty flag AGGREGATES its nested trade rows (a dirty trade dirties the shop) and its structure (adding or

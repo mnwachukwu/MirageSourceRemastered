@@ -2,7 +2,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.World;
 
 // Truth table for the shared two-plane movement keystone (LayerLogic), independent of the server/client that
 // wrap it.  Covers the BOUNDARY-based layer transition (ascend/descend fire only at a ramp block's ground edge,

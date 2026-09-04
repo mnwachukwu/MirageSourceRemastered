@@ -2,7 +2,7 @@ using Mirage.Client.Core.State;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.State;
 
 /// <summary>Client-side conversation derivation: the overhead "..." glyph is computed from the conversation DEFS
 /// (SendConversations) + the character's spoken-set (ConversationLog). Yellow "..." = a conversation this character

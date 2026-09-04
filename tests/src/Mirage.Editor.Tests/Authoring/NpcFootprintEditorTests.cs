@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Authoring;
 
 /// <summary>
 /// Size-aware NPC placement, editor side. Two behaviors:

@@ -4,7 +4,7 @@ using Mirage.Shared.Serialization;
 using NUnit.Framework;
 using System.Text.Json;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Persistence;
 
 /// <summary>
 /// Observer mode belongs to the character and survives a logout.

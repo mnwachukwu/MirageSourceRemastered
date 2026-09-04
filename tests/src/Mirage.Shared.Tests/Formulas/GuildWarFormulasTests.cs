@@ -1,7 +1,7 @@
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>Pure guild-war math + status derivation + mirror-list maintenance:
 /// the declare-cost curve (punch-down/up, level-0 doubling, floor), daily maintenance, the derived

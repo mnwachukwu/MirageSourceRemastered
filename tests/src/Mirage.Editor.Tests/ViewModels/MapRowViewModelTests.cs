@@ -2,7 +2,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The map-list row (wraps a MapRecord directly): LoadRecord is a lazy fetch that must NOT mark the
 /// row dirty, while UpdateRecord (an edit) does; BumpRevision advances the save-revision counter; and the

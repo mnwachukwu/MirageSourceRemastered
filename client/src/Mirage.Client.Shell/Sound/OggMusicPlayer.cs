@@ -1,6 +1,6 @@
-using System.Collections.Concurrent;
 using Microsoft.Xna.Framework.Audio;
 using NVorbis;
+using System.Collections.Concurrent;
 
 namespace Mirage.Client.Shell.Sound;
 

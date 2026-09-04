@@ -2,7 +2,7 @@ using Mirage.Client.Core.Logic;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>Press-order movement resolution ("input stack"): the most-recently-pressed still-held
 /// direction wins, releasing it falls back to whatever is still held, and same-tick ties resolve to

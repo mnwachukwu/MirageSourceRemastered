@@ -6,7 +6,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Net;
 
 /// <summary>The client caches spell definitions from the wire and reads them back for tooltips, the shop
 /// confirmation and the spell book. Every field the packet carries has to survive that copy.

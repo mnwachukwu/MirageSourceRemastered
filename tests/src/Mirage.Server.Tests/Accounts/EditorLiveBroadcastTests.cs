@@ -4,6 +4,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Persistence;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
@@ -11,7 +12,7 @@ using Mirage.Shared.Records;
 using Mirage.Shared.Security;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Accounts;
 
 /// <summary>
 /// Live-propagation regression guard for the "editor edits must reach already-connected clients" audit.

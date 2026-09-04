@@ -4,7 +4,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.World;
 
 /// <summary>Client spell line-of-sight (mirrors the server's authoritative trace so the target-arrow color
 /// never lies): a straight tile-line to the target is clear unless a Blocked tile or a closed Key door sits on

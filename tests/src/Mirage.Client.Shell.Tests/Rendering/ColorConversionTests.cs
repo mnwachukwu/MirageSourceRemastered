@@ -1,7 +1,7 @@
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Rendering;
 
 /// <summary>HSV ↔ RGB math behind the guild color picker's box/slider. The picker relies on a clean
 /// round-trip so dragging the box and typing RGB numbers stay in sync without drifting.</summary>

@@ -3,7 +3,7 @@ using Mirage.Shared;
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>The sprite animation-frame selector (RenderCommandBuilder.AnimFrame, private): frame
 /// 0 = neutral/idle, 1 = walk stride, 2 = attack. Stride toggles at the tile midpoint (offset crosses +/-PicX/2).

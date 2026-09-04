@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using System.Reflection;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// Compiled bindings stay on, and nothing opts out of them.

@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Accounts;
 
 /// <summary>The shared naming rules (<see cref="NameRules"/>) that govern player, account, and guild names:
 /// underscores are cosmetic — ignored (with case) for uniqueness and not counted toward the length limit.

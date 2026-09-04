@@ -3,7 +3,7 @@ using Mirage.Client.Core.State;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>Chat-bubble head → drifter demotion. Silent entities pay zero allocation (the drifter list is
 /// lazy). Demote-only keeps the head text (a replacement is arriving); natural expiry demotes AND clears.</summary>

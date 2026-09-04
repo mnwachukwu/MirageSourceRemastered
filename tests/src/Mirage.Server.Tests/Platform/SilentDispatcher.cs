@@ -2,7 +2,7 @@ using Mirage.Server.Core.Net;
 using Mirage.Shared.Protocol;
 using System.Collections.Generic;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Platform;
 
 /// <summary>An <see cref="IPacketDispatcher"/> that swallows everything — for tests whose subject is world
 /// state rather than what went out on the wire.

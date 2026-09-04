@@ -3,7 +3,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 // Keeper resolution for the NPC-interaction spine: shops shifting off maps are assigned to an
 // NPC via ShopRecord.Keeper, and GameWorld.ShopAssignedToNpc is the resolver the interact handler + the client's

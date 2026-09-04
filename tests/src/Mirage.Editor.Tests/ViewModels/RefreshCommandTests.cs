@@ -2,7 +2,7 @@ using Mirage.Editor.Services;
 using Mirage.Editor.ViewModels;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// Refresh reads the offline folder, and only the offline folder.

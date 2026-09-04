@@ -1,8 +1,8 @@
-using System.Text.Json;
 using CommunityToolkit.Mvvm.Input;
 using Mirage.Editor.Localization;
 using Mirage.Shared;
 using Mirage.Shared.Records;
+using System.Text.Json;
 
 namespace Mirage.Editor.ViewModels;
 

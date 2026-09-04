@@ -1,7 +1,7 @@
 using Mirage.Server.Host.Management;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Management;
 
 /// <summary>
 /// The tee is what a remote operator actually sees, and it is the only piece of the management path with

@@ -4,7 +4,7 @@ using Mirage.Shared.Protocol;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Net;
 
 /// <summary>
 /// 🔴 Only a BLOCKING map load charges the arrival beat. A seamless crossing must not.

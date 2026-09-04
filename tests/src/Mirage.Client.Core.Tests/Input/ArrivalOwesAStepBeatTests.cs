@@ -5,7 +5,7 @@ using Mirage.Shared;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Input;
 
 /// <summary>
 /// 🔴 Landing somewhere by a warp is a step, and it owes the beat every other step owes.

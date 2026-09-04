@@ -1,7 +1,7 @@
 using Mirage.Editor.Controls;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Controls;
 
 /// <summary>
 /// The rule that keeps the World Preview looking like map art rather than a thumbnail.

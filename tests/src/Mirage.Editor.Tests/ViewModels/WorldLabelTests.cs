@@ -3,7 +3,7 @@ using Mirage.Editor.ViewModels;
 using Mirage.Shared.Protocol.Packets;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// What the window calls the world it has open.

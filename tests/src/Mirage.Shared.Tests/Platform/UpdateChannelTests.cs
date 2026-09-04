@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Platform;
 
 /// <summary>
 /// The update channel is written down twice: MSBuild passes it to <c>vpk pack</c>, and the app passes

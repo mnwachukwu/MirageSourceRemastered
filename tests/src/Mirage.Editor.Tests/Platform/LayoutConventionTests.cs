@@ -2,7 +2,7 @@ using NUnit.Framework;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.Platform;
 
 /// <summary>
 /// Layout rules the XAML has to keep, checked against the sources because nothing else can see them: bindings

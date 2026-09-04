@@ -1,8 +1,9 @@
 using Microsoft.Xna.Framework;
+using Mirage.Client.Shell.Tests.Panels;
 using Mirage.Client.Shell.Ui;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Input;
 
 /// <summary>
 /// Regression coverage for every place the OS mouse cursor changes shape. All cursor changes funnel through

@@ -2,12 +2,13 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.Platform;
 using Mirage.Shared;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A capture zone is a circle in the world, not a circle clipped to one map.

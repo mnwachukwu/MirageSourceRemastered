@@ -5,7 +5,7 @@ using Mirage.Shared;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>What the conversation row hands the visual tree, and when it tells the tree to redraw. The canvas
 /// derives every position from this projection, so anything the projection gets wrong is a picture that

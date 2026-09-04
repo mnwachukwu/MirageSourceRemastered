@@ -5,7 +5,7 @@ using Mirage.Shared.Records;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>The quest-editor row: dynamic objective/reward child tables — blank by default,
 /// grown via AddObjective/AddReward up to the MaxQuestObjectives ceiling. Row edits AND structural add/remove

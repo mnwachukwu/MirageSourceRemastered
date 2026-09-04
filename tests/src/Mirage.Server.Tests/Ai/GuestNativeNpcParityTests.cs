@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System.Linq;
 using System.Reflection;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Ai;
 
 // GUEST ↔ NATIVE NPC PARITY.
 //

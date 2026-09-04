@@ -1,7 +1,7 @@
 using Mirage.Client.Shell.Input;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Input;
 
 /// <summary>
 /// Which device the hotkey badges name. Two properties look similar and answer different questions:

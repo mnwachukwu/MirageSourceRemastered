@@ -7,7 +7,7 @@ using Mirage.Shared.Protocol;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.World;
 
 /// <summary>
 /// A dead player does not hold a tile. Walking over a corpse is how you reach whoever killed them, or the

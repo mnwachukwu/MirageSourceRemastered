@@ -3,7 +3,7 @@ using Mirage.Client.Core.State;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Core.Tests;
+namespace Mirage.Client.Core.Tests.Rendering;
 
 /// <summary>Tile-animation frame counter (advances one frame per interval) and the attack-animation expiry
 /// sweep (a swing frame older than 1000ms clears).</summary>

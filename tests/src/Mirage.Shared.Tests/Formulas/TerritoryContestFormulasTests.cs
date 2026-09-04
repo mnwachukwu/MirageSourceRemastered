@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Mirage.Shared.Tests;
+namespace Mirage.Shared.Tests.Formulas;
 
 /// <summary>The king-of-the-hill contest math: capture-point count, the signed capture-meter
 /// physics (push / reinforce / drift / flip), per-tick scoring with the defender edge, and winner

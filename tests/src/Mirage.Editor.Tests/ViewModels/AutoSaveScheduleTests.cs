@@ -1,9 +1,9 @@
 using Mirage.Editor.Services;
-using Mirage.Shared.Records;
 using Mirage.Editor.ViewModels;
+using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Editor.Tests;
+namespace Mirage.Editor.Tests.ViewModels;
 
 /// <summary>
 /// The auto-save schedule, driven by an injected clock rather than a real timer.

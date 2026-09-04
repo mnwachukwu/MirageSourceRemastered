@@ -1,10 +1,10 @@
+using Mirage.Shared;
+using Mirage.Shared.Protocol;
+using Mirage.Shared.Protocol.Packets;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text.Json;
-using Mirage.Shared;
-using Mirage.Shared.Protocol;
-using Mirage.Shared.Protocol.Packets;
 
 namespace Mirage.Server.Shell.Bench;
 

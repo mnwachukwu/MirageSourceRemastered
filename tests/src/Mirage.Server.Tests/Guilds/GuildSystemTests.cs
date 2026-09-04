@@ -3,12 +3,13 @@ using Mirage.Server.Core.GameLogic;
 using Mirage.Server.Core.Net;
 using Mirage.Server.Core.Players;
 using Mirage.Server.Core.World;
+using Mirage.Server.Tests.World;
 using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests;
+namespace Mirage.Server.Tests.Guilds;
 
 /// <summary>The manual late tax payment (<see cref="GuildSystem.PayTaxLate"/>): it takes exactly one week's tax
 /// to restore suspended perks, and stamps the same per-date guard the 00:00 settlement uses so a forced

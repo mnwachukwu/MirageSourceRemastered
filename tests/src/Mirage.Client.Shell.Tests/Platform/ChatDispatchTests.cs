@@ -2,7 +2,7 @@ using Mirage.Client.Shell.Logic;
 using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Platform;
 
 /// <summary>The chat overhaul's speech routing (<see cref="SpeechChannelRouter"/>): every speech command +
 /// alias maps to the right send, /tell parses target+body, plain text follows the dropdown's active channel,

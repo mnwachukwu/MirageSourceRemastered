@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Mirage.Client.Shell.Tests;
+namespace Mirage.Client.Shell.Tests.Net;
 
 /// <summary>
 /// What a failed connection tells the reader, and the gate that decides a connection happened at all.
