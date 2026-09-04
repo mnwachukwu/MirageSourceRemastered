@@ -1,7 +1,6 @@
-using Mirage.Shared;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests.Formulas;
+namespace Mirage.Shared.Tests;
 
 /// <summary>SPD to movement speed, and the display figure derived from it.
 ///

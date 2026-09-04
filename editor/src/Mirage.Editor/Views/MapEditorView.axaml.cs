@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
-using Mirage.Editor;
 using Mirage.Editor.Controls;
 using Mirage.Editor.Localization;
 using Mirage.Editor.Services;

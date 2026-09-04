@@ -1,4 +1,3 @@
-using Mirage.Shared;
 using NUnit.Framework;
 
 namespace Mirage.Shared.Tests;

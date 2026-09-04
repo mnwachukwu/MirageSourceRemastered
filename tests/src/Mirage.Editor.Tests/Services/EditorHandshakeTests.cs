@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Mirage.Editor.Tests.Services;
+namespace Mirage.Editor.Tests;
 
 /// <summary>
 /// The server greets an editor before answering its login, exactly as it greets a game client. The

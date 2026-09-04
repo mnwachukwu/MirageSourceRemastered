@@ -1,9 +1,8 @@
-using Mirage.Shared;
 using Mirage.Shared.Protocol;
 using Mirage.Shared.Records;
 using NUnit.Framework;
 
-namespace Mirage.Server.Tests.Accounts;
+namespace Mirage.Shared.Tests;
 
 /// <summary>The character-create class list — <see cref="PacketBuilder.NewCharClasses"/>.
 ///

@@ -1,4 +1,3 @@
-using Mirage.Shared;
 using Mirage.Updates;
 using NUnit.Framework;
 using System.Reflection;

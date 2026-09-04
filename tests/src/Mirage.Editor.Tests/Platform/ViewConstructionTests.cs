@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
-using Mirage.Editor;
 using NUnit.Framework;
 using System.Reflection;
 
