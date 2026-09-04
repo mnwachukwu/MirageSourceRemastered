@@ -660,7 +660,16 @@ public static class Constants
     public const int TerritoryCapturePointMapsPer = 5;
     public const int TerritoryMinCapturePoints = 2;
     public const int TerritoryMaxCapturePoints = 5;
-    public const int TerritoryCapturePointRadius = 10;   // tiles
+    // Capture radius, in tiles. Sized against SpellRangeTiles (5), which is what makes the ranged/melee trade
+    // on a point work out, and both edges land exactly at 4:
+    //   - A caster OUTSIDE the zone reaches inward to (R + 1) - SpellRange. At 4 that is the center exactly
+    //     and nothing past it, so poking from outside pressures a holder without owning the point.
+    //   - A melee at the center answering that caster closes to adjacent, landing at distance R from the
+    //     center — still inside, still contesting. At R = 3 the same answer would step them out of the zone.
+    //   - A caster INSIDE the zone contests, but the zone is only 2R across, so it has 3 tiles of retreat
+    //     before falling out — a kite it loses to a melee that commits (7 tiles, about a second sprinting).
+    // Also 9 tiles across, so the whole zone fits the viewport (ViewportTilesY = 12) and can be read at once.
+    public const int TerritoryCapturePointRadius = 4;
     // Capture meter: signed [-Full, +Full]. -Full = the owner securely holds; a challenger with the tick's
     // strict-plurality pushes it up (+1/tick); the owner pushes it back down; a contested/empty point drifts
     // toward 0 (neutral). At +Full the point flips to the challenger (reset to -Full = they now securely hold).

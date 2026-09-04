@@ -26,11 +26,6 @@ public sealed class SpawnSystem : GameSystem
         if (mapNpcSlot <= 0 || mapNpcSlot > Constants.MaxMapNpcs) return;
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
 
-        // Territory war: a map whose territory has a live contest spawns no NPCs for the whole war
-        // state (setup + contest + cooldown). The single spawn chokepoint, so respawn / guest-return / bulk
-        // spawn are all covered; the contest-end resume clears the suppression before re-spawning.
-        if (_world.IsContestSuppressedMap(mapNum)) return;
-
         // Runtime post mapNpcSlot (1-based) reads dense entry [mapNpcSlot - 1]; posts past the authored list
         // are empty and spawn nothing.
         var entries = _world.Maps[mapNum].Npcs;
@@ -38,6 +33,12 @@ public sealed class SpawnSystem : GameSystem
         var entry = entries[mapNpcSlot - 1];
         int npcNum = entry.Npc;
         if (npcNum <= 0) return;
+
+        // Territory war: a map whose territory has a live contest spawns no NPCs for the whole war
+        // state (setup + contest + cooldown), guards excepted. The single spawn chokepoint, so respawn /
+        // guest-return / bulk spawn are all covered; the contest-end resume clears the suppression before
+        // re-spawning. Asked AFTER the slot resolves, because the answer depends on which NPC this is.
+        if (_world.IsContestSuppressedNpc(mapNum, npcNum)) return;
 
         var mn = _world.MapNpcs[mapNum, mapNpcSlot];
         // A copy of this NPC is away chasing as a traversal guest — its slot is held.  Spawning now would
@@ -227,16 +228,20 @@ public sealed class SpawnSystem : GameSystem
 
     /// <summary>Clear every live native NPC on a map and tell observers to remove them — the territory-war
     /// despawn. Mirrors the death-side slot cleanup (Num/Hp zeroed, SpawnWait stamped) but with no
-    /// damage or FX; respawns then stay suppressed by <see cref="GameWorld.IsContestSuppressedMap"/> for the
+    /// damage or FX; respawns then stay suppressed by <see cref="GameWorld.IsContestSuppressedNpc"/> for the
     /// war state, and the contest-end resume calls <see cref="SpawnMapNpcs"/> once suppression lifts. Reserved
-    /// slots (a native away chasing as a guest) already read Num = 0, so they are left untouched.</summary>
-    public void DespawnMapNpcs(int mapNum)
+    /// slots (a native away chasing as a guest) already read Num = 0, so they are left untouched.
+    ///
+    /// <para><paramref name="keepGuards"/> leaves <see cref="NpcBehavior.Guard"/> NPCs standing, and pairs
+    /// with the same exemption in <see cref="GameWorld.IsContestSuppressedNpc"/>.</para></summary>
+    public void DespawnMapNpcs(int mapNum, bool keepGuards)
     {
         if (mapNum <= 0 || mapNum > _world.Limits.Maps) return;
         for (int i = 1; i <= Constants.MaxMapNpcs; i++)
         {
             var mn = _world.MapNpcs[mapNum, i];
             if (mn.Num <= 0) continue;   // already dead/empty (or a reserved guest home)
+            if (keepGuards && _world.Npcs[mn.Num].Behavior == NpcBehavior.Guard) continue;
             mn.Num = 0;
             mn.Hp = 0;
             mn.SpawnWait = Environment.TickCount64;

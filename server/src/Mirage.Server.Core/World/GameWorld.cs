@@ -403,6 +403,16 @@ public sealed class GameWorld
         return false;
     }
 
+    /// <summary>The same suppression, asked of one NPC. <see cref="NpcBehavior.Guard"/> is exempt: a guard is
+    /// the map's own standing defence, not contestable PvE, so it holds its post for the whole war state.
+    ///
+    /// <para>🔴 The despawn and the respawn have to read the SAME rule. Suppressing a guard's respawn while
+    /// the war-start despawn spared it clears the map of guards the first time one dies and never brings them
+    /// back — a divergence that only shows up mid-war.</para></summary>
+    public bool IsContestSuppressedNpc(int mapNum, int npcNum) =>
+        IsContestSuppressedMap(mapNum)
+        && (npcNum <= 0 || npcNum > Limits.Npcs || Npcs[npcNum].Behavior != NpcBehavior.Guard);
+
     // Dropped/spawned items per map: a dynamic list (no cap on raw size — voluntary-drop cap is
     // enforced in ItemSystem.PlayerMapDropItem against PlayerDropped count only, so death drops and
     // NPC drops can pile on without limit).  Each record carries its own stable Slot id assigned by

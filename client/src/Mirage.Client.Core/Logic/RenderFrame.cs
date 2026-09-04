@@ -50,11 +50,12 @@ public readonly record struct CorpseDrawCmd(float ScreenX, float ScreenY, WorldL
 public enum ContestControl { Neutral, Own, Enemy }
 
 /// <summary>A territory-contest capture point rendered in the world layer for a war participant:
-/// a triangular flag + a plain radius circle + the point's name label, colored per-viewer by
+/// a triangular flag + the tinted capture zone + the point's name label, colored per-viewer by
 /// <see cref="Control"/>. <see cref="ScreenX"/>/<see cref="ScreenY"/> is the point's tile origin (matching
-/// <see cref="SpriteDrawCmd"/>); <see cref="RadiusPx"/> is the capture radius in pixels.</summary>
+/// <see cref="SpriteDrawCmd"/>); the zone's extent comes from
+/// <see cref="Constants.TerritoryCapturePointRadius"/>, which the shell walks a tile at a time.</summary>
 public readonly record struct ContestPointCmd(
-    float ScreenX, float ScreenY, float RadiusPx, ContestControl Control, string Label,
+    float ScreenX, float ScreenY, ContestControl Control, string Label,
     WorldLayer Layer = WorldLayer.Ground);
 
 // FlickerStyle now lives in Mirage.Shared (shared by LightSpec + records); resolved via `using Mirage.Shared`.

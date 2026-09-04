@@ -93,4 +93,44 @@ public class TerritoryContestFormulasTests
             Assert.That(TerritoryContestFormulas.DetermineWinner(new Dictionary<int, long>(), 5), Is.EqualTo(5)); // nobody scored → defender keeps
         });
     }
+
+    /// <summary>
+    /// The capture radius is not a free number: it is pinned against <see cref="Constants.SpellRangeTiles"/>,
+    /// and the ranged-vs-melee trade on a point is what the pairing buys.
+    ///
+    /// <para>🔴 This is the assertion that catches somebody retuning either constant on its own. Both edges
+    /// land exactly on the current pair, so a one-tile move in either direction breaks a named case here
+    /// rather than quietly changing how a war plays.</para>
+    /// </summary>
+    [Test]
+    public void CaptureRadiusHoldsItsTradeWithSpellRange()
+    {
+        int r = Constants.TerritoryCapturePointRadius;
+        int spell = Constants.SpellRangeTiles;
+        const int cx = 20, cy = 20;   // away from any edge, so nothing here is a clamp artifact
+
+        // The nearest tile a caster can stand on WITHOUT contesting, and how deep it reaches from there.
+        int justOutside = r + 1;
+        int deepest = justOutside - spell;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(TerritoryContestFormulas.WithinRadius(cx + justOutside, cy, cx, cy, r), Is.False,
+                "a caster one tile past the edge is poking, not holding — it must not count for the majority");
+            Assert.That(deepest, Is.LessThanOrEqualTo(0),
+                "poking from outside has to reach the CENTER, or standing dead center is untouchable");
+            Assert.That(deepest, Is.GreaterThanOrEqualTo(0),
+                "and no further than the center, or a caster owns the whole point from safety");
+
+            // A melee at the center answering that caster closes to adjacent: distance justOutside - 1 = r.
+            Assert.That(TerritoryContestFormulas.WithinRadius(cx + justOutside - 1, cy, cx, cy, r), Is.True,
+                "answering a poke must not cost the melee the point it is standing on");
+
+            // What the caster gives up by stepping in far enough to contest: the zone is all the room it has.
+            Assert.That(2 * r, Is.GreaterThan(spell),
+                "a contesting caster needs somewhere to back off to, or ranged cannot hold a point at all");
+            Assert.That(2 * r, Is.LessThan(spell * 2),
+                "but not a full kite lane, or a melee that commits can never close the gap");
+        });
+    }
 }

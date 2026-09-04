@@ -614,17 +614,44 @@ public static class RenderCommandBuilder
         if (contest is null) return;
         int myGuild = state.Me.GuildId;
         float radiusPx = Constants.TerritoryCapturePointRadius * Constants.PicX;
+        int lightId = ContestLightIdBase;
         foreach (var pt in contest.Points)
         {
             var off = CellOffsetForMap(state, pt.Map);
             if (off is null) continue;
-            var (screenX, screenY) = camera.WorldTileToScreen(off.Value.offX + pt.X, off.Value.offY + pt.Y, 0f, 0f);
+            int wx = off.Value.offX + pt.X, wy = off.Value.offY + pt.Y;
+            var (screenX, screenY) = camera.WorldTileToScreen(wx, wy, 0f, 0f);
             ContestControl control =
                 pt.OwnerGuild <= 0 ? ContestControl.Neutral :
                 pt.OwnerGuild == myGuild ? ContestControl.Own : ContestControl.Enemy;
-            frame.ContestPoints.Add(new ContestPointCmd(screenX, screenY, radiusPx, control, pt.Label, pt.Layer));
+            frame.ContestPoints.Add(new ContestPointCmd(screenX, screenY, control, pt.Label, pt.Layer));
+
+            // The flag lights its own capture radius, in the viewer's control color, so the zone reads at
+            // night without hunting for the ring. Steady (a flag is not a flame) and UNOCCLUDED — the capture
+            // test is pure distance with no line-of-sight term, so a light that stopped at a wall would draw a
+            // smaller zone than the one being scored.
+            float effectiveDark = InAlwaysDark(state, wx, wy) ? 1f : state.GetCurrentDarkness();
+            if (LightReachesR(screenX, screenY, radiusPx))
+            {
+                frame.Lights.Add(new LightSourceCmd(screenX, screenY, 1f, ContestLightRgb(control),
+                    radiusPx, FlickerStyle.None, lightId, effectiveDark, pt.Layer));
+            }
+            lightId++;
         }
     }
+
+    // Flag-light ids sit in their own range, like the NPC/traversal seeds above.
+    private const int ContestLightIdBase = 3_000_000;
+
+    // The flag light's core color: a softer, lighter reading of the flag's own control color (which stays the
+    // saturated ContestOwn/Enemy/Neutral in the shell), because a full-strength tint over a 10-tile radius
+    // washes the ground it is meant to mark.
+    private static uint ContestLightRgb(ContestControl control) => control switch
+    {
+        ContestControl.Own => 0x8CEBF5,     // soft cyan
+        ContestControl.Enemy => 0xFFAAC8,   // light pink
+        _ => 0xD2D2D7,                      // neutral, matching the gray flag
+    };
 
     // ── Ground items ──────────────────────────────────────────────────────────
 

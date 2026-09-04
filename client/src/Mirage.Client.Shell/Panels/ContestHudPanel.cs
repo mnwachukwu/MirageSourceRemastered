@@ -59,15 +59,30 @@ public sealed class ContestHudPanel
         }
     }
 
+    // Which 3x3 cell a map occupies, false when it is not one of the nine loaded around the player.
+    private static bool CellOf(ClientState state, int mapNum, out int col, out int row)
+    {
+        for (col = 0; col < 3; col++)
+            for (row = 0; row < 3; row++)
+                if (state.NeighborMapNums[col, row] == mapNum) return true;
+        col = row = 0;
+        return false;
+    }
+
     // Top-center capture status — only while the player stands inside a capture point's radius.
     private static void DrawCaptureStatus(SpriteBatch sb, SpriteFont font, TerritoryContestPacket contest, ClientState state, int myGuild)
     {
         var me = state.Me;
         ContestPointView? inPoint = null;
+        // World coordinates across the 3x3, so a point whose zone spills over a seam onto the tile I am
+        // standing on reads as held — the same reach the server scores with.
+        var (myWx, myWy) = state.CenterToWorld(me.X, me.Y);
         foreach (var pt in contest.Points)
         {
-            if (pt.Map == me.Map &&
-                TerritoryContestFormulas.WithinRadius(me.X, me.Y, pt.X, pt.Y, Constants.TerritoryCapturePointRadius))
+            if (pt.Layer != me.Layer) continue;
+            if (!CellOf(state, pt.Map, out int col, out int row)) continue;
+            var (ptWx, ptWy) = state.ToWorld(col, row, pt.X, pt.Y);
+            if (TerritoryContestFormulas.WithinRadius(myWx, myWy, ptWx, ptWy, Constants.TerritoryCapturePointRadius))
             {
                 inPoint = pt;
                 break;

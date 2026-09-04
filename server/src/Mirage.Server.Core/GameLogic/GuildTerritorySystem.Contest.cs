@@ -40,9 +40,9 @@ public sealed partial class GuildTerritorySystem : GameSystem
             Maps = maps,
         });
 
-        // NPCs vanish for the whole war state (no PvE / no income mid-war); non-participants standing in the
-        // territory are warned to leave.
-        foreach (int m in maps) _spawn.DespawnMapNpcs(m);
+        // NPCs vanish for the whole war state (no PvE / no income mid-war), guards excepted — they hold their
+        // post. Non-participants standing in the territory are warned to leave.
+        foreach (int m in maps) _spawn.DespawnMapNpcs(m, keepGuards: true);
         WarnNonParticipantsPresent(contest);
 
         int mins = Constants.TerritoryContestSetupSeconds / 60;
@@ -145,9 +145,19 @@ public sealed partial class GuildTerritorySystem : GameSystem
     }
 
     // The strict-plurality participant guild standing in a point's radius (0 = contested tie or empty).
+    //
+    // 🔴 The radius is measured in WORLD coordinates around the point's map, so it reaches ACROSS SEAMS. A
+    // point near a map edge spills its zone onto the neighbor, and the tiles it spills onto hold the point
+    // exactly like the ones beside it — the circle the player is standing in is the circle that scores. Asking
+    // `ch.Map == pt.Map` instead would cut the zone off at a border the player cannot see, and hand anyone who
+    // stepped over that border a safe tile inside the ring.
     private int MajorityGuildInRadius(ContestPoint pt, HashSet<int> participants)
     {
         var counts = new Dictionary<int, int>();
+        // The 3x3 around the point's map covers the whole zone: the radius is smaller than a map, so a point
+        // can spill onto an immediate neighbor and no further.
+        var grid = WorldCoordHelper.BuildMapGrid(_world.Maps, pt.Map);
+        var (ptWx, ptWy) = grid.CenterToWorld(pt.X, pt.Y);
         for (int i = 1; i <= _pm.Slots; i++)
         {
             var sp = _pm[i];
@@ -157,7 +167,9 @@ public sealed partial class GuildTerritorySystem : GameSystem
             var ch = sp.Char;
             // Two-layer world: only players on the point's own layer hold it — standing on the ground UNDER a
             // bridge-top point earns no credit; you must be up on the deck (and vice-versa).
-            if (ch.Map != pt.Map || ch.Layer != pt.Layer || !WithinRadius(ch.X, ch.Y, pt.X, pt.Y)) continue;
+            if (ch.Layer != pt.Layer) continue;
+            if (grid.ToWorldRelative(ch.Map, ch.X, ch.Y) is not { } w) continue;   // outside the point's 3x3
+            if (!WithinRadius(w.worldX, w.worldY, ptWx, ptWy)) continue;
             counts[g] = counts.GetValueOrDefault(g) + 1;
         }
         int max = 0;
@@ -181,27 +193,29 @@ public sealed partial class GuildTerritorySystem : GameSystem
         return maps;
     }
 
-    // Place the capture points: 1 per N maps (clamped), distributed across the territory's maps round-robin,
-    // and within each map spread by farthest-point sampling over the map's LARGEST connected walkable region
-    // (so a point is always stand-able + path-reachable, never on an isolated pocket, and points stay evenly
-    // spread). The defender (if any) starts securely owning every point.
-    private List<ContestPoint> GenerateContestPoints(List<int> maps, int defenderId)
+    // Place the capture points: 1 per N maps (clamped, counted over the whole territory), one to a map, spread
+    // by walking distance across the whole territory — see ChooseCapturePoints, which owns the geometry. The
+    // defender (if any) starts securely owning every point.
+    private List<ContestPoint> GenerateContestPoints(List<int> allMaps, int defenderId)
     {
-        int count = TerritoryContestFormulas.PointCount(maps.Count);
-        var points = new List<ContestPoint>();
-        var components = new Dictionary<int, List<(int X, int Y)>>();   // cached largest walkable region per map
-        var placedOnMap = new Dictionary<int, List<(int X, int Y)>>();  // points already placed on each map
-        for (int i = 0; i < count && maps.Count > 0; i++)
+        // A point on a safe map can never be taken — no PvP resolves there — so a safe map is not eligible
+        // ground. Falls back to the whole territory only when every map is safe, which leaves a contest
+        // placeable rather than pointless. Safe maps stay in `allMaps` either way: they are walked THROUGH.
+        var pointMaps = allMaps.Where(m => _world.MoralOf(m) != MapMoral.Safe).ToList();
+        if (pointMaps.Count == 0)
         {
-            int mapNum = maps[i % maps.Count];
-            var region = components.TryGetValue(mapNum, out var r) ? r : (components[mapNum] = LargestWalkableComponent(mapNum));
-            if (region.Count == 0) continue;
-            var placed = placedOnMap.TryGetValue(mapNum, out var p) ? p : (placedOnMap[mapNum] = new List<(int X, int Y)>());
-            var pick = FarthestPoint(region, placed);
-            placed.Add(pick);
+            _logger.LogWarning("Territory contest: every map is Safe; placing capture points on safe ground.");
+            pointMaps = allMaps;
+        }
+
+        int count = TerritoryContestFormulas.PointCount(allMaps.Count);
+        var picks = ChooseCapturePoints(allMaps, pointMaps, count);
+        var points = new List<ContestPoint>();
+        for (int i = 0; i < picks.Count; i++)
+        {
             points.Add(new ContestPoint
             {
-                Label = TerritoryContestFormulas.PointLabels[i], Map = mapNum, X = pick.X, Y = pick.Y,
+                Label = TerritoryContestFormulas.PointLabels[i], Map = picks[i].Map, X = picks[i].X, Y = picks[i].Y,
                 // Auto-placed points stay on the GROUND — auto-placing onto a bridge deck is too fiddly to handle
                 // reliably (user call).  The Layer field + credit gate remain so a hand-authored fringe point could
                 // work later; a ground point is still held from the ground, not from a bridge above it.
@@ -213,74 +227,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
         return points;
     }
 
-    // The biggest 4-connected region of walkable tiles on a map (BFS flood-fill) — a capture point is only
-    // ever placed inside it, so it's guaranteed reachable (never on an isolated one-tile walkable pocket).
-    private List<(int X, int Y)> LargestWalkableComponent(int mapNum)
-    {
-        var map = _world.Maps[mapNum];
-        int w = map.Width, h = map.Height;
-        var seen = new bool[w, h];
-        var best = new List<(int X, int Y)>();
-        var queue = new Queue<(int X, int Y)>();
-        for (int sx = 0; sx < w; sx++)
-        {
-            for (int sy = 0; sy < h; sy++)
-            {
-                if (seen[sx, sy] || map.Tile[sx, sy].Type != TileType.Walkable) continue;
-                var comp = new List<(int X, int Y)>();
-                seen[sx, sy] = true;
-                queue.Enqueue((sx, sy));
-                while (queue.Count > 0)
-                {
-                    var (x, y) = queue.Dequeue();
-                    comp.Add((x, y));
-                    foreach (var (nx, ny) in Neighbors4(x, y))
-                    {
-                        if (nx >= 0 && nx < w && ny >= 0 && ny < h && !seen[nx, ny] && map.Tile[nx, ny].Type == TileType.Walkable)
-                        {
-                            seen[nx, ny] = true;
-                            queue.Enqueue((nx, ny));
-                        }
-                    }
-                }
-                if (comp.Count > best.Count) best = comp;
-            }
-        }
-
-        return best;
-    }
-
-    // Greedy farthest-point pick: the candidate maximizing its min straight-line distance to the points
-    // already placed (a random candidate when none are placed yet), keeping a contest's points spread out.
-    private (int X, int Y) FarthestPoint(List<(int X, int Y)> candidates, List<(int X, int Y)> placed)
-    {
-        if (placed.Count == 0) return candidates[Rng.Next(candidates.Count)];
-        (int X, int Y) best = candidates[0];
-        long bestDist = -1;
-        foreach (var c in candidates)
-        {
-            long minD = long.MaxValue;
-            foreach (var pt in placed)
-            {
-                long dx = c.X - pt.X, dy = c.Y - pt.Y;
-                minD = Math.Min(minD, dx * dx + dy * dy);
-            }
-            if (minD > bestDist)
-            {
-                bestDist = minD;
-                best = c;
-            }
-        }
-        return best;
-    }
-
-    private static IEnumerable<(int, int)> Neighbors4(int x, int y)
-    {
-        yield return (x - 1, y);
-        yield return (x + 1, y);
-        yield return (x, y - 1);
-        yield return (x, y + 1);
-    }
 
     private bool TryPickWalkable(int mapNum, out int x, out int y)
     {

@@ -75,10 +75,10 @@ public sealed partial class GameplayScreen : IGameScreen
     private const float ContestFlagPennantApexY = 5f;  // pennant apex y, below the pole top
     private const float ContestFlagPennantBotY = 10f;  // pennant base y, below the pole top
     private const float ContestLabelGap = 2f;          // gap between the flag top and the name label
-    private const float ContestCircleAlpha = 0.65f;    // radius-circle opacity (a subtle marker, not a wall)
-    private const float ContestCircleThickness = 1.5f;
+    private const float ContestZoneEdgeAlpha = 0.85f;  // the staircase boundary, the line that answers "in or out"
+    private const float ContestZoneEdgeThickness = 1.5f;
 
-    // Draw one contest capture point in the world layer: a radius circle, a small triangular flag, and the
+    // Draw one contest capture point in the world layer: the capture zone, a small triangular flag, and the
     // point's name above it, all in the per-viewer control color. Walk-over-able (drawn under the entities).
     private static void DrawContestPoint(SpriteBatch sb, SpriteFont nameFont, ContestPointCmd cp, float nameCellW, float nameLineH)
     {
@@ -88,9 +88,7 @@ public sealed partial class GameplayScreen : IGameScreen
             ContestControl.Enemy => UiHelper.ContestEnemyColor,
             _ => UiHelper.ContestNeutralColor,
         };
-        // Radius circle centered on the point tile.
-        var center = new Vector2(cp.ScreenX + Constants.PicX / 2f, cp.ScreenY + Constants.PicY / 2f);
-        UiHelper.DrawCircleOutline(sb, center, cp.RadiusPx, color * ContestCircleAlpha, ContestCircleThickness);
+        DrawContestZone(sb, cp, color);
 
         // Flag: a dark pole + a colored triangular pennant near its top, centered on the tile.
         float poleX = cp.ScreenX + Constants.PicX / 2f - ContestFlagPoleInset;
@@ -110,6 +108,62 @@ public sealed partial class GameplayScreen : IGameScreen
             0, AlignBottom: true, RgbOverride: rgb);
         DrawWorldName(sb, nameFont, labelCmd, nameCellW, nameLineH);
     }
+
+    /// <summary>The capture zone's boundary: the line between the tiles that score and the tiles that do not.
+    ///
+    /// <para>Only the edge is drawn. The interior needs no marking — the flag light already washes exactly
+    /// this ground in a pale cyan/pink, and the flag and label name the point — so between them the zone is
+    /// found at a glance and this line answers the only question that is ever close: which side of it a
+    /// particular tile is on.</para>
+    ///
+    /// <para>🔴 The boundary is a STAIRCASE, never a circle. <see cref="TerritoryContestFormulas.WithinRadius"/>
+    /// asks whether a tile's CENTER is within the radius, so scoring is decided a whole tile at a time and the
+    /// edge of the scoring set runs along tile sides. Drawing it as a smooth curve puts the line through the
+    /// middle of tiles, where it disagrees with the rule in both directions at once — a tile scoring with half
+    /// of it outside the line, and a tile the line crosses scoring nothing. Drawn as the staircase, "inside
+    /// the line" and "this tile scores" are one statement.</para>
+    ///
+    /// <para>The flag color, not the flag LIGHT's color: the light is a pale wash of a neighboring hue over
+    /// the same ground, so the two stay separable by saturation.</para></summary>
+    private static void DrawContestZone(SpriteBatch sb, ContestPointCmd cp, Color color)
+    {
+        var origin = new Vector2(cp.ScreenX, cp.ScreenY);
+        foreach (var (a, b) in ContestZoneEdges(Constants.TerritoryCapturePointRadius))
+            UiHelper.DrawLine(sb, origin + a, origin + b, color * ContestZoneEdgeAlpha, ContestZoneEdgeThickness);
+    }
+
+    // The boundary segments, in pixels relative to the point tile's own origin. Fixed for a given radius, so
+    // it is built once rather than per point per frame.
+    private static List<(Vector2 A, Vector2 B)> ContestZoneEdges(int radius)
+    {
+        if (_contestZoneRadius == radius) return _contestZoneEdges;
+
+        _contestZoneEdges.Clear();
+        bool Scores(int dx, int dy) => TerritoryContestFormulas.WithinRadius(dx, dy, 0, 0, radius);
+
+        for (int dy = -radius; dy <= radius; dy++)
+        {
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                if (!Scores(dx, dy)) continue;
+
+                // A side is on the boundary when the tile across it does not score. Corners need no special
+                // case: each is where two of these segments meet.
+                float x0 = dx * Constants.PicX, y0 = dy * Constants.PicY;
+                float x1 = x0 + Constants.PicX, y1 = y0 + Constants.PicY;
+                if (!Scores(dx - 1, dy)) _contestZoneEdges.Add((new Vector2(x0, y0), new Vector2(x0, y1)));
+                if (!Scores(dx + 1, dy)) _contestZoneEdges.Add((new Vector2(x1, y0), new Vector2(x1, y1)));
+                if (!Scores(dx, dy - 1)) _contestZoneEdges.Add((new Vector2(x0, y0), new Vector2(x1, y0)));
+                if (!Scores(dx, dy + 1)) _contestZoneEdges.Add((new Vector2(x0, y1), new Vector2(x1, y1)));
+            }
+        }
+
+        _contestZoneRadius = radius;
+        return _contestZoneEdges;
+    }
+
+    private static int _contestZoneRadius = -1;
+    private static readonly List<(Vector2 A, Vector2 B)> _contestZoneEdges = [];
 
     private static void DrawWorldName(SpriteBatch sb, SpriteFont nameFont, TextDrawCmd cmd, float nameCellW, float nameLineH)
     {
