@@ -311,9 +311,14 @@ jobs:
           name: installers
           path: installers
 
+      # GH_REPO because this job never checks out: it takes the installers from the artifact and has
+      # no working tree. Without it `gh` looks for a git remote to infer the repository from, finds
+      # no .git, and every call fails before it reaches the API. A checkout would also fix it, at the
+      # cost of cloning the repo to upload files that are already downloaded.
       - name: Create or update the release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
@@ -344,6 +349,7 @@ jobs:
       - name: Check the release is what the site will read
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
