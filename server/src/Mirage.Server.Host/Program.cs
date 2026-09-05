@@ -17,6 +17,8 @@ using Mirage.Server.Host.Net;
 using Mirage.Server.Host.Services;
 using Mirage.Shared;
 using Serilog;
+using Serilog.Expressions;
+using Serilog.Settings.Configuration;
 using Velopack;
 
 // Server entry point and composition root: registers every singleton the game needs, then hands
@@ -92,8 +94,25 @@ if (seededData > 0)
 
 // ── Build and run the host ────────────────────────────────────────────────────
 
+// The assemblies holding everything appsettings.json names by string. Serilog otherwise finds these by
+// scanning for Serilog*.dll beside the executable, and the published server is a single file with no
+// .dll files beside it — so the scan finds nothing and the host throws on Build().
+//
+// Naming them also makes the failure symmetric: a sink added to appsettings.json from a package that is
+// not listed here fails in Debug too, rather than only in the packaged build.
+//
+//   Serilog          WriteTo.Logger, the sub-logger each filtered pipeline is built as
+//   Sinks.Console    WriteTo.Console
+//   Sinks.File       WriteTo.File
+//   Expressions      Filter.ByExcludingWhere, Filter.ByIncludingOnly
+var serilogAssemblies = new ConfigurationReaderOptions(
+    typeof(Log).Assembly,
+    typeof(ConsoleLoggerConfigurationExtensions).Assembly,
+    typeof(FileLoggerConfigurationExtensions).Assembly,
+    typeof(SerilogExpression).Assembly);
+
 var host = Host.CreateDefaultBuilder(args)
-    .UseSerilog((context, lc) => lc.ReadFrom.Configuration(context.Configuration))
+    .UseSerilog((context, lc) => lc.ReadFrom.Configuration(context.Configuration, serilogAssemblies))
     .ConfigureServices((ctx, services) =>
     {
         // ── Shared singletons ─────────────────────────────────────────────────
