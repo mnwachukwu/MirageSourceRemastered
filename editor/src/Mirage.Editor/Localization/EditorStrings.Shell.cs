@@ -560,6 +560,7 @@ public static partial class EditorStrings
     public const string WorldTransfer_Reading = nameof(WorldTransfer_Reading);
     public const string WorldTransfer_ReadingMaps = nameof(WorldTransfer_ReadingMaps);
     public const string WorldTransfer_Writing = nameof(WorldTransfer_Writing);
+    public const string WorldTransfer_WritingCount = nameof(WorldTransfer_WritingCount);
     public const string WorldTransfer_DownloadDone = nameof(WorldTransfer_DownloadDone);
     public const string WorldTransfer_Failed = nameof(WorldTransfer_Failed);
     public const string WorldTransfer_Comparing = nameof(WorldTransfer_Comparing);

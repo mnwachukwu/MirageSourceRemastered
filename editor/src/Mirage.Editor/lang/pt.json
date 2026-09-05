@@ -1011,6 +1011,7 @@
   "WorldTransfer_Reading": "A ler o mundo do servidor…",
   "WorldTransfer_ReadingMaps": "A ler mapas… {Done} de {Total}",
   "WorldTransfer_Writing": "A escrever {Path}…",
+  "WorldTransfer_WritingCount": "A escrever… {Done} de {Total}",
   "WorldTransfer_DownloadDone": "Escritos {Records} registos em {Path}.",
   "WorldTransfer_Failed": "A transferência não terminou: {Reason}",
   "WorldTransfer_Comparing": "A comparar…",

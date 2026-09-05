@@ -1011,6 +1011,7 @@
   "WorldTransfer_Reading": "Reading the server's world…",
   "WorldTransfer_ReadingMaps": "Reading maps… {Done} of {Total}",
   "WorldTransfer_Writing": "Writing {Path}…",
+  "WorldTransfer_WritingCount": "Writing… {Done} of {Total}",
   "WorldTransfer_DownloadDone": "Wrote {Records} records to {Path}.",
   "WorldTransfer_Failed": "The transfer did not finish: {Reason}",
   "WorldTransfer_Comparing": "Comparing…",
