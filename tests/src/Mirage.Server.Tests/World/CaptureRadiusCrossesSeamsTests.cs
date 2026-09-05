@@ -21,7 +21,7 @@ namespace Mirage.Server.Tests.World;
 [TestFixture]
 public class CaptureRadiusCrossesSeamsTests
 {
-    private const int West = 1, East = 2, Guild = 7;
+    private const int West = 1, East = 2, Guild = 7, OtherGuild = 8;
     private static readonly int R = Constants.TerritoryCapturePointRadius;
 
     /// <summary>Two maps side by side, seam-linked. The point sits on the WEST map's right edge, so its
@@ -53,7 +53,8 @@ public class CaptureRadiusCrossesSeamsTests
         return (sys, pm, point);
     }
 
-    /// <summary>Stands one player at (map, x, y) in the participating guild.</summary>
+    /// <summary>Stands one LIVING player at (map, x, y) in the participating guild. The HP matters: a player
+    /// at 0 is a corpse, and a corpse holds nothing.</summary>
     private static void Stand(PlayerManager pm, int slot, int map, int x, int y)
     {
         var sp = pm[slot];
@@ -65,6 +66,8 @@ public class CaptureRadiusCrossesSeamsTests
         sp.Char.X = x;
         sp.Char.Y = y;
         sp.Char.Layer = WorldLayer.Ground;
+        sp.Char.MaxHp = 100;
+        sp.Char.Hp = 100;
     }
 
     private static int Majority(GuildTerritorySystem sys, ContestPoint pt) =>
@@ -112,4 +115,45 @@ public class CaptureRadiusCrossesSeamsTests
 
         Assert.That(Majority(sys, pt), Is.Zero);
     }
+
+    /// <summary>
+    /// 🔴 A corpse holds nothing.
+    ///
+    /// <para>A dead player stays connected and lies where they fell until they respawn, so every gate this
+    /// count applies — guild, layer, radius — passes for a body. And the meter turns on a strict PLURALITY,
+    /// so counting the dead does not merely inflate a number: a team that was wiped ON the point goes on
+    /// holding it, and a team wiped while taking one goes on taking it, with nobody alive standing there.</para>
+    /// </summary>
+    [Test]
+    public void ACorpseInTheRadiusHoldsNothing()
+    {
+        var (sys, pm, pt) = Border();
+        Stand(pm, 1, East, 0, 5);
+        pm[1].Char.Hp = 0;                 // killed where they stood
+
+        Assert.That(Majority(sys, pt), Is.Zero);
+    }
+
+    /// <summary>The half that decides a fight: the living side wins the point even when outnumbered by the
+    /// dead. A count that included corpses would hand it to whoever lost the engagement.</summary>
+    [Test]
+    public void TheLivingOutweighTheDeadHoweverManyFell()
+    {
+        var (sys, pm, pt) = Border();
+        for (int slot = 1; slot <= 3; slot++)
+        {
+            Stand(pm, slot, East, 0, 5);
+            pm[slot].Guild = Guild;
+            pm[slot].Char.Hp = 0;          // three of this guild fell on the point
+        }
+        Stand(pm, 4, East, 1, 5);
+        pm[4].Guild = OtherGuild;          // one of theirs is still standing
+
+        Assert.That(MajorityOf(sys, pt, Guild, OtherGuild), Is.EqualTo(OtherGuild));
+    }
+
+    private static int MajorityOf(GuildTerritorySystem sys, ContestPoint pt, params int[] participants) =>
+        (int)typeof(GuildTerritorySystem)
+            .GetMethod("MajorityGuildInRadius", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(sys, new object?[] { pt, new HashSet<int>(participants) })!;
 }

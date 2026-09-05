@@ -249,6 +249,12 @@ public sealed partial class SocialPanel : IGamePanel
         UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.SocialPanel_VaultValorFormat, ("Valor", info.VaultValor)),
             new Vector2(x, y), Color.LightGray, maxW);
         y += RowH;
+        // Gold earned and not yet banked — what the next daily settlement pays in. Always drawn, including at
+        // zero: a row that appears only when it happens to be non-zero cannot be told from one that is missing.
+        UiHelper.DrawLabel(sb, font,
+            ClientStrings.Format(ClientStrings.SocialPanel_VaultPendingFormat, ("Gold", info.PendingIncomeTotal)),
+            new Vector2(x, y), new Color(140, 210, 140), maxW);
+        y += RowH;
         if (!info.PerksActive)
         {
             UiHelper.DrawLabel(sb, font, ClientStrings.Get(ClientStrings.SocialPanel_PerksSuspended),

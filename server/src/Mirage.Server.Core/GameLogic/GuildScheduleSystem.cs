@@ -378,9 +378,9 @@ public sealed class GuildScheduleSystem : GameSystem
         {
             bool changed = false;
 
-            if (terr.ControllingGuild > 0 && terr.PendingIncome > 0)
+            if (terr.ControllingGuild > 0 && terr.PendingTerritoryIncome > 0)
             {
-                long amount = CreditTerritoryIncome(terr);   // zeroes PendingIncome, adds to IncomeThisWeek
+                long amount = CreditTerritoryIncome(terr);   // zeroes PendingTerritoryIncome, adds to IncomeThisWeek
                 var guild = _guilds.GuildById(terr.ControllingGuild);
                 if (guild is not null)
                 {
@@ -412,13 +412,13 @@ public sealed class GuildScheduleSystem : GameSystem
         }
     }
 
-    /// <summary>Move a territory's accrued daily income out of PendingIncome into IncomeThisWeek and return
+    /// <summary>Move a territory's accrued daily income out of PendingTerritoryIncome into IncomeThisWeek and return
     /// the amount (the caller credits the owning guild's vault). Runs AFTER guild debits. Pure; for tests.</summary>
     public static long CreditTerritoryIncome(TerritoryRecord terr)
     {
-        long amount = terr.PendingIncome;
+        long amount = terr.PendingTerritoryIncome;
         if (amount <= 0) return 0;
-        terr.PendingIncome = 0;
+        terr.PendingTerritoryIncome = 0;
         terr.IncomeThisWeek += amount;
         return amount;
     }
@@ -432,8 +432,8 @@ public sealed class GuildScheduleSystem : GameSystem
 
     /// <summary>Persist any guild / territory flagged with unsaved per-kill income accrual
     /// (<see cref="GameWorld.DirtyGuilds"/> / <see cref="GameWorld.DirtyTerritories"/>), then clear the flags.
-    /// Called on the periodic save tick AND at shutdown, so <c>PendingVaultGold</c> + a territory's
-    /// <c>PendingIncome</c> are never lost to a restart. Uses PersistGuild (no broadcast) — the vault
+    /// Called on the periodic save tick AND at shutdown, so <c>PendingPerkIncome</c> + a territory's
+    /// <c>PendingTerritoryIncome</c> are never lost to a restart. Uses PersistGuild (no broadcast) — the vault
     /// dashboard refreshes on the next full sync.</summary>
     public void FlushDirtyAccumulators()
     {
@@ -513,7 +513,7 @@ public sealed class GuildScheduleSystem : GameSystem
         }
 
         // ── CREDITS (after debits) ───────────────────────────────────────────
-        long credited = CreditDailyGold(guild);
+        long credited = CreditPerkIncome(guild);
         guild.WeeklyIncome += credited;   // the L5 perk trickle counts as weekly income (territory income adds later)
         return new SettlementResult(tax, credited, war.Paid, war.DroppedOpponents, weeklyReset);
     }
@@ -562,15 +562,19 @@ public sealed class GuildScheduleSystem : GameSystem
         return new WarMaintenanceResult(paid, dropped ?? (IReadOnlyList<int>)Array.Empty<int>());
     }
 
-    /// <summary>Credit the guild's accumulated daily gold (the L5 perk trickle and territory income)
-    /// into the vault and zero the accumulator, returning the amount. Runs AFTER debits so
-    /// same-day income can't bail out a same-day debt. Pure; exposed for tests.</summary>
-    public static long CreditDailyGold(GuildRecord guild)
+    /// <summary>Credit the guild's accumulated daily gold — the L5 perk trickle ONLY — into the vault and
+    /// zero the accumulator, returning the amount. Runs AFTER debits so same-day income can't bail out a
+    /// same-day debt. Pure; exposed for tests.
+    ///
+    /// <para>Territory income does NOT pass through here. <see cref="SettleTerritoryIncome"/> credits the
+    /// vault straight from each territory's own pending pot, so the two arrive at the same settlement by
+    /// separate routes and anything reporting "what is about to be banked" has to add both.</para></summary>
+    public static long CreditPerkIncome(GuildRecord guild)
     {
-        long amount = guild.PendingVaultGold;
+        long amount = guild.PendingPerkIncome;
         if (amount <= 0) return 0;
         guild.VaultGold += amount;
-        guild.PendingVaultGold = 0;
+        guild.PendingPerkIncome = 0;
         return amount;
     }
 

@@ -323,7 +323,7 @@ public sealed partial class CombatSystem : GameSystem
             if (GuildPerks.IsActive(guild, Constants.GuildPerkLevelVaultGold)
                 && Rng.Percent() < Constants.GuildPerkVaultGoldChancePercent)
             {
-                guild!.PendingVaultGold += Constants.GuildPerkVaultGold;
+                guild!.PendingPerkIncome += Constants.GuildPerkVaultGold;
                 _world.DirtyGuilds.Add(gid);   // flushed on the periodic save + shutdown (never lost)
             }
             // (Guild-quest progress advances through the objective kernel above, not here.)
@@ -400,7 +400,7 @@ public sealed partial class CombatSystem : GameSystem
         }
         bool killerInOwningGuild = topKiller > 0 && _pm[topKiller].Guild == terr.ControllingGuild;
         int income = TerritoryFormulas.IncomeForKill(killerInOwningGuild, terr.WeeksHeld);
-        terr.PendingIncome = TerritoryFormulas.AccruePending(terr.PendingIncome, income, Constants.TerritoryIncomeDailyCap);
+        terr.PendingTerritoryIncome = TerritoryFormulas.AccruePending(terr.PendingTerritoryIncome, income, Constants.TerritoryIncomeDailyCap);
         _world.DirtyTerritories.Add(terr.MapGroup);   // flushed on the periodic save + shutdown (never lost)
     }
 

@@ -23,7 +23,7 @@ public class TerritoryIsNotAMapGroupTests
     // under the same names, because they are what the domain calls these things.
     private static readonly string[] TerritoryState =
     [
-        "ControllingGuild", "PendingIncome", "IncomeThisWeek", "PreviousWeekIncome",
+        "ControllingGuild", "PendingTerritoryIncome", "IncomeThisWeek", "PreviousWeekIncome",
         "LastWeekRollDate", "WeeksHeld", "Challengers", "DefenderAbandoned",
     ];
 

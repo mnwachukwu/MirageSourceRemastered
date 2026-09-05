@@ -72,6 +72,7 @@ public sealed partial class GuildSystem : GameSystem
             VaultGold = guild.VaultGold,
             VaultValor = guild.VaultValor,
             PerksActive = guild.PerksActive,
+            PendingIncomeTotal = PendingIncomeTotalOf(guild),
             WeeklyIncome = guild.WeeklyIncome,
             WeeklyDonations = guild.WeeklyDonations,
             WeeklyWarCosts = guild.WeeklyWarCosts,
@@ -88,6 +89,17 @@ public sealed partial class GuildSystem : GameSystem
             RecentDonations = new List<GuildDonationEntry>(guild.RecentDonations),
             RecentSpending = new List<GuildSpendingEntry>(guild.RecentSpending),
         });
+    }
+
+    // Gold this guild has earned but not yet banked — what the next daily settlement will pay into the vault.
+    // Two accumulators, because the two reach the vault by different routes: the L5 perk pot on the guild
+    // record, and the pending income of every territory it controls.
+    private long PendingIncomeTotalOf(GuildRecord guild)
+    {
+        long pending = guild.PendingPerkIncome;
+        foreach (var (_, terr) in _world.AllTerritories())
+            if (terr.ControllingGuild == guild.Index) pending += terr.PendingTerritoryIncome;
+        return pending;
     }
 
     // Days (1-7) until this guild's next weekly tax settlement (charged on its founding weekday). Today counts
@@ -120,7 +132,7 @@ public sealed partial class GuildSystem : GameSystem
                 Owner = terr.ControllingGuild > 0 ? (_world.Guilds.GetValueOrDefault(terr.ControllingGuild)?.Name ?? "") : "",
                 WeeksHeld = terr.WeeksHeld,
                 PreviousWeekIncome = terr.PreviousWeekIncome,
-                PendingIncome = ours ? terr.PendingIncome : 0,
+                PendingTerritoryIncome = ours ? terr.PendingTerritoryIncome : 0,
                 IncomeThisWeek = ours ? terr.IncomeThisWeek : 0,
                 OwnedByUs = ours,
                 Contesting = string.Join(", ", challengerNames),

@@ -89,17 +89,17 @@ public class GuildScheduleTests
     public void CreditDailyGold_MovesPendingIntoVault_AndZeroes()
     {
         var g = Guild(level: 0, vault: 100, founding: DayOfWeek.Monday);
-        g.PendingVaultGold = 37;
-        Assert.That(GuildScheduleSystem.CreditDailyGold(g), Is.EqualTo(37));
+        g.PendingPerkIncome = 37;
+        Assert.That(GuildScheduleSystem.CreditPerkIncome(g), Is.EqualTo(37));
         Assert.That(g.VaultGold, Is.EqualTo(137));
-        Assert.That(g.PendingVaultGold, Is.EqualTo(0));
+        Assert.That(g.PendingPerkIncome, Is.EqualTo(0));
     }
 
     [Test]
     public void CreditDailyGold_NothingPending_IsNoOp()
     {
         var g = Guild(level: 0, vault: 100, founding: DayOfWeek.Monday);
-        Assert.That(GuildScheduleSystem.CreditDailyGold(g), Is.EqualTo(0));
+        Assert.That(GuildScheduleSystem.CreditPerkIncome(g), Is.EqualTo(0));
         Assert.That(g.VaultGold, Is.EqualTo(100));
     }
 
@@ -108,7 +108,7 @@ public class GuildScheduleTests
     {
         var taxDay = new DateOnly(2026, 7, 17);
         var g = Guild(level: 1, vault: 600, founding: taxDay.DayOfWeek);   // owes 1000, has 600
-        g.PendingVaultGold = 500;                                          // today's income would total 1100
+        g.PendingPerkIncome = 500;                                          // today's income would total 1100
 
         var result = GuildScheduleSystem.SettleGuild(g, taxDay, nowUtc: 0);
         Assert.That(result.Tax, Is.EqualTo(TaxOutcome.Missed));            // tax ran first on 600 → unaffordable
@@ -258,7 +258,7 @@ public class GuildScheduleTests
         g.WeeklyIncome = 100;
         g.WeeklyDonations = 50;
         g.WeeklyWarCosts = 30;
-        g.PendingVaultGold = 7;   // today's L5 trickle, credited into the fresh week
+        g.PendingPerkIncome = 7;   // today's L5 trickle, credited into the fresh week
 
         var result = GuildScheduleSystem.SettleGuild(g, sunday, nowUtc: 0);
 
@@ -279,7 +279,7 @@ public class GuildScheduleTests
         Assume.That(friday.DayOfWeek, Is.Not.EqualTo(ServerConfig.Default.Schedule.WeekResetDay));
         var g = Guild(level: 0, vault: 0, founding: DayOfWeek.Monday);
         g.WeeklyIncome = 100;
-        g.PendingVaultGold = 5;
+        g.PendingPerkIncome = 5;
 
         GuildScheduleSystem.SettleGuild(g, friday, nowUtc: 0);
 
@@ -338,7 +338,7 @@ public class GuildScheduleTests
         // the final balance rather than merely plausible.
         long opening = Tax(1) + 700 + 100;
         var g = Guild(level: 1, vault: opening, founding: taxDay.DayOfWeek);
-        g.PendingVaultGold = 5_000;                                          // credited AFTER debits
+        g.PendingPerkIncome = 5_000;                                          // credited AFTER debits
         g.Wars.Add(Aggressor(opp: 2, declareCost: 1400, goLiveUtc: 100));    // upkeep 700
 
         var result = GuildScheduleSystem.SettleGuild(g, taxDay, nowUtc: 1000);
@@ -407,7 +407,7 @@ public class GuildScheduleTests
     {
         var day = new DateOnly(2026, 7, 17);
         var g = Guild(level: 1, vault: 400, founding: day.AddDays(1).DayOfWeek);   // not the founding weekday → no tax
-        g.PendingVaultGold = 5_000;
+        g.PendingPerkIncome = 5_000;
         g.Wars.Add(Aggressor(opp: 2, declareCost: 1400, goLiveUtc: 100));          // upkeep 700 > 400
 
         var result = GuildScheduleSystem.SettleGuild(g, day, nowUtc: 1000);

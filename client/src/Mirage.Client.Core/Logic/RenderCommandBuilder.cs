@@ -649,15 +649,14 @@ public static class RenderCommandBuilder
             ContestControl control =
                 pt.OwnerGuild <= 0 ? ContestControl.Neutral :
                 pt.OwnerGuild == myGuild ? ContestControl.Own : ContestControl.Enemy;
+            // 🔴 OffScreen moves the LABEL to the viewport edge. It does not decide whether the zone is
+            // drawn: a point standing just past the border still holds ground inside the view, and its ring
+            // is the only thing that shows where that ground ends. The zone and the light are gated on
+            // REACH — LightReachesR, the point's tile plus its radius — never on the tile alone.
             bool offScreen = screenX < 0 || screenY < 0
                              || screenX >= Camera.ViewW - Constants.PicX
                              || screenY >= Camera.ViewH - Constants.PicY;
             frame.ContestPoints.Add(new ContestPointCmd(screenX, screenY, control, pt.Label, pt.Layer, offScreen));
-            if (offScreen)
-            {
-                lightId++;
-                continue;   // a bearing, not a place: no zone, no flag, no light
-            }
 
             // The flag lights its own capture radius, in the viewer's control color, so the zone reads at
             // night without hunting for the ring. Steady (a flag is not a flame) and UNOCCLUDED — the capture

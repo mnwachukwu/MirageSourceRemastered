@@ -307,8 +307,20 @@ public sealed partial class SocialPanel : IGamePanel
 
         if (_challengeBtn.IsClicked(input) && _challengeBtn.Enabled && sel is not null)
         {
-            if (withdrawing) sender.SendGuildTerritoryWithdraw(sel.Index);
-            else sender.SendGuildTerritoryChallenge(sel.Index);
+            // Challenging spends from the vault and withdrawing does NOT give it back, so the spend is
+            // confirmed before it happens. Withdrawing is not confirmed: it costs nothing, and the money
+            // it fails to return was already gone before the button was reached.
+            if (withdrawing)
+            {
+                sender.SendGuildTerritoryWithdraw(sel.Index);
+            }
+            else
+            {
+                int territory = sel.Index;
+                _confirm.Open(
+                    ClientStrings.Format(ClientStrings.SocialPanel_ChallengeConfirmFormat, ("Territory", sel.Name)),
+                    () => sender.SendGuildTerritoryChallenge(territory));
+            }
         }
     }
 

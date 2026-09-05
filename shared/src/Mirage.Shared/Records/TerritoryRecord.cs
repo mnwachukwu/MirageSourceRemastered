@@ -38,7 +38,7 @@ public sealed class TerritoryRecord
     // ── Income ───────────────────────────────────────────────────────────────────────────────────────────
     /// <summary>Gold accrued from PvE kills here since the last daily settlement (capped per day). Credited
     /// to <see cref="ControllingGuild"/>'s vault at the 00:00 settlement, then zeroed.</summary>
-    public long PendingIncome { get; set; }
+    public long PendingTerritoryIncome { get; set; }
     /// <summary>Running total of income CREDITED this territory-week; snapshotted into
     /// <see cref="PreviousWeekIncome"/> and zeroed at the weekly reset.</summary>
     public long IncomeThisWeek { get; set; }

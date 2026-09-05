@@ -61,6 +61,7 @@ public static partial class ClientStrings
     public const string SocialPanel_Unclaimed = nameof(SocialPanel_Unclaimed);
     // Territory war-night challenge actions.
     public const string SocialPanel_ChallengeButton = nameof(SocialPanel_ChallengeButton);
+    public const string SocialPanel_ChallengeConfirmFormat = nameof(SocialPanel_ChallengeConfirmFormat);
     public const string SocialPanel_WithdrawChallengeButton = nameof(SocialPanel_WithdrawChallengeButton);
     // Main page level-progress bar; {Cur} + {Max} + {Next}. Max shows a plain "Max Level".
     public const string SocialPanel_LevelProgressFormat = nameof(SocialPanel_LevelProgressFormat);
@@ -105,6 +106,7 @@ public static partial class ClientStrings
     public const string SocialPanel_QuestsHeader = nameof(SocialPanel_QuestsHeader);
     public const string SocialPanel_VaultFormat = nameof(SocialPanel_VaultFormat);
     public const string SocialPanel_VaultValorFormat = nameof(SocialPanel_VaultValorFormat);
+    public const string SocialPanel_VaultPendingFormat = nameof(SocialPanel_VaultPendingFormat);
     public const string SocialPanel_PerksSuspended = nameof(SocialPanel_PerksSuspended);
     // Weekly financial-health dashboard on the vault page (discrete per-type running totals) + war-tab daily cost.
     public const string SocialPanel_WeeklyHeader = nameof(SocialPanel_WeeklyHeader);

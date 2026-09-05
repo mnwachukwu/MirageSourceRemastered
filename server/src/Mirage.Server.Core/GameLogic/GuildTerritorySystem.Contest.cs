@@ -24,6 +24,11 @@ public sealed partial class GuildTerritorySystem : GameSystem
             TerritoryIndex = group.Index,
             Phase = ContestPhase.Setup,
             PhaseEndUtc = UtcNow() + Constants.TerritoryContestSetupSeconds,
+            // 🔴 Load-bearing three times over, and silent when wrong: it pays the defender's per-tick
+            // bonus, it hands a TIED contest back to them, and it is what separates them from the
+            // challengers at settlement. Left at 0 a defended territory scores like an attacker, falls to
+            // nobody on a draw, and settles as though it had no defender at all.
+            DefenderGuild = defenderId,
             Points = GenerateContestPoints(maps, defenderId),
             Participants = new HashSet<int>(challengers),
             Layout = BuildTerritoryLayout(maps),
@@ -170,6 +175,10 @@ public sealed partial class GuildTerritorySystem : GameSystem
             int g = sp.Guild;
             if (g <= 0 || !participants.Contains(g)) continue;
             var ch = sp.Char;
+            // 🔴 A body holds nothing. A dead player stays connected and lies where they fell until they
+            // respawn, so without this the corpses count — and because the meter turns on a strict PLURALITY,
+            // a wiped team goes on holding the point, or takes it, with nobody alive standing on it.
+            if (ch.Hp <= 0) continue;
             // Two-layer world: only players on the point's own layer hold it — standing on the ground UNDER a
             // bridge-top point earns no credit; you must be up on the deck (and vice-versa).
             if (ch.Layer != pt.Layer) continue;

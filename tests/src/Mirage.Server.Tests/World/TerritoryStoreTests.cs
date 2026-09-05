@@ -48,7 +48,7 @@ public class TerritoryStoreTests
     private static TerritoryRecord Held(int group, int guild) => new()
     {
         MapGroup = group, ControllingGuild = guild, WeeksHeld = 3,
-        PendingIncome = 700, IncomeThisWeek = 4200, PreviousWeekIncome = 3500,
+        PendingTerritoryIncome = 700, IncomeThisWeek = 4200, PreviousWeekIncome = 3500,
         LastWeekRollDate = new DateOnly(2026, 8, 23), Challengers = { 5, 6 }, DefenderAbandoned = true,
     };
 
@@ -77,7 +77,7 @@ public class TerritoryStoreTests
         {
             Assert.That(loaded.ControllingGuild, Is.EqualTo(2));
             Assert.That(loaded.WeeksHeld, Is.EqualTo(3));
-            Assert.That(loaded.PendingIncome, Is.EqualTo(700), "a restart must not drop accrued income");
+            Assert.That(loaded.PendingTerritoryIncome, Is.EqualTo(700), "a restart must not drop accrued income");
             Assert.That(loaded.IncomeThisWeek, Is.EqualTo(4200));
             Assert.That(loaded.PreviousWeekIncome, Is.EqualTo(3500));
             Assert.That(loaded.LastWeekRollDate, Is.EqualTo(new DateOnly(2026, 8, 23)));

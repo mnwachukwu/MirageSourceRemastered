@@ -146,7 +146,7 @@ public sealed class MirageServerService : IHostedService
         _acceptor.Stop();
         _gameLoop.Stop();   // game thread fully joined here — state is frozen, safe to read directly
 
-        // Flush per-kill income accrual (guild PendingVaultGold + territory PendingIncome) that the periodic
+        // Flush per-kill income accrual (guild PendingPerkIncome + territory PendingTerritoryIncome) that the periodic
         // save may not have caught, so a restart never loses it (queued writes are awaited by the drains below).
         _gameLoop.FlushWorldDataNow();
 

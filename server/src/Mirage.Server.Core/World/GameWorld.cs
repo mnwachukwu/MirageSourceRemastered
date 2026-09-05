@@ -60,7 +60,7 @@ public sealed class GameWorld
     // when a season ends; ascending by season number. Served to the historical-season browser (read-only).
     public List<SeasonArchive> SeasonArchives { get; } = new();
 
-    // Income accumulators (guild PendingVaultGold + territory PendingIncome) mutate per-kill in memory; these
+    // Income accumulators (guild PendingPerkIncome + territory PendingTerritoryIncome) mutate per-kill in memory; these
     // sets flag which guilds/territories have unsaved accrual so the periodic save + shutdown flush persist
     // them (GuildScheduleSystem.FlushDirtyAccumulators) — the accrual sites just Add here, no per-kill write.
     public HashSet<int> DirtyGuilds { get; } = new();

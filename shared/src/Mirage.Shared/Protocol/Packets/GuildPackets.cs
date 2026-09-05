@@ -234,6 +234,19 @@ public sealed record GuildInfoPacket : IPacket
     [JsonPropertyName("vaultGold")] public long VaultGold { get; init; }
     [JsonPropertyName("vaultValor")] public int VaultValor { get; init; }
     [JsonPropertyName("perksActive")] public bool PerksActive { get; init; }
+    /// <summary>Everything the guild has earned and not yet banked: what arrives in
+    /// <see cref="VaultGold"/> at the next daily settlement.
+    ///
+    /// <para>🔴 It is a SUM of two accumulators that reach the vault by different routes — the L5 perk pot
+    /// (<c>GuildRecord.PendingPerkIncome</c>, banked by <c>CreditDailyGold</c>) and the pending income of
+    /// every territory the guild controls (banked by <c>SettleTerritoryIncome</c>, which credits the vault
+    /// directly and never touches the perk pot). Reporting only the perk half shows nothing at all to a
+    /// guild below level 5, which is most of them, while their territories are earning.</para>
+    ///
+    /// <para>Kept beside the balance rather than folded into it: it climbs while the guild hunts and drops
+    /// to zero when it lands, so adding it in would make the vault look like it lost that gold every
+    /// settlement.</para></summary>
+    [JsonPropertyName("pendingIncomeTotal")] public long PendingIncomeTotal { get; init; }
     /// <summary>Weekly financial-health running totals for the vault dashboard (income received, member
     /// donations, war spend this week — all on the season-week cadence). The expected weekly tax amount is
     /// derived client-side from Level; <see cref="DaysUntilTax"/> carries its SEPARATE founding-weekday
@@ -283,7 +296,7 @@ public sealed record TerritoryView
     /// <summary>Gold accrued since the last midnight settlement, not yet in the vault. Sent only for the
     /// viewer’s OWN territory (0 elsewhere) — it is a live read on how hard a guild is being farmed right
     /// now, which is theirs to see and nobody else’s. Recipient-specific.</summary>
-    [JsonPropertyName("pendingIncome")] public long PendingIncome { get; init; }
+    [JsonPropertyName("pendingTerritoryIncome")] public long PendingTerritoryIncome { get; init; }
     /// <summary>Settled income so far this week, before the weekly roll into <see cref="PreviousWeekIncome"/>.
     /// Own territory only, for the same reason. Recipient-specific.</summary>
     [JsonPropertyName("incomeWeek")] public long IncomeThisWeek { get; init; }

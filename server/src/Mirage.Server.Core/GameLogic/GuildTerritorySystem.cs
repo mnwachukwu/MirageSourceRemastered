@@ -191,12 +191,20 @@ public sealed partial class GuildTerritorySystem : GameSystem
         }
 
         NotifyOk(index, ServerStrings.GuildTerritory_ChallengeOk, ("Territory", TerritoryName(group)));
+        // The Territories table reads ChallengedByUs and the vault dashboard reads the gold, and both just
+        // changed for the WHOLE guild — not only for whoever pressed the button. Without this an open panel
+        // keeps showing the state from before the challenge until something else happens to refresh it.
+        _guilds.BroadcastGuildInfo(guild.Index);
         _logger.LogInformation("Guild {Guild} challenged territory {Terr} (cost {Cost}).", guild.Name, group.Index, cost);
         return true;
     }
 
     /// <summary>Withdraw the sender guild's pending challenge for <paramref name="territoryIndex"/> before war
-    /// night (Officer+). The cost is not refunded, and this does NOT restore a territory the guild abandoned.</summary>
+    /// night (Officer+). The cost is not refunded, and this does NOT restore a territory the guild abandoned.
+    ///
+    /// <para>Both of those are spent the moment the challenge is registered, which is why the CHALLENGE is
+    /// what asks for confirmation and this does not: by the time anyone reaches this, there is nothing left
+    /// to talk them out of.</para></summary>
     public void WithdrawChallenge(int index, int territoryIndex)
     {
         var sp = _pm[index];
@@ -222,6 +230,7 @@ public sealed partial class GuildTerritorySystem : GameSystem
         }
         SaveTerritory(terr);
         NotifyOk(index, ServerStrings.GuildTerritory_WithdrawnOk, ("Territory", TerritoryName(group!)));
+        _guilds.BroadcastGuildInfo(guild.Index);   // the row's Challenge/Withdraw state just flipped for everyone
     }
 
     // playerLevel is the challenging member's character level — both branches scale with it

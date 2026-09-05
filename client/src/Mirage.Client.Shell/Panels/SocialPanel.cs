@@ -217,8 +217,8 @@ public sealed partial class SocialPanel : IGamePanel
                     t => t.IncomeThisWeek,
                     t => t.OwnedByUs ? t.IncomeThisWeek.ToString() : "-", 76, 52)
             .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColPending),
-                    t => t.PendingIncome,
-                    t => t.OwnedByUs ? t.PendingIncome.ToString() : "-", 70, 50)
+                    t => t.PendingTerritoryIncome,
+                    t => t.OwnedByUs ? t.PendingTerritoryIncome.ToString() : "-", 70, 50)
             .Column(() => ClientStrings.Get(ClientStrings.SocialPanel_ColContesting), t => t.Contesting, width: 100, minWidth: 60)
             .WithRowKey(t => t.Index);   // selection follows a territory across pushes (for the Challenge button)
         _territoryTable.SortBy(0);   // default alphabetical by territory name (matches the server order)

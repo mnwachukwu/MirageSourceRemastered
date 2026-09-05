@@ -100,12 +100,12 @@ public class TerritoryFormulasTests
     [Test]
     public void CreditTerritoryIncome_MovesPendingIntoWeeklyTally_AndZeroes()
     {
-        var g = new TerritoryRecord { MapGroup = 1, ControllingGuild = 1, PendingIncome = 42, IncomeThisWeek = 100 };
+        var g = new TerritoryRecord { MapGroup = 1, ControllingGuild = 1, PendingTerritoryIncome = 42, IncomeThisWeek = 100 };
         long credited = GuildScheduleSystem.CreditTerritoryIncome(g);
         Assert.Multiple(() =>
         {
             Assert.That(credited, Is.EqualTo(42));
-            Assert.That(g.PendingIncome, Is.Zero, "pending zeroed after the daily credit");
+            Assert.That(g.PendingTerritoryIncome, Is.Zero, "pending zeroed after the daily credit");
             Assert.That(g.IncomeThisWeek, Is.EqualTo(142), "the credited amount rolls into the weekly tally");
         });
         // Nothing pending → no-op (doesn't touch the weekly tally).

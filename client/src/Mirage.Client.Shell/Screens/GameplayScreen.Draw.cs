@@ -90,10 +90,21 @@ public sealed partial class GameplayScreen : IGameScreen
             _ => UiHelper.ContestNeutralColor,
         };
 
-        // A point outside the viewport is a BEARING: its label alone, pinned to the edge it lies past, with
+        // 🔴 The zone is drawn whenever it REACHES the view, including from a point standing outside it. A
+        // point near the border holds ground you can be standing on, and the ring is the only thing saying
+        // where that ground ends — cutting it because the flag's own tile left the viewport takes the mark
+        // off ground that is still being scored.
+        float reach = (Constants.TerritoryCapturePointRadius + 1) * Constants.PicX;
+        if (cp.ScreenX > -reach && cp.ScreenX < Camera.ViewW + reach
+            && cp.ScreenY > -reach && cp.ScreenY < Camera.ViewH + reach)
+        {
+            DrawContestZone(sb, cp, color);
+        }
+
+        // Past the viewport the point is a BEARING: the label alone, pinned to the edge it lies past, with
         // the other axis left where the point really is. Walk that way on that axis and the label slides to
-        // the corner, then onto the screen with the flag under it. Drawing the flag or the zone here would
-        // put a landmark on ground that does not hold one.
+        // the corner, then onto the screen with the flag under it. The FLAG is skipped because it is a
+        // 32px mark on a tile nobody can see; the zone above is not, because it is not on that tile.
         if (cp.OffScreen)
         {
             float totalW = nameCellW * cp.Label.Length;
@@ -106,8 +117,6 @@ public sealed partial class GameplayScreen : IGameScreen
             DrawWorldName(sb, nameFont, edgeCmd, nameCellW, nameLineH);
             return;
         }
-
-        DrawContestZone(sb, cp, color);
 
         // Flag: a dark pole + a colored triangular pennant near its top, centered on the tile.
         float poleX = cp.ScreenX + Constants.PicX / 2f - ContestFlagPoleInset;

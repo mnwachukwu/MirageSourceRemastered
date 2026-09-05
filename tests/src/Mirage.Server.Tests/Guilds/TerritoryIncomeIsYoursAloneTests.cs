@@ -40,7 +40,7 @@ public class TerritoryIncomeIsYoursAloneTests
 
         var terr = world.TerritoryFor(Group);
         terr.ControllingGuild = owningGuild;
-        terr.PendingIncome = pending;
+        terr.PendingTerritoryIncome = pending;
         terr.IncomeThisWeek = thisWeek;
         terr.PreviousWeekIncome = lastWeek;
         terr.WeeksHeld = 2;
@@ -66,7 +66,7 @@ public class TerritoryIncomeIsYoursAloneTests
         Assert.Multiple(() =>
         {
             Assert.That(row.OwnedByUs, Is.True);
-            Assert.That(row.PendingIncome, Is.EqualTo(900));
+            Assert.That(row.PendingTerritoryIncome, Is.EqualTo(900));
             Assert.That(row.IncomeThisWeek, Is.EqualTo(5_400));
             Assert.That(row.PreviousWeekIncome, Is.EqualTo(12_000));
         });
@@ -80,7 +80,7 @@ public class TerritoryIncomeIsYoursAloneTests
         Assert.Multiple(() =>
         {
             Assert.That(row.OwnedByUs, Is.False, "without this the row cannot tell a withheld figure from a real zero");
-            Assert.That(row.PendingIncome, Is.Zero, "a rival can see how hard the owner is farming right now");
+            Assert.That(row.PendingTerritoryIncome, Is.Zero, "a rival can see how hard the owner is farming right now");
             Assert.That(row.IncomeThisWeek, Is.Zero);
             Assert.That(row.PreviousWeekIncome, Is.EqualTo(12_000), "last week's figure is what the list is for");
         });
@@ -96,7 +96,7 @@ public class TerritoryIncomeIsYoursAloneTests
         Assert.Multiple(() =>
         {
             Assert.That(row.OwnedByUs, Is.False);
-            Assert.That(row.PendingIncome, Is.Zero);
+            Assert.That(row.PendingTerritoryIncome, Is.Zero);
             Assert.That(row.IncomeThisWeek, Is.Zero);
         });
     }

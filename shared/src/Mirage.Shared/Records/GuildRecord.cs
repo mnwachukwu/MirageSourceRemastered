@@ -96,7 +96,7 @@ public sealed class GuildRecord
     /// settlement, which credits it to <see cref="GuildRecord.VaultGold"/> AFTER debits (so it can't cover a same-day
     /// debt) and zeroes this. Accrues in memory between kills but is flushed to disk on the periodic save +
     /// at shutdown (via GameWorld.DirtyGuilds), so a restart never loses it.</summary>
-    public long PendingVaultGold { get; set; }
+    public long PendingPerkIncome { get; set; }
 
     // ── Weekly financial-health running totals (vault dashboard) ──────────────────────────────────────────
     // Discrete per-type weekly figures shown on the vault page. Reset every week at the settlement's weekly
