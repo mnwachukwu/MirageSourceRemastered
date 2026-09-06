@@ -136,6 +136,85 @@ public class ServerPinsTests
         Assert.That(store.Forget("play.example.com", 4000), Is.False);
     }
 
+    /// <summary>Clearing a pin is a user-facing action now, so it has to be safe to invoke against an
+    /// address that never had one: it reports that there was nothing to drop and leaves the disk alone.</summary>
+    [Test]
+    public void ForgettingAServerNeverSeenReportsNothingAndWritesNothing()
+    {
+        var store = New();
+
+        Assert.That(store.Forget("play.example.com", 4000), Is.False);
+        Assert.That(File.Exists(_file), Is.False);
+    }
+
+    /// <summary>The whole point of clearing one pin: every other server stays pinned. A clear that emptied
+    /// the store would silently re-trust every server the installation had ever seen.</summary>
+    [Test]
+    public void ForgettingOneServerLeavesTheOthersPinned()
+    {
+        var store = New();
+        store.Remember("a.example.com", 4000, FingerprintA);
+        store.Remember("b.example.com", 5000, FingerprintB);
+        store.Remember("a.example.com", 4001, FingerprintB);
+
+        Assert.That(store.Forget("a.example.com", 4000), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(store.PinnedFingerprint("a.example.com", 4000), Is.Null);
+            Assert.That(store.PinnedFingerprint("b.example.com", 5000), Is.EqualTo(FingerprintB));
+            Assert.That(store.PinnedFingerprint("a.example.com", 4001), Is.EqualTo(FingerprintB));
+            Assert.That(store.All, Has.Count.EqualTo(2));
+        });
+    }
+
+    /// <summary>The clear has to reach the file, not just the copy in memory: the app that refused the
+    /// connection is often restarted before the next attempt.</summary>
+    [Test]
+    public void AForgottenServerIsAFirstContactAgainInTheNextProcess()
+    {
+        New().Remember("play.example.com", 4000, FingerprintA);
+        New().Forget("play.example.com", 4000);
+
+        Assert.That(New().Check("play.example.com", 4000, FingerprintB), Is.EqualTo(ServerTrust.FirstContact));
+    }
+
+    [Test]
+    public void ForgettingIgnoresCaseAndSurroundingSpaceLikeCheckDoes()
+    {
+        var store = New();
+        store.Remember("Play.Example.COM", 4000, FingerprintA);
+
+        Assert.That(store.Forget("  play.example.com  ", 4000), Is.True);
+        Assert.That(store.PinnedFingerprint("play.example.com", 4000), Is.Null);
+    }
+
+    /// <summary>Both fingerprints are shown side by side when one is refused, so they are grouped: an
+    /// unbroken 64-character run is neither comparable by eye nor wrappable.</summary>
+    [Test]
+    public void ForDisplayGroupsTheFingerprintInFours()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(ServerPins.ForDisplay("aabbccdd11223344"), Is.EqualTo("aabb ccdd 1122 3344"));
+            Assert.That(ServerPins.ForDisplay(FingerprintA).Replace(" ", ""), Is.EqualTo(FingerprintA));
+            Assert.That(ServerPins.ForDisplay(FingerprintA).Split(' '), Has.Length.EqualTo(16));
+        });
+    }
+
+    /// <summary>A server refused on first contact has no fingerprint on record, and the prompt still has
+    /// to render.</summary>
+    [Test]
+    public void ForDisplayLeavesAnEmptyFingerprintEmpty()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(ServerPins.ForDisplay(""), Is.Empty);
+            Assert.That(ServerPins.ForDisplay("   "), Is.Empty);
+            Assert.That(ServerPins.ForDisplay("abc"), Is.EqualTo("abc"));
+        });
+    }
+
     [Test]
     public void PinnedFingerprintReportsWhatIsOnRecord()
     {

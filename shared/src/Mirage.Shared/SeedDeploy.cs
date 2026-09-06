@@ -24,6 +24,28 @@ public static class SeedDeploy
     ///
     /// <para>Returns how many files were laid down; 0 means there was nothing to do.</para>
     /// </summary>
+    /// <summary>
+    /// Copies one shipped file to <paramref name="targetFile"/>, and only when the target does NOT EXIST.
+    /// Returns true when it laid one down.
+    ///
+    /// <para>The file equivalent of <see cref="SeedIfAbsent"/>, for the operator-facing config files: they
+    /// ship as defaults beside the executable and become the installation's own on first run. An existing
+    /// file is never touched — including an empty one, for the same reason an empty world dir is left
+    /// alone.</para>
+    /// </summary>
+    public static bool SeedFileIfAbsent(string seedFile, string targetFile)
+    {
+        if (File.Exists(targetFile)) return false;
+        if (!File.Exists(seedFile)) return false;
+
+        Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+        // overwrite: false loses the race rather than winning it, matching SeedIfAbsent — whoever wrote
+        // first has the file the server will read.
+        try { File.Copy(seedFile, targetFile, overwrite: false); }
+        catch (IOException) { return false; }
+        return true;
+    }
+
     public static int SeedIfAbsent(string seedDir, string targetDir)
     {
         if (Directory.Exists(targetDir)) return 0;

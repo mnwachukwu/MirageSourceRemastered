@@ -34,6 +34,7 @@ public sealed class ConfigPanel
     private readonly Button _saveBtn = new();
     private readonly Button _addBtn = new();
     private readonly Button _forgetBtn = new();
+    private readonly Button _clearPinBtn = new();
     private readonly ListBox _serverList = new();
     private List<ServerEntry> _servers = [];
     private int _labelsGeneration = -1;
@@ -153,6 +154,15 @@ public sealed class ConfigPanel
             }
         }
 
+        // Separate from Forget: dropping a server from the list leaves its certificate on record, so
+        // re-adding it still refuses to connect. This is the only other way to clear one.
+        _clearPinBtn.Enabled = _serverList.SelectedIndex >= 0;
+        if (_clearPinBtn.IsClicked(input))
+        {
+            input.ConsumeMouseClick();
+            if (_serverList.SelectedIndex >= 0) ClearPin(_servers[_serverList.SelectedIndex]);
+        }
+
         if (input.IsMouseJustPressed())
         {
             bool shift = input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift);
@@ -244,6 +254,7 @@ public sealed class ConfigPanel
             _saveBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_SaveButton);
             _forgetBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_ForgetButton);
             _addBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_AddButton);
+            _clearPinBtn.Label = ClientStrings.Get(ClientStrings.ConfigPanel_ClearPinButton);
         }
         _panel.Draw(sb, font, ClientStrings.Get(ClientStrings.ConfigPanel_Title), isActive);
         LayoutControls();
@@ -262,6 +273,7 @@ public sealed class ConfigPanel
             new Vector2(c.X + 6, ListHeaderY(c) + 1), UiHelper.DlgLabelColor);
         _addBtn.Draw(sb, font, input);
         _forgetBtn.Draw(sb, font, input);
+        _clearPinBtn.Draw(sb, font, input);
         _serverList.Draw(sb, font, _listRect);
 
         if (_status.Length > 0)
@@ -303,6 +315,17 @@ public sealed class ConfigPanel
         _status = ClientStrings.Format(ClientStrings.ConfigPanel_ServerAdded,
             ("Server", Describe(_servers[_serverList.SelectedIndex])));
         _statusColor = Color.LightGreen;
+    }
+
+    /// <summary>Drops the certificate on record for one server, so the next connection to it records
+    /// whatever is offered. The address book entry stays where it is.</summary>
+    private void ClearPin(ServerEntry server)
+    {
+        bool had = ServerPinStore.Store.Forget(server.Host, server.Port);
+        _status = ClientStrings.Format(
+            had ? ClientStrings.ConfigPanel_PinCleared : ClientStrings.ConfigPanel_NoPinStored,
+            ("Server", Describe(server)));
+        _statusColor = had ? Color.LightGreen : Color.LightGray;
     }
 
     private bool Validate(out string err)
@@ -412,11 +435,15 @@ public sealed class ConfigPanel
         _testBtn.Bounds = new Rectangle(startX + btnW + gap, btnY, btnW, btnH);
         _saveBtn.Bounds = new Rectangle(startX + (btnW + gap) * 2, btnY, btnW, btnH);
 
-        // Add and Forget sit on the list's header line, right-aligned, so the list keeps the full width
-        // below them.
-        const int smallW = 62, smallH = 18;
+        // Add, Forget and Clear Pin sit on the list's header line, right-aligned, so the list keeps the
+        // full width below them. They share whatever the caption leaves rather than taking a fixed width:
+        // three fixed buttons overrun the caption once the panel is dragged near its minimum.
+        const int smallH = 18, captionReserve = 86;
         int headerY = ListHeaderY(c);
-        _forgetBtn.Bounds = new Rectangle(c.Right - pad - rightReserve - smallW, headerY, smallW, smallH);
+        int smallRight = c.Right - pad - rightReserve;
+        int smallW = Math.Max(40, (smallRight - (c.X + pad + captionReserve) - gap * 2) / 3);
+        _clearPinBtn.Bounds = new Rectangle(smallRight - smallW, headerY, smallW, smallH);
+        _forgetBtn.Bounds = new Rectangle(_clearPinBtn.Bounds.X - gap - smallW, headerY, smallW, smallH);
         _addBtn.Bounds = new Rectangle(_forgetBtn.Bounds.X - gap - smallW, headerY, smallW, smallH);
 
         // Whatever is left between the header and the status line, rounded down to whole rows.

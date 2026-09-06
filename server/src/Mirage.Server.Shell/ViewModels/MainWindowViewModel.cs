@@ -165,6 +165,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task StartAsync()
     {
+        DismissIdentityChange();
         if (IsRemote)
         {
             // 🔴 Rebuild before dialling. A RemoteServerConnection takes the host, port and token it was
@@ -203,6 +204,8 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             // A local start reports the path it looked at, which is the message itself.
             _ => ShellStrings.Format(ShellStrings.Console_ServerNotFound, ("Path", failure)),
         });
+
+        if (failure == RemoteServerConnection.RemoteError.IdentityChanged) ShowIdentityChange();
     }
 
     [RelayCommand]
@@ -863,6 +866,18 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
     public string ServerNameLabel => ShellStrings.Get(ShellStrings.Connection_ServerName);
     public string ForgetServerLabel => ShellStrings.Get(ShellStrings.Connection_ForgetServer);
     public string AddServerLabel => ShellStrings.Get(ShellStrings.Connection_AddServer);
+    public string ClearPinLabel => ShellStrings.Get(ShellStrings.Connection_ClearPin);
+    public string TrustNewCertificateLabel => ShellStrings.Get(ShellStrings.Connection_TrustNewCertificate);
+
+    /// <summary>The refused certificate from the last attach, kept so the banner's button knows which pin
+    /// to drop. Non-null exactly while <see cref="IdentityMessage"/> is showing.</summary>
+    private ServerIdentityChangedException? _pendingIdentity;
+
+    /// <summary>The identity-changed explanation with both fingerprints, empty when there is nothing to
+    /// decide. The console carries the same text, but a line that scrolls away is no place to keep the
+    /// only way out of a refused connection.</summary>
+    [ObservableProperty]
+    public partial string IdentityMessage { get; private set; } = "";
 
     /// <summary>What to call this address in the list. The management port carries no game name — it is a
     /// console socket, not a login — so the operator supplies one.</summary>
@@ -908,6 +923,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         if (_selectedServer is not null)
             RemoteName = ServerBookStore.Book.Find(_remoteHost, _remotePort)?.Name ?? "";
         ForgetServerCommand.NotifyCanExecuteChanged();
+        ClearPinCommand.NotifyCanExecuteChanged();
     }
 
     private bool CanForgetServer() => SelectedServer is not null;
@@ -919,6 +935,47 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         ServerBookStore.Book.Forget(gone.Host, gone.Port);
         RemoteName = "";
         RefreshServers();
+    }
+
+    private bool CanClearPin() => ServerPinStore.Store.PinnedFingerprint(_remoteHost, _remotePort) is not null;
+
+    /// <summary>Drops the certificate on record for the typed address, so the next attach records
+    /// whatever is offered. Separate from <see cref="ForgetServerCommand"/>: dropping the entry from the
+    /// list leaves the pin behind, which is what makes re-adding the same address fail the same way.</summary>
+    [RelayCommand(CanExecute = nameof(CanClearPin))]
+    private void ClearPin() => DropPin(_remoteHost, _remotePort);
+
+    /// <summary>Accepts the certificate that was just refused by dropping the old pin. Nothing is
+    /// retried here: the next Attach is a first contact, which records the new one.</summary>
+    [RelayCommand]
+    private void TrustNewCertificate()
+    {
+        if (_pendingIdentity is { } identity) DropPin(identity.Host, identity.Port);
+    }
+
+    private void DropPin(string host, int port)
+    {
+        if (!ServerPinStore.Store.Forget(host, port)) return;
+        DismissIdentityChange();
+        AppendLine(ShellStrings.Format(ShellStrings.Connection_PinCleared, ("Server", $"{host}:{port}")));
+        ClearPinCommand.NotifyCanExecuteChanged();
+    }
+
+    private void ShowIdentityChange()
+    {
+        if ((_server as RemoteServerConnection)?.LastIdentityChange is not { } identity) return;
+        _pendingIdentity = identity;
+        IdentityMessage = ShellStrings.Format(ShellStrings.Console_IdentityChangedDetail,
+            ("Host", identity.Host), ("Port", identity.Port),
+            ("Expected", ServerPins.ForDisplay(identity.Expected)),
+            ("Actual", ServerPins.ForDisplay(identity.Actual)));
+        AppendLine(IdentityMessage);
+    }
+
+    private void DismissIdentityChange()
+    {
+        _pendingIdentity = null;
+        IdentityMessage = "";
     }
 
     private bool CanAddServer() => !string.IsNullOrWhiteSpace(_remoteHost);

@@ -50,6 +50,39 @@ public class ConnectFailureMessageTests
             Is.EqualTo(ClientStrings.Get(ClientStrings.Common_ServerIdentityChanged)));
     }
 
+    /// <summary>The screens need the exception itself, not a sentence about it: the prompt they raise has
+    /// to name the server and both fingerprints, and drop the pin for that exact address.</summary>
+    [Test]
+    public void AChangedIdentity_IsHandedBackWithBothFingerprints()
+    {
+        var changed = new ServerIdentityChangedException("play.example.com", 4000, "aaaa", "bbbb");
+
+        var found = ConnectFailure.IdentityChange(Task.FromException(changed));
+
+        Assert.That(found, Is.SameAs(changed));
+        Assert.Multiple(() =>
+        {
+            Assert.That(found!.Host, Is.EqualTo("play.example.com"));
+            Assert.That(found.Port, Is.EqualTo(4000));
+            Assert.That(found.Expected, Is.EqualTo("aaaa"));
+            Assert.That(found.Actual, Is.EqualTo("bbbb"));
+        });
+    }
+
+    /// <summary>Every other failure leaves the offer alone: a timeout must not put a "trust this
+    /// certificate" button in front of anyone.</summary>
+    [Test]
+    public void AnyOtherFailure_OffersNothingToTrust()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(ConnectFailure.IdentityChange(Task.FromException(new TimeoutException())), Is.Null);
+            Assert.That(ConnectFailure.IdentityChange(
+                Task.FromException(new SocketException((int)SocketError.ConnectionRefused))), Is.Null);
+            Assert.That(ConnectFailure.IdentityChange(Task.CompletedTask), Is.Null);
+        });
+    }
+
     [Test]
     public void TheThreeMessages_AreActuallyDifferent()
     {

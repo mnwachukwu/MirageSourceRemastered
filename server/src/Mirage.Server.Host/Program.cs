@@ -25,16 +25,33 @@ using Velopack;
 // control to the generic host. MirageServerService (a hosted service, registered at the bottom) is
 // what actually starts the world, the game loop, and the TCP acceptor.
 //
-// The first three steps are order-sensitive:
+// The first four steps are order-sensitive:
 //   1. Velopack runs BEFORE anything else — an install or update step may exit the process outright.
-//   2. The working directory is pinned to the exe directory, so data/log paths in appsettings.json
-//      resolve against the install rather than wherever the process happened to be launched from.
-//   3. A bootstrap console logger is installed before the host exists, so failures during startup
+//   2. The two config files are laid down in the state dir if this machine has none yet. Both are read
+//      from there — serverconfig.json below, appsettings.json by the host.
+//   3. The working directory is pinned to the STATE dir, so the relative log paths in appsettings.json
+//      resolve somewhere that survives a version rather than wherever the process was launched from.
+//   4. A bootstrap console logger is installed before the host exists, so failures during startup
 //      are still reported; the host replaces it with the appsettings-configured Serilog pipeline.
 VelopackApp.Build().Run();
 
-// Resolve data-relative paths in appsettings.json against the exe directory.
-Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+// ── This installation's own folder ────────────────────────────────────────────
+// 🔴 NOT the folder the exe runs from. An installed server runs out of a Velopack `current/` that an
+// update replaces wholesale, so everything an operator accumulates — their settings, their logs, and
+// at the default their accounts and their world — lasted exactly one version there. See ServerPaths.
+string stateRoot = ServerPaths.Data();
+Directory.CreateDirectory(stateRoot);
+
+// The package ships both config files as the defaults a fresh install starts with; they become this
+// installation's own on first run and are never written back to the install folder. Absence is the only
+// trigger, so an operator's edits are never overwritten by a later version.
+SeedDeploy.SeedFileIfAbsent(ServerConfigStore.ShippedPath, ServerConfigStore.DefaultPath);
+SeedDeploy.SeedFileIfAbsent(AppSettingsStore.ShippedPath, AppSettingsStore.DefaultPath);
+
+// Serilog's file sinks carry RELATIVE paths ("logs/server-.log") that an operator edits by hand, so the
+// working directory is what decides where the logs land. It is the state dir for the same reason as
+// above. Shipped content is read through AppContext.BaseDirectory explicitly and is unaffected.
+Directory.SetCurrentDirectory(stateRoot);
 
 // ── Operator settings ─────────────────────────────────────────────────────────
 // Read before anything else, because the language it carries decides what every line below is written
@@ -74,12 +91,11 @@ if (configError is not null) Log.Warning("{ConfigError}", configError);
 //
 // Resolved HERE rather than inside ConfigureServices, so the seeding below happens before anything reads
 // either folder.
-string dataDir = serverConfig.DataDir is { Length: > 0 } configuredData
-    ? configuredData
-    : Path.Combine(AppContext.BaseDirectory, "data");
-string worldDir = serverConfig.WorldDir is { Length: > 0 } configuredWorld
-    ? configuredWorld
-    : Path.Combine(AppContext.BaseDirectory, "world");
+//
+// Resolved through ServerPaths rather than here, so the shell's scratch server reads the same folders
+// this one does. The defaults are per-user dirs, NOT folders beside the executable — see that class.
+string dataDir = ServerPaths.ResolveDataDir(serverConfig);
+string worldDir = ServerPaths.ResolveWorldDir(serverConfig);
 
 // A first run on a machine with nothing gets what the package shipped — the world, and the handful of
 // defaults an installation starts with. Absence of the folder is the only trigger in both cases: an empty
@@ -140,7 +156,7 @@ var host = Host.CreateDefaultBuilder(args)
         // ── Persistence ───────────────────────────────────────────────────────
         // Resolved before the host was built — see above.
 
-        string logsDir = ctx.Configuration["LogsDir"] ?? Path.Combine(AppContext.BaseDirectory, "logs");
+        string logsDir = ctx.Configuration["LogsDir"] ?? ServerPaths.Data("logs");
 
         Serilog.ILogger chatSerilogLogger = new Serilog.LoggerConfiguration()
             .WriteTo.File(

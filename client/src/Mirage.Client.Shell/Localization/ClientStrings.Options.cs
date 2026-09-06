@@ -17,6 +17,9 @@ public static partial class ClientStrings
     public const string ConfigPanel_SaveButton = nameof(ConfigPanel_SaveButton);
     public const string ConfigPanel_ForgetButton = nameof(ConfigPanel_ForgetButton);
     public const string ConfigPanel_AddButton = nameof(ConfigPanel_AddButton);
+    public const string ConfigPanel_ClearPinButton = nameof(ConfigPanel_ClearPinButton);
+    public const string ConfigPanel_PinCleared = nameof(ConfigPanel_PinCleared);       // "{Server}"
+    public const string ConfigPanel_NoPinStored = nameof(ConfigPanel_NoPinStored);     // "{Server}"
     public const string ConfigPanel_KnownServersLabel = nameof(ConfigPanel_KnownServersLabel);
     public const string ConfigPanel_NameLabel = nameof(ConfigPanel_NameLabel);
     public const string ConfigPanel_ServerAdded = nameof(ConfigPanel_ServerAdded);   // "{Server}"

@@ -120,4 +120,64 @@ public class SeedDeployTests
 
         Assert.That(Directory.Exists(_data + ".seeding"), Is.False, "staging should have been moved, not copied");
     }
+
+    // ── One file at a time, for the config files ──────────────────────────────
+
+    [Test]
+    public void NoConfigFile_LaysTheShippedOneDown()
+    {
+        string shipped = Path.Combine(_seed, "motd.json");
+        string target = Path.Combine(_root, "state", "motd.json");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(SeedDeploy.SeedFileIfAbsent(shipped, target), Is.True);
+            Assert.That(File.Exists(target), Is.True, "the parent folder is created on the way");
+        });
+    }
+
+    /// <summary>The whole point: an operator's settings are theirs, and a later version's defaults never
+    /// land on top of them.</summary>
+    [Test]
+    public void AnExistingConfigFile_IsLeftExactlyAsFound()
+    {
+        string shipped = Path.Combine(_seed, "motd.json");
+        string target = Path.Combine(_root, "state", "motd.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+        File.WriteAllText(target, "{\"mine\":true}");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(SeedDeploy.SeedFileIfAbsent(shipped, target), Is.False);
+            Assert.That(File.ReadAllText(target), Does.Contain("mine"));
+        });
+    }
+
+    /// <summary>An EMPTY file is an existing file. Same rule as the empty world dir above.</summary>
+    [Test]
+    public void AnEmptyConfigFile_IsStillAnExistingOne()
+    {
+        string shipped = Path.Combine(_seed, "motd.json");
+        string target = Path.Combine(_root, "state", "motd.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+        File.WriteAllText(target, "");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(SeedDeploy.SeedFileIfAbsent(shipped, target), Is.False);
+            Assert.That(new FileInfo(target).Length, Is.Zero);
+        });
+    }
+
+    [Test]
+    public void NoShippedFile_DoesNothing()
+    {
+        string target = Path.Combine(_root, "state", "absent.json");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(SeedDeploy.SeedFileIfAbsent(Path.Combine(_seed, "absent.json"), target), Is.False);
+            Assert.That(File.Exists(target), Is.False);
+        });
+    }
 }

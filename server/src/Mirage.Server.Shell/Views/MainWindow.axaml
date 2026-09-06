@@ -540,7 +540,25 @@
                         IsVisible="{Binding IsRemote}">
               <Button Content="{Binding AddServerLabel}" Command="{Binding AddServerCommand}" MinWidth="88"/>
               <Button Content="{Binding ForgetServerLabel}" Command="{Binding ForgetServerCommand}" MinWidth="88"/>
+              <!-- Separate from Forget on purpose: the address book and the certificate pins are two
+                   stores, and dropping the entry leaves the pin behind. Disabled when nothing is pinned,
+                   which is also how the panel says whether this address has a certificate on record. -->
+              <Button Content="{Binding ClearPinLabel}" Command="{Binding ClearPinCommand}" MinWidth="88"/>
             </StackPanel>
+
+            <!-- The refusal, with the decision attached. The console carries the same text, but it
+                 scrolls; this stays until the next attach. Fingerprints are selectable so the operator
+                 can paste one into whatever the server publishes. -->
+            <Border Margin="28,8,0,0" Padding="10" CornerRadius="3" BorderThickness="1"
+                    BorderBrush="{DynamicResource MirageWarnBrush}"
+                    IsVisible="{Binding IdentityMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <StackPanel Spacing="10">
+                <SelectableTextBlock Text="{Binding IdentityMessage}" TextWrapping="Wrap" MaxWidth="520"/>
+                <Button Content="{Binding TrustNewCertificateLabel}"
+                        Command="{Binding TrustNewCertificateCommand}"
+                        HorizontalAlignment="Left"/>
+              </StackPanel>
+            </Border>
           </StackPanel>
 
           <!-- Language applies on selection, like everything else in this group: a display preference

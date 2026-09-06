@@ -26,10 +26,17 @@ public static class ServerConfigStore
         AllowTrailingCommas = true,
     };
 
-    /// <summary>The config file beside the executable. Resolved off <see cref="AppContext.BaseDirectory"/>
-    /// rather than the working directory so it lands with the install however the process was launched —
-    /// including from the management shell, which starts the server as a child process.</summary>
-    public static string DefaultPath => Path.Combine(AppContext.BaseDirectory, "serverconfig.json");
+    public const string FileName = "serverconfig.json";
+
+    /// <summary>The operator's own config. In the per-user state dir, not beside the executable: what an
+    /// operator set has to outlive the version they set it in, and an update deletes the install folder —
+    /// see <see cref="ServerPaths"/>. Resolved off an absolute root rather than the working directory so it
+    /// lands in the same place however the process was launched, including as the shell's child.</summary>
+    public static string DefaultPath => ServerPaths.Data(FileName);
+
+    /// <summary>The defaults the package ships. Read once, to seed <see cref="DefaultPath"/> on a machine
+    /// that has no config yet; never written.</summary>
+    public static string ShippedPath => Path.Combine(AppContext.BaseDirectory, FileName);
 
     /// <summary>Loads the config at <paramref name="path"/>.
     ///

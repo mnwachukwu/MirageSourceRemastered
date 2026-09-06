@@ -31,9 +31,15 @@ public static class AppSettingsStore
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    /// <summary>The file beside the executable, for the same reason <see cref="ServerConfigStore"/> resolves
-    /// its path that way: a child process inherits a working directory it never chose.</summary>
-    public static string DefaultPath => Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+    public const string FileName = "appsettings.json";
+
+    /// <summary>The live file, in the per-user state dir for the same reason
+    /// <see cref="ServerConfigStore"/> resolves its path that way: it holds settings an operator changed,
+    /// and an update deletes the install folder.</summary>
+    public static string DefaultPath => ServerPaths.Data(FileName);
+
+    /// <summary>The defaults the package ships, used only to seed <see cref="DefaultPath"/> once.</summary>
+    public static string ShippedPath => Path.Combine(AppContext.BaseDirectory, FileName);
 
     private const string OutgoingLogger = "Mirage.Server.Host.Net.TcpPacketDispatcher";
     private const string IncomingLogger = "Mirage.Server.Host.Net.ReceiveLoop";
@@ -46,7 +52,7 @@ public static class AppSettingsStore
     public static (LogSettings Settings, string? Error) Load(string path)
     {
         if (!File.Exists(path))
-            return (new LogSettings { Available = LogKnobs.None }, $"No {Path.GetFileName(path)} beside the server.");
+            return (new LogSettings { Available = LogKnobs.None }, $"No {Path.GetFileName(path)} at {path}.");
 
         JsonNode? root;
         try

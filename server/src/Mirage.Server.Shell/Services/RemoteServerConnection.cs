@@ -45,11 +45,17 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
     public string Host { get; } = host;
     public int Port { get; } = port;
 
+    /// <summary>Both fingerprints from the last refused handshake, or null. Set only alongside
+    /// <see cref="RemoteError.IdentityChanged"/>, so the shell can name what changed and offer to
+    /// drop the pin rather than only reporting that it refused.</summary>
+    public ServerIdentityChangedException? LastIdentityChange { get; private set; }
+
     /// <summary>Connects and presents the token. Returns null on success, or a message to show.</summary>
     public async Task<string?> StartAsync()
     {
         if (State != ServerState.Stopped) return null;
 
+        LastIdentityChange = null;
         var client = new TcpClient { NoDelay = true };
         try
         {
@@ -62,10 +68,11 @@ public sealed class RemoteServerConnection(string host, int port, string token) 
             {
                 await ssl.AuthenticateAsClientAsync("mirage-server").ConfigureAwait(false);
             }
-            catch (AuthenticationException) when (pinned.Trust == ServerTrust.Changed)
+            catch (AuthenticationException ex) when (pinned.Trust == ServerTrust.Changed)
             {
                 ssl.Dispose();
                 client.Dispose();
+                LastIdentityChange = pinned.Translate(ex) as ServerIdentityChangedException;
                 return RemoteError.IdentityChanged;
             }
             pinned.Commit();

@@ -15,4 +15,9 @@ internal static class ConnectFailure
             TimeoutException => ClientStrings.Get(ClientStrings.Common_ConnectionTimedOut),
             _ => ClientStrings.Get(ClientStrings.Common_CannotConnect),
         };
+
+    /// <summary>The identity mismatch behind a failed connect, or null when it failed for another
+    /// reason. A caller that gets one can offer to drop the pin instead of only naming the problem.</summary>
+    public static ServerIdentityChangedException? IdentityChange(Task connect) =>
+        connect.Exception?.InnerException as ServerIdentityChangedException;
 }

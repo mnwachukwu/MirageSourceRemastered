@@ -135,7 +135,7 @@ from source there is no bundled copy, so the first Open is yours to aim.
 >
 > `data/` is what one installation accumulated — accounts, guilds, market listings, trade journals, seasons, dropped items, the name registry, the ban lists, the clock and the MOTD. It belongs to that server on that machine and means nothing beside a different world. Keeping the two apart is what stops a copied world carrying somebody's password hashes with it.
 >
-> Both default to sitting beside the executable and are set independently, `WorldDir` and `DataDir`.
+> Both are set independently, `WorldDir` and `DataDir`, and both default to a per-user folder — `%LocalAppData%\Mirage Source Remastered Server\` on Windows, `~/.local/share/mirage-source-remastered-server/` on Linux, `~/Library/Application Support/` on macOS. Not beside the executable: an installed server runs out of a folder the updater replaces wholesale, so a world and a set of accounts kept there would last exactly one update.
 >
 > **Seed data:** `server/src/Mirage.Server.Host/world/` is the shipped default configuration — 147 maps, 10 classes, 558 items, 270 spells, 177 NPCs, 38 conversations, 54 quests and 21 shops. Any collection you leave out is created empty and written on first save, so a partial world folder boots fine.
 >

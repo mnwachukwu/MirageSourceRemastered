@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Mirage.Server.Core.Configuration;
 
 namespace Mirage.Server.Host.Net;
 
@@ -11,7 +12,10 @@ public static class SelfSignedCertificate
 
     public const string FileName = "server-identity.pfx";
 
-    public static string DefaultPath => Path.Combine(AppContext.BaseDirectory, FileName);
+    /// <summary>The identity's home: the server's per-user data dir, NOT the folder the exe runs from.
+    /// A Velopack update replaces that folder wholesale, so an identity kept there lasts exactly one
+    /// version — see <see cref="ServerPaths"/>.</summary>
+    public static string DefaultPath => ServerPaths.Data(FileName);
 
     /// <summary>Loads the identity from <paramref name="path"/>, creating and saving one if absent.</summary>
     /// <exception cref="InvalidOperationException">The file exists but cannot be read. It is left in
@@ -39,6 +43,7 @@ public static class SelfSignedCertificate
         byte[] pfx = NewPfxBytes();
         try
         {
+            if (Path.GetDirectoryName(path) is { Length: > 0 } dir) Directory.CreateDirectory(dir);
             File.WriteAllBytes(path, pfx);
         }
         catch (Exception ex)

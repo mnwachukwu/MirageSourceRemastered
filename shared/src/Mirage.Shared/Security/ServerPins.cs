@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace Mirage.Shared.Security;
@@ -26,6 +27,24 @@ public sealed class ServerPins
     /// <summary>SHA-256 of a certificate's raw bytes, lower-case hex.</summary>
     public static string FingerprintOf(byte[] rawCertificate) =>
         Convert.ToHexStringLower(SHA256.HashData(rawCertificate));
+
+    private const int DisplayGroup = 4;
+
+    /// <summary>The fingerprint in space-separated groups of four. Blank stays blank. The spaces are
+    /// wrap points, so a full 64-character fingerprint fits a narrow prompt without being truncated.</summary>
+    public static string ForDisplay(string fingerprint)
+    {
+        string hex = fingerprint.Trim();
+        if (hex.Length == 0) return "";
+
+        var text = new StringBuilder(hex.Length + hex.Length / DisplayGroup);
+        for (int i = 0; i < hex.Length; i += DisplayGroup)
+        {
+            if (i > 0) text.Append(' ');
+            text.Append(hex.AsSpan(i, Math.Min(DisplayGroup, hex.Length - i)));
+        }
+        return text.ToString();
+    }
 
     public ServerPins(string path)
     {

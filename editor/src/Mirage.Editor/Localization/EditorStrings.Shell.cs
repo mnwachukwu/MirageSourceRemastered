@@ -227,6 +227,11 @@ public static partial class EditorStrings
     public const string ConnectDialog_Header = nameof(ConnectDialog_Header);
     public const string ConnectDialog_ConnectionError = nameof(ConnectDialog_ConnectionError);
     public const string ConnectDialog_IdentityChanged = nameof(ConnectDialog_IdentityChanged); // "{Host}" "{Port}"
+    // "{Host}" "{Port}" "{Expected}" "{Actual}"
+    public const string ConnectDialog_IdentityChangedDetail = nameof(ConnectDialog_IdentityChangedDetail);
+    public const string ConnectDialog_TrustNewCertificate = nameof(ConnectDialog_TrustNewCertificate);
+    public const string ConnectDialog_ClearPin = nameof(ConnectDialog_ClearPin);
+    public const string ConnectDialog_PinCleared = nameof(ConnectDialog_PinCleared);           // "{Server}"
     public const string ConnectDialog_KnownServers = nameof(ConnectDialog_KnownServers);
     public const string ConnectDialog_Forget = nameof(ConnectDialog_Forget);
     public const string ConnectDialog_Add = nameof(ConnectDialog_Add);

@@ -30,6 +30,15 @@ public static partial class ClientStrings
     public const string Common_CannotConnect = nameof(Common_CannotConnect);
     public const string Common_ConnectionTimedOut = nameof(Common_ConnectionTimedOut);
     public const string Common_ServerIdentityChanged = nameof(Common_ServerIdentityChanged);
+    public const string Common_ServerIdentityChangedTitle = nameof(Common_ServerIdentityChangedTitle);
+    // Four lines that IdentityChangedPrompt joins into one wrapped block. Separate keys because the
+    // SpriteFont draws no newline: a line break inside a value fails the charset guard.
+    public const string Common_ServerIdentityChangedDetail = nameof(Common_ServerIdentityChangedDetail); // "{Host}" "{Port}"
+    public const string Common_ServerIdentityOnRecord = nameof(Common_ServerIdentityOnRecord);
+    public const string Common_ServerIdentityOffered = nameof(Common_ServerIdentityOffered);
+    public const string Common_ServerIdentityAdvice = nameof(Common_ServerIdentityAdvice);
+    public const string Common_TrustNewCertificate = nameof(Common_TrustNewCertificate);
+    public const string Common_ServerPinCleared = nameof(Common_ServerPinCleared);
     public const string Common_Disconnected = nameof(Common_Disconnected);
     public const string Common_Connecting = nameof(Common_Connecting);
     public const string Common_NameTooShort = nameof(Common_NameTooShort);

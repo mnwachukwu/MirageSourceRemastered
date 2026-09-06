@@ -59,7 +59,7 @@ reads like another and a timeline can be assembled across them. This is the whol
 |---|---|---|---|
 | Client | `client-*.log` | 10 days | its **cache** dir (beside the map cache) |
 | Editor | `editor-*.log` | 3 days, configurable to 30 or forever | its **data** dir (`logs/`) |
-| Server | `server-*.log` | 7 days | `logs/` beside the executable |
+| Server | `server-*.log` | 7 days | its **data** dir (`logs/`) |
 | Server | `network-*.log` | 3 days | packet traffic, split out because it is noisy |
 | Server | `chat/*.log` | 30 days | what was said, kept longest — it is the moderation record |
 

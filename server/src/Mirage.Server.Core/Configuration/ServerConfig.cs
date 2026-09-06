@@ -39,19 +39,19 @@ public sealed record ServerConfig
     public string Language { get; init; } = "en";
 
     /// <summary>Where THIS INSTALLATION's state lives: accounts, guilds, market listings, trade journals,
-    /// seasons, dropped items, the name registry, the ban lists and the clock. Empty means <c>data/</c>
-    /// beside the executable.
+    /// seasons, dropped items, the name registry, the ban lists and the clock. Empty means the per-user
+    /// <c>data/</c> resolved by <see cref="ServerPaths"/> — not a folder beside the executable, which an
+    /// update deletes.
     ///
     /// <para>Everything here changes while the server runs and means nothing beside a different world, so
     /// it is deliberately NOT where the world is — see <see cref="WorldDir"/>.</para>
     ///
     /// <para>Here rather than in appsettings.json because it configures the SERVER, which is the line the
-    /// two files are split on. <c>Program.cs</c> still honors the old <c>DataDir</c> key in appsettings.json
-    /// when this is empty, so an install predating the move keeps working.</para></summary>
+    /// two files are split on.</para></summary>
     public string DataDir { get; init; } = "";
 
     /// <summary>Where the WORLD lives: maps, the record families, <c>world.json</c> and the MOTD. Empty
-    /// means <c>world/</c> beside the executable.
+    /// means the per-user <c>world/</c> resolved by <see cref="ServerPaths"/>.
     ///
     /// <para>Nothing here changes unless somebody edits it, which is what lets a world be zipped up and
     /// handed to another machine — and what stops a copy carrying anybody's password hashes with it. This

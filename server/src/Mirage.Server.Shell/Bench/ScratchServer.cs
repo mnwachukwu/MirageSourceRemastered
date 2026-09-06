@@ -233,10 +233,7 @@ public sealed class ScratchServer : IAsyncDisposable
         }
     }
 
-    /// <summary>Where the operator's world actually is, resolved the way the server resolves it: the
-    /// configured folder if there is one, otherwise <c>data/</c> beside the executable.</summary>
-    public static string ResolveDataDir(ServerConfig config) =>
-        config.DataDir is { Length: > 0 } configured
-            ? configured
-            : Path.Combine(AppContext.BaseDirectory, "data");
+    /// <summary>Where the operator's world actually is, resolved the way the server resolves it —
+    /// through the same function, so the two cannot drift apart.</summary>
+    public static string ResolveDataDir(ServerConfig config) => ServerPaths.ResolveDataDir(config);
 }

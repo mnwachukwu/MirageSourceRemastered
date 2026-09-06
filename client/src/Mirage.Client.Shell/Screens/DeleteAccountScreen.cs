@@ -19,6 +19,7 @@ public sealed class DeleteAccountScreen : IGameScreen
     private readonly TextInputField _passwordField = new() { MaxLength = int.MaxValue, IsPassword = true };
     private readonly Button _deleteBtn;
     private readonly Button _cancelBtn;
+    private readonly IdentityChangedPrompt _identityPrompt = new();
     private readonly bool _clearName;
     private int _focusedField;
     private int _draggingField = -1;
@@ -59,6 +60,7 @@ public sealed class DeleteAccountScreen : IGameScreen
         _errorMsg = "";
         _connecting = false;
         _draggingField = -1;
+        _identityPrompt.Close();
     }
     /// <summary>Nothing to release — the screen holds no resources beyond its fields.</summary>
     public void OnExit() { }
@@ -74,6 +76,12 @@ public sealed class DeleteAccountScreen : IGameScreen
             RefreshLabels();
         }
 
+        if (_identityPrompt.IsOpen)
+        {
+            if (_identityPrompt.Update(input)) _errorMsg = ClientStrings.Get(ClientStrings.Common_ServerPinCleared);
+            return;
+        }
+
         if (_connecting)
         {
             if (_connectTask!.IsCompleted)
@@ -83,6 +91,8 @@ public sealed class DeleteAccountScreen : IGameScreen
                 // treating that as a connection sends the request into a socket that is already gone.
                 if (_connectTask.IsCompletedSuccessfully)
                     DoDelete();
+                else if (ConnectFailure.IdentityChange(_connectTask) is { } identity)
+                    _identityPrompt.Open(identity);
                 else
                     _errorMsg = ConnectFailure.Describe(_connectTask);
             }
@@ -197,5 +207,7 @@ public sealed class DeleteAccountScreen : IGameScreen
             UiHelper.DrawMenuAlert(sb, font, ClientStrings.Get(ClientStrings.Common_Connecting), Color.Yellow);
         else if (_errorMsg.Length > 0)
             UiHelper.DrawMenuAlert(sb, font, _errorMsg, Color.Red);
+
+        _identityPrompt.Draw(sb, font, _ctx.Graphics.Viewport.Bounds);
     }
 }

@@ -331,11 +331,21 @@ public class ServerConfigStoreTests
     }
 
     [Test]
-    public void DefaultPath_SitsBesideTheExecutable()
+    public void DefaultPath_SitsInTheStateDir()
     {
-        // Resolved off AppContext.BaseDirectory rather than the working directory, because the shell
-        // starts the server as a child process and a child inherits a working directory it never chose.
+        // Resolved off an absolute root rather than the working directory, because the shell starts the
+        // server as a child process and a child inherits a working directory it never chose. The state
+        // dir rather than the install, because an update replaces the install — see
+        // StateOutlivesTheBinariesTests.
         Assert.That(ServerConfigStore.DefaultPath,
-            Is.EqualTo(Path.Combine(AppContext.BaseDirectory, "serverconfig.json")));
+            Is.EqualTo(ServerPaths.Data(ServerConfigStore.FileName)));
+    }
+
+    [Test]
+    public void ShippedPath_SitsBesideTheExecutable()
+    {
+        // The package's copy, and only ever a seed source.
+        Assert.That(ServerConfigStore.ShippedPath,
+            Is.EqualTo(Path.Combine(AppContext.BaseDirectory, ServerConfigStore.FileName)));
     }
 }

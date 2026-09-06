@@ -31,6 +31,17 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
     [ObservableProperty] private string _errorMessage = "";
     [ObservableProperty] private bool _isBusy;
 
+    /// <summary>The refused certificate, kept so <see cref="TrustNewCertificateCommand"/> knows which
+    /// pin to drop. Non-null exactly while <see cref="IdentityMessage"/> is showing.</summary>
+    private ServerIdentityChangedException? _pendingIdentity;
+
+    /// <summary>The full identity-changed explanation, both fingerprints included. Empty when there is
+    /// nothing to decide.</summary>
+    [ObservableProperty] private string _identityMessage = "";
+
+    /// <summary>Confirmation of something that worked, shown apart from <see cref="ErrorMessage"/>.</summary>
+    [ObservableProperty] private string _statusMessage = "";
+
     /// <summary>When true a failed attempt closes the dialog instead of showing the error inline;
     /// the caller reads <see cref="LastError"/>. Used by the reconnect flow.</summary>
     public bool CloseOnFailure { get; init; }
@@ -49,6 +60,8 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
     public string ForgetLabel => EditorStrings.Get(EditorStrings.ConnectDialog_Forget);
     public string AddLabel => EditorStrings.Get(EditorStrings.ConnectDialog_Add);
     public string ServerNameLabel => EditorStrings.Get(EditorStrings.ConnectDialog_ServerName);
+    public string ClearPinLabel => EditorStrings.Get(EditorStrings.ConnectDialog_ClearPin);
+    public string TrustNewCertificateLabel => EditorStrings.Get(EditorStrings.ConnectDialog_TrustNewCertificate);
 
     /// <summary>What to call this address in the list. Filled from the picked row, and adopted from the
     /// server's own name on a first connect that leaves it blank.</summary>
@@ -96,6 +109,7 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
         if (_selectedServer is not null)
             ServerName = ServerBookStore.Book.Find(Host, Port)?.Name ?? "";
         ForgetServerCommand.NotifyCanExecuteChanged();
+        ClearPinCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnHostChanged(string value)
@@ -117,6 +131,52 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
         RefreshServers();
     }
 
+    private bool CanClearPin() => ServerPinStore.Store.PinnedFingerprint(Host, Port) is not null;
+
+    /// <summary>Drops the certificate on record for the typed address, so the next connection to it
+    /// records whatever is offered. Separate from <see cref="ForgetServerCommand"/>: dropping a server
+    /// from the list leaves its certificate behind, which is what makes re-adding it fail the same way.</summary>
+    [RelayCommand(CanExecute = nameof(CanClearPin))]
+    private void ClearPin()
+    {
+        if (!ServerPinStore.Store.Forget(Host, Port)) return;
+        DismissIdentityChange();
+        ErrorMessage = "";
+        StatusMessage = EditorStrings.Format(EditorStrings.ConnectDialog_PinCleared, ("Server", $"{Host}:{Port}"));
+        ClearPinCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Accepts the certificate that was just refused by dropping the old pin. The connection is
+    /// not retried here: the next Connect is a first contact, which records the new one.</summary>
+    [RelayCommand]
+    private void TrustNewCertificate()
+    {
+        if (_pendingIdentity is not { } identity) return;
+        ServerPinStore.Store.Forget(identity.Host, identity.Port);
+        DismissIdentityChange();
+        StatusMessage = EditorStrings.Format(EditorStrings.ConnectDialog_PinCleared,
+            ("Server", $"{identity.Host}:{identity.Port}"));
+        ClearPinCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Internal so a test can raise the offer without a TLS handshake that fails the right way.</summary>
+    internal void ShowIdentityChange(ServerIdentityChangedException identity)
+    {
+        _pendingIdentity = identity;
+        ErrorMessage = "";
+        StatusMessage = "";
+        IdentityMessage = EditorStrings.Format(EditorStrings.ConnectDialog_IdentityChangedDetail,
+            ("Host", identity.Host), ("Port", identity.Port),
+            ("Expected", ServerPins.ForDisplay(identity.Expected)),
+            ("Actual", ServerPins.ForDisplay(identity.Actual)));
+    }
+
+    private void DismissIdentityChange()
+    {
+        _pendingIdentity = null;
+        IdentityMessage = "";
+    }
+
     private bool CanAddServer() => !string.IsNullOrWhiteSpace(Host);
 
     /// <summary>Puts the typed address in the list under the typed name, without connecting to it.
@@ -132,6 +192,8 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
     private async Task ConnectAsync()
     {
         ErrorMessage = "";
+        StatusMessage = "";
+        DismissIdentityChange();
         IsBusy = true;
         try
         {
@@ -159,10 +221,16 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
             var msg = ex is ServerIdentityChangedException
                 ? EditorStrings.Format(EditorStrings.ConnectDialog_IdentityChanged, ("Host", Host), ("Port", Port))
                 : EditorStrings.Format(EditorStrings.ConnectDialog_ConnectionError, ("Error", ex.Message));
+            // A closing dialog has nowhere to put the offer, so the reconnect flow still reports the
+            // refusal as a sentence; Clear Pin on the next Connect is the way back from there.
             if (CloseOnFailure)
             {
                 LastError = msg;
                 CloseRequested?.Invoke();
+            }
+            else if (ex is ServerIdentityChangedException identity)
+            {
+                ShowIdentityChange(identity);
             }
             else
             {
@@ -172,6 +240,7 @@ public sealed partial class ConnectDialogViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+            ClearPinCommand.NotifyCanExecuteChanged();
         }
     }
 
