@@ -11,20 +11,6 @@ namespace Mirage.Shared;
 public static class SeedDeploy
 {
     /// <summary>
-    /// Copies <paramref name="seedDir"/> into <paramref name="targetDir"/>, and only when the target
-    /// directory does NOT EXIST.
-    ///
-    /// <para>An existing directory is left alone <b>even when it is empty</b>. An empty world dir is a
-    /// deliberate state — a blank world someone means to author into, or one they cleared on purpose — and a
-    /// rule that read emptiness as "fresh install" would refill it on the very next launch, which is the one
-    /// thing seeding must never do. Presence of the folder is the whole test.</para>
-    ///
-    /// <para>Staged through a temporary folder and moved into place, so a copy that fails part-way leaves NO
-    /// world dir behind. Without that, a half-written world would look "already seeded" forever after.</para>
-    ///
-    /// <para>Returns how many files were laid down; 0 means there was nothing to do.</para>
-    /// </summary>
-    /// <summary>
     /// Copies one shipped file to <paramref name="targetFile"/>, and only when the target does NOT EXIST.
     /// Returns true when it laid one down.
     ///
@@ -46,6 +32,20 @@ public static class SeedDeploy
         return true;
     }
 
+    /// <summary>
+    /// Copies <paramref name="seedDir"/> into <paramref name="targetDir"/>, and only when the target
+    /// directory does NOT EXIST.
+    ///
+    /// <para>An existing directory is left alone <b>even when it is empty</b>. An empty world dir is a
+    /// deliberate state — a blank world someone means to author into, or one they cleared on purpose — and a
+    /// rule that read emptiness as "fresh install" would refill it on the very next launch, which is the one
+    /// thing seeding must never do. Presence of the folder is the whole test.</para>
+    ///
+    /// <para>Staged through a temporary folder and moved into place, so a copy that fails part-way leaves NO
+    /// world dir behind. Without that, a half-written world would look "already seeded" forever after.</para>
+    ///
+    /// <para>Returns how many files were laid down; 0 means there was nothing to do.</para>
+    /// </summary>
     public static int SeedIfAbsent(string seedDir, string targetDir)
     {
         if (Directory.Exists(targetDir)) return 0;
