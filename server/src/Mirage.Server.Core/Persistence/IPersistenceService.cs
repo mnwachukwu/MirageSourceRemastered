@@ -51,13 +51,13 @@ public interface IPersistenceService
     Task SaveMapAsync(int mapNum, MapRecord map);
 
     // ── Game data arrays ──────────────────────────────────────────────────────
-    Task<(ItemRecord[] records, int padded)> LoadAllItemsAsync();
-    Task<(NpcRecord[] records, int padded)> LoadAllNpcsAsync();
-    Task<(ShopRecord[] records, int padded)> LoadAllShopsAsync();
-    Task<(SpellRecord[] records, int padded)> LoadAllSpellsAsync();
-    Task<(ClassRecord[] records, int padded)> LoadAllClassesAsync();
-    Task<(QuestRecord[] records, int padded)> LoadAllQuestsAsync();
-    Task<(ConversationRecord[] records, int padded)> LoadAllConversationsAsync();
+    Task<(ItemRecord[] records, int loaded)> LoadAllItemsAsync();
+    Task<(NpcRecord[] records, int loaded)> LoadAllNpcsAsync();
+    Task<(ShopRecord[] records, int loaded)> LoadAllShopsAsync();
+    Task<(SpellRecord[] records, int loaded)> LoadAllSpellsAsync();
+    Task<(ClassRecord[] records, int loaded)> LoadAllClassesAsync();
+    Task<(QuestRecord[] records, int loaded)> LoadAllQuestsAsync();
+    Task<(ConversationRecord[] records, int loaded)> LoadAllConversationsAsync();
 
     Task SaveItemAsync(int num, ItemRecord item);
     Task SaveNpcAsync(int num, NpcRecord npc);

@@ -1,0 +1,63 @@
+using Microsoft.Extensions.Logging.Abstractions;
+using Mirage.Server.Core.Localization;
+using NUnit.Framework;
+
+namespace Mirage.Server.Tests.Platform;
+
+/// <summary>
+/// The log lines the server writes while starting up, rendered with the arguments it actually passes.
+///
+/// <para>🔴 <c>StringLoader</c> THROWS on a placeholder with no value, and these run before the host is
+/// up — so a template naming a field the call site stopped supplying costs a boot rather than a
+/// log line. Nothing else covers it: every suite can be green while the thing refuses to
+/// start, because no test starts it.</para>
+///
+/// <para>The argument list below is deliberately a second copy of the call site in
+/// <c>MirageServerService.LoadWorldDataAsync</c>. Two copies that must agree is the arrangement —
+/// when they disagree, this fails instead of the server.</para>
+/// </summary>
+[TestFixture]
+public class StartupLogTemplateTests
+{
+    [OneTimeSetUp]
+    public void LoadStrings() => ServerStrings.Load(Path.Combine(AppContext.BaseDirectory, "lang"));
+
+    private static readonly (string Key, object? Value)[] WorldCounts =
+    [
+        ("Items", 1), ("ItemsMax", 1000),
+        ("Npcs", 1), ("NpcsMax", 1000),
+        ("Shops", 1), ("ShopsMax", 1000),
+        ("Spells", 1), ("SpellsMax", 1000),
+        ("Classes", 1), ("ClassesMax", 10),
+        ("Quests", 1), ("QuestsMax", 1000),
+        ("Conversations", 1), ("ConversationsMax", 1000),
+        ("Maps", 1), ("MapsMax", 1000),
+    ];
+
+    [Test]
+    public void TheLoadedSummary_RendersWithWhatTheServerPasses()
+    {
+        Assert.DoesNotThrow(() =>
+            LocalizedLog.Info(NullLogger.Instance, ServerStrings.Server_LoadedSummary, WorldCounts));
+    }
+
+    /// <summary>Every language, not just the one this machine runs in. A translator's copy of a template
+    /// carries its own placeholders, so a field removed from the English one can survive in three others
+    /// and take the server down for whoever runs it in Spanish.</summary>
+    [Test]
+    public void EveryLanguage_RendersTheSummary()
+    {
+        string langDir = Path.Combine(AppContext.BaseDirectory, "lang");
+
+        Assert.Multiple(() =>
+        {
+            foreach (string file in Directory.GetFiles(langDir, "*.json"))
+            {
+                string locale = Path.GetFileNameWithoutExtension(file);
+                Assert.DoesNotThrow(
+                    () => ServerStrings.ForLocale(locale, ServerStrings.Server_LoadedSummary, WorldCounts),
+                    $"{locale}.json: the loaded summary names a placeholder the server does not supply");
+            }
+        });
+    }
+}
