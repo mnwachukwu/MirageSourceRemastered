@@ -401,17 +401,32 @@ public static class Constants
     // ── Item index reservations ──────────────────────────────────────────────
     // Item slot 1 is the gold (Currency) item. Every system that charges or
     // rewards gold references this constant; do not hardcode 1 at call sites.
+    /// <summary>What to call the money when item <see cref="GoldItemIndex"/> has no name yet — a world
+    /// that has not loaded, or a test host that never loads one. The item's own name wins wherever
+    /// there is one.</summary>
+    public const string DefaultCurrencyName = "Gold";
+
     public const int GoldItemIndex = 1;
 
     // Item slot 2 is the spellcasting reagent (a Currency item authored in data). A SubHp cast consumes
     // CombatFormulas.SubHpReagentCostExact(LevelReq) of it — the magic-side mirror of a warrior's repair upkeep.
     // The item's definition (name, value, drops, shop stock) is authored in item data; the code only references
     // this index to check/consume the stack, exactly as gold does.
+    /// <summary>What to call the spellcasting reagent when item <see cref="CastingReagentItemIndex"/> has no name yet — a world
+    /// that has not loaded, or a test host that never loads one. The item's own name wins wherever
+    /// there is one.</summary>
+    public const string DefaultReagentName = "Reagent";
+
     public const int CastingReagentItemIndex = 2;
 
     // Item slot 3 is valor — the war currency (a Currency item authored in data, flagged NonTradeable).
     // Earned from war kills + guild quests, spent at the war shop, donated to the guild vault (tax relief),
     // or banked. Per-character; the code references this index to grant/spend it, exactly like gold.
+    /// <summary>What to call the war currency when item <see cref="ValorItemIndex"/> has no name yet — a world
+    /// that has not loaded, or a test host that never loads one. The item's own name wins wherever
+    /// there is one.</summary>
+    public const string DefaultValorName = "Valor";
+
     public const int ValorItemIndex = 3;
 
     // ── Inn: set-spawn cost ──────────────────────────────────────────────────

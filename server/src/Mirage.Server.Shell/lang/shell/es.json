@@ -181,7 +181,7 @@
   "Config_DeathPenaltyHeading": "Penalizaciones por muerte",
   "Config_DeathPenaltyBlurb": "Lo que pierde un jugador al morir. Cada parte es independiente, y los jugadores por debajo del nivel 10 quedan exentos en cualquier caso.",
   "Config_DurabilityLoss": "El equipo se daña",
-  "Config_DurabilityLossHint": "El equipo llevado pierde durabilidad, y un lanzador de hechizos pierde reactivos de forma equivalente. La lluvia lo duplica; una guerra de hermandades lo vuelve a duplicar.",
+  "Config_DurabilityLossHint": "El equipo llevado pierde durabilidad, y un lanzador de hechizos pierde {Reagent} de forma equivalente. La lluvia lo duplica; una guerra de hermandades lo vuelve a duplicar.",
   "Config_ItemDrop": "Se caen objetos",
   "Config_ItemDropHint": "Parte de la mochila cae al suelo. Un jugador marcado como asesino lo suelta todo, más una probabilidad por cada pieza equipada.",
   "Config_ExpLoss": "Se pierde experiencia",

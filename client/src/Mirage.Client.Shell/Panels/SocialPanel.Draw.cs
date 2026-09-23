@@ -246,7 +246,7 @@ public sealed partial class SocialPanel : IGamePanel
         UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.SocialPanel_VaultFormat, ("Gold", info.VaultGold)),
             new Vector2(x, y), Color.LightGray, maxW);
         y += RowH;
-        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.SocialPanel_VaultValorFormat, ("Valor", info.VaultValor)),
+        UiHelper.DrawLabel(sb, font, ClientStrings.Format(ClientStrings.SocialPanel_VaultValorFormat, ("Amount", info.VaultValor)),
             new Vector2(x, y), Color.LightGray, maxW);
         y += RowH;
         // Gold earned and not yet banked — what the next daily settlement pays in. Always drawn, including at

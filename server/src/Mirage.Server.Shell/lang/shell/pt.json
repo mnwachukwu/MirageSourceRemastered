@@ -181,7 +181,7 @@
   "Config_DeathPenaltyHeading": "Penalizações por morte",
   "Config_DeathPenaltyBlurb": "O que um jogador perde ao morrer. Cada parte é independente, e os jogadores abaixo do nível 10 ficam isentos de qualquer forma.",
   "Config_DurabilityLoss": "O equipamento sofre danos",
-  "Config_DurabilityLossHint": "O equipamento usado perde durabilidade, e um conjurador perde reagentes de forma equivalente. A chuva duplica isso; uma guerra de guildas duplica outra vez.",
+  "Config_DurabilityLossHint": "O equipamento usado perde durabilidade, e um conjurador perde {Reagent} de forma equivalente. A chuva duplica isso; uma guerra de guildas duplica outra vez.",
   "Config_ItemDrop": "Caem objetos",
   "Config_ItemDropHint": "Parte da mochila cai no chão. Um jogador marcado como assassino perde tudo, mais uma probabilidade em cada peça equipada.",
   "Config_ExpLoss": "Perde-se experiência",

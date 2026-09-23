@@ -181,7 +181,7 @@
   "Config_DeathPenaltyHeading": "Death penalties",
   "Config_DeathPenaltyBlurb": "What a player loses when they die. Each part is independent, and players under level 10 are spared either way.",
   "Config_DurabilityLoss": "Gear takes damage",
-  "Config_DurabilityLossHint": "Worn equipment loses durability, and a caster loses reagents to match. Rain doubles it; a guild war doubles it again.",
+  "Config_DurabilityLossHint": "Worn equipment loses durability, and a caster loses {Reagent} to match. Rain doubles it; a guild war doubles it again.",
   "Config_ItemDrop": "Items drop",
   "Config_ItemDropHint": "Part of the bag falls on the ground. A player flagged for PK drops all of it, plus a chance at each worn piece.",
   "Config_ExpLoss": "Experience is lost",
