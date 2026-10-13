@@ -612,10 +612,6 @@ public sealed class SpellSystem : GameSystem
     /// entity — and its impact/death lines up there — even after that entity dies.</summary>
     private readonly record struct CastFxTarget(byte TargetType, int Target, int TargetMap, int SpawnMap, int SpawnSlot);
 
-    /// <summary>Broadcasts the cast animation + typed projectile FX to the caster's map observers. Sent ONLY on a
-    /// cast's success path — after every range/LoS/target/PvP gate passes but BEFORE the effect sends its
-    /// damage/death — so a rejected cast produces no phantom projectile and no combat bar, while a valid one still
-    /// lets the client register the in-flight bolt and defer the damage number / death onto its arrival.</summary>
     /// <summary>A cast that found nothing to land on: the caster pays the cooldown and nothing else.
     ///
     /// <para>🔴 A whiff is not a refusal. Everything the spell can be turned down for — not known, level,
@@ -637,6 +633,10 @@ public sealed class SpellSystem : GameSystem
         _pm[index].AttackTimer = Environment.TickCount64;
     }
 
+    /// <summary>Broadcasts the cast animation + typed projectile FX to the caster's map observers. Sent ONLY on a
+    /// cast's success path — after every range/LoS/target/PvP gate passes but BEFORE the effect sends its
+    /// damage/death — so a rejected cast produces no phantom projectile and no combat bar, while a valid one still
+    /// lets the client register the in-flight bolt and defer the damage number / death onto its arrival.</summary>
     private void BroadcastCastFx(int index, int casterMap, int spellNum, bool inCombat, CastFxTarget t) =>
         SendToMap(_world, casterMap, new PlayerCastPacket
         {

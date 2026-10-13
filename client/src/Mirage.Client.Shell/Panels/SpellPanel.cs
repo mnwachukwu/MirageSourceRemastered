@@ -185,11 +185,6 @@ public sealed class SpellPanel : IGamePanel
         }
     }
 
-    /// <summary>Cast the prepared spell via Q key. Silently does nothing if no spell is prepared.
-    /// <paramref name="self"/> is set when Ctrl is held (Ctrl+Cast) to target the caster.</summary>
-    /// <summary>Cast the prepared spell at the current target. NEVER at the caster: the prepared slot only
-    /// ever holds a SubHp spell — the server refuses to prepare anything else — so aiming it inward is
-    /// asking to be damaged. Self-casting belongs to the action bar and the book, which hold the rest.</summary>
     /// <summary>The cast beat — how often a prepared spell may go off, and how often the key may be
     /// re-tried while it is HELD.</summary>
     private const long CastBeatMs = 1000L;
@@ -202,6 +197,10 @@ public sealed class SpellPanel : IGamePanel
     /// would re-send every frame for as long as the refusal lasts.</para></summary>
     private long _lastAttemptMs;
 
+    /// <summary>Cast the prepared spell at the current target. Silently does nothing if no spell is
+    /// prepared. NEVER at the caster: the prepared slot only ever holds a SubHp spell — the server refuses
+    /// to prepare anything else — so aiming it inward is asking to be damaged. Self-casting belongs to the
+    /// action bar and the book, which hold the rest.</summary>
     public void TryCastPrepared(ClientState state, ClientPacketSender sender)
     {
         if (_preparedSlot <= 0) return;

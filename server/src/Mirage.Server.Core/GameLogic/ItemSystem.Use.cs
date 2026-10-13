@@ -258,8 +258,8 @@ public sealed partial class ItemSystem : GameSystem
     private enum PotionVital { Hp, Mp, Sp }
 
     /// <summary>PotionAdd{Hp,Mp,Sp}: restore <see cref="ItemRecord.VitalAmount"/> of one vital,
-    /// clamped to its max. Refuses (with a chat message) if the vital is already at max.</summary>
-    /// <summary>Returns whether the potion was drunk. A refusal costs the player nothing — not the
+    /// clamped to its max. Refuses (with a chat message) if the vital is already at max.
+    /// Returns whether the potion was drunk. A refusal costs the player nothing — not the
     /// item, and not the shared beat.</summary>
     private bool ApplyAddPotion(int index, PlayerRecord p, ItemRecord item, int itemNum, PotionVital vital)
     {

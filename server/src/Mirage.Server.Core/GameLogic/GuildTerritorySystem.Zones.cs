@@ -63,8 +63,6 @@ public sealed partial class GuildTerritorySystem : GameSystem
         return false;
     }
 
-    /// <summary>True if both are participants of the same contest standing in its territory during SETUP or
-    /// COOLDOWN — PvP between participants is suppressed in those phases.</summary>
     /// <summary>The PHASE whose truce is stopping <paramref name="a"/> from attacking
     /// <paramref name="b"/>, or null when nothing is. Returns the phase rather than a bare yes, because
     /// the two that suppress mean opposite things to the player: Setup is a truce that is about to lift,

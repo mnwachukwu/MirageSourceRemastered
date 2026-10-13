@@ -2,8 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace Mirage.Shared.Protocol.Packets;
 
-/// <summary>S→C packets for map/world events not covered by the core set.</summary>
-
 /// <summary>Server tells client which map it has been warped to; client checks revision and requests data if needed.</summary>
 public sealed record CheckForMapPacket : IPacket
 {
